@@ -44,6 +44,7 @@ public class RPRPlugin : ModuleRules
 				"Slate",
 				"SlateCore",
 				"RenderCore",
+				"CinematicCamera",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

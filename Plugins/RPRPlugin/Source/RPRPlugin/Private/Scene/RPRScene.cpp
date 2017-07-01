@@ -50,6 +50,8 @@ void	ARPRScene::BuildScene()
 			BuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass());
 		else if (Cast<ULightComponentBase>(*it) != NULL)
 			BuildRPRActor(world, *it, URPRLightComponent::StaticClass());
+		else if (Cast<UCameraComponent>(*it) != NULL)
+			BuildRPRActor(world, *it, URPRCameraComponent::StaticClass());
 		// Cameras
 		// Lights
 		// Post processes

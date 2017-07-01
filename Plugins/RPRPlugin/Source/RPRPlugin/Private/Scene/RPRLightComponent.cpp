@@ -22,7 +22,7 @@ bool	URPRLightComponent::BuildPointLight(const UPointLightComponent *pointLightC
 		return false;
 	FColor	lightColor = pointLightComponent->LightColor;
 	rprPointLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B);
-	return true;
+	return rprSceneAttachLight(Scene->m_RprScene, m_RprLight) == RPR_SUCCESS;
 }
 
 bool	URPRLightComponent::BuildSpotLight(const USpotLightComponent *spotLightComponent)
@@ -34,7 +34,7 @@ bool	URPRLightComponent::BuildSpotLight(const USpotLightComponent *spotLightComp
 	rprSpotLightSetConeShape(m_RprLight,
 		FMath::DegreesToRadians(spotLightComponent->InnerConeAngle),
 		FMath::DegreesToRadians(spotLightComponent->OuterConeAngle));
-	return true;
+	return rprSceneAttachLight(Scene->m_RprScene, m_RprLight) == RPR_SUCCESS;
 }
 
 bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightComponent)
@@ -42,7 +42,7 @@ bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightCompone
 	if (rprContextCreateSkyLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS)
 		return false;
 	// TODO
-	return true;
+	return rprSceneAttachLight(Scene->m_RprScene, m_RprLight) == RPR_SUCCESS;
 }
 
 bool	URPRLightComponent::BuildDirectionalLight(const UDirectionalLightComponent *dirLightComponent)
@@ -52,7 +52,7 @@ bool	URPRLightComponent::BuildDirectionalLight(const UDirectionalLightComponent 
 	FColor	lightColor = dirLightComponent->LightColor;
 	rprDirectionalLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B);
 	// rprDirectionalLightSetShadowSoftness(m_RprLight, 0.5f); // TODO unresolved external
-	return true;
+	return rprSceneAttachLight(Scene->m_RprScene, m_RprLight) == RPR_SUCCESS;
 }
 
 bool	URPRLightComponent::Build()
@@ -80,6 +80,7 @@ bool	URPRLightComponent::Build()
 void	URPRLightComponent::BeginDestroy()
 {
 	Super::BeginDestroy();
+	// TODO: Check if we need to call rprSceneDetachLight or rprObjectDelete does this thing for us
 	if (m_RprLight != NULL)
 	{
 		rprObjectDelete(m_RprLight);

@@ -87,6 +87,12 @@ bool	URPRStaticMeshComponent::Build()
 			(rpr_int const *)numFaceVertices.GetData(), indices.Num() / 3,
 			&newShape) != RPR_SUCCESS)
 			return false;
+		if (rprSceneAttachShape(Scene->m_RprScene, newShape) != RPR_SUCCESS)
+		{
+			rprObjectDelete(newShape);
+			return false;
+		}
+		// Either set the shape transforms during Tick() or here
 		m_RprObjects.Add(newShape);
 	}
 	return true;
@@ -95,6 +101,7 @@ bool	URPRStaticMeshComponent::Build()
 void	URPRStaticMeshComponent::BeginDestroy()
 {
 	Super::BeginDestroy();
+	// TODO: Check if we need to call rprSceneDetachShape or rprObjectDelete does this thing for us
 	uint32	objectCount = m_RprObjects.Num();
 	for (uint32 iObj = 0; iObj < objectCount; ++iObj)
 	{

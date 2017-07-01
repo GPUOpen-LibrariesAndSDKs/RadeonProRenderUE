@@ -23,8 +23,8 @@ private:
 	void	BuildScene();
 public:
 	rpr_context	m_RprContext;
-private:
 	rpr_scene	m_RprScene;
+private:
 
 	UPROPERTY(Transient)
 	TArray<AActor*>		SceneContent;
