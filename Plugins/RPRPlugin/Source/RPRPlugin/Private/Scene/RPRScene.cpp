@@ -68,7 +68,7 @@ void	ARPRScene::BeginPlay()
 
 	FString	cachePath = FPaths::GameSavedDir() + "/RadeonProRender/Cache/"; // To get from settings ?
 	FString	dllPath = FPaths::GameDir() + "/Binaries/Win64/Tahoe64.dll"; // To get from settings ?
-	uint32	creationFlags = RPR_CREATION_FLAGS_ENABLE_CPU; // for now
+	uint32	creationFlags = RPR_CREATION_FLAGS_ENABLE_GPU0; // for now
 
 	rpr_int tahoePluginId = rprRegisterPlugin(TCHAR_TO_ANSI(*dllPath)); // Seems to be mandatory
 	if (tahoePluginId == -1)
@@ -150,14 +150,16 @@ void	ARPRScene::BeginDestroy()
 	Super::BeginDestroy();
 
 	UWorld	*world = GetWorld();
-	check(world != NULL);
-
-	const uint32	objectCount = SceneContent.Num();
-	for (uint32 iObject = 0; iObject < objectCount; ++iObject)
+	if (world != NULL)
 	{
-		if (SceneContent[iObject] == NULL)
-			continue;
-		world->DestroyActor(SceneContent[iObject]);
+		// TODO make sure objects were correctly deleted
+		const uint32	objectCount = SceneContent.Num();
+		for (uint32 iObject = 0; iObject < objectCount; ++iObject)
+		{
+			if (SceneContent[iObject] == NULL)
+				continue;
+			world->DestroyActor(SceneContent[iObject]);
+		}
 	}
 	SceneContent.Empty();
 	if (m_RprScene != NULL)

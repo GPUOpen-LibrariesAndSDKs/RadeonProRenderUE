@@ -5,6 +5,7 @@
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
 
 URPRStaticMeshComponent::URPRStaticMeshComponent()
+:	m_RprMaterialSystem(NULL)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
@@ -14,6 +15,13 @@ bool	URPRStaticMeshComponent::Build()
 	if (Scene == NULL ||
 		SrcComponent == NULL)
 		return false;
+
+	// Not sure if material systems should be created on a per mesh level or per section
+	if (!rprContextCreateMaterialSystem(Scene->m_RprContext, 0, &m_RprMaterialSystem) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR material system"));
+		return false;
+	}
 
 	// Note for runtime builds
 	// All that data is probably stripped from runtime builds
@@ -76,7 +84,7 @@ bool	URPRStaticMeshComponent::Build()
 				uvs[srcVertex] = srcVertices.GetVertexUV(srcVertex, 0); // Right now only copy uv 0
 		}
 
-		rpr_shape	newShape = NULL;
+		rpr_shape	shape = NULL;
 		if (rprContextCreateMesh(Scene->m_RprContext,
 			(rpr_float const *)positions.GetData(), positions.Num(), sizeof(float) * 3,
 			(rpr_float const *)normals.GetData(), normals.Num(), sizeof(float) * 3,
@@ -85,15 +93,34 @@ bool	URPRStaticMeshComponent::Build()
 			(rpr_int const *)indices.GetData(), sizeof(int32),
 			(rpr_int const *)indices.GetData(), sizeof(int32),
 			(rpr_int const *)numFaceVertices.GetData(), indices.Num() / 3,
-			&newShape) != RPR_SUCCESS)
-			return false;
-		if (rprSceneAttachShape(Scene->m_RprScene, newShape) != RPR_SUCCESS)
+			&shape) != RPR_SUCCESS)
 		{
-			rprObjectDelete(newShape);
+			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh"));
+			return false;
+		}
+		rpr_material_node	material = NULL;
+		if (rprMaterialSystemCreateNode(m_RprMaterialSystem, RPR_MATERIAL_NODE_DIFFUSE, &material) != RPR_SUCCESS)
+		{
+			rprObjectDelete(shape);
+			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR material node"));
+			return false;
+		}
+		if (rprMaterialNodeSetInputF(material, "color", 0.5f, 0.5f, 0.5f, 1.0f) != RPR_SUCCESS ||
+			rprShapeSetMaterial(shape, material) != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR material to the RPR shape"));
+			rprObjectDelete(shape);
+			rprObjectDelete(material);
+			return false;
+		}
+		if (rprSceneAttachShape(Scene->m_RprScene, shape) != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't attach RPR shape to the RPR scene"));
+			rprObjectDelete(shape);
 			return false;
 		}
 		// Either set the shape transforms during Tick() or here
-		m_RprObjects.Add(newShape);
+		m_Shapes.Add(SRPRShape(shape, material));
 	}
 	return true;
 }
@@ -101,12 +128,17 @@ bool	URPRStaticMeshComponent::Build()
 void	URPRStaticMeshComponent::BeginDestroy()
 {
 	Super::BeginDestroy();
-	// TODO: Check if we need to call rprSceneDetachShape or rprObjectDelete does this thing for us
-	uint32	objectCount = m_RprObjects.Num();
-	for (uint32 iObj = 0; iObj < objectCount; ++iObj)
+	if (m_RprMaterialSystem != NULL)
 	{
-		if (m_RprObjects[iObj] != NULL)
-			rprObjectDelete(m_RprObjects[iObj]);
+		rprObjectDelete(m_RprMaterialSystem);
+		m_RprMaterialSystem = NULL;
 	}
-	m_RprObjects.Empty();
+	// TODO: Check if we need to call rprSceneDetachShape or rprObjectDelete does this thing for us
+	uint32	shapeCount = m_Shapes.Num();
+	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
+	{
+		rprObjectDelete(m_Shapes[iShape].m_RprShape);
+		rprObjectDelete(m_Shapes[iShape].m_RprMaterial);
+	}
+	m_Shapes.Empty();
 }
