@@ -10,6 +10,7 @@ DEFINE_LOG_CATEGORY_STATIC(LogRPRScene, Log, All);
 ARPRScene::ARPRScene()
 :	m_RprContext(NULL)
 ,	m_RprScene(NULL)
+,	m_RprFrameBuffer(NULL)
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
@@ -100,23 +101,74 @@ void	ARPRScene::BeginPlay()
 	UE_LOG(LogRPRScene, Log, TEXT("ProRender scene created"));
 
 	BuildScene();
+
+
+	// /!\ Testing purposes /!\ 
+	rpr_framebuffer_desc desc;
+	desc.fb_width = 800;
+	desc.fb_height = 600;
+
+	// 4 component 32-bit float value each
+	rpr_framebuffer_format fmt = { 4, RPR_COMPONENT_TYPE_FLOAT32 };
+
+	if (rprContextCreateFrameBuffer(m_RprContext, fmt, &desc, &m_RprFrameBuffer) != RPR_SUCCESS ||
+		rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS ||
+		rprContextSetAOV(m_RprContext, RPR_AOV_COLOR, m_RprFrameBuffer) != RPR_SUCCESS ||
+		rprContextSetParameter1u(m_RprContext, "aasamples", 2) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRScene, Error, TEXT("RPR FrameBuffer creation failed"));
+		GetWorld()->DestroyActor(this);
+		return;
+	}
+
+	// Progressively render an image
+	static const int32	numIterations = 16;
+	for (int32 i = 0; i < numIterations; ++i)
+	{
+		if (rprContextRender(m_RprContext) != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRScene, Error, TEXT("Couldn't render iteration %d"), i);
+			GetWorld()->DestroyActor(this);
+			return;
+		}
+	}
+
+	UE_LOG(LogRPRScene, Log, TEXT("RPR Frame rendered"));
+
+	if (!rprFrameBufferSaveToFile(m_RprFrameBuffer, "D:/simple_render.png") != RPR_SUCCESS)
+	{
+		GetWorld()->DestroyActor(this);
+		UE_LOG(LogRPRScene, Error, TEXT("Couldn't save rendered frame to 'D:/simple_render.png'"));
+		return;
+	}
+
+	UE_LOG(LogRPRScene, Log, TEXT("RPR Frame saved"));
 }
 
 void	ARPRScene::BeginDestroy()
 {
 	Super::BeginDestroy();
+
+	UWorld	*world = GetWorld();
+	check(world != NULL);
+
 	const uint32	objectCount = SceneContent.Num();
 	for (uint32 iObject = 0; iObject < objectCount; ++iObject)
 	{
 		if (SceneContent[iObject] == NULL)
 			continue;
-		rprObjectDelete(SceneContent[iObject]);
+		world->DestroyActor(SceneContent[iObject]);
 	}
 	SceneContent.Empty();
 	if (m_RprScene != NULL)
 	{
 		rprObjectDelete(m_RprScene);
 		m_RprScene = NULL;
+	}
+	if (m_RprFrameBuffer != NULL)
+	{
+		rprObjectDelete(m_RprFrameBuffer);
+		m_RprFrameBuffer = NULL;
 	}
 	if (m_RprContext != NULL)
 	{

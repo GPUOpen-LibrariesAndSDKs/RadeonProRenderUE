@@ -22,8 +22,9 @@ private:
 	void	BuildRPRActor(UWorld *world, USceneComponent *srcComponent, UClass *typeClass);
 	void	BuildScene();
 public:
-	rpr_context	m_RprContext;
-	rpr_scene	m_RprScene;
+	rpr_context		m_RprContext;
+	rpr_scene		m_RprScene;
+	rpr_framebuffer	m_RprFrameBuffer;
 private:
 
 	UPROPERTY(Transient)
