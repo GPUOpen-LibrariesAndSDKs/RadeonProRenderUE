@@ -24,8 +24,10 @@
 /w44668
 /I "E:\Program Files\Work\UE 4\Epic Games\UE_4.16\Engine\Source"
 /I "E:\Program Files\Work\UE 4\Projects\RPR\Plugins\RPRPlugin\Source\RPRPlugin\Private"
+/I "E:\Program Files\Work\UE 4\Projects\RPR\Plugins\RPRPlugin\Source\RPRPlugin\ThirdParty\RadeonProRender\inc"
 /I "E:\Program Files\Work\UE 4\Projects\RPR\Plugins\RPRPlugin\Source"
 /I "E:\Program Files\Work\UE 4\Projects\RPR\Plugins\RPRPlugin\Source\RPRPlugin\Public"
+/I "E:\Program Files\Work\UE 4\Projects\RPR\Plugins\RPRPlugin\Intermediate\Build\Win64\UE4Editor\Inc\RPRPlugin"
 /I "E:\Program Files\Work\UE 4\Projects\RPR\Plugins\RPRPlugin\Source\RPRPlugin"
 /I "E:\Program Files\Work\UE 4\Epic Games\UE_4.16\Engine\Source\Runtime\Core\Public"
 /I "E:\Program Files\Work\UE 4\Epic Games\UE_4.16\Engine\Source\Runtime\Core\Public\Internationalization"

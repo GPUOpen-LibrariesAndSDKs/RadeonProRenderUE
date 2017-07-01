@@ -1,5 +1,7 @@
 // Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
 
+using System; // Console.WriteLine("");
+using System.IO;
 using UnrealBuildTool;
 
 public class RPRPlugin : ModuleRules
@@ -20,6 +22,7 @@ public class RPRPlugin : ModuleRules
 			new string[] {
 				"RPRPlugin/Private",
 				// ... add other private include paths required here ...
+				"RPRPlugin/ThirdParty/RadeonProRender/inc"
 			}
 			);
 			
@@ -51,5 +54,27 @@ public class RPRPlugin : ModuleRules
 				// ... add any modules that your module loads dynamically here ...
 			}
 			);
+			
+
+                //Console.WriteLine ( Path.GetFullPath ( Path.Combine ( ModuleDirectory, "RPRPlugin/ThirdParty/RadeonProRender/libWin64/" ) ) );
+		PublicAdditionalLibraries.Add (
+                  Path.Combine ( Path.GetFullPath ( Path.Combine ( ModuleDirectory,
+                                                                   "ThirdParty/RadeonProRender/libWin64/" ) ),
+                                 "RadeonProRender64.lib" )
+                  );
+		PublicAdditionalLibraries.Add ( Path.Combine ( Path.GetFullPath ( Path.Combine ( ModuleDirectory,
+                  "ThirdParty/RadeonProRender/libWin64/" ) ), "RprLoadStore64.lib" ) );
+		PublicAdditionalLibraries.Add ( Path.Combine ( Path.GetFullPath ( Path.Combine ( ModuleDirectory,
+                  "ThirdParty/RadeonProRender/libWin64/" ) ), "RprSupport64.lib" ) );
+		PublicAdditionalLibraries.Add ( Path.Combine ( Path.GetFullPath ( Path.Combine ( ModuleDirectory,
+                  "ThirdParty/RadeonProRender/libWin64/" ) ), "Tahoe64.lib" ) );
+                  
+                  
+                //RuntimeDependencies.Add ( "RadeonProRender64.dll" );
+                //RuntimeDependencies.Add ( "OpenImageIO_RPR.dll" );
+                //RuntimeDependencies.Add ( "RprLoadStore64.dll" );
+                //RuntimeDependencies.Add ( "RprSupport64.dll" );
+                //RuntimeDependencies.Add ( "Tahoe64.dll" );
+			
 	}
 }

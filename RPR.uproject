@@ -12,5 +12,9 @@
 				"Engine"
 			]
 		}
+	],
+	"TargetPlatforms": [
+		"AllDesktop",
+		"WindowsNoEditor"
 	]
 }

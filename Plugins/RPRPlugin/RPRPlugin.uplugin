@@ -3,7 +3,7 @@
 	"Version": 1,
 	"VersionName": "1.0",
 	"FriendlyName": "RPRPlugin",
-	"Description": "",
+	"Description": "Radeon Pro Renderer plugin for Unreal Engine 4",
 	"Category": "Other",
 	"CreatedBy": "",
 	"CreatedByURL": "",
@@ -16,7 +16,7 @@
 	"Modules": [
 		{
 			"Name": "RPRPlugin",
-			"Type": "Developer",
+			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}
 	]
