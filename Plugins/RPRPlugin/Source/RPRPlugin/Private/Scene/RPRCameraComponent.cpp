@@ -62,7 +62,7 @@ bool	URPRCameraComponent::Build()
 	FVector						actorLocation = SrcComponent->ComponentToWorld.GetLocation() * 0.1f; // Convert to ProRender unit system
 	RadeonProRender::float3		location(actorLocation.X, actorLocation.Z, actorLocation.Y);
 	RadeonProRender::matrix		matrix = RadeonProRender::translation(location);
-	if (rprCameraSetTransform(m_RprCamera, false, matrix.M[0]) != RPR_SUCCESS ||
+	if (rprCameraSetTransform(m_RprCamera, false, &matrix.m00) != RPR_SUCCESS ||
 		rprSceneSetCamera(Scene->m_RprScene, m_RprCamera) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't set the active RPR camera"));
