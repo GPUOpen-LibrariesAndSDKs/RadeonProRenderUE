@@ -18,9 +18,8 @@ bool	URPRCameraComponent::Build()
 {
 	if (Scene == NULL || SrcComponent == NULL)
 		return false;
-	UCameraComponent		*cam = Cast<UCameraComponent>(SrcComponent);
 	UCineCameraComponent	*cineCam = Cast<UCineCameraComponent>(SrcComponent);
-	if (cam == NULL)
+	if (cineCam == NULL)
 		return false;
 	if (rprContextCreateCamera(Scene->m_RprContext, &m_RprCamera) != RPR_SUCCESS)
 	{
@@ -29,26 +28,23 @@ bool	URPRCameraComponent::Build()
 	}
 	// Cameras have an auto exposure setting in their PostProcessSettings
 	const float	exposure = 1.0f; // Get this from settings ?
-	const bool	orthoCam = cam->ProjectionMode == ECameraProjectionMode::Orthographic;
-	if (rprCameraSetMode(m_RprCamera, orthoCam ? RPR_CAMERA_MODE_PERSPECTIVE : RPR_CAMERA_MODE_ORTHOGRAPHIC) != RPR_SUCCESS ||
-		rprCameraSetExposure(m_RprCamera, exposure) != RPR_SUCCESS)
+	const bool	orthoCam = cineCam->ProjectionMode == ECameraProjectionMode::Orthographic;
+	if (rprCameraSetMode(m_RprCamera, orthoCam ? RPR_CAMERA_MODE_ORTHOGRAPHIC : RPR_CAMERA_MODE_PERSPECTIVE) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't initialize RPR camera"));
 		return false;
 	}
-	if (cineCam != NULL)
+	if (rprCameraSetFocalLength(m_RprCamera, cineCam->CurrentFocalLength) != RPR_SUCCESS ||
+		rprCameraSetFocusDistance(m_RprCamera, cineCam->CurrentFocusDistance) != RPR_SUCCESS ||
+		rprCameraSetSensorSize(m_RprCamera, cineCam->FilmbackSettings.SensorWidth, cineCam->FilmbackSettings.SensorHeight) != RPR_SUCCESS ||
+		rprCameraSetFStop(m_RprCamera, cineCam->CurrentAperture) != RPR_SUCCESS ||
+		rprCameraSetExposure(m_RprCamera, exposure) != RPR_SUCCESS)
 	{
-		if (rprCameraSetFocalLength(m_RprCamera, cineCam->CurrentFocalLength) != RPR_SUCCESS ||
-			rprCameraSetFocusDistance(m_RprCamera, cineCam->CurrentFocusDistance) != RPR_SUCCESS ||
-			rprCameraSetSensorSize(m_RprCamera, cineCam->FilmbackSettings.SensorWidth, cineCam->FilmbackSettings.SensorHeight) != RPR_SUCCESS ||
-			rprCameraSetFStop(m_RprCamera, cineCam->CurrentAperture) != RPR_SUCCESS)
-		{
-			UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't initialize cine camera object"));
-			return false;
-		}
-		// rprCameraSetApertureBlades(rpr_camera camera, rpr_uint num_blades);
+		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't initialize cine camera object"));
+		return false;
 	}
-	if (orthoCam)
+	// rprCameraSetApertureBlades(rpr_camera camera, rpr_uint num_blades);
+	//if (orthoCam)
 	{
 		// TODO
 		// rprCameraSetOrthoWidth(rpr_camera camera, rpr_float width);
@@ -58,17 +54,21 @@ bool	URPRCameraComponent::Build()
 		// rprCameraSetTiltCorrection(rpr_camera camera, rpr_float tiltX, rpr_float tiltY);
 		// rprCameraSetOrthoHeight(rpr_camera camera, rpr_float height);
 	}
-	// At build or Tick
-	// rprCameraSetTransform(rpr_camera camera, rpr_bool transpose, rpr_float * transform);
-
 	// Auto select the first camera ?
 	// What is the expected behavior ?
 	// For now:
-	if (rprSceneSetCamera(Scene->m_RprScene, m_RprCamera) != RPR_SUCCESS)
+
+	// TODO : convert the matrix (rotation + translation no need for scale)
+	FVector						actorLocation = SrcComponent->ComponentToWorld.GetLocation() * 0.1f; // Convert to ProRender unit system
+	RadeonProRender::float3		location(actorLocation.X, actorLocation.Z, actorLocation.Y);
+	RadeonProRender::matrix		matrix = RadeonProRender::translation(location);
+	if (rprCameraSetTransform(m_RprCamera, false, matrix.M[0]) != RPR_SUCCESS ||
+		rprSceneSetCamera(Scene->m_RprScene, m_RprCamera) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't set the active RPR camera"));
 		return false;
 	}
+	UE_LOG(LogRPRCameraComponent, Log, TEXT("RPR Camera created from '%s'"), *SrcComponent->GetName());
 	return true;
 }
 

@@ -51,12 +51,8 @@ void	ARPRScene::BuildScene()
 			BuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass());
 		else if (Cast<ULightComponentBase>(*it) != NULL)
 			BuildRPRActor(world, *it, URPRLightComponent::StaticClass());
-		else if (Cast<UCameraComponent>(*it) != NULL)
+		else if (Cast<UCineCameraComponent>(*it) != NULL)
 			BuildRPRActor(world, *it, URPRCameraComponent::StaticClass());
-		// Cameras
-		// Lights
-		// Post processes
-		// ..
 	}
 }
 
@@ -135,7 +131,7 @@ void	ARPRScene::BeginPlay()
 
 	UE_LOG(LogRPRScene, Log, TEXT("RPR Frame rendered"));
 
-	if (!rprFrameBufferSaveToFile(m_RprFrameBuffer, "D:/simple_render.png") != RPR_SUCCESS)
+	if (rprFrameBufferSaveToFile(m_RprFrameBuffer, "D:/simple_render.png") != RPR_SUCCESS)
 	{
 		GetWorld()->DestroyActor(this);
 		UE_LOG(LogRPRScene, Error, TEXT("Couldn't save rendered frame to 'D:/simple_render.png'"));

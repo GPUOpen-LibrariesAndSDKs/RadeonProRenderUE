@@ -20,21 +20,21 @@ bool	URPRLightComponent::BuildPointLight(const UPointLightComponent *pointLightC
 {
 	if (rprContextCreatePointLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS)
 		return false;
-	FColor	lightColor = pointLightComponent->LightColor;
+	FColor		lightColor = pointLightComponent->LightColor;
 	rprPointLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B);
-	return rprSceneAttachLight(Scene->m_RprScene, m_RprLight) == RPR_SUCCESS;
+	return true;
 }
 
 bool	URPRLightComponent::BuildSpotLight(const USpotLightComponent *spotLightComponent)
 {
 	if (rprContextCreateSpotLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS)
 		return false;
-	FColor	lightColor = spotLightComponent->LightColor;
+	FColor		lightColor = spotLightComponent->LightColor;
 	rprSpotLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B);
 	rprSpotLightSetConeShape(m_RprLight,
 		FMath::DegreesToRadians(spotLightComponent->InnerConeAngle),
 		FMath::DegreesToRadians(spotLightComponent->OuterConeAngle));
-	return rprSceneAttachLight(Scene->m_RprScene, m_RprLight) == RPR_SUCCESS;
+	return true;
 }
 
 bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightComponent)
@@ -42,17 +42,17 @@ bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightCompone
 	if (rprContextCreateSkyLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS)
 		return false;
 	// TODO
-	return rprSceneAttachLight(Scene->m_RprScene, m_RprLight) == RPR_SUCCESS;
+	return true;
 }
 
 bool	URPRLightComponent::BuildDirectionalLight(const UDirectionalLightComponent *dirLightComponent)
 {
 	if (rprContextCreateDirectionalLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS)
 		return false;
-	FColor	lightColor = dirLightComponent->LightColor;
+	FColor		lightColor = dirLightComponent->LightColor;
 	rprDirectionalLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B);
 	// rprDirectionalLightSetShadowSoftness(m_RprLight, 0.5f); // TODO unresolved external
-	return rprSceneAttachLight(Scene->m_RprScene, m_RprLight) == RPR_SUCCESS;
+	return true;
 }
 
 bool	URPRLightComponent::Build()
@@ -66,14 +66,24 @@ bool	URPRLightComponent::Build()
 	const USkyLightComponent			*skyLightComponent = Cast<USkyLightComponent>(SrcComponent);
 	const UDirectionalLightComponent	*dirLightComponent = Cast<UDirectionalLightComponent>(SrcComponent);
 
-	if (pointLightComponent != NULL)
-		return BuildPointLight(pointLightComponent);
-	if (spotLightComponent != NULL)
-		return BuildSpotLight(spotLightComponent);
-	if (skyLightComponent != NULL)
-		return BuildSkyLight(skyLightComponent);
-	if (dirLightComponent != NULL)
-		return BuildDirectionalLight(dirLightComponent);
+	if ((pointLightComponent != NULL && !BuildPointLight(pointLightComponent)) ||
+		(spotLightComponent != NULL && !BuildSpotLight(spotLightComponent)) ||
+		(skyLightComponent != NULL && !BuildSkyLight(skyLightComponent)) ||
+		(dirLightComponent != NULL && !BuildDirectionalLight(dirLightComponent)))
+	{
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create RPR light"));
+		return false;
+	}
+	FVector						actorLocation = SrcComponent->ComponentToWorld.GetLocation() * 0.1f; // Convert to ProRender unit system
+	RadeonProRender::float3		location(actorLocation.X, actorLocation.Z, actorLocation.Y);
+	RadeonProRender::matrix		matrix = RadeonProRender::translation(location);// + RadeonProRender::scale(scale);
+	if (rprLightSetTransform(m_RprLight, true, &matrix.m00) != RPR_SUCCESS ||
+		rprSceneAttachLight(Scene->m_RprScene, m_RprLight) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't add RPR light to the RPR scene"));
+		return false;
+	}
+	UE_LOG(LogRPRLightComponent, Log, TEXT("RPR Light created from '%s'"), *SrcComponent->GetName());
 	return true;
 }
 

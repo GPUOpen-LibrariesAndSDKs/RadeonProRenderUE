@@ -1,6 +1,7 @@
 // RPR COPYRIGHT
 
 #include "RPRStaticMeshComponent.h"
+#include "Engine/StaticMeshActor.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
 
@@ -12,12 +13,18 @@ URPRStaticMeshComponent::URPRStaticMeshComponent()
 
 bool	URPRStaticMeshComponent::Build()
 {
-	if (Scene == NULL ||
-		SrcComponent == NULL)
+	if (Scene == NULL || SrcComponent == NULL)
+		return false;
+
+	// TODO: Find a better way to cull unwanted geometry
+	// The issue here is we collect ALL static mesh components,
+	// including some geometry generated during play
+	// like the camera or pawn etc
+	if (Cast<AStaticMeshActor>(SrcComponent->GetOwner()) == NULL)
 		return false;
 
 	// Not sure if material systems should be created on a per mesh level or per section
-	if (!rprContextCreateMaterialSystem(Scene->m_RprContext, 0, &m_RprMaterialSystem) != RPR_SUCCESS)
+	if (rprContextCreateMaterialSystem(Scene->m_RprContext, 0, &m_RprMaterialSystem) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR material system"));
 		return false;
@@ -78,7 +85,8 @@ bool	URPRStaticMeshComponent::Build()
 
 			indices[srcIndexStart + iIndex] = srcVertex;
 			numFaceVertices[srcIndexStart + iIndex] = 3;
-			positions[srcVertex] = srcPositions.VertexPosition(srcVertex);
+			FVector	pos = srcPositions.VertexPosition(srcVertex) * 0.1f;
+			positions[srcVertex] = FVector(pos.X, pos.Z, pos.Y);
 			normals[srcVertex] = srcVertices.VertexTangentZ(srcVertex);
 			if (uvCount > 0)
 				uvs[srcVertex] = srcVertices.GetVertexUV(srcVertex, 0); // Right now only copy uv 0
@@ -113,13 +121,19 @@ bool	URPRStaticMeshComponent::Build()
 			rprObjectDelete(material);
 			return false;
 		}
-		if (rprSceneAttachShape(Scene->m_RprScene, shape) != RPR_SUCCESS)
+		FVector						actorLocation = SrcComponent->ComponentToWorld.GetLocation() * 0.1f;
+		FVector						actorScale = SrcComponent->ComponentToWorld.GetScale3D();
+		RadeonProRender::float3		location(actorLocation.X, actorLocation.Z, actorLocation.Y);
+		RadeonProRender::float3		scale(actorScale.X, actorScale.Z, actorScale.Y);
+		RadeonProRender::matrix		matrix = RadeonProRender::translation(location);// + RadeonProRender::scale(scale);
+		if (rprShapeSetTransform(shape, RPR_TRUE, &matrix.m00) != RPR_SUCCESS ||
+			rprSceneAttachShape(Scene->m_RprScene, shape) != RPR_SUCCESS)
 		{
 			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't attach RPR shape to the RPR scene"));
 			rprObjectDelete(shape);
 			return false;
 		}
-		// Either set the shape transforms during Tick() or here
+		UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape created from '%s'"), *SrcComponent->GetName());
 		m_Shapes.Add(SRPRShape(shape, material));
 	}
 	return true;
