@@ -2,6 +2,7 @@
 
 #include "RPRLightComponent.h"
 #include "RPRScene.h"
+#include "RPRHelpers.h"
 
 #include "Components/PointLightComponent.h"
 #include "Components/SpotLightComponent.h"
@@ -74,10 +75,11 @@ bool	URPRLightComponent::Build()
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create RPR light"));
 		return false;
 	}
-	FVector						actorLocation = SrcComponent->ComponentToWorld.GetLocation() * 0.1f; // Convert to ProRender unit system
-	RadeonProRender::float3		location(actorLocation.X, actorLocation.Z, actorLocation.Y);
-	RadeonProRender::matrix		matrix = RadeonProRender::translation(location);// + RadeonProRender::scale(scale);
-	if (rprLightSetTransform(m_RprLight, true, &matrix.m00) != RPR_SUCCESS ||
+	if (m_RprLight == NULL)
+		return false;
+
+	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->ComponentToWorld, true);
+	if (rprLightSetTransform(m_RprLight, RPR_TRUE, &matrix.m00) != RPR_SUCCESS ||
 		rprSceneAttachLight(Scene->m_RprScene, m_RprLight) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't add RPR light to the RPR scene"));

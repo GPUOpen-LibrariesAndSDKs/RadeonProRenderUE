@@ -35,16 +35,15 @@ bool	URPRCameraComponent::Build()
 		return false;
 	}
 	if (rprCameraSetFocalLength(m_RprCamera, cineCam->CurrentFocalLength) != RPR_SUCCESS ||
-		rprCameraSetFocusDistance(m_RprCamera, cineCam->CurrentFocusDistance) != RPR_SUCCESS ||
-		rprCameraSetSensorSize(m_RprCamera, cineCam->FilmbackSettings.SensorWidth, cineCam->FilmbackSettings.SensorHeight) != RPR_SUCCESS ||
+		rprCameraSetFocusDistance(m_RprCamera, cineCam->CurrentFocusDistance * 100.0f) != RPR_SUCCESS ||
 		rprCameraSetFStop(m_RprCamera, cineCam->CurrentAperture) != RPR_SUCCESS ||
 		rprCameraSetExposure(m_RprCamera, exposure) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't initialize cine camera object"));
 		return false;
 	}
-	// rprCameraSetApertureBlades(rpr_camera camera, rpr_uint num_blades);
-	//if (orthoCam)
+
+	if (orthoCam)
 	{
 		// TODO
 		// rprCameraSetOrthoWidth(rpr_camera camera, rpr_float width);
@@ -54,16 +53,21 @@ bool	URPRCameraComponent::Build()
 		// rprCameraSetTiltCorrection(rpr_camera camera, rpr_float tiltX, rpr_float tiltY);
 		// rprCameraSetOrthoHeight(rpr_camera camera, rpr_float height);
 	}
+	else
+	{
+		FVector	camPos = SrcComponent->ComponentToWorld.GetLocation() * 0.1f;
+		FVector	forward = camPos + SrcComponent->ComponentToWorld.GetRotation().GetForwardVector();
+		if (rprCameraSetSensorSize(m_RprCamera, cineCam->FilmbackSettings.SensorWidth, cineCam->FilmbackSettings.SensorHeight) != RPR_SUCCESS ||
+			rprCameraLookAt(m_RprCamera, camPos.X, camPos.Z, camPos.Y, forward.X, forward.Z, forward.Y, 0, 1, 0))
+		{
+			UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't set RPR camera properties"));
+			return false;
+		}
+	}
 	// Auto select the first camera ?
 	// What is the expected behavior ?
 	// For now:
-
-	// TODO : convert the matrix (rotation + translation no need for scale)
-	FVector						actorLocation = SrcComponent->ComponentToWorld.GetLocation() * 0.1f; // Convert to ProRender unit system
-	RadeonProRender::float3		location(actorLocation.X, actorLocation.Z, actorLocation.Y);
-	RadeonProRender::matrix		matrix = RadeonProRender::translation(location);
-	if (rprCameraSetTransform(m_RprCamera, false, &matrix.m00) != RPR_SUCCESS ||
-		rprSceneSetCamera(Scene->m_RprScene, m_RprCamera) != RPR_SUCCESS)
+	if (rprSceneSetCamera(Scene->m_RprScene, m_RprCamera) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't set the active RPR camera"));
 		return false;

@@ -2,6 +2,7 @@
 
 #include "RPRStaticMeshComponent.h"
 #include "Engine/StaticMeshActor.h"
+#include "RPRHelpers.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
 
@@ -122,11 +123,7 @@ bool	URPRStaticMeshComponent::Build()
 			rprObjectDelete(material);
 			return false;
 		}
-		FVector						actorLocation = SrcComponent->ComponentToWorld.GetLocation() * 0.1f;
-		FVector						actorScale = SrcComponent->ComponentToWorld.GetScale3D();
-		RadeonProRender::float3		location(actorLocation.X, actorLocation.Z, actorLocation.Y);
-		RadeonProRender::float3		scale(actorScale.X, actorScale.Z, actorScale.Y);
-		RadeonProRender::matrix		matrix = RadeonProRender::translation(location);// + RadeonProRender::scale(scale);
+		RadeonProRender::matrix	matrix = BuildMatrixWithScale(SrcComponent->ComponentToWorld);
 		if (rprShapeSetTransform(shape, RPR_TRUE, &matrix.m00) != RPR_SUCCESS ||
 			rprSceneAttachShape(Scene->m_RprScene, shape) != RPR_SUCCESS)
 		{
