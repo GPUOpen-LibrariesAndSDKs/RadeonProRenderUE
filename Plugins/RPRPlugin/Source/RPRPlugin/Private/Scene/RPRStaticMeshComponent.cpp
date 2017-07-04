@@ -87,7 +87,8 @@ bool	URPRStaticMeshComponent::Build()
 			numFaceVertices[srcIndexStart + iIndex] = 3;
 			FVector	pos = srcPositions.VertexPosition(srcVertex) * 0.1f;
 			positions[srcVertex] = FVector(pos.X, pos.Z, pos.Y);
-			normals[srcVertex] = srcVertices.VertexTangentZ(srcVertex);
+			FVector	normal = srcVertices.VertexTangentZ(srcVertex);
+			normals[srcVertex] = FVector(normal.X, normal.Z, normal.Y);
 			if (uvCount > 0)
 				uvs[srcVertex] = srcVertices.GetVertexUV(srcVertex, 0); // Right now only copy uv 0
 		}
