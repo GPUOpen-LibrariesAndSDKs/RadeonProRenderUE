@@ -23,5 +23,6 @@ private:
 	bool	BuildSkyLight(const class USkyLightComponent *skyLightComponent);
 	bool	BuildDirectionalLight(const class UDirectionalLightComponent *dirLightComponent);
 public:
+	rpr_image	m_RprImage;
 	rpr_light	m_RprLight;
 };

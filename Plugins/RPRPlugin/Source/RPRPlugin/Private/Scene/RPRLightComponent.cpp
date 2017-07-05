@@ -4,6 +4,8 @@
 #include "RPRScene.h"
 #include "RPRHelpers.h"
 
+#include "Engine/TextureCube.h"
+
 #include "Components/PointLightComponent.h"
 #include "Components/SpotLightComponent.h"
 #include "Components/SkyLightComponent.h"
@@ -40,9 +42,29 @@ bool	URPRLightComponent::BuildSpotLight(const USpotLightComponent *spotLightComp
 
 bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightComponent)
 {
-	if (rprContextCreateSkyLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS)
+	if (rprContextCreateEnvironmentLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS)
 		return false;
-	// TODO
+	// Sky light containing a cubemap will become a RPR Environment light
+	if (skyLightComponent->SourceType != ESkyLightSourceType::SLS_SpecifiedCubemap ||
+		skyLightComponent->Cubemap == NULL)
+	{
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Skipped '%s', there is no specified cubemap"), *skyLightComponent->GetName());
+		return false;
+	}
+	m_RprImage = BuildImage(skyLightComponent->Cubemap, Scene->m_RprContext);
+	if (m_RprImage == NULL)
+		return false;
+	const float	intensity = 1.0f; // Get that from settings ?
+	if (rprEnvironmentLightSetImage(m_RprLight, m_RprImage) != RPR_SUCCESS ||
+		//rprSceneSetEnvironmentOverride(Scene->m_RprScene, RPR_SCENE_ENVIRONMENT_OVERRIDE_REFRACTION, m_RprLight) != RPR_SUCCESS ||
+		//rprSceneSetEnvironmentOverride(Scene->m_RprScene, RPR_SCENE_ENVIRONMENT_OVERRIDE_TRANSPARENCY, m_RprLight) != RPR_SUCCESS ||
+		//rprSceneSetEnvironmentOverride(Scene->m_RprScene, RPR_SCENE_ENVIRONMENT_OVERRIDE_BACKGROUND, m_RprLight) != RPR_SUCCESS ||
+		rprSceneSetBackgroundImage(Scene->m_RprScene, m_RprImage) != RPR_SUCCESS ||
+		rprEnvironmentLightSetIntensityScale(m_RprLight, intensity) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't set RPR image"));
+		return false;
+	}
 	return true;
 }
 
@@ -92,6 +114,11 @@ bool	URPRLightComponent::Build()
 void	URPRLightComponent::BeginDestroy()
 {
 	Super::BeginDestroy();
+	if (m_RprImage != NULL)
+	{
+		rprObjectDelete(m_RprImage);
+		m_RprImage = NULL;
+	}
 	// TODO: Check if we need to call rprSceneDetachLight or rprObjectDelete does this thing for us
 	if (m_RprLight != NULL)
 	{
