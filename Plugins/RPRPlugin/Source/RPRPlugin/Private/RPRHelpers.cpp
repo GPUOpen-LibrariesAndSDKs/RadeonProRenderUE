@@ -3,7 +3,9 @@
 #include "RPRHelpers.h"
 #include "RPRPlugin.h"
 
-#include "Engine/Texture.h"
+#include "Engine/Texture2D.h"
+#include "Engine/TextureCube.h"
+#include "CubemapUnwrapUtils.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRHelpers, Log, All);
 
@@ -127,7 +129,58 @@ void	ConvertPixels(const void *textureData, TArray<uint8> &outData, EPixelFormat
 	}
 }
 
-rpr_image	BuildImage(UTexture *source, rpr_context context)
+rpr_image	BuildCubeImage(UTextureCube *source, rpr_context context)
+{
+	check(source != NULL);
+
+	// BuildCubeImage should (will be later) some kind of caching system (done before packaging ?)
+	// Avoid building several times the same image, and runtime data is compressed or not accessible
+	source->ConditionalPostLoad();
+
+	TArray<uint8>	srcData;
+	FIntPoint		srcSize;
+	EPixelFormat	srcFormat;
+	if (!CubemapHelpers::GenerateLongLatUnwrap(Cast<UTextureCube>(source), srcData, srcSize, srcFormat))
+	{
+		UE_LOG(LogRPRHelpers, Warning, TEXT("Couldn't build cubemap"));
+		return NULL;
+	}
+	if (srcSize.X <= 0 || srcSize.Y <= 0)
+	{
+		UE_LOG(LogRPRHelpers, Warning, TEXT("Couldn't build cubemap: empty texture"));
+		return NULL;
+	}
+	uint32				componentSize;
+	rpr_image_format	dstFormat;
+	if (!BuildRPRImageFormat(srcFormat, dstFormat, componentSize))
+	{
+		UE_LOG(LogRPRHelpers, Warning, TEXT("Couldn't build cubemap: image format for '%s' not handled"), *source->GetName());
+		return NULL;
+	}
+
+	rpr_image		image;
+	rpr_image_desc	desc;
+	desc.image_width = srcSize.X;
+	desc.image_height = srcSize.Y;
+	desc.image_depth = 0;
+	desc.image_row_pitch = desc.image_width * componentSize * dstFormat.num_components;
+	desc.image_slice_pitch = 0;
+
+	const uint32	totalByteCount = desc.image_row_pitch * desc.image_height;
+	TArray<uint8>	rprData;
+	rprData.SetNum(totalByteCount);
+
+	ConvertPixels(srcData.GetData(), rprData, srcFormat, desc.image_width * desc.image_height);
+
+	if (rprContextCreateImage(context, dstFormat, &desc, rprData.GetData(), &image) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRHelpers, Warning, TEXT("Couldn't create RPR image"));
+		return NULL;
+	}
+	return image;
+}
+
+rpr_image	BuildImage(UTexture2D *source, rpr_context context)
 {
 	check(source != NULL);
 
@@ -147,10 +200,10 @@ rpr_image	BuildImage(UTexture *source, rpr_context context)
 		return NULL;
 	}
 	uint32				componentSize;
-	rpr_image_format	format;
-	if (!BuildRPRImageFormat(platformData->PixelFormat, format, componentSize))
+	rpr_image_format	dstFormat;
+	if (!BuildRPRImageFormat(platformData->PixelFormat, dstFormat, componentSize))
 	{
-		UE_LOG(LogRPRHelpers, Warning, TEXT("Image format for '%s' not handled"), *source->GetName());
+		UE_LOG(LogRPRHelpers, Warning, TEXT("Couldn't build image: image format for '%s' not handled"), *source->GetName());
 		return NULL;
 	}
 	FByteBulkData		&mipData = platformData->Mips[0].BulkData;
@@ -171,7 +224,7 @@ rpr_image	BuildImage(UTexture *source, rpr_context context)
 	desc.image_width = platformData->SizeX;
 	desc.image_height = platformData->SizeY;
 	desc.image_depth = 0;
-	desc.image_row_pitch = desc.image_width * componentSize * format.num_components;
+	desc.image_row_pitch = desc.image_width * componentSize * dstFormat.num_components;
 	desc.image_slice_pitch = 0;
 
 	const uint32	totalByteCount = desc.image_row_pitch * desc.image_height;
@@ -181,7 +234,7 @@ rpr_image	BuildImage(UTexture *source, rpr_context context)
 	ConvertPixels(textureDataReadOnly, rprData, platformData->PixelFormat, desc.image_width * desc.image_height);
 	mipData.Unlock();
 
-	if (rprContextCreateImage(context, format, &desc, rprData.GetData(), &image) != RPR_SUCCESS)
+	if (rprContextCreateImage(context, dstFormat, &desc, rprData.GetData(), &image) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRHelpers, Warning, TEXT("Couldn't create RPR image"));
 		return NULL;

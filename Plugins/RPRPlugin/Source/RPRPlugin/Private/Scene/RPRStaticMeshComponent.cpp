@@ -2,6 +2,7 @@
 
 #include "RPRStaticMeshComponent.h"
 #include "Engine/StaticMeshActor.h"
+#include "Camera/CameraActor.h"
 #include "RPRHelpers.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
@@ -21,7 +22,9 @@ bool	URPRStaticMeshComponent::Build()
 	// The issue here is we collect ALL static mesh components,
 	// including some geometry generated during play
 	// like the camera or pawn etc
-	if (Cast<AStaticMeshActor>(SrcComponent->GetOwner()) == NULL)
+//	if (Cast<AStaticMeshActor>(SrcComponent->GetOwner()) == NULL)
+//		return false;
+	if (Cast<ACameraActor>(SrcComponent->GetOwner()) != NULL)
 		return false;
 
 	// Not sure if material systems should be created on a per mesh level or per section

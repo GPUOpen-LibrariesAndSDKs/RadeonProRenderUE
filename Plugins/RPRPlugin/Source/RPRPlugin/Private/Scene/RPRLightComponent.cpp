@@ -51,7 +51,7 @@ bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightCompone
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Skipped '%s', there is no specified cubemap"), *skyLightComponent->GetName());
 		return false;
 	}
-	m_RprImage = BuildImage(skyLightComponent->Cubemap, Scene->m_RprContext);
+	m_RprImage = BuildCubeImage(skyLightComponent->Cubemap, Scene->m_RprContext);
 	if (m_RprImage == NULL)
 		return false;
 	const float	intensity = 1.0f; // Get that from settings ?
