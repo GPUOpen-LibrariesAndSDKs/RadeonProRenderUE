@@ -7,7 +7,7 @@
 class FRPRRendererWorker : public FRunnable
 {
 public:
-	FRPRRendererWorker(rpr_context context);
+	FRPRRendererWorker(rpr_context context, uint32 width, uint32 height);
 	virtual ~FRPRRendererWorker();
 
 	// Begin FRunnable interface.
@@ -18,6 +18,7 @@ public:
 
 	void			EnsureCompletion();
 	bool			Flush() const;
+	void			ResizeFramebuffer(uint32 width, uint32 height);
 	bool			LockCopyFramebufferInto(void *outData);
 private:
 	void		ReleaseResources();
@@ -28,6 +29,9 @@ private:
 
 	uint32					m_CurrentIteration;
 	uint32					m_PreviousRenderedIteration;
+
+	uint32					m_Width;
+	uint32					m_Height;
 
 	rpr_framebuffer_format	m_RprFrameBufferFormat;
 	rpr_framebuffer_desc	m_RprFrameBufferDesc;

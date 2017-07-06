@@ -6,11 +6,13 @@ DEFINE_LOG_CATEGORY_STATIC(LogRPRRenderer, Log, All);
 
 static uint32	kMaxIterations = 64;
 
-FRPRRendererWorker::FRPRRendererWorker(rpr_context context)
+FRPRRendererWorker::FRPRRendererWorker(rpr_context context, uint32 width, uint32 height)
 :	m_RprFrameBuffer(NULL)
 ,	m_RprContext(context)
 ,	m_CurrentIteration(0)
 ,	m_PreviousRenderedIteration(0)
+,	m_Width(width)
+,	m_Height(height)
 {
 	m_Thread = FRunnableThread::Create(this, TEXT("FRPRRendererWorker"));
 }
@@ -27,12 +29,7 @@ bool	FRPRRendererWorker::Init()
 {
 	check(m_RprContext != NULL);
 
-	const uint32	width = 800;
-	const uint32	height = 600;
-
-	// TODO : Get that from the render target
-	m_RprFrameBufferDesc.fb_width = width;
-	m_RprFrameBufferDesc.fb_height = height;
+	ResizeFramebuffer(m_Width, m_Height);
 	m_RprFrameBufferFormat.num_components = 4;
 	m_RprFrameBufferFormat.type = RPR_COMPONENT_TYPE_FLOAT32;
 
@@ -44,9 +41,21 @@ bool	FRPRRendererWorker::Init()
 		UE_LOG(LogRPRRenderer, Error, TEXT("RPR FrameBuffer creation failed"));
 		return false;
 	}
-	const uint32	totalByteCount = m_RprFrameBufferDesc.fb_width * m_RprFrameBufferDesc.fb_height * 4;
-	m_FramebufferData.SetNum(totalByteCount);
 	return true;
+}
+
+void	FRPRRendererWorker::ResizeFramebuffer(uint32 width, uint32 height)
+{
+	m_RenderLock.Lock();
+
+	m_Width = width;
+	m_Height = height;
+
+	m_RprFrameBufferDesc.fb_width = m_Width;
+	m_RprFrameBufferDesc.fb_height = m_Height;
+
+	m_FramebufferData.SetNum(m_Width * m_Height * 4);
+	m_RenderLock.Unlock();
 }
 
 bool	FRPRRendererWorker::LockCopyFramebufferInto(void *outData)
@@ -77,7 +86,7 @@ bool	FRPRRendererWorker::LockCopyFramebufferInto(void *outData)
 	}
 	uint8			*dstPixels = reinterpret_cast<uint8*>(outData);
 	const float		*srcPixels = m_FramebufferData.GetData();
-	const uint32	pixelCount = 800 * 600;
+	const uint32	pixelCount = m_Width * m_Height;
 	for (uint32 i = 0; i < pixelCount; ++i)
 	{
 		*dstPixels++ = *srcPixels++;

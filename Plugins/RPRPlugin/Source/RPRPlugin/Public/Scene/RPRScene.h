@@ -23,6 +23,8 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	UTexture2D	*SceneTexture;
+
+	void			SetCurrentCamera(class ACameraActor *camera);
 private:
 	virtual void	BeginDestroy() override;
 	virtual void	BeginPlay() override;
@@ -35,10 +37,10 @@ public:
 	rpr_scene		m_RprScene;
 	rpr_framebuffer	m_RprFrameBuffer;
 
-
 	//// TMP
 	rpr_image		m_RprBackgroundImage;
 private:
+	class UCameraComponent		*m_CurrentCamera;
 	class FRPRRendererWorker	*m_RendererWorker;
 
 	UPROPERTY(Transient)

@@ -6,6 +6,8 @@
 #include "Scene/RPRStaticMeshComponent.h"
 #include "Renderer/RPRRendererWorker.h"
 
+#include "Kismet/GameplayStatics.h"
+#include "Camera/CameraActor.h"
 #include "TextureResource.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRScene, Log, All);
@@ -14,6 +16,7 @@ ARPRScene::ARPRScene()
 :	m_RprContext(NULL)
 ,	m_RprScene(NULL)
 ,	m_RprFrameBuffer(NULL)
+,	m_CurrentCamera(NULL)
 ,	m_RendererWorker(NULL)
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -58,6 +61,19 @@ void	ARPRScene::BuildScene()
 		else if (Cast<UCineCameraComponent>(*it) != NULL)
 			BuildRPRActor(world, *it, URPRCameraComponent::StaticClass());
 	}
+}
+
+void	ARPRScene::SetCurrentCamera(class ACameraActor *camera)
+{
+	if (camera == NULL)
+		return;
+	// Get the default player controller
+	APlayerController	*pc = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (pc == NULL)
+		return;
+	// No need for smooth transition
+	pc->SetViewTarget(camera, FViewTargetTransitionParams());
+	m_CurrentCamera = camera->GetCameraComponent();
 }
 
 // BeginPlay will be called after the object has been created and initialized
@@ -108,8 +124,23 @@ void	ARPRScene::BeginPlay()
 
 	BuildScene();
 
-	const uint32	width = 800;
-	const uint32	height = 600;
+	if (m_CurrentCamera == NULL)
+	{
+		UE_LOG(LogRPRScene, Warning, TEXT("Couldn't render, no camera setup"));
+		GetWorld()->DestroyActor(this);
+		return;
+	}
+	APlayerController	*pc = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (pc == NULL)
+	{
+		UE_LOG(LogRPRScene, Error, TEXT("No PlayerController found !"));
+		GetWorld()->DestroyActor(this);
+		return;
+	}
+	int32	width = 0;
+	int32	height = 0;
+	pc->GetViewportSize(width, height);
+
 	SceneTexture = UTexture2D::CreateTransient(width, height, PF_R8G8B8A8);
 	if (SceneTexture == NULL)
 	{
@@ -119,7 +150,7 @@ void	ARPRScene::BeginPlay()
 	}
 	SceneTexture->UpdateResource();
 
-	m_RendererWorker = new FRPRRendererWorker(m_RprContext);
+	m_RendererWorker = new FRPRRendererWorker(m_RprContext, width, height);
 	Super::BeginPlay();
 }
 
@@ -148,8 +179,8 @@ void	ARPRScene::Tick(float deltaTime)
 					region.SrcY = 0;
 					region.DestX = 0;
 					region.DestY = 0;
-					region.Width = 800;
-					region.Height = 600;
+					region.Width = SceneTexture->GetSizeX();
+					region.Height = SceneTexture->GetSizeY();
 
 					FTexture2DResource	*resource = (FTexture2DResource*)SceneTexture->Resource;
 					RHIUpdateTexture2D(resource->GetTexture2DRHI(), 0, region, region.Width * sizeof(uint8) * 4, textureData);
