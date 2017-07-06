@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "RadeonProRender.h"
 #include "GameFramework/Actor.h"
 #include "RPRScene.generated.h"
 

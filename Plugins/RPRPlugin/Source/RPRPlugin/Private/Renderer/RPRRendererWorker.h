@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "RadeonProRender.h"
+
 class FRPRRendererWorker : public FRunnable
 {
 public:

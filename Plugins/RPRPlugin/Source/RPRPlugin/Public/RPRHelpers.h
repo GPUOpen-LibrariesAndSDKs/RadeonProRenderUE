@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include "RadeonProRender.h"
+#include "Math/mathutils.h"
+
 RadeonProRender::matrix	BuildMatrixNoScale(const FTransform &transform);
 RadeonProRender::matrix	BuildMatrixWithScale(const FTransform &transform);
 

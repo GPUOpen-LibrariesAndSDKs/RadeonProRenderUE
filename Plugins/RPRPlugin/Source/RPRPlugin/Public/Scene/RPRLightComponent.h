@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
+#include "RadeonProRender.h"
 #include "Scene/RPRSceneComponent.h"
 #include "RPRLightComponent.generated.h"
 
