@@ -5,6 +5,7 @@
 #include "RPRHelpers.h"
 
 #include "Engine/TextureCube.h"
+#include "EditorFramework/AssetImportData.h"
 
 #include "Components/PointLightComponent.h"
 #include "Components/SpotLightComponent.h"
@@ -23,15 +24,53 @@ static const float	kLumensToW = 1.0f / 17.0f;
 static const float	kW = 100.0f;
 static const float	kDirLightIntensityMultiplier = 0.5f;
 
+FLinearColor	BuildRPRLightColor(const ULightComponentBase *lightComponent, bool lumenUnits)
+{
+	const float		intensity = lightComponent->Intensity;
+	FLinearColor	lightColor(lightComponent->LightColor);
+
+	return lightColor * intensity * (lumenUnits ? kLumensToW : kW);
+}
+
+bool	URPRLightComponent::BuildIESLight(const UPointLightComponent *lightComponent)
+{
+	check(lightComponent->IESTexture != NULL);
+
+	// We want to get the original .ies file (UE4 bakes into its own format in a texture, would be painful to generate back)
+	// This means this won t be available at runtime -> needs to be cooked at package time in the texture user data for example
+	const UAssetImportData	*assetImportData = lightComponent->IESTexture->AssetImportData;
+	if (assetImportData == NULL)
+	{
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create IES light: couldn't find source IES file"));
+		return false;
+	}
+	const FString	filePath = assetImportData->GetFirstFilename();
+	if (filePath.IsEmpty() || !FPaths::FileExists(filePath))
+	{
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create IES light: couldn't find source IES file"));
+		return false;
+	}
+	const FLinearColor	lightColor = lightComponent->bUseIESBrightness ?
+		FLinearColor(lightComponent->LightColor) * lightComponent->IESBrightnessScale :
+		BuildRPRLightColor(lightComponent, lightComponent->bUseInverseSquaredFalloff);
+
+	if (rprContextCreateIESLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS ||
+		rprIESLightSetImageFromFile(m_RprLight, TCHAR_TO_ANSI(*filePath), 256, 256) != RPR_SUCCESS ||
+		rprIESLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create IES light"));
+		return false;
+	}
+	SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 90.0f, 0.0f)));
+	return true;
+}
+
 bool	URPRLightComponent::BuildPointLight(const UPointLightComponent *pointLightComponent)
 {
-	const float			intensity = pointLightComponent->Intensity;
-	FLinearColor		lightColor(pointLightComponent->LightColor);
+	if (pointLightComponent->IESTexture != NULL)
+		return BuildIESLight(pointLightComponent);
+	const FLinearColor	lightColor = BuildRPRLightColor(pointLightComponent, pointLightComponent->bUseInverseSquaredFalloff);
 
-	if (pointLightComponent->bUseInverseSquaredFalloff) // Intensity is in lumens
-		lightColor *= intensity * kLumensToW;
-	else
-		lightColor *= intensity * kW;
 	if (rprContextCreatePointLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS ||
 		rprPointLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B) != RPR_SUCCESS)
 	{
@@ -43,21 +82,18 @@ bool	URPRLightComponent::BuildPointLight(const UPointLightComponent *pointLightC
 
 bool	URPRLightComponent::BuildSpotLight(const USpotLightComponent *spotLightComponent)
 {
-	const float			intensity = spotLightComponent->Intensity;
-	FLinearColor		lightColor(spotLightComponent->LightColor);
-
-	if (spotLightComponent->bUseInverseSquaredFalloff) // Intensity is in lumens
-		lightColor *= intensity * kLumensToW;
-	else
-		lightColor *= intensity * kW;
+	if (spotLightComponent->IESTexture != NULL)
+		return BuildIESLight(spotLightComponent);
+	const FLinearColor	lightColor = BuildRPRLightColor(spotLightComponent, spotLightComponent->bUseInverseSquaredFalloff);
 
 	if (rprContextCreateSpotLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS ||
-		rprSpotLightSetRadiantPower3f(m_RprLight, lightColor.R * 10.0f, lightColor.G * 10.0f, lightColor.B * 10.0f) != RPR_SUCCESS ||
+		rprSpotLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B) != RPR_SUCCESS ||
 		rprSpotLightSetConeShape(m_RprLight, FMath::DegreesToRadians(spotLightComponent->InnerConeAngle), FMath::DegreesToRadians(spotLightComponent->OuterConeAngle)) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create spot light"));
 		return false;
 	}
+	SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(-90.0f, 90.0f, 0.0f)));
 	return true;
 }
 
@@ -85,6 +121,7 @@ bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightCompone
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create RPR image"));
 		return false;
 	}
+	SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 0.0f, 90.0f)));
 	return true;
 }
 
@@ -101,14 +138,16 @@ bool	URPRLightComponent::BuildDirectionalLight(const UDirectionalLightComponent 
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create directional light"));
 		return false;
 	}
+	SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(-90.0f, 90.0f, 0.0f)));
 	return true;
 }
 
 bool	URPRLightComponent::Build()
 {
-	if (Scene == NULL ||
-		SrcComponent == NULL)
+	if (Scene == NULL || SrcComponent == NULL)
 		return false;
+
+	const FQuat	oldOrientation = SrcComponent->ComponentToWorld.GetRotation();
 
 	const UPointLightComponent			*pointLightComponent = Cast<UPointLightComponent>(SrcComponent);
 	const USpotLightComponent			*spotLightComponent = Cast<USpotLightComponent>(SrcComponent);
@@ -126,14 +165,15 @@ bool	URPRLightComponent::Build()
 	if (m_RprLight == NULL)
 		return false;
 
-	const bool	needsRotation = spotLightComponent != NULL || dirLightComponent != NULL || skyLightComponent != NULL;
-	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->ComponentToWorld, needsRotation);
+	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->ComponentToWorld, false);
 	if (rprLightSetTransform(m_RprLight, RPR_TRUE, &matrix.m00) != RPR_SUCCESS ||
 		rprSceneAttachLight(Scene->m_RprScene, m_RprLight) != RPR_SUCCESS)
 	{
+		SrcComponent->ComponentToWorld.SetRotation(oldOrientation);
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't add RPR light to the RPR scene"));
 		return false;
 	}
+	SrcComponent->ComponentToWorld.SetRotation(oldOrientation);
 	UE_LOG(LogRPRLightComponent, Log, TEXT("RPR Light created from '%s'"), *SrcComponent->GetName());
 	return true;
 }
