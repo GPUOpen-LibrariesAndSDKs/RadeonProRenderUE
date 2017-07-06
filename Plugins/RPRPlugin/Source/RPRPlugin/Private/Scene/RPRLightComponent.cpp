@@ -19,31 +19,50 @@ URPRLightComponent::URPRLightComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
+static const float	kLumensToW = 1.0f / 17.0f;
+static const float	kW = 100.0f;
+static const float	kDirLightIntensityMultiplier = 0.5f;
+
 bool	URPRLightComponent::BuildPointLight(const UPointLightComponent *pointLightComponent)
 {
-	if (rprContextCreatePointLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS)
+	const float			intensity = pointLightComponent->Intensity;
+	FLinearColor		lightColor(pointLightComponent->LightColor);
+
+	if (pointLightComponent->bUseInverseSquaredFalloff) // Intensity is in lumens
+		lightColor *= intensity * kLumensToW;
+	else
+		lightColor *= intensity * kW;
+	if (rprContextCreatePointLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS ||
+		rprPointLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create point light"));
 		return false;
-	FColor		lightColor = pointLightComponent->LightColor;
-	rprPointLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B);
+	}
 	return true;
 }
 
 bool	URPRLightComponent::BuildSpotLight(const USpotLightComponent *spotLightComponent)
 {
-	if (rprContextCreateSpotLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS)
+	const float			intensity = spotLightComponent->Intensity;
+	FLinearColor		lightColor(spotLightComponent->LightColor);
+
+	if (spotLightComponent->bUseInverseSquaredFalloff) // Intensity is in lumens
+		lightColor *= intensity * kLumensToW;
+	else
+		lightColor *= intensity * kW;
+
+	if (rprContextCreateSpotLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS ||
+		rprSpotLightSetRadiantPower3f(m_RprLight, lightColor.R * 10.0f, lightColor.G * 10.0f, lightColor.B * 10.0f) != RPR_SUCCESS ||
+		rprSpotLightSetConeShape(m_RprLight, FMath::DegreesToRadians(spotLightComponent->InnerConeAngle), FMath::DegreesToRadians(spotLightComponent->OuterConeAngle)) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create spot light"));
 		return false;
-	FColor		lightColor = spotLightComponent->LightColor;
-	rprSpotLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B);
-	rprSpotLightSetConeShape(m_RprLight,
-		FMath::DegreesToRadians(spotLightComponent->InnerConeAngle),
-		FMath::DegreesToRadians(spotLightComponent->OuterConeAngle));
+	}
 	return true;
 }
 
 bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightComponent)
 {
-	if (rprContextCreateEnvironmentLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS)
-		return false;
 	// Sky light containing a cubemap will become a RPR Environment light
 	if (skyLightComponent->SourceType != ESkyLightSourceType::SLS_SpecifiedCubemap ||
 		skyLightComponent->Cubemap == NULL)
@@ -54,15 +73,16 @@ bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightCompone
 	m_RprImage = BuildCubeImage(skyLightComponent->Cubemap, Scene->m_RprContext);
 	if (m_RprImage == NULL)
 		return false;
-	const float	intensity = 1.0f; // Get that from settings ?
-	if (rprEnvironmentLightSetImage(m_RprLight, m_RprImage) != RPR_SUCCESS ||
+	const float	intensity = skyLightComponent->Intensity;
+	if (rprContextCreateEnvironmentLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS ||
+		rprEnvironmentLightSetImage(m_RprLight, m_RprImage) != RPR_SUCCESS ||
 		//rprSceneSetEnvironmentOverride(Scene->m_RprScene, RPR_SCENE_ENVIRONMENT_OVERRIDE_REFRACTION, m_RprLight) != RPR_SUCCESS ||
 		//rprSceneSetEnvironmentOverride(Scene->m_RprScene, RPR_SCENE_ENVIRONMENT_OVERRIDE_TRANSPARENCY, m_RprLight) != RPR_SUCCESS ||
 		//rprSceneSetEnvironmentOverride(Scene->m_RprScene, RPR_SCENE_ENVIRONMENT_OVERRIDE_BACKGROUND, m_RprLight) != RPR_SUCCESS ||
 		rprSceneSetBackgroundImage(Scene->m_RprScene, m_RprImage) != RPR_SUCCESS ||
 		rprEnvironmentLightSetIntensityScale(m_RprLight, intensity) != RPR_SUCCESS)
 	{
-		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't set RPR image"));
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create RPR image"));
 		return false;
 	}
 	return true;
@@ -70,11 +90,17 @@ bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightCompone
 
 bool	URPRLightComponent::BuildDirectionalLight(const UDirectionalLightComponent *dirLightComponent)
 {
-	if (rprContextCreateDirectionalLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS)
+	const float		intensity = dirLightComponent->Intensity;
+	FLinearColor	lightColor(dirLightComponent->LightColor);
+
+	lightColor *= intensity * kDirLightIntensityMultiplier;
+	if (rprContextCreateDirectionalLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS ||
+		rprDirectionalLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B) != RPR_SUCCESS ||
+		rprDirectionalLightSetShadowSoftness(m_RprLight, 1.0f - dirLightComponent->ShadowSharpen) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create directional light"));
 		return false;
-	FColor		lightColor = dirLightComponent->LightColor;
-	rprDirectionalLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B);
-	// rprDirectionalLightSetShadowSoftness(m_RprLight, 0.5f); // TODO unresolved external
+	}
 	return true;
 }
 
@@ -100,7 +126,8 @@ bool	URPRLightComponent::Build()
 	if (m_RprLight == NULL)
 		return false;
 
-	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->ComponentToWorld, true);
+	const bool	needsRotation = spotLightComponent != NULL || dirLightComponent != NULL || skyLightComponent != NULL;
+	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->ComponentToWorld, needsRotation);
 	if (rprLightSetTransform(m_RprLight, RPR_TRUE, &matrix.m00) != RPR_SUCCESS ||
 		rprSceneAttachLight(Scene->m_RprScene, m_RprLight) != RPR_SUCCESS)
 	{
