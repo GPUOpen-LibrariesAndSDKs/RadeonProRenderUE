@@ -165,7 +165,7 @@ bool	URPRLightComponent::Build()
 	if (m_RprLight == NULL)
 		return false;
 
-	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->ComponentToWorld, false);
+	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->ComponentToWorld);
 	if (rprLightSetTransform(m_RprLight, RPR_TRUE, &matrix.m00) != RPR_SUCCESS ||
 		rprSceneAttachLight(Scene->m_RprScene, m_RprLight) != RPR_SUCCESS)
 	{
