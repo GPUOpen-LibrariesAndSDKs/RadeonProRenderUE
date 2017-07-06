@@ -16,6 +16,10 @@ class ARPRScene : public AActor
 public:
 	ARPRScene();
 
+	// TMP
+	UPROPERTY(EditAnywhere)
+	UTexture2D	*BackgroundImage;
+
 	UPROPERTY(BlueprintReadOnly)
 	UTexture2D	*SceneTexture;
 private:
@@ -29,6 +33,10 @@ public:
 	rpr_context		m_RprContext;
 	rpr_scene		m_RprScene;
 	rpr_framebuffer	m_RprFrameBuffer;
+
+
+	//// TMP
+	rpr_image		m_RprBackgroundImage;
 private:
 	class FRPRRendererWorker	*m_RendererWorker;
 
