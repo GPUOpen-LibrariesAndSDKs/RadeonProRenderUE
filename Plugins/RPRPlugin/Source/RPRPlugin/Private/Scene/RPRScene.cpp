@@ -4,6 +4,9 @@
 
 #include "Scene/RPRLightComponent.h"
 #include "Scene/RPRStaticMeshComponent.h"
+#include "Renderer/RPRRendererWorker.h"
+
+#include "TextureResource.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRScene, Log, All);
 
@@ -11,6 +14,7 @@ ARPRScene::ARPRScene()
 :	m_RprContext(NULL)
 ,	m_RprScene(NULL)
 ,	m_RprFrameBuffer(NULL)
+,	m_RendererWorker(NULL)
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
@@ -60,8 +64,6 @@ void	ARPRScene::BuildScene()
 // Might not be the best entry point, probably best to expose a StartRender() function or something
 void	ARPRScene::BeginPlay()
 {
-	Super::BeginPlay();
-
 	FString	cachePath = FPaths::GameSavedDir() + "/RadeonProRender/Cache/"; // To get from settings ?
 	FString	dllPath = FPaths::GameDir() + "/Binaries/Win64/Tahoe64.dll"; // To get from settings ?
 	uint32	creationFlags = RPR_CREATION_FLAGS_ENABLE_GPU0; // for now
@@ -96,49 +98,64 @@ void	ARPRScene::BeginPlay()
 	}
 	UE_LOG(LogRPRScene, Log, TEXT("ProRender scene created"));
 
+	////////
+	if (BackgroundImage != NULL)
+	{
+		m_RprBackgroundImage = BuildImage(BackgroundImage, m_RprContext);
+		if (m_RprBackgroundImage != NULL)
+			rprSceneSetBackgroundImage(m_RprScene, m_RprBackgroundImage);
+	}
+
 	BuildScene();
 
-
-	// /!\ Testing purposes /!\ 
-	rpr_framebuffer_desc desc;
-	desc.fb_width = 800;
-	desc.fb_height = 600;
-
-	// 4 component 32-bit float value each
-	rpr_framebuffer_format fmt = { 4, RPR_COMPONENT_TYPE_FLOAT32 };
-
-	if (rprContextCreateFrameBuffer(m_RprContext, fmt, &desc, &m_RprFrameBuffer) != RPR_SUCCESS ||
-		rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS ||
-		rprContextSetAOV(m_RprContext, RPR_AOV_COLOR, m_RprFrameBuffer) != RPR_SUCCESS ||
-		rprContextSetParameter1u(m_RprContext, "aasamples", 2) != RPR_SUCCESS)
+	const uint32	width = 800;
+	const uint32	height = 600;
+	SceneTexture = UTexture2D::CreateTransient(width, height, PF_R8G8B8A8);
+	if (SceneTexture == NULL)
 	{
-		UE_LOG(LogRPRScene, Error, TEXT("RPR FrameBuffer creation failed"));
+		UE_LOG(LogRPRScene, Error, TEXT("Couldn't create target image texture"));
 		GetWorld()->DestroyActor(this);
 		return;
 	}
+	SceneTexture->UpdateResource();
 
-	// Progressively render an image
-	static const int32	numIterations = 16;
-	for (int32 i = 0; i < numIterations; ++i)
+	m_RendererWorker = new FRPRRendererWorker(m_RprContext);
+	Super::BeginPlay();
+}
+
+void	ARPRScene::Tick(float deltaTime)
+{
+	check(SceneTexture != NULL);
+	check(m_RendererWorker != NULL);
+
+	if (m_RendererWorker->Flush())
 	{
-		if (rprContextRender(m_RprContext) != RPR_SUCCESS)
+		FTexture2DMipMap	&mip = SceneTexture->PlatformData->Mips[0];
+		void				*textureData = mip.BulkData.Lock(LOCK_READ_WRITE);
+
+		const bool	updateTexture = m_RendererWorker->LockCopyFramebufferInto(textureData);
+
+		mip.BulkData.Unlock();
+		if (updateTexture)
 		{
-			UE_LOG(LogRPRScene, Error, TEXT("Couldn't render iteration %d"), i);
-			GetWorld()->DestroyActor(this);
-			return;
+			ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
+				UpdateDynamicTextureCode,
+				UTexture2D*, SceneTexture, SceneTexture,
+				const uint8*, textureData, (const uint8*)textureData,
+				{
+					FUpdateTextureRegion2D	region;
+					region.SrcX = 0;
+					region.SrcY = 0;
+					region.DestX = 0;
+					region.DestY = 0;
+					region.Width = 800;
+					region.Height = 600;
+
+					FTexture2DResource	*resource = (FTexture2DResource*)SceneTexture->Resource;
+					RHIUpdateTexture2D(resource->GetTexture2DRHI(), 0, region, region.Width * sizeof(uint8) * 4, textureData);
+				});
 		}
 	}
-
-	UE_LOG(LogRPRScene, Log, TEXT("RPR Frame rendered"));
-
-	if (rprFrameBufferSaveToFile(m_RprFrameBuffer, "D:/simple_render.png") != RPR_SUCCESS)
-	{
-		GetWorld()->DestroyActor(this);
-		UE_LOG(LogRPRScene, Error, TEXT("Couldn't save rendered frame to 'D:/simple_render.png'"));
-		return;
-	}
-
-	UE_LOG(LogRPRScene, Log, TEXT("RPR Frame saved"));
 }
 
 void	ARPRScene::BeginDestroy()
@@ -157,17 +174,28 @@ void	ARPRScene::BeginDestroy()
 			world->DestroyActor(SceneContent[iObject]);
 		}
 	}
+	if (m_RendererWorker != NULL)
+	{
+		m_RendererWorker->EnsureCompletion();
+		delete m_RendererWorker;
+		m_RendererWorker = NULL;
+	}
 	SceneContent.Empty();
+	if (m_RprBackgroundImage != NULL)
+	{
+		rprObjectDelete(m_RprBackgroundImage);
+		m_RprBackgroundImage = NULL;
+	}
 	if (m_RprScene != NULL)
 	{
 		rprObjectDelete(m_RprScene);
 		m_RprScene = NULL;
 	}
-	if (m_RprFrameBuffer != NULL)
-	{
-		rprObjectDelete(m_RprFrameBuffer);
-		m_RprFrameBuffer = NULL;
-	}
+	//if (m_RprFrameBuffer != NULL)
+	//{
+	//	rprObjectDelete(m_RprFrameBuffer);
+	//	m_RprFrameBuffer = NULL;
+	//}
 	if (m_RprContext != NULL)
 	{
 		rprObjectDelete(m_RprContext);
