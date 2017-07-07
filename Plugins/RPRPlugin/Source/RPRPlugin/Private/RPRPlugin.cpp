@@ -5,7 +5,9 @@
 #include "LevelEditor.h"
 #include "EditorStyleSet.h"
 
+#include "Engine/Texture2DDynamic.h"
 #include "Widgets/Docking/SDockTab.h"
+#include "Widgets/Images/SImage.h"
 #include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
 
@@ -15,7 +17,8 @@ FString		FRPRPluginModule::s_URLRadeonProRender = "https://pro.radeon.com/en-us/
 
 FRPRPluginModule::FRPRPluginModule()
 :	m_Loaded(false)
-,	m_RPRViewportTab(NULL)
+,	RenderTexture(NULL)
+,	RenderTextureBrush(NULL)
 {
 
 }
@@ -25,13 +28,23 @@ void	FRPRPluginModule::OpenURL(const TCHAR *url)
 	FPlatformProcess::LaunchURL(url, NULL, NULL);
 }
 
-TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs&)
+TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &spawnArgs)
 {
-	SAssignNew(m_RPRViewportTab, SDockTab)
-		.TabRole(ETabRole::NomadTab);
+	check(!RenderTexture.IsValid());
+	check(!RenderTextureBrush.IsValid());
 
-	//m_RPRViewportTab->SetContent(CreatePixelInspectorWidget());
-	return m_RPRViewportTab.ToSharedRef();
+	const FVector2D	&dimensions = spawnArgs.GetOwnerWindow()->GetSizeInScreen();
+
+	RenderTexture = MakeShareable(UTexture2DDynamic::Create(dimensions.X, dimensions.Y));
+	RenderTextureBrush = MakeShareable(new FSlateDynamicImageBrush(RenderTexture.Get(), dimensions, FName("TextureName")));
+
+	TSharedRef<SDockTab> RPRViewportTab = SNew(SDockTab)
+		.TabRole(ETabRole::NomadTab)
+		[
+			SNew(SImage)
+			.Image(RenderTextureBrush.Get())
+		];
+	return RPRViewportTab;
 }
 
 void	FRPRPluginModule::FillRPRMenu(FMenuBuilder &menuBuilder)
@@ -45,13 +58,6 @@ void	FRPRPluginModule::FillRPRMenu(FMenuBuilder &menuBuilder)
 			FUIAction(FExecuteAction::CreateRaw(this, &FRPRPluginModule::OpenURL, *s_URLRadeonProRender)));
 	}
 	//menuBuilder.EndSection();
-
-	/*menuBuilder.AddMenuEntry(
-		LOCTEXT("ProRenderViewportTitle", "ProRender Viewport"),
-		LOCTEXT("ProRenderViewportTooltip", "Opens a Radeon ProRender viewport."),
-		FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.Tabs.Viewports"),
-		FUIAction(FExecuteAction::CreateRaw(this, &FRPRPluginModule::CreateProRenderViewport),
-			FCanExecuteAction::CreateRaw(this, &FRPRPluginModule::CanCreateProRenderViewport)));*/
 }
 
 void	FRPRPluginModule::CreateMenuBarExtension(FMenuBarBuilder &menubarBuilder)

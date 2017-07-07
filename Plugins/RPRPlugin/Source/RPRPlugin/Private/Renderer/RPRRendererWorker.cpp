@@ -54,14 +54,13 @@ void	FRPRRendererWorker::ResizeFramebuffer(uint32 width, uint32 height)
 	m_RprFrameBufferDesc.fb_width = m_Width;
 	m_RprFrameBufferDesc.fb_height = m_Height;
 
-	m_FramebufferData.SetNum(m_Width * m_Height * 4);
+	m_SrcFramebufferData.SetNum(m_Width * m_Height * 4);
+	m_DstFramebufferData.SetNum(m_Width * m_Height * 16);
 	m_RenderLock.Unlock();
 }
 
-bool	FRPRRendererWorker::LockCopyFramebufferInto(void *outData)
+bool	FRPRRendererWorker::LockBuildFramebufferData()
 {
-	check(outData != NULL);
-
 	m_RenderLock.Lock();
 
 	size_t	totalByteCount = 0;
@@ -71,21 +70,22 @@ bool	FRPRRendererWorker::LockCopyFramebufferInto(void *outData)
 		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't get framebuffer infos"));
 		return false;
 	}
-	if (m_FramebufferData.Num() != totalByteCount / sizeof(float))
+	if (m_SrcFramebufferData.Num() != totalByteCount / sizeof(float) ||
+		m_DstFramebufferData.Num() != totalByteCount)
 	{
 		m_RenderLock.Unlock();
 		UE_LOG(LogRPRRenderer, Error, TEXT("Invalid framebuffer size"));
 		return false;
 	}
 	// Get framebuffer data
-	if (rprFrameBufferGetInfo(m_RprFrameBuffer, RPR_FRAMEBUFFER_DATA, totalByteCount, m_FramebufferData.GetData(), NULL) != RPR_SUCCESS)
+	if (rprFrameBufferGetInfo(m_RprFrameBuffer, RPR_FRAMEBUFFER_DATA, totalByteCount, m_SrcFramebufferData.GetData(), NULL) != RPR_SUCCESS)
 	{
 		m_RenderLock.Unlock();
 		// No frame ready yet
 		return false;
 	}
-	uint8			*dstPixels = reinterpret_cast<uint8*>(outData);
-	const float		*srcPixels = m_FramebufferData.GetData();
+	uint8			*dstPixels = m_DstFramebufferData.GetData();
+	const float		*srcPixels = m_SrcFramebufferData.GetData();
 	const uint32	pixelCount = m_Width * m_Height;
 	for (uint32 i = 0; i < pixelCount; ++i)
 	{

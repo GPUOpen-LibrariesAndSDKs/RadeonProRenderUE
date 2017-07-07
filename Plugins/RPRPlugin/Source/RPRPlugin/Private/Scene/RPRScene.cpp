@@ -6,8 +6,11 @@
 #include "Scene/RPRStaticMeshComponent.h"
 #include "Renderer/RPRRendererWorker.h"
 
+#include "RPRPlugin.h"
+
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraActor.h"
+#include "Engine/Texture2DDynamic.h"
 #include "TextureResource.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRScene, Log, All);
@@ -66,6 +69,13 @@ void	ARPRScene::BuildScene()
 // Might not be the best entry point, probably best to expose a StartRender() function or something
 void	ARPRScene::BeginPlay()
 {
+	Super::BeginPlay();
+
+	FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
+	if (!plugin.GetRenderTexture().IsValid())
+		return;// No RPR viewport created
+	RenderTexture = plugin.GetRenderTexture();
+
 	FString	cachePath = FPaths::GameSavedDir() + "/RadeonProRender/Cache/"; // To get from settings ?
 	FString	dllPath = FPaths::GameDir() + "/Binaries/Win64/Tahoe64.dll"; // To get from settings ?
 	uint32	creationFlags = RPR_CREATION_FLAGS_ENABLE_GPU0; // for now
@@ -110,60 +120,43 @@ void	ARPRScene::BeginPlay()
 
 	BuildScene();
 
-	APlayerController	*pc = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (pc == NULL)
-	{
-		UE_LOG(LogRPRScene, Error, TEXT("No PlayerController found !"));
-		GetWorld()->DestroyActor(this);
-		return;
-	}
-	int32	width = 0;
-	int32	height = 0;
-	pc->GetViewportSize(width, height);
-
-	SceneTexture = UTexture2D::CreateTransient(width, height, PF_R8G8B8A8);
-	if (SceneTexture == NULL)
-	{
-		UE_LOG(LogRPRScene, Error, TEXT("Couldn't create target image texture"));
-		GetWorld()->DestroyActor(this);
-		return;
-	}
-	SceneTexture->UpdateResource();
-
-	m_RendererWorker = new FRPRRendererWorker(m_RprContext, width, height);
-	Super::BeginPlay();
+	m_RendererWorker = new FRPRRendererWorker(m_RprContext, RenderTexture->SizeX, RenderTexture->SizeY);
 }
 
 void	ARPRScene::Tick(float deltaTime)
 {
-	check(SceneTexture != NULL);
 	check(m_RendererWorker != NULL);
+	if (!RenderTexture.IsValid())
+	{
+		// Stop rendering, no viewport
+		return;
+	}
+	if (RenderTexture->Resource == NULL)
+		return;
 
 	if (m_RendererWorker->Flush())
 	{
-		FTexture2DMipMap	&mip = SceneTexture->PlatformData->Mips[0];
-		void				*textureData = mip.BulkData.Lock(LOCK_READ_WRITE);
+		const bool	updateTexture = m_RendererWorker->LockBuildFramebufferData();
 
-		const bool	updateTexture = m_RendererWorker->LockCopyFramebufferInto(textureData);
-
-		mip.BulkData.Unlock();
 		if (updateTexture)
 		{
+			const uint8	*textureData = m_RendererWorker->GetFramebufferData();
 			ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
 				UpdateDynamicTextureCode,
-				UTexture2D*, SceneTexture, SceneTexture,
-				const uint8*, textureData, (const uint8*)textureData,
+				UTexture2DDynamic*, RenderTexture, RenderTexture.Get(),
+				const uint8*, textureData, textureData,
 				{
 					FUpdateTextureRegion2D	region;
 					region.SrcX = 0;
 					region.SrcY = 0;
 					region.DestX = 0;
 					region.DestY = 0;
-					region.Width = SceneTexture->GetSizeX();
-					region.Height = SceneTexture->GetSizeY();
+					region.Width = RenderTexture->SizeX;
+					region.Height = RenderTexture->SizeY;
 
-					FTexture2DResource	*resource = (FTexture2DResource*)SceneTexture->Resource;
-					RHIUpdateTexture2D(resource->GetTexture2DRHI(), 0, region, region.Width * sizeof(uint8) * 4, textureData);
+					const uint32	pitch = region.Width * sizeof(uint8) * 4;
+					FRHITexture2D	*resource = (FRHITexture2D*)RenderTexture->Resource->TextureRHI.GetReference();
+					RHIUpdateTexture2D(resource, 0, region, pitch, textureData);
 				});
 		}
 	}

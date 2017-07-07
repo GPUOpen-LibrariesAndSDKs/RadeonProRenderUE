@@ -19,7 +19,9 @@ public:
 	void			EnsureCompletion();
 	bool			Flush() const;
 	void			ResizeFramebuffer(uint32 width, uint32 height);
-	bool			LockCopyFramebufferInto(void *outData);
+	bool			LockBuildFramebufferData();
+
+	const uint8		*GetFramebufferData() const { return m_DstFramebufferData.GetData(); }
 private:
 	void		ReleaseResources();
 private:
@@ -38,5 +40,6 @@ private:
 	rpr_framebuffer			m_RprFrameBuffer;
 	rpr_context				m_RprContext;
 
-	TArray<float>			m_FramebufferData;
+	TArray<float>			m_SrcFramebufferData;
+	TArray<uint8>			m_DstFramebufferData;
 };

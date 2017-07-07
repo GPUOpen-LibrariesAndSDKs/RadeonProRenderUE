@@ -39,6 +39,8 @@ public:
 private:
 	class FRPRRendererWorker	*m_RendererWorker;
 
+	TSharedPtr<UTexture2DDynamic>	RenderTexture;
+
 	UPROPERTY(Transient)
 	TArray<AActor*>		SceneContent;
 };

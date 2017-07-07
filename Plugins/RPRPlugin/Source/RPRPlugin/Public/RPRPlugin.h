@@ -12,6 +12,8 @@ public:
 
 	virtual void	StartupModule() override;
 	virtual void	ShutdownModule() override;
+
+	TSharedPtr<UTexture2DDynamic>	GetRenderTexture() { return RenderTexture; }
 private:
 	void					FillRPRMenu(class FMenuBuilder &menuBuilder);
 	void					CreateMenuBarExtension(class FMenuBarBuilder &menubarBuilder);
@@ -21,8 +23,8 @@ private:
 private:
 	static FString	s_URLRadeonProRender;
 
-	// Do we want to allow several viewports ? (for several cams)
-	TSharedPtr<SDockTab>	m_RPRViewportTab;
+	TSharedPtr<UTexture2DDynamic>		RenderTexture;
+	TSharedPtr<FSlateDynamicImageBrush>	RenderTextureBrush;
 
 	bool	m_Loaded;
 };
