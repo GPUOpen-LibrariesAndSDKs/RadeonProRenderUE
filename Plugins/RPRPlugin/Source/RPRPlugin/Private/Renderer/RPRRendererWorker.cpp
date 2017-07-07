@@ -87,12 +87,14 @@ bool	FRPRRendererWorker::LockBuildFramebufferData()
 	uint8			*dstPixels = m_DstFramebufferData.GetData();
 	const float		*srcPixels = m_SrcFramebufferData.GetData();
 	const uint32	pixelCount = m_Width * m_Height;
+
+	static const float	kRemapRatio = 255.0f / 32.0f;
 	for (uint32 i = 0; i < pixelCount; ++i)
 	{
-		*dstPixels++ = *srcPixels++;
-		*dstPixels++ = *srcPixels++;
-		*dstPixels++ = *srcPixels++;
-		*dstPixels++ = *srcPixels++;
+		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++ * kRemapRatio, 255.0f);
+		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++ * kRemapRatio, 255.0f);
+		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++ * kRemapRatio, 255.0f);
+		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++ * kRemapRatio, 255.0f);
 	}
 	m_PreviousRenderedIteration = m_CurrentIteration;
 	m_RenderLock.Unlock();
