@@ -16,7 +16,6 @@ ARPRScene::ARPRScene()
 :	m_RprContext(NULL)
 ,	m_RprScene(NULL)
 ,	m_RprFrameBuffer(NULL)
-,	m_CurrentCamera(NULL)
 ,	m_RendererWorker(NULL)
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -61,19 +60,6 @@ void	ARPRScene::BuildScene()
 		else if (Cast<UCineCameraComponent>(*it) != NULL)
 			BuildRPRActor(world, *it, URPRCameraComponent::StaticClass());
 	}
-}
-
-void	ARPRScene::SetCurrentCamera(class ACameraActor *camera)
-{
-	if (camera == NULL)
-		return;
-	// Get the default player controller
-	APlayerController	*pc = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (pc == NULL)
-		return;
-	// No need for smooth transition
-	pc->SetViewTarget(camera, FViewTargetTransitionParams());
-	m_CurrentCamera = camera->GetCameraComponent();
 }
 
 // BeginPlay will be called after the object has been created and initialized
@@ -124,12 +110,6 @@ void	ARPRScene::BeginPlay()
 
 	BuildScene();
 
-	if (m_CurrentCamera == NULL)
-	{
-		UE_LOG(LogRPRScene, Warning, TEXT("Couldn't render, no camera setup"));
-		GetWorld()->DestroyActor(this);
-		return;
-	}
 	APlayerController	*pc = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	if (pc == NULL)
 	{

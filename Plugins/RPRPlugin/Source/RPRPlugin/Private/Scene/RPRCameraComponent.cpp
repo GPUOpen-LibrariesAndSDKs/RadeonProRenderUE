@@ -67,7 +67,6 @@ bool	URPRCameraComponent::Build()
 	// Auto select the first camera ?
 	// What is the expected behavior ?
 	// For now:
-	Scene->SetCurrentCamera(Cast<ACameraActor>(cineCam->GetOwner()));
 	if (rprSceneSetCamera(Scene->m_RprScene, m_RprCamera) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't set the active RPR camera"));
