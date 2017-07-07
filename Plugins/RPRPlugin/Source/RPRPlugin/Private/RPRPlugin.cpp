@@ -5,12 +5,17 @@
 #include "LevelEditor.h"
 #include "EditorStyleSet.h"
 
+#include "Widgets/Docking/SDockTab.h"
+#include "WorkspaceMenuStructure.h"
+#include "WorkspaceMenuStructureModule.h"
+
 #define LOCTEXT_NAMESPACE "FRPRPluginModule"
 
 FString		FRPRPluginModule::s_URLRadeonProRender = "https://pro.radeon.com/en-us/software/prorender/";
 
 FRPRPluginModule::FRPRPluginModule()
 :	m_Loaded(false)
+,	m_RPRViewportTab(NULL)
 {
 
 }
@@ -20,14 +25,13 @@ void	FRPRPluginModule::OpenURL(const TCHAR *url)
 	FPlatformProcess::LaunchURL(url, NULL, NULL);
 }
 
-bool	FRPRPluginModule::CanCreateProRenderViewport()
+TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs&)
 {
-	return true;
-}
+	SAssignNew(m_RPRViewportTab, SDockTab)
+		.TabRole(ETabRole::NomadTab);
 
-void	FRPRPluginModule::CreateProRenderViewport()
-{
-
+	//m_RPRViewportTab->SetContent(CreatePixelInspectorWidget());
+	return m_RPRViewportTab.ToSharedRef();
 }
 
 void	FRPRPluginModule::FillRPRMenu(FMenuBuilder &menuBuilder)
@@ -42,12 +46,12 @@ void	FRPRPluginModule::FillRPRMenu(FMenuBuilder &menuBuilder)
 	}
 	//menuBuilder.EndSection();
 
-	menuBuilder.AddMenuEntry(
+	/*menuBuilder.AddMenuEntry(
 		LOCTEXT("ProRenderViewportTitle", "ProRender Viewport"),
 		LOCTEXT("ProRenderViewportTooltip", "Opens a Radeon ProRender viewport."),
 		FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.Tabs.Viewports"),
 		FUIAction(FExecuteAction::CreateRaw(this, &FRPRPluginModule::CreateProRenderViewport),
-			FCanExecuteAction::CreateRaw(this, &FRPRPluginModule::CanCreateProRenderViewport)));
+			FCanExecuteAction::CreateRaw(this, &FRPRPluginModule::CanCreateProRenderViewport)));*/
 }
 
 void	FRPRPluginModule::CreateMenuBarExtension(FMenuBarBuilder &menubarBuilder)
@@ -70,6 +74,14 @@ void	FRPRPluginModule::StartupModule()
 	TSharedPtr<FExtender>	customExtender = MakeShareable(new FExtender);
 	customExtender->AddMenuBarExtension(TEXT("Help"), EExtensionHook::After, NULL, FMenuBarExtensionDelegate::CreateRaw(this, &FRPRPluginModule::CreateMenuBarExtension));
 	levelEditorModule.GetMenuExtensibilityManager()->AddExtender(customExtender);
+
+	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(
+		TEXT("RPRViewport"),
+		FOnSpawnTab::CreateRaw(this, &FRPRPluginModule::SpawnRPRViewportTab))
+		.SetGroup(WorkspaceMenu::GetMenuStructure().GetLevelEditorViewportsCategory())
+		.SetDisplayName(LOCTEXT("TabTitle", "ProRender Viewport"))
+		.SetTooltipText(LOCTEXT("TooltipText", "Opens a Radeon ProRender viewport."))
+		.SetIcon(FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.Tabs.Viewports"));
 }
 
 void	FRPRPluginModule::ShutdownModule()

@@ -47,7 +47,9 @@ public class RPRPlugin : ModuleRules
 				"CinematicCamera",
 				"RHI",
 
+				"WorkspaceMenuStructure",
 				"EditorStyle",
+				"Slate",
 				"LevelEditor",
 				// ... add private dependencies that you statically link with here ...	
 			}
