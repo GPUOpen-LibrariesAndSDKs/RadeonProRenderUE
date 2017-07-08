@@ -34,8 +34,9 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 	check(!RenderTextureBrush.IsValid());
 
 	const FVector2D	&dimensions = spawnArgs.GetOwnerWindow()->GetSizeInScreen();
+	const FVector2D	renderResolution(1920, 1080);
 
-	RenderTexture = MakeShareable(UTexture2DDynamic::Create(dimensions.X, dimensions.Y, PF_R8G8B8A8));
+	RenderTexture = MakeShareable(UTexture2DDynamic::Create(renderResolution.X, renderResolution.Y, PF_R8G8B8A8));
 	RenderTextureBrush = MakeShareable(new FSlateDynamicImageBrush(RenderTexture.Get(), dimensions, FName("TextureName")));
 
 	TSharedRef<SDockTab> RPRViewportTab = SNew(SDockTab)

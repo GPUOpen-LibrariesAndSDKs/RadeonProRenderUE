@@ -19,6 +19,7 @@ ARPRScene::ARPRScene()
 :	m_RprContext(NULL)
 ,	m_RprScene(NULL)
 ,	m_RprFrameBuffer(NULL)
+,	m_TriggerEndFrameRebuild(false)
 ,	m_RendererWorker(NULL)
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -37,6 +38,7 @@ void	ARPRScene::BuildRPRActor(UWorld *world, USceneComponent *srcComponent, UCla
 	comp->SrcComponent = srcComponent;
 	comp->Scene = this;
 	newActor->SetRootComponent(comp);
+	comp->RegisterComponent();
 
 	if (!comp->Build())
 	{
@@ -125,6 +127,8 @@ void	ARPRScene::BeginPlay()
 
 void	ARPRScene::Tick(float deltaTime)
 {
+	// TODO Set tick group correctly so the scene is updated last (avoid rebuilding the framebuffer two times)
+
 	check(m_RendererWorker != NULL);
 	if (!RenderTexture.IsValid())
 	{
@@ -134,7 +138,14 @@ void	ARPRScene::Tick(float deltaTime)
 	if (RenderTexture->Resource == NULL)
 		return;
 
-	if (m_RendererWorker->Flush())
+	if (/*m_RendererWorker->ResizeFramebuffer(RenderTexture->SizeX, RenderTexture->SizeY) ||*/
+		m_TriggerEndFrameRebuild)
+	{
+		// Restart render, skip frame copy
+		m_RendererWorker->RestartRender();
+		m_TriggerEndFrameRebuild = false;
+	}
+	else if (m_RendererWorker->Flush())
 	{
 		const bool	updateTexture = m_RendererWorker->LockBuildFramebufferData();
 

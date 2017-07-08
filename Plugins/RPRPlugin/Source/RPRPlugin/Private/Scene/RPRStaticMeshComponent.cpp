@@ -137,7 +137,22 @@ bool	URPRStaticMeshComponent::Build()
 		UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape created from '%s'"), *SrcComponent->GetName());
 		m_Shapes.Add(SRPRShape(shape, material));
 	}
-	return true;
+	return Super::Build();
+}
+
+void	URPRStaticMeshComponent::RebuildTransforms()
+{
+	RadeonProRender::matrix	matrix = BuildMatrixWithScale(SrcComponent->ComponentToWorld);
+
+	const uint32	shapeCount = m_Shapes.Num();
+	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
+	{
+		if (rprShapeSetTransform(m_Shapes[iShape].m_RprShape, RPR_TRUE, &matrix.m00) != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't refresh RPR mesh transforms"));
+			return;
+		}
+	}
 }
 
 void	URPRStaticMeshComponent::BeginDestroy()

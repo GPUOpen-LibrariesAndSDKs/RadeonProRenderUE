@@ -14,14 +14,21 @@ class URPRSceneComponent : public USceneComponent
 {
 	GENERATED_BODY()
 public:
-	URPRSceneComponent();
-
-	/* Build the RPR object based on the UE4 component */
-	virtual bool	Build() { return false; }
-public:
 	UPROPERTY(Transient)
 	class ARPRScene		*Scene;
 
 	UPROPERTY(Transient)
 	USceneComponent		*SrcComponent;
+public:
+	URPRSceneComponent();
+
+	/* Build the RPR object based on the UE4 component */
+	virtual bool	Build();
+
+	/* Rebuild the RPR transforms */
+	virtual void	RebuildTransforms() { }
+protected:
+	void			TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
+private:
+	FTransform		m_CachedTransforms;
 };

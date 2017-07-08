@@ -15,6 +15,7 @@ public:
 	URPRCameraComponent();
 
 	virtual bool	Build() override;
+	virtual void	RebuildTransforms() override;
 private:
 	virtual void	BeginDestroy() override;
 public:

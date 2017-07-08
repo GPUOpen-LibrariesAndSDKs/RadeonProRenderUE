@@ -175,7 +175,43 @@ bool	URPRLightComponent::Build()
 	}
 	SrcComponent->ComponentToWorld.SetRotation(oldOrientation);
 	UE_LOG(LogRPRLightComponent, Log, TEXT("RPR Light created from '%s'"), *SrcComponent->GetName());
-	return true;
+	return Super::Build();
+}
+
+void	URPRLightComponent::RebuildTransforms()
+{
+	check(m_RprLight != NULL);
+
+	const FQuat	oldOrientation = SrcComponent->ComponentToWorld.GetRotation();
+
+	rpr_light_type	lightType = 0;
+	if (rprLightGetInfo(m_RprLight, RPR_LIGHT_TYPE, sizeof(rpr_light_type), &lightType, NULL) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Invalid RPR Light type"));
+		return;
+	}
+	switch (lightType)
+	{
+		case RPR_LIGHT_TYPE_POINT:
+			break;
+		case RPR_LIGHT_TYPE_DIRECTIONAL:
+		case RPR_LIGHT_TYPE_SPOT:
+		case RPR_LIGHT_TYPE_ENVIRONMENT:
+			SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(-90.0f, 90.0f, 0.0f)));
+			break;
+		case RPR_LIGHT_TYPE_IES:
+			SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 90.0f, 0.0f)));
+			break;
+		default:
+			return; // We shouldn't be here, really
+	}
+	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->ComponentToWorld);
+	if (rprLightSetTransform(m_RprLight, RPR_TRUE, &matrix.m00) != RPR_SUCCESS)
+	{
+		SrcComponent->ComponentToWorld.SetRotation(oldOrientation);
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't refresh RPR light transforms"));
+	}
+	SrcComponent->ComponentToWorld.SetRotation(oldOrientation);
 }
 
 void	URPRLightComponent::BeginDestroy()

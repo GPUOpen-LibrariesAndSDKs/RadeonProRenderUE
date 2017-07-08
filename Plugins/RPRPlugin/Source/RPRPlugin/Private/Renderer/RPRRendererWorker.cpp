@@ -29,9 +29,13 @@ bool	FRPRRendererWorker::Init()
 {
 	check(m_RprContext != NULL);
 
-	ResizeFramebuffer(m_Width, m_Height);
 	m_RprFrameBufferFormat.num_components = 4;
 	m_RprFrameBufferFormat.type = RPR_COMPONENT_TYPE_FLOAT32;
+	m_RprFrameBufferDesc.fb_width = m_Width;
+	m_RprFrameBufferDesc.fb_height = m_Height;
+
+	m_SrcFramebufferData.SetNum(m_Width * m_Height * 4);
+	m_DstFramebufferData.SetNum(m_Width * m_Height * 16);
 
 	if (rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprFrameBuffer) != RPR_SUCCESS ||
 		rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS ||
@@ -44,9 +48,10 @@ bool	FRPRRendererWorker::Init()
 	return true;
 }
 
-void	FRPRRendererWorker::ResizeFramebuffer(uint32 width, uint32 height)
+bool	FRPRRendererWorker::ResizeFramebuffer(uint32 width, uint32 height)
 {
-	m_RenderLock.Lock();
+	if (m_Width == width && m_Height == height)
+		return false;
 
 	m_Width = width;
 	m_Height = height;
@@ -56,7 +61,27 @@ void	FRPRRendererWorker::ResizeFramebuffer(uint32 width, uint32 height)
 
 	m_SrcFramebufferData.SetNum(m_Width * m_Height * 4);
 	m_DstFramebufferData.SetNum(m_Width * m_Height * 16);
+
+	return true;
+}
+
+bool	FRPRRendererWorker::RestartRender()
+{
+	m_RenderLock.Lock();
+
+	// Launch the new frame render
+	if (m_RprFrameBuffer != NULL &&
+		rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS)
+	{
+		m_RenderLock.Unlock();
+		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't clear framebuffer"));
+		return false;
+	}
+	m_CurrentIteration = 0;
+	m_PreviousRenderedIteration = 0;
+
 	m_RenderLock.Unlock();
+	return true;
 }
 
 bool	FRPRRendererWorker::LockBuildFramebufferData()

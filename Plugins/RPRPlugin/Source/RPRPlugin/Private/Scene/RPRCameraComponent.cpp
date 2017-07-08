@@ -73,7 +73,17 @@ bool	URPRCameraComponent::Build()
 		return false;
 	}
 	UE_LOG(LogRPRCameraComponent, Log, TEXT("RPR Camera created from '%s'"), *SrcComponent->GetName());
-	return true;
+	return Super::Build();
+}
+
+void	URPRCameraComponent::RebuildTransforms()
+{
+	check(m_RprCamera != NULL);
+
+	FVector	camPos = SrcComponent->ComponentToWorld.GetLocation() * 0.1f;
+	FVector	forward = camPos + SrcComponent->ComponentToWorld.GetRotation().GetForwardVector();
+	if (rprCameraLookAt(m_RprCamera, camPos.X, camPos.Z, camPos.Y, forward.X, forward.Z, forward.Y, 0.0f, 1.0f, 0.0f))
+		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't rebuild RPR camera transforms"));
 }
 
 void	URPRCameraComponent::BeginDestroy()

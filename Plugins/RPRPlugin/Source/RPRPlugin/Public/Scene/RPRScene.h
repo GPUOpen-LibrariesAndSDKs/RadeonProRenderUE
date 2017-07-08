@@ -20,8 +20,6 @@ public:
 	// TMP
 	UPROPERTY(EditAnywhere)
 	UTexture2D	*BackgroundImage;
-
-
 private:
 	virtual void	BeginDestroy() override;
 	virtual void	BeginPlay() override;
@@ -36,7 +34,11 @@ public:
 
 	//// TMP
 	rpr_image		m_RprBackgroundImage;
+
+	void	TriggerFrameRebuild() { m_TriggerEndFrameRebuild = true; }
 private:
+	bool	m_TriggerEndFrameRebuild;
+
 	class FRPRRendererWorker	*m_RendererWorker;
 
 	TSharedPtr<UTexture2DDynamic>	RenderTexture;

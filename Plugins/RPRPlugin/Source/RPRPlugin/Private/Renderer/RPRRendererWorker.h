@@ -18,8 +18,10 @@ public:
 
 	void			EnsureCompletion();
 	bool			Flush() const;
-	void			ResizeFramebuffer(uint32 width, uint32 height);
 	bool			LockBuildFramebufferData();
+
+	bool			ResizeFramebuffer(uint32 width, uint32 height);
+	bool			RestartRender();
 
 	const uint8		*GetFramebufferData() const { return m_DstFramebufferData.GetData(); }
 private:
