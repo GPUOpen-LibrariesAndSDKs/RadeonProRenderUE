@@ -140,7 +140,7 @@ bool	URPRStaticMeshComponent::Build()
 	return Super::Build();
 }
 
-void	URPRStaticMeshComponent::RebuildTransforms()
+bool	URPRStaticMeshComponent::RebuildTransforms()
 {
 	RadeonProRender::matrix	matrix = BuildMatrixWithScale(SrcComponent->ComponentToWorld);
 
@@ -150,9 +150,10 @@ void	URPRStaticMeshComponent::RebuildTransforms()
 		if (rprShapeSetTransform(m_Shapes[iShape].m_RprShape, RPR_TRUE, &matrix.m00) != RPR_SUCCESS)
 		{
 			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't refresh RPR mesh transforms"));
-			return;
+			return false;
 		}
 	}
+	return true;
 }
 
 void	URPRStaticMeshComponent::BeginDestroy()

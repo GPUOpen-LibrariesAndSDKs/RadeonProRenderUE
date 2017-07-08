@@ -30,10 +30,11 @@ private:
 public:
 	rpr_context		m_RprContext;
 	rpr_scene		m_RprScene;
-	rpr_framebuffer	m_RprFrameBuffer;
 
 	//// TMP
 	rpr_image		m_RprBackgroundImage;
+
+	class URPRCameraComponent	*m_ActiveCamera;
 
 	void	TriggerFrameRebuild() { m_TriggerEndFrameRebuild = true; }
 private:

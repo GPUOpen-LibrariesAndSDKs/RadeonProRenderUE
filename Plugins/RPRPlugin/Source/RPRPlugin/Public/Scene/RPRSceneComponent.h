@@ -26,7 +26,7 @@ public:
 	virtual bool	Build();
 
 	/* Rebuild the RPR transforms */
-	virtual void	RebuildTransforms() { }
+	virtual bool	RebuildTransforms() { return false; }
 protected:
 	void			TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
 private:

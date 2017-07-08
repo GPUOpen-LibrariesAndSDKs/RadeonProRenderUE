@@ -18,7 +18,7 @@ DEFINE_LOG_CATEGORY_STATIC(LogRPRScene, Log, All);
 ARPRScene::ARPRScene()
 :	m_RprContext(NULL)
 ,	m_RprScene(NULL)
-,	m_RprFrameBuffer(NULL)
+,	m_ActiveCamera(NULL)
 ,	m_TriggerEndFrameRebuild(false)
 ,	m_RendererWorker(NULL)
 {
@@ -206,11 +206,6 @@ void	ARPRScene::BeginDestroy()
 		rprObjectDelete(m_RprScene);
 		m_RprScene = NULL;
 	}
-	//if (m_RprFrameBuffer != NULL)
-	//{
-	//	rprObjectDelete(m_RprFrameBuffer);
-	//	m_RprFrameBuffer = NULL;
-	//}
 	if (m_RprContext != NULL)
 	{
 		rprObjectDelete(m_RprContext);

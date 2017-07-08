@@ -16,7 +16,7 @@ public:
 	URPRLightComponent();
 
 	virtual bool	Build() override;
-	virtual void	RebuildTransforms() override;
+	virtual bool	RebuildTransforms() override;
 private:
 	virtual void	BeginDestroy() override;
 

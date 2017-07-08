@@ -67,6 +67,7 @@ bool	URPRCameraComponent::Build()
 	// Auto select the first camera ?
 	// What is the expected behavior ?
 	// For now:
+	Scene->m_ActiveCamera = this;
 	if (rprSceneSetCamera(Scene->m_RprScene, m_RprCamera) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't set the active RPR camera"));
@@ -76,14 +77,23 @@ bool	URPRCameraComponent::Build()
 	return Super::Build();
 }
 
-void	URPRCameraComponent::RebuildTransforms()
+bool	URPRCameraComponent::RebuildTransforms()
 {
 	check(m_RprCamera != NULL);
+	check(Scene != NULL);
+
+	// If we are not the main camera, don't rebuild
+	if (Scene->m_ActiveCamera != this)
+		return false;
 
 	FVector	camPos = SrcComponent->ComponentToWorld.GetLocation() * 0.1f;
 	FVector	forward = camPos + SrcComponent->ComponentToWorld.GetRotation().GetForwardVector();
 	if (rprCameraLookAt(m_RprCamera, camPos.X, camPos.Z, camPos.Y, forward.X, forward.Z, forward.Y, 0.0f, 1.0f, 0.0f))
+	{
 		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't rebuild RPR camera transforms"));
+		return false;
+	}
+	return true;
 }
 
 void	URPRCameraComponent::BeginDestroy()

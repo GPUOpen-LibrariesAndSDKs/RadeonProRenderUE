@@ -25,8 +25,8 @@ void	URPRSceneComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 	// UEngine::OnActorMoved() and UEngine::OnComponentTransformChanged() are editor only..
 	if (!m_CachedTransforms.Equals(SrcComponent->ComponentToWorld, 0.0001f))
 	{
-		RebuildTransforms();
-		Scene->TriggerFrameRebuild();
+		if (RebuildTransforms())
+			Scene->TriggerFrameRebuild();
 	}
 	m_CachedTransforms = SrcComponent->ComponentToWorld;
 }
