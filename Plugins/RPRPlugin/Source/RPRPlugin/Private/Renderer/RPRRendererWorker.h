@@ -18,13 +18,19 @@ public:
 
 	void			EnsureCompletion();
 	bool			Flush() const;
-	bool			LockBuildFramebufferData();
 
 	bool			ResizeFramebuffer(uint32 width, uint32 height);
 	bool			RestartRender();
 
-	const uint8		*GetFramebufferData() const { return m_DstFramebufferData.GetData(); }
+	const uint8		*GetFramebufferData()
+	{
+		m_PreviousRenderedIteration = m_CurrentIteration;
+		return m_DstFramebufferData.GetData();
+	}
+public:
+	FCriticalSection	m_DataLock;
 private:
+	bool		BuildFramebufferData();
 	void		ReleaseResources();
 private:
 	FRunnableThread			*m_Thread;

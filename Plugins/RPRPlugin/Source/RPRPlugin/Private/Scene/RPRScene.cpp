@@ -147,29 +147,27 @@ void	ARPRScene::Tick(float deltaTime)
 	}
 	else if (m_RendererWorker->Flush())
 	{
-		const bool	updateTexture = m_RendererWorker->LockBuildFramebufferData();
+		m_RendererWorker->m_DataLock.Lock();
+		const uint8	*textureData = m_RendererWorker->GetFramebufferData();
+		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
+			UpdateDynamicTextureCode,
+			UTexture2DDynamic*, RenderTexture, RenderTexture.Get(),
+			const uint8*, textureData, textureData,
+			{
+				FUpdateTextureRegion2D	region;
+				region.SrcX = 0;
+				region.SrcY = 0;
+				region.DestX = 0;
+				region.DestY = 0;
+				region.Width = RenderTexture->SizeX;
+				region.Height = RenderTexture->SizeY;
 
-		if (updateTexture)
-		{
-			const uint8	*textureData = m_RendererWorker->GetFramebufferData();
-			ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
-				UpdateDynamicTextureCode,
-				UTexture2DDynamic*, RenderTexture, RenderTexture.Get(),
-				const uint8*, textureData, textureData,
-				{
-					FUpdateTextureRegion2D	region;
-					region.SrcX = 0;
-					region.SrcY = 0;
-					region.DestX = 0;
-					region.DestY = 0;
-					region.Width = RenderTexture->SizeX;
-					region.Height = RenderTexture->SizeY;
-
-					const uint32	pitch = region.Width * sizeof(uint8) * 4;
-					FRHITexture2D	*resource = (FRHITexture2D*)RenderTexture->Resource->TextureRHI.GetReference();
-					RHIUpdateTexture2D(resource, 0, region, pitch, textureData);
-				});
-		}
+				const uint32	pitch = region.Width * sizeof(uint8) * 4;
+				FRHITexture2D	*resource = (FRHITexture2D*)RenderTexture->Resource->TextureRHI.GetReference();
+				RHIUpdateTexture2D(resource, 0, region, pitch, textureData);
+			});
+		FlushRenderingCommands();
+		m_RendererWorker->m_DataLock.Unlock();
 	}
 }
 

@@ -84,28 +84,23 @@ bool	FRPRRendererWorker::RestartRender()
 	return true;
 }
 
-bool	FRPRRendererWorker::LockBuildFramebufferData()
+bool	FRPRRendererWorker::BuildFramebufferData()
 {
-	m_RenderLock.Lock();
-
 	size_t	totalByteCount = 0;
 	if (rprFrameBufferGetInfo(m_RprFrameBuffer, RPR_FRAMEBUFFER_DATA, 0, NULL, &totalByteCount) != RPR_SUCCESS)
 	{
-		m_RenderLock.Unlock();
 		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't get framebuffer infos"));
 		return false;
 	}
 	if (m_SrcFramebufferData.Num() != totalByteCount / sizeof(float) ||
 		m_DstFramebufferData.Num() != totalByteCount)
 	{
-		m_RenderLock.Unlock();
 		UE_LOG(LogRPRRenderer, Error, TEXT("Invalid framebuffer size"));
 		return false;
 	}
 	// Get framebuffer data
 	if (rprFrameBufferGetInfo(m_RprFrameBuffer, RPR_FRAMEBUFFER_DATA, totalByteCount, m_SrcFramebufferData.GetData(), NULL) != RPR_SUCCESS)
 	{
-		m_RenderLock.Unlock();
 		// No frame ready yet
 		return false;
 	}
@@ -121,14 +116,12 @@ bool	FRPRRendererWorker::LockBuildFramebufferData()
 		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++ * kRemapRatio, 255.0f);
 		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++ * kRemapRatio, 255.0f);
 	}
-	m_PreviousRenderedIteration = m_CurrentIteration;
-	m_RenderLock.Unlock();
 	return true;
 }
 
 uint32	FRPRRendererWorker::Run()
 {
-	const uint32	iterationCount = 16;
+	const uint32	iterationCount = 32;
 
 	while (m_StopTaskCounter.GetValue() == 0)
 	{
@@ -141,6 +134,9 @@ uint32	FRPRRendererWorker::Run()
 				break;
 			}
 			m_RenderLock.Unlock();
+			m_DataLock.Lock();
+			BuildFramebufferData();
+			m_DataLock.Unlock();
 			++m_CurrentIteration;
 		}
 		else
