@@ -9,7 +9,7 @@
 /**
 * Root of all RPR component, representation of an UE object
 */
-UCLASS(Abstract)
+UCLASS(Abstract, Transient)
 class URPRSceneComponent : public USceneComponent
 {
 	GENERATED_BODY()

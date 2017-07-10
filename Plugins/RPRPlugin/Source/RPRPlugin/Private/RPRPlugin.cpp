@@ -11,50 +11,54 @@
 #include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
 
+#include "Engine/World.h"
+
+#include "Scene/RPRScene.h"
+#include "EngineUtils.h"
+
 #define LOCTEXT_NAMESPACE "FRPRPluginModule"
 
 FString		FRPRPluginModule::s_URLRadeonProRender = "https://pro.radeon.com/en-us/software/prorender/";
 
 FRPRPluginModule::FRPRPluginModule()
-:	m_Loaded(false)
-,	RenderTexture(NULL)
+:	RenderTexture(NULL)
 ,	RenderTextureBrush(NULL)
+//,	m_ActiveRPRScene(NULL)
+,	m_GameWorld(NULL)
+,	m_EditorWorld(NULL)
+,	m_Loaded(false)
 {
 
 }
 
 FReply	OnRender()
 {
-	if (GEngine != NULL &&
-		GEngine->GetWorld() != NULL)
-	{
-		UWorld	*world = GEngine->GetWorld();
+	FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
 
-		// We shouldn't have more than one scene
-		for (TActorIterator<ARPRScene> it(world); it; ++it)
-		{
-			if (*it == NULL)
-				continue;
-			it->OnRender();
-		}
+	UWorld	*world = plugin.GameWorld() != NULL ? plugin.GameWorld() : plugin.EditorWorld();
+	if (world == NULL)
+		return FReply::Handled();
+	for (TActorIterator<ARPRScene> it(world); it; ++it)
+	{
+		if (*it == NULL)
+			continue;
+		it->OnRender();
 	}
 	return FReply::Handled();
 }
 
 FReply	OnSync()
 {
-	if (GEngine != NULL &&
-		GEngine->GetWorld() != NULL)
-	{
-		UWorld	*world = GEngine->GetWorld();
+	FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
 
-		// We shouldn't have more than one scene
-		for (TActorIterator<ARPRScene> it(world); it; ++it)
-		{
-			if (*it == NULL)
-				continue;
-			it->OnTriggerSync();
-		}
+	UWorld	*world = plugin.GameWorld() != NULL ? plugin.GameWorld() : plugin.EditorWorld();
+	if (world == NULL)
+		return FReply::Handled();
+	for (TActorIterator<ARPRScene> it(world); it; ++it)
+	{
+		if (*it == NULL)
+			continue;
+		it->OnTriggerSync();
 	}
 	return FReply::Handled();
 }
@@ -68,6 +72,15 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 {
 	check(!RenderTexture.IsValid());
 	check(!RenderTextureBrush.IsValid());
+
+	if (ensure(GEngine != NULL))
+	{
+		GEngine->OnWorldAdded().AddRaw(this, &FRPRPluginModule::OnWorldCreated);
+		GEngine->OnWorldDestroyed().AddRaw(this, &FRPRPluginModule::OnWorldDestroyed);
+
+		for (const FWorldContext& Context : GEngine->GetWorldContexts())
+			OnWorldCreated(Context.World());
+	}
 
 	const FVector2D	&dimensions = spawnArgs.GetOwnerWindow()->GetSizeInScreen();
 	const FVector2D	renderResolution(1920, 1080);
@@ -164,6 +177,51 @@ void	FRPRPluginModule::CreateMenuBarExtension(FMenuBarBuilder &menubarBuilder)
 		LOCTEXT("MenuBarTitle", "Radeon ProRender"),
 		LOCTEXT("MenuBarTooltip", "Open the Radeon ProRender menu"),
 		FNewMenuDelegate::CreateRaw(this, &FRPRPluginModule::FillRPRMenu));
+}
+
+void	FRPRPluginModule::OnWorldCreated(UWorld *inWorld)
+{
+	if (inWorld == NULL)
+		return;
+	if (inWorld->WorldType == EWorldType::Game ||
+		inWorld->WorldType == EWorldType::PIE)
+	{
+		check(m_GameWorld == NULL);
+		m_GameWorld = inWorld;
+	}
+	else if (inWorld->WorldType == EWorldType::Editor)
+	{
+		check(m_EditorWorld == NULL);
+		m_EditorWorld = inWorld;
+	}
+	else
+		return;
+	// We should have at maximum two RPRScene
+	FActorSpawnParameters	params;
+	params.ObjectFlags = RF_Public | RF_Transactional;
+
+	check(inWorld->SpawnActor<ARPRScene>(ARPRScene::StaticClass(), params) != NULL);
+}
+
+void	FRPRPluginModule::OnWorldDestroyed(UWorld *inWorld)
+{
+	if (inWorld == NULL)
+		return;
+	if (inWorld->WorldType == EWorldType::Game ||
+		inWorld->WorldType == EWorldType::PIE)
+	{
+		check(m_GameWorld != NULL);
+		m_GameWorld = NULL;
+	}
+	else if (inWorld->WorldType == EWorldType::Editor)
+	{
+		check(m_EditorWorld != NULL);
+		m_EditorWorld = NULL;
+	}
+	else
+		return;
+	for (TActorIterator<ARPRScene> it(inWorld); it; ++it)
+		inWorld->DestroyActor(*it);
 }
 
 void	FRPRPluginModule::StartupModule()

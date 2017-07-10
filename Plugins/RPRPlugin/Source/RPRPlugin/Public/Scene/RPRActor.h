@@ -6,7 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "RPRActor.generated.h"
 
-UCLASS()
+UCLASS(Transient)
 class ARPRActor : public AActor
 {
 	GENERATED_BODY()

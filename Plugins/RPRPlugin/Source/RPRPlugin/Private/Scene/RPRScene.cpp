@@ -20,59 +20,14 @@ ARPRScene::ARPRScene()
 ,	m_RprScene(NULL)
 ,	m_ActiveCamera(NULL)
 ,	m_TriggerEndFrameRebuild(false)
+,	m_Synchronize(false)
 ,	m_RendererWorker(NULL)
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-void	ARPRScene::BuildRPRActor(UWorld *world, USceneComponent *srcComponent, UClass *typeClass)
+void	ARPRScene::OnRender()
 {
-	FActorSpawnParameters	params;
-	params.ObjectFlags = RF_Public | RF_Transactional;
-
-	ARPRActor	*newActor = world->SpawnActor<ARPRActor>(ARPRActor::StaticClass(), params);
-	check(newActor != NULL);
-
-	URPRSceneComponent	*comp = NewObject<URPRSceneComponent>(newActor, typeClass);
-	check(comp != NULL);
-	comp->SrcComponent = srcComponent;
-	comp->Scene = this;
-	newActor->SetRootComponent(comp);
-	comp->RegisterComponent();
-
-	if (!comp->Build())
-	{
-		world->DestroyActor(newActor);
-		return;
-	}
-
-	SceneContent.Add(newActor);
-}
-
-void	ARPRScene::BuildScene()
-{
-	UWorld	*world = GetWorld();
-
-	check(world != NULL);
-	for (TObjectIterator<USceneComponent> it; it; ++it)
-	{
-		if (it->GetWorld() != world)
-			continue;
-		if (Cast<UStaticMeshComponent>(*it) != NULL)
-			BuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass());
-		else if (Cast<ULightComponentBase>(*it) != NULL)
-			BuildRPRActor(world, *it, URPRLightComponent::StaticClass());
-		else if (Cast<UCineCameraComponent>(*it) != NULL)
-			BuildRPRActor(world, *it, URPRCameraComponent::StaticClass());
-	}
-}
-
-// BeginPlay will be called after the object has been created and initialized
-// Might not be the best entry point, probably best to expose a StartRender() function or something
-void	ARPRScene::BeginPlay()
-{
-	Super::BeginPlay();
-
 	FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
 	if (!plugin.GetRenderTexture().IsValid())
 		return;// No RPR viewport created
@@ -125,17 +80,58 @@ void	ARPRScene::BeginPlay()
 	m_RendererWorker = new FRPRRendererWorker(m_RprContext, RenderTexture->SizeX, RenderTexture->SizeY);
 }
 
-void	ARPRScene::Tick(float deltaTime)
+void	ARPRScene::OnTriggerSync()
 {
-	// TODO Set tick group correctly so the scene is updated last (avoid rebuilding the framebuffer two times)
+	m_Synchronize = !m_Synchronize;
+}
 
-	check(m_RendererWorker != NULL);
-	if (!RenderTexture.IsValid())
+void	ARPRScene::BuildRPRActor(UWorld *world, USceneComponent *srcComponent, UClass *typeClass)
+{
+	FActorSpawnParameters	params;
+	params.ObjectFlags = RF_Public | RF_Transactional;
+
+	ARPRActor	*newActor = world->SpawnActor<ARPRActor>(ARPRActor::StaticClass(), params);
+	check(newActor != NULL);
+
+	URPRSceneComponent	*comp = NewObject<URPRSceneComponent>(newActor, typeClass);
+	check(comp != NULL);
+	comp->SrcComponent = srcComponent;
+	comp->Scene = this;
+	newActor->SetRootComponent(comp);
+	comp->RegisterComponent();
+
+	if (!comp->Build())
 	{
-		// Stop rendering, no viewport
+		world->DestroyActor(newActor);
 		return;
 	}
-	if (RenderTexture->Resource == NULL)
+
+	SceneContent.Add(newActor);
+}
+
+void	ARPRScene::BuildScene()
+{
+	UWorld	*world = GetWorld();
+
+	check(world != NULL);
+	for (TObjectIterator<USceneComponent> it; it; ++it)
+	{
+		if (it->GetWorld() != world)
+			continue;
+		if (Cast<UStaticMeshComponent>(*it) != NULL)
+			BuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass());
+		else if (Cast<ULightComponentBase>(*it) != NULL)
+			BuildRPRActor(world, *it, URPRLightComponent::StaticClass());
+		else if (Cast<UCineCameraComponent>(*it) != NULL)
+			BuildRPRActor(world, *it, URPRCameraComponent::StaticClass());
+	}
+}
+
+void	ARPRScene::Tick(float deltaTime)
+{
+	if (m_RendererWorker == NULL ||
+		!RenderTexture.IsValid() ||
+		RenderTexture->Resource == NULL)
 		return;
 
 	if (/*m_RendererWorker->ResizeFramebuffer(RenderTexture->SizeX, RenderTexture->SizeY) ||*/

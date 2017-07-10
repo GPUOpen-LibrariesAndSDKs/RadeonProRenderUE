@@ -7,7 +7,7 @@
 #include "Scene/RPRSceneComponent.h"
 #include "RPRCameraComponent.generated.h"
 
-UCLASS()
+UCLASS(Transient)
 class URPRCameraComponent : public URPRSceneComponent
 {
 	GENERATED_BODY()

@@ -17,7 +17,7 @@ struct	SRPRShape
 	,	m_RprMaterial(material) { }
 };
 
-UCLASS()
+UCLASS(Transient)
 class URPRStaticMeshComponent : public URPRSceneComponent
 {
 	GENERATED_BODY()

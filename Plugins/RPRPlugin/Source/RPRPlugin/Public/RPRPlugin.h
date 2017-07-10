@@ -13,11 +13,16 @@ public:
 	virtual void	StartupModule() override;
 	virtual void	ShutdownModule() override;
 
+	class UWorld					*GameWorld() { return m_GameWorld; }
+	class UWorld					*EditorWorld() { return m_EditorWorld; }
 	TSharedPtr<UTexture2DDynamic>	GetRenderTexture() { return RenderTexture; }
 private:
 	void					FillRPRMenu(class FMenuBuilder &menuBuilder);
 	void					CreateMenuBarExtension(class FMenuBarBuilder &menubarBuilder);
 	TSharedRef<SDockTab>	SpawnRPRViewportTab(const class FSpawnTabArgs&);
+
+	void					OnWorldCreated(UWorld *inWorld);
+	void					OnWorldDestroyed(UWorld *inWorld);
 
 	void	OpenURL(const TCHAR *url);
 private:
@@ -25,6 +30,9 @@ private:
 
 	TSharedPtr<UTexture2DDynamic>		RenderTexture;
 	TSharedPtr<FSlateDynamicImageBrush>	RenderTextureBrush;
+
+	class UWorld	*m_GameWorld;
+	class UWorld	*m_EditorWorld;
 
 	bool	m_Loaded;
 };
