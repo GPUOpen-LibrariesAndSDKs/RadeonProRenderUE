@@ -23,6 +23,42 @@ FRPRPluginModule::FRPRPluginModule()
 
 }
 
+FReply	OnRender()
+{
+	if (GEngine != NULL &&
+		GEngine->GetWorld() != NULL)
+	{
+		UWorld	*world = GEngine->GetWorld();
+
+		// We shouldn't have more than one scene
+		for (TActorIterator<ARPRScene> it(world); it; ++it)
+		{
+			if (*it == NULL)
+				continue;
+			it->OnRender();
+		}
+	}
+	return FReply::Handled();
+}
+
+FReply	OnSync()
+{
+	if (GEngine != NULL &&
+		GEngine->GetWorld() != NULL)
+	{
+		UWorld	*world = GEngine->GetWorld();
+
+		// We shouldn't have more than one scene
+		for (TActorIterator<ARPRScene> it(world); it; ++it)
+		{
+			if (*it == NULL)
+				continue;
+			it->OnTriggerSync();
+		}
+	}
+	return FReply::Handled();
+}
+
 void	FRPRPluginModule::OpenURL(const TCHAR *url)
 {
 	FPlatformProcess::LaunchURL(url, NULL, NULL);
@@ -42,8 +78,69 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 	TSharedRef<SDockTab> RPRViewportTab = SNew(SDockTab)
 		.TabRole(ETabRole::NomadTab)
 		[
-			SNew(SImage)
-			.Image(RenderTextureBrush.Get())
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.Padding(2.0f)
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("RenderLabel", "Render"))
+					.ToolTipText(LOCTEXT("RenderTooltip", "Renders the currently edited scene."))
+					.OnClicked(FOnClicked::CreateStatic(&OnRender))
+					.Content()
+					[
+						SNew(SVerticalBox)
+						+ SVerticalBox::Slot()
+						.AutoHeight()
+						.Padding(2.0f)
+						.HAlign(HAlign_Center)
+						[
+							SNew(SImage)
+						]
+						+ SVerticalBox::Slot()
+						.AutoHeight()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("RenderLabel", "Render"))
+						]
+					]
+				]
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.Padding(2.0f)
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("SyncLabel", "Sync"))
+					.ToolTipText(LOCTEXT("SyncTooltip", "Synchronizes the scene."))
+					.OnClicked(FOnClicked::CreateStatic(&OnSync))
+					.Content()
+					[
+						SNew(SVerticalBox)
+						+ SVerticalBox::Slot()
+						.AutoHeight()
+						.Padding(2.0f)
+						.HAlign(HAlign_Center)
+						[
+							SNew(SImage)
+						]
+						+ SVerticalBox::Slot()
+						.AutoHeight()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("SyncLabel", "Sync"))
+						]
+					]
+				]
+			]
+			+ SVerticalBox::Slot()
+			[
+				SNew(SImage)
+				.Image(RenderTextureBrush.Get())
+			]
 		];
 	return RPRViewportTab;
 }
