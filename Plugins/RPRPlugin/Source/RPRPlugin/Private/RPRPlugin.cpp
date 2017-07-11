@@ -110,7 +110,7 @@ void	OnCameraChanged(TSharedPtr<FString> item, ESelectInfo::Type InSeletionInfo,
 
 FText	FRPRPluginModule::GetSelectedCameraName()
 {
-	return FText::FromString(m_ActiveCameraName);
+	return FText::FromString("Camera : " + m_ActiveCameraName);
 }
 
 TSharedRef<SWidget>	OnGenerateQualitySettingsWidget(TSharedPtr<FString> inItem)
@@ -140,11 +140,11 @@ FText	FRPRPluginModule::GetSelectedQualitySettingsName()
 	switch (m_QualitySettings)
 	{
 		case	ERPRQualitySettings::Low:
-			return LOCTEXT("LowTitle", "Quality: Low");
+			return LOCTEXT("LowTitle", "Quality : Low");
 		case	ERPRQualitySettings::Medium:
-			return LOCTEXT("MediumTitle", "Quality: Medium");
+			return LOCTEXT("MediumTitle", "Quality : Medium");
 		case	ERPRQualitySettings::High:
-			return LOCTEXT("HighTitle", "Quality: High");
+			return LOCTEXT("HighTitle", "Quality : High");
 	}
 	return FText();
 }
