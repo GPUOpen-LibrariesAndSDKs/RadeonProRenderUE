@@ -26,65 +26,6 @@ ARPRScene::ARPRScene()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-void	ARPRScene::OnRender()
-{
-	FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
-	if (!plugin.GetRenderTexture().IsValid())
-		return;// No RPR viewport created
-	RenderTexture = plugin.GetRenderTexture();
-
-	FString	cachePath = FPaths::GameSavedDir() + "/RadeonProRender/Cache/"; // To get from settings ?
-	FString	dllPath = FPaths::GameDir() + "/Binaries/Win64/Tahoe64.dll"; // To get from settings ?
-	uint32	creationFlags = RPR_CREATION_FLAGS_ENABLE_GPU0; // for now
-
-	rpr_int tahoePluginId = rprRegisterPlugin(TCHAR_TO_ANSI(*dllPath)); // Seems to be mandatory
-	if (tahoePluginId == -1)
-	{
-		UE_LOG(LogRPRScene, Error, TEXT("\"%s\" not registered by \"%s\" path."), "Tahoe64.dll", *dllPath);
-		return;
-	}
-	if (rprCreateContext(RPR_API_VERSION, &tahoePluginId, 1, creationFlags, NULL, TCHAR_TO_ANSI(*cachePath), &m_RprContext) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRScene, Error, TEXT("RPR Context creation failed: check your OpenCL runtime and driver versions."));
-		return;
-	}
-	if (rprContextSetActivePlugin(m_RprContext, tahoePluginId) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRScene, Error, TEXT("RPR Context setup failed: Couldn't set tahoe plugin."));
-		return;
-	}
-	UE_LOG(LogRPRScene, Log, TEXT("ProRender context initialized"));
-
-	if (rprContextCreateScene(m_RprContext, &m_RprScene) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRScene, Error, TEXT("RPR Scene creation failed"));
-		return;
-	}
-	if (rprContextSetScene(m_RprContext, m_RprScene) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRScene, Error, TEXT("RPR Scene setup failed"));
-		return;
-	}
-	UE_LOG(LogRPRScene, Log, TEXT("ProRender scene created"));
-
-	////////
-	if (BackgroundImage != NULL)
-	{
-		m_RprBackgroundImage = BuildImage(BackgroundImage, m_RprContext);
-		if (m_RprBackgroundImage != NULL)
-			rprSceneSetBackgroundImage(m_RprScene, m_RprBackgroundImage);
-	}
-
-	BuildScene();
-
-	m_RendererWorker = new FRPRRendererWorker(m_RprContext, RenderTexture->SizeX, RenderTexture->SizeY);
-}
-
-void	ARPRScene::OnTriggerSync()
-{
-	m_Synchronize = !m_Synchronize;
-}
-
 void	ARPRScene::BuildRPRActor(UWorld *world, USceneComponent *srcComponent, UClass *typeClass)
 {
 	FActorSpawnParameters	params;
@@ -125,6 +66,62 @@ void	ARPRScene::BuildScene()
 		else if (Cast<UCineCameraComponent>(*it) != NULL)
 			BuildRPRActor(world, *it, URPRCameraComponent::StaticClass());
 	}
+}
+
+void	ARPRScene::OnRender()
+{
+	if (m_RendererWorker == NULL)
+	{
+		// Initialize everything
+		FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
+		if (!plugin.GetRenderTexture().IsValid())
+			return;// No RPR viewport created
+		RenderTexture = plugin.GetRenderTexture();
+
+		FString	cachePath = FPaths::GameSavedDir() + "/RadeonProRender/Cache/"; // To get from settings ?
+		FString	dllPath = FPaths::GameDir() + "/Binaries/Win64/Tahoe64.dll"; // To get from settings ?
+		uint32	creationFlags = RPR_CREATION_FLAGS_ENABLE_GPU0; // for now
+
+		rpr_int tahoePluginId = rprRegisterPlugin(TCHAR_TO_ANSI(*dllPath)); // Seems to be mandatory
+		if (tahoePluginId == -1)
+		{
+			UE_LOG(LogRPRScene, Error, TEXT("\"%s\" not registered by \"%s\" path."), "Tahoe64.dll", *dllPath);
+			return;
+		}
+		if (rprCreateContext(RPR_API_VERSION, &tahoePluginId, 1, creationFlags, NULL, TCHAR_TO_ANSI(*cachePath), &m_RprContext) != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRScene, Error, TEXT("RPR Context creation failed: check your OpenCL runtime and driver versions."));
+			return;
+		}
+		if (rprContextSetActivePlugin(m_RprContext, tahoePluginId) != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRScene, Error, TEXT("RPR Context setup failed: Couldn't set tahoe plugin."));
+			return;
+		}
+		UE_LOG(LogRPRScene, Log, TEXT("ProRender context initialized"));
+
+		if (rprContextCreateScene(m_RprContext, &m_RprScene) != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRScene, Error, TEXT("RPR Scene creation failed"));
+			return;
+		}
+		if (rprContextSetScene(m_RprContext, m_RprScene) != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRScene, Error, TEXT("RPR Scene setup failed"));
+			return;
+		}
+		UE_LOG(LogRPRScene, Log, TEXT("ProRender scene created"));
+
+		BuildScene();
+
+		m_RendererWorker = new FRPRRendererWorker(m_RprContext, RenderTexture->SizeX, RenderTexture->SizeY);
+	}
+	TriggerFrameRebuild();
+}
+
+void	ARPRScene::OnTriggerSync()
+{
+	m_Synchronize = !m_Synchronize;
 }
 
 void	ARPRScene::Tick(float deltaTime)
@@ -190,11 +187,6 @@ void	ARPRScene::BeginDestroy()
 		m_RendererWorker = NULL;
 	}
 	SceneContent.Empty();
-	if (m_RprBackgroundImage != NULL)
-	{
-		rprObjectDelete(m_RprBackgroundImage);
-		m_RprBackgroundImage = NULL;
-	}
 	if (m_RprScene != NULL)
 	{
 		rprObjectDelete(m_RprScene);

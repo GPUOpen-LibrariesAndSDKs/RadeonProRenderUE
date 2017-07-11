@@ -16,16 +16,9 @@ class ARPRScene : public AActor
 	GENERATED_BODY()
 public:
 	ARPRScene();
-
-	// TMP
-	UPROPERTY(EditAnywhere)
-	UTexture2D	*BackgroundImage;
 public:
 	rpr_context		m_RprContext;
 	rpr_scene		m_RprScene;
-
-	//// TMP
-	rpr_image		m_RprBackgroundImage;
 
 	class URPRCameraComponent	*m_ActiveCamera;
 
