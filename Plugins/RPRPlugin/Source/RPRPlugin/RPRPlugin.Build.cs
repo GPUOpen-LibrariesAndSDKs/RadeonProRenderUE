@@ -21,8 +21,8 @@ public class RPRPlugin : ModuleRules
 		PrivateIncludePaths.AddRange(
 			new string[] {
 				"RPRPlugin/Private",
-				// ... add other private include paths required here ...
-				"RPRPlugin/ThirdParty/RadeonProRender/inc"
+				"RPRPlugin/ThirdParty/RadeonProRender/inc",
+				"RPRPlugin/ThirdParty/RadeonProRenderInterchange/include"
 			}
 			);
 			
@@ -76,6 +76,8 @@ public class RPRPlugin : ModuleRules
                   "ThirdParty/RadeonProRender/libWin64/" ) ), "RprSupport64.lib" ) );
 		PublicAdditionalLibraries.Add ( Path.Combine ( Path.GetFullPath ( Path.Combine ( ModuleDirectory,
                   "ThirdParty/RadeonProRender/libWin64/" ) ), "Tahoe64.lib" ) );
+		PublicAdditionalLibraries.Add ( Path.Combine ( Path.GetFullPath ( Path.Combine ( ModuleDirectory,
+                  "ThirdParty/RadeonProRenderInterchange/libWin64/" ) ), "RadeonProRenderInterchange64.lib" ) );
                   
                   
                 //RuntimeDependencies.Add ( "RadeonProRender64.dll" );

@@ -27,7 +27,7 @@ extern "C" {
 
 #include "cstddef"
 
-#define RPR_API_VERSION 0x010026700 
+#define RPR_API_VERSION 0x010027000 
 
 /* rpr_status */
 #define RPR_SUCCESS 0 
@@ -394,7 +394,7 @@ extern "C" {
 #define RPR_MATERIAL_NODE_VOLUME 0x1D 
 #define RPR_MATERIAL_NODE_MICROFACET_ANISOTROPIC_REFLECTION 0x1E 
 #define RPR_MATERIAL_NODE_MICROFACET_ANISOTROPIC_REFRACTION 0x1F 
-#define RPR_MATERIAL_NODE_SIDES 0x20 
+#define RPR_MATERIAL_NODE_TWOSIDED 0x20 
 #define RPR_MATERIAL_NODE_UV_PROJECT 0x21 
 
 /* rpr_material_node_input */
@@ -525,7 +525,8 @@ extern "C" {
 #define RPR_AOV_OBJECT_ID 0x8 
 #define RPR_AOV_OBJECT_GROUP_ID 0x9 
 #define RPR_AOV_SHADOW_CATCHER 0x0a 
-#define RPR_AOV_MAX 0x0b 
+#define RPR_AOV_BACKGROUND 0x0b 
+#define RPR_AOV_MAX 0x0c 
 
 /*rpr_post_effect_type*/
 #define RPR_POST_EFFECT_TONE_MAP 0x0 
@@ -562,6 +563,35 @@ extern "C" {
 #define RPR_MAX_AA_SAMPLES 32 
 #define RPR_MAX_AA_GRID_SIZE 16 
 
+/* rpr_composite_info */
+#define RPR_COMPOSITE_TYPE 0x1  
+#define RPR_COMPOSITE_FRAMEBUFFER_INPUT_FB 0x2  
+#define RPR_COMPOSITE_NORMALIZE_INPUT_COLOR 0x3  
+#define RPR_COMPOSITE_NORMALIZE_INPUT_SHADOWCATCHER 0x4  
+#define RPR_COMPOSITE_CONSTANT_INPUT_VALUE 0x5  
+#define RPR_COMPOSITE_LERP_VALUE_INPUT_COLOR0 0x6  
+#define RPR_COMPOSITE_LERP_VALUE_INPUT_COLOR1 0x7  
+#define RPR_COMPOSITE_LERP_VALUE_INPUT_WEIGHT 0x8  
+#define RPR_COMPOSITE_ARITHMETIC_INPUT_COLOR0 0x9  
+#define RPR_COMPOSITE_ARITHMETIC_INPUT_COLOR1 0x0a  
+#define RPR_COMPOSITE_ARITHMETIC_INPUT_OP 0x0b  
+#define RPR_COMPOSITE_GAMMA_CORRECTION_INPUT_COLOR 0x0c  
+
+/*rpr_composite_type*/
+#define RPR_COMPOSITE_ARITHMETIC 0x1  
+#define RPR_COMPOSITE_LERP_VALUE 0x2  
+#define RPR_COMPOSITE_INVERSE 0x3  
+#define RPR_COMPOSITE_NORMALIZE 0x4  
+#define RPR_COMPOSITE_GAMMA_CORRECTION 0x5  
+#define RPR_COMPOSITE_EXPOSURE 0x6  
+#define RPR_COMPOSITE_CONTRAST 0x7  
+#define RPR_COMPOSITE_SIDE_BY_SIDE 0x8  
+#define RPR_COMPOSITE_TONEMAP_ACES 0x9  
+#define RPR_COMPOSITE_TONEMAP_REINHARD 0xa  
+#define RPR_COMPOSITE_TONEMAP_LINEAR 0xb  
+#define RPR_COMPOSITE_FRAMEBUFFER 0xc  
+#define RPR_COMPOSITE_CONSTANT 0xd  
+
 /* rpr_bool */
 #define RPR_FALSE 0 
 #define RPR_TRUE 1 
@@ -592,6 +622,7 @@ typedef void * rpr_material_system;
 typedef void * rpr_material_node;
 typedef void * rpr_post_effect;
 typedef void * rpr_context_properties;
+typedef void * rpr_composite;
 typedef rpr_uint rpr_light_type;
 typedef rpr_uint rpr_image_type;
 typedef rpr_uint rpr_shape_type;
@@ -625,6 +656,8 @@ typedef rpr_uint rpr_material_node_input_info;
 typedef rpr_uint rpr_aov;
 typedef rpr_uint rpr_post_effect_type;
 typedef rpr_uint rpr_post_effect_info;
+typedef rpr_uint rpr_composite_info;
+typedef rpr_uint rpr_composite_type;
 typedef rpr_uint rpr_color_space;
 typedef rpr_uint rpr_environment_override;
 typedef rpr_uint rpr_subdiv_boundary_interfop_type;
@@ -1900,6 +1933,14 @@ extern RPR_API_ENTRY rpr_int rprMaterialNodeSetInputU(rpr_material_node in_node,
 extern RPR_API_ENTRY rpr_int rprMaterialNodeSetInputImageData(rpr_material_node in_node, rpr_char const * in_input, rpr_image image);
 extern RPR_API_ENTRY rpr_int rprMaterialNodeGetInfo(rpr_material_node in_node, rpr_material_node_info in_info, size_t in_size, void * in_data, size_t * out_size);
 extern RPR_API_ENTRY rpr_int rprMaterialNodeGetInputInfo(rpr_material_node in_node, rpr_int in_input_idx, rpr_material_node_input_info in_info, size_t in_size, void * in_data, size_t * out_size);
+extern RPR_API_ENTRY rpr_int rprContextCreateComposite(rpr_context context, rpr_composite_type in_type, rpr_composite * out_composite);
+extern RPR_API_ENTRY rpr_int rprCompositeSetInputFb(rpr_composite composite, const char * inputName, rpr_framebuffer input);
+extern RPR_API_ENTRY rpr_int rprCompositeSetInputC(rpr_composite composite, const char * inputName, rpr_composite input);
+extern RPR_API_ENTRY rpr_int rprCompositeSetInput4f(rpr_composite composite, const char * inputName, float x, float y, float z, float w);
+extern RPR_API_ENTRY rpr_int rprCompositeSetInput1u(rpr_composite composite, const char * inputName, unsigned int value);
+extern RPR_API_ENTRY rpr_int rprCompositeSetInputOp(rpr_composite composite, const char * inputName, rpr_material_node_arithmetic_operation op);
+extern RPR_API_ENTRY rpr_int rprCompositeCompute(rpr_composite composite, rpr_framebuffer fb);
+extern RPR_API_ENTRY rpr_int rprCompositeGetInfo(rpr_composite composite, rpr_composite_info composite_info, size_t size, void *  data, size_t * size_ret);
 
 /** @brief Delete object
 *
@@ -1945,7 +1986,7 @@ extern RPR_API_ENTRY rpr_int rprContextGetAttachedPostEffectCount(rpr_context co
 extern RPR_API_ENTRY rpr_int rprContextGetAttachedPostEffect(rpr_context context, rpr_uint i, rpr_post_effect * out_effect);
 extern RPR_API_ENTRY rpr_int rprPostEffectGetInfo(rpr_post_effect effect, rpr_post_effect_info info, size_t size,  void *  data, size_t *  size_ret);
 /***************compatibility part***************/
-#define FR_API_VERSION 0x010026700 
+#define FR_API_VERSION 0x010027000 
 #define FR_SUCCESS 0 
 #define FR_ERROR_COMPUTE_API_NOT_SUPPORTED -1 
 #define FR_ERROR_OUT_OF_SYSTEM_MEMORY -2 
@@ -2239,7 +2280,7 @@ extern RPR_API_ENTRY rpr_int rprPostEffectGetInfo(rpr_post_effect effect, rpr_po
 #define FR_MATERIAL_NODE_VOLUME 0x1D 
 #define FR_MATERIAL_NODE_MICROFACET_ANISOTROPIC_REFLECTION 0x1E 
 #define FR_MATERIAL_NODE_MICROFACET_ANISOTROPIC_REFRACTION 0x1F 
-#define FR_MATERIAL_NODE_SIDES 0x20 
+#define FR_MATERIAL_NODE_TWOSIDED 0x20 
 #define FR_MATERIAL_NODE_UV_PROJECT 0x21 
 #define FR_MATERIAL_INPUT_COLOR 0x0 
 #define FR_MATERIAL_INPUT_COLOR0 0x1 
@@ -2358,7 +2399,8 @@ extern RPR_API_ENTRY rpr_int rprPostEffectGetInfo(rpr_post_effect effect, rpr_po
 #define FR_AOV_OBJECT_ID 0x8 
 #define FR_AOV_OBJECT_GROUP_ID 0x9 
 #define FR_AOV_SHADOW_CATCHER 0x0a 
-#define FR_AOV_MAX 0x0b 
+#define FR_AOV_BACKGROUND 0x0b 
+#define FR_AOV_MAX 0x0c 
 #define FR_POST_EFFECT_TONE_MAP 0x0 
 #define FR_POST_EFFECT_WHITE_BALANCE 0x1 
 #define FR_POST_EFFECT_SIMPLE_TONEMAP 0x2 
@@ -2382,6 +2424,31 @@ extern RPR_API_ENTRY rpr_int rprPostEffectGetInfo(rpr_post_effect effect, rpr_po
 #define FR_IMAGE_WRAP_TYPE_CLAMP_ONE 0x6 
 #define FR_MAX_AA_SAMPLES 32 
 #define FR_MAX_AA_GRID_SIZE 16 
+#define FR_COMPOSITE_TYPE 0x1  
+#define FR_COMPOSITE_FRAMEBUFFER_INPUT_FB 0x2  
+#define FR_COMPOSITE_NORMALIZE_INPUT_COLOR 0x3  
+#define FR_COMPOSITE_NORMALIZE_INPUT_SHADOWCATCHER 0x4  
+#define FR_COMPOSITE_CONSTANT_INPUT_VALUE 0x5  
+#define FR_COMPOSITE_LERP_VALUE_INPUT_COLOR0 0x6  
+#define FR_COMPOSITE_LERP_VALUE_INPUT_COLOR1 0x7  
+#define FR_COMPOSITE_LERP_VALUE_INPUT_WEIGHT 0x8  
+#define FR_COMPOSITE_ARITHMETIC_INPUT_COLOR0 0x9  
+#define FR_COMPOSITE_ARITHMETIC_INPUT_COLOR1 0x0a  
+#define FR_COMPOSITE_ARITHMETIC_INPUT_OP 0x0b  
+#define FR_COMPOSITE_GAMMA_CORRECTION_INPUT_COLOR 0x0c  
+#define FR_COMPOSITE_ARITHMETIC 0x1  
+#define FR_COMPOSITE_LERP_VALUE 0x2  
+#define FR_COMPOSITE_INVERSE 0x3  
+#define FR_COMPOSITE_NORMALIZE 0x4  
+#define FR_COMPOSITE_GAMMA_CORRECTION 0x5  
+#define FR_COMPOSITE_EXPOSURE 0x6  
+#define FR_COMPOSITE_CONTRAST 0x7  
+#define FR_COMPOSITE_SIDE_BY_SIDE 0x8  
+#define FR_COMPOSITE_TONEMAP_ACES 0x9  
+#define FR_COMPOSITE_TONEMAP_REINHARD 0xa  
+#define FR_COMPOSITE_TONEMAP_LINEAR 0xb  
+#define FR_COMPOSITE_FRAMEBUFFER 0xc  
+#define FR_COMPOSITE_CONSTANT 0xd  
 #define FR_FALSE 0 
 #define FR_TRUE 1 
 typedef rpr_char fr_char;
@@ -2408,6 +2475,7 @@ typedef rpr_material_system fr_material_system;
 typedef rpr_material_node fr_material_node;
 typedef rpr_post_effect fr_post_effect;
 typedef rpr_context_properties fr_context_properties;
+typedef rpr_composite fr_composite;
 typedef rpr_light_type fr_light_type;
 typedef rpr_image_type fr_image_type;
 typedef rpr_shape_type fr_shape_type;
@@ -2441,6 +2509,8 @@ typedef rpr_material_node_input_info fr_material_node_input_info;
 typedef rpr_aov fr_aov;
 typedef rpr_post_effect_type fr_post_effect_type;
 typedef rpr_post_effect_info fr_post_effect_info;
+typedef rpr_composite_info fr_composite_info;
+typedef rpr_composite_type fr_composite_type;
 typedef rpr_color_space fr_color_space;
 typedef rpr_environment_override fr_environment_override;
 typedef rpr_subdiv_boundary_interfop_type fr_subdiv_boundary_interfop_type;
@@ -2570,6 +2640,14 @@ extern RPR_API_ENTRY fr_int frMaterialNodeSetInputU(fr_material_node in_node, fr
 extern RPR_API_ENTRY fr_int frMaterialNodeSetInputImageData(fr_material_node in_node, fr_char const * in_input, fr_image image);
 extern RPR_API_ENTRY fr_int frMaterialNodeGetInfo(fr_material_node in_node, fr_material_node_info in_info, size_t in_size, void * in_data, size_t * out_size);
 extern RPR_API_ENTRY fr_int frMaterialNodeGetInputInfo(fr_material_node in_node, fr_int in_input_idx, fr_material_node_input_info in_info, size_t in_size, void * in_data, size_t * out_size);
+extern RPR_API_ENTRY fr_int frContextCreateComposite(fr_context context, fr_composite_type in_type, fr_composite * out_composite);
+extern RPR_API_ENTRY fr_int frCompositeSetInputFb(fr_composite composite, const char * inputName, fr_framebuffer input);
+extern RPR_API_ENTRY fr_int frCompositeSetInputC(fr_composite composite, const char * inputName, fr_composite input);
+extern RPR_API_ENTRY fr_int frCompositeSetInput4f(fr_composite composite, const char * inputName, float x, float y, float z, float w);
+extern RPR_API_ENTRY fr_int frCompositeSetInput1u(fr_composite composite, const char * inputName, unsigned int value);
+extern RPR_API_ENTRY fr_int frCompositeSetInputOp(fr_composite composite, const char * inputName, fr_material_node_arithmetic_operation op);
+extern RPR_API_ENTRY fr_int frCompositeCompute(fr_composite composite, fr_framebuffer fb);
+extern RPR_API_ENTRY fr_int frCompositeGetInfo(fr_composite composite, fr_composite_info composite_info, size_t size, void *  data, size_t * size_ret);
 extern RPR_API_ENTRY fr_int frObjectDelete(void * obj);
 extern RPR_API_ENTRY fr_int frObjectSetName(void * node, fr_char const * name);
 extern RPR_API_ENTRY fr_int frContextCreatePostEffect(fr_context context, fr_post_effect_type type, fr_post_effect * out_effect);

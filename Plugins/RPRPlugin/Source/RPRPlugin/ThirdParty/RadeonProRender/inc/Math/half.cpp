@@ -44,8 +44,8 @@
 //
 //---------------------------------------------------------------------------
 
-#include "half.h"
 #include <assert.h>
+#include "half.h"
 
 using namespace std;
 
