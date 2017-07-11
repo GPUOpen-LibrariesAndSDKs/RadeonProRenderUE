@@ -70,6 +70,11 @@ void	FRPRPluginModule::OpenURL(const TCHAR *url)
 	FPlatformProcess::LaunchURL(url, NULL, NULL);
 }
 
+void	FRPRPluginModule::OpenSettings()
+{
+	FModuleManager::LoadModuleChecked<ISettingsModule>("Settings").ShowViewer("Project", "Plugins", "RadeonProRenderSettings");
+}
+
 TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &spawnArgs)
 {
 	check(!RenderTexture.IsValid());
@@ -171,6 +176,13 @@ void	FRPRPluginModule::FillRPRMenu(FMenuBuilder &menuBuilder)
 			FUIAction(FExecuteAction::CreateRaw(this, &FRPRPluginModule::OpenURL, *s_URLRadeonProRender)));
 	}
 	//menuBuilder.EndSection();
+	{
+		menuBuilder.AddMenuEntry(
+			LOCTEXT("SettingsTitle", "Settings"),
+			LOCTEXT("SettingsTooltip", "Opens ProRender settings"),
+			FSlateIcon(FEditorStyle::GetStyleSetName(), "ProjectSettings.TabIcon"),
+			FUIAction(FExecuteAction::CreateRaw(this, &FRPRPluginModule::OpenSettings)));
+	}
 }
 
 void	FRPRPluginModule::CreateMenuBarExtension(FMenuBarBuilder &menubarBuilder)
