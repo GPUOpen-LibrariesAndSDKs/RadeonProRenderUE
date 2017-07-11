@@ -77,10 +77,17 @@ public class RPRPlugin : ModuleRules
                   "ThirdParty/RadeonProRender/libWin64/" ) ), "RprSupport64.lib" ) );
 		PublicAdditionalLibraries.Add ( Path.Combine ( Path.GetFullPath ( Path.Combine ( ModuleDirectory,
                   "ThirdParty/RadeonProRender/libWin64/" ) ), "Tahoe64.lib" ) );
-		PublicAdditionalLibraries.Add ( Path.Combine ( Path.GetFullPath ( Path.Combine ( ModuleDirectory,
-                  "ThirdParty/RadeonProRenderInterchange/libWin64/" ) ), "RadeonProRenderInterchange64.lib" ) );
-                  
-                  
+        if (Target.Configuration != UnrealTargetConfiguration.DebugGame)
+        {
+            PublicAdditionalLibraries.Add(Path.Combine(Path.GetFullPath(Path.Combine(ModuleDirectory,
+                  "ThirdParty/RadeonProRenderInterchange/libWin64/")), "RadeonProRenderInterchange64.lib"));
+        }
+        else
+        {
+            PublicAdditionalLibraries.Add(Path.Combine(Path.GetFullPath(Path.Combine(ModuleDirectory,
+                  "ThirdParty/RadeonProRenderInterchange/libWin64/")), "RadeonProRenderInterchange64D.lib"));
+        }
+                                    
                 //RuntimeDependencies.Add ( "RadeonProRender64.dll" );
                 //RuntimeDependencies.Add ( "OpenImageIO_RPR.dll" );
                 //RuntimeDependencies.Add ( "RprLoadStore64.dll" );
