@@ -12,9 +12,9 @@ struct	SRPRShape
 	rpr_shape			m_RprShape;
 	rpr_material_node	m_RprMaterial;
 
-	SRPRShape(rpr_shape shape, rpr_material_node material)
+	SRPRShape(rpr_shape shape)
 	:	m_RprShape(shape)
-	,	m_RprMaterial(material) { }
+	,	m_RprMaterial(NULL) { }
 };
 
 UCLASS(Transient)
@@ -27,6 +27,12 @@ public:
 	virtual bool	Build() override;
 	virtual bool	RebuildTransforms() override;
 private:
+	static TMap<UStaticMesh*, TArray<rpr_shape>>	Cache;
+	static void										CleanCache();
+
+	TArray<rpr_shape>	GetMeshInstances(UStaticMesh *mesh);
+	bool				BuildMaterials();
+
 	virtual void	BeginDestroy() override;
 private:
 	rpr_material_system	m_RprMaterialSystem;

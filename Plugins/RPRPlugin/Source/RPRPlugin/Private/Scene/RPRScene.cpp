@@ -70,7 +70,7 @@ void	ARPRScene::BuildScene()
 
 void	ARPRScene::OnRender()
 {
-	if (m_RendererWorker == NULL)
+	if (m_RprContext == NULL)
 	{
 		URPRSettings	*settings = GetMutableDefault<URPRSettings>();
 		check(settings != NULL);
@@ -81,11 +81,11 @@ void	ARPRScene::OnRender()
 			return;// No RPR viewport created
 		RenderTexture = plugin.GetRenderTexture();
 
-		FString	cachePath = FPaths::GameSavedDir() + settings->RenderCachePath;
+		FString	cachePath = settings->RenderCachePath;
 		FString	dllPath = FPaths::GameDir() + "/Binaries/Win64/Tahoe64.dll"; // To get from settings ?
 		uint32	creationFlags = RPR_CREATION_FLAGS_ENABLE_GPU0; // for now
 
-		rpr_int tahoePluginId = rprRegisterPlugin(TCHAR_TO_ANSI(*dllPath)); // Seems to be mandatory
+		rpr_int	tahoePluginId = rprRegisterPlugin(TCHAR_TO_ANSI(*dllPath)); // Seems to be mandatory
 		if (tahoePluginId == -1)
 		{
 			UE_LOG(LogRPRScene, Error, TEXT("\"%s\" not registered by \"%s\" path."), "Tahoe64.dll", *dllPath);
@@ -114,17 +114,25 @@ void	ARPRScene::OnRender()
 			return;
 		}
 		UE_LOG(LogRPRScene, Log, TEXT("ProRender scene created"));
-
-		BuildScene();
-
-		m_RendererWorker = new FRPRRendererWorker(m_RprContext, RenderTexture->SizeX, RenderTexture->SizeY);
 	}
+
+	// For now, always rebuild the scene
+	RemoveSceneContent();
+	BuildScene();
+
+	if (m_RendererWorker == NULL)
+		m_RendererWorker = new FRPRRendererWorker(m_RprContext, RenderTexture->SizeX, RenderTexture->SizeY);
 	TriggerFrameRebuild();
 }
 
 void	ARPRScene::OnTriggerSync()
 {
 	m_Synchronize = !m_Synchronize;
+}
+
+void	ARPRScene::OnSave()
+{
+
 }
 
 void	ARPRScene::Tick(float deltaTime)
@@ -167,10 +175,8 @@ void	ARPRScene::Tick(float deltaTime)
 	}
 }
 
-void	ARPRScene::BeginDestroy()
+void	ARPRScene::RemoveSceneContent()
 {
-	Super::BeginDestroy();
-
 	UWorld	*world = GetWorld();
 	if (world != NULL)
 	{
@@ -183,13 +189,20 @@ void	ARPRScene::BeginDestroy()
 			world->DestroyActor(SceneContent[iObject]);
 		}
 	}
+	SceneContent.Empty();
+}
+
+void	ARPRScene::BeginDestroy()
+{
+	Super::BeginDestroy();
+
+	RemoveSceneContent();
 	if (m_RendererWorker != NULL)
 	{
 		m_RendererWorker->EnsureCompletion();
 		delete m_RendererWorker;
 		m_RendererWorker = NULL;
 	}
-	SceneContent.Empty();
 	if (m_RprScene != NULL)
 	{
 		rprObjectDelete(m_RprScene);

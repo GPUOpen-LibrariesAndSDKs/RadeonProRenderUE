@@ -24,6 +24,7 @@ public:
 
 	void	OnRender();
 	void	OnTriggerSync();
+	void	OnSave();
 
 	void	TriggerFrameRebuild() { m_TriggerEndFrameRebuild = true; }
 private:
@@ -31,6 +32,7 @@ private:
 	virtual void	Tick(float deltaTime) override;
 	virtual bool	ShouldTickIfViewportsOnly() const override { return true; }
 
+	void	RemoveSceneContent();
 	void	BuildRPRActor(UWorld *world, USceneComponent *srcComponent, UClass *typeClass);
 	void	BuildScene();
 private:

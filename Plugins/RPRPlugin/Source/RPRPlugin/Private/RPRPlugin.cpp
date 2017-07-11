@@ -33,35 +33,41 @@ FRPRPluginModule::FRPRPluginModule()
 
 }
 
-FReply	OnRender()
+ARPRScene	*FRPRPluginModule::GetCurrentScene() const
 {
-	FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
-
-	UWorld	*world = plugin.GameWorld() != NULL ? plugin.GameWorld() : plugin.EditorWorld();
+	UWorld	*world = m_GameWorld != NULL ? m_GameWorld : m_EditorWorld;
 	if (world == NULL)
-		return FReply::Handled();
+		return NULL;
 	for (TActorIterator<ARPRScene> it(world); it; ++it)
 	{
 		if (*it == NULL)
 			continue;
-		it->OnRender();
+		return *it;
 	}
+	return NULL;
+}
+
+FReply	OnRender(FRPRPluginModule *module)
+{
+	ARPRScene	*scene = module->GetCurrentScene();
+	if (scene != NULL)
+		scene->OnRender();
 	return FReply::Handled();
 }
 
-FReply	OnSync()
+FReply	OnSync(FRPRPluginModule *module)
 {
-	FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
+	ARPRScene	*scene = module->GetCurrentScene();
+	if (scene != NULL)
+		scene->OnTriggerSync();
+	return FReply::Handled();
+}
 
-	UWorld	*world = plugin.GameWorld() != NULL ? plugin.GameWorld() : plugin.EditorWorld();
-	if (world == NULL)
-		return FReply::Handled();
-	for (TActorIterator<ARPRScene> it(world); it; ++it)
-	{
-		if (*it == NULL)
-			continue;
-		it->OnTriggerSync();
-	}
+FReply	OnSave(FRPRPluginModule *module)
+{
+	ARPRScene	*scene = module->GetCurrentScene();
+	if (scene != NULL)
+		scene->OnSave();
 	return FReply::Handled();
 }
 
@@ -89,8 +95,11 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 			OnWorldCreated(Context.World());
 	}
 
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
+
 	const FVector2D	&dimensions = spawnArgs.GetOwnerWindow()->GetSizeInScreen();
-	const FVector2D	renderResolution(1920, 1080);
+	const FVector2D	renderResolution(settings->RenderTargetDimensions.X, settings->RenderTargetDimensions.Y);
 
 	RenderTexture = MakeShareable(UTexture2DDynamic::Create(renderResolution.X, renderResolution.Y, PF_R8G8B8A8));
 	RenderTextureBrush = MakeShareable(new FSlateDynamicImageBrush(RenderTexture.Get(), dimensions, FName("TextureName")));
@@ -110,7 +119,7 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 					SNew(SButton)
 					.Text(LOCTEXT("RenderLabel", "Render"))
 					.ToolTipText(LOCTEXT("RenderTooltip", "Renders the currently edited scene."))
-					.OnClicked(FOnClicked::CreateStatic(&OnRender))
+					.OnClicked(FOnClicked::CreateStatic(&OnRender, this))
 					.Content()
 					[
 						SNew(SVerticalBox)
@@ -136,7 +145,7 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 					SNew(SButton)
 					.Text(LOCTEXT("SyncLabel", "Sync"))
 					.ToolTipText(LOCTEXT("SyncTooltip", "Synchronizes the scene."))
-					.OnClicked(FOnClicked::CreateStatic(&OnSync))
+					.OnClicked(FOnClicked::CreateStatic(&OnSync, this))
 					.Content()
 					[
 						SNew(SVerticalBox)
@@ -152,6 +161,32 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 						[
 							SNew(STextBlock)
 							.Text(LOCTEXT("SyncLabel", "Sync"))
+						]
+					]
+				]
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.Padding(2.0f)
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("SaveLabel", "Save"))
+					.ToolTipText(LOCTEXT("SaveTooltip", "Save the framebuffer state."))
+					.OnClicked(FOnClicked::CreateStatic(&OnSave, this))
+					.Content()
+					[
+						SNew(SVerticalBox)
+						+ SVerticalBox::Slot()
+						.AutoHeight()
+						.Padding(2.0f)
+						.HAlign(HAlign_Center)
+						[
+							SNew(SImage)
+						]
+						+ SVerticalBox::Slot()
+						.AutoHeight()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("SaveLabel", "Save"))
 						]
 					]
 				]

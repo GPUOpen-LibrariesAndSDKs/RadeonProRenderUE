@@ -13,8 +13,7 @@ public:
 	virtual void	StartupModule() override;
 	virtual void	ShutdownModule() override;
 
-	class UWorld					*GameWorld() { return m_GameWorld; }
-	class UWorld					*EditorWorld() { return m_EditorWorld; }
+	class ARPRScene					*GetCurrentScene() const;
 	TSharedPtr<UTexture2DDynamic>	GetRenderTexture() { return RenderTexture; }
 private:
 	void					FillRPRMenu(class FMenuBuilder &menuBuilder);
@@ -25,6 +24,7 @@ private:
 	void					OnWorldDestroyed(UWorld *inWorld);
 
 	void	OpenURL(const TCHAR *url);
+	void	OpenSettings();
 private:
 	static FString						s_URLRadeonProRender;
 

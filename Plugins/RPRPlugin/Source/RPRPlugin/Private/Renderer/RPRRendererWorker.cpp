@@ -38,10 +38,13 @@ bool	FRPRRendererWorker::Init()
 	m_SrcFramebufferData.SetNum(m_Width * m_Height * 4);
 	m_DstFramebufferData.SetNum(m_Width * m_Height * 16);
 
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
+
 	if (rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprFrameBuffer) != RPR_SUCCESS ||
 		rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS ||
 		rprContextSetAOV(m_RprContext, RPR_AOV_COLOR, m_RprFrameBuffer) != RPR_SUCCESS ||
-		rprContextSetParameter1u(m_RprContext, "aasamples", 2) != RPR_SUCCESS)
+		rprContextSetParameter1u(m_RprContext, "aasamples", settings->NumAASamples) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRRenderer, Error, TEXT("RPR FrameBuffer creation failed"));
 		return false;
