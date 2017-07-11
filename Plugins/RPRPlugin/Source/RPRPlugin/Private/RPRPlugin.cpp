@@ -1,6 +1,7 @@
 // Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
 
 #include "RPRPlugin.h"
+#include "RPRSettings.h"
 
 #include "LevelEditor.h"
 #include "EditorStyleSet.h"
@@ -12,6 +13,7 @@
 #include "WorkspaceMenuStructureModule.h"
 
 #include "Engine/World.h"
+#include "ISettingsModule.h"
 
 #include "Scene/RPRScene.h"
 #include "EngineUtils.h"
@@ -228,8 +230,20 @@ void	FRPRPluginModule::StartupModule()
 {
 	if (m_Loaded)
 		return;
-	if (!FModuleManager::Get().IsModuleLoaded("LevelEditor"))
+	if (!FModuleManager::Get().IsModuleLoaded("LevelEditor") ||
+		!FModuleManager::Get().IsModuleLoaded("Settings"))
 		return;
+
+	ISettingsModule		*settingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
+	if (settingsModule == NULL)
+		return;
+
+	TSharedPtr<ISettingsSection>	runtimeSection = settingsModule->RegisterSettings(
+		"Project", "Plugins", "RadeonProRenderSettings",
+		LOCTEXT("RPRSetingsName", "Radeon ProRender"),
+		LOCTEXT("RPRSettingsDescription", "Configure the Radeon ProRender plugin settings."),
+		GetMutableDefault<URPRSettings>());
+
 	m_Loaded = true;
 	FLevelEditorModule		&levelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
 
@@ -255,6 +269,12 @@ void	FRPRPluginModule::ShutdownModule()
 	{
 		FLevelEditorModule	&levelEditorModule = FModuleManager::GetModuleChecked<FLevelEditorModule>("LevelEditor");
 		levelEditorModule.GetMenuExtensibilityManager()->RemoveExtender(m_Extender);
+	}
+	if (FModuleManager::Get().IsModuleLoaded("Settings"))
+	{
+		ISettingsModule		*settingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
+		if (settingsModule != NULL)
+			settingsModule->UnregisterSettings("Project", "Plugins", "RadeonProRenderSettings");
 	}
 
 }

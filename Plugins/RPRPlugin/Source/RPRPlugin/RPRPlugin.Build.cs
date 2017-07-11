@@ -46,6 +46,7 @@ public class RPRPlugin : ModuleRules
 				"RenderCore",
 				"CinematicCamera",
 				"RHI",
+				"Settings",
 
 				"WorkspaceMenuStructure",
 				"EditorStyle",
