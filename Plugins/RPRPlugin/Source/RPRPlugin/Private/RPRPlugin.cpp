@@ -6,6 +6,8 @@
 #include "LevelEditor.h"
 #include "EditorStyleSet.h"
 
+#include "RPREditorStyle.h"
+
 #include "Engine/Texture2DDynamic.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Widgets/Images/SImage.h"
@@ -380,8 +382,11 @@ void	FRPRPluginModule::StartupModule()
 	if (m_Loaded)
 		return;
 	if (!FModuleManager::Get().IsModuleLoaded("LevelEditor") ||
-		!FModuleManager::Get().IsModuleLoaded("Settings"))
+		!FModuleManager::Get().IsModuleLoaded("Settings") ||
+		!FModuleManager::Get().IsModuleLoaded("AssetTools"))
 		return;
+
+	FRPREditorStyle::Initialize();
 
 	ISettingsModule		*settingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
 	if (settingsModule == NULL)
@@ -425,7 +430,7 @@ void	FRPRPluginModule::ShutdownModule()
 		if (settingsModule != NULL)
 			settingsModule->UnregisterSettings("Project", "Plugins", "RadeonProRenderSettings");
 	}
-
+	FRPREditorStyle::Shutdown();
 }
 
 #undef LOCTEXT_NAMESPACE
