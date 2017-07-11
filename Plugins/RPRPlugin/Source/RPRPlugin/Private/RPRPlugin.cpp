@@ -23,9 +23,9 @@ FString		FRPRPluginModule::s_URLRadeonProRender = "https://pro.radeon.com/en-us/
 FRPRPluginModule::FRPRPluginModule()
 :	RenderTexture(NULL)
 ,	RenderTextureBrush(NULL)
-//,	m_ActiveRPRScene(NULL)
 ,	m_GameWorld(NULL)
 ,	m_EditorWorld(NULL)
+,	m_Extender(NULL)
 ,	m_Loaded(false)
 {
 
@@ -233,10 +233,11 @@ void	FRPRPluginModule::StartupModule()
 	m_Loaded = true;
 	FLevelEditorModule		&levelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
 
-	TSharedPtr<FExtender>	customExtender = MakeShareable(new FExtender);
-	customExtender->AddMenuBarExtension(TEXT("Help"), EExtensionHook::After, NULL, FMenuBarExtensionDelegate::CreateRaw(this, &FRPRPluginModule::CreateMenuBarExtension));
-	levelEditorModule.GetMenuExtensibilityManager()->AddExtender(customExtender);
+	m_Extender = MakeShareable(new FExtender);
+	m_Extender->AddMenuBarExtension(TEXT("Help"), EExtensionHook::After, NULL, FMenuBarExtensionDelegate::CreateRaw(this, &FRPRPluginModule::CreateMenuBarExtension));
+	levelEditorModule.GetMenuExtensibilityManager()->AddExtender(m_Extender);
 
+	// Custom viewport
 	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(
 		TEXT("RPRViewport"),
 		FOnSpawnTab::CreateRaw(this, &FRPRPluginModule::SpawnRPRViewportTab))
@@ -248,8 +249,14 @@ void	FRPRPluginModule::StartupModule()
 
 void	FRPRPluginModule::ShutdownModule()
 {
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module.
+	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(TEXT("RPRViewport"));
+
+	if (FModuleManager::Get().IsModuleLoaded("LevelEditor"))
+	{
+		FLevelEditorModule	&levelEditorModule = FModuleManager::GetModuleChecked<FLevelEditorModule>("LevelEditor");
+		levelEditorModule.GetMenuExtensibilityManager()->RemoveExtender(m_Extender);
+	}
+
 }
 
 #undef LOCTEXT_NAMESPACE

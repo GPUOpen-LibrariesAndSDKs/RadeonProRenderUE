@@ -26,13 +26,15 @@ private:
 
 	void	OpenURL(const TCHAR *url);
 private:
-	static FString	s_URLRadeonProRender;
+	static FString						s_URLRadeonProRender;
 
 	TSharedPtr<UTexture2DDynamic>		RenderTexture;
 	TSharedPtr<FSlateDynamicImageBrush>	RenderTextureBrush;
 
-	class UWorld	*m_GameWorld;
-	class UWorld	*m_EditorWorld;
+	class UWorld						*m_GameWorld;
+	class UWorld						*m_EditorWorld;
 
-	bool	m_Loaded;
+	TSharedPtr<FExtender>				m_Extender;
+
+	bool								m_Loaded;
 };
