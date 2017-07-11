@@ -33,7 +33,7 @@ private:
 	TArray<rpr_shape>	GetMeshInstances(UStaticMesh *mesh);
 	bool				BuildMaterials();
 
-	virtual void	BeginDestroy() override;
+    virtual void	BeginDestroy() override;
 private:
 	rpr_material_system	m_RprMaterialSystem;
 

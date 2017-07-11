@@ -7,73 +7,332 @@
 #include "PositionVertexBuffer.h"
 #include "StaticMeshResources.h"
 #include "rprigenericapi.h"
+#include <map>
+#include <memory>
 
 // chuck these up here for now. Move to own file asap
-namespace {
-    class UE4InterchangeMaterialNode : public rpri::generic::IMaterialNode
+namespace 
+{
+
+class UE4InterchangeMaterialNode : public rpri::generic::IMaterialNode
+{
+public:
+    UE4InterchangeMaterialNode(UMaterialExpression * _expression) :
+        expression(_expression)
     {
-    public:
-        UE4InterchangeMaterialNode(UMaterialExpression * _expression) :
-            expression(_expression)
-        {
-        }
+        id = TCHAR_TO_ANSI(*expression->GetName());
+        name = id;
+        type = expression->StaticClass()->GetFName().GetPlainANSIString();
+    }
+    ~UE4InterchangeMaterialNode(){}
+    char const * GetId() const override 
+    {
+        return id.c_str();
+    }
 
-        char const * GetId() const override 
-        {
-            return nullptr;
-        }
+    char const * GetName() const override 
+    {
+        return name.c_str();;
+    }
 
-        char const * GetName() const override 
-        {
-            return (char const*)*expression->GetName();
-        }
+    char const * GetType() const override 
+    {
+        return type.c_str();
+    }
 
-        char const * GetType() const override 
-        {
-            return expression->StaticClass()->GetFName().GetPlainANSIString();
-        }
+    size_t GetNumberOfInputs() const override
+    {
+        return 0;
+    }
 
-        size_t GetNumberOfInputs() const override
-        {
-            return 0;
-        }
+    rpri::generic::IMaterialNodeMux const * GetInputAt(size_t _index) const override
+    {
+        return nullptr;
+    }
 
-        rpri::generic::IMaterialNodeMux const * GetInputAt(size_t _index) const override
-        {
-            return nullptr;
-        }
+    char const * GetInputNameAt(size_t _index) const override
+    {
+        return nullptr;
+    }
 
-        char const * GetInputNameAt(size_t _index) const override
-        {
-            return nullptr;
-        }
+    // this is a mistype. will be deleted in next API update
+    char const * GetMetaData() const override { return nullptr; }
 
-        // this is a mistype. will be deleted in next API update
-        char const * GetMetaData() const override
-        {
-            return nullptr;
-        }
+    // some nodes take a texture input (the *Map set + TextureTexelSize)
+    // this allow access to it
+    bool HasTextureInput() const override
+    {
+        return false;
+    }
 
-        // some nodes take a texture input (the *Map set + TextureTexelSize)
-        // this allow access to it
-        bool HasTextureInput() const override
-        {
-            return false;
-        }
+    struct rpri::generic::ITexture const * GetTextureInput() const override
+    {
+        return nullptr;
+    }
 
-        struct rpri::generic::ITexture const * GetTextureInput() const override
-        {
-            return nullptr;
-        }
+    char const * GetMetadata() const override
+    {
+        return nullptr;
+    }
+    const UMaterialExpression * expression;
 
-        char const * GetMetadata() const override
+    std::string id;
+    std::string name;
+    std::string type;
+};
+
+class UE4InterchangeMaterialValue : public rpri::generic::IMaterialValue
+{
+public:
+    UE4InterchangeMaterialValue(float _a) { values.push_back(_a); }
+    UE4InterchangeMaterialValue(float _a, float _b)
+    {
+        values.push_back(_a);
+        values.push_back(_b);
+    }
+    UE4InterchangeMaterialValue(float _a, float _b, float _c)
+    {
+        values.push_back(_a);
+        values.push_back(_b);
+        values.push_back(_c);
+    }
+    UE4InterchangeMaterialValue(float _a, float _b, float _c, float _d)
+    {
+        values.push_back(_a);
+        values.push_back(_b);
+        values.push_back(_c);
+        values.push_back(_d);
+    }
+    UE4InterchangeMaterialValue(FLinearColor _col)
+    {
+        values.push_back(_col.R);
+        values.push_back(_col.G);
+        values.push_back(_col.B);
+        values.push_back(_col.A);
+    }
+    UE4InterchangeMaterialValue(FColor _col)
+    {
+        FLinearColor lc = _col.ReinterpretAsLinear();
+        values.push_back(lc.R);
+        values.push_back(lc.G);
+        values.push_back(lc.B);
+        values.push_back(lc.A);
+    }
+    virtual ~UE4InterchangeMaterialValue() {};
+
+    char const* GetId() const override
+    {
+        return id.c_str();    
+    }
+
+    // just floats for now
+    ValueType GetType() const override { return ValueType::Float; }
+    size_t GetNumberOfValues() const override { return values.size(); }
+    uint8_t GetValueAtIndexAsUint8(size_t _index) const override { return 0; }
+    uint16_t GetValueAtIndexAsUint16(size_t _index) const override { return 0; }
+    uint32_t GetValueAtIndexAsUint32(size_t _index) const override { return 0; }
+    uint64_t GetValueAtIndexAsUint64(size_t _index) const override { return 0; }
+    int8_t GetValueAtIndexAsInt8(size_t _index) const override { return 0; }
+    int16_t GetValueAtIndexAsInt16(size_t _index) const override { return 0; }
+    int32_t GetValueAtIndexAsInt32(size_t _index) const override { return 0; }
+    int64_t GetValueAtIndexAsInt64(size_t _index) const override { return 0; }
+    float GetValueAtIndexAsFloat(size_t _index) const override { return values.at(_index); }
+    double GetValueAtIndexAsDouble(size_t _index) const override { return values.at(_index); }
+    char const* GetMetadata() const override { return ""; }
+    std::string GetValueAsString() const override { return ""; };
+
+    std::string id;
+    std::vector<float> values;
+};
+
+class UE4InterchangeMaterialNodeMux : public rpri::generic::IMaterialNodeMux
+{
+public:
+    // we hold a raw point, the material owns everybody
+    UE4InterchangeMaterialNodeMux(std::shared_ptr<rpri::generic::IMaterialNode> _ptr) :
+        nodeptr(_ptr), valueptr(nullptr) {}
+
+    UE4InterchangeMaterialNodeMux(std::shared_ptr<rpri::generic::IMaterialValue> _ptr) :
+        nodeptr(nullptr), valueptr(_ptr) {}
+
+    virtual ~UE4InterchangeMaterialNodeMux() {};
+
+    char const* GetId() const override
+    {
+        return nodeptr ? nodeptr->GetId() : valueptr ? valueptr->GetId() : nullptr;
+    }
+
+    bool IsEmpty() const override
+    {
+        return nodeptr == nullptr;
+    }
+
+    bool IsNode() const override 
+    {
+        return true;
+    }
+    rpri::generic::IMaterialValue const* GetAsValue() const override
+    {
+        return valueptr.get();
+    }
+    rpri::generic::IMaterialNode const* GetAsNode() const override 
+    {
+        return nodeptr.get();
+    }
+private:
+    std::shared_ptr<rpri::generic::IMaterialNode> nodeptr;
+    std::shared_ptr<rpri::generic::IMaterialValue> valueptr;
+};
+static char const * PBRNodeFieldNames[10] {
+    "BaseColor",
+    "Roughness",
+    "Metallic",
+    "Specular",
+    "Normal",
+    "EmissiveColor",
+    "Opacity",
+    "Refraction",
+    "ClearCoat",
+    "ClearCoatRoughness"
+};
+
+class UE4InterchangePBRNode : public rpri::generic::IMaterialNode
+{
+public:
+    UE4InterchangePBRNode(class UE4InterchangeMaterialGraph *);
+
+    char const* GetId() const override
+    {
+        return id.c_str();
+    }
+    char const* GetName() const override
+    {
+        return id.c_str();
+    }
+    char const* GetType() const override {
+        return "UE4PBRMaterial";
+    }
+    size_t GetNumberOfInputs() const override { return 10; }
+    rpri::generic::IMaterialNodeMux const* GetInputAt(size_t _index) const override
+    {
+        return muxes[_index].get();
+    }
+    char const* GetInputNameAt(size_t _index) const override {
+        return PBRNodeFieldNames[_index];
+    }
+
+    char const* GetMetaData() const override { return nullptr; }
+    bool HasTextureInput() const override { return false; }
+    rpri::generic::ITexture const* GetTextureInput() const override { return nullptr; }
+    char const* GetMetadata() const override { return ""; }
+
+private:
+    std::string id;
+    std::shared_ptr<rpri::generic::IMaterialNodeMux> muxes[10];
+};
+
+class UE4InterchangeMaterialGraph : public rpri::generic::IMaterialGraph
+{
+public:
+    UE4InterchangeMaterialGraph(const UMaterial* _ue4Mat) :
+        ue4Mat(_ue4Mat)
+    {
+        // UE4 Expressions == Interchange nodes/values/mux
+        nodeStorage.resize(ue4Mat->Expressions.Num() +  1);
+        for (int32 iExpression = 0; iExpression < ue4Mat->Expressions.Num(); ++iExpression)
         {
-            return nullptr;
+            UMaterialExpression * expression = ue4Mat->Expressions[iExpression];
+            nodeStorage[iExpression] = std::make_shared<UE4InterchangeMaterialNode>(expression);
+            interchangeMuxes.emplace_back(std::make_shared<UE4InterchangeMaterialNodeMux>(nodeStorage[iExpression]));
+            stringToInterchangeMuxIndex[expression->GetName()] = interchangeMuxes.size() - 1;
+
         }
-        UMaterialExpression * expression;
-    };
+        // Interchange treats the destination PBR object as a node
+        FString str = GetName();
+        str = str + "PBRNode";
+        nodeStorage[ue4Mat->Expressions.Num()] = std::make_unique<UE4InterchangePBRNode>(this);
+        stringToInterchangeMuxIndex[str] = ue4Mat->Expressions.Num();
+    }
+
+    char const* GetId() const override
+    {
+        // TODO make sure ID is unique!
+        return GetName();
+    }
+
+    char const* GetName() const override
+    {
+        return TCHAR_TO_ANSI(*ue4Mat->GetName());
+    }
+
+    size_t GetNumberOfMaterialValues() const override
+    {
+        return valueStorage.size();
+    }
+
+    rpri::generic::IMaterialValue const* GetMaterialValueAt(size_t _index) const override
+    {
+        return valueStorage.at(_index).get();
+    }
+
+    size_t GetNumberOfMaterialNodes() const override
+    {
+        return nodeStorage.size();
+    }
+
+    rpri::generic::IMaterialNode const* GetMaterialNodeAt(size_t _index) const override
+    {
+        return nodeStorage.at(_index).get();
+    }
+
+    char const* GetMetadata() const override
+    {
+        return "";
+    }
+
+    const UMaterial* ue4Mat;
+
+    std::vector<std::shared_ptr<rpri::generic::IMaterialNode>> nodeStorage;
+    std::vector<std::shared_ptr<rpri::generic::IMaterialValue>> valueStorage;
+
+    std::vector<std::shared_ptr<rpri::generic::IMaterialNodeMux>> interchangeMuxes;
+
+    typedef std::map<FString, uint32_t> stringToIndexMap;
+    stringToIndexMap stringToInterchangeMuxIndex;
+};
+
+UE4InterchangePBRNode::UE4InterchangePBRNode(UE4InterchangeMaterialGraph * _mg)
+{
+    const UMaterial* ue4Mat = _mg->ue4Mat;
+
+    FString str = _mg->GetName();
+    str + "PBRNode";
+    id = TCHAR_TO_ANSI(*str);
+
+    if(ue4Mat->BaseColor.UseConstant)
+    {
+
+        auto val = std::make_shared<UE4InterchangeMaterialValue>(ue4Mat->BaseColor.Constant);
+        val->id = id + "BaseColor";
+        auto mux = std::make_shared<UE4InterchangeMaterialNodeMux>(val);
+        muxes[0] = mux;
+
+        _mg->valueStorage.emplace_back(val);
+        _mg->interchangeMuxes.emplace_back(mux);
+    } else
+    {
+        auto it = _mg->stringToInterchangeMuxIndex.find(ue4Mat->BaseColor.Expression->GetName());
+        if(it != _mg->stringToInterchangeMuxIndex.end())
+        {
+            muxes[0] = _mg->interchangeMuxes[it->second];
+        } else
+        {
+            muxes[0] = nullptr;
+        }
+    }
 }
 
+}
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
 
@@ -150,6 +409,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
     return true;
 }
 
+
 bool	URPRStaticMeshComponent::Build()
 {
     if (Scene == NULL || SrcComponent == NULL)
@@ -190,26 +450,45 @@ bool	URPRStaticMeshComponent::Build()
     if (lodRes.Sections.Num() == 0)
         return false;
 
+    std::map<UMaterial const *, UE4InterchangeMaterialGraph*> materialMap;
+
+    for(int i =0;i < staticMeshComponent->GetNumMaterials();++i)
+    {
+        const UMaterialInterface    *ueMatIF = staticMeshComponent->GetMaterial(i);
+        const UMaterial             *ue4Mat = ueMatIF->GetMaterial();
+
+        UE4InterchangeMaterialGraph *mg = nullptr;
+        if (materialMap.find(ue4Mat) == materialMap.end())
+        {
+            mg = new UE4InterchangeMaterialGraph(ue4Mat);
+            materialMap[ue4Mat] = mg;
+        }
+        else
+        {
+            mg = materialMap[ue4Mat];
+        }
+    }
+
+    // push over Interchange
+
+
     TArray<rpr_shape>	shapes = GetMeshInstances(staticMesh);
     if (shapes.Num() == 0) // No mesh in cache ?
     {
-    FIndexArrayView					srcIndices = lodRes.IndexBuffer.GetArrayView();
-    const FStaticMeshVertexBuffer	&srcVertices = lodRes.VertexBuffer;
-    const FPositionVertexBuffer		&srcPositions = lodRes.PositionVertexBuffer;
+        FIndexArrayView					srcIndices = lodRes.IndexBuffer.GetArrayView();
+        const FStaticMeshVertexBuffer	&srcVertices = lodRes.VertexBuffer;
+        const FPositionVertexBuffer		&srcPositions = lodRes.PositionVertexBuffer;
         const uint32					uvCount = srcVertices.GetNumTexCoords();
 
-    // Guess: we need to create several RprObject
-    // One for each section
-    // To check with ProRender API
-    uint32	sectionCount = lodRes.Sections.Num();
-    for (uint32 iSection = 0; iSection < sectionCount; ++iSection)
-    {
-        const FStaticMeshSection	&section = lodRes.Sections[iSection];
-        const uint32				srcIndexStart = section.FirstIndex;
-        const uint32				indexCount = section.NumTriangles * 3;
-        const FStaticMaterial       &ue4StaticMaterial = staticMaterials[section.MaterialIndex];
-        const UMaterialInterface    *ueMatIF = ue4StaticMaterial.MaterialInterface;
-        const UMaterial             *ue4Mat = ueMatIF->GetMaterial();
+        // Guess: we need to create several RprObject
+        // One for each section
+        // To check with ProRender API
+        uint32	sectionCount = lodRes.Sections.Num();
+        for (uint32 iSection = 0; iSection < sectionCount; ++iSection)
+        {
+            const FStaticMeshSection	&section = lodRes.Sections[iSection];
+            const uint32				srcIndexStart = section.FirstIndex;
+            const uint32				indexCount = section.NumTriangles * 3;
 
             TArray<FVector>		positions;
             TArray<FVector>		normals;
@@ -232,8 +511,8 @@ bool	URPRStaticMeshComponent::Build()
             numFaceVertices.SetNum(section.NumTriangles);
 
             const uint32	offset = section.MinVertexIndex;
-        for (uint32 iIndex = 0; iIndex < indexCount; ++iIndex)
-        {
+            for (uint32 iIndex = 0; iIndex < indexCount; ++iIndex)
+            {
                 const uint32	index = srcIndices[srcIndexStart + iIndex];
                 const uint32	remappedIndex = index - offset;
 
@@ -244,35 +523,30 @@ bool	URPRStaticMeshComponent::Build()
 
                 positions[remappedIndex] = FVector(pos.X, pos.Z, pos.Y);
                 normals[remappedIndex] = FVector(normal.X, normal.Z, normal.Y);
-            if (uvCount > 0)
+                if (uvCount > 0)
                     uvs[remappedIndex] = srcVertices.GetVertexUV(index, 0); // Right now only copy uv 0
-        }
+            }
 
             for (uint32 iTriangle = 0; iTriangle < section.NumTriangles; ++iTriangle)
                 numFaceVertices[iTriangle] = 3;
 
-        rpr_shape	shape = NULL;
+            rpr_shape	shape = NULL;
 
-        if (rprContextCreateMesh(Scene->m_RprContext,
-            (rpr_float const *)positions.GetData(), positions.Num(), sizeof(float) * 3,
-            (rpr_float const *)normals.GetData(), normals.Num(), sizeof(float) * 3,
-            (rpr_float const *)uvs.GetData(), uvs.Num(), sizeof(float) * 2,
-            (rpr_int const *)indices.GetData(), sizeof(int32),
-            (rpr_int const *)indices.GetData(), sizeof(int32),
-            (rpr_int const *)indices.GetData(), sizeof(int32),
-                (rpr_int const *)numFaceVertices.GetData(), numFaceVertices.Num(),
-            &shape) != RPR_SUCCESS)
-        {
+            if (rprContextCreateMesh(Scene->m_RprContext,
+                (rpr_float const *)positions.GetData(), positions.Num(), sizeof(float) * 3,
+                (rpr_float const *)normals.GetData(), normals.Num(), sizeof(float) * 3,
+                (rpr_float const *)uvs.GetData(), uvs.Num(), sizeof(float) * 2,
+                (rpr_int const *)indices.GetData(), sizeof(int32),
+                (rpr_int const *)indices.GetData(), sizeof(int32),
+                (rpr_int const *)indices.GetData(), sizeof(int32),
+                    (rpr_int const *)numFaceVertices.GetData(), numFaceVertices.Num(),
+                &shape) != RPR_SUCCESS)
+            {
                 UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh from '%s', section %d. Num indices = %d, Num vertices = %d"), *SrcComponent->GetName(), iSection, indices.Num(), positions.Num());
-            return false;
-        }
+                return false;
+            }
 
-        // UE4 Expressions == Interchange nodes/values/mux
-        for(int32 iExpression = 0; iExpression < ue4Mat->Expressions.Num(); ++iExpression)
-        {
-            UMaterialExpression * expression = ue4Mat->Expressions[iExpression];
-            UE4InterchangeMaterialNode* interNode = new UE4InterchangeMaterialNode(expression);
-        }
+
 
             UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape created from '%s'"), *SrcComponent->GetName());
             if (!Cache.Contains(staticMesh))
@@ -280,9 +554,9 @@ bool	URPRStaticMeshComponent::Build()
             Cache[staticMesh].Add(shape);
             m_Shapes.Add(shape);
         }
-        }
+    }
     else
-        {
+    {
         const uint32	shapeCount = shapes.Num();
         for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
             m_Shapes.Add(shapes[iShape]);

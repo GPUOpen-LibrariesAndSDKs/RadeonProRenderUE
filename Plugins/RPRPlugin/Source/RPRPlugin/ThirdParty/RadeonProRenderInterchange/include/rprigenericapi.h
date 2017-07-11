@@ -32,7 +32,6 @@ public:
     virtual struct IMaterialValue const * GetAsValue() const = 0;
     virtual struct IMaterialNode const * GetAsNode() const = 0;
 
-protected:
     virtual ~IMaterialNodeMux() = default;
 };
 
@@ -71,7 +70,6 @@ struct IMaterialValue
 
     virtual char const * GetMetadata() const = 0;
 
-protected:
     virtual ~IMaterialValue() = default;
 };
 
@@ -93,7 +91,6 @@ struct IMaterialNode
 
     virtual char const * GetMetadata() const = 0;
 
-protected:
     virtual ~IMaterialNode() = default;
 };
 
@@ -110,6 +107,8 @@ struct IMaterialGraph
     virtual IMaterialNode const * GetMaterialNodeAt(size_t _index) const = 0;
 
     virtual char const * GetMetadata() const = 0;
+
+    virtual ~IMaterialGraph() = default;
 };
 
 
@@ -166,7 +165,6 @@ struct IMeshPart
 
     virtual char const * GetMetadata() const = 0;
 
-protected:
     virtual ~IMeshPart() = default;
 };
 
@@ -201,7 +199,6 @@ struct ISceneNode
 
     virtual char const * GetMetadata() const = 0;
 
-protected:
     virtual ~ISceneNode() = default;
 
 };
@@ -215,7 +212,6 @@ struct IScene
 
     virtual char const * GetMetadata() const = 0;
 
-protected:
     virtual ~IScene() = default;
 };
 
