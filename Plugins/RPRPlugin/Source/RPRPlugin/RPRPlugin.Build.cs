@@ -48,6 +48,8 @@ public class RPRPlugin : ModuleRules
 				"RHI",
 				"Settings",
 
+				// Editor only stuff
+				"DesktopPlatform",
 				"WorkspaceMenuStructure",
 				"EditorStyle",
 				"Slate",

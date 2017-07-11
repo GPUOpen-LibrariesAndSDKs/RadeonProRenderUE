@@ -52,6 +52,23 @@ bool	FRPRRendererWorker::Init()
 	return true;
 }
 
+void	FRPRRendererWorker::SaveToFile(const FString &filename)
+{
+	// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
+	m_RenderLock.Lock();
+	const bool	saved = rprFrameBufferSaveToFile(m_RprFrameBuffer, TCHAR_TO_ANSI(*filename)) == RPR_SUCCESS;
+	m_RenderLock.Unlock();
+
+	if (saved)
+	{
+		UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfuly saved to '%s'"), *filename);
+	}
+	else
+	{
+		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't save framebuffer to '%s'"), *filename);
+	}
+}
+
 bool	FRPRRendererWorker::ResizeFramebuffer(uint32 width, uint32 height)
 {
 	if (m_Width == width && m_Height == height)
@@ -144,8 +161,7 @@ uint32	FRPRRendererWorker::Run()
 			m_DataLock.Unlock();
 			++m_CurrentIteration;
 		}
-		else
-			FPlatformProcess::Sleep(0.1f);
+		FPlatformProcess::Sleep(0.1f);
 	}
 	ReleaseResources();
 	return 0;

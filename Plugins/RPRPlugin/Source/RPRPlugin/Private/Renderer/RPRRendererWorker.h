@@ -21,6 +21,7 @@ public:
 
 	bool			ResizeFramebuffer(uint32 width, uint32 height);
 	bool			RestartRender();
+	void			SaveToFile(const FString &filename);
 
 	const uint8		*GetFramebufferData()
 	{

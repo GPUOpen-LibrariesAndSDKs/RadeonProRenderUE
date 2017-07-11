@@ -16,6 +16,12 @@ class ARPRScene : public AActor
 	GENERATED_BODY()
 public:
 	ARPRScene();
+
+	UPROPERTY()
+	FString	LastSavedExportPath;
+
+	UPROPERTY()
+	FString	LastSavedFilename;
 public:
 	rpr_context		m_RprContext;
 	rpr_scene		m_RprScene;

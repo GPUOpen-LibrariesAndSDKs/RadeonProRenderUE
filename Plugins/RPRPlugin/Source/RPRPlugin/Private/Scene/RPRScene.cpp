@@ -7,11 +7,14 @@
 #include "Renderer/RPRRendererWorker.h"
 
 #include "RPRPlugin.h"
+#include "DesktopPlatformModule.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraActor.h"
 #include "Engine/Texture2DDynamic.h"
 #include "TextureResource.h"
+
+#define LOCTEXT_NAMESPACE "ARPRScene"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRScene, Log, All);
 
@@ -119,10 +122,10 @@ void	ARPRScene::OnRender()
 	// For now, always rebuild the scene
 	RemoveSceneContent();
 	BuildScene();
+	TriggerFrameRebuild();
 
 	if (m_RendererWorker == NULL)
 		m_RendererWorker = new FRPRRendererWorker(m_RprContext, RenderTexture->SizeX, RenderTexture->SizeY);
-	TriggerFrameRebuild();
 }
 
 void	ARPRScene::OnTriggerSync()
@@ -132,7 +135,40 @@ void	ARPRScene::OnTriggerSync()
 
 void	ARPRScene::OnSave()
 {
+	if (m_RendererWorker == NULL)
+		return; // Nothing to save
+	IDesktopPlatform	*desktopPlatform = FDesktopPlatformModule::Get();
+	if (desktopPlatform == NULL)
+		return;
 
+	static FString	kSaveDialogTitle = "Save Radeon ProRender Framebuffer";
+	static FString	kFileTypes = TEXT("Targa (*.TGA)|*.TGA"
+									  "|Windows Bitmap (*.BMP)|*.BMP"
+									  "|PNG (*.PNG)|*.PNG"
+									  "|JPG (*.JPG)|*.JPG"
+									  "|All files (*TGA;*.BMP;*.PNG;*.JPG)|*TGA;*.BMP;*.PNG;*.JPG");
+
+	TArray<FString>		saveFilenames;
+	const bool	save = desktopPlatform->SaveFileDialog(
+		FSlateApplication::Get().FindBestParentWindowHandleForDialogs(NULL),
+		kSaveDialogTitle,
+		*LastSavedExportPath,
+		*LastSavedFilename,
+		*kFileTypes,
+		EFileDialogFlags::None,
+		saveFilenames);
+
+	if (saveFilenames.Num() == 0)
+		return;
+	FString	saveFilename = saveFilenames[0];
+	FString	extension = FPaths::GetExtension(saveFilename).ToLower();
+	if (extension != ".tga" && extension != ".bmp" && extension != ".png" && extension != ".jpg")
+		return;
+
+	LastSavedExportPath = saveFilename;
+	LastSavedFilename = FPaths::GetCleanFilename(saveFilename);
+	if (save)
+		m_RendererWorker->SaveToFile(saveFilename); // UE4 already prompts the user to override existing files
 }
 
 void	ARPRScene::Tick(float deltaTime)
@@ -214,3 +250,5 @@ void	ARPRScene::BeginDestroy()
 		m_RprContext = NULL;
 	}
 }
+
+#undef LOCTEXT_NAMESPACE
