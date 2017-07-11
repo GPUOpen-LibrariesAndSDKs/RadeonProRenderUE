@@ -81,6 +81,13 @@ void	ARPRScene::SetActiveCamera(const FString &cameraName)
 	}
 }
 
+void	ARPRScene::SetQualitySettings(ERPRQualitySettings qualitySettings)
+{
+	if (!m_RendererWorker.IsValid())
+		return;
+	m_RendererWorker->SetQualitySettings(qualitySettings);
+}
+
 void	ARPRScene::BuildRPRActor(UWorld *world, USceneComponent *srcComponent, UClass *typeClass)
 {
 	FActorSpawnParameters	params;
@@ -183,8 +190,13 @@ void	ARPRScene::OnRender()
 	BuildScene();
 	TriggerFrameRebuild();
 
-	if (m_RendererWorker == NULL)
-		m_RendererWorker = new FRPRRendererWorker(m_RprContext, RenderTexture->SizeX, RenderTexture->SizeY);
+	if (!m_RendererWorker.IsValid())
+	{
+		FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
+
+		m_RendererWorker = MakeShareable(new FRPRRendererWorker(m_RprContext, RenderTexture->SizeX, RenderTexture->SizeY));
+		m_RendererWorker->SetQualitySettings(plugin.m_QualitySettings);
+	}
 }
 
 void	ARPRScene::OnTriggerSync()
@@ -194,7 +206,7 @@ void	ARPRScene::OnTriggerSync()
 
 void	ARPRScene::OnSave()
 {
-	if (m_RendererWorker == NULL)
+	if (!m_RendererWorker.IsValid())
 		return; // Nothing to save
 	IDesktopPlatform	*desktopPlatform = FDesktopPlatformModule::Get();
 	if (desktopPlatform == NULL)
@@ -232,7 +244,7 @@ void	ARPRScene::OnSave()
 
 void	ARPRScene::Tick(float deltaTime)
 {
-	if (m_RendererWorker == NULL ||
+	if (!m_RendererWorker.IsValid() ||
 		!RenderTexture.IsValid() ||
 		RenderTexture->Resource == NULL)
 		return;
@@ -293,11 +305,10 @@ void	ARPRScene::BeginDestroy()
 	Super::BeginDestroy();
 
 	RemoveSceneContent();
-	if (m_RendererWorker != NULL)
+	if (m_RendererWorker.IsValid())
 	{
 		m_RendererWorker->EnsureCompletion();
-		delete m_RendererWorker;
-		m_RendererWorker = NULL;
+		m_RendererWorker = NULL; // TODO MAKE SURE TSharedPtr correctly deletes the renderer
 	}
 	if (m_RprScene != NULL)
 	{

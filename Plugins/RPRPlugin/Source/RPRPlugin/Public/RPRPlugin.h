@@ -5,6 +5,13 @@
 #include "CoreMinimal.h"
 #include "ModuleManager.h"
 
+enum	ERPRQualitySettings
+{
+	Low,
+	Medium,
+	High
+};
+
 class FRPRPluginModule : public IModuleInterface
 {
 public:
@@ -18,11 +25,15 @@ public:
 public:
 	FString							m_ActiveCameraName;
 	TArray<TSharedPtr<FString>>		m_AvailableCameraNames;
+
+	ERPRQualitySettings				m_QualitySettings;
+	TArray<TSharedPtr<FString>>		m_QualitySettingsList;
 private:
 	void					FillRPRMenu(class FMenuBuilder &menuBuilder);
 	void					CreateMenuBarExtension(class FMenuBarBuilder &menubarBuilder);
 	TSharedRef<SDockTab>	SpawnRPRViewportTab(const class FSpawnTabArgs&);
 	FText					GetSelectedCameraName();
+	FText					GetSelectedQualitySettingsName();
 
 	void					OnWorldCreated(UWorld *inWorld);
 	void					OnWorldDestroyed(UWorld *inWorld);

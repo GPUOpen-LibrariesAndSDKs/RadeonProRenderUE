@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "RadeonProRender.h"
+#include "RPRPlugin.h"
 #include "GameFramework/Actor.h"
 #include "RPRScene.generated.h"
 
@@ -34,6 +35,7 @@ public:
 
 	void	FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames);
 	void	SetActiveCamera(const FString &cameraName);
+	void	SetQualitySettings(ERPRQualitySettings qualitySettings);
 
 	void	TriggerFrameRebuild() { m_TriggerEndFrameRebuild = true; }
 private:
@@ -48,7 +50,7 @@ private:
 	bool	m_TriggerEndFrameRebuild;
 	bool	m_Synchronize;
 
-	class FRPRRendererWorker	*m_RendererWorker;
+	TSharedPtr<class FRPRRendererWorker>	m_RendererWorker;
 
 	TSharedPtr<UTexture2DDynamic>	RenderTexture;
 

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "RadeonProRender.h"
+#include "RPRPlugin.h"
 
 class FRPRRendererWorker : public FRunnable
 {
@@ -22,6 +23,7 @@ public:
 	bool			ResizeFramebuffer(uint32 width, uint32 height);
 	bool			RestartRender();
 	void			SaveToFile(const FString &filename);
+	void			SetQualitySettings(ERPRQualitySettings qualitySettings);
 
 	const uint8		*GetFramebufferData()
 	{

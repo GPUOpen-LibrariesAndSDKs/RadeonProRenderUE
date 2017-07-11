@@ -111,6 +111,42 @@ FText	FRPRPluginModule::GetSelectedCameraName()
 	return FText::FromString(m_ActiveCameraName);
 }
 
+TSharedRef<SWidget>	OnGenerateQualitySettingsWidget(TSharedPtr<FString> inItem)
+{
+	return SNew(STextBlock)
+		.Text(FText::FromString(*inItem));
+}
+
+void	OnQualitySettingsChanged(TSharedPtr<FString> item, ESelectInfo::Type InSeletionInfo, FRPRPluginModule *instance)
+{
+	const FString	settings = *item.Get();
+
+	if (settings == "Low")
+		instance->m_QualitySettings = ERPRQualitySettings::Low;
+	else if (settings == "Medium")
+		instance->m_QualitySettings = ERPRQualitySettings::Medium;
+	else if (settings == "High")
+		instance->m_QualitySettings = ERPRQualitySettings::High;
+
+	ARPRScene	*scene = instance->GetCurrentScene();
+	if (scene != NULL)
+		scene->SetQualitySettings(instance->m_QualitySettings);
+}
+
+FText	FRPRPluginModule::GetSelectedQualitySettingsName()
+{
+	switch (m_QualitySettings)
+	{
+		case	ERPRQualitySettings::Low:
+			return LOCTEXT("LowTitle", "Quality: Low");
+		case	ERPRQualitySettings::Medium:
+			return LOCTEXT("MediumTitle", "Quality: Medium");
+		case	ERPRQualitySettings::High:
+			return LOCTEXT("HighTitle", "Quality: High");
+	}
+	return FText();
+}
+
 TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &spawnArgs)
 {
 	check(!RenderTexture.IsValid());
@@ -135,6 +171,10 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 		if (m_AvailableCameraNames.Num() > 0)
 			m_ActiveCameraName = *m_AvailableCameraNames[0].Get();
 	}
+	m_QualitySettingsList.Add(MakeShared<FString>("Low"));
+	m_QualitySettingsList.Add(MakeShared<FString>("Medium"));
+	m_QualitySettingsList.Add(MakeShared<FString>("High"));
+	m_QualitySettings = ERPRQualitySettings::Medium;
 
 	const FVector2D	&dimensions = spawnArgs.GetOwnerWindow()->GetSizeInScreen();
 	const FVector2D	renderResolution(settings->RenderTargetDimensions.X, settings->RenderTargetDimensions.Y);
@@ -238,6 +278,18 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 					[
 						SNew(STextBlock)
 						.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateRaw(this, &FRPRPluginModule::GetSelectedCameraName)))
+					]
+				]
+				+SHorizontalBox::Slot()
+				.AutoWidth()
+				[
+					SNew(SComboBox<TSharedPtr<FString>>)
+					.OptionsSource(&m_QualitySettingsList)
+					.OnGenerateWidget(SComboBox<TSharedPtr<FString>>::FOnGenerateWidget::CreateStatic(&OnGenerateQualitySettingsWidget))
+					.OnSelectionChanged(SComboBox<TSharedPtr<FString>>::FOnSelectionChanged::CreateStatic(&OnQualitySettingsChanged, this))
+					[
+						SNew(STextBlock)
+						.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateRaw(this, &FRPRPluginModule::GetSelectedQualitySettingsName)))
 					]
 				]
 			]

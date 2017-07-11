@@ -43,8 +43,7 @@ bool	FRPRRendererWorker::Init()
 
 	if (rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprFrameBuffer) != RPR_SUCCESS ||
 		rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS ||
-		rprContextSetAOV(m_RprContext, RPR_AOV_COLOR, m_RprFrameBuffer) != RPR_SUCCESS ||
-		rprContextSetParameter1u(m_RprContext, "aasamples", settings->NumAASamples) != RPR_SUCCESS)
+		rprContextSetAOV(m_RprContext, RPR_AOV_COLOR, m_RprFrameBuffer) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRRenderer, Error, TEXT("RPR FrameBuffer creation failed"));
 		return false;
@@ -61,7 +60,7 @@ void	FRPRRendererWorker::SaveToFile(const FString &filename)
 
 	if (saved)
 	{
-		UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfuly saved to '%s'"), *filename);
+		UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully saved to '%s'"), *filename);
 	}
 	else
 	{
@@ -98,11 +97,55 @@ bool	FRPRRendererWorker::RestartRender()
 		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't clear framebuffer"));
 		return false;
 	}
+	UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully cleared"));
 	m_CurrentIteration = 0;
 	m_PreviousRenderedIteration = 0;
 
 	m_RenderLock.Unlock();
 	return true;
+}
+
+void	FRPRRendererWorker::SetQualitySettings(ERPRQualitySettings qualitySettings)
+{
+	if (m_RprContext == NULL)
+		return;
+
+	uint32	numSamples = 0;
+	uint32	numRayBounces = 0;
+	switch (qualitySettings)
+	{
+		case	ERPRQualitySettings::Low:
+		{
+			numSamples = 1;
+			numRayBounces = 8;
+			break;
+		}
+		case	ERPRQualitySettings::Medium:
+		{
+			numSamples = 8;
+			numRayBounces = 15;
+			break;
+		}
+		case	ERPRQualitySettings::High:
+		{
+			numSamples = 16;
+			numRayBounces = 25;
+			break;
+		}
+	}
+	m_RenderLock.Lock();
+	if (rprContextSetParameter1u(m_RprContext, "aasamples", numSamples) != RPR_SUCCESS ||
+		rprContextSetParameter1u(m_RprContext, "maxRecursion", numRayBounces) != RPR_SUCCESS)
+	{
+		m_RenderLock.Unlock();
+		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't set quality settings"));
+	}
+	else
+	{
+		m_RenderLock.Unlock();
+		RestartRender();
+		UE_LOG(LogRPRRenderer, Log, TEXT("Quality settings successfully modified: %d AA Samples, %d Ray bounces"), numSamples, numRayBounces);
+	}
 }
 
 bool	FRPRRendererWorker::BuildFramebufferData()
