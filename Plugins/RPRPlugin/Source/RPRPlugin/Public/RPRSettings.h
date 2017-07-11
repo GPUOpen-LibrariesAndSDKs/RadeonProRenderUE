@@ -20,12 +20,4 @@ public:
 	/** Defines ProRender framebuffer size. */
 	UPROPERTY(Config, EditAnywhere, Category = General)
 	FIntPoint	RenderTargetDimensions;
-
-	/** Defines ProRender number of Anti Aliasing samples. */
-	UPROPERTY(Config, EditAnywhere, Category = General)
-	uint32		NumAASamples; // TODO based on SolidWorks src -> range = [1, 16]
-
-	/** Defines ProRender number of Light Ray bounces. */
-	UPROPERTY(Config, EditAnywhere, Category = General)
-	uint32		NumLightRayBounces; // TODO based on SolidWorks src -> range = [1, 25]
 };

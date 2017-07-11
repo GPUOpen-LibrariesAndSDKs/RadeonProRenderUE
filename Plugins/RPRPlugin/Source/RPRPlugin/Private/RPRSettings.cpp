@@ -9,8 +9,6 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 ,	RenderCachePath(FPaths::GameSavedDir() + "/RadeonProRender/Cache/")
 ,	MaximumRenderIterations(32)
 ,	RenderTargetDimensions(1920, 1080)
-,	NumAASamples(2)
-,	NumLightRayBounces(4)
 {
 }
 
@@ -26,10 +24,5 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 	else if (prop->GetName() == "RenderTargetDimensions")
 	{
 		
-	}
-	else if (prop->GetName() == "NumAASamples" ||
-			 prop->GetName() == "NumLightRayBounces")
-	{
-		plugin->RefreshRenderSettings();
 	}
 }*/
