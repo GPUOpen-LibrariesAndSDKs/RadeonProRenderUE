@@ -9,6 +9,7 @@
 #include "rprigenericapi.h"
 #include <map>
 #include <memory>
+#include "RadeonProRenderInterchange.h"
 
 // chuck these up here for now. Move to own file asap
 namespace 
@@ -469,7 +470,32 @@ bool	URPRStaticMeshComponent::Build()
         }
     }
 
-    // push over Interchange
+    std::vector<rpri::generic::IMaterialGraph*> flatGraphs;
+    for(auto&& it : materialMap)
+    {
+        flatGraphs.push_back(it.second);
+    }
+
+    std::string importer("Generic");
+    std::string exporter("");
+
+    rpriImportProperty properties[] = {
+        {"input", reinterpret_cast<uintptr_t>("UE4 Importer")},
+        {"Num Materials", 1 },
+        {"Materials Input Array", reinterpret_cast<uintptr_t>(flatGraphs.data()) }
+    };
+
+    uint32_t numProps = sizeof(properties) / sizeof(properties[0]);
+    rpriContext ctx;
+    rpriAllocateContext(&ctx);
+
+//#define RPR_UMS_INTEGRATION
+#if RPR_UMS_INTEGRATION
+    rpriImportFromMemory(ctx, importer.c_str(), numProps, properties);
+//    rpriExport(ctx, exporter.c_str(), numProps, props);
+
+#endif
+    rpriFreeContext(ctx);
 
 
     TArray<rpr_shape>	shapes = GetMeshInstances(staticMesh);
