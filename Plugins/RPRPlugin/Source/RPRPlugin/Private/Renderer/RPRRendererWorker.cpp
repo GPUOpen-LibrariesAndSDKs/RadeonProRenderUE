@@ -1,6 +1,7 @@
 // RPR COPYRIGHT
 
 #include "RPRRendererWorker.h"
+#include "RPRSettings.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRRenderer, Log, All);
 
@@ -121,11 +122,12 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 
 uint32	FRPRRendererWorker::Run()
 {
-	const uint32	iterationCount = 32;
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
 
 	while (m_StopTaskCounter.GetValue() == 0)
 	{
-		if (m_CurrentIteration < iterationCount && m_RenderLock.TryLock())
+		if (m_CurrentIteration < settings->MaximumRenderIterations && m_RenderLock.TryLock())
 		{
 			if (rprContextRender(m_RprContext) != RPR_SUCCESS)
 			{

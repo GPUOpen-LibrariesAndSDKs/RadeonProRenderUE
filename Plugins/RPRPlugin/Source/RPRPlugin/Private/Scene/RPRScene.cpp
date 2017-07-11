@@ -72,13 +72,16 @@ void	ARPRScene::OnRender()
 {
 	if (m_RendererWorker == NULL)
 	{
+		URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+		check(settings != NULL);
+
 		// Initialize everything
 		FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
 		if (!plugin.GetRenderTexture().IsValid())
 			return;// No RPR viewport created
 		RenderTexture = plugin.GetRenderTexture();
 
-		FString	cachePath = FPaths::GameSavedDir() + "/RadeonProRender/Cache/"; // To get from settings ?
+		FString	cachePath = FPaths::GameSavedDir() + settings->RenderCachePath;
 		FString	dllPath = FPaths::GameDir() + "/Binaries/Win64/Tahoe64.dll"; // To get from settings ?
 		uint32	creationFlags = RPR_CREATION_FLAGS_ENABLE_GPU0; // for now
 
