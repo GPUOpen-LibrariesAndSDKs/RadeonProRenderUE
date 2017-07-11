@@ -190,6 +190,7 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 			SNew(SVerticalBox)
 			+ SVerticalBox::Slot()
 			.AutoHeight()
+			.MaxHeight(32.0f)
 			[
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot()
@@ -202,20 +203,8 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 					.OnClicked(FOnClicked::CreateStatic(&OnRender, this))
 					.Content()
 					[
-						SNew(SVerticalBox)
-						+ SVerticalBox::Slot()
-						.AutoHeight()
-						.Padding(2.0f)
-						.HAlign(HAlign_Center)
-						[
-							SNew(SImage)
-						]
-						+ SVerticalBox::Slot()
-						.AutoHeight()
-						[
-							SNew(STextBlock)
-							.Text(LOCTEXT("RenderLabel", "Render"))
-						]
+						SNew(SImage)
+						.Image(FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.Render").GetIcon())
 					]
 				]
 				+ SHorizontalBox::Slot()
@@ -228,20 +217,8 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 					.OnClicked(FOnClicked::CreateStatic(&OnSync, this))
 					.Content()
 					[
-						SNew(SVerticalBox)
-						+ SVerticalBox::Slot()
-						.AutoHeight()
-						.Padding(2.0f)
-						.HAlign(HAlign_Center)
-						[
-							SNew(SImage)
-						]
-						+ SVerticalBox::Slot()
-						.AutoHeight()
-						[
-							SNew(STextBlock)
-							.Text(LOCTEXT("SyncLabel", "Sync"))
-						]
+						SNew(SImage)
+						.Image(FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.SyncOff").GetIcon())
 					]
 				]
 				+ SHorizontalBox::Slot()
@@ -254,24 +231,13 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 					.OnClicked(FOnClicked::CreateStatic(&OnSave, this))
 					.Content()
 					[
-						SNew(SVerticalBox)
-						+ SVerticalBox::Slot()
-						.AutoHeight()
-						.Padding(2.0f)
-						.HAlign(HAlign_Center)
-						[
-							SNew(SImage)
-						]
-						+ SVerticalBox::Slot()
-						.AutoHeight()
-						[
-							SNew(STextBlock)
-							.Text(LOCTEXT("SaveLabel", "Save"))
-						]
+						SNew(SImage)
+						.Image(FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.Save").GetIcon())
 					]
 				]
 				+SHorizontalBox::Slot()
 				.AutoWidth()
+				.Padding(2.0f)
 				[
 					SNew(SComboBox<TSharedPtr<FString>>)
 					.OptionsSource(&m_AvailableCameraNames)
@@ -284,6 +250,7 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 				]
 				+SHorizontalBox::Slot()
 				.AutoWidth()
+				.Padding(2.0f)
 				[
 					SNew(SComboBox<TSharedPtr<FString>>)
 					.OptionsSource(&m_QualitySettingsList)
@@ -296,6 +263,7 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 				]
 			]
 			+ SVerticalBox::Slot()
+			.FillHeight(1.0f)
 			[
 				SNew(SImage)
 				.Image(RenderTextureBrush.Get())

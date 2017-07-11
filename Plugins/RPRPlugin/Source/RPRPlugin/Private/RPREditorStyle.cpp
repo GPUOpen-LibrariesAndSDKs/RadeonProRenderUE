@@ -30,14 +30,20 @@ TSharedRef<FSlateStyleSet>	FRPREditorStyle::Create()
 	TSharedRef< FSlateStyleSet >	styleRef = editorStyle.CreateEditorStyleInstance();
 	FSlateStyleSet					&style = styleRef.Get();
 
-	const FVector2D Icon20x20(20.0f, 20.0f);
-	const FVector2D Icon40x40(40.0f, 40.0f);
+	const FVector2D	Icon20x20(20.0f, 20.0f);
+	const FVector2D	Icon16x16(16.0f, 16.0f);
 
-	style.Set("RPRViewport.Record", new IMAGE_BRUSH("Icons/Record_16x", Icon40x40));
-	style.Set("RPRViewport.Record.Small", new IMAGE_BRUSH("Icons/Record_16x", Icon20x20));
+	style.Set("RPRViewport.Render", new IMAGE_BRUSH("Icons/Record_16x", Icon20x20));
+	style.Set("RPRViewport.Render.Small", new IMAGE_BRUSH("Icons/Record_16x", Icon16x16));
 
-	style.Set("RPRViewport.Save", new IMAGE_BRUSH("Icons/icon_file_save_16px", Icon40x40));
-	style.Set("RPRViewport.Save.Small", new IMAGE_BRUSH("Icons/icon_file_save_40x", Icon20x20));
+	style.Set("RPRViewport.SyncOff", new IMAGE_BRUSH("Icons/SourceControlOff_16x", Icon20x20));
+	style.Set("RPRViewport.SyncOff.Small", new IMAGE_BRUSH("Icons/SourceControlOff_16x", Icon16x16));
+
+	style.Set("RPRViewport.SyncOn", new IMAGE_BRUSH("Icons/SourceControlOn_16x", Icon20x20));
+	style.Set("RPRViewport.SyncOn.Small", new IMAGE_BRUSH("Icons/SourceControlOn_16x", Icon16x16));
+
+	style.Set("RPRViewport.Save", new IMAGE_BRUSH("Icons/icon_file_save_16px", Icon20x20));
+	style.Set("RPRViewport.Save.Small", new IMAGE_BRUSH("Icons/icon_file_save_40x", Icon16x16));
 
 	return styleRef;
 }
