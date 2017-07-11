@@ -14,6 +14,30 @@ URPRCameraComponent::URPRCameraComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
+void	URPRCameraComponent::SetActiveCamera()
+{
+	check(Scene != NULL);
+	Scene->m_ActiveCamera = this;
+	if (rprSceneSetCamera(Scene->m_RprScene, m_RprCamera) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't set the active RPR camera"));
+	}
+	else
+	{
+		UE_LOG(LogRPRCameraComponent, Log, TEXT("RPR Active camera changed to '%s'"), *GetCameraName());
+	}
+	Scene->TriggerFrameRebuild();
+}
+
+FString	URPRCameraComponent::GetCameraName() const
+{
+	check(SrcComponent != NULL);
+	AActor	*parent = Cast<AActor>(SrcComponent->GetOwner());
+	if (parent != NULL)
+		return parent->GetName();
+	return "";
+}
+
 bool	URPRCameraComponent::Build()
 {
 	if (Scene == NULL || SrcComponent == NULL)

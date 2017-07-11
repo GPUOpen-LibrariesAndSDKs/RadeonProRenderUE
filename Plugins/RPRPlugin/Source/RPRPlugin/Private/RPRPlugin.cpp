@@ -9,6 +9,7 @@
 #include "Engine/Texture2DDynamic.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Widgets/Images/SImage.h"
+#include "Widgets/Input/SComboBox.h"
 #include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
 
@@ -23,7 +24,8 @@
 FString		FRPRPluginModule::s_URLRadeonProRender = "https://pro.radeon.com/en-us/software/prorender/";
 
 FRPRPluginModule::FRPRPluginModule()
-:	RenderTexture(NULL)
+:	m_ActiveCameraName("")
+,	RenderTexture(NULL)
 ,	RenderTextureBrush(NULL)
 ,	m_GameWorld(NULL)
 ,	m_EditorWorld(NULL)
@@ -81,6 +83,34 @@ void	FRPRPluginModule::OpenSettings()
 	FModuleManager::LoadModuleChecked<ISettingsModule>("Settings").ShowViewer("Project", "Plugins", "RadeonProRenderSettings");
 }
 
+TSharedRef<SWidget>	OnGenerateCameraWidget(TSharedPtr<FString> inItem)
+{
+	return SNew(STextBlock)
+		.Text(FText::FromString(*inItem));
+}
+
+void	OnCameraChanged(TSharedPtr<FString> item, ESelectInfo::Type InSeletionInfo, FRPRPluginModule *instance)
+{
+	for (int32 iCamera = 0; iCamera < instance->m_AvailableCameraNames.Num(); ++iCamera)
+	{
+		if (instance->m_AvailableCameraNames[iCamera] == item)
+		{
+			instance->m_ActiveCameraName = *item.Get();
+			// Set active camera
+
+			ARPRScene	*scene = instance->GetCurrentScene();
+			if (scene != NULL)
+				scene->SetActiveCamera(instance->m_ActiveCameraName);
+			break;
+		}
+	}
+}
+
+FText	FRPRPluginModule::GetSelectedCameraName()
+{
+	return FText::FromString(m_ActiveCameraName);
+}
+
 TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &spawnArgs)
 {
 	check(!RenderTexture.IsValid());
@@ -97,6 +127,14 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
 	check(settings != NULL);
+
+	ARPRScene	*scene = GetCurrentScene();
+	if (scene != NULL)
+	{
+		scene->FillCameraNames(m_AvailableCameraNames);
+		if (m_AvailableCameraNames.Num() > 0)
+			m_ActiveCameraName = *m_AvailableCameraNames[0].Get();
+	}
 
 	const FVector2D	&dimensions = spawnArgs.GetOwnerWindow()->GetSizeInScreen();
 	const FVector2D	renderResolution(settings->RenderTargetDimensions.X, settings->RenderTargetDimensions.Y);
@@ -188,6 +226,18 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 							SNew(STextBlock)
 							.Text(LOCTEXT("SaveLabel", "Save"))
 						]
+					]
+				]
+				+SHorizontalBox::Slot()
+				.AutoWidth()
+				[
+					SNew(SComboBox<TSharedPtr<FString>>)
+					.OptionsSource(&m_AvailableCameraNames)
+					.OnGenerateWidget(SComboBox<TSharedPtr<FString>>::FOnGenerateWidget::CreateStatic(&OnGenerateCameraWidget))
+					.OnSelectionChanged(SComboBox<TSharedPtr<FString>>::FOnSelectionChanged::CreateStatic(&OnCameraChanged, this))
+					[
+						SNew(STextBlock)
+						.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateRaw(this, &FRPRPluginModule::GetSelectedCameraName)))
 					]
 				]
 			]

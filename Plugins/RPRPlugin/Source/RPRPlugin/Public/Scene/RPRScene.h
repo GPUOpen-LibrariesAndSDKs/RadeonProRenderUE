@@ -32,6 +32,9 @@ public:
 	void	OnTriggerSync();
 	void	OnSave();
 
+	void	FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames);
+	void	SetActiveCamera(const FString &cameraName);
+
 	void	TriggerFrameRebuild() { m_TriggerEndFrameRebuild = true; }
 private:
 	virtual void	BeginDestroy() override;
@@ -51,4 +54,7 @@ private:
 
 	UPROPERTY(Transient)
 	TArray<AActor*>		SceneContent;
+
+	UPROPERTY(Transient)
+	TArray<class URPRCameraComponent*>	Cameras;
 };

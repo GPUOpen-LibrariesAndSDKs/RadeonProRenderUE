@@ -21,7 +21,7 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = General)
 	FIntPoint	RenderTargetDimensions;
 
-	/** Defines ProRender number of Anti Aliasing samples per pixel. */
+	/** Defines ProRender number of Anti Aliasing samples. */
 	UPROPERTY(Config, EditAnywhere, Category = General)
 	uint32		NumAASamples; // TODO based on SolidWorks src -> range = [1, 16]
 

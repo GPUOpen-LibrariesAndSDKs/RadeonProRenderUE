@@ -29,6 +29,58 @@ ARPRScene::ARPRScene()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
+void	ARPRScene::FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames)
+{
+	if (m_RprContext != NULL)
+	{
+		// Scene was already built
+		const uint32	cameraCount = Cameras.Num();
+		for (uint32 iCamera = 0; iCamera < cameraCount; ++iCamera)
+		{
+			check(Cameras[iCamera] != NULL);
+			FString	name = Cameras[iCamera]->GetCameraName();
+
+			if (name.IsEmpty())
+				continue;
+			outCameraNames.Add(MakeShared<FString>(name));
+		}
+	}
+	else
+	{
+		// Scene isn't built yet
+		UWorld	*world = GetWorld();
+
+		check(world != NULL);
+		for (TObjectIterator<USceneComponent> it; it; ++it)
+		{
+			if (it->GetWorld() != world)
+				continue;
+			if (Cast<UCineCameraComponent>(*it) == NULL)
+				continue;
+			AActor	*parent = Cast<AActor>(it->GetOwner());
+			if (parent == NULL)
+				continue;
+			outCameraNames.Add(MakeShared<FString>(parent->GetName()));
+		}
+	}
+}
+
+void	ARPRScene::SetActiveCamera(const FString &cameraName)
+{
+	if (m_RprContext == NULL)
+		return;
+	const uint32	cameraCount = Cameras.Num();
+	for (uint32 iCamera = 0; iCamera < cameraCount; ++iCamera)
+	{
+		check(Cameras[iCamera] != NULL);
+		if (Cameras[iCamera]->GetCameraName() == cameraName)
+		{
+			Cameras[iCamera]->SetActiveCamera();
+			break;
+		}
+	}
+}
+
 void	ARPRScene::BuildRPRActor(UWorld *world, USceneComponent *srcComponent, UClass *typeClass)
 {
 	FActorSpawnParameters	params;
@@ -50,6 +102,8 @@ void	ARPRScene::BuildRPRActor(UWorld *world, USceneComponent *srcComponent, UCla
 		return;
 	}
 
+	if (typeClass == URPRCameraComponent::StaticClass())
+		Cameras.Add(static_cast<URPRCameraComponent*>(comp));
 	SceneContent.Add(newActor);
 }
 
@@ -69,6 +123,11 @@ void	ARPRScene::BuildScene()
 		else if (Cast<UCineCameraComponent>(*it) != NULL)
 			BuildRPRActor(world, *it, URPRCameraComponent::StaticClass());
 	}
+
+	// Pickup the specified camera
+	FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
+	if (!plugin.m_ActiveCameraName.IsEmpty()) // Otherwise, it'll just use the last found camera in the scene
+		SetActiveCamera(plugin.m_ActiveCameraName);
 }
 
 void	ARPRScene::OnRender()
@@ -226,6 +285,7 @@ void	ARPRScene::RemoveSceneContent()
 		}
 	}
 	SceneContent.Empty();
+	Cameras.Empty();
 }
 
 void	ARPRScene::BeginDestroy()

@@ -14,6 +14,9 @@ class URPRCameraComponent : public URPRSceneComponent
 public:
 	URPRCameraComponent();
 
+	void			SetActiveCamera();
+	FString			GetCameraName() const;
+
 	virtual bool	Build() override;
 	virtual bool	RebuildTransforms() override;
 private:
