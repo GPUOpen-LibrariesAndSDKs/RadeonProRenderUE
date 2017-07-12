@@ -213,11 +213,11 @@ void	ARPRScene::OnSave()
 		return;
 
 	static FString	kSaveDialogTitle = "Save Radeon ProRender Framebuffer";
-	static FString	kFileTypes = TEXT("Targa (*.TGA)|*.TGA"
-									  "|Windows Bitmap (*.BMP)|*.BMP"
-									  "|PNG (*.PNG)|*.PNG"
-									  "|JPG (*.JPG)|*.JPG"
-									  "|All files (*TGA;*.BMP;*.PNG;*.JPG)|*TGA;*.BMP;*.PNG;*.JPG");
+	static FString	kFileTypes = TEXT("Targa (*.TGA)|*.tga"
+									  "|Windows Bitmap (*.BMP)|*.bmp"
+									  "|PNG (*.PNG)|*.png"
+									  "|JPG (*.JPG)|*.jpg"
+									  "|All files (*tga;*.bmp;*.png;*.jpg)|*tga;*.bmp;*.png;*.jpg");
 
 	TArray<FString>		saveFilenames;
 	const bool	save = desktopPlatform->SaveFileDialog(
@@ -231,9 +231,9 @@ void	ARPRScene::OnSave()
 
 	if (saveFilenames.Num() == 0)
 		return;
-	FString	saveFilename = saveFilenames[0];
-	FString	extension = FPaths::GetExtension(saveFilename).ToLower();
-	if (extension != ".tga" && extension != ".bmp" && extension != ".png" && extension != ".jpg")
+	FString	saveFilename = FPaths::ChangeExtension(saveFilenames[0], FPaths::GetExtension(saveFilenames[0]).ToLower());
+	FString	extension = FPaths::GetExtension(saveFilename);
+	if (extension != "tga" && extension != "bmp" && extension != "png" && extension != "jpg")
 		return;
 
 	LastSavedExportPath = saveFilename;
