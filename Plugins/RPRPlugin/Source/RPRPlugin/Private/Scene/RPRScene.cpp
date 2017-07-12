@@ -286,6 +286,9 @@ void	ARPRScene::Tick(float deltaTime)
 			});
 		FlushRenderingCommands();
 		m_RendererWorker->m_DataLock.Unlock();
+
+		FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
+		plugin.m_Viewport->Draw();
 	}
 }
 
