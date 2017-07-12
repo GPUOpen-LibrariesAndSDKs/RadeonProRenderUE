@@ -28,6 +28,8 @@ public:
 
 	ERPRQualitySettings				m_QualitySettings;
 	TArray<TSharedPtr<FString>>		m_QualitySettingsList;
+
+	TSharedPtr<class FSceneViewport>	m_Viewport;
 private:
 	void					FillRPRMenu(class FMenuBuilder &menuBuilder);
 	void					CreateMenuBarExtension(class FMenuBarBuilder &menubarBuilder);
@@ -45,7 +47,6 @@ private:
 	static FString							s_URLRadeonProRender;
 
 	TSharedPtr<class FRPRViewportClient>	m_ViewportClient;
-	TSharedPtr<class FSceneViewport>		m_Viewport;
 	TSharedPtr<class SViewport>				m_ViewportWidget;
 
 	TSharedPtr<UTexture2DDynamic>			RenderTexture;

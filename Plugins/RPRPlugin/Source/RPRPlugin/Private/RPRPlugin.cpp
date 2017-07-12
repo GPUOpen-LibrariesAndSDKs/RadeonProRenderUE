@@ -288,7 +288,7 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 				
 					SAssignNew(m_ViewportWidget, SViewport)
 						//.EnableGammaCorrection(false)
-						//.IsEnabled(FSlateApplication::Get().GetNormalExecutionAttribute())
+						.IsEnabled(true)
 						//.ShowEffectWhenDisabled(false)
 						.EnableBlending(true)
 						//.ToolTip(SNew(SToolTip).Text(this, &STextureEditorViewport::GetDisplayedResolution))
