@@ -59,7 +59,7 @@ bool	URPRCameraComponent::Build()
 		return false;
 	}
 	if (rprCameraSetFocalLength(m_RprCamera, cineCam->CurrentFocalLength) != RPR_SUCCESS ||
-		rprCameraSetFocusDistance(m_RprCamera, cineCam->CurrentFocusDistance * 100.0f) != RPR_SUCCESS ||
+		rprCameraSetFocusDistance(m_RprCamera, cineCam->CurrentFocusDistance * 0.01f) != RPR_SUCCESS ||
 		rprCameraSetFStop(m_RprCamera, cineCam->CurrentAperture) != RPR_SUCCESS ||
 		rprCameraSetExposure(m_RprCamera, exposure) != RPR_SUCCESS)
 	{
