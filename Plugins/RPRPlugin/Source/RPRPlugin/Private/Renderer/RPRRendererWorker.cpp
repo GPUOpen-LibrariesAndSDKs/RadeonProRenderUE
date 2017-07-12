@@ -2,6 +2,7 @@
 
 #include "RPRRendererWorker.h"
 #include "RPRSettings.h"
+#include "HAL/RunnableThread.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRRenderer, Log, All);
 

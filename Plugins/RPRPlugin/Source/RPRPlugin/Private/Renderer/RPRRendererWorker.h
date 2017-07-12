@@ -3,6 +3,7 @@
 #pragma once
 
 #include "RadeonProRender.h"
+#include "HAL/Runnable.h"
 #include "RPRPlugin.h"
 
 class FRPRRendererWorker : public FRunnable

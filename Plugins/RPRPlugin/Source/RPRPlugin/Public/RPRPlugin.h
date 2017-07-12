@@ -39,18 +39,22 @@ private:
 	void					OnWorldCreated(UWorld *inWorld);
 	void					OnWorldDestroyed(UWorld *inWorld);
 
-	void	OpenURL(const TCHAR *url);
-	void	OpenSettings();
+	void					OpenURL(const TCHAR *url);
+	void					OpenSettings();
 private:
-	static FString						s_URLRadeonProRender;
+	static FString							s_URLRadeonProRender;
 
-	TSharedPtr<UTexture2DDynamic>		RenderTexture;
-	TSharedPtr<FSlateDynamicImageBrush>	RenderTextureBrush;
+	TSharedPtr<class FRPRViewportClient>	m_ViewportClient;
+	TSharedPtr<class FSceneViewport>		m_Viewport;
+	TSharedPtr<class SViewport>				m_ViewportWidget;
 
-	class UWorld						*m_GameWorld;
-	class UWorld						*m_EditorWorld;
+	TSharedPtr<UTexture2DDynamic>			RenderTexture;
+	TSharedPtr<FSlateDynamicImageBrush>		RenderTextureBrush;
 
-	TSharedPtr<FExtender>				m_Extender;
+	class UWorld							*m_GameWorld;
+	class UWorld							*m_EditorWorld;
 
-	bool								m_Loaded;
+	TSharedPtr<FExtender>					m_Extender;
+
+	bool									m_Loaded;
 };

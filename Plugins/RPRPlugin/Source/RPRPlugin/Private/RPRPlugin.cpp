@@ -6,16 +6,18 @@
 #include "LevelEditor.h"
 #include "EditorStyleSet.h"
 
+#include "RPRViewportClient.h"
 #include "RPREditorStyle.h"
 
-#include "Engine/Texture2DDynamic.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SComboBox.h"
 #include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
+#include "Slate/SceneViewport.h"
 
 #include "Engine/World.h"
+#include "Engine/Texture2DDynamic.h"
 #include "ISettingsModule.h"
 
 #include "Scene/RPRScene.h"
@@ -283,8 +285,15 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 				.VAlign(VAlign_Fill)
 				.HAlign(HAlign_Fill)
 				[
-					SNew(SImage)
-					.Image(RenderTextureBrush.Get())
+				
+					SAssignNew(m_ViewportWidget, SViewport)
+						//.EnableGammaCorrection(false)
+						//.IsEnabled(FSlateApplication::Get().GetNormalExecutionAttribute())
+						//.ShowEffectWhenDisabled(false)
+						.EnableBlending(true)
+						//.ToolTip(SNew(SToolTip).Text(this, &STextureEditorViewport::GetDisplayedResolution))
+					//SNew(SImage)
+					//.Image(RenderTextureBrush.Get())
 				]
 				+ SOverlay::Slot()
 				.VAlign(VAlign_Bottom)
@@ -296,6 +305,11 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 				]
 			]
 		];
+
+	m_ViewportClient = MakeShareable(new FRPRViewportClient(this));
+	m_Viewport = MakeShareable(new FSceneViewport(m_ViewportClient.Get(), m_ViewportWidget));
+	m_ViewportWidget->SetViewportInterface(m_Viewport.ToSharedRef());
+
 	return RPRViewportTab;
 }
 
