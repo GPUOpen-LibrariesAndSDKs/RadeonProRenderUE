@@ -173,13 +173,12 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 	const float		*srcPixels = m_SrcFramebufferData.GetData();
 	const uint32	pixelCount = m_Width * m_Height;
 
-	static const float	kRemapRatio = 255.0f / 32.0f;
 	for (uint32 i = 0; i < pixelCount; ++i)
 	{
-		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++ * kRemapRatio, 255.0f);
-		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++ * kRemapRatio, 255.0f);
-		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++ * kRemapRatio, 255.0f);
-		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++ * kRemapRatio, 255.0f);
+		*dstPixels++ = *srcPixels++;
+		*dstPixels++ = *srcPixels++;
+		*dstPixels++ = *srcPixels++;
+		*dstPixels++ = *srcPixels++;
 	}
 	return true;
 }
