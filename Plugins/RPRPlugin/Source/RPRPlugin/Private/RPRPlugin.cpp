@@ -191,7 +191,7 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 	m_QualitySettingsList.Add(MakeShared<FString>("High"));
 	m_QualitySettings = ERPRQualitySettings::Medium;
 
-	const FVector2D	&dimensions = spawnArgs.GetOwnerWindow()->GetSizeInScreen();
+	const FVector2D	&dimensions = FGlobalTabmanager::Get()->GetRootWindow()->GetSizeInScreen();
 	const FVector2D	renderResolution(settings->RenderTargetDimensions.X, settings->RenderTargetDimensions.Y);
 
 	RenderTexture = MakeShareable(UTexture2DDynamic::Create(renderResolution.X, renderResolution.Y, PF_R8G8B8A8));
