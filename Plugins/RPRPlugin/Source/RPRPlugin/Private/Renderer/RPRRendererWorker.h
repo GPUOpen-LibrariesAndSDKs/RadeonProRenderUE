@@ -24,6 +24,7 @@ public:
 	bool			RestartRender();
 	void			SaveToFile(const FString &filename);
 	void			SetQualitySettings(ERPRQualitySettings qualitySettings);
+	uint32			Iteration() const { return m_CurrentIteration; }
 
 	const uint8		*GetFramebufferData()
 	{

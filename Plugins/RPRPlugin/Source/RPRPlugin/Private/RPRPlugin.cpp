@@ -149,6 +149,19 @@ FText	FRPRPluginModule::GetSelectedQualitySettingsName()
 	return FText();
 }
 
+FText	FRPRPluginModule::GetCurrentRenderIteration()
+{
+	ARPRScene	*scene = GetCurrentScene();
+	if (scene != NULL)
+	{
+		// We could display other infos like "Rendering paused"
+		const uint32	renderIteration = scene->GetRenderIteration();
+
+		return FText::FromString(FString::Printf(TEXT("Render iteration : %d"), renderIteration));
+	}
+	return FText();
+}
+
 TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &spawnArgs)
 {
 	check(!RenderTexture.IsValid());
@@ -265,8 +278,22 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 			+ SVerticalBox::Slot()
 			.FillHeight(1.0f)
 			[
-				SNew(SImage)
-				.Image(RenderTextureBrush.Get())
+				SNew(SOverlay)
+				+ SOverlay::Slot()
+				.VAlign(VAlign_Fill)
+				.HAlign(HAlign_Fill)
+				[
+					SNew(SImage)
+					.Image(RenderTextureBrush.Get())
+				]
+				+ SOverlay::Slot()
+				.VAlign(VAlign_Bottom)
+				.HAlign(HAlign_Right)
+				.Padding(5.0f)
+				[
+					SNew(STextBlock)
+					.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateRaw(this, &FRPRPluginModule::GetCurrentRenderIteration)))
+				]
 			]
 		];
 	return RPRViewportTab;

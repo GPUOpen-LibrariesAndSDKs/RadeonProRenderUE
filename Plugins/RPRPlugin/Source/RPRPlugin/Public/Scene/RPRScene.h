@@ -36,6 +36,7 @@ public:
 	void	FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames);
 	void	SetActiveCamera(const FString &cameraName);
 	void	SetQualitySettings(ERPRQualitySettings qualitySettings);
+	uint32	GetRenderIteration() const;
 
 	void	TriggerFrameRebuild() { m_TriggerEndFrameRebuild = true; }
 private:

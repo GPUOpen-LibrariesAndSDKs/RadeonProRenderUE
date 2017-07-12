@@ -88,6 +88,13 @@ void	ARPRScene::SetQualitySettings(ERPRQualitySettings qualitySettings)
 	m_RendererWorker->SetQualitySettings(qualitySettings);
 }
 
+uint32	ARPRScene::GetRenderIteration() const
+{
+	if (!m_RendererWorker.IsValid())
+		return 0;
+	return m_RendererWorker->Iteration();
+}
+
 void	ARPRScene::BuildRPRActor(UWorld *world, USceneComponent *srcComponent, UClass *typeClass)
 {
 	FActorSpawnParameters	params;

@@ -34,6 +34,7 @@ private:
 	TSharedRef<SDockTab>	SpawnRPRViewportTab(const class FSpawnTabArgs&);
 	FText					GetSelectedCameraName();
 	FText					GetSelectedQualitySettingsName();
+	FText					GetCurrentRenderIteration();
 
 	void					OnWorldCreated(UWorld *inWorld);
 	void					OnWorldDestroyed(UWorld *inWorld);
