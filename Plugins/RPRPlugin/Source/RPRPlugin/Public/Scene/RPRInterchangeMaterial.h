@@ -25,8 +25,6 @@ public:
 	rpri::generic::IMaterialNodeMux const * GetInputAt(size_t _index) const override;
 	char const * GetInputNameAt(size_t _index) const override;
 
-	// this is a mistype. will be deleted in next API update
-	char const * GetMetaData() const override { return nullptr; }
 	// some nodes take a texture input (the *Map set + TextureTexelSize)
 	// this allow access to it
 	bool HasTextureInput() const override;
@@ -34,7 +32,11 @@ public:
 	char const * GetMetadata() const override;
 
 private:
-	const UMaterialExpression * expression;
+	UMaterialExpression * expression;
+
+    std::vector<std::shared_ptr<rpri::generic::IMaterialNode>> nodes;
+    std::vector<std::shared_ptr<rpri::generic::IMaterialNodeMux>> muxes;
+    std::vector<std::string> inputNames;
 
 	std::string id;
 	std::string name;
@@ -122,7 +124,6 @@ public:
 	rpri::generic::IMaterialNodeMux const* GetInputAt(size_t _index) const override;
 	char const* GetInputNameAt(size_t _index) const override;
 
-	char const* GetMetaData() const override;
 	bool HasTextureInput() const override;
 	rpri::generic::ITexture const* GetTextureInput() const override;
 	char const* GetMetadata() const override;
@@ -154,5 +155,6 @@ public:
 	stringToIndexMap stringToInterchangeMuxIndex;
 
 private:
+    friend class UE4InterchangePBRNode;
 	const UMaterial* ue4Mat;
 };

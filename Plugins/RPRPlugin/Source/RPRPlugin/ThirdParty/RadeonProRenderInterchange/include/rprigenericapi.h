@@ -82,7 +82,6 @@ struct IMaterialNode
     virtual size_t GetNumberOfInputs() const = 0;
     virtual IMaterialNodeMux const * GetInputAt(size_t _index) const = 0;
     virtual char const * GetInputNameAt(size_t _index) const = 0;
-    virtual char const * GetMetaData() const = 0;
 
     // some nodes take a texture input (the *Map set + TextureTexelSize)
     // this allow access to it
@@ -90,7 +89,6 @@ struct IMaterialNode
     virtual struct ITexture const * GetTextureInput() const = 0;
 
     virtual char const * GetMetadata() const = 0;
-
     virtual ~IMaterialNode() = default;
 };
 
@@ -107,8 +105,6 @@ struct IMaterialGraph
     virtual IMaterialNode const * GetMaterialNodeAt(size_t _index) const = 0;
 
     virtual char const * GetMetadata() const = 0;
-
-    virtual ~IMaterialGraph() = default;
 };
 
 
@@ -178,7 +174,6 @@ struct IMesh
 
     virtual char const * GetMetadata() const = 0;
 
-protected:
     virtual ~IMesh() = default;
 };
 
