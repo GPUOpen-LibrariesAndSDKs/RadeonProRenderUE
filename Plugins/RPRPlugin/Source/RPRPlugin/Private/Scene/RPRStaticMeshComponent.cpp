@@ -64,6 +64,9 @@ void	URPRStaticMeshComponent::CleanCache()
 
 bool	URPRStaticMeshComponent::BuildMaterials()
 {
+	const UStaticMeshComponent	*component = Cast<UStaticMeshComponent>(SrcComponent);
+	check(component != NULL);
+
     // Assign the materials on the instances: The cached geometry might be the same
     // But materials can be overriden on a component basis
     const uint32	shapeCount = m_Shapes.Num();
@@ -87,6 +90,8 @@ bool	URPRStaticMeshComponent::BuildMaterials()
         }
         RadeonProRender::matrix	matrix = BuildMatrixWithScale(SrcComponent->ComponentToWorld);
         if (rprShapeSetTransform(shape, RPR_TRUE, &matrix.m00) != RPR_SUCCESS ||
+			rprShapeSetVisibility(shape, SrcComponent->IsVisible()) != RPR_SUCCESS ||
+			rprShapeSetShadow(shape, component->bCastStaticShadow) != RPR_SUCCESS ||
             rprSceneAttachShape(Scene->m_RprScene, shape) != RPR_SUCCESS)
         {
             UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't attach RPR shape to the RPR scene"));
