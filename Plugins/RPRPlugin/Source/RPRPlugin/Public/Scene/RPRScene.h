@@ -45,7 +45,8 @@ private:
 	virtual bool	ShouldTickIfViewportsOnly() const override { return true; }
 
 	void	RemoveSceneContent();
-	void	BuildRPRActor(UWorld *world, USceneComponent *srcComponent, UClass *typeClass);
+	bool	BuildRPRActor(UWorld *world, USceneComponent *srcComponent, UClass *typeClass, bool checkIfContained);
+	void	RefreshScene();
 	void	BuildScene();
 private:
 	bool	m_TriggerEndFrameRebuild;
@@ -55,7 +56,7 @@ private:
 	TSharedPtr<UTexture2DDynamic>	RenderTexture;
 
 	UPROPERTY(Transient)
-	TArray<AActor*>		SceneContent;
+	TArray<class ARPRActor*>		SceneContent;
 
 	UPROPERTY(Transient)
 	TArray<class URPRCameraComponent*>	Cameras;

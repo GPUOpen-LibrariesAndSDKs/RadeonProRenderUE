@@ -98,30 +98,46 @@ uint32	ARPRScene::GetRenderIteration() const
 	return m_RendererWorker->Iteration();
 }
 
-void	ARPRScene::BuildRPRActor(UWorld *world, USceneComponent *srcComponent, UClass *typeClass)
+bool	ARPRScene::BuildRPRActor(UWorld *world, USceneComponent *srcComponent, UClass *typeClass, bool checkIfContained)
 {
+	if (checkIfContained)
+	{
+		// TODO: Profile this
+		const uint32	objectCount = SceneContent.Num();
+		for (uint32 iObject = 0; iObject < objectCount; ++iObject)
+		{
+			if (!ensure(SceneContent[iObject] != NULL))
+				continue;
+			if (SceneContent[iObject]->SrcComponent == srcComponent)
+				return false;
+		}
+	}
+
 	FActorSpawnParameters	params;
 	params.ObjectFlags = RF_Public | RF_Transactional;
 
 	ARPRActor	*newActor = world->SpawnActor<ARPRActor>(ARPRActor::StaticClass(), params);
 	check(newActor != NULL);
+	newActor->SrcComponent = srcComponent;
 
 	URPRSceneComponent	*comp = NewObject<URPRSceneComponent>(newActor, typeClass);
 	check(comp != NULL);
 	comp->SrcComponent = srcComponent;
 	comp->Scene = this;
 	newActor->SetRootComponent(comp);
+	newActor->Component = comp;
 	comp->RegisterComponent();
 
 	if (!comp->Build())
 	{
 		world->DestroyActor(newActor);
-		return;
+		return false;
 	}
 
 	if (typeClass == URPRCameraComponent::StaticClass())
 		Cameras.Add(static_cast<URPRCameraComponent*>(comp));
 	SceneContent.Add(newActor);
+	return true;
 }
 
 void	ARPRScene::BuildScene()
@@ -134,17 +150,42 @@ void	ARPRScene::BuildScene()
 		if (it->GetWorld() != world)
 			continue;
 		if (Cast<UStaticMeshComponent>(*it) != NULL)
-			BuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass());
+			BuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass(), false);
 		else if (Cast<ULightComponentBase>(*it) != NULL)
-			BuildRPRActor(world, *it, URPRLightComponent::StaticClass());
+			BuildRPRActor(world, *it, URPRLightComponent::StaticClass(), false);
 		else if (Cast<UCineCameraComponent>(*it) != NULL)
-			BuildRPRActor(world, *it, URPRCameraComponent::StaticClass());
+			BuildRPRActor(world, *it, URPRCameraComponent::StaticClass(), false);
 	}
 
 	// Pickup the specified camera
 	FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
 	if (!plugin.m_ActiveCameraName.IsEmpty()) // Otherwise, it'll just use the last found camera in the scene
 		SetActiveCamera(plugin.m_ActiveCameraName);
+}
+
+void	ARPRScene::RefreshScene()
+{
+	UWorld	*world = GetWorld();
+
+	// No usable callback to get notified when a component is added outside the editor
+	// We ll have to do that for runtime apps
+	// If this takes too much time, it might be better to have several lists for cameras/lights/objects
+	// to avoid finding in SceneComponents
+	check(world != NULL);
+	bool	objectAdded = false;
+	for (TObjectIterator<USceneComponent> it; it; ++it)
+	{
+		if (it->GetWorld() != world)
+			continue;
+		if (Cast<UStaticMeshComponent>(*it) != NULL)
+			objectAdded |= BuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass(), true);
+		else if (Cast<ULightComponentBase>(*it) != NULL)
+			objectAdded |= BuildRPRActor(world, *it, URPRLightComponent::StaticClass(), true);
+		else if (Cast<UCineCameraComponent>(*it) != NULL)
+			objectAdded |= BuildRPRActor(world, *it, URPRCameraComponent::StaticClass(), true);
+	}
+	if (objectAdded)
+		TriggerFrameRebuild();
 }
 
 void	ARPRScene::OnRender()
@@ -297,6 +338,10 @@ void	ARPRScene::Tick(float deltaTime)
 		RenderTexture->Resource == NULL)
 		return;
 
+	FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
+	if (plugin.SyncEnabled())
+		RefreshScene();
+
 	if (/*m_RendererWorker->ResizeFramebuffer(RenderTexture->SizeX, RenderTexture->SizeY) ||*/
 		m_TriggerEndFrameRebuild)
 	{
@@ -330,7 +375,6 @@ void	ARPRScene::Tick(float deltaTime)
 		FlushRenderingCommands();
 		m_RendererWorker->m_DataLock.Unlock();
 
-		FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
 		plugin.m_Viewport->Draw();
 	}
 }

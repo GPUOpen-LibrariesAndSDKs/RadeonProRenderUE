@@ -13,6 +13,9 @@ class ARPRActor : public AActor
 public:
 	UPROPERTY()
 	class URPRSceneComponent	*Component;
+
+	UPROPERTY()
+	class USceneComponent		*SrcComponent;
 public:
 	ARPRActor();
 };
