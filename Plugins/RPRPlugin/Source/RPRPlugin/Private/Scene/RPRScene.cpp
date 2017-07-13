@@ -172,9 +172,9 @@ void	ARPRScene::BuildScene()
 	}
 
 	// Pickup the specified camera
-	FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
-	if (!plugin.m_ActiveCameraName.IsEmpty()) // Otherwise, it'll just use the last found camera in the scene
-		SetActiveCamera(plugin.m_ActiveCameraName);
+	FRPRPluginModule	*plugin = FRPRPluginModule::Get();
+	if (!plugin->m_ActiveCameraName.IsEmpty()) // Otherwise, it'll just use the last found camera in the scene
+		SetActiveCamera(plugin->m_ActiveCameraName);
 }
 
 void	ARPRScene::RefreshScene()
@@ -212,10 +212,10 @@ void	ARPRScene::OnRender()
 		check(settings != NULL);
 
 		// Initialize everything
-		FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
-		if (!plugin.GetRenderTexture().IsValid())
+		FRPRPluginModule	*plugin = FRPRPluginModule::Get();
+		if (!plugin->GetRenderTexture().IsValid())
 			return;// No RPR viewport created
-		RenderTexture = plugin.GetRenderTexture();
+		RenderTexture = plugin->GetRenderTexture();
 
 		FString	cachePath = settings->RenderCachePath;
 		FString	dllPath = FPaths::GameDir() + "/Binaries/Win64/Tahoe64.dll"; // To get from settings ?
@@ -249,22 +249,20 @@ void	ARPRScene::OnRender()
 			UE_LOG(LogRPRScene, Error, TEXT("RPR Scene setup failed"));
 			return;
 		}
-		SetTrace(plugin.TraceEnabled());
+		SetTrace(plugin->TraceEnabled());
 		UE_LOG(LogRPRScene, Log, TEXT("ProRender scene created"));
 
+		BuildScene();
 	}
 
-	// For now, always rebuild the scene
-	RemoveSceneContent();
-	BuildScene();
 	TriggerFrameRebuild();
 
 	if (!m_RendererWorker.IsValid())
 	{
-		FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
+		FRPRPluginModule	*plugin = FRPRPluginModule::Get();
 
 		m_RendererWorker = MakeShareable(new FRPRRendererWorker(m_RprContext, m_RprScene, RenderTexture->SizeX, RenderTexture->SizeY));
-		m_RendererWorker->SetQualitySettings(plugin.m_QualitySettings);
+		m_RendererWorker->SetQualitySettings(plugin->m_QualitySettings);
 	}
 }
 
@@ -354,8 +352,8 @@ void	ARPRScene::Tick(float deltaTime)
 		RenderTexture->Resource == NULL)
 		return;
 
-	FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
-	if (plugin.SyncEnabled())
+	FRPRPluginModule	*plugin = FRPRPluginModule::Get();
+	if (plugin->SyncEnabled())
 		RefreshScene();
 
 	if (/*m_RendererWorker->ResizeFramebuffer(RenderTexture->SizeX, RenderTexture->SizeY) ||*/
@@ -391,7 +389,7 @@ void	ARPRScene::Tick(float deltaTime)
 		FlushRenderingCommands();
 		m_RendererWorker->m_DataLock.Unlock();
 
-		plugin.m_Viewport->Draw();
+		plugin->m_Viewport->Draw();
 	}
 }
 

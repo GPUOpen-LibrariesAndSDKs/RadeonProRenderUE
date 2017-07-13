@@ -20,6 +20,8 @@ public:
 	virtual void	StartupModule() override;
 	virtual void	ShutdownModule() override;
 
+	static FRPRPluginModule			*Get() { return s_Module.Get(); }
+
 	void							ToggleRPRTrace();
 	void							ToggleRPRSync();
 	bool							TraceEnabled() const { return m_RPRTrace; }
@@ -36,8 +38,6 @@ public:
 	TArray<TSharedPtr<FString>>		m_QualitySettingsList;
 
 	TSharedPtr<class FSceneViewport>	m_Viewport;
-
-	static TSharedPtr<FRPRPluginModule>	s_Module;
 private:
 	void					FillRPRMenu(class FMenuBuilder &menuBuilder);
 	void					CreateMenuBarExtension(class FMenuBarBuilder &menubarBuilder);
@@ -54,6 +54,7 @@ private:
 	void					OpenURL(const TCHAR *url);
 	void					OpenSettings();
 private:
+	static TSharedPtr<FRPRPluginModule>		s_Module;
 	static FString							s_URLRadeonProRender;
 
 	TSharedPtr<class FRPRViewportClient>	m_ViewportClient;
