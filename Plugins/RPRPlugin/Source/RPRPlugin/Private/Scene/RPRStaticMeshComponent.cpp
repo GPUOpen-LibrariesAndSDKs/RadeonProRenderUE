@@ -138,6 +138,12 @@ bool	URPRStaticMeshComponent::Build()
     if (lodRes.Sections.Num() == 0)
         return false;
 
+
+
+
+#define RPR_UMS_INTEGRATION 1
+
+#if RPR_UMS_INTEGRATION
     std::map<UMaterial const *, UE4InterchangeMaterialGraph*> materialMap;
 
     for(int i =0;i < staticMeshComponent->GetNumMaterials();++i)
@@ -185,9 +191,7 @@ bool	URPRStaticMeshComponent::Build()
     rpriErrorOptions(ctx, 5, false, false);
     rpriSetLoggers(ctx, rpriLogger, rpriLogger, rpriLogger);
 
-#define RPR_UMS_INTEGRATION 0
 
-#if RPR_UMS_INTEGRATION
     rpriImportFromMemory(ctx, "Generic", numImportProps, importProps);
 
     rpriExport(ctx, "RPIF Exporter", numExportProps, exportProps);
