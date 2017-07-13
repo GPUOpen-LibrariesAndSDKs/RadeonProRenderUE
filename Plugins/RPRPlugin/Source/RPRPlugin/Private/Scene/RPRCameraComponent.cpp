@@ -96,13 +96,12 @@ void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FA
 	check(SrcComponent != NULL);
 	check(m_Plugin != NULL);
 
-	Super::TickComponent(deltaTime, tickType, tickFunction);
-
 	if (!m_Plugin->SyncEnabled())
 		return;
 	// Check all cached properties (might be a better way)
 	// There is PostEditChangeProperty but this is editor only
-	RefreshProperties(false);
+	if (RefreshProperties(false))
+		Scene->TriggerFrameRebuild();
 }
 
 bool	URPRCameraComponent::RefreshProperties(bool force)
@@ -135,9 +134,9 @@ bool	URPRCameraComponent::RefreshProperties(bool force)
 		m_CachedFocusDistance = cineCam->CurrentFocusDistance;
 		m_CachedAperture = cineCam->CurrentAperture;
 		m_CachedSensorSize = FVector2D(cineCam->FilmbackSettings.SensorWidth, cineCam->FilmbackSettings.SensorHeight);
-		Scene->TriggerFrameRebuild();
+		return true;
 	}
-	return true;
+	return false;
 }
 
 void	URPRCameraComponent::BeginDestroy()

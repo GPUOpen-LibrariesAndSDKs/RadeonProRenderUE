@@ -61,6 +61,8 @@ bool	URPRLightComponent::BuildIESLight(const UPointLightComponent *lightComponen
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create IES light"));
 		return false;
 	}
+	m_CachedIntensity = lightComponent->Intensity;
+	m_CachedLightColor = lightComponent->LightColor;
 	SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 90.0f, 0.0f)));
 	return true;
 }
@@ -77,6 +79,8 @@ bool	URPRLightComponent::BuildPointLight(const UPointLightComponent *pointLightC
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create point light"));
 		return false;
 	}
+	m_CachedIntensity = pointLightComponent->Intensity;
+	m_CachedLightColor = pointLightComponent->LightColor;
 	return true;
 }
 
@@ -93,6 +97,9 @@ bool	URPRLightComponent::BuildSpotLight(const USpotLightComponent *spotLightComp
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create spot light"));
 		return false;
 	}
+	m_CachedIntensity = spotLightComponent->Intensity;
+	m_CachedLightColor = spotLightComponent->LightColor;
+	m_CachedConeAngles = FVector2D(spotLightComponent->InnerConeAngle, spotLightComponent->OuterConeAngle);
 	SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(-90.0f, 90.0f, 0.0f)));
 	return true;
 }
@@ -121,6 +128,7 @@ bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightCompone
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create RPR image"));
 		return false;
 	}
+	m_CachedIntensity = skyLightComponent->Intensity;
 	SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 0.0f, 90.0f)));
 	return true;
 }
@@ -138,6 +146,8 @@ bool	URPRLightComponent::BuildDirectionalLight(const UDirectionalLightComponent 
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create directional light"));
 		return false;
 	}
+	m_CachedIntensity = dirLightComponent->Intensity;
+	m_CachedLightColor = dirLightComponent->LightColor;
 	SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(-90.0f, 90.0f, 0.0f)));
 	return true;
 }
@@ -213,6 +223,145 @@ bool	URPRLightComponent::RebuildTransforms()
 	}
 	SrcComponent->ComponentToWorld.SetRotation(oldOrientation);
 	return true;
+}
+
+void	URPRLightComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
+{
+	Super::TickComponent(deltaTime, tickType, tickFunction);
+
+	check(Scene != NULL);
+	check(SrcComponent != NULL);
+	check(m_Plugin != NULL);
+
+	if (!m_Plugin->SyncEnabled())
+		return;
+	// Check all cached properties (might be a better way)
+	// There is PostEditChangeProperty but this is editor only
+
+	rpr_light_type	lightType = 0;
+	if (rprLightGetInfo(m_RprLight, RPR_LIGHT_TYPE, sizeof(rpr_light_type), &lightType, NULL) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Invalid RPR Light type"));
+		return;
+	}
+
+	ULightComponentBase	*lightComponent = Cast<ULightComponentBase>(SrcComponent);
+	check(lightComponent != NULL);
+	const bool			colorChanged = lightComponent->Intensity != m_CachedIntensity || lightComponent->LightColor != m_CachedLightColor;
+	bool				triggerRefresh = false;
+	if (colorChanged && lightType != RPR_LIGHT_TYPE_ENVIRONMENT)
+	{
+		if (lightType == RPR_LIGHT_TYPE_DIRECTIONAL)
+		{
+			const float		intensity = lightComponent->Intensity;
+			FLinearColor	lightColor(lightComponent->LightColor);
+
+			lightColor *= intensity * kDirLightIntensityMultiplier;
+			if (rprDirectionalLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B) != RPR_SUCCESS)
+			{
+				UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't set dir light color"));
+				return;
+			}
+		}
+		else
+		{
+			const UPointLightComponent	*pointLightComponent = Cast<UPointLightComponent>(SrcComponent);
+			check(pointLightComponent != NULL);
+			const FLinearColor			lightColor = BuildRPRLightColor(pointLightComponent, pointLightComponent->bUseInverseSquaredFalloff);
+
+			if (lightType == RPR_LIGHT_TYPE_POINT)
+			{
+				if (rprPointLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B) != RPR_SUCCESS)
+				{
+					UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't set point light color"));
+					return;
+				}
+			}
+			else if (lightType == RPR_LIGHT_TYPE_SPOT)
+			{
+				if (rprSpotLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B) != RPR_SUCCESS)
+				{
+					UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't set spot light color"));
+					return;
+				}
+			}
+			else if (ensure(lightType == RPR_LIGHT_TYPE_IES))
+			{
+				if (rprIESLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B) != RPR_SUCCESS)
+				{
+					UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't set IES light color"));
+					return;
+				}
+			}
+		}
+		triggerRefresh = true;
+		m_CachedIntensity = lightComponent->Intensity;
+		m_CachedLightColor = lightComponent->LightColor;
+	}
+	switch (lightType)
+	{
+		case RPR_LIGHT_TYPE_POINT:
+			break; // Nothing to refresh except color
+		case RPR_LIGHT_TYPE_DIRECTIONAL:
+		{
+			const UDirectionalLightComponent	*dirLightComponent = Cast<UDirectionalLightComponent>(SrcComponent);
+			check(dirLightComponent != NULL);
+
+			if (dirLightComponent->ShadowSharpen != m_CachedShadowSharpness)
+			{
+				if (rprDirectionalLightSetShadowSoftness(m_RprLight, 1.0f - dirLightComponent->ShadowSharpen) != RPR_SUCCESS)
+				{
+					UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't set dir light shadow sharpness"));
+					return;
+				}
+				triggerRefresh = true;
+				m_CachedShadowSharpness = dirLightComponent->ShadowSharpen;
+			}
+			break;
+		}
+		case RPR_LIGHT_TYPE_SPOT:
+		{
+			const USpotLightComponent	*spotLightComponent = Cast<USpotLightComponent>(SrcComponent);
+			check(spotLightComponent != NULL);
+
+			if (spotLightComponent->InnerConeAngle != m_CachedConeAngles.X ||
+				spotLightComponent->OuterConeAngle != m_CachedConeAngles.Y)
+			{
+				if (rprSpotLightSetConeShape(m_RprLight, FMath::DegreesToRadians(spotLightComponent->InnerConeAngle), FMath::DegreesToRadians(spotLightComponent->OuterConeAngle)) != RPR_SUCCESS)
+				{
+					UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't set spot light cone angles"));
+					return;
+				}
+				triggerRefresh = true;
+				m_CachedConeAngles = FVector2D(spotLightComponent->InnerConeAngle, spotLightComponent->OuterConeAngle);
+			}
+			break;
+		}
+		case RPR_LIGHT_TYPE_ENVIRONMENT:
+		{
+			const USkyLightComponent	*skyLightComponent = Cast<USkyLightComponent>(SrcComponent);
+			check(skyLightComponent != NULL);
+
+			if (skyLightComponent->Intensity != m_CachedIntensity)
+			{
+				if (rprEnvironmentLightSetIntensityScale(m_RprLight, skyLightComponent->Intensity) != RPR_SUCCESS)
+				{
+					UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't refresh environment light properties"));
+					return;
+				}
+				triggerRefresh = true;
+				m_CachedIntensity = skyLightComponent->Intensity;
+			}
+			// TODO: Reload if cubemap changed
+			break;
+		}
+		case RPR_LIGHT_TYPE_IES:
+			break; // TODO: Reload from IES file if it changed
+		default:
+			return;
+	}
+	if (triggerRefresh)
+		Scene->TriggerFrameRebuild();
 }
 
 void	URPRLightComponent::BeginDestroy()

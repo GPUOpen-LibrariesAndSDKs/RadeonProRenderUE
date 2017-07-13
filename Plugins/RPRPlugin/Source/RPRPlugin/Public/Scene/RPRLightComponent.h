@@ -16,16 +16,22 @@ public:
 	URPRLightComponent();
 
 	virtual bool	Build() override;
-	virtual bool	RebuildTransforms() override;
 private:
 	virtual void	BeginDestroy() override;
+	virtual void	TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
+	virtual bool	RebuildTransforms() override;
 
 	bool	BuildIESLight(const class UPointLightComponent *lightComponent);
 	bool	BuildPointLight(const class UPointLightComponent *pointLightComponent);
 	bool	BuildSpotLight(const class USpotLightComponent *spotLightComponent);
 	bool	BuildDirectionalLight(const class UDirectionalLightComponent *dirLightComponent);
 	bool	BuildSkyLight(const class USkyLightComponent *skyLightComponent);
-public:
+private:
 	rpr_image	m_RprImage;
 	rpr_light	m_RprLight;
+
+	float		m_CachedShadowSharpness;
+	float		m_CachedIntensity;
+	FColor		m_CachedLightColor;
+	FVector2D	m_CachedConeAngles;
 };
