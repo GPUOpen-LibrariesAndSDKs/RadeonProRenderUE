@@ -143,7 +143,7 @@ bool	URPRStaticMeshComponent::Build()
     if (lodRes.Sections.Num() == 0)
         return false;
 
-    std::map<UMaterial const *, UE4InterchangeMaterialGraph*> materialMap;
+    /*std::map<UMaterial const *, UE4InterchangeMaterialGraph*> materialMap;
 
     for(int i =0;i < staticMeshComponent->GetNumMaterials();++i)
     {
@@ -198,7 +198,7 @@ bool	URPRStaticMeshComponent::Build()
     rpriExport(ctx, "RPIF Exporter", numExportProps, exportProps);
 
 #endif
-    rpriFreeContext(ctx);
+    rpriFreeContext(ctx);*/
 
 
     TArray<rpr_shape>	shapes = GetMeshInstances(staticMesh);
@@ -314,20 +314,23 @@ bool	URPRStaticMeshComponent::RebuildTransforms()
 
 void	URPRStaticMeshComponent::BeginDestroy()
 {
-    Super::BeginDestroy();
-    if (m_RprMaterialSystem != NULL)
-    {
-        rprObjectDelete(m_RprMaterialSystem);
-        m_RprMaterialSystem = NULL;
-    }
-    // TODO: Check if we need to call rprSceneDetachShape or rprObjectDelete does this thing for us
-    uint32	shapeCount = m_Shapes.Num();
-    for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
-    {
-        if (m_Shapes[iShape].m_RprShape != NULL)
-            rprObjectDelete(m_Shapes[iShape].m_RprShape);
-        if (m_Shapes[iShape].m_RprMaterial != NULL)
-            rprObjectDelete(m_Shapes[iShape].m_RprMaterial);
-    }
-    m_Shapes.Empty();
+
+	check(Scene != NULL);
+	uint32	shapeCount = m_Shapes.Num();
+	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
+	{
+		if (m_Shapes[iShape].m_RprShape != NULL)
+		{
+			rprSceneDetachShape(Scene->m_RprScene, m_Shapes[iShape].m_RprShape);
+			rprObjectDelete(m_Shapes[iShape].m_RprShape);
+		}
+		if (m_Shapes[iShape].m_RprMaterial != NULL)
+			rprObjectDelete(m_Shapes[iShape].m_RprMaterial);
+	}
+	m_Shapes.Empty();
+	if (m_RprMaterialSystem != NULL)
+	{
+		rprObjectDelete(m_RprMaterialSystem);
+		m_RprMaterialSystem = NULL;
+	}
 }

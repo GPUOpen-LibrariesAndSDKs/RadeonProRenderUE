@@ -134,7 +134,7 @@ bool	ARPRScene::BuildRPRActor(UWorld *world, USceneComponent *srcComponent, UCla
 		return false;
 	}
 
-	if (typeClass == URPRCameraComponent::StaticClass())
+ 	if (typeClass == URPRCameraComponent::StaticClass())
 		Cameras.Add(static_cast<URPRCameraComponent*>(comp));
 	SceneContent.Add(newActor);
 	return true;
@@ -143,10 +143,12 @@ bool	ARPRScene::BuildRPRActor(UWorld *world, USceneComponent *srcComponent, UCla
 void	ARPRScene::RemoveActor(AActor *actor)
 {
 	check(Cast<ARPRActor>(actor) != NULL);
+	check(actor->GetRootComponent() != NULL);
 	check(GetWorld() != NULL);
 
 	GetWorld()->DestroyActor(actor);
 	SceneContent.Remove(Cast<ARPRActor>(actor));
+	actor->GetRootComponent()->ConditionalBeginDestroy();
 	TriggerFrameRebuild();
 }
 
@@ -157,7 +159,9 @@ void	ARPRScene::BuildScene()
 	check(world != NULL);
 	for (TObjectIterator<USceneComponent> it; it; ++it)
 	{
-		if (it->GetWorld() != world)
+		if (it->GetWorld() != world ||
+			it->HasAnyFlags(RF_Transient | RF_BeginDestroyed) ||
+			!it->HasBeenCreated())
 			continue;
 		if (Cast<UStaticMeshComponent>(*it) != NULL)
 			BuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass(), false);
@@ -185,7 +189,9 @@ void	ARPRScene::RefreshScene()
 	bool	objectAdded = false;
 	for (TObjectIterator<USceneComponent> it; it; ++it)
 	{
-		if (it->GetWorld() != world)
+		if (it->GetWorld() != world ||
+			it->HasAnyFlags(RF_Transient | RF_BeginDestroyed) ||
+			!it->HasBeenCreated())
 			continue;
 		if (Cast<UStaticMeshComponent>(*it) != NULL)
 			objectAdded |= BuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass(), true);

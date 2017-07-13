@@ -404,15 +404,16 @@ void	URPRLightComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 void	URPRLightComponent::BeginDestroy()
 {
 	Super::BeginDestroy();
+	check(Scene != NULL);
+	if (m_RprLight != NULL)
+	{
+		rprSceneDetachLight(Scene->m_RprScene, m_RprLight);
+		rprObjectDelete(m_RprLight);
+		m_RprLight = NULL;
+	}
 	if (m_RprImage != NULL)
 	{
 		rprObjectDelete(m_RprImage);
 		m_RprImage = NULL;
-	}
-	// TODO: Check if we need to call rprSceneDetachLight or rprObjectDelete does this thing for us
-	if (m_RprLight != NULL)
-	{
-		rprObjectDelete(m_RprLight);
-		m_RprLight = NULL;
 	}
 }
