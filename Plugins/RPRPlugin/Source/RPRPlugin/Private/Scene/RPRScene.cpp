@@ -140,6 +140,16 @@ bool	ARPRScene::BuildRPRActor(UWorld *world, USceneComponent *srcComponent, UCla
 	return true;
 }
 
+void	ARPRScene::RemoveActor(AActor *actor)
+{
+	check(Cast<ARPRActor>(actor) != NULL);
+	check(GetWorld() != NULL);
+
+	GetWorld()->DestroyActor(actor);
+	SceneContent.Remove(Cast<ARPRActor>(actor));
+	TriggerFrameRebuild();
+}
+
 void	ARPRScene::BuildScene()
 {
 	UWorld	*world = GetWorld();

@@ -230,6 +230,9 @@ void	URPRLightComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 {
 	Super::TickComponent(deltaTime, tickType, tickFunction);
 
+	if (SrcComponent == NULL)
+		return; // We are about to get destroyed
+
 	check(Scene != NULL);
 	check(SrcComponent != NULL);
 	check(m_Plugin != NULL);

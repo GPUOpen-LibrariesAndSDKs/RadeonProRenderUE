@@ -95,8 +95,9 @@ bool	URPRCameraComponent::RebuildTransforms()
 void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
 {
 	Super::TickComponent(deltaTime, tickType, tickFunction);
+	if (SrcComponent == NULL)
+		return; // We are about to get destroyed
 
-	check(SrcComponent != NULL);
 	check(m_Plugin != NULL);
 
 	if (!m_Plugin->SyncEnabled())

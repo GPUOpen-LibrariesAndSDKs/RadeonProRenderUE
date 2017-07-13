@@ -33,6 +33,7 @@ public:
 	void	OnSave();
 	void	SetTrace(bool trace);
 
+	void	RemoveActor(AActor *actor);
 	void	FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames);
 	void	SetActiveCamera(const FString &cameraName);
 	void	SetQualitySettings(ERPRQualitySettings qualitySettings);

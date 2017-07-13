@@ -21,7 +21,13 @@ bool	URPRSceneComponent::Build()
 
 void	URPRSceneComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
 {
-	check(SrcComponent != NULL);
+	check(Scene != NULL);
+	if (SrcComponent == NULL)
+	{
+		// Source object destroyed, remove ourselves
+		Scene->RemoveActor(GetOwner());
+		return;
+	}
 	check(m_Plugin != NULL);
 
 	Super::TickComponent(deltaTime, tickType, tickFunction);
