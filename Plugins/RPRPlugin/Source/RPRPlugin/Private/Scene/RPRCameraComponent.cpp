@@ -18,6 +18,9 @@ void	URPRCameraComponent::SetActiveCamera()
 {
 	check(Scene != NULL);
 	Scene->m_ActiveCamera = this;
+
+	if (!RebuildTransforms())
+		return;
 	if (rprSceneSetCamera(Scene->m_RprScene, m_RprCamera) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't set the active RPR camera"));
