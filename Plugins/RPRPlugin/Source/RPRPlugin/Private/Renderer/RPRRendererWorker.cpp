@@ -193,10 +193,10 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 
 	for (uint32 i = 0; i < pixelCount; ++i)
 	{
-		*dstPixels++ = *srcPixels++;
-		*dstPixels++ = *srcPixels++;
-		*dstPixels++ = *srcPixels++;
-		*dstPixels++ = *srcPixels++;
+		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++, 255.0f);
+		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++, 255.0f);
+		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++, 255.0f);
+		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++, 255.0f);
 	}
 	return true;
 }

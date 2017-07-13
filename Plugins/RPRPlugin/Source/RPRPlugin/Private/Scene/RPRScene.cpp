@@ -210,7 +210,7 @@ void	ARPRScene::OnRender()
 
 void	ARPRScene::SetTrace(bool trace)
 {
-	if (m_RprContext == NULL || !m_RendererWorker.IsValid())
+	if (m_RprContext == NULL)
 		return;
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
 	if (settings == NULL)
@@ -227,7 +227,25 @@ void	ARPRScene::SetTrace(bool trace)
 			return;
 		}
 	}
-	m_RendererWorker->SetTrace(trace, tracePath);
+	if (m_RendererWorker.IsValid())
+		m_RendererWorker->SetTrace(trace, tracePath);
+	else
+	{
+		if (rprContextSetParameterString(NULL, "tracingfolder", TCHAR_TO_ANSI(*tracePath)) != RPR_SUCCESS ||
+			rprContextSetParameter1u(NULL, "tracing", trace) != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRScene, Warning, TEXT("Couldn't enable RPR trace."));
+			return;
+		}
+		if (trace)
+		{
+			UE_LOG(LogRPRScene, Log, TEXT("RPR Tracing enabled"));
+		}
+		else
+		{
+			UE_LOG(LogRPRScene, Log, TEXT("RPR Tracing disabled"));
+		}
+	}
 }
 
 void	ARPRScene::OnTriggerSync()
