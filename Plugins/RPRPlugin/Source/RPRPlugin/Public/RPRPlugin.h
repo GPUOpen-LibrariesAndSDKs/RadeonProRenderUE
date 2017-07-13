@@ -12,7 +12,7 @@ enum	ERPRQualitySettings
 	High
 };
 
-class FRPRPluginModule : public IModuleInterface
+class FRPRPluginModule : public IModuleInterface, public TSharedFromThis<FRPRPluginModule>
 {
 public:
 	FRPRPluginModule();
@@ -24,6 +24,7 @@ public:
 	void							ToggleRPRSync();
 	bool							TraceEnabled() const { return m_RPRTrace; }
 	bool							SyncEnabled() const { return m_RPRSync; }
+	void							RefreshCameraList();
 
 	class ARPRScene					*GetCurrentScene() const;
 	TSharedPtr<UTexture2DDynamic>	GetRenderTexture() { return RenderTexture; }
@@ -35,6 +36,8 @@ public:
 	TArray<TSharedPtr<FString>>		m_QualitySettingsList;
 
 	TSharedPtr<class FSceneViewport>	m_Viewport;
+
+	static TSharedPtr<FRPRPluginModule>	s_Module;
 private:
 	void					FillRPRMenu(class FMenuBuilder &menuBuilder);
 	void					CreateMenuBarExtension(class FMenuBarBuilder &menubarBuilder);

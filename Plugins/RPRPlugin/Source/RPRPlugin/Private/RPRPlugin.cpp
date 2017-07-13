@@ -25,7 +25,8 @@
 
 #define LOCTEXT_NAMESPACE "FRPRPluginModule"
 
-FString		FRPRPluginModule::s_URLRadeonProRender = "https://pro.radeon.com/en-us/software/prorender/";
+FString							FRPRPluginModule::s_URLRadeonProRender = "https://pro.radeon.com/en-us/software/prorender/";
+TSharedPtr<FRPRPluginModule>	FRPRPluginModule::s_Module = NULL;
 
 FRPRPluginModule::FRPRPluginModule()
 :	m_ActiveCameraName("")
@@ -197,6 +198,14 @@ FText	FRPRPluginModule::GetTraceStatus()
 	return FText::FromString("Trace : Off");
 }
 
+void	FRPRPluginModule::RefreshCameraList()
+{
+	m_AvailableCameraNames.Empty();
+	ARPRScene	*scene = GetCurrentScene();
+	if (scene != NULL)
+		scene->FillCameraNames(m_AvailableCameraNames);
+}
+
 TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &spawnArgs)
 {
 	check(!RenderTexture.IsValid());
@@ -214,13 +223,9 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
 	check(settings != NULL);
 
-	ARPRScene	*scene = GetCurrentScene();
-	if (scene != NULL)
-	{
-		scene->FillCameraNames(m_AvailableCameraNames);
-		if (m_AvailableCameraNames.Num() > 0)
-			m_ActiveCameraName = *m_AvailableCameraNames[0].Get();
-	}
+	RefreshCameraList();
+	if (m_AvailableCameraNames.Num() > 0)
+		m_ActiveCameraName = *m_AvailableCameraNames[0].Get();
 	m_QualitySettingsList.Add(MakeShared<FString>("Low"));
 	m_QualitySettingsList.Add(MakeShared<FString>("Medium"));
 	m_QualitySettingsList.Add(MakeShared<FString>("High"));
@@ -303,6 +308,7 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 				[
 					SNew(SComboBox<TSharedPtr<FString>>)
 					.OptionsSource(&m_AvailableCameraNames)
+					.OnComboBoxOpening(this, &FRPRPluginModule::RefreshCameraList)
 					.OnGenerateWidget(SComboBox<TSharedPtr<FString>>::FOnGenerateWidget::CreateStatic(&OnGenerateCameraWidget))
 					.OnSelectionChanged(SComboBox<TSharedPtr<FString>>::FOnSelectionChanged::CreateStatic(&OnCameraChanged, this))
 					[
@@ -440,6 +446,8 @@ void	FRPRPluginModule::StartupModule()
 {
 	if (m_Loaded)
 		return;
+
+	FRPRPluginModule::s_Module = MakeShareable(this);
 	if (!FModuleManager::Get().IsModuleLoaded("LevelEditor") ||
 		!FModuleManager::Get().IsModuleLoaded("Settings") ||
 		!FModuleManager::Get().IsModuleLoaded("AssetTools"))
@@ -490,6 +498,7 @@ void	FRPRPluginModule::ShutdownModule()
 			settingsModule->UnregisterSettings("Project", "Plugins", "RadeonProRenderSettings");
 	}
 	FRPREditorStyle::Shutdown();
+	FRPRPluginModule::s_Module = NULL;
 }
 
 #undef LOCTEXT_NAMESPACE

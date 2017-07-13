@@ -54,11 +54,11 @@ void	ARPRScene::FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames)
 		UWorld	*world = GetWorld();
 
 		check(world != NULL);
-		for (TObjectIterator<USceneComponent> it; it; ++it)
+		for (TObjectIterator<UCineCameraComponent> it; it; ++it)
 		{
-			if (it->GetWorld() != world)
-				continue;
-			if (Cast<UCineCameraComponent>(*it) == NULL)
+			if (it->GetWorld() != world ||
+				it->HasAnyFlags(RF_Transient | RF_BeginDestroyed) ||
+				!it->HasBeenCreated())
 				continue;
 			AActor	*parent = Cast<AActor>(it->GetOwner());
 			if (parent == NULL)
@@ -134,7 +134,7 @@ bool	ARPRScene::BuildRPRActor(UWorld *world, USceneComponent *srcComponent, UCla
 		return false;
 	}
 
- 	if (typeClass == URPRCameraComponent::StaticClass())
+	if (typeClass == URPRCameraComponent::StaticClass())
 		Cameras.Add(static_cast<URPRCameraComponent*>(comp));
 	SceneContent.Add(newActor);
 	return true;
