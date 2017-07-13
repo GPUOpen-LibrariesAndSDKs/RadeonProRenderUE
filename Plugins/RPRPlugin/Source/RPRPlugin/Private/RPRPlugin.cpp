@@ -179,6 +179,13 @@ FText	FRPRPluginModule::GetCurrentRenderIteration()
 	return FText();
 }
 
+FText	FRPRPluginModule::GetTraceStatus()
+{
+	if (m_RPRTrace)
+		return FText::FromString("Trace : On");
+	return FText::FromString("Trace : Off");
+}
+
 TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &spawnArgs)
 {
 	check(!RenderTexture.IsValid());
@@ -265,6 +272,20 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 						.Image(FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.Save").GetIcon())
 					]
 				]
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.Padding(2.0f)
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("ToggleTraceLabel", "Trace"))
+					.ToolTipText(LOCTEXT("TraceTooltip", "Toggles RPR Tracing."))
+					.OnClicked(FOnClicked::CreateStatic(&OnToggleTrace, this))
+					.Content()
+					[
+						SNew(SImage)
+						.Image(FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.Trace").GetIcon())
+					]
+				]
 				+SHorizontalBox::Slot()
 				.AutoWidth()
 				.Padding(2.0f)
@@ -291,20 +312,6 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 						.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateRaw(this, &FRPRPluginModule::GetSelectedQualitySettingsName)))
 					]
 				]
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.Padding(2.0f)
-				[
-					SNew(SButton)
-					.Text(LOCTEXT("ToggleTraceLabel", "Trace"))
-					.ToolTipText(LOCTEXT("TraceTooltip", "Toggles RPR Tracing."))
-					.OnClicked(FOnClicked::CreateStatic(&OnToggleTrace, this))
-					.Content()
-					[
-						SNew(SImage)
-						.Image(FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.Trace").GetIcon())
-					]
-				]
 			]
 			+ SVerticalBox::Slot()
 			.FillHeight(1.0f)
@@ -316,13 +323,8 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 				[
 				
 					SAssignNew(m_ViewportWidget, SViewport)
-						//.EnableGammaCorrection(false)
 						.IsEnabled(true)
-						//.ShowEffectWhenDisabled(false)
 						.EnableBlending(true)
-						//.ToolTip(SNew(SToolTip).Text(this, &STextureEditorViewport::GetDisplayedResolution))
-					//SNew(SImage)
-					//.Image(RenderTextureBrush.Get())
 				]
 				+ SOverlay::Slot()
 				.VAlign(VAlign_Bottom)
@@ -331,6 +333,14 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 				[
 					SNew(STextBlock)
 					.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateRaw(this, &FRPRPluginModule::GetCurrentRenderIteration)))
+				]
+				+ SOverlay::Slot()
+				.VAlign(VAlign_Bottom)
+				.HAlign(HAlign_Right)
+				.Padding(0.0f, 0.0f, 5.0f, 20.0f)
+				[
+					SNew(STextBlock)
+					.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateRaw(this, &FRPRPluginModule::GetTraceStatus)))
 				]
 			]
 		];

@@ -40,6 +40,7 @@ private:
 	FText					GetSelectedCameraName();
 	FText					GetSelectedQualitySettingsName();
 	FText					GetCurrentRenderIteration();
+	FText					GetTraceStatus();
 
 	void					OnWorldCreated(UWorld *inWorld);
 	void					OnWorldDestroyed(UWorld *inWorld);
