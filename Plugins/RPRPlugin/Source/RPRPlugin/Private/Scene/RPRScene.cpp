@@ -14,7 +14,11 @@
 #include "Engine/Texture2DDynamic.h"
 #include "TextureResource.h"
 
+#include "RPRStats.h"
+
 #define LOCTEXT_NAMESPACE "ARPRScene"
+
+DEFINE_STAT(STAT_ProRender_CopyFramebuffer);
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRScene, Log, All);
 
@@ -308,6 +312,8 @@ void	ARPRScene::Tick(float deltaTime)
 	}
 	else if (m_RendererWorker->Flush())
 	{
+		SCOPE_CYCLE_COUNTER(STAT_ProRender_CopyFramebuffer);
+
 		m_RendererWorker->m_DataLock.Lock();
 		const uint8	*textureData = m_RendererWorker->GetFramebufferData();
 		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(

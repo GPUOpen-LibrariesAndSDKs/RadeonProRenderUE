@@ -5,6 +5,11 @@
 #include "RPRSettings.h"
 #include "HAL/RunnableThread.h"
 
+#include "RPRStats.h"
+
+DEFINE_STAT(STAT_ProRender_Render);
+DEFINE_STAT(STAT_ProRender_Readback);
+
 DEFINE_LOG_CATEGORY_STATIC(LogRPRRenderer, Log, All);
 
 static uint32	kMaxIterations = 64;
@@ -201,6 +206,8 @@ void	FRPRRendererWorker::SetQualitySettings(ERPRQualitySettings qualitySettings)
 
 bool	FRPRRendererWorker::BuildFramebufferData()
 {
+	SCOPE_CYCLE_COUNTER(STAT_ProRender_Readback);
+
 	size_t	totalByteCount = 0;
 	if (rprFrameBufferGetInfo(m_RprFrameBuffer, RPR_FRAMEBUFFER_DATA, 0, NULL, &totalByteCount) != RPR_SUCCESS)
 	{
@@ -240,6 +247,7 @@ uint32	FRPRRendererWorker::Run()
 
 	while (m_StopTaskCounter.GetValue() == 0)
 	{
+		SCOPE_CYCLE_COUNTER(STAT_ProRender_Render);
 		if (m_CurrentIteration < settings->MaximumRenderIterations && m_RenderLock.TryLock())
 		{
 			if (rprContextRender(m_RprContext) != RPR_SUCCESS)
