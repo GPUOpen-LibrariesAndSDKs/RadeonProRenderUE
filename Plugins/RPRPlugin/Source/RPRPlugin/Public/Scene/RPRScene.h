@@ -32,6 +32,7 @@ public:
 	void	OnRender();
 	void	OnTriggerSync();
 	void	OnSave();
+	void	SetTrace(bool trace);
 
 	void	FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames);
 	void	SetActiveCamera(const FString &cameraName);

@@ -23,6 +23,7 @@ public:
 
 	bool			ResizeFramebuffer(uint32 width, uint32 height);
 	bool			RestartRender();
+	void			SetTrace(bool trace, const FString &tracePath);
 	void			SaveToFile(const FString &filename);
 	void			SetQualitySettings(ERPRQualitySettings qualitySettings);
 	uint32			Iteration() const { return m_CurrentIteration; }

@@ -34,6 +34,7 @@ FRPRPluginModule::FRPRPluginModule()
 ,	m_GameWorld(NULL)
 ,	m_EditorWorld(NULL)
 ,	m_Extender(NULL)
+,	m_RPRTrace(false)
 ,	m_Loaded(false)
 {
 
@@ -75,6 +76,20 @@ FReply	OnSave(FRPRPluginModule *module)
 	if (scene != NULL)
 		scene->OnSave();
 	return FReply::Handled();
+}
+
+FReply	OnToggleTrace(FRPRPluginModule *module)
+{
+	module->ToggleRPRTrace();
+	return FReply::Handled();
+}
+
+void	FRPRPluginModule::ToggleRPRTrace()
+{
+	m_RPRTrace = !m_RPRTrace;
+	ARPRScene	*scene = GetCurrentScene();
+	if (scene != NULL)
+		scene->SetTrace(m_RPRTrace);
 }
 
 void	FRPRPluginModule::OpenURL(const TCHAR *url)
@@ -274,6 +289,20 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 					[
 						SNew(STextBlock)
 						.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateRaw(this, &FRPRPluginModule::GetSelectedQualitySettingsName)))
+					]
+				]
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.Padding(2.0f)
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("ToggleTraceLabel", "Trace"))
+					.ToolTipText(LOCTEXT("TraceTooltip", "Toggles RPR Tracing."))
+					.OnClicked(FOnClicked::CreateStatic(&OnToggleTrace, this))
+					.Content()
+					[
+						SNew(SImage)
+						.Image(FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.Trace").GetIcon())
 					]
 				]
 			]

@@ -189,7 +189,9 @@ void	ARPRScene::OnRender()
 			UE_LOG(LogRPRScene, Error, TEXT("RPR Scene setup failed"));
 			return;
 		}
+		SetTrace(plugin.TraceEnabled());
 		UE_LOG(LogRPRScene, Log, TEXT("ProRender scene created"));
+
 	}
 
 	// For now, always rebuild the scene
@@ -204,6 +206,28 @@ void	ARPRScene::OnRender()
 		m_RendererWorker = MakeShareable(new FRPRRendererWorker(m_RprContext, RenderTexture->SizeX, RenderTexture->SizeY));
 		m_RendererWorker->SetQualitySettings(plugin.m_QualitySettings);
 	}
+}
+
+void	ARPRScene::SetTrace(bool trace)
+{
+	if (m_RprContext == NULL || !m_RendererWorker.IsValid())
+		return;
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	if (settings == NULL)
+		return;
+
+	FString	tracePath = settings->TraceFolder;
+	if (tracePath.IsEmpty())
+		return;
+	if (!FPaths::DirectoryExists(tracePath))
+	{
+		if (!FPlatformFileManager::Get().GetPlatformFile().CreateDirectoryTree(*tracePath))
+		{
+			UE_LOG(LogRPRScene, Warning, TEXT("Couldn't enable tracing: Couldn't create directory tree %s"), *tracePath);
+			return;
+		}
+	}
+	m_RendererWorker->SetTrace(trace, tracePath);
 }
 
 void	ARPRScene::OnTriggerSync()

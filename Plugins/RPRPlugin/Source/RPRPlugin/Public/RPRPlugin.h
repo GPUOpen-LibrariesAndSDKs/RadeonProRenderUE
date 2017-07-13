@@ -20,6 +20,9 @@ public:
 	virtual void	StartupModule() override;
 	virtual void	ShutdownModule() override;
 
+	void							ToggleRPRTrace();
+	bool							TraceEnabled() const { return m_RPRTrace; }
+
 	class ARPRScene					*GetCurrentScene() const;
 	TSharedPtr<UTexture2DDynamic>	GetRenderTexture() { return RenderTexture; }
 public:
@@ -57,5 +60,6 @@ private:
 
 	TSharedPtr<FExtender>					m_Extender;
 
+	bool									m_RPRTrace;
 	bool									m_Loaded;
 };

@@ -52,6 +52,24 @@ bool	FRPRRendererWorker::Init()
 	return true;
 }
 
+void	FRPRRendererWorker::SetTrace(bool trace, const FString &tracePath)
+{
+	if (rprContextSetParameterString(NULL, "tracingfolder", TCHAR_TO_ANSI(*tracePath)) != RPR_SUCCESS ||
+		rprContextSetParameter1u(NULL, "tracing", trace) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRRenderer, Warning, TEXT("Couldn't enable RPR trace."));
+		return;
+	}
+	if (trace)
+	{
+		UE_LOG(LogRPRRenderer, Log, TEXT("RPR Tracing enabled"));
+	}
+	else
+	{
+		UE_LOG(LogRPRRenderer, Log, TEXT("RPR Tracing disabled"));
+	}
+}
+
 void	FRPRRendererWorker::SaveToFile(const FString &filename)
 {
 	// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
