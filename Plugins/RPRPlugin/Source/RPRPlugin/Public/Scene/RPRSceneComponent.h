@@ -29,7 +29,8 @@ public:
 	virtual bool	RebuildTransforms() { return false; }
 protected:
 	void			TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
-private:
+protected:
 	class FRPRPluginModule	*m_Plugin;
+private:
 	FTransform				m_CachedTransforms;
 };
