@@ -8,14 +8,37 @@
 #include <map>
 #include <memory>
 #include <vector>
+#include <set>
 
+struct FColor;
+struct FLinearColor;
 class UMaterialExpression;
 class UMaterial;
 
+struct UEInterchangeCollection
+{
+	std::set<std::shared_ptr<rpri::generic::IMaterialNode>> nodeStorage;
+	std::set<std::shared_ptr<rpri::generic::IMaterialValue>> valueStorage;
+	std::vector<std::shared_ptr<rpri::generic::IMaterialNodeMux>> muxStorage;
+	std::map<std::string, uint32_t> nameToMuxIndex;
+
+	std::shared_ptr<rpri::generic::IMaterialNodeMux> FindMux(char const * _name)
+	{
+		auto it = nameToMuxIndex.find(_name);
+		if(it == nameToMuxIndex.end())
+		{
+			return std::shared_ptr<rpri::generic::IMaterialNodeMux>();
+		} else
+		{
+			uint32_t index = it->second;
+			return muxStorage.at(index);
+		}
+		
+	}
+};
 class UE4InterchangeMaterialNode :public rpri::generic::IMaterialNode
 {
 public:
-	UE4InterchangeMaterialNode(UMaterialExpression * _expression);
 	~UE4InterchangeMaterialNode() {};
 
 	char const * GetId() const override;
@@ -31,12 +54,19 @@ public:
 	rpri::generic::ITexture const * GetTextureInput() const override;
 	char const * GetMetadata() const override;
 
+	typedef std::shared_ptr<UE4InterchangeMaterialNode> Ptr;
+	static Ptr New(	UEInterchangeCollection & _collection, 
+					UMaterialExpression * _expression);
+
 private:
+	UE4InterchangeMaterialNode(UEInterchangeCollection & _collection,
+		UMaterialExpression * _expression);
 	UMaterialExpression * expression;
 
-    std::vector<std::shared_ptr<rpri::generic::IMaterialNode>> nodes;
-    std::vector<std::shared_ptr<rpri::generic::IMaterialNodeMux>> muxes;
-    std::vector<std::string> inputNames;
+	std::vector<std::shared_ptr<rpri::generic::IMaterialNode>> nodes;
+	std::vector<std::shared_ptr<rpri::generic::IMaterialValue>> values;
+	std::vector<std::shared_ptr<rpri::generic::IMaterialNodeMux>> muxes;
+	std::vector<std::string> inputNames;
 
 	std::string id;
 	std::string name;
@@ -46,16 +76,24 @@ private:
 class UE4InterchangeMaterialValue : public rpri::generic::IMaterialValue
 {
 public:
-	UE4InterchangeMaterialValue(float _a);
-	UE4InterchangeMaterialValue(float _a, float _b);
-	UE4InterchangeMaterialValue(float _a, float _b, float _c);
-	UE4InterchangeMaterialValue(float _a, float _b, float _c, float _d);
-	UE4InterchangeMaterialValue(FLinearColor _col);
-	UE4InterchangeMaterialValue(FColor _col);
+	typedef std::shared_ptr<UE4InterchangeMaterialValue> Ptr;
+
+	static Ptr New(UEInterchangeCollection & _collection, char const * _id, 
+					float _a);
+	static Ptr New(UEInterchangeCollection & _collection, char const * _id, 
+					float _a, float _b);
+	static Ptr New(UEInterchangeCollection & _collection, char const * _id,
+					float _a, float _b, float _c);
+	static Ptr New(UEInterchangeCollection & _collection, char const * _id,
+					float _a, float _b, float _c, float _d);
+	static Ptr New(UEInterchangeCollection & _collection, char const * _id, 
+					FLinearColor _col);
+	static Ptr New(UEInterchangeCollection & _collection, char const * _id, 
+					FColor _col);
+
 	virtual ~UE4InterchangeMaterialValue() {};
 
 	char const* GetId() const override;
-	void SetId(const std::string& _id);
 
 	// just floats for now
 	ValueType GetType() const override;
@@ -74,6 +112,13 @@ public:
 	std::string GetValueAsString() const override;
 
 private:
+	UE4InterchangeMaterialValue(char const * _id, float _a);
+	UE4InterchangeMaterialValue(char const * _id, float _a, float _b);
+	UE4InterchangeMaterialValue(char const * _id, float _a, float _b, float _c);
+	UE4InterchangeMaterialValue(char const * _id, float _a, float _b, float _c, float _d);
+	UE4InterchangeMaterialValue(char const * _id, FLinearColor _col);
+	UE4InterchangeMaterialValue(char const * _id, FColor _col);
+
 	std::string id;
 	std::vector<float> values;
 };
@@ -115,7 +160,6 @@ static char const * PBRNodeFieldNames[10]{
 class UE4InterchangePBRNode : public rpri::generic::IMaterialNode
 {
 public:
-	UE4InterchangePBRNode(class UE4InterchangeMaterialGraph *);
 
 	char const* GetId() const override;
 	char const* GetName() const override;
@@ -128,10 +172,18 @@ public:
 	rpri::generic::ITexture const* GetTextureInput() const override;
 	char const* GetMetadata() const override;
 
+	typedef std::shared_ptr<UE4InterchangePBRNode> Ptr;
+
+	static Ptr New(	UEInterchangeCollection & _collection,
+					class UE4InterchangeMaterialGraph * _mg);
+
 private:
+	UE4InterchangePBRNode(	UEInterchangeCollection & _collection, 
+							class UE4InterchangeMaterialGraph *);
 	std::string id;
 	std::shared_ptr<rpri::generic::IMaterialNodeMux> muxes[10];
 };
+
 
 class UE4InterchangeMaterialGraph : public rpri::generic::IMaterialGraph
 {
@@ -148,13 +200,12 @@ public:
 
 	UMaterial const* GetUE4Material() const;
 
+private:	
 	std::vector<std::shared_ptr<rpri::generic::IMaterialNode>> nodeStorage;
 	std::vector<std::shared_ptr<rpri::generic::IMaterialValue>> valueStorage;
-	std::vector<std::shared_ptr<rpri::generic::IMaterialNodeMux>> interchangeMuxes;
-	typedef std::map<FString, uint32_t> stringToIndexMap;
-	stringToIndexMap stringToInterchangeMuxIndex;
+	std::vector<std::shared_ptr<rpri::generic::IMaterialNodeMux>> muxStorage;
 
-private:
-    friend class UE4InterchangePBRNode;
+
+	friend class UE4InterchangePBRNode;
 	const UMaterial* ue4Mat;
 };
