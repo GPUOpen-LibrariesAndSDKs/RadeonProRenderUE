@@ -314,7 +314,7 @@ bool	URPRStaticMeshComponent::RebuildTransforms()
 
 void	URPRStaticMeshComponent::BeginDestroy()
 {
-
+	Super::BeginDestroy();
 	check(Scene != NULL);
 	uint32	shapeCount = m_Shapes.Num();
 	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
