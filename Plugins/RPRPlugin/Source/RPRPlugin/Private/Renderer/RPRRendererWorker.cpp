@@ -131,21 +131,28 @@ bool	FRPRRendererWorker::ResizeFramebuffer(uint32 width, uint32 height)
 
 bool	FRPRRendererWorker::RestartRender()
 {
+	if (m_RprFrameBuffer == NULL)
+		return false;
+
 	m_RenderLock.Lock();
+	m_DataLock.Lock();
 
 	// Launch the new frame render
-	if (m_RprFrameBuffer != NULL &&
-		rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS)
+	if (rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS)
 	{
+		m_DataLock.Unlock();
 		m_RenderLock.Unlock();
 		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't clear framebuffer"));
 		return false;
 	}
+	FMemory::Memset(m_DstFramebufferData.GetData(), 0, m_Width * m_Height * 4);
+
 	UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully cleared"));
 	m_CurrentIteration = 0;
 	m_PreviousRenderedIteration = 0;
-
+	m_DataLock.Unlock();
 	m_RenderLock.Unlock();
+
 	return true;
 }
 
