@@ -30,8 +30,8 @@ public:
 	class URPRCameraComponent	*m_ActiveCamera;
 
 	void	OnRender();
-	void	OnTriggerSync();
 	void	OnSave();
+	void	SetTrace(bool trace);
 
 	void	FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames);
 	void	SetActiveCamera(const FString &cameraName);
@@ -49,7 +49,6 @@ private:
 	void	BuildScene();
 private:
 	bool	m_TriggerEndFrameRebuild;
-	bool	m_Synchronize;
 
 	TSharedPtr<class FRPRRendererWorker>	m_RendererWorker;
 

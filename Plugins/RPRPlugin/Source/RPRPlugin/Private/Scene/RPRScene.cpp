@@ -14,7 +14,11 @@
 #include "Engine/Texture2DDynamic.h"
 #include "TextureResource.h"
 
+#include "RPRStats.h"
+
 #define LOCTEXT_NAMESPACE "ARPRScene"
+
+DEFINE_STAT(STAT_ProRender_CopyFramebuffer);
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRScene, Log, All);
 
@@ -23,7 +27,6 @@ ARPRScene::ARPRScene()
 ,	m_RprScene(NULL)
 ,	m_ActiveCamera(NULL)
 ,	m_TriggerEndFrameRebuild(false)
-,	m_Synchronize(false)
 ,	m_RendererWorker(NULL)
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -189,7 +192,9 @@ void	ARPRScene::OnRender()
 			UE_LOG(LogRPRScene, Error, TEXT("RPR Scene setup failed"));
 			return;
 		}
+		SetTrace(plugin.TraceEnabled());
 		UE_LOG(LogRPRScene, Log, TEXT("ProRender scene created"));
+
 	}
 
 	// For now, always rebuild the scene
@@ -201,14 +206,49 @@ void	ARPRScene::OnRender()
 	{
 		FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
 
-		m_RendererWorker = MakeShareable(new FRPRRendererWorker(m_RprContext, RenderTexture->SizeX, RenderTexture->SizeY));
+		m_RendererWorker = MakeShareable(new FRPRRendererWorker(m_RprContext, m_RprScene, RenderTexture->SizeX, RenderTexture->SizeY));
 		m_RendererWorker->SetQualitySettings(plugin.m_QualitySettings);
 	}
 }
 
-void	ARPRScene::OnTriggerSync()
+void	ARPRScene::SetTrace(bool trace)
 {
-	m_Synchronize = !m_Synchronize;
+	if (m_RprContext == NULL)
+		return;
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	if (settings == NULL)
+		return;
+
+	FString	tracePath = settings->TraceFolder;
+	if (tracePath.IsEmpty())
+		return;
+	if (!FPaths::DirectoryExists(tracePath))
+	{
+		if (!FPlatformFileManager::Get().GetPlatformFile().CreateDirectoryTree(*tracePath))
+		{
+			UE_LOG(LogRPRScene, Warning, TEXT("Couldn't enable tracing: Couldn't create directory tree %s"), *tracePath);
+			return;
+		}
+	}
+	if (m_RendererWorker.IsValid())
+		m_RendererWorker->SetTrace(trace, tracePath);
+	else
+	{
+		if (rprContextSetParameterString(NULL, "tracingfolder", TCHAR_TO_ANSI(*tracePath)) != RPR_SUCCESS ||
+			rprContextSetParameter1u(NULL, "tracing", trace) != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRScene, Warning, TEXT("Couldn't enable RPR trace."));
+			return;
+		}
+		if (trace)
+		{
+			UE_LOG(LogRPRScene, Log, TEXT("RPR Tracing enabled"));
+		}
+		else
+		{
+			UE_LOG(LogRPRScene, Log, TEXT("RPR Tracing disabled"));
+		}
+	}
 }
 
 void	ARPRScene::OnSave()
@@ -224,7 +264,8 @@ void	ARPRScene::OnSave()
 									  "|Windows Bitmap (*.BMP)|*.bmp"
 									  "|PNG (*.PNG)|*.png"
 									  "|JPG (*.JPG)|*.jpg"
-									  "|All files (*tga;*.bmp;*.png;*.jpg)|*tga;*.bmp;*.png;*.jpg");
+									  "|FireRender Scene (*.FRS)|*.frs"
+									  "|All files (*TGA;*.BMP;*.PNG;*.JPG;*.FRS)|*tga;*.bmp;*.png;*.jpg;*.frs");
 
 	TArray<FString>		saveFilenames;
 	const bool	save = desktopPlatform->SaveFileDialog(
@@ -240,7 +281,7 @@ void	ARPRScene::OnSave()
 		return;
 	FString	saveFilename = FPaths::ChangeExtension(saveFilenames[0], FPaths::GetExtension(saveFilenames[0]).ToLower());
 	FString	extension = FPaths::GetExtension(saveFilename);
-	if (extension != "tga" && extension != "bmp" && extension != "png" && extension != "jpg")
+	if (extension != "tga" && extension != "bmp" && extension != "png" && extension != "jpg" && extension != "frs")
 		return;
 
 	LastSavedExportPath = saveFilename;
@@ -265,6 +306,8 @@ void	ARPRScene::Tick(float deltaTime)
 	}
 	else if (m_RendererWorker->Flush())
 	{
+		SCOPE_CYCLE_COUNTER(STAT_ProRender_CopyFramebuffer);
+
 		m_RendererWorker->m_DataLock.Lock();
 		const uint8	*textureData = m_RendererWorker->GetFramebufferData();
 		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
@@ -286,6 +329,9 @@ void	ARPRScene::Tick(float deltaTime)
 			});
 		FlushRenderingCommands();
 		m_RendererWorker->m_DataLock.Unlock();
+
+		FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
+		plugin.m_Viewport->Draw();
 	}
 }
 

@@ -6,16 +6,18 @@
 #include "LevelEditor.h"
 #include "EditorStyleSet.h"
 
+#include "RPRViewportClient.h"
 #include "RPREditorStyle.h"
 
-#include "Engine/Texture2DDynamic.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SComboBox.h"
 #include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
+#include "Slate/SceneViewport.h"
 
 #include "Engine/World.h"
+#include "Engine/Texture2DDynamic.h"
 #include "ISettingsModule.h"
 
 #include "Scene/RPRScene.h"
@@ -32,6 +34,8 @@ FRPRPluginModule::FRPRPluginModule()
 ,	m_GameWorld(NULL)
 ,	m_EditorWorld(NULL)
 ,	m_Extender(NULL)
+,	m_RPRSync(true)
+,	m_RPRTrace(false)
 ,	m_Loaded(false)
 {
 
@@ -59,12 +63,15 @@ FReply	OnRender(FRPRPluginModule *module)
 	return FReply::Handled();
 }
 
-FReply	OnSync(FRPRPluginModule *module)
+FReply	OnToggleSync(FRPRPluginModule *module)
 {
-	ARPRScene	*scene = module->GetCurrentScene();
-	if (scene != NULL)
-		scene->OnTriggerSync();
+	module->ToggleRPRSync();
 	return FReply::Handled();
+}
+
+void	FRPRPluginModule::ToggleRPRSync()
+{
+	m_RPRSync = !m_RPRSync;
 }
 
 FReply	OnSave(FRPRPluginModule *module)
@@ -73,6 +80,20 @@ FReply	OnSave(FRPRPluginModule *module)
 	if (scene != NULL)
 		scene->OnSave();
 	return FReply::Handled();
+}
+
+FReply	OnToggleTrace(FRPRPluginModule *module)
+{
+	module->ToggleRPRTrace();
+	return FReply::Handled();
+}
+
+void	FRPRPluginModule::ToggleRPRTrace()
+{
+	m_RPRTrace = !m_RPRTrace;
+	ARPRScene	*scene = GetCurrentScene();
+	if (scene != NULL)
+		scene->SetTrace(m_RPRTrace);
 }
 
 void	FRPRPluginModule::OpenURL(const TCHAR *url)
@@ -106,6 +127,13 @@ void	OnCameraChanged(TSharedPtr<FString> item, ESelectInfo::Type InSeletionInfo,
 			break;
 		}
 	}
+}
+
+const FSlateBrush	*FRPRPluginModule::GetSyncIcon()
+{
+	if (m_RPRSync)
+		return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.SyncOn").GetIcon();
+	return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.SyncOff").GetIcon();
 }
 
 FText	FRPRPluginModule::GetSelectedCameraName()
@@ -160,6 +188,13 @@ FText	FRPRPluginModule::GetCurrentRenderIteration()
 		return FText::FromString(FString::Printf(TEXT("Render iteration : %d"), renderIteration));
 	}
 	return FText();
+}
+
+FText	FRPRPluginModule::GetTraceStatus()
+{
+	if (m_RPRTrace)
+		return FText::FromString("Trace : On");
+	return FText::FromString("Trace : Off");
 }
 
 TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &spawnArgs)
@@ -226,12 +261,12 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 				[
 					SNew(SButton)
 					.Text(LOCTEXT("SyncLabel", "Sync"))
-					.ToolTipText(LOCTEXT("SyncTooltip", "Synchronizes the scene."))
-					.OnClicked(FOnClicked::CreateStatic(&OnSync, this))
+					.ToolTipText(LOCTEXT("SyncTooltip", "Toggles scene synchronization."))
+					.OnClicked(FOnClicked::CreateStatic(&OnToggleSync, this))
 					.Content()
 					[
 						SNew(SImage)
-						.Image(FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.SyncOff").GetIcon())
+						.Image(TAttribute<const FSlateBrush*>::Create(TAttribute<const FSlateBrush*>::FGetter::CreateRaw(this, &FRPRPluginModule::GetSyncIcon)))
 					]
 				]
 				+ SHorizontalBox::Slot()
@@ -240,12 +275,26 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 				[
 					SNew(SButton)
 					.Text(LOCTEXT("SaveLabel", "Save"))
-					.ToolTipText(LOCTEXT("SaveTooltip", "Save the framebuffer state."))
+					.ToolTipText(LOCTEXT("SaveTooltip", "Save the framebuffer state or ProRender scene."))
 					.OnClicked(FOnClicked::CreateStatic(&OnSave, this))
 					.Content()
 					[
 						SNew(SImage)
 						.Image(FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.Save").GetIcon())
+					]
+				]
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.Padding(2.0f)
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("ToggleTraceLabel", "Trace"))
+					.ToolTipText(LOCTEXT("TraceTooltip", "Toggles RPR Tracing."))
+					.OnClicked(FOnClicked::CreateStatic(&OnToggleTrace, this))
+					.Content()
+					[
+						SNew(SImage)
+						.Image(FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.Trace").GetIcon())
 					]
 				]
 				+SHorizontalBox::Slot()
@@ -283,8 +332,10 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 				.VAlign(VAlign_Fill)
 				.HAlign(HAlign_Fill)
 				[
-					SNew(SImage)
-					.Image(RenderTextureBrush.Get())
+				
+					SAssignNew(m_ViewportWidget, SViewport)
+						.IsEnabled(true)
+						.EnableBlending(true)
 				]
 				+ SOverlay::Slot()
 				.VAlign(VAlign_Bottom)
@@ -294,8 +345,21 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 					SNew(STextBlock)
 					.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateRaw(this, &FRPRPluginModule::GetCurrentRenderIteration)))
 				]
+				+ SOverlay::Slot()
+				.VAlign(VAlign_Bottom)
+				.HAlign(HAlign_Right)
+				.Padding(0.0f, 0.0f, 5.0f, 20.0f)
+				[
+					SNew(STextBlock)
+					.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateRaw(this, &FRPRPluginModule::GetTraceStatus)))
+				]
 			]
 		];
+
+	m_ViewportClient = MakeShareable(new FRPRViewportClient(this));
+	m_Viewport = MakeShareable(new FSceneViewport(m_ViewportClient.Get(), m_ViewportWidget));
+	m_ViewportWidget->SetViewportInterface(m_Viewport.ToSharedRef());
+
 	return RPRViewportTab;
 }
 

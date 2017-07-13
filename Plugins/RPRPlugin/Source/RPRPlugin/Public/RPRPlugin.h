@@ -20,6 +20,11 @@ public:
 	virtual void	StartupModule() override;
 	virtual void	ShutdownModule() override;
 
+	void							ToggleRPRTrace();
+	void							ToggleRPRSync();
+	bool							TraceEnabled() const { return m_RPRTrace; }
+	bool							SyncEnabled() const { return m_RPRSync; }
+
 	class ARPRScene					*GetCurrentScene() const;
 	TSharedPtr<UTexture2DDynamic>	GetRenderTexture() { return RenderTexture; }
 public:
@@ -28,6 +33,8 @@ public:
 
 	ERPRQualitySettings				m_QualitySettings;
 	TArray<TSharedPtr<FString>>		m_QualitySettingsList;
+
+	TSharedPtr<class FSceneViewport>	m_Viewport;
 private:
 	void					FillRPRMenu(class FMenuBuilder &menuBuilder);
 	void					CreateMenuBarExtension(class FMenuBarBuilder &menubarBuilder);
@@ -35,22 +42,29 @@ private:
 	FText					GetSelectedCameraName();
 	FText					GetSelectedQualitySettingsName();
 	FText					GetCurrentRenderIteration();
+	FText					GetTraceStatus();
+	const FSlateBrush		*GetSyncIcon();
 
 	void					OnWorldCreated(UWorld *inWorld);
 	void					OnWorldDestroyed(UWorld *inWorld);
 
-	void	OpenURL(const TCHAR *url);
-	void	OpenSettings();
+	void					OpenURL(const TCHAR *url);
+	void					OpenSettings();
 private:
-	static FString						s_URLRadeonProRender;
+	static FString							s_URLRadeonProRender;
 
-	TSharedPtr<UTexture2DDynamic>		RenderTexture;
-	TSharedPtr<FSlateDynamicImageBrush>	RenderTextureBrush;
+	TSharedPtr<class FRPRViewportClient>	m_ViewportClient;
+	TSharedPtr<class SViewport>				m_ViewportWidget;
 
-	class UWorld						*m_GameWorld;
-	class UWorld						*m_EditorWorld;
+	TSharedPtr<UTexture2DDynamic>			RenderTexture;
+	TSharedPtr<FSlateDynamicImageBrush>		RenderTextureBrush;
 
-	TSharedPtr<FExtender>				m_Extender;
+	class UWorld							*m_GameWorld;
+	class UWorld							*m_EditorWorld;
 
-	bool								m_Loaded;
+	TSharedPtr<FExtender>					m_Extender;
+
+	bool									m_RPRTrace;
+	bool									m_RPRSync;
+	bool									m_Loaded;
 };

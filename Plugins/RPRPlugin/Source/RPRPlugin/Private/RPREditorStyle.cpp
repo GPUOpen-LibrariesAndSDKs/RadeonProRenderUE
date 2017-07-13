@@ -42,8 +42,11 @@ TSharedRef<FSlateStyleSet>	FRPREditorStyle::Create()
 	style.Set("RPRViewport.SyncOn", new IMAGE_BRUSH("Icons/SourceControlOn_16x", Icon20x20));
 	style.Set("RPRViewport.SyncOn.Small", new IMAGE_BRUSH("Icons/SourceControlOn_16x", Icon16x16));
 
-	style.Set("RPRViewport.Save", new IMAGE_BRUSH("Icons/icon_file_save_16px", Icon20x20));
-	style.Set("RPRViewport.Save.Small", new IMAGE_BRUSH("Icons/icon_file_save_40x", Icon16x16));
+	style.Set("RPRViewport.Save", new IMAGE_BRUSH("Icons/icon_file_save_40x", Icon20x20));
+	style.Set("RPRViewport.Save.Small", new IMAGE_BRUSH("Icons/icon_file_save_16x", Icon16x16));
+
+	style.Set("RPRViewport.Trace", new IMAGE_BRUSH("Icons/icon_tab_Stats_40x", Icon20x20));
+	style.Set("RPRViewport.Trace.Small", new IMAGE_BRUSH("Icons/icon_tab_Stats_16x", Icon16x16));
 
 	return styleRef;
 }

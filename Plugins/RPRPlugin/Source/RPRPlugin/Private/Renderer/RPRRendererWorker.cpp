@@ -1,15 +1,23 @@
 // RPR COPYRIGHT
 
 #include "RPRRendererWorker.h"
+#include "RprLoadStore.h"
 #include "RPRSettings.h"
+#include "HAL/RunnableThread.h"
+
+#include "RPRStats.h"
+
+DEFINE_STAT(STAT_ProRender_Render);
+DEFINE_STAT(STAT_ProRender_Readback);
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRRenderer, Log, All);
 
 static uint32	kMaxIterations = 64;
 
-FRPRRendererWorker::FRPRRendererWorker(rpr_context context, uint32 width, uint32 height)
+FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene scene, uint32 width, uint32 height)
 :	m_RprFrameBuffer(NULL)
 ,	m_RprContext(context)
+,	m_RprScene(scene)
 ,	m_CurrentIteration(0)
 ,	m_PreviousRenderedIteration(0)
 ,	m_Width(width)
@@ -51,20 +59,61 @@ bool	FRPRRendererWorker::Init()
 	return true;
 }
 
-void	FRPRRendererWorker::SaveToFile(const FString &filename)
+void	FRPRRendererWorker::SetTrace(bool trace, const FString &tracePath)
 {
-	// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
-	m_RenderLock.Lock();
-	const bool	saved = rprFrameBufferSaveToFile(m_RprFrameBuffer, TCHAR_TO_ANSI(*filename)) == RPR_SUCCESS;
-	m_RenderLock.Unlock();
-
-	if (saved)
+	if (rprContextSetParameterString(NULL, "tracingfolder", TCHAR_TO_ANSI(*tracePath)) != RPR_SUCCESS ||
+		rprContextSetParameter1u(NULL, "tracing", trace) != RPR_SUCCESS)
 	{
-		UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully saved to '%s'"), *filename);
+		UE_LOG(LogRPRRenderer, Warning, TEXT("Couldn't enable RPR trace."));
+		return;
+	}
+	if (trace)
+	{
+		UE_LOG(LogRPRRenderer, Log, TEXT("RPR Tracing enabled"));
 	}
 	else
 	{
-		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't save framebuffer to '%s'"), *filename);
+		UE_LOG(LogRPRRenderer, Log, TEXT("RPR Tracing disabled"));
+	}
+}
+
+void	FRPRRendererWorker::SaveToFile(const FString &filename)
+{
+	FString	extension = FPaths::GetExtension(filename);
+
+	if (extension == "frs")
+	{
+		// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
+		m_RenderLock.Lock();
+		const bool	saved = rprsExport(TCHAR_TO_ANSI(*filename), m_RprContext, m_RprScene,
+									   0, NULL, NULL,
+									   0, NULL, NULL) == RPR_SUCCESS;
+		m_RenderLock.Unlock();
+
+		if (saved)
+		{
+			UE_LOG(LogRPRRenderer, Log, TEXT("ProRender scene successfully saved to '%s'"), *filename);
+		}
+		else
+		{
+			UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't save ProRender scene to '%s'"), *filename);
+		}
+	}
+	else
+	{
+		// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
+		m_RenderLock.Lock();
+		const bool	saved = rprFrameBufferSaveToFile(m_RprFrameBuffer, TCHAR_TO_ANSI(*filename)) == RPR_SUCCESS;
+		m_RenderLock.Unlock();
+
+		if (saved)
+		{
+			UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully saved to '%s'"), *filename);
+		}
+		else
+		{
+			UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't save framebuffer to '%s'"), *filename);
+		}
 	}
 }
 
@@ -87,21 +136,28 @@ bool	FRPRRendererWorker::ResizeFramebuffer(uint32 width, uint32 height)
 
 bool	FRPRRendererWorker::RestartRender()
 {
+	if (m_RprFrameBuffer == NULL)
+		return false;
+
 	m_RenderLock.Lock();
+	m_DataLock.Lock();
 
 	// Launch the new frame render
-	if (m_RprFrameBuffer != NULL &&
-		rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS)
+	if (rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS)
 	{
+		m_DataLock.Unlock();
 		m_RenderLock.Unlock();
 		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't clear framebuffer"));
 		return false;
 	}
+	FMemory::Memset(m_DstFramebufferData.GetData(), 0, m_Width * m_Height * 4);
+
 	UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully cleared"));
 	m_CurrentIteration = 0;
 	m_PreviousRenderedIteration = 0;
-
+	m_DataLock.Unlock();
 	m_RenderLock.Unlock();
+
 	return true;
 }
 
@@ -150,6 +206,8 @@ void	FRPRRendererWorker::SetQualitySettings(ERPRQualitySettings qualitySettings)
 
 bool	FRPRRendererWorker::BuildFramebufferData()
 {
+	SCOPE_CYCLE_COUNTER(STAT_ProRender_Readback);
+
 	size_t	totalByteCount = 0;
 	if (rprFrameBufferGetInfo(m_RprFrameBuffer, RPR_FRAMEBUFFER_DATA, 0, NULL, &totalByteCount) != RPR_SUCCESS)
 	{
@@ -172,13 +230,12 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 	const float		*srcPixels = m_SrcFramebufferData.GetData();
 	const uint32	pixelCount = m_Width * m_Height;
 
-	static const float	kRemapRatio = 255.0f / 32.0f;
 	for (uint32 i = 0; i < pixelCount; ++i)
 	{
-		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++ * kRemapRatio, 255.0f);
-		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++ * kRemapRatio, 255.0f);
-		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++ * kRemapRatio, 255.0f);
-		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++ * kRemapRatio, 255.0f);
+		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++, 255.0f);
+		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++, 255.0f);
+		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++, 255.0f);
+		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++, 255.0f);
 	}
 	return true;
 }
@@ -190,6 +247,7 @@ uint32	FRPRRendererWorker::Run()
 
 	while (m_StopTaskCounter.GetValue() == 0)
 	{
+		SCOPE_CYCLE_COUNTER(STAT_ProRender_Render);
 		if (m_CurrentIteration < settings->MaximumRenderIterations && m_RenderLock.TryLock())
 		{
 			if (rprContextRender(m_RprContext) != RPR_SUCCESS)
@@ -234,4 +292,5 @@ void	FRPRRendererWorker::ReleaseResources()
 		m_RprFrameBuffer = NULL;
 	}
 	m_RprContext = NULL;
+	m_RprScene = NULL;
 }

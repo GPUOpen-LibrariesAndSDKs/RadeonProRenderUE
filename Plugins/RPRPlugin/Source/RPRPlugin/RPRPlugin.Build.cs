@@ -49,6 +49,7 @@ public class RPRPlugin : ModuleRules
 				"Settings",
 
 				// Editor only stuff
+				"UnrealEd",
 				"InputCore",
 				"DesktopPlatform",
 				"WorkspaceMenuStructure",
