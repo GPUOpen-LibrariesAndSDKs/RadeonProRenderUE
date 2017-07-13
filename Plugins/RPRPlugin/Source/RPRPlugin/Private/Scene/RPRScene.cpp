@@ -27,7 +27,6 @@ ARPRScene::ARPRScene()
 ,	m_RprScene(NULL)
 ,	m_ActiveCamera(NULL)
 ,	m_TriggerEndFrameRebuild(false)
-,	m_Synchronize(false)
 ,	m_RendererWorker(NULL)
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -250,11 +249,6 @@ void	ARPRScene::SetTrace(bool trace)
 			UE_LOG(LogRPRScene, Log, TEXT("RPR Tracing disabled"));
 		}
 	}
-}
-
-void	ARPRScene::OnTriggerSync()
-{
-	m_Synchronize = !m_Synchronize;
 }
 
 void	ARPRScene::OnSave()

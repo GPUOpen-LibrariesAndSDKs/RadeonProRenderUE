@@ -3,23 +3,31 @@
 #include "RPRSceneComponent.h"
 
 URPRSceneComponent::URPRSceneComponent()
+:	m_Plugin(NULL)
 {
 	PrimaryComponentTick.bCanEverTick = true;
+	bTickInEditor = true;
 }
 
 bool	URPRSceneComponent::Build()
 {
 	check(SrcComponent != NULL);
+
+	m_Plugin = FModuleManager::GetModulePtr<FRPRPluginModule>("RPRPlugin");
+
 	m_CachedTransforms = SrcComponent->ComponentToWorld;
-	return true;
+	return m_Plugin != NULL;
 }
 
 void	URPRSceneComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
 {
 	check(SrcComponent != NULL);
+	check(m_Plugin != NULL);
 
 	Super::TickComponent(deltaTime, tickType, tickFunction);
 
+	if (!m_Plugin->SyncEnabled())
+		return;
 	// Seem to be the only way..
 	// There is no runtime enabled callbacks
 	// UEngine::OnActorMoved() and UEngine::OnComponentTransformChanged() are editor only..

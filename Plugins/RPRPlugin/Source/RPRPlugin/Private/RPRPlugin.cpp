@@ -34,6 +34,7 @@ FRPRPluginModule::FRPRPluginModule()
 ,	m_GameWorld(NULL)
 ,	m_EditorWorld(NULL)
 ,	m_Extender(NULL)
+,	m_RPRSync(true)
 ,	m_RPRTrace(false)
 ,	m_Loaded(false)
 {
@@ -62,12 +63,15 @@ FReply	OnRender(FRPRPluginModule *module)
 	return FReply::Handled();
 }
 
-FReply	OnSync(FRPRPluginModule *module)
+FReply	OnToggleSync(FRPRPluginModule *module)
 {
-	ARPRScene	*scene = module->GetCurrentScene();
-	if (scene != NULL)
-		scene->OnTriggerSync();
+	module->ToggleRPRSync();
 	return FReply::Handled();
+}
+
+void	FRPRPluginModule::ToggleRPRSync()
+{
+	m_RPRSync = !m_RPRSync;
 }
 
 FReply	OnSave(FRPRPluginModule *module)
@@ -123,6 +127,13 @@ void	OnCameraChanged(TSharedPtr<FString> item, ESelectInfo::Type InSeletionInfo,
 			break;
 		}
 	}
+}
+
+const FSlateBrush	*FRPRPluginModule::GetSyncIcon()
+{
+	if (m_RPRSync)
+		return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.SyncOn").GetIcon();
+	return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.SyncOff").GetIcon();
 }
 
 FText	FRPRPluginModule::GetSelectedCameraName()
@@ -250,12 +261,12 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 				[
 					SNew(SButton)
 					.Text(LOCTEXT("SyncLabel", "Sync"))
-					.ToolTipText(LOCTEXT("SyncTooltip", "Synchronizes the scene."))
-					.OnClicked(FOnClicked::CreateStatic(&OnSync, this))
+					.ToolTipText(LOCTEXT("SyncTooltip", "Toggles scene synchronization."))
+					.OnClicked(FOnClicked::CreateStatic(&OnToggleSync, this))
 					.Content()
 					[
 						SNew(SImage)
-						.Image(FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.SyncOff").GetIcon())
+						.Image(TAttribute<const FSlateBrush*>::Create(TAttribute<const FSlateBrush*>::FGetter::CreateRaw(this, &FRPRPluginModule::GetSyncIcon)))
 					]
 				]
 				+ SHorizontalBox::Slot()

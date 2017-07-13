@@ -21,7 +21,9 @@ public:
 	virtual void	ShutdownModule() override;
 
 	void							ToggleRPRTrace();
+	void							ToggleRPRSync();
 	bool							TraceEnabled() const { return m_RPRTrace; }
+	bool							SyncEnabled() const { return m_RPRSync; }
 
 	class ARPRScene					*GetCurrentScene() const;
 	TSharedPtr<UTexture2DDynamic>	GetRenderTexture() { return RenderTexture; }
@@ -41,6 +43,7 @@ private:
 	FText					GetSelectedQualitySettingsName();
 	FText					GetCurrentRenderIteration();
 	FText					GetTraceStatus();
+	const FSlateBrush		*GetSyncIcon();
 
 	void					OnWorldCreated(UWorld *inWorld);
 	void					OnWorldDestroyed(UWorld *inWorld);
@@ -62,5 +65,6 @@ private:
 	TSharedPtr<FExtender>					m_Extender;
 
 	bool									m_RPRTrace;
+	bool									m_RPRSync;
 	bool									m_Loaded;
 };
