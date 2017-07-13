@@ -264,7 +264,7 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 				[
 					SNew(SButton)
 					.Text(LOCTEXT("SaveLabel", "Save"))
-					.ToolTipText(LOCTEXT("SaveTooltip", "Save the framebuffer state."))
+					.ToolTipText(LOCTEXT("SaveTooltip", "Save the framebuffer state or ProRender scene."))
 					.OnClicked(FOnClicked::CreateStatic(&OnSave, this))
 					.Content()
 					[

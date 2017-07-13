@@ -1,6 +1,7 @@
 // RPR COPYRIGHT
 
 #include "RPRRendererWorker.h"
+#include "RprLoadStore.h"
 #include "RPRSettings.h"
 #include "HAL/RunnableThread.h"
 
@@ -8,9 +9,10 @@ DEFINE_LOG_CATEGORY_STATIC(LogRPRRenderer, Log, All);
 
 static uint32	kMaxIterations = 64;
 
-FRPRRendererWorker::FRPRRendererWorker(rpr_context context, uint32 width, uint32 height)
+FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene scene, uint32 width, uint32 height)
 :	m_RprFrameBuffer(NULL)
 ,	m_RprContext(context)
+,	m_RprScene(scene)
 ,	m_CurrentIteration(0)
 ,	m_PreviousRenderedIteration(0)
 ,	m_Width(width)
@@ -72,18 +74,41 @@ void	FRPRRendererWorker::SetTrace(bool trace, const FString &tracePath)
 
 void	FRPRRendererWorker::SaveToFile(const FString &filename)
 {
-	// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
-	m_RenderLock.Lock();
-	const bool	saved = rprFrameBufferSaveToFile(m_RprFrameBuffer, TCHAR_TO_ANSI(*filename)) == RPR_SUCCESS;
-	m_RenderLock.Unlock();
+	FString	extension = FPaths::GetExtension(filename);
 
-	if (saved)
+	if (extension == "frs")
 	{
-		UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully saved to '%s'"), *filename);
+		// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
+		m_RenderLock.Lock();
+		const bool	saved = rprsExport(TCHAR_TO_ANSI(*filename), m_RprContext, m_RprScene,
+									   0, NULL, NULL,
+									   0, NULL, NULL) == RPR_SUCCESS;
+		m_RenderLock.Unlock();
+
+		if (saved)
+		{
+			UE_LOG(LogRPRRenderer, Log, TEXT("ProRender scene successfully saved to '%s'"), *filename);
+		}
+		else
+		{
+			UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't save ProRender scene to '%s'"), *filename);
+		}
 	}
 	else
 	{
-		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't save framebuffer to '%s'"), *filename);
+		// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
+		m_RenderLock.Lock();
+		const bool	saved = rprFrameBufferSaveToFile(m_RprFrameBuffer, TCHAR_TO_ANSI(*filename)) == RPR_SUCCESS;
+		m_RenderLock.Unlock();
+
+		if (saved)
+		{
+			UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully saved to '%s'"), *filename);
+		}
+		else
+		{
+			UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't save framebuffer to '%s'"), *filename);
+		}
 	}
 }
 
@@ -252,4 +277,5 @@ void	FRPRRendererWorker::ReleaseResources()
 		m_RprFrameBuffer = NULL;
 	}
 	m_RprContext = NULL;
+	m_RprScene = NULL;
 }

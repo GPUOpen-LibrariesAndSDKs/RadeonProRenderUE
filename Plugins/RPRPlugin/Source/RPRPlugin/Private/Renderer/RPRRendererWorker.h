@@ -9,7 +9,7 @@
 class FRPRRendererWorker : public FRunnable
 {
 public:
-	FRPRRendererWorker(rpr_context context, uint32 width, uint32 height);
+	FRPRRendererWorker(rpr_context context, rpr_scene scene, uint32 width, uint32 height);
 	virtual ~FRPRRendererWorker();
 
 	// Begin FRunnable interface.
@@ -52,6 +52,7 @@ private:
 	rpr_framebuffer_format	m_RprFrameBufferFormat;
 	rpr_framebuffer_desc	m_RprFrameBufferDesc;
 	rpr_framebuffer			m_RprFrameBuffer;
+	rpr_scene				m_RprScene;
 	rpr_context				m_RprContext;
 
 	TArray<float>			m_SrcFramebufferData;

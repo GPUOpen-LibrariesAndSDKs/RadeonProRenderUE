@@ -203,7 +203,7 @@ void	ARPRScene::OnRender()
 	{
 		FRPRPluginModule	&plugin = FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin");
 
-		m_RendererWorker = MakeShareable(new FRPRRendererWorker(m_RprContext, RenderTexture->SizeX, RenderTexture->SizeY));
+		m_RendererWorker = MakeShareable(new FRPRRendererWorker(m_RprContext, m_RprScene, RenderTexture->SizeX, RenderTexture->SizeY));
 		m_RendererWorker->SetQualitySettings(plugin.m_QualitySettings);
 	}
 }
@@ -266,7 +266,8 @@ void	ARPRScene::OnSave()
 									  "|Windows Bitmap (*.BMP)|*.bmp"
 									  "|PNG (*.PNG)|*.png"
 									  "|JPG (*.JPG)|*.jpg"
-									  "|All files (*tga;*.bmp;*.png;*.jpg)|*tga;*.bmp;*.png;*.jpg");
+									  "|FireRender Scene (*.FRS)|*.frs"
+									  "|All files (*TGA;*.BMP;*.PNG;*.JPG;*.FRS)|*tga;*.bmp;*.png;*.jpg;*.frs");
 
 	TArray<FString>		saveFilenames;
 	const bool	save = desktopPlatform->SaveFileDialog(
@@ -282,7 +283,7 @@ void	ARPRScene::OnSave()
 		return;
 	FString	saveFilename = FPaths::ChangeExtension(saveFilenames[0], FPaths::GetExtension(saveFilenames[0]).ToLower());
 	FString	extension = FPaths::GetExtension(saveFilename);
-	if (extension != "tga" && extension != "bmp" && extension != "png" && extension != "jpg")
+	if (extension != "tga" && extension != "bmp" && extension != "png" && extension != "jpg" && extension != "frs")
 		return;
 
 	LastSavedExportPath = saveFilename;
