@@ -201,8 +201,8 @@ bool	URPRStaticMeshComponent::Build()
 
 	rpriExport(ctx, "RPIF Exporter", numExportProps, exportProps);
 
-#endif
 	rpriFreeContext(ctx);
+#endif
 
 
 	TArray<rpr_shape>	shapes = GetMeshInstances(staticMesh);
