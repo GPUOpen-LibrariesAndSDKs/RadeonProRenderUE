@@ -128,6 +128,7 @@ bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightCompone
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create RPR image"));
 		return false;
 	}
+	m_CachedCubemap = skyLightComponent->Cubemap;
 	m_CachedIntensity = skyLightComponent->Intensity;
 	SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 0.0f, 90.0f)));
 	return true;
@@ -352,7 +353,40 @@ void	URPRLightComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 				triggerRefresh = true;
 				m_CachedIntensity = skyLightComponent->Intensity;
 			}
-			// TODO: Reload if cubemap changed
+			bool	resetImage = false;
+			if (skyLightComponent->SourceType != ESkyLightSourceType::SLS_SpecifiedCubemap ||
+				skyLightComponent->Cubemap == NULL)
+			{
+				if (m_RprImage != NULL)
+				{
+					rprObjectDelete(m_RprImage);
+					m_RprImage = NULL;
+					m_CachedCubemap = NULL;
+					resetImage = true;
+				}
+			}
+			else if (skyLightComponent->Cubemap != m_CachedCubemap)
+			{
+				if (m_RprImage != NULL)
+				{
+					rprObjectDelete(m_RprImage);
+					m_RprImage = NULL;
+				}
+				m_RprImage = BuildCubeImage(skyLightComponent->Cubemap, Scene->m_RprContext);
+				if (m_RprImage == NULL)
+					return;
+				m_CachedCubemap = skyLightComponent->Cubemap;
+				resetImage = true;
+			}
+			if (resetImage)
+			{
+				if (rprEnvironmentLightSetImage(m_RprLight, m_RprImage) != RPR_SUCCESS)
+				{
+					UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't refresh environment map"));
+					return;
+				}
+				triggerRefresh = true;
+			}
 			break;
 		}
 		case RPR_LIGHT_TYPE_IES:

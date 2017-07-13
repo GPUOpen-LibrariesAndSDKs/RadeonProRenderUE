@@ -27,11 +27,12 @@ private:
 	bool	BuildDirectionalLight(const class UDirectionalLightComponent *dirLightComponent);
 	bool	BuildSkyLight(const class USkyLightComponent *skyLightComponent);
 private:
-	rpr_image	m_RprImage;
-	rpr_light	m_RprLight;
+	rpr_image		m_RprImage;
+	rpr_light		m_RprLight;
 
-	float		m_CachedShadowSharpness;
-	float		m_CachedIntensity;
-	FColor		m_CachedLightColor;
-	FVector2D	m_CachedConeAngles;
+	float			m_CachedShadowSharpness;
+	float			m_CachedIntensity;
+	FColor			m_CachedLightColor;
+	FVector2D		m_CachedConeAngles;
+	UTextureCube	*m_CachedCubemap;
 };
