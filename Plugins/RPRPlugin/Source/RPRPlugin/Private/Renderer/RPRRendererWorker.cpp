@@ -311,7 +311,8 @@ uint32	FRPRRendererWorker::Run()
 			m_DataLock.Unlock();
 			++m_CurrentIteration;
 		}
-		FPlatformProcess::Sleep(0.1f);
+		else
+			FPlatformProcess::Sleep(0.1f);
 	}
 	ReleaseResources();
 	return 0;

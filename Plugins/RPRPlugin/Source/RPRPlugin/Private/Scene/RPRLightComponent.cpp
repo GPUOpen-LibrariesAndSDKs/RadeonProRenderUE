@@ -113,7 +113,6 @@ bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightCompone
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Skipped '%s', there is no specified cubemap"), *skyLightComponent->GetName());
 		return false;
 	}
-	return false;
 	m_RprImage = BuildCubeImage(skyLightComponent->Cubemap, Scene->m_RprContext);
 	if (m_RprImage == NULL)
 		return false;

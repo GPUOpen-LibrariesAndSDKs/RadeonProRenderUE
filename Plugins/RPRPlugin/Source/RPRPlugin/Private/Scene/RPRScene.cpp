@@ -110,9 +110,23 @@ bool	ARPRScene::QueueBuildRPRActor(UWorld *world, USceneComponent *srcComponent,
 	newActor->Component = comp;
 	comp->RegisterComponent();
 
-	if (typeClass == URPRCameraComponent::StaticClass())
-		Cameras.Add(static_cast<URPRCameraComponent*>(comp));
-	BuildQueue.Add(newActor);
+	const bool	immediateBuild = Cast<USkyLightComponent>(srcComponent) != NULL; // Unwrapping cubemaps can't be done on another thread
+	if (immediateBuild)
+	{
+		// Profile that, if too much, do one "immediate build object" per frame ?
+		if (!comp->Build())
+		{
+			GetWorld()->DestroyActor(newActor);
+			return false;
+		}
+		SceneContent.Add(newActor);
+	}
+	else
+	{
+		if (typeClass == URPRCameraComponent::StaticClass())
+			Cameras.Add(static_cast<URPRCameraComponent*>(comp));
+		BuildQueue.Add(newActor);
+	}
 	return true;
 }
 
