@@ -64,6 +64,7 @@ private:
 
 	FCriticalSection			m_BuildLock;
 	bool						m_IsBuildingObjects;
+	bool						m_ClearFramebuffer;
 	TArray<class ARPRActor*>	m_BuildQueue;
 	TArray<class ARPRActor*>	m_BuiltObjects;
 };

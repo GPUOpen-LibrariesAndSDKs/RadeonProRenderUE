@@ -363,8 +363,8 @@ void	ARPRScene::Tick(float deltaTime)
 		m_TriggerEndFrameRebuild)
 	{
 		// Restart render, skip frame copy
-		m_RendererWorker->RestartRender();
-		m_TriggerEndFrameRebuild = false;
+		if (m_RendererWorker->RestartRender()) // Trylock, might fail
+			m_TriggerEndFrameRebuild = false;
 	}
 	else if (m_RendererWorker->Flush())
 	{

@@ -26,6 +26,7 @@ FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene scene, uin
 ,	m_Width(width)
 ,	m_Height(height)
 ,	m_IsBuildingObjects(false)
+,	m_ClearFramebuffer(false)
 {
 	m_Thread = FRunnableThread::Create(this, TEXT("FRPRRendererWorker"));
 }
@@ -142,26 +143,10 @@ bool	FRPRRendererWorker::RestartRender()
 {
 	if (m_RprFrameBuffer == NULL)
 		return false;
-
-	m_RenderLock.Lock();
-	m_DataLock.Lock();
-
-	// Launch the new frame render
-	if (rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS)
-	{
-		m_DataLock.Unlock();
-		m_RenderLock.Unlock();
-		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't clear framebuffer"));
+	if (!m_RenderLock.TryLock())
 		return false;
-	}
-	FMemory::Memset(m_DstFramebufferData.GetData(), 0, m_Width * m_Height * 4);
-
-	UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully cleared"));
-	m_CurrentIteration = 0;
-	m_PreviousRenderedIteration = 0;
-	m_DataLock.Unlock();
+	m_ClearFramebuffer = true;
 	m_RenderLock.Unlock();
-
 	return true;
 }
 
@@ -245,6 +230,7 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 		// No frame ready yet
 		return false;
 	}
+	m_DataLock.Lock();
 	uint8			*dstPixels = m_DstFramebufferData.GetData();
 	const float		*srcPixels = m_SrcFramebufferData.GetData();
 	const uint32	pixelCount = m_Width * m_Height;
@@ -256,6 +242,7 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++, 255.0f);
 		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++, 255.0f);
 	}
+	m_DataLock.Unlock();
 	return true;
 }
 
@@ -297,7 +284,21 @@ uint32	FRPRRendererWorker::Run()
 		if (m_IsBuildingObjects)
 			BuildQueuedObjects();
 		m_BuildLock.Unlock();
-		if (m_CurrentIteration < settings->MaximumRenderIterations && m_RenderLock.TryLock())
+		if (!m_RenderLock.TryLock())
+			continue;
+		if (m_ClearFramebuffer)
+		{
+			if (rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS)
+			{
+				UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't clear framebuffer"));
+				break;
+			}
+			UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully cleared"));
+			m_CurrentIteration = 0;
+			m_PreviousRenderedIteration = 0;
+			m_ClearFramebuffer = false;
+		}
+		if (m_CurrentIteration < settings->MaximumRenderIterations)
 		{
 			if (rprContextRender(m_RprContext) != RPR_SUCCESS)
 			{
@@ -306,13 +307,14 @@ uint32	FRPRRendererWorker::Run()
 				break;
 			}
 			m_RenderLock.Unlock();
-			m_DataLock.Lock();
 			BuildFramebufferData();
-			m_DataLock.Unlock();
 			++m_CurrentIteration;
 		}
 		else
+		{
+			m_RenderLock.Unlock();
 			FPlatformProcess::Sleep(0.1f);
+		}
 	}
 	ReleaseResources();
 	return 0;
