@@ -204,7 +204,6 @@ bool	URPRStaticMeshComponent::Build()
 	rpriFreeContext(ctx);
 #endif
 
-
 	TArray<rpr_shape>	shapes = GetMeshInstances(staticMesh);
 	if (shapes.Num() == 0) // No mesh in cache ?
 	{

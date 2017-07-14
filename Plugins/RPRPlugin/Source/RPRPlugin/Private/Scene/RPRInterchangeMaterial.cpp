@@ -8,142 +8,223 @@
 #include "Materials/MaterialExpressionConstant3Vector.h"
 #include "Materials/MaterialExpressionConstant4Vector.h"
 #include <set>
+#include "Materials/MaterialExpressionLinearInterpolate.h"
+#include <regex>
+
+
+std::shared_ptr<rpri::generic::IMaterialNodeMux> 
+UEInterchangeCollection::FindMux(char const * _name)
+{
+	auto it = muxStorage.find(_name);
+	if (it == muxStorage.end())
+	{
+		// find it in the node or value store and add a mux it
+		auto nit = nodeStorage.find(_name);
+		if (nit != nodeStorage.end())
+		{
+			muxStorage[_name] =
+				std::make_shared<UE4InterchangeMaterialNodeMux>(nit->second);
+			return muxStorage[_name];
+		}
+		auto vit = valueStorage.find(_name);
+		if(vit != valueStorage.end())
+		{
+			muxStorage[_name] =
+				std::make_shared<UE4InterchangeMaterialNodeMux>(vit->second);
+			return muxStorage[_name];
+		}
+		return std::shared_ptr<rpri::generic::IMaterialNodeMux>();
+	}
+	return it->second;
+}
+
+bool ShouldBeConvertedToMaterialValue(UMaterialExpression * _expression)
+{
+	// TODO add a hash switch rather than ifs
+	if (_expression->IsA(UMaterialExpressionConstant::StaticClass()))
+	{
+		return true;
+	}
+	if (_expression->IsA(UMaterialExpressionConstant2Vector::StaticClass()))
+	{
+		return true;
+	}
+	if (_expression->IsA(UMaterialExpressionConstant3Vector::StaticClass()))
+	{
+		return true;
+	}
+	if (_expression->IsA(UMaterialExpressionConstant4Vector::StaticClass()))
+	{
+		return true;
+	}
+	
+	return false;
+}
+IMaterialNodeMuxPtr ConvertUMaterialExpression(
+	UEInterchangeCollection & _collection,
+	std::string const & _id,
+	UMaterialExpression * _expression)
+{
+
+	// biggest split is node or value
+	if(ShouldBeConvertedToMaterialValue(_expression))
+	{
+		IMaterialValuePtr valuePtr;
+		std::string valueName;
+		std::string fieldName;
+
+		// value
+		if (_expression->IsA(UMaterialExpressionConstant::StaticClass()))
+		{
+			fieldName = "R";
+			valueName = _id + fieldName;
+			auto con = static_cast<UMaterialExpressionConstant *>(_expression);
+			valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(), con->R);
+		}
+		else if (_expression->IsA(UMaterialExpressionConstant2Vector::StaticClass()))
+		{
+			fieldName = "RG";
+			valueName = _id + fieldName;
+			auto con = static_cast<UMaterialExpressionConstant2Vector *>(_expression);
+			valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(),
+				con->R, con->G);
+		}
+		else if (_expression->IsA(UMaterialExpressionConstant3Vector::StaticClass()))
+		{
+			fieldName = "Constant";
+			valueName = _id + fieldName;
+			auto con = static_cast<UMaterialExpressionConstant3Vector *>(_expression);
+			valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(),
+				con->Constant);
+		}
+		else if (_expression->IsA(UMaterialExpressionConstant4Vector::StaticClass()))
+		{
+			fieldName = "Constant";
+			valueName = _id + fieldName;
+			auto con = static_cast<UMaterialExpressionConstant4Vector *>(_expression);
+			valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(),
+				con->Constant);
+		} else
+		{
+			// should not get here
+			assert(false);
+		}
+
+		return _collection.FindMux(valueName.c_str());
+
+	} else
+	{
+		// node
+		IMaterialValuePtr valuePtr;
+
+		// to investigate if some classes don't expose inputs in a generic
+		// method sometimes (I think its when usign 'value' semantics on certain
+		// inputs. If so will have to handle each expression subclass manually
+		// *sob*
+		if (_expression->IsA(UMaterialExpressionLinearInterpolate::StaticClass()))
+		{
+		}
+		auto node = IMaterialNodePtr(new UE4InterchangeMaterialNode(_collection, _id, _expression));
+		_collection.nodeStorage[_id.c_str()] = node;
+		return _collection.FindMux(_id.c_str());
+
+	}
+
+}
+
 
 UE4InterchangeMaterialNode::UE4InterchangeMaterialNode(
 	UEInterchangeCollection & _collection,
+	std::string const & _id,
 	UMaterialExpression * _expression) :
 	expression(_expression)
 {
-	id = TCHAR_TO_ANSI(*expression->GetName());
-	name = id;
-	type = expression->StaticClass()->GetFName().GetPlainANSIString();
-   
-	UE4InterchangeMaterialValue::Ptr valuePtr;
-	std::string valueName;
-	std::string fieldName;
+	id = _id;
+	name = TCHAR_TO_ANSI(*expression->GetName());
+	type = expression->GetClass()->GetFName().GetPlainANSIString();
+	type = std::regex_replace(type, std::regex("MaterialExpression"), "UE4");
+	// do the inputs 
+	for (int i = 0; i < _expression->GetInputs().Num(); ++i)
+	{
+		if (_expression->GetInput(i) == nullptr)
+			continue;
 
-	// TODO add a hash switch rather than ifs
-	if(expression->IsA(UMaterialExpressionConstant::StaticClass()))
-	{
-		fieldName = "R";
-		valueName = id + fieldName;
-		auto con = static_cast<UMaterialExpressionConstant *>(expression);
-		valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(), con->R);
-	} else if (expression->IsA(UMaterialExpressionConstant2Vector::StaticClass()))
-	{
-		fieldName = "RG";
-		valueName = id + fieldName;
-		auto con = static_cast<UMaterialExpressionConstant2Vector *>(expression);
-		valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(),
-																con->R, con->G);
-	}
-	else if (expression->IsA(UMaterialExpressionConstant3Vector::StaticClass()))
-	{
-		fieldName = "Constant";
-		valueName = id + fieldName;
-		auto con = static_cast<UMaterialExpressionConstant3Vector *>(expression);
-		valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(),
-																con->Constant);
-	}
-	else if (expression->IsA(UMaterialExpressionConstant4Vector::StaticClass()))
-	{
-		fieldName = "Constant";
-		valueName = id + fieldName;
-		auto con = static_cast<UMaterialExpressionConstant4Vector *>(expression);
-		valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(),
-																con->Constant);
-	} else
-	{
-		for (int i = 0; i < expression->GetInputs().Num(); ++i)
+		FExpressionInput* input = _expression->GetInput(i);
+		if (input->Expression != nullptr)
 		{
-			if (expression->GetInput(i) == nullptr)
-				continue;
-			FExpressionInput* input = expression->GetInput(i);
-			if (input->Expression != nullptr)
+			auto childMux = UE4InterchangeMaterialNode::New(_collection,
+								std::string(),
+								input->Expression);
+
+			if(!childMux->IsEmpty())
 			{
-				auto childNode = UE4InterchangeMaterialNode::New(_collection, input->Expression);
-				nodes.emplace_back(childNode);
+				muxes.emplace_back(childMux);
+
+				if(childMux->IsNode())
+				{
+					nodes.push_back(childMux->GetAsNode());
+				} else
+				{
+					values.push_back(childMux->GetAsValue());
+				}
 
 				inputNames.emplace_back(TCHAR_TO_ANSI(*expression->GetInputName(i)));
-				auto muxPtr = _collection.FindMux(childNode->GetId());
-				if(muxPtr)
-				{
-					muxes.emplace_back(muxPtr);
-
-				}
 			}
-		}
-	}
-	if(valuePtr)
-	{
-		values.emplace_back(valuePtr);
-		auto muxPtr = _collection.FindMux(valueName.c_str());
-		if (muxPtr)
-		{
-			muxes.emplace_back(muxPtr);
-			inputNames.emplace_back(fieldName);
+
 		}
 	}
 
-	// transfer all the nodes, values and muxes to the material graphs
-	// collection
 
-	_collection.nodeStorage.insert(nodes.begin(), nodes.end());
-	_collection.valueStorage.insert(values.begin(), values.end());
-	// set the muxes into muxstorage and the lookup table
-	for(auto&& mux : muxes)
-	{
-		auto it = 
-			_collection.muxStorage.insert(_collection.muxStorage.end(), mux);
-
-		_collection.nameToMuxIndex[mux->GetId()] = 
-			std::distance(_collection.muxStorage.begin(), it);
-	}
 
 }
 
-UE4InterchangeMaterialNode::Ptr 
+IMaterialNodeMuxPtr
 UE4InterchangeMaterialNode::New(UEInterchangeCollection & _collection,
+								std::string const & _id,
 								UMaterialExpression * _expression)
 {
-	auto node = Ptr(new UE4InterchangeMaterialNode(_collection, _expression));
-	_collection.nodeStorage.insert(node);
+	std::string id = _id;
+	if(_id.empty())
+	{
+		id = TCHAR_TO_ANSI(*_expression->GetName());
+	}
 
-	auto mux = std::make_shared<UE4InterchangeMaterialNodeMux>(node);
-	_collection.muxStorage.emplace_back(mux);
-
-	auto it = _collection.muxStorage.insert(_collection.muxStorage.end(), mux);
-	_collection.nameToMuxIndex[mux->GetId()] =
-		std::distance(_collection.muxStorage.begin(), it);
-
-	return node;
+	auto it = _collection.nodeStorage.find(id);
+	if(it == _collection.nodeStorage.end())
+	{
+		return ConvertUMaterialExpression(_collection, id, _expression);
+	}
+	else
+	{
+		return _collection.FindMux(it->second->GetId());
+	}
 }
 
-UE4InterchangePBRNode::Ptr
+IMaterialNodePtr
 UE4InterchangePBRNode::New(UEInterchangeCollection & _collection,
+							std::string const & _id,
 							UE4InterchangeMaterialGraph * _mg)
 {
-	auto node = Ptr( new UE4InterchangePBRNode(_collection, _mg) );
-	_collection.nodeStorage.insert(node);
+	auto it = _collection.nodeStorage.find(_id);
+	if (it == _collection.nodeStorage.end())
+	{
 
-	auto mux = std::make_shared<UE4InterchangeMaterialNodeMux>(node);
-	_collection.muxStorage.emplace_back(mux);
-
-	auto it = _collection.muxStorage.insert(_collection.muxStorage.end(), mux);
-	_collection.nameToMuxIndex[mux->GetId()] =
-		std::distance(_collection.muxStorage.begin(), it);
-
-	return node;
+		auto node = IMaterialNodePtr(new UE4InterchangePBRNode(_collection, _id, _mg));
+		_collection.nodeStorage[_id] = node;
+		return node;
+	} else
+	{
+		return it->second;
+	}
 }
 
 UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collection, 
+												std::string const & _id,
 												UE4InterchangeMaterialGraph * _mg)
 {
 	const UMaterial* ue4Mat = _mg->ue4Mat;
 
-	FString str = _mg->GetName();
-	str + "PBRNode";
-	id = TCHAR_TO_ANSI(*str);
+	id = _id;
 
 	if (ue4Mat->BaseColor.UseConstant)
 	{
@@ -164,6 +245,7 @@ UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collect
 		auto cName = TCHAR_TO_ANSI(*ue4Name);
 
 		auto node = UE4InterchangeMaterialNode::New(_collection,
+													cName,
 													ue4Mat->BaseColor.Expression);
 
 		auto muxPtr = _collection.FindMux(cName);
@@ -177,103 +259,107 @@ UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collect
 		}
 	}
 }
-UE4InterchangeMaterialValue::Ptr UE4InterchangeMaterialValue::New(
+IMaterialValuePtr UE4InterchangeMaterialValue::New(
 	UEInterchangeCollection & _collection, char const * _id, float _a)
 {
-	auto val = Ptr(new UE4InterchangeMaterialValue(_id, _a));
-	_collection.valueStorage.insert(val);
+	auto it = _collection.valueStorage.find(_id);
+	if (it == _collection.valueStorage.end())
+	{
+		auto val = IMaterialValuePtr(new UE4InterchangeMaterialValue(_id, _a));
+		_collection.valueStorage[_id] = val;
 
-	auto mux = std::make_shared<UE4InterchangeMaterialNodeMux>(val);
-	_collection.muxStorage.emplace_back(mux);
-
-	auto it = _collection.muxStorage.insert(_collection.muxStorage.end(), mux);
-	_collection.nameToMuxIndex[mux->GetId()] =
-		std::distance(_collection.muxStorage.begin(), it);
-
-	return val;
+		return val;
+	} else
+	{
+		return it->second;
+	}
 }
 
-UE4InterchangeMaterialValue::Ptr UE4InterchangeMaterialValue::New(
+IMaterialValuePtr UE4InterchangeMaterialValue::New(
 	UEInterchangeCollection & _collection, char const * _id,
 	float _a, float _b)
 {
-	auto val = Ptr(new UE4InterchangeMaterialValue(_id, _a, _b));
-	_collection.valueStorage.insert(val);
+	auto it = _collection.valueStorage.find(_id);
+	if (it == _collection.valueStorage.end())
+	{
+		auto val = IMaterialValuePtr(new UE4InterchangeMaterialValue(_id, _a, _b));
+		_collection.valueStorage[_id] = val;
 
-	auto mux = std::make_shared<UE4InterchangeMaterialNodeMux>(val);
-	_collection.muxStorage.emplace_back(mux);
-
-	auto it = _collection.muxStorage.insert(_collection.muxStorage.end(), mux);
-	_collection.nameToMuxIndex[mux->GetId()] =
-		std::distance(_collection.muxStorage.begin(), it);
-
-	return val;
+		return val;
+	}
+	else
+	{
+		return it->second;
+	}
 }
 
-UE4InterchangeMaterialValue::Ptr UE4InterchangeMaterialValue::New(
+IMaterialValuePtr UE4InterchangeMaterialValue::New(
 	UEInterchangeCollection & _collection, char const * _id,
 	float _a, float _b, float _c)
 {
-	auto val = Ptr(new UE4InterchangeMaterialValue(_id, _a, _b,_c));
-	_collection.valueStorage.insert(val);
+	auto it = _collection.valueStorage.find(_id);
+	if (it == _collection.valueStorage.end())
+	{
+		auto val = IMaterialValuePtr(new UE4InterchangeMaterialValue(_id, _a, _b,_c));
+		_collection.valueStorage[_id] = val;
 
-	auto mux = std::make_shared<UE4InterchangeMaterialNodeMux>(val);
-	_collection.muxStorage.emplace_back(mux);
-
-	auto it = _collection.muxStorage.insert(_collection.muxStorage.end(), mux);
-	_collection.nameToMuxIndex[mux->GetId()] =
-		std::distance(_collection.muxStorage.begin(), it);
-
-	return val;
+		return val;
+	}
+	else
+	{
+		return it->second;
+	}
 }
 
-UE4InterchangeMaterialValue::Ptr UE4InterchangeMaterialValue::New(
+IMaterialValuePtr UE4InterchangeMaterialValue::New(
 	UEInterchangeCollection & _collection, char const * _id,
 	float _a, float _b, float _c, float _d)
 {
-	auto val = Ptr(new UE4InterchangeMaterialValue(_id, _a, _b, _c,_d));
-	_collection.valueStorage.insert(val);
+	auto it = _collection.valueStorage.find(_id);
+	if (it == _collection.valueStorage.end())
+	{
+		auto val = IMaterialValuePtr(new UE4InterchangeMaterialValue(_id, _a, _b, _c,_d));
+		_collection.valueStorage[_id] = val;
 
-	auto mux = std::make_shared<UE4InterchangeMaterialNodeMux>(val);
-	_collection.muxStorage.emplace_back(mux);
-
-	auto it = _collection.muxStorage.insert(_collection.muxStorage.end(), mux);
-	_collection.nameToMuxIndex[mux->GetId()] =
-		std::distance(_collection.muxStorage.begin(), it);
-
-	return val;
+		return val;
+	}
+	else
+	{
+		return it->second;
+	}
 }
 
-UE4InterchangeMaterialValue::Ptr UE4InterchangeMaterialValue::New(
+IMaterialValuePtr UE4InterchangeMaterialValue::New(
 	UEInterchangeCollection & _collection, char const * _id, FLinearColor _col)
 {
-	auto val = Ptr(new UE4InterchangeMaterialValue(_id, _col));
-	_collection.valueStorage.insert(val);
+	auto it = _collection.valueStorage.find(_id);
+	if (it == _collection.valueStorage.end())
+	{
+		auto val = IMaterialValuePtr(new UE4InterchangeMaterialValue(_id, _col));
+		_collection.valueStorage[_id] = val;
 
-	auto mux = std::make_shared<UE4InterchangeMaterialNodeMux>(val);
-	_collection.muxStorage.emplace_back(mux);
-
-	auto it = _collection.muxStorage.insert(_collection.muxStorage.end(), mux);
-	_collection.nameToMuxIndex[mux->GetId()] =
-		std::distance(_collection.muxStorage.begin(), it);
-
-	return val;
+		return val;
+	}
+	else
+	{
+		return it->second;
+	}
 }
 
-UE4InterchangeMaterialValue::Ptr UE4InterchangeMaterialValue::New(
+IMaterialValuePtr UE4InterchangeMaterialValue::New(
 	UEInterchangeCollection & _collection, char const * _id, FColor _col)
 {
-	auto val = Ptr(new UE4InterchangeMaterialValue(_id, _col));
-	_collection.valueStorage.insert(val);
-
-	auto mux = std::make_shared<UE4InterchangeMaterialNodeMux>(val);
-	_collection.muxStorage.emplace_back(mux);
-
-	auto it = _collection.muxStorage.insert(_collection.muxStorage.end(), mux);
-	_collection.nameToMuxIndex[mux->GetId()] =
-		std::distance(_collection.muxStorage.begin(), it);
-
-	return val;
+	auto it = _collection.valueStorage.find(_id);
+	if (it == _collection.valueStorage.end())
+	{
+		auto val = IMaterialValuePtr(new UE4InterchangeMaterialValue(_id, _col));
+		_collection.valueStorage[_id] = val;
+		return val;
+	}
+	else
+	{
+		return it->second;
+	}
 }
 
 char const * UE4InterchangeMaterialNode::GetId() const
@@ -550,20 +636,22 @@ UE4InterchangeMaterialGraph::UE4InterchangeMaterialGraph(const UMaterial* _ue4Ma
 
 	UEInterchangeCollection collection;
 
+	std::string name = TCHAR_TO_ANSI(*_ue4Mat->GetName());
+
 	// Interchange treats the destination PBR object as a node
-	UE4InterchangePBRNode::New(collection, this);
+	UE4InterchangePBRNode::New(collection, name + "PBRMaterial", this);
 
 	for(auto && value : collection.valueStorage)
 	{
-		valueStorage.push_back(value);
+		valueStorage.push_back(value.second);
 	}
 	for (auto && node : collection.nodeStorage)
 	{
-		nodeStorage.push_back(node);
+		nodeStorage.push_back(node.second);
 	}
 	for (auto && mux : collection.muxStorage)
 	{
-		muxStorage.push_back(mux);
+		muxStorage.push_back(mux.second);
 	}
 
 }
