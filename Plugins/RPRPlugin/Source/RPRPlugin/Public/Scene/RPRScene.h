@@ -27,7 +27,7 @@ public:
 	rpr_context		m_RprContext;
 	rpr_scene		m_RprScene;
 
-	class URPRCameraComponent	*m_ActiveCamera;
+	class URPRSceneComponent	*m_ActiveCamera;
 
 	void	OnRender(uint32 &outObjectToBuildCount);
 	void	OnSave();
@@ -49,19 +49,23 @@ private:
 	bool	QueueBuildRPRActor(UWorld *world, USceneComponent *srcComponent, UClass *typeClass, bool checkIfContained);
 	void	RefreshScene();
 	uint32	BuildScene();
+	bool	BuildViewportCamera();
 private:
 	bool	m_TriggerEndFrameRebuild;
 
 	TSharedPtr<class FRPRRendererWorker>	m_RendererWorker;
 
-	TSharedPtr<UTexture2DDynamic>	RenderTexture;
+	TSharedPtr<UTexture2DDynamic>		RenderTexture;
 
 	UPROPERTY(Transient)
-	TArray<class ARPRActor*>		SceneContent;
+	TArray<class ARPRActor*>			SceneContent;
 
 	UPROPERTY(Transient)
-	TArray<class ARPRActor*>		BuildQueue;
+	TArray<class ARPRActor*>			BuildQueue;
 
 	UPROPERTY(Transient)
 	TArray<class URPRCameraComponent*>	Cameras;
+
+	UPROPERTY(Transient)
+	class URPRViewportCameraComponent*	ViewportCameraComponent;
 };

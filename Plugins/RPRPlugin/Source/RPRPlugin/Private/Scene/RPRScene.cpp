@@ -4,6 +4,7 @@
 
 #include "Scene/RPRLightComponent.h"
 #include "Scene/RPRStaticMeshComponent.h"
+#include "Scene/RPRViewportCameraComponent.h"
 #include "Renderer/RPRRendererWorker.h"
 
 #include "RPRPlugin.h"
@@ -30,8 +31,11 @@ ARPRScene::ARPRScene()
 ,	m_RendererWorker(NULL)
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 }
 
+static const FString	kViewportCameraName = "Active viewport camera";
 void	ARPRScene::FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames)
 {
 	UWorld	*world = GetWorld();
@@ -48,12 +52,23 @@ void	ARPRScene::FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames)
 			continue;
 		outCameraNames.Add(MakeShared<FString>(parent->GetName()));
 	}
+	// IF in editor:
+	outCameraNames.Add(MakeShared<FString>(kViewportCameraName));
 }
 
 void	ARPRScene::SetActiveCamera(const FString &cameraName)
 {
 	if (m_RprContext == NULL)
 		return;
+
+	// IF in editor
+	if (cameraName == kViewportCameraName)
+	{
+		if (ViewportCameraComponent != NULL)
+			ViewportCameraComponent->SetAsActiveCamera();
+		return;
+	}
+
 	const uint32	cameraCount = Cameras.Num();
 	for (uint32 iCamera = 0; iCamera < cameraCount; ++iCamera)
 	{
@@ -144,6 +159,27 @@ void	ARPRScene::RemoveActor(ARPRActor *actor)
 	TriggerFrameRebuild();
 }
 
+bool	ARPRScene::BuildViewportCamera()
+{
+	check(ViewportCameraComponent == NULL);
+
+	ViewportCameraComponent = NewObject<URPRViewportCameraComponent>(this, URPRViewportCameraComponent::StaticClass());
+	check(ViewportCameraComponent != NULL);
+
+	ViewportCameraComponent->Scene = this;
+	ViewportCameraComponent->SrcComponent = GetRootComponent();
+	ViewportCameraComponent->RegisterComponent();
+
+	// Profile that, if too much, do one "immediate build object" per frame ?
+	if (!ViewportCameraComponent->Build())
+	{
+		// TODO : Make sure DestroyComponent actually destroys it
+		ViewportCameraComponent->DestroyComponent();
+		return false;
+	}
+	return true;
+}
+
 uint32	ARPRScene::BuildScene()
 {
 	UWorld	*world = GetWorld();
@@ -163,12 +199,6 @@ uint32	ARPRScene::BuildScene()
 		else if (Cast<UCineCameraComponent>(*it) != NULL)
 			unbuiltObjects += QueueBuildRPRActor(world, *it, URPRCameraComponent::StaticClass(), false);
 	}
-
-	// Pickup the specified camera
-	FRPRPluginModule	*plugin = FRPRPluginModule::Get();
-	if (!plugin->m_ActiveCameraName.IsEmpty()) // Otherwise, it'll just use the last found camera in the scene
-		SetActiveCamera(plugin->m_ActiveCameraName);
-
 	return unbuiltObjects;
 }
 
@@ -250,6 +280,17 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 
 		outObjectToBuildCount = BuildScene();
 
+		// IF in editor
+		if (!BuildViewportCamera())
+			return;
+		// Pickup the specified camera
+		if (!plugin->m_ActiveCameraName.IsEmpty()) // Otherwise, it'll just use the last found camera in the scene
+			SetActiveCamera(plugin->m_ActiveCameraName);
+		else
+		{
+			// IF in editor
+			SetActiveCamera(kViewportCameraName);
+		}
 	}
 
 	TriggerFrameRebuild();
