@@ -105,6 +105,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 
 bool	URPRStaticMeshComponent::Build()
 {
+	// Async load: SrcComponent can be null if it was deleted from the scene
 	if (Scene == NULL || SrcComponent == NULL)
 		return false;
 

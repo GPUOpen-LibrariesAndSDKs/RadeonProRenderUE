@@ -3,7 +3,8 @@
 #include "RPRSceneComponent.h"
 
 URPRSceneComponent::URPRSceneComponent()
-:	m_Plugin(NULL)
+:	m_Built(false)
+,	m_Plugin(NULL)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	bTickInEditor = true;
@@ -13,25 +14,27 @@ bool	URPRSceneComponent::Build()
 {
 	check(SrcComponent != NULL);
 
-	m_Plugin = FModuleManager::GetModulePtr<FRPRPluginModule>("RPRPlugin");
+	m_Plugin = FRPRPluginModule::Get();;
 
 	m_CachedTransforms = SrcComponent->ComponentToWorld;
-	return m_Plugin != NULL;
+	m_Built = true;
+	return true;
 }
 
 void	URPRSceneComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
 {
+	Super::TickComponent(deltaTime, tickType, tickFunction);
+
+	if (!m_Built)
+		return;
 	check(Scene != NULL);
 	if (SrcComponent == NULL)
 	{
 		// Source object destroyed, remove ourselves
-		Scene->RemoveActor(GetOwner());
+		Scene->RemoveActor(Cast<ARPRActor>(GetOwner()));
 		return;
 	}
 	check(m_Plugin != NULL);
-
-	Super::TickComponent(deltaTime, tickType, tickFunction);
-
 	if (!m_Plugin->SyncEnabled())
 		return;
 	// Seem to be the only way..

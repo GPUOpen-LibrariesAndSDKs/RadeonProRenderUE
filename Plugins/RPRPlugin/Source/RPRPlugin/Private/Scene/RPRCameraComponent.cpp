@@ -14,11 +14,13 @@ URPRCameraComponent::URPRCameraComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-void	URPRCameraComponent::SetActiveCamera()
+void	URPRCameraComponent::SetAsActiveCamera()
 {
 	check(Scene != NULL);
 	Scene->m_ActiveCamera = this;
 
+	if (m_RprCamera == NULL)
+		return;
 	if (!RebuildTransforms())
 		return;
 	if (rprSceneSetCamera(Scene->m_RprScene, m_RprCamera) != RPR_SUCCESS)
@@ -43,6 +45,7 @@ FString	URPRCameraComponent::GetCameraName() const
 
 bool	URPRCameraComponent::Build()
 {
+	// Async load: SrcComponent can be null if it was deleted from the scene
 	if (Scene == NULL || SrcComponent == NULL)
 		return false;
 	UCineCameraComponent	*cineCam = Cast<UCineCameraComponent>(SrcComponent);
@@ -63,12 +66,8 @@ bool	URPRCameraComponent::Build()
 		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't set RPR camera properties"));
 		return false;
 	}
-	Scene->m_ActiveCamera = this;
-	if (rprSceneSetCamera(Scene->m_RprScene, m_RprCamera) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't set the active RPR camera"));
-		return false;
-	}
+	if (Scene->m_ActiveCamera == this)
+		SetAsActiveCamera();
 	UE_LOG(LogRPRCameraComponent, Log, TEXT("RPR Camera created from '%s'"), *SrcComponent->GetName());
 	return Super::Build();
 }
@@ -95,6 +94,9 @@ bool	URPRCameraComponent::RebuildTransforms()
 void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
 {
 	Super::TickComponent(deltaTime, tickType, tickFunction);
+
+	if (!m_Built)
+		return;
 	if (SrcComponent == NULL)
 		return; // We are about to get destroyed
 

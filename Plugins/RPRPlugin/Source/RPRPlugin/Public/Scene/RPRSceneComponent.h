@@ -30,6 +30,7 @@ public:
 protected:
 	void			TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
 protected:
+	bool					m_Built;
 	class FRPRPluginModule	*m_Plugin;
 private:
 	FTransform				m_CachedTransforms;

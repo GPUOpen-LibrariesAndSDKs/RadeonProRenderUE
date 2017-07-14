@@ -27,6 +27,7 @@ public:
 	bool							TraceEnabled() const { return m_RPRTrace; }
 	bool							SyncEnabled() const { return m_RPRSync; }
 	void							RefreshCameraList();
+	void							NotifyObjectBuilt();
 
 	class ARPRScene					*GetCurrentScene() const;
 	TSharedPtr<UTexture2DDynamic>	GetRenderTexture() { return RenderTexture; }
@@ -38,6 +39,10 @@ public:
 	TArray<TSharedPtr<FString>>		m_QualitySettingsList;
 
 	TSharedPtr<class FSceneViewport>	m_Viewport;
+
+	// tmp
+	uint32									m_ObjectBeingBuilt;
+	uint32									m_ObjectsToBuild;
 private:
 	void					FillRPRMenu(class FMenuBuilder &menuBuilder);
 	void					CreateMenuBarExtension(class FMenuBarBuilder &menubarBuilder);
@@ -46,6 +51,7 @@ private:
 	FText					GetSelectedQualitySettingsName();
 	FText					GetCurrentRenderIteration();
 	FText					GetTraceStatus();
+	FText					GetImportStatus();
 	const FSlateBrush		*GetSyncIcon();
 
 	void					OnWorldCreated(UWorld *inWorld);

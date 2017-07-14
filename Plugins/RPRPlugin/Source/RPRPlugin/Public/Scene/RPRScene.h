@@ -29,11 +29,11 @@ public:
 
 	class URPRCameraComponent	*m_ActiveCamera;
 
-	void	OnRender();
+	void	OnRender(uint32 &outObjectToBuildCount);
 	void	OnSave();
 	void	SetTrace(bool trace);
 
-	void	RemoveActor(AActor *actor);
+	void	RemoveActor(ARPRActor *actor);
 	void	FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames);
 	void	SetActiveCamera(const FString &cameraName);
 	void	SetQualitySettings(ERPRQualitySettings qualitySettings);
@@ -46,9 +46,9 @@ private:
 	virtual bool	ShouldTickIfViewportsOnly() const override { return true; }
 
 	void	RemoveSceneContent();
-	bool	BuildRPRActor(UWorld *world, USceneComponent *srcComponent, UClass *typeClass, bool checkIfContained);
+	bool	QueueBuildRPRActor(UWorld *world, USceneComponent *srcComponent, UClass *typeClass, bool checkIfContained);
 	void	RefreshScene();
-	void	BuildScene();
+	uint32	BuildScene();
 private:
 	bool	m_TriggerEndFrameRebuild;
 
@@ -58,6 +58,9 @@ private:
 
 	UPROPERTY(Transient)
 	TArray<class ARPRActor*>		SceneContent;
+
+	UPROPERTY(Transient)
+	TArray<class ARPRActor*>		BuildQueue;
 
 	UPROPERTY(Transient)
 	TArray<class URPRCameraComponent*>	Cameras;

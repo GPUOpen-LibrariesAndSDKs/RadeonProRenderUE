@@ -35,6 +35,8 @@ FRPRPluginModule::FRPRPluginModule()
 ,	m_GameWorld(NULL)
 ,	m_EditorWorld(NULL)
 ,	m_Extender(NULL)
+,	m_ObjectBeingBuilt(0)
+,	m_ObjectsToBuild()
 ,	m_RPRSync(true)
 ,	m_RPRTrace(false)
 ,	m_Loaded(false)
@@ -58,9 +60,10 @@ ARPRScene	*FRPRPluginModule::GetCurrentScene() const
 
 FReply	OnRender(FRPRPluginModule *module)
 {
+	module->m_ObjectBeingBuilt = 0;
 	ARPRScene	*scene = module->GetCurrentScene();
 	if (scene != NULL)
-		scene->OnRender();
+		scene->OnRender(module->m_ObjectsToBuild);
 	return FReply::Handled();
 }
 
@@ -196,6 +199,23 @@ FText	FRPRPluginModule::GetTraceStatus()
 	if (m_RPRTrace)
 		return FText::FromString("Trace : On");
 	return FText::FromString("Trace : Off");
+}
+
+void	FRPRPluginModule::NotifyObjectBuilt()
+{
+	if (++m_ObjectBeingBuilt >= m_ObjectsToBuild)
+	{
+		m_ObjectsToBuild = 0;
+		m_ObjectBeingBuilt = 0;
+	}
+}
+
+FText	FRPRPluginModule::GetImportStatus()
+{
+	if (m_ObjectsToBuild == 0)
+		return FText();
+	const FString	importStatus = FString::Printf(TEXT("Importing object %d/%d..."), m_ObjectBeingBuilt, m_ObjectsToBuild);
+	return FText::FromString(importStatus);
 }
 
 void	FRPRPluginModule::RefreshCameraList()
@@ -358,6 +378,14 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 				[
 					SNew(STextBlock)
 					.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateRaw(this, &FRPRPluginModule::GetTraceStatus)))
+				]
+				+ SOverlay::Slot()
+				.VAlign(VAlign_Bottom)
+				.HAlign(HAlign_Left)
+				.Padding(5.0f)
+				[
+					SNew(STextBlock)
+					.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateRaw(this, &FRPRPluginModule::GetImportStatus)))
 				]
 			]
 		];

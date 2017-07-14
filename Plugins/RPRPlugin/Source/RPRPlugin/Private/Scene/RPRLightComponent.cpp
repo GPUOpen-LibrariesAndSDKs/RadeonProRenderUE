@@ -113,6 +113,7 @@ bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightCompone
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Skipped '%s', there is no specified cubemap"), *skyLightComponent->GetName());
 		return false;
 	}
+	return false;
 	m_RprImage = BuildCubeImage(skyLightComponent->Cubemap, Scene->m_RprContext);
 	if (m_RprImage == NULL)
 		return false;
@@ -155,6 +156,7 @@ bool	URPRLightComponent::BuildDirectionalLight(const UDirectionalLightComponent 
 
 bool	URPRLightComponent::Build()
 {
+	// Async load: SrcComponent can be null if it was deleted from the scene
 	if (Scene == NULL || SrcComponent == NULL)
 		return false;
 
@@ -230,6 +232,8 @@ void	URPRLightComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 {
 	Super::TickComponent(deltaTime, tickType, tickFunction);
 
+	if (!m_Built)
+		return;
 	if (SrcComponent == NULL)
 		return; // We are about to get destroyed
 
