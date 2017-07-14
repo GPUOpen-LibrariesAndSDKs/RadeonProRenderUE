@@ -2,6 +2,8 @@
 
 #include "RPRScene.h"
 
+#include "RprTools.h"
+
 #include "Scene/RPRLightComponent.h"
 #include "Scene/RPRStaticMeshComponent.h"
 #include "Scene/RPRViewportCameraComponent.h"
@@ -230,6 +232,76 @@ void	ARPRScene::RefreshScene()
 	}
 }
 
+uint32	ARPRScene::GetContextCreationFlags(const FString &dllPath)
+{
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
+
+	rpr_creation_flags	maxCreationFlags = 0;
+	if (settings->bEnableCPU)
+		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_CPU;
+	if (settings->bEnableGPU1)
+		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU0;
+	if (settings->bEnableGPU2)
+		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU1;
+	if (settings->bEnableGPU3)
+		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU2;
+	if (settings->bEnableGPU4)
+		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU3;
+	if (settings->bEnableGPU5)
+		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU4;
+	if (settings->bEnableGPU6)
+		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU5;
+	if (settings->bEnableGPU7)
+		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU6;
+	if (settings->bEnableGPU8)
+		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU7;
+	rpr_creation_flags	creationFlags = 0;
+
+	RPR_TOOLS_OS	os =
+#if PLATFORM_WINDOWS
+	RPRTOS_WINDOWS;
+#elif PLATFORM_MAC
+	RPRTOS_MC;
+#elif PLATFORM_LINUX
+	RPRTOS_LINUX;
+#else
+	return 0; // incompatible
+#endif
+
+	rprAreDevicesCompatible(TCHAR_TO_ANSI(*dllPath), false, maxCreationFlags, &creationFlags, os);
+	if (creationFlags > 0)
+	{
+		if (creationFlags != RPR_CREATION_FLAGS_ENABLE_CPU)
+			creationFlags &= ~RPR_CREATION_FLAGS_ENABLE_CPU;
+
+		FString	usedDevices = "Device(s) used for ProRender: ";
+		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_CPU)
+			usedDevices += "[CPU]";
+		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU0)
+			usedDevices += "[GPU1]";
+		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU1)
+			usedDevices += "[GPU2]";
+		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU2)
+			usedDevices += "[GPU3]";
+		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU3)
+			usedDevices += "[GPU4]";
+		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU4)
+			usedDevices += "[GPU5]";
+		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU5)
+			usedDevices += "[GPU6]";
+		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU6)
+			usedDevices += "[GPU7]";
+		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU7)
+			usedDevices += "[GPU8]";
+
+		usedDevices += ".";
+
+		UE_LOG(LogRPRScene, Log, TEXT("%s"), *usedDevices);
+	}
+	return creationFlags;
+}
+
 void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 {
 	if (m_RprContext == NULL)
@@ -245,12 +317,17 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 
 		FString	cachePath = settings->RenderCachePath;
 		FString	dllPath = FPaths::GameDir() + "/Binaries/Win64/Tahoe64.dll"; // To get from settings ?
-		uint32	creationFlags = RPR_CREATION_FLAGS_ENABLE_GPU0; // for now
 
 		rpr_int	tahoePluginId = rprRegisterPlugin(TCHAR_TO_ANSI(*dllPath)); // Seems to be mandatory
 		if (tahoePluginId == -1)
 		{
 			UE_LOG(LogRPRScene, Error, TEXT("\"%s\" not registered by \"%s\" path."), "Tahoe64.dll", *dllPath);
+			return;
+		}
+		uint32	creationFlags = GetContextCreationFlags(dllPath);
+		if (creationFlags == 0)
+		{
+			UE_LOG(LogRPRScene, Error, TEXT("Couldn't find a compatible device"));
 			return;
 		}
 		if (rprCreateContext(RPR_API_VERSION, &tahoePluginId, 1, creationFlags, NULL, TCHAR_TO_ANSI(*cachePath), &m_RprContext) != RPR_SUCCESS)

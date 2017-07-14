@@ -50,6 +50,7 @@ private:
 	void	RefreshScene();
 	uint32	BuildScene();
 	bool	BuildViewportCamera();
+	uint32	GetContextCreationFlags(const FString &dllPath);
 private:
 	bool	m_TriggerEndFrameRebuild;
 

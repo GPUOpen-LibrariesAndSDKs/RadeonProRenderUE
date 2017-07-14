@@ -10,6 +10,15 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 ,	TraceFolder(FPaths::GameSavedDir() + "/RadeonProRender/Trace/")
 ,	MaximumRenderIterations(32)
 ,	RenderTargetDimensions(1920, 1080)
+,	bEnableGPU1(true)
+,	bEnableGPU2(true)
+,	bEnableGPU3(true)
+,	bEnableGPU4(true)
+,	bEnableGPU5(true)
+,	bEnableGPU6(true)
+,	bEnableGPU7(true)
+,	bEnableGPU8(true)
+,	bEnableCPU(false) // By default, no GPUs available, abort
 {
 }
 
