@@ -21,6 +21,9 @@ public:
 	void			EnsureCompletion();
 	bool			Flush() const;
 
+	void			SyncQueue(TArray<class ARPRActor*> &newBuildQueue, TArray<class ARPRActor*> &outBuiltObjects);
+
+	bool			IsBuildingObjects() const { return m_IsBuildingObjects; }
 	bool			ResizeFramebuffer(uint32 width, uint32 height);
 	bool			RestartRender();
 	void			SetTrace(bool trace, const FString &tracePath);
@@ -38,23 +41,29 @@ public:
 private:
 	bool		BuildFramebufferData();
 	void		ReleaseResources();
+	void		BuildQueuedObjects();
 private:
-	FRunnableThread			*m_Thread;
-	FThreadSafeCounter		m_StopTaskCounter;
-	FCriticalSection		m_RenderLock;
+	FRunnableThread				*m_Thread;
+	FThreadSafeCounter			m_StopTaskCounter;
+	FCriticalSection			m_RenderLock;
 
-	uint32					m_CurrentIteration;
-	uint32					m_PreviousRenderedIteration;
+	uint32						m_CurrentIteration;
+	uint32						m_PreviousRenderedIteration;
 
-	uint32					m_Width;
-	uint32					m_Height;
+	uint32						m_Width;
+	uint32						m_Height;
 
-	rpr_framebuffer_format	m_RprFrameBufferFormat;
-	rpr_framebuffer_desc	m_RprFrameBufferDesc;
-	rpr_framebuffer			m_RprFrameBuffer;
-	rpr_scene				m_RprScene;
-	rpr_context				m_RprContext;
+	rpr_framebuffer_format		m_RprFrameBufferFormat;
+	rpr_framebuffer_desc		m_RprFrameBufferDesc;
+	rpr_framebuffer				m_RprFrameBuffer;
+	rpr_scene					m_RprScene;
+	rpr_context					m_RprContext;
 
-	TArray<float>			m_SrcFramebufferData;
-	TArray<uint8>			m_DstFramebufferData;
+	TArray<float>				m_SrcFramebufferData;
+	TArray<uint8>				m_DstFramebufferData;
+
+	FCriticalSection			m_BuildLock;
+	bool						m_IsBuildingObjects;
+	TArray<class ARPRActor*>	m_BuildQueue;
+	TArray<class ARPRActor*>	m_BuiltObjects;
 };

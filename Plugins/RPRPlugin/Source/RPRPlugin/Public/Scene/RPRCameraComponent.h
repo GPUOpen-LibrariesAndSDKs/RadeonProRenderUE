@@ -14,13 +14,21 @@ class URPRCameraComponent : public URPRSceneComponent
 public:
 	URPRCameraComponent();
 
-	void			SetActiveCamera();
+	void			SetAsActiveCamera();
 	FString			GetCameraName() const;
-
+private:
 	virtual bool	Build() override;
 	virtual bool	RebuildTransforms() override;
-private:
+	virtual void	TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
 	virtual void	BeginDestroy() override;
-public:
+
+	bool			RefreshProperties(bool force);
+private:
 	rpr_camera	m_RprCamera;
+
+	ECameraProjectionMode::Type	m_CachedProjectionMode;
+	float						m_CachedFocalLength;
+	float						m_CachedFocusDistance;
+	float						m_CachedAperture;
+	FVector2D					m_CachedSensorSize;
 };

@@ -5,6 +5,9 @@
 #include "RPRSettings.h"
 #include "HAL/RunnableThread.h"
 
+#include "Scene/RPRSceneComponent.h"
+#include "Scene/RPRActor.h"
+
 #include "RPRStats.h"
 
 DEFINE_STAT(STAT_ProRender_Render);
@@ -22,6 +25,7 @@ FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene scene, uin
 ,	m_PreviousRenderedIteration(0)
 ,	m_Width(width)
 ,	m_Height(height)
+,	m_IsBuildingObjects(false)
 {
 	m_Thread = FRunnableThread::Create(this, TEXT("FRPRRendererWorker"));
 }
@@ -161,6 +165,21 @@ bool	FRPRRendererWorker::RestartRender()
 	return true;
 }
 
+void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARPRActor*> &outBuiltObjects)
+{
+	if (m_BuildLock.TryLock())
+	{
+		uint32	queueCount = newBuildQueue.Num();
+		for (uint32 iObject = 0; iObject < queueCount; ++iObject)
+			m_BuildQueue.Add(newBuildQueue[iObject]);
+		outBuiltObjects.Append(m_BuiltObjects);
+		m_BuiltObjects.Empty();
+		m_IsBuildingObjects = m_BuildQueue.Num() > 0;
+		m_BuildLock.Unlock();
+		newBuildQueue.Empty();
+	}
+}
+
 void	FRPRRendererWorker::SetQualitySettings(ERPRQualitySettings qualitySettings)
 {
 	if (m_RprContext == NULL)
@@ -240,6 +259,32 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 	return true;
 }
 
+void	FRPRRendererWorker::BuildQueuedObjects()
+{
+	FRPRPluginModule	*plugin = FRPRPluginModule::Get();
+
+	const uint32	objectCount = m_BuildQueue.Num();
+	for (uint32 iObject = 0; iObject < objectCount; ++iObject)
+	{
+		plugin->NotifyObjectBuilt();
+
+		ARPRActor	*actor = m_BuildQueue[iObject];
+		check(actor != NULL);
+
+		URPRSceneComponent	*component = Cast<URPRSceneComponent>(actor->GetRootComponent());
+		check(component != NULL);
+
+		// No watter what happens, we increase the displayed counter:
+		if (!component->Build())
+		{
+			actor->GetWorld()->DestroyActor(actor);
+			continue;
+		}
+		m_BuiltObjects.Add(actor);
+	}
+	m_BuildQueue.Empty();
+}
+
 uint32	FRPRRendererWorker::Run()
 {
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
@@ -248,6 +293,10 @@ uint32	FRPRRendererWorker::Run()
 	while (m_StopTaskCounter.GetValue() == 0)
 	{
 		SCOPE_CYCLE_COUNTER(STAT_ProRender_Render);
+		m_BuildLock.Lock();
+		if (m_IsBuildingObjects)
+			BuildQueuedObjects();
+		m_BuildLock.Unlock();
 		if (m_CurrentIteration < settings->MaximumRenderIterations && m_RenderLock.TryLock())
 		{
 			if (rprContextRender(m_RprContext) != RPR_SUCCESS)
@@ -262,7 +311,8 @@ uint32	FRPRRendererWorker::Run()
 			m_DataLock.Unlock();
 			++m_CurrentIteration;
 		}
-		FPlatformProcess::Sleep(0.1f);
+		else
+			FPlatformProcess::Sleep(0.1f);
 	}
 	ReleaseResources();
 	return 0;
@@ -291,6 +341,18 @@ void	FRPRRendererWorker::ReleaseResources()
 		rprObjectDelete(m_RprFrameBuffer);
 		m_RprFrameBuffer = NULL;
 	}
+	m_BuildLock.Lock();
+	const uint32	objectCount = m_BuildQueue.Num();
+	for (uint32 iObject = 0; iObject < objectCount; ++iObject)
+	{
+		ARPRActor	*actor = m_BuildQueue[iObject];
+		if (actor == NULL ||
+			actor->GetWorld() == NULL)
+			continue;
+		actor->GetWorld()->DestroyActor(actor);
+	}
+	m_BuildQueue.Empty();
+	m_BuildLock.Unlock();
 	m_RprContext = NULL;
 	m_RprScene = NULL;
 }

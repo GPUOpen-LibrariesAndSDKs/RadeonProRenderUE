@@ -105,6 +105,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 
 bool	URPRStaticMeshComponent::Build()
 {
+	// Async load: SrcComponent can be null if it was deleted from the scene
 	if (Scene == NULL || SrcComponent == NULL)
 		return false;
 
@@ -142,9 +143,6 @@ bool	URPRStaticMeshComponent::Build()
 	const FStaticMeshLODResources		&lodRes = staticMesh->RenderData->LODResources[0];
 	if (lodRes.Sections.Num() == 0)
 		return false;
-
-
-
 
 #define RPR_UMS_INTEGRATION 0
 
@@ -318,19 +316,22 @@ bool	URPRStaticMeshComponent::RebuildTransforms()
 void	URPRStaticMeshComponent::BeginDestroy()
 {
 	Super::BeginDestroy();
+	check(Scene != NULL);
+	uint32	shapeCount = m_Shapes.Num();
+	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
+	{
+		if (m_Shapes[iShape].m_RprShape != NULL)
+		{
+			rprSceneDetachShape(Scene->m_RprScene, m_Shapes[iShape].m_RprShape);
+			rprObjectDelete(m_Shapes[iShape].m_RprShape);
+		}
+		if (m_Shapes[iShape].m_RprMaterial != NULL)
+			rprObjectDelete(m_Shapes[iShape].m_RprMaterial);
+	}
+	m_Shapes.Empty();
 	if (m_RprMaterialSystem != NULL)
 	{
 		rprObjectDelete(m_RprMaterialSystem);
 		m_RprMaterialSystem = NULL;
 	}
-	// TODO: Check if we need to call rprSceneDetachShape or rprObjectDelete does this thing for us
-	uint32	shapeCount = m_Shapes.Num();
-	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
-	{
-		if (m_Shapes[iShape].m_RprShape != NULL)
-			rprObjectDelete(m_Shapes[iShape].m_RprShape);
-		if (m_Shapes[iShape].m_RprMaterial != NULL)
-			rprObjectDelete(m_Shapes[iShape].m_RprMaterial);
-	}
-	m_Shapes.Empty();
 }
