@@ -23,6 +23,7 @@ void	URPRCameraComponent::SetAsActiveCamera()
 		return;
 	if (!RebuildTransforms())
 		return;
+	RefreshProperties(false);
 	if (rprSceneSetCamera(Scene->m_RprScene, m_RprCamera) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't set the active RPR camera"));
@@ -103,6 +104,9 @@ void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FA
 	check(m_Plugin != NULL);
 
 	if (!m_Plugin->SyncEnabled())
+		return;
+	// If we are not the main camera, don't rebuild
+	if (Scene->m_ActiveCamera != this)
 		return;
 	// Check all cached properties (might be a better way)
 	// There is PostEditChangeProperty but this is editor only
