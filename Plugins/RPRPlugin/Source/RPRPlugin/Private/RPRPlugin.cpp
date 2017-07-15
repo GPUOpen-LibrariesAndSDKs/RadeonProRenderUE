@@ -109,32 +109,23 @@ TSharedRef<SWidget>	FRPRPluginModule::OnGenerateCameraWidget(TSharedPtr<FString>
 		.Text(FText::FromString(*inItem));
 }
 
-TSharedRef<SWidget>	FRPRPluginModule::OnGenerateQualitySettingsWidget(TSharedPtr<FString> inItem) const
-{
-	return SNew(STextBlock)
-		.Text(FText::FromString(*inItem));
-}
-
 void	FRPRPluginModule::OpenSettings()
 {
 	FModuleManager::LoadModuleChecked<ISettingsModule>("Settings").ShowViewer("Project", "Plugins", "RadeonProRenderSettings");
 }
 
+FText	FRPRPluginModule::GetSelectedCameraName() const
+{
+	return FText::FromString("Camera : " + m_ActiveCameraName);
+}
+
 void	FRPRPluginModule::OnCameraChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo)
 {
-	for (int32 iCamera = 0; iCamera < m_AvailableCameraNames.Num(); ++iCamera)
-	{
-		if (m_AvailableCameraNames[iCamera] == item)
-		{
-			m_ActiveCameraName = *item.Get();
-			// Set active camera
+	m_ActiveCameraName = *item.Get();
 
-			ARPRScene	*scene = GetCurrentScene();
-			if (scene != NULL)
-				scene->SetActiveCamera(m_ActiveCameraName);
-			break;
-		}
-	}
+	ARPRScene	*scene = GetCurrentScene();
+	if (scene != NULL)
+		scene->SetActiveCamera(m_ActiveCameraName);
 }
 
 const FSlateBrush	*FRPRPluginModule::GetSyncIcon() const
@@ -151,9 +142,10 @@ const FSlateBrush	*FRPRPluginModule::GetRenderIcon() const
 	return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.Pause").GetIcon();
 }
 
-FText	FRPRPluginModule::GetSelectedCameraName() const
+TSharedRef<SWidget>	FRPRPluginModule::OnGenerateQualitySettingsWidget(TSharedPtr<FString> inItem) const
 {
-	return FText::FromString("Camera : " + m_ActiveCameraName);
+	return SNew(STextBlock)
+		.Text(FText::FromString(*inItem));
 }
 
 void	FRPRPluginModule::OnQualitySettingsChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo)
@@ -196,6 +188,37 @@ FText	FRPRPluginModule::GetSelectedQualitySettingsName() const
 			return LOCTEXT("HighTitle", "Quality : High");
 	}
 	return FText();
+}
+
+TSharedRef<SWidget>	FRPRPluginModule::OnGenerateMegaPixelWidget(TSharedPtr<FString> inItem) const
+{
+	const FString	content = *inItem.Get() + " Megapixels";
+	return SNew(STextBlock)
+		.Text(FText::FromString(content));
+}
+
+void	FRPRPluginModule::OnMegaPixelChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo)
+{
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
+
+	settings->MegaPixelCount = FCString::Atof(**item.Get());
+	settings->SaveConfig();
+
+	ARPRScene	*scene = GetCurrentScene();
+	if (scene != NULL)
+		scene->ResizeRenderTarget();
+}
+
+FText	FRPRPluginModule::GetSelectedMegaPixelName() const
+{
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
+
+	// TODO: Cache this
+	FNumberFormattingOptions	formatOptions;
+	formatOptions.MaximumIntegralDigits = 1;
+	return FText::Format(LOCTEXT("MegaPixelTitle", "{0} Megapixels"), FText::AsNumber(settings->MegaPixelCount, &formatOptions));
 }
 
 FText	FRPRPluginModule::GetCurrentRenderIteration() const
@@ -267,6 +290,12 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 	m_QualitySettingsList.Add(MakeShared<FString>("Low"));
 	m_QualitySettingsList.Add(MakeShared<FString>("Medium"));
 	m_QualitySettingsList.Add(MakeShared<FString>("High"));
+	m_AvailableMegaPixels.Add(MakeShared<FString>("0.25"));
+	m_AvailableMegaPixels.Add(MakeShared<FString>("0.5"));
+	m_AvailableMegaPixels.Add(MakeShared<FString>("1.0"));
+	m_AvailableMegaPixels.Add(MakeShared<FString>("2.0"));
+	m_AvailableMegaPixels.Add(MakeShared<FString>("4.0"));
+	m_AvailableMegaPixels.Add(MakeShared<FString>("8.0"));
 
 	const FVector2D	&dimensions = FGlobalTabmanager::Get()->GetRootWindow()->GetSizeInScreen();
 	const FVector2D	renderResolution(settings->RenderTargetDimensions.X, settings->RenderTargetDimensions.Y);
@@ -364,6 +393,19 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 					[
 						SNew(STextBlock)
 						.Text(this, &FRPRPluginModule::GetSelectedQualitySettingsName)
+					]
+				]
+				+SHorizontalBox::Slot()
+				.AutoWidth()
+				.Padding(2.0f)
+				[
+					SNew(SComboBox<TSharedPtr<FString>>)
+					.OptionsSource(&m_AvailableMegaPixels)
+					.OnGenerateWidget(this, &FRPRPluginModule::OnGenerateMegaPixelWidget)
+					.OnSelectionChanged(this, &FRPRPluginModule::OnMegaPixelChanged)
+					[
+						SNew(STextBlock)
+						.Text(this, &FRPRPluginModule::GetSelectedMegaPixelName)
 					]
 				]
 			]

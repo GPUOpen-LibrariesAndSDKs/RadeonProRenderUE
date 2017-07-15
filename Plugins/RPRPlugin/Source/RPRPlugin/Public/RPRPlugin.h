@@ -32,7 +32,10 @@ private:
 	TSharedRef<SDockTab>	SpawnRPRViewportTab(const class FSpawnTabArgs&);
 	FText					GetSelectedCameraName() const;
 	FText					GetSelectedQualitySettingsName() const;
+	FText					GetSelectedMegaPixelName() const;
 	void					OnQualitySettingsChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo);
+	void					OnCameraChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo);
+	void					OnMegaPixelChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo);
 	FText					GetCurrentRenderIteration() const;
 	FText					GetTraceStatus() const;
 	FText					GetImportStatus() const;
@@ -42,11 +45,11 @@ private:
 	FReply					OnToggleTrace();
 	FReply					OnToggleSync();
 	FReply					OnSave();
-	void					OnCameraChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo);
 	class ARPRScene			*GetCurrentScene() const;
 	void					RefreshCameraList();
 	TSharedRef<SWidget>		OnGenerateCameraWidget(TSharedPtr<FString> inItem) const;
 	TSharedRef<SWidget>		OnGenerateQualitySettingsWidget(TSharedPtr<FString> inItem) const;
+	TSharedRef<SWidget>		OnGenerateMegaPixelWidget(TSharedPtr<FString> inItem) const;
 
 	void					OnWorldCreated(UWorld *inWorld);
 	void					OnWorldDestroyed(UWorld *inWorld);
@@ -64,6 +67,7 @@ private:
 	TSharedPtr<FSlateDynamicImageBrush>		RenderTextureBrush;
 
 	FString									m_ActiveCameraName;
+	TArray<TSharedPtr<FString>>				m_AvailableMegaPixels;
 	TArray<TSharedPtr<FString>>				m_AvailableCameraNames;
 	TArray<TSharedPtr<FString>>				m_QualitySettingsList;
 

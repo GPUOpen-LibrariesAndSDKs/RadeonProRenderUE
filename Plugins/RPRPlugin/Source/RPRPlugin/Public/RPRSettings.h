@@ -73,4 +73,7 @@ public:
 
 	UPROPERTY(Config)
 	TEnumAsByte<ERPRQualitySettings>	QualitySettings;
+
+	UPROPERTY(Config)
+	float		MegaPixelCount;
 };

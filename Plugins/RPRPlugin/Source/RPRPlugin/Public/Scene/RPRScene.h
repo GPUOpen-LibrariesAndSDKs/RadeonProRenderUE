@@ -35,6 +35,7 @@ public:
 	void	OnSave();
 	void	SetTrace(bool trace);
 
+	void	ResizeRenderTarget();
 	void	RemoveActor(ARPRActor *actor);
 	void	FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames);
 	void	SetActiveCamera(const FString &cameraName);

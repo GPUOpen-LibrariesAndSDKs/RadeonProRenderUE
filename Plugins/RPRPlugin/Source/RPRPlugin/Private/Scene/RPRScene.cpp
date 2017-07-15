@@ -201,6 +201,11 @@ uint32	ARPRScene::BuildScene()
 	return unbuiltObjects;
 }
 
+void	ARPRScene::ResizeRenderTarget()
+{
+
+}
+
 void	ARPRScene::RefreshScene()
 {
 	// Dont queue other actors
