@@ -2,8 +2,11 @@
 
 #include "RPRScene.h"
 
+#include "RprTools.h"
+
 #include "Scene/RPRLightComponent.h"
 #include "Scene/RPRStaticMeshComponent.h"
+#include "Scene/RPRViewportCameraComponent.h"
 #include "Renderer/RPRRendererWorker.h"
 
 #include "RPRPlugin.h"
@@ -30,8 +33,11 @@ ARPRScene::ARPRScene()
 ,	m_RendererWorker(NULL)
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 }
 
+static const FString	kViewportCameraName = "Active viewport camera";
 void	ARPRScene::FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames)
 {
 	UWorld	*world = GetWorld();
@@ -48,12 +54,23 @@ void	ARPRScene::FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames)
 			continue;
 		outCameraNames.Add(MakeShared<FString>(parent->GetName()));
 	}
+	// IF in editor:
+	outCameraNames.Add(MakeShared<FString>(kViewportCameraName));
 }
 
 void	ARPRScene::SetActiveCamera(const FString &cameraName)
 {
 	if (m_RprContext == NULL)
 		return;
+
+	// IF in editor
+	if (cameraName == kViewportCameraName)
+	{
+		if (ViewportCameraComponent != NULL)
+			ViewportCameraComponent->SetAsActiveCamera();
+		return;
+	}
+
 	const uint32	cameraCount = Cameras.Num();
 	for (uint32 iCamera = 0; iCamera < cameraCount; ++iCamera)
 	{
@@ -114,12 +131,9 @@ bool	ARPRScene::QueueBuildRPRActor(UWorld *world, USceneComponent *srcComponent,
 	if (immediateBuild)
 	{
 		// Profile that, if too much, do one "immediate build object" per frame ?
-		if (!comp->Build())
-		{
-			GetWorld()->DestroyActor(newActor);
-			return false;
-		}
+		comp->Build();
 		SceneContent.Add(newActor);
+		return false;
 	}
 	else
 	{
@@ -144,6 +158,27 @@ void	ARPRScene::RemoveActor(ARPRActor *actor)
 	TriggerFrameRebuild();
 }
 
+bool	ARPRScene::BuildViewportCamera()
+{
+	check(ViewportCameraComponent == NULL);
+
+	ViewportCameraComponent = NewObject<URPRViewportCameraComponent>(this, URPRViewportCameraComponent::StaticClass());
+	check(ViewportCameraComponent != NULL);
+
+	ViewportCameraComponent->Scene = this;
+	ViewportCameraComponent->SrcComponent = GetRootComponent();
+	ViewportCameraComponent->RegisterComponent();
+
+	// Profile that, if too much, do one "immediate build object" per frame ?
+	if (!ViewportCameraComponent->Build())
+	{
+		// TODO : Make sure DestroyComponent actually destroys it
+		ViewportCameraComponent->DestroyComponent();
+		return false;
+	}
+	return true;
+}
+
 uint32	ARPRScene::BuildScene()
 {
 	UWorld	*world = GetWorld();
@@ -163,12 +198,6 @@ uint32	ARPRScene::BuildScene()
 		else if (Cast<UCineCameraComponent>(*it) != NULL)
 			unbuiltObjects += QueueBuildRPRActor(world, *it, URPRCameraComponent::StaticClass(), false);
 	}
-
-	// Pickup the specified camera
-	FRPRPluginModule	*plugin = FRPRPluginModule::Get();
-	if (!plugin->m_ActiveCameraName.IsEmpty()) // Otherwise, it'll just use the last found camera in the scene
-		SetActiveCamera(plugin->m_ActiveCameraName);
-
 	return unbuiltObjects;
 }
 
@@ -200,6 +229,76 @@ void	ARPRScene::RefreshScene()
 	}
 }
 
+uint32	ARPRScene::GetContextCreationFlags(const FString &dllPath)
+{
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
+
+	rpr_creation_flags	maxCreationFlags = 0;
+	if (settings->bEnableCPU)
+		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_CPU;
+	if (settings->bEnableGPU1)
+		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU0;
+	if (settings->bEnableGPU2)
+		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU1;
+	if (settings->bEnableGPU3)
+		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU2;
+	if (settings->bEnableGPU4)
+		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU3;
+	if (settings->bEnableGPU5)
+		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU4;
+	if (settings->bEnableGPU6)
+		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU5;
+	if (settings->bEnableGPU7)
+		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU6;
+	if (settings->bEnableGPU8)
+		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU7;
+	rpr_creation_flags	creationFlags = 0;
+
+	RPR_TOOLS_OS	os =
+#if PLATFORM_WINDOWS
+	RPRTOS_WINDOWS;
+#elif PLATFORM_MAC
+	RPRTOS_MC;
+#elif PLATFORM_LINUX
+	RPRTOS_LINUX;
+#else
+	return 0; // incompatible
+#endif
+
+	rprAreDevicesCompatible(TCHAR_TO_ANSI(*dllPath), false, maxCreationFlags, &creationFlags, os);
+	if (creationFlags > 0)
+	{
+		if (creationFlags != RPR_CREATION_FLAGS_ENABLE_CPU)
+			creationFlags &= ~RPR_CREATION_FLAGS_ENABLE_CPU;
+
+		FString	usedDevices = "Device(s) used for ProRender: ";
+		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_CPU)
+			usedDevices += "[CPU]";
+		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU0)
+			usedDevices += "[GPU1]";
+		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU1)
+			usedDevices += "[GPU2]";
+		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU2)
+			usedDevices += "[GPU3]";
+		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU3)
+			usedDevices += "[GPU4]";
+		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU4)
+			usedDevices += "[GPU5]";
+		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU5)
+			usedDevices += "[GPU6]";
+		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU6)
+			usedDevices += "[GPU7]";
+		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU7)
+			usedDevices += "[GPU8]";
+
+		usedDevices += ".";
+
+		UE_LOG(LogRPRScene, Log, TEXT("%s"), *usedDevices);
+	}
+	return creationFlags;
+}
+
 void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 {
 	if (m_RprContext == NULL)
@@ -215,12 +314,17 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 
 		FString	cachePath = settings->RenderCachePath;
 		FString	dllPath = FPaths::GameDir() + "/Binaries/Win64/Tahoe64.dll"; // To get from settings ?
-		uint32	creationFlags = RPR_CREATION_FLAGS_ENABLE_GPU0; // for now
 
 		rpr_int	tahoePluginId = rprRegisterPlugin(TCHAR_TO_ANSI(*dllPath)); // Seems to be mandatory
 		if (tahoePluginId == -1)
 		{
 			UE_LOG(LogRPRScene, Error, TEXT("\"%s\" not registered by \"%s\" path."), "Tahoe64.dll", *dllPath);
+			return;
+		}
+		uint32	creationFlags = GetContextCreationFlags(dllPath);
+		if (creationFlags == 0)
+		{
+			UE_LOG(LogRPRScene, Error, TEXT("Couldn't find a compatible device"));
 			return;
 		}
 		if (rprCreateContext(RPR_API_VERSION, &tahoePluginId, 1, creationFlags, NULL, TCHAR_TO_ANSI(*cachePath), &m_RprContext) != RPR_SUCCESS)
@@ -250,17 +354,30 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 
 		outObjectToBuildCount = BuildScene();
 
-	}
-
-	TriggerFrameRebuild();
-
-	if (!m_RendererWorker.IsValid())
-	{
-		FRPRPluginModule	*plugin = FRPRPluginModule::Get();
+		// IF in editor
+		if (!BuildViewportCamera())
+			return;
+		// Pickup the specified camera
+		if (!plugin->ActiveCameraName().IsEmpty()) // Otherwise, it'll just use the last found camera in the scene
+			SetActiveCamera(plugin->ActiveCameraName());
+		else
+		{
+			// IF in editor
+			SetActiveCamera(kViewportCameraName);
+		}
+		TriggerFrameRebuild();
 
 		m_RendererWorker = MakeShareable(new FRPRRendererWorker(m_RprContext, m_RprScene, RenderTexture->SizeX, RenderTexture->SizeY));
-		m_RendererWorker->SetQualitySettings(plugin->m_QualitySettings);
+		m_RendererWorker->SetQualitySettings(settings->QualitySettings);
 	}
+	m_RendererWorker->SetPaused(false);
+}
+
+void	ARPRScene::OnPause()
+{
+	if (!m_RendererWorker.IsValid())
+		return;
+	m_RendererWorker->SetPaused(true);
 }
 
 void	ARPRScene::SetTrace(bool trace)
@@ -349,13 +466,17 @@ void	ARPRScene::Tick(float deltaTime)
 		RenderTexture->Resource == NULL)
 		return;
 
+	FRPRPluginModule	*plugin = FRPRPluginModule::Get();
+	check(plugin != NULL);
+	if (plugin->RenderPaused())
+		return;
+
 	// First, launch build of queued actors on the RPR thread
 	const uint32	actorCount = SceneContent.Num();
 	m_RendererWorker->SyncQueue(BuildQueue, SceneContent);
 	if (actorCount != SceneContent.Num())
 		TriggerFrameRebuild();
 
-	FRPRPluginModule	*plugin = FRPRPluginModule::Get();
 	if (plugin->SyncEnabled())
 		RefreshScene();
 
@@ -363,8 +484,8 @@ void	ARPRScene::Tick(float deltaTime)
 		m_TriggerEndFrameRebuild)
 	{
 		// Restart render, skip frame copy
-		m_RendererWorker->RestartRender();
-		m_TriggerEndFrameRebuild = false;
+		if (m_RendererWorker->RestartRender()) // Trylock, might fail
+			m_TriggerEndFrameRebuild = false;
 	}
 	else if (m_RendererWorker->Flush())
 	{

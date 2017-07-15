@@ -4,6 +4,7 @@
 
 URPRSceneComponent::URPRSceneComponent()
 :	m_Built(false)
+,	m_Sync(true)
 ,	m_Plugin(NULL)
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -12,10 +13,9 @@ URPRSceneComponent::URPRSceneComponent()
 
 bool	URPRSceneComponent::Build()
 {
+	m_Plugin = FRPRPluginModule::Get();
+
 	check(SrcComponent != NULL);
-
-	m_Plugin = FRPRPluginModule::Get();;
-
 	m_CachedTransforms = SrcComponent->ComponentToWorld;
 	m_Built = true;
 	return true;
@@ -25,7 +25,7 @@ void	URPRSceneComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 {
 	Super::TickComponent(deltaTime, tickType, tickFunction);
 
-	if (!m_Built)
+	if (!m_Built || !m_Sync)
 		return;
 	check(Scene != NULL);
 	if (SrcComponent == NULL)
@@ -44,6 +44,6 @@ void	URPRSceneComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 	{
 		if (RebuildTransforms())
 			Scene->TriggerFrameRebuild();
+		m_CachedTransforms = SrcComponent->ComponentToWorld;
 	}
-	m_CachedTransforms = SrcComponent->ComponentToWorld;
 }

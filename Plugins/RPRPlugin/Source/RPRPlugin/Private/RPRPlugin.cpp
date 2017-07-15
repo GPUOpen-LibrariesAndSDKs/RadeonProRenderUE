@@ -37,6 +37,7 @@ FRPRPluginModule::FRPRPluginModule()
 ,	m_Extender(NULL)
 ,	m_ObjectBeingBuilt(0)
 ,	m_ObjectsToBuild()
+,	m_RPRPaused(true)
 ,	m_RPRSync(true)
 ,	m_RPRTrace(false)
 ,	m_Loaded(false)
@@ -58,46 +59,43 @@ ARPRScene	*FRPRPluginModule::GetCurrentScene() const
 	return NULL;
 }
 
-FReply	OnRender(FRPRPluginModule *module)
+FReply	FRPRPluginModule::OnToggleRender()
 {
-	module->m_ObjectBeingBuilt = 0;
-	ARPRScene	*scene = module->GetCurrentScene();
+	m_RPRPaused = !m_RPRPaused;
+
+	ARPRScene	*scene = GetCurrentScene();
 	if (scene != NULL)
-		scene->OnRender(module->m_ObjectsToBuild);
+	{
+		m_ObjectBeingBuilt = 0;
+		if (!m_RPRPaused)
+			scene->OnRender(m_ObjectsToBuild);
+		else
+			scene->OnPause();
+	}
 	return FReply::Handled();
 }
 
-FReply	OnToggleSync(FRPRPluginModule *module)
-{
-	module->ToggleRPRSync();
-	return FReply::Handled();
-}
-
-void	FRPRPluginModule::ToggleRPRSync()
+FReply	FRPRPluginModule::OnToggleSync()
 {
 	m_RPRSync = !m_RPRSync;
+	return FReply::Handled();
 }
 
-FReply	OnSave(FRPRPluginModule *module)
+FReply	FRPRPluginModule::OnSave()
 {
-	ARPRScene	*scene = module->GetCurrentScene();
+	ARPRScene	*scene = GetCurrentScene();
 	if (scene != NULL)
 		scene->OnSave();
 	return FReply::Handled();
 }
 
-FReply	OnToggleTrace(FRPRPluginModule *module)
-{
-	module->ToggleRPRTrace();
-	return FReply::Handled();
-}
-
-void	FRPRPluginModule::ToggleRPRTrace()
+FReply	FRPRPluginModule::OnToggleTrace()
 {
 	m_RPRTrace = !m_RPRTrace;
 	ARPRScene	*scene = GetCurrentScene();
 	if (scene != NULL)
 		scene->SetTrace(m_RPRTrace);
+	return FReply::Handled();
 }
 
 void	FRPRPluginModule::OpenURL(const TCHAR *url)
@@ -105,72 +103,91 @@ void	FRPRPluginModule::OpenURL(const TCHAR *url)
 	FPlatformProcess::LaunchURL(url, NULL, NULL);
 }
 
-void	FRPRPluginModule::OpenSettings()
-{
-	FModuleManager::LoadModuleChecked<ISettingsModule>("Settings").ShowViewer("Project", "Plugins", "RadeonProRenderSettings");
-}
-
-TSharedRef<SWidget>	OnGenerateCameraWidget(TSharedPtr<FString> inItem)
+TSharedRef<SWidget>	FRPRPluginModule::OnGenerateCameraWidget(TSharedPtr<FString> inItem) const
 {
 	return SNew(STextBlock)
 		.Text(FText::FromString(*inItem));
 }
 
-void	OnCameraChanged(TSharedPtr<FString> item, ESelectInfo::Type InSeletionInfo, FRPRPluginModule *instance)
+TSharedRef<SWidget>	FRPRPluginModule::OnGenerateQualitySettingsWidget(TSharedPtr<FString> inItem) const
 {
-	for (int32 iCamera = 0; iCamera < instance->m_AvailableCameraNames.Num(); ++iCamera)
+	return SNew(STextBlock)
+		.Text(FText::FromString(*inItem));
+}
+
+void	FRPRPluginModule::OpenSettings()
+{
+	FModuleManager::LoadModuleChecked<ISettingsModule>("Settings").ShowViewer("Project", "Plugins", "RadeonProRenderSettings");
+}
+
+void	FRPRPluginModule::OnCameraChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo)
+{
+	for (int32 iCamera = 0; iCamera < m_AvailableCameraNames.Num(); ++iCamera)
 	{
-		if (instance->m_AvailableCameraNames[iCamera] == item)
+		if (m_AvailableCameraNames[iCamera] == item)
 		{
-			instance->m_ActiveCameraName = *item.Get();
+			m_ActiveCameraName = *item.Get();
 			// Set active camera
 
-			ARPRScene	*scene = instance->GetCurrentScene();
+			ARPRScene	*scene = GetCurrentScene();
 			if (scene != NULL)
-				scene->SetActiveCamera(instance->m_ActiveCameraName);
+				scene->SetActiveCamera(m_ActiveCameraName);
 			break;
 		}
 	}
 }
 
-const FSlateBrush	*FRPRPluginModule::GetSyncIcon()
+const FSlateBrush	*FRPRPluginModule::GetSyncIcon() const
 {
 	if (m_RPRSync)
 		return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.SyncOn").GetIcon();
 	return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.SyncOff").GetIcon();
 }
 
-FText	FRPRPluginModule::GetSelectedCameraName()
+const FSlateBrush	*FRPRPluginModule::GetRenderIcon() const
+{
+	if (m_RPRPaused)
+		return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.Render").GetIcon();
+	return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.Pause").GetIcon();
+}
+
+FText	FRPRPluginModule::GetSelectedCameraName() const
 {
 	return FText::FromString("Camera : " + m_ActiveCameraName);
 }
 
-TSharedRef<SWidget>	OnGenerateQualitySettingsWidget(TSharedPtr<FString> inItem)
+void	FRPRPluginModule::OnQualitySettingsChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo)
 {
-	return SNew(STextBlock)
-		.Text(FText::FromString(*inItem));
-}
+	const FString	settingsString = *item.Get();
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
 
-void	OnQualitySettingsChanged(TSharedPtr<FString> item, ESelectInfo::Type InSeletionInfo, FRPRPluginModule *instance)
-{
-	const FString	settings = *item.Get();
+	ERPRQualitySettings	newSettings;
+	if (settingsString == "Interactive")
+		newSettings = ERPRQualitySettings::Interactive;
+	else if (settingsString == "Low")
+		newSettings = ERPRQualitySettings::Low;
+	else if (settingsString == "Medium")
+		newSettings = ERPRQualitySettings::Medium;
+	else if (settingsString == "High")
+		newSettings = ERPRQualitySettings::High;
+	settings->QualitySettings = newSettings;
+	settings->SaveConfig();
 
-	if (settings == "Low")
-		instance->m_QualitySettings = ERPRQualitySettings::Low;
-	else if (settings == "Medium")
-		instance->m_QualitySettings = ERPRQualitySettings::Medium;
-	else if (settings == "High")
-		instance->m_QualitySettings = ERPRQualitySettings::High;
-
-	ARPRScene	*scene = instance->GetCurrentScene();
+	ARPRScene	*scene = GetCurrentScene();
 	if (scene != NULL)
-		scene->SetQualitySettings(instance->m_QualitySettings);
+		scene->SetQualitySettings(settings->QualitySettings);
 }
 
-FText	FRPRPluginModule::GetSelectedQualitySettingsName()
+FText	FRPRPluginModule::GetSelectedQualitySettingsName() const
 {
-	switch (m_QualitySettings)
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
+
+	switch (settings->QualitySettings)
 	{
+		case	ERPRQualitySettings::Interactive:
+			return LOCTEXT("InteractiveTitle", "Quality : Interactive");
 		case	ERPRQualitySettings::Low:
 			return LOCTEXT("LowTitle", "Quality : Low");
 		case	ERPRQualitySettings::Medium:
@@ -181,7 +198,7 @@ FText	FRPRPluginModule::GetSelectedQualitySettingsName()
 	return FText();
 }
 
-FText	FRPRPluginModule::GetCurrentRenderIteration()
+FText	FRPRPluginModule::GetCurrentRenderIteration() const
 {
 	ARPRScene	*scene = GetCurrentScene();
 	if (scene != NULL)
@@ -194,7 +211,7 @@ FText	FRPRPluginModule::GetCurrentRenderIteration()
 	return FText();
 }
 
-FText	FRPRPluginModule::GetTraceStatus()
+FText	FRPRPluginModule::GetTraceStatus() const
 {
 	if (m_RPRTrace)
 		return FText::FromString("Trace : On");
@@ -210,7 +227,7 @@ void	FRPRPluginModule::NotifyObjectBuilt()
 	}
 }
 
-FText	FRPRPluginModule::GetImportStatus()
+FText	FRPRPluginModule::GetImportStatus() const
 {
 	if (m_ObjectsToBuild == 0)
 		return FText();
@@ -246,10 +263,10 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 	RefreshCameraList();
 	if (m_AvailableCameraNames.Num() > 0)
 		m_ActiveCameraName = *m_AvailableCameraNames[0].Get();
+	m_QualitySettingsList.Add(MakeShared<FString>("Interactive"));
 	m_QualitySettingsList.Add(MakeShared<FString>("Low"));
 	m_QualitySettingsList.Add(MakeShared<FString>("Medium"));
 	m_QualitySettingsList.Add(MakeShared<FString>("High"));
-	m_QualitySettings = ERPRQualitySettings::Medium;
 
 	const FVector2D	&dimensions = FGlobalTabmanager::Get()->GetRootWindow()->GetSizeInScreen();
 	const FVector2D	renderResolution(settings->RenderTargetDimensions.X, settings->RenderTargetDimensions.Y);
@@ -272,12 +289,12 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 				[
 					SNew(SButton)
 					.Text(LOCTEXT("RenderLabel", "Render"))
-					.ToolTipText(LOCTEXT("RenderTooltip", "Renders the currently edited scene."))
-					.OnClicked(FOnClicked::CreateStatic(&OnRender, this))
+					.ToolTipText(LOCTEXT("RenderTooltip", "Toggles scene rendering."))
+					.OnClicked(this, &FRPRPluginModule::OnToggleRender)
 					.Content()
 					[
 						SNew(SImage)
-						.Image(FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.Render").GetIcon())
+						.Image(this, &FRPRPluginModule::GetRenderIcon)
 					]
 				]
 				+ SHorizontalBox::Slot()
@@ -287,11 +304,11 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 					SNew(SButton)
 					.Text(LOCTEXT("SyncLabel", "Sync"))
 					.ToolTipText(LOCTEXT("SyncTooltip", "Toggles scene synchronization."))
-					.OnClicked(FOnClicked::CreateStatic(&OnToggleSync, this))
+					.OnClicked(this, &FRPRPluginModule::OnToggleSync)
 					.Content()
 					[
 						SNew(SImage)
-						.Image(TAttribute<const FSlateBrush*>::Create(TAttribute<const FSlateBrush*>::FGetter::CreateRaw(this, &FRPRPluginModule::GetSyncIcon)))
+						.Image(this, &FRPRPluginModule::GetSyncIcon)
 					]
 				]
 				+ SHorizontalBox::Slot()
@@ -301,7 +318,7 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 					SNew(SButton)
 					.Text(LOCTEXT("SaveLabel", "Save"))
 					.ToolTipText(LOCTEXT("SaveTooltip", "Save the framebuffer state or ProRender scene."))
-					.OnClicked(FOnClicked::CreateStatic(&OnSave, this))
+					.OnClicked(this, &FRPRPluginModule::OnSave)
 					.Content()
 					[
 						SNew(SImage)
@@ -315,7 +332,7 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 					SNew(SButton)
 					.Text(LOCTEXT("ToggleTraceLabel", "Trace"))
 					.ToolTipText(LOCTEXT("TraceTooltip", "Toggles RPR Tracing."))
-					.OnClicked(FOnClicked::CreateStatic(&OnToggleTrace, this))
+					.OnClicked(this, &FRPRPluginModule::OnToggleTrace)
 					.Content()
 					[
 						SNew(SImage)
@@ -329,11 +346,11 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 					SNew(SComboBox<TSharedPtr<FString>>)
 					.OptionsSource(&m_AvailableCameraNames)
 					.OnComboBoxOpening(this, &FRPRPluginModule::RefreshCameraList)
-					.OnGenerateWidget(SComboBox<TSharedPtr<FString>>::FOnGenerateWidget::CreateStatic(&OnGenerateCameraWidget))
-					.OnSelectionChanged(SComboBox<TSharedPtr<FString>>::FOnSelectionChanged::CreateStatic(&OnCameraChanged, this))
+					.OnGenerateWidget(this, &FRPRPluginModule::OnGenerateCameraWidget)
+					.OnSelectionChanged(this, &FRPRPluginModule::OnCameraChanged)
 					[
 						SNew(STextBlock)
-						.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateRaw(this, &FRPRPluginModule::GetSelectedCameraName)))
+						.Text(this, &FRPRPluginModule::GetSelectedCameraName)
 					]
 				]
 				+SHorizontalBox::Slot()
@@ -342,11 +359,11 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 				[
 					SNew(SComboBox<TSharedPtr<FString>>)
 					.OptionsSource(&m_QualitySettingsList)
-					.OnGenerateWidget(SComboBox<TSharedPtr<FString>>::FOnGenerateWidget::CreateStatic(&OnGenerateQualitySettingsWidget))
-					.OnSelectionChanged(SComboBox<TSharedPtr<FString>>::FOnSelectionChanged::CreateStatic(&OnQualitySettingsChanged, this))
+					.OnGenerateWidget(this, &FRPRPluginModule::OnGenerateQualitySettingsWidget)
+					.OnSelectionChanged(this, &FRPRPluginModule::OnQualitySettingsChanged)
 					[
 						SNew(STextBlock)
-						.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateRaw(this, &FRPRPluginModule::GetSelectedQualitySettingsName)))
+						.Text(this, &FRPRPluginModule::GetSelectedQualitySettingsName)
 					]
 				]
 			]
@@ -369,7 +386,7 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 				.Padding(5.0f)
 				[
 					SNew(STextBlock)
-					.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateRaw(this, &FRPRPluginModule::GetCurrentRenderIteration)))
+					.Text(this, &FRPRPluginModule::GetCurrentRenderIteration)
 				]
 				+ SOverlay::Slot()
 				.VAlign(VAlign_Bottom)
@@ -377,7 +394,7 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 				.Padding(0.0f, 0.0f, 5.0f, 20.0f)
 				[
 					SNew(STextBlock)
-					.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateRaw(this, &FRPRPluginModule::GetTraceStatus)))
+					.Text(this, &FRPRPluginModule::GetTraceStatus)
 				]
 				+ SOverlay::Slot()
 				.VAlign(VAlign_Bottom)
@@ -385,7 +402,7 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 				.Padding(5.0f)
 				[
 					SNew(STextBlock)
-					.Text(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateRaw(this, &FRPRPluginModule::GetImportStatus)))
+					.Text(this, &FRPRPluginModule::GetImportStatus)
 				]
 			]
 		];

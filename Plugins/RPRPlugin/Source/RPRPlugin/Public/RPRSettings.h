@@ -4,6 +4,16 @@
 
 #include "RPRSettings.generated.h"
 
+
+UENUM()
+enum	ERPRQualitySettings
+{
+	Interactive,
+	Low,
+	Medium,
+	High
+};
+
 UCLASS(MinimalAPI, Config=Engine, DefaultConfig)
 class URPRSettings : public UObject
 {
@@ -24,4 +34,43 @@ public:
 	/** Defines ProRender framebuffer size. */
 	UPROPERTY(Config, EditAnywhere, Category = General)
 	FIntPoint	RenderTargetDimensions;
+
+	/** Enables GPU1 usage */
+	UPROPERTY(Config, EditAnywhere, Category = Devices)
+	uint32		bEnableGPU1 : 1;
+
+	/** Enables GPU2 usage */
+	UPROPERTY(Config, EditAnywhere, Category = Devices)
+	uint32		bEnableGPU2 : 1;
+
+	/** Enables GPU3 usage */
+	UPROPERTY(Config, EditAnywhere, Category = Devices)
+	uint32		bEnableGPU3 : 1;
+
+	/** Enables GPU4 usage */
+	UPROPERTY(Config, EditAnywhere, Category = Devices)
+	uint32		bEnableGPU4 : 1;
+
+	/** Enables GPU5 usage */
+	UPROPERTY(Config, EditAnywhere, Category = Devices)
+	uint32		bEnableGPU5 : 1;
+
+	/** Enables GPU6 usage */
+	UPROPERTY(Config, EditAnywhere, Category = Devices)
+	uint32		bEnableGPU6 : 1;
+
+	/** Enables GPU7 usage */
+	UPROPERTY(Config, EditAnywhere, Category = Devices)
+	uint32		bEnableGPU7 : 1;
+
+	/** Enables GPU8 usage */
+	UPROPERTY(Config, EditAnywhere, Category = Devices)
+	uint32		bEnableGPU8 : 1;
+
+	/** Enables CPU usage (only used if no GPUs are available) */
+	UPROPERTY(Config, EditAnywhere, Category = Devices)
+	uint32		bEnableCPU : 1;
+
+	UPROPERTY(Config)
+	TEnumAsByte<ERPRQualitySettings>	QualitySettings;
 };

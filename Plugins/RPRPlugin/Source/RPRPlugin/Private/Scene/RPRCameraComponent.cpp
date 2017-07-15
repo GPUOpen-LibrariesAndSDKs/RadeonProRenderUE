@@ -60,7 +60,7 @@ bool	URPRCameraComponent::Build()
 	FVector		camPos = SrcComponent->ComponentToWorld.GetLocation() * 0.1f;
 	FVector		forward = camPos + SrcComponent->ComponentToWorld.GetRotation().GetForwardVector();
 	if (!RefreshProperties(true) ||
-		rprCameraLookAt(m_RprCamera, camPos.X, camPos.Z, camPos.Y, forward.X, forward.Z, forward.Y, 0, 1, 0) ||
+		rprCameraLookAt(m_RprCamera, camPos.X, camPos.Z, camPos.Y, forward.X, forward.Z, forward.Y, 0, 1, 0) != RPR_SUCCESS ||
 		rprCameraSetExposure(m_RprCamera, exposure) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't set RPR camera properties"));

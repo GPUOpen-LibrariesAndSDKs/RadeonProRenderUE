@@ -26,6 +26,8 @@ FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene scene, uin
 ,	m_Width(width)
 ,	m_Height(height)
 ,	m_IsBuildingObjects(false)
+,	m_ClearFramebuffer(false)
+,	m_PauseRender(true)
 {
 	m_Thread = FRunnableThread::Create(this, TEXT("FRPRRendererWorker"));
 }
@@ -142,32 +144,16 @@ bool	FRPRRendererWorker::RestartRender()
 {
 	if (m_RprFrameBuffer == NULL)
 		return false;
-
-	m_RenderLock.Lock();
-	m_DataLock.Lock();
-
-	// Launch the new frame render
-	if (rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS)
-	{
-		m_DataLock.Unlock();
-		m_RenderLock.Unlock();
-		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't clear framebuffer"));
+	if (!m_PreRenderLock.TryLock())
 		return false;
-	}
-	FMemory::Memset(m_DstFramebufferData.GetData(), 0, m_Width * m_Height * 4);
-
-	UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully cleared"));
-	m_CurrentIteration = 0;
-	m_PreviousRenderedIteration = 0;
-	m_DataLock.Unlock();
-	m_RenderLock.Unlock();
-
+	m_ClearFramebuffer = true;
+	m_PreRenderLock.Unlock();
 	return true;
 }
 
 void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARPRActor*> &outBuiltObjects)
 {
-	if (m_BuildLock.TryLock())
+	if (m_PreRenderLock.TryLock())
 	{
 		uint32	queueCount = newBuildQueue.Num();
 		for (uint32 iObject = 0; iObject < queueCount; ++iObject)
@@ -175,7 +161,11 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 		outBuiltObjects.Append(m_BuiltObjects);
 		m_BuiltObjects.Empty();
 		m_IsBuildingObjects = m_BuildQueue.Num() > 0;
-		m_BuildLock.Unlock();
+
+		if (m_IsBuildingObjects)
+			m_CurrentIteration = 0;
+
+		m_PreRenderLock.Unlock();
 		newBuildQueue.Empty();
 	}
 }
@@ -189,6 +179,12 @@ void	FRPRRendererWorker::SetQualitySettings(ERPRQualitySettings qualitySettings)
 	uint32	numRayBounces = 0;
 	switch (qualitySettings)
 	{
+		case	ERPRQualitySettings::Interactive:
+		{
+			numSamples = 1;
+			numRayBounces = 1;
+			break;
+		}
 		case	ERPRQualitySettings::Low:
 		{
 			numSamples = 1;
@@ -223,6 +219,13 @@ void	FRPRRendererWorker::SetQualitySettings(ERPRQualitySettings qualitySettings)
 	}
 }
 
+void	FRPRRendererWorker::SetPaused(bool pause)
+{
+	m_PreRenderLock.Lock();
+	m_PauseRender = pause;
+	m_PreRenderLock.Unlock();
+}
+
 bool	FRPRRendererWorker::BuildFramebufferData()
 {
 	SCOPE_CYCLE_COUNTER(STAT_ProRender_Readback);
@@ -245,6 +248,7 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 		// No frame ready yet
 		return false;
 	}
+	m_DataLock.Lock();
 	uint8			*dstPixels = m_DstFramebufferData.GetData();
 	const float		*srcPixels = m_SrcFramebufferData.GetData();
 	const uint32	pixelCount = m_Width * m_Height;
@@ -256,6 +260,7 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++, 255.0f);
 		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++, 255.0f);
 	}
+	m_DataLock.Unlock();
 	return true;
 }
 
@@ -274,12 +279,9 @@ void	FRPRRendererWorker::BuildQueuedObjects()
 		URPRSceneComponent	*component = Cast<URPRSceneComponent>(actor->GetRootComponent());
 		check(component != NULL);
 
-		// No watter what happens, we increase the displayed counter:
-		if (!component->Build())
-		{
-			actor->GetWorld()->DestroyActor(actor);
-			continue;
-		}
+		// Even if build fails, keep the component around to avoid having the async load
+		// adding each frame the previous components it failed to build before
+		component->Build();
 		m_BuiltObjects.Add(actor);
 	}
 	m_BuildQueue.Empty();
@@ -293,11 +295,25 @@ uint32	FRPRRendererWorker::Run()
 	while (m_StopTaskCounter.GetValue() == 0)
 	{
 		SCOPE_CYCLE_COUNTER(STAT_ProRender_Render);
-		m_BuildLock.Lock();
+		m_PreRenderLock.Lock();
 		if (m_IsBuildingObjects)
 			BuildQueuedObjects();
-		m_BuildLock.Unlock();
-		if (m_CurrentIteration < settings->MaximumRenderIterations && m_RenderLock.TryLock())
+		if (m_ClearFramebuffer)
+		{
+			if (rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS)
+			{
+				UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't clear framebuffer"));
+				m_PreRenderLock.Unlock();
+				break;
+			}
+			UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully cleared"));
+			m_CurrentIteration = 0;
+			m_PreviousRenderedIteration = 0;
+			m_ClearFramebuffer = false;
+		}
+		const bool	isPaused = m_PauseRender;
+		m_PreRenderLock.Unlock();
+		if (m_CurrentIteration < settings->MaximumRenderIterations && !isPaused && m_RenderLock.TryLock())
 		{
 			if (rprContextRender(m_RprContext) != RPR_SUCCESS)
 			{
@@ -306,13 +322,14 @@ uint32	FRPRRendererWorker::Run()
 				break;
 			}
 			m_RenderLock.Unlock();
-			m_DataLock.Lock();
 			BuildFramebufferData();
-			m_DataLock.Unlock();
 			++m_CurrentIteration;
 		}
 		else
+		{
+			m_RenderLock.Unlock();
 			FPlatformProcess::Sleep(0.1f);
+		}
 	}
 	ReleaseResources();
 	return 0;
@@ -341,7 +358,7 @@ void	FRPRRendererWorker::ReleaseResources()
 		rprObjectDelete(m_RprFrameBuffer);
 		m_RprFrameBuffer = NULL;
 	}
-	m_BuildLock.Lock();
+	m_PreRenderLock.Lock();
 	const uint32	objectCount = m_BuildQueue.Num();
 	for (uint32 iObject = 0; iObject < objectCount; ++iObject)
 	{
@@ -352,7 +369,7 @@ void	FRPRRendererWorker::ReleaseResources()
 		actor->GetWorld()->DestroyActor(actor);
 	}
 	m_BuildQueue.Empty();
-	m_BuildLock.Unlock();
+	m_PreRenderLock.Unlock();
 	m_RprContext = NULL;
 	m_RprScene = NULL;
 }

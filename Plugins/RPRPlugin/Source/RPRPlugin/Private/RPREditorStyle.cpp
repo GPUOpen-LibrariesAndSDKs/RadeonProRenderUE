@@ -36,6 +36,9 @@ TSharedRef<FSlateStyleSet>	FRPREditorStyle::Create()
 	style.Set("RPRViewport.Render", new IMAGE_BRUSH("Icons/Record_16x", Icon20x20));
 	style.Set("RPRViewport.Render.Small", new IMAGE_BRUSH("Icons/Record_16x", Icon16x16));
 
+	style.Set("RPRViewport.Pause", new IMAGE_BRUSH("Icons/icon_SCueEd_Stop_40x", Icon20x20));
+	style.Set("RPRViewport.Pause.Small", new IMAGE_BRUSH("Icons/icon_SCueEd_Stop_40x", Icon16x16));
+
 	style.Set("RPRViewport.SyncOff", new IMAGE_BRUSH("Icons/SourceControlOff_16x", Icon20x20));
 	style.Set("RPRViewport.SyncOff.Small", new IMAGE_BRUSH("Icons/SourceControlOff_16x", Icon16x16));
 

@@ -21,6 +21,7 @@ public class RPRPlugin : ModuleRules
 		PrivateIncludePaths.AddRange(
 			new string[] {
 				"RPRPlugin/Private",
+				"RPRPlugin/ThirdParty/RadeonProRender",
 				"RPRPlugin/ThirdParty/RadeonProRender/inc",
 				"RPRPlugin/ThirdParty/RadeonProRenderInterchange/include"
 			}
