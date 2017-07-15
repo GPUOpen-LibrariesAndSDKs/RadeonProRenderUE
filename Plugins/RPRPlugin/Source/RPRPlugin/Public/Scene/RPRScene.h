@@ -30,6 +30,7 @@ public:
 	class URPRSceneComponent	*m_ActiveCamera;
 
 	void	OnRender(uint32 &outObjectToBuildCount);
+	void	OnPause();
 	void	OnSave();
 	void	SetTrace(bool trace);
 

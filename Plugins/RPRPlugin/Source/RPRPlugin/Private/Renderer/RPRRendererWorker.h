@@ -30,6 +30,7 @@ public:
 	void			SaveToFile(const FString &filename);
 	void			SetQualitySettings(ERPRQualitySettings qualitySettings);
 	uint32			Iteration() const { return m_CurrentIteration; }
+	void			SetPaused(bool paused);
 
 	const uint8		*GetFramebufferData()
 	{
@@ -46,6 +47,7 @@ private:
 	FRunnableThread				*m_Thread;
 	FThreadSafeCounter			m_StopTaskCounter;
 	FCriticalSection			m_RenderLock;
+	FCriticalSection			m_PreRenderLock;
 
 	uint32						m_CurrentIteration;
 	uint32						m_PreviousRenderedIteration;
@@ -62,9 +64,9 @@ private:
 	TArray<float>				m_SrcFramebufferData;
 	TArray<uint8>				m_DstFramebufferData;
 
-	FCriticalSection			m_BuildLock;
 	bool						m_IsBuildingObjects;
 	bool						m_ClearFramebuffer;
+	bool						m_PauseRender;
 	TArray<class ARPRActor*>	m_BuildQueue;
 	TArray<class ARPRActor*>	m_BuiltObjects;
 };

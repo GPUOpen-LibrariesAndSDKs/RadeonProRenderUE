@@ -131,12 +131,9 @@ bool	ARPRScene::QueueBuildRPRActor(UWorld *world, USceneComponent *srcComponent,
 	if (immediateBuild)
 	{
 		// Profile that, if too much, do one "immediate build object" per frame ?
-		if (!comp->Build())
-		{
-			GetWorld()->DestroyActor(newActor);
-			return false;
-		}
+		comp->Build();
 		SceneContent.Add(newActor);
+		return false;
 	}
 	else
 	{
@@ -368,17 +365,19 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 			// IF in editor
 			SetActiveCamera(kViewportCameraName);
 		}
-	}
-
-	TriggerFrameRebuild();
-
-	if (!m_RendererWorker.IsValid())
-	{
-		FRPRPluginModule	*plugin = FRPRPluginModule::Get();
+		TriggerFrameRebuild();
 
 		m_RendererWorker = MakeShareable(new FRPRRendererWorker(m_RprContext, m_RprScene, RenderTexture->SizeX, RenderTexture->SizeY));
 		m_RendererWorker->SetQualitySettings(plugin->m_QualitySettings);
 	}
+	m_RendererWorker->SetPaused(false);
+}
+
+void	ARPRScene::OnPause()
+{
+	if (!m_RendererWorker.IsValid())
+		return;
+	m_RendererWorker->SetPaused(true);
 }
 
 void	ARPRScene::SetTrace(bool trace)
@@ -467,13 +466,17 @@ void	ARPRScene::Tick(float deltaTime)
 		RenderTexture->Resource == NULL)
 		return;
 
+	FRPRPluginModule	*plugin = FRPRPluginModule::Get();
+	check(plugin != NULL);
+	if (plugin->RenderPaused())
+		return;
+
 	// First, launch build of queued actors on the RPR thread
 	const uint32	actorCount = SceneContent.Num();
 	m_RendererWorker->SyncQueue(BuildQueue, SceneContent);
 	if (actorCount != SceneContent.Num())
 		TriggerFrameRebuild();
 
-	FRPRPluginModule	*plugin = FRPRPluginModule::Get();
 	if (plugin->SyncEnabled())
 		RefreshScene();
 
