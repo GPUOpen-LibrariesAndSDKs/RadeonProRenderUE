@@ -10,6 +10,7 @@
 #include <set>
 #include "Materials/MaterialExpressionLinearInterpolate.h"
 #include <regex>
+#include "Materials/MaterialExpressionVectorParameter.h"
 
 
 std::shared_ptr<rpri::generic::IMaterialNodeMux> 
@@ -57,7 +58,10 @@ bool ShouldBeConvertedToMaterialValue(UMaterialExpression * _expression)
 	{
 		return true;
 	}
-	
+	if (_expression->IsA(UMaterialExpressionVectorParameter::StaticClass()))
+	{
+		return true;
+	}
 	return false;
 }
 IMaterialNodeMuxPtr ConvertUMaterialExpression(
@@ -104,7 +108,15 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 			auto con = static_cast<UMaterialExpressionConstant4Vector *>(_expression);
 			valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(),
 				con->Constant);
-		} else
+		} else if(_expression->IsA(UMaterialExpressionVectorParameter::StaticClass()))
+		{
+			fieldName = "DefaultValue";
+			valueName = _id + fieldName;
+			auto con = static_cast<UMaterialExpressionVectorParameter *>(_expression);
+			valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(),
+				con->DefaultValue);
+		}
+		else
 		{
 			// should not get here
 			assert(false);
