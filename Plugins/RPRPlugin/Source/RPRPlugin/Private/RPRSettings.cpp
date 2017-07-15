@@ -19,6 +19,7 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 ,	bEnableGPU7(true)
 ,	bEnableGPU8(true)
 ,	bEnableCPU(false) // By default, no GPUs available, abort
+,	QualitySettings(ERPRQualitySettings::Medium)
 {
 }
 

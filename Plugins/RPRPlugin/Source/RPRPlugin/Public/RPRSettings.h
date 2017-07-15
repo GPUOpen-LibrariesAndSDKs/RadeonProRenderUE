@@ -4,6 +4,16 @@
 
 #include "RPRSettings.generated.h"
 
+
+UENUM()
+enum	ERPRQualitySettings
+{
+	Interactive,
+	Low,
+	Medium,
+	High
+};
+
 UCLASS(MinimalAPI, Config=Engine, DefaultConfig)
 class URPRSettings : public UObject
 {
@@ -60,4 +70,7 @@ public:
 	/** Enables CPU usage (only used if no GPUs are available) */
 	UPROPERTY(Config, EditAnywhere, Category = Devices)
 	uint32		bEnableCPU : 1;
+
+	UPROPERTY(Config)
+	TEnumAsByte<ERPRQualitySettings>	QualitySettings;
 };

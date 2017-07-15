@@ -179,6 +179,12 @@ void	FRPRRendererWorker::SetQualitySettings(ERPRQualitySettings qualitySettings)
 	uint32	numRayBounces = 0;
 	switch (qualitySettings)
 	{
+		case	ERPRQualitySettings::Interactive:
+		{
+			numSamples = 1;
+			numRayBounces = 1;
+			break;
+		}
 		case	ERPRQualitySettings::Low:
 		{
 			numSamples = 1;

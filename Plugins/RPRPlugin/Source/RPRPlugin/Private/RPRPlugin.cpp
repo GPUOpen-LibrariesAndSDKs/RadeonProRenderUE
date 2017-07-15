@@ -158,24 +158,36 @@ FText	FRPRPluginModule::GetSelectedCameraName() const
 
 void	FRPRPluginModule::OnQualitySettingsChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo)
 {
-	const FString	settings = *item.Get();
+	const FString	settingsString = *item.Get();
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
 
-	if (settings == "Low")
-		m_QualitySettings = ERPRQualitySettings::Low;
-	else if (settings == "Medium")
-		m_QualitySettings = ERPRQualitySettings::Medium;
-	else if (settings == "High")
-		m_QualitySettings = ERPRQualitySettings::High;
+	ERPRQualitySettings	newSettings;
+	if (settingsString == "Interactive")
+		newSettings = ERPRQualitySettings::Interactive;
+	else if (settingsString == "Low")
+		newSettings = ERPRQualitySettings::Low;
+	else if (settingsString == "Medium")
+		newSettings = ERPRQualitySettings::Medium;
+	else if (settingsString == "High")
+		newSettings = ERPRQualitySettings::High;
+	settings->QualitySettings = newSettings;
+	settings->SaveConfig();
 
 	ARPRScene	*scene = GetCurrentScene();
 	if (scene != NULL)
-		scene->SetQualitySettings(m_QualitySettings);
+		scene->SetQualitySettings(settings->QualitySettings);
 }
 
 FText	FRPRPluginModule::GetSelectedQualitySettingsName() const
 {
-	switch (m_QualitySettings)
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
+
+	switch (settings->QualitySettings)
 	{
+		case	ERPRQualitySettings::Interactive:
+			return LOCTEXT("InteractiveTitle", "Quality : Interactive");
 		case	ERPRQualitySettings::Low:
 			return LOCTEXT("LowTitle", "Quality : Low");
 		case	ERPRQualitySettings::Medium:
@@ -251,10 +263,10 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 	RefreshCameraList();
 	if (m_AvailableCameraNames.Num() > 0)
 		m_ActiveCameraName = *m_AvailableCameraNames[0].Get();
+	m_QualitySettingsList.Add(MakeShared<FString>("Interactive"));
 	m_QualitySettingsList.Add(MakeShared<FString>("Low"));
 	m_QualitySettingsList.Add(MakeShared<FString>("Medium"));
 	m_QualitySettingsList.Add(MakeShared<FString>("High"));
-	m_QualitySettings = ERPRQualitySettings::Medium;
 
 	const FVector2D	&dimensions = FGlobalTabmanager::Get()->GetRootWindow()->GetSizeInScreen();
 	const FVector2D	renderResolution(settings->RenderTargetDimensions.X, settings->RenderTargetDimensions.Y);

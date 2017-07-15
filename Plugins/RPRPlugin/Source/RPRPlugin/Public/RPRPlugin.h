@@ -5,13 +5,6 @@
 #include "CoreMinimal.h"
 #include "ModuleManager.h"
 
-enum	ERPRQualitySettings
-{
-	Low,
-	Medium,
-	High
-};
-
 class FRPRPluginModule : public IModuleInterface, public TSharedFromThis<FRPRPluginModule>
 {
 public:
@@ -26,16 +19,12 @@ public:
 	bool							SyncEnabled() const { return m_RPRSync; }
 	bool							RenderPaused() const { return m_RPRPaused; }
 
+	const FString					&ActiveCameraName() const { return m_ActiveCameraName; }
+
 	void							NotifyObjectBuilt();
 
 	TSharedPtr<UTexture2DDynamic>	GetRenderTexture() { return RenderTexture; }
 public:
-	FString							m_ActiveCameraName;
-	TArray<TSharedPtr<FString>>		m_AvailableCameraNames;
-
-	ERPRQualitySettings				m_QualitySettings;
-	TArray<TSharedPtr<FString>>		m_QualitySettingsList;
-
 	TSharedPtr<class FSceneViewport>	m_Viewport;
 private:
 	void					FillRPRMenu(class FMenuBuilder &menuBuilder);
@@ -73,6 +62,10 @@ private:
 
 	TSharedPtr<UTexture2DDynamic>			RenderTexture;
 	TSharedPtr<FSlateDynamicImageBrush>		RenderTextureBrush;
+
+	FString									m_ActiveCameraName;
+	TArray<TSharedPtr<FString>>				m_AvailableCameraNames;
+	TArray<TSharedPtr<FString>>				m_QualitySettingsList;
 
 	class UWorld							*m_GameWorld;
 	class UWorld							*m_EditorWorld;

@@ -5,6 +5,7 @@
 #include "RadeonProRender.h"
 #include "HAL/Runnable.h"
 #include "RPRPlugin.h"
+#include "RPRSettings.h"
 
 class FRPRRendererWorker : public FRunnable
 {

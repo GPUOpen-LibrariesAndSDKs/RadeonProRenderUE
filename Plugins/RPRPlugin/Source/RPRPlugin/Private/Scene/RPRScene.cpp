@@ -358,8 +358,8 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		if (!BuildViewportCamera())
 			return;
 		// Pickup the specified camera
-		if (!plugin->m_ActiveCameraName.IsEmpty()) // Otherwise, it'll just use the last found camera in the scene
-			SetActiveCamera(plugin->m_ActiveCameraName);
+		if (!plugin->ActiveCameraName().IsEmpty()) // Otherwise, it'll just use the last found camera in the scene
+			SetActiveCamera(plugin->ActiveCameraName());
 		else
 		{
 			// IF in editor
@@ -368,7 +368,7 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		TriggerFrameRebuild();
 
 		m_RendererWorker = MakeShareable(new FRPRRendererWorker(m_RprContext, m_RprScene, RenderTexture->SizeX, RenderTexture->SizeY));
-		m_RendererWorker->SetQualitySettings(plugin->m_QualitySettings);
+		m_RendererWorker->SetQualitySettings(settings->QualitySettings);
 	}
 	m_RendererWorker->SetPaused(false);
 }

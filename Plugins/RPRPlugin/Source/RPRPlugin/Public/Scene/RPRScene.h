@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "RadeonProRender.h"
 #include "RPRPlugin.h"
+#include "RPRSettings.h"
 #include "GameFramework/Actor.h"
 #include "RPRScene.generated.h"
 
