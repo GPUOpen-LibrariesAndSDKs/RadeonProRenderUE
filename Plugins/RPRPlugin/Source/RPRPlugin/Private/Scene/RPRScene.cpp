@@ -46,7 +46,7 @@ void	ARPRScene::FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames)
 	UWorld	*world = GetWorld();
 
 	check(world != NULL);
-	for (TObjectIterator<UCineCameraComponent> it; it; ++it)
+	for (TObjectIterator<UCameraComponent> it; it; ++it)
 	{
 		if (it->GetWorld() != world ||
 			it->HasAnyFlags(RF_Transient | RF_BeginDestroyed) ||
@@ -198,7 +198,7 @@ uint32	ARPRScene::BuildScene()
 			unbuiltObjects += QueueBuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass(), false);
 		else if (Cast<ULightComponentBase>(*it) != NULL)
 			unbuiltObjects += QueueBuildRPRActor(world, *it, URPRLightComponent::StaticClass(), false);
-		else if (Cast<UCineCameraComponent>(*it) != NULL)
+		else if (Cast<UCameraComponent>(*it) != NULL)
 			unbuiltObjects += QueueBuildRPRActor(world, *it, URPRCameraComponent::StaticClass(), false);
 	}
 	return unbuiltObjects;
@@ -270,7 +270,7 @@ void	ARPRScene::RefreshScene()
 			objectAdded |= QueueBuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass(), true);
 		else if (Cast<ULightComponentBase>(*it) != NULL)
 			objectAdded |= QueueBuildRPRActor(world, *it, URPRLightComponent::StaticClass(), true);
-		else if (Cast<UCineCameraComponent>(*it) != NULL)
+		else if (Cast<UCameraComponent>(*it) != NULL)
 			objectAdded |= QueueBuildRPRActor(world, *it, URPRCameraComponent::StaticClass(), true);
 	}
 }

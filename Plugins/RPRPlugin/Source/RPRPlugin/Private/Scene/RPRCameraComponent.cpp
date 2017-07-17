@@ -53,10 +53,7 @@ FString	URPRCameraComponent::GetCameraName() const
 bool	URPRCameraComponent::Build()
 {
 	// Async load: SrcComponent can be null if it was deleted from the scene
-	if (Scene == NULL || SrcComponent == NULL)
-		return false;
-	UCineCameraComponent	*cineCam = Cast<UCineCameraComponent>(SrcComponent);
-	if (cineCam == NULL)
+	if (Scene == NULL || Cast<UCameraComponent>(SrcComponent) == NULL)
 		return false;
 	if (rprContextCreateCamera(Scene->m_RprContext, &m_RprCamera) != RPR_SUCCESS)
 	{
@@ -122,20 +119,33 @@ void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FA
 
 bool	URPRCameraComponent::RefreshProperties(bool force)
 {
+	UCameraComponent		*cam = Cast<UCameraComponent>(SrcComponent);
 	UCineCameraComponent	*cineCam = Cast<UCineCameraComponent>(SrcComponent);
 
-	check(cineCam != NULL);
+	check(cam != NULL);
 	check(Scene != NULL);
 
 	if (Scene->m_ActiveCamera == this &&
-		cineCam->AspectRatio != m_CachedAspectRatio)
+		cam->AspectRatio != m_CachedAspectRatio)
 	{
-		m_CachedAspectRatio = cineCam->AspectRatio;
+		m_CachedAspectRatio = cam->AspectRatio;
 		Scene->TriggerResize();
 	}
-		
+	if (force || cam->ProjectionMode != m_CachedProjectionMode)
+	{
+		const bool	orthoCam = cam->ProjectionMode == ECameraProjectionMode::Orthographic;
+		if (rprCameraSetMode(m_RprCamera, orthoCam ? RPR_CAMERA_MODE_ORTHOGRAPHIC : RPR_CAMERA_MODE_PERSPECTIVE) != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't set camera properties"));
+			return false;
+		}
+		m_CachedProjectionMode = cam->ProjectionMode;
+		if (cineCam == NULL)
+			return true;
+	}
+	if (cineCam == NULL)
+		return false;
 	if (force ||
-		cineCam->ProjectionMode != m_CachedProjectionMode ||
 		cineCam->CurrentFocalLength != m_CachedFocalLength ||
 		cineCam->CurrentFocusDistance != m_CachedFocusDistance ||
 		cineCam->CurrentAperture != m_CachedAperture ||
@@ -143,9 +153,7 @@ bool	URPRCameraComponent::RefreshProperties(bool force)
 		cineCam->FilmbackSettings.SensorHeight != m_CachedSensorSize.Y)
 	{
 		// TODO: Ortho cams & overall camera properties checkup (DOF, ..)
-		const bool	orthoCam = cineCam->ProjectionMode == ECameraProjectionMode::Orthographic;
-		if (rprCameraSetMode(m_RprCamera, orthoCam ? RPR_CAMERA_MODE_ORTHOGRAPHIC : RPR_CAMERA_MODE_PERSPECTIVE) != RPR_SUCCESS ||
-			rprCameraSetFocalLength(m_RprCamera, cineCam->CurrentFocalLength) != RPR_SUCCESS ||
+		if (rprCameraSetFocalLength(m_RprCamera, cineCam->CurrentFocalLength) != RPR_SUCCESS ||
 			rprCameraSetFocusDistance(m_RprCamera, cineCam->CurrentFocusDistance * 0.01f) != RPR_SUCCESS ||
 			rprCameraSetFStop(m_RprCamera, cineCam->CurrentAperture) != RPR_SUCCESS ||
 			rprCameraSetSensorSize(m_RprCamera, cineCam->FilmbackSettings.SensorWidth, cineCam->FilmbackSettings.SensorHeight) != RPR_SUCCESS)
@@ -153,7 +161,6 @@ bool	URPRCameraComponent::RefreshProperties(bool force)
 			UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't set camera properties"));
 			return false;
 		}
-		m_CachedProjectionMode = cineCam->ProjectionMode;
 		m_CachedFocalLength = cineCam->CurrentFocalLength;
 		m_CachedFocusDistance = cineCam->CurrentFocusDistance;
 		m_CachedAperture = cineCam->CurrentAperture;
