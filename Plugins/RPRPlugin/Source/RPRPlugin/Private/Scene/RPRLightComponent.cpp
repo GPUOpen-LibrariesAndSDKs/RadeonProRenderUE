@@ -407,10 +407,10 @@ void	URPRLightComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 void	URPRLightComponent::BeginDestroy()
 {
 	Super::BeginDestroy();
-	check(Scene != NULL);
 	if (m_RprLight != NULL)
 	{
-		rprSceneDetachLight(Scene->m_RprScene, m_RprLight);
+		if (Scene != NULL)
+			rprSceneDetachLight(Scene->m_RprScene, m_RprLight);
 		rprObjectDelete(m_RprLight);
 		m_RprLight = NULL;
 	}
