@@ -42,6 +42,12 @@ struct rpriExportRprResult
    void** rprScenes; // should be maxScenes in size
 };
 
+struct rpriExportRprMaterialResult
+{
+	uint32_t type; // 0 = rprMaterial, 1 = rprMaterialX
+	void* data;
+};
+
 typedef void(*rpriLogCallback)(char const * _log);
 
 
