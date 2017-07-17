@@ -205,7 +205,7 @@ private:
 	std::vector<std::shared_ptr<rpri::generic::IMaterialValue>> valueStorage;
 	std::vector<std::shared_ptr<rpri::generic::IMaterialNodeMux>> muxStorage;
 
-
+	mutable std::string name;
 	friend class UE4InterchangePBRNode;
 	const UMaterial* ue4Mat;
 };

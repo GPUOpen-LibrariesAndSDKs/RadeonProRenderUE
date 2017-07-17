@@ -12,6 +12,7 @@
 #include "RadeonProRenderInterchange.h"
 #include <sstream>
 #include "RPRInterchangeMaterial.h"
+#include "RprSupport.h"
 
 // chuck these up here for now. Move to own file asap
 namespace 
@@ -125,6 +126,11 @@ bool	URPRStaticMeshComponent::Build()
 		UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR material system"));
 		return false;
 	}
+	if (rprxCreateContext(Scene->m_RprContext, RPRX_FLAGS_ENABLE_LOGGING, &m_RprSupportCtx) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR material X system"));
+		return false;
+	}
 
 	// Note for runtime builds
 	// All that data is probably stripped from runtime builds
@@ -172,14 +178,23 @@ bool	URPRStaticMeshComponent::Build()
 		flatGraphs.push_back(it.second);
 	}
 
+	static char const UE4ImporterString[] = "UE4 Importer";
 	rpri::generic::IMaterialGraph* first = *flatGraphs.data();
 	rpriImportProperty importProps[] = {
-		{"input", reinterpret_cast<uintptr_t>("UE4 Importer")},
+		{"Import", reinterpret_cast<uintptr_t>(UE4ImporterString)},
 		{"Num Materials", materialMap.size() },
 		{"Material Import Array", reinterpret_cast<uintptr_t>(first) }
 	};
 	uint32_t const numImportProps = sizeof(importProps) / sizeof(importProps[0]);
 
+	rpriContext ctx;
+	rpriAllocateContext(&ctx);
+	rpriErrorOptions(ctx, 5, false, false);
+	rpriSetLoggers(ctx, rpriLogger, rpriLogger, rpriLogger);
+
+	rpriImportFromMemory(ctx, "Generic", numImportProps, importProps);
+
+#if RPR_UMS_DUMP_RPIF == 1
 	static int testCounter = 0;
 	std::stringstream ss;
 	ss << testCounter++;
@@ -189,15 +204,24 @@ bool	URPRStaticMeshComponent::Build()
 	};
 	uint32_t const numExportProps = sizeof(exportProps) / sizeof(exportProps[0]);
 
-	rpriContext ctx;
-	rpriAllocateContext(&ctx);
-	rpriErrorOptions(ctx, 5, false, false);
-	rpriSetLoggers(ctx, rpriLogger, rpriLogger, rpriLogger);
-
-
-	rpriImportFromMemory(ctx, "Generic", numImportProps, importProps);
-
 	rpriExport(ctx, "RPIF Exporter", numExportProps, exportProps);
+#else
+	std::vector<rpriExportRprMaterialResult> resultArray;
+	resultArray.resize(materialMap.size());
+	rpriExportRprMaterialResult* firstResult = resultArray.data();
+
+	rpriExportProperty exportProps[] = {
+		{ "RPR Context", reinterpret_cast<uintptr_t>(Scene->m_RprContext) },
+		{ "RPR Material System", reinterpret_cast<uintptr_t>(m_RprMaterialSystem) },
+		{ "RPRX Context", reinterpret_cast<uintptr_t>(m_RprSupportCtx) },
+		{ "Num RPR Materials", reinterpret_cast<uintptr_t>(materialMap.size()) },
+		{ "RPR Material Result Array", reinterpret_cast<uintptr_t>(firstResult) },
+	};
+	uint32_t const numExportProps = sizeof(exportProps) / sizeof(exportProps[0]);
+
+	rpriExport(ctx, "RPR API Exporter", numExportProps, exportProps);
+
+#endif
 
 	rpriFreeContext(ctx);
 #endif
