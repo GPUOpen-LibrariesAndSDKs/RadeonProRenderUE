@@ -340,13 +340,13 @@ bool	URPRStaticMeshComponent::RebuildTransforms()
 void	URPRStaticMeshComponent::BeginDestroy()
 {
 	Super::BeginDestroy();
-	check(Scene != NULL);
 	uint32	shapeCount = m_Shapes.Num();
 	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 	{
 		if (m_Shapes[iShape].m_RprShape != NULL)
 		{
-			rprSceneDetachShape(Scene->m_RprScene, m_Shapes[iShape].m_RprShape);
+			if (Scene != NULL)
+				rprSceneDetachShape(Scene->m_RprScene, m_Shapes[iShape].m_RprShape);
 			rprObjectDelete(m_Shapes[iShape].m_RprShape);
 		}
 		if (m_Shapes[iShape].m_RprMaterial != NULL)
