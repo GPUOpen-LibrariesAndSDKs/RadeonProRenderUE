@@ -121,6 +121,8 @@ FText	FRPRPluginModule::GetSelectedCameraName() const
 
 void	FRPRPluginModule::OnCameraChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo)
 {
+	if (!item.IsValid())
+		return;
 	m_ActiveCameraName = *item.Get();
 
 	ARPRScene	*scene = GetCurrentScene();
@@ -207,7 +209,7 @@ void	FRPRPluginModule::OnMegaPixelChanged(TSharedPtr<FString> item, ESelectInfo:
 
 	ARPRScene	*scene = GetCurrentScene();
 	if (scene != NULL)
-		scene->ResizeRenderTarget();
+		scene->TriggerFrameRebuild();
 }
 
 FText	FRPRPluginModule::GetSelectedMegaPixelName() const
@@ -298,7 +300,9 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 	m_AvailableMegaPixels.Add(MakeShared<FString>("8.0"));
 
 	const FVector2D	&dimensions = FGlobalTabmanager::Get()->GetRootWindow()->GetSizeInScreen();
-	const FVector2D	renderResolution(10, 10); // First, create a small texture (resized later)
+
+	// TMP until bug is found
+	const FVector2D	renderResolution(4096, 4096); // First, create a small texture (resized later)
 
 	RenderTexture = MakeShareable(UTexture2DDynamic::Create(renderResolution.X, renderResolution.Y, PF_R8G8B8A8));
 	RenderTextureBrush = MakeShareable(new FSlateDynamicImageBrush(RenderTexture.Get(), dimensions, FName("TextureName")));

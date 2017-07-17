@@ -31,6 +31,7 @@ ARPRScene::ARPRScene()
 :	m_RprContext(NULL)
 ,	m_RprScene(NULL)
 ,	m_ActiveCamera(NULL)
+,	m_TriggerEndFrameResize(false)
 ,	m_TriggerEndFrameRebuild(false)
 ,	m_RendererWorker(NULL)
 {
@@ -203,13 +204,13 @@ uint32	ARPRScene::BuildScene()
 	return unbuiltObjects;
 }
 
-void	ARPRScene::ResizeRenderTarget()
+bool	ARPRScene::ResizeRenderTarget()
 {
 	check(IsInGameThread());
 
 	if (m_ActiveCamera == NULL ||
 		!m_RendererWorker.IsValid())
-		return;
+		return false;
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
 	check(settings != NULL);
 
@@ -219,7 +220,7 @@ void	ARPRScene::ResizeRenderTarget()
 	{
 		if (GEditor->GetActiveViewport() == NULL ||
 			GEditor->GetActiveViewport()->GetClient() == NULL)
-			return;
+			return false;
 		FLevelEditorViewportClient	*client = (FLevelEditorViewportClient*)GEditor->GetActiveViewport()->GetClient();
 		horizontalRatio = client->AspectRatio;
 	}
@@ -227,7 +228,7 @@ void	ARPRScene::ResizeRenderTarget()
 	{
 		const UCameraComponent	*camera = Cast<UCameraComponent>(m_ActiveCamera->SrcComponent);
 		if (camera == NULL) // The object should have been destroyed, but ok
-			return;
+			return false;
 		horizontalRatio = camera->AspectRatio;
 	}
 	const uint32	width = FGenericPlatformMath::Sqrt(megapixels * horizontalRatio * 1000000.0f);
@@ -237,9 +238,13 @@ void	ARPRScene::ResizeRenderTarget()
 	check(plugin != NULL);
 	UTexture2DDynamic	*texture = plugin->GetRenderTexture().Get();
 	check(texture != NULL);
-
-	texture->Init(width, height, PF_R8G8B8A8);
-	m_RendererWorker->ResizeFramebuffer(RenderTexture->SizeX, RenderTexture->SizeY);
+	if (width != texture->SizeX || height != texture->SizeY)
+	{
+		texture->Init(width, height, PF_R8G8B8A8);
+		m_RendererWorker->ResizeFramebuffer(RenderTexture->SizeX, RenderTexture->SizeY);
+	}
+	m_TriggerEndFrameResize = false;
+	return true;
 }
 
 void	ARPRScene::RefreshScene()
@@ -521,6 +526,8 @@ void	ARPRScene::Tick(float deltaTime)
 	if (plugin->SyncEnabled())
 		RefreshScene();
 
+	if (m_TriggerEndFrameResize)
+		ResizeRenderTarget();
 	if (m_TriggerEndFrameRebuild)
 	{
 		// Restart render, skip frame copy

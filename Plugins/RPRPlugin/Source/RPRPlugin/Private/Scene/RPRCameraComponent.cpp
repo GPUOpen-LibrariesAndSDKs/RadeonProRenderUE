@@ -10,6 +10,12 @@ DEFINE_LOG_CATEGORY_STATIC(LogRPRCameraComponent, Log, All);
 
 URPRCameraComponent::URPRCameraComponent()
 :	m_RprCamera(NULL)
+,	m_CachedProjectionMode(ECameraProjectionMode::Perspective)
+,	m_CachedFocalLength(0.0f)
+,	m_CachedFocusDistance(0.0f)
+,	m_CachedAperture(0.0f)
+,	m_CachedAspectRatio(0.0f)
+,	m_CachedSensorSize(0.0f, 0.0f)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
@@ -120,6 +126,14 @@ bool	URPRCameraComponent::RefreshProperties(bool force)
 
 	check(cineCam != NULL);
 	check(Scene != NULL);
+
+	if (Scene->m_ActiveCamera == this &&
+		cineCam->AspectRatio != m_CachedAspectRatio)
+	{
+		m_CachedAspectRatio = cineCam->AspectRatio;
+		Scene->TriggerResize();
+	}
+		
 	if (force ||
 		cineCam->ProjectionMode != m_CachedProjectionMode ||
 		cineCam->CurrentFocalLength != m_CachedFocalLength ||
