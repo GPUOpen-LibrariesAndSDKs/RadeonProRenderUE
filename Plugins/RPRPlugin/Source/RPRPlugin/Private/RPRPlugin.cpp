@@ -194,7 +194,7 @@ FText	FRPRPluginModule::GetSelectedQualitySettingsName() const
 
 TSharedRef<SWidget>	FRPRPluginModule::OnGenerateMegaPixelWidget(TSharedPtr<FString> inItem) const
 {
-	const FString	content = *inItem.Get() + " Megapixels";
+	const FString	content = *inItem.Get() + " Megapixel";
 	return SNew(STextBlock)
 		.Text(FText::FromString(content));
 }
@@ -220,7 +220,7 @@ FText	FRPRPluginModule::GetSelectedMegaPixelName() const
 	// TODO: Cache this
 	FNumberFormattingOptions	formatOptions;
 	formatOptions.MaximumIntegralDigits = 1;
-	return FText::Format(LOCTEXT("MegaPixelTitle", "{0} Megapixels"), FText::AsNumber(settings->MegaPixelCount, &formatOptions));
+	return FText::Format(LOCTEXT("MegaPixelTitle", "{0} Megapixel"), FText::AsNumber(settings->MegaPixelCount, &formatOptions));
 }
 
 FText	FRPRPluginModule::GetCurrentRenderIteration() const
@@ -292,12 +292,12 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 	m_QualitySettingsList.Add(MakeShared<FString>("Low"));
 	m_QualitySettingsList.Add(MakeShared<FString>("Medium"));
 	m_QualitySettingsList.Add(MakeShared<FString>("High"));
-	m_AvailableMegaPixels.Add(MakeShared<FString>("0.25"));
-	m_AvailableMegaPixels.Add(MakeShared<FString>("0.5"));
-	m_AvailableMegaPixels.Add(MakeShared<FString>("1.0"));
-	m_AvailableMegaPixels.Add(MakeShared<FString>("2.0"));
-	m_AvailableMegaPixels.Add(MakeShared<FString>("4.0"));
-	m_AvailableMegaPixels.Add(MakeShared<FString>("8.0"));
+	m_AvailableMegaPixel.Add(MakeShared<FString>("0.25"));
+	m_AvailableMegaPixel.Add(MakeShared<FString>("0.5"));
+	m_AvailableMegaPixel.Add(MakeShared<FString>("1.0"));
+	m_AvailableMegaPixel.Add(MakeShared<FString>("2.0"));
+	m_AvailableMegaPixel.Add(MakeShared<FString>("4.0"));
+	m_AvailableMegaPixel.Add(MakeShared<FString>("8.0"));
 
 	const FVector2D	&dimensions = FGlobalTabmanager::Get()->GetRootWindow()->GetSizeInScreen();
 
@@ -404,7 +404,7 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 				.Padding(2.0f)
 				[
 					SNew(SComboBox<TSharedPtr<FString>>)
-					.OptionsSource(&m_AvailableMegaPixels)
+					.OptionsSource(&m_AvailableMegaPixel)
 					.OnGenerateWidget(this, &FRPRPluginModule::OnGenerateMegaPixelWidget)
 					.OnSelectionChanged(this, &FRPRPluginModule::OnMegaPixelChanged)
 					[
