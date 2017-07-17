@@ -19,7 +19,7 @@ public:
 	virtual bool		InputGesture(FViewport *viewport, EGestureEvent::Type gestureType, const FVector2D &gestureDelta, bool bIsDirectionInvertedFromDevice) override;
 	virtual UWorld		*GetWorld() const override { return NULL; }
 
-	FVector2D			CalculateTextureDimensions(const FVector2D &viewportDimensions) const;
+	FVector2D			CalculateTextureDimensions(const class UTexture2DDynamic *renderTexture, const FVector2D &viewportDimensions) const;
 private:
 	FRPRPluginModule	*m_Plugin;
 };

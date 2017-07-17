@@ -19,6 +19,8 @@
 
 #include "RPRStats.h"
 
+#include "LevelEditorViewport.h"
+
 #define LOCTEXT_NAMESPACE "ARPRScene"
 
 DEFINE_STAT(STAT_ProRender_CopyFramebuffer);
@@ -203,7 +205,41 @@ uint32	ARPRScene::BuildScene()
 
 void	ARPRScene::ResizeRenderTarget()
 {
+	check(IsInGameThread());
 
+	if (m_ActiveCamera == NULL ||
+		!m_RendererWorker.IsValid())
+		return;
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
+
+	const float	megapixels = settings->MegaPixelCount;
+	float		horizontalRatio = 0.0f;
+	if (m_ActiveCamera == ViewportCameraComponent)
+	{
+		if (GEditor->GetActiveViewport() == NULL ||
+			GEditor->GetActiveViewport()->GetClient() == NULL)
+			return;
+		FLevelEditorViewportClient	*client = (FLevelEditorViewportClient*)GEditor->GetActiveViewport()->GetClient();
+		horizontalRatio = client->AspectRatio;
+	}
+	else
+	{
+		const UCameraComponent	*camera = Cast<UCameraComponent>(m_ActiveCamera->SrcComponent);
+		if (camera == NULL) // The object should have been destroyed, but ok
+			return;
+		horizontalRatio = camera->AspectRatio;
+	}
+	const uint32	width = FGenericPlatformMath::Sqrt(megapixels * horizontalRatio * 1000000.0f);
+	const uint32	height = width / horizontalRatio;
+
+	FRPRPluginModule	*plugin = FRPRPluginModule::Get();
+	check(plugin != NULL);
+	UTexture2DDynamic	*texture = plugin->GetRenderTexture().Get();
+	check(texture != NULL);
+
+	texture->Init(width, height, PF_R8G8B8A8);
+	m_RendererWorker->ResizeFramebuffer(RenderTexture->SizeX, RenderTexture->SizeY);
 }
 
 void	ARPRScene::RefreshScene()
@@ -485,8 +521,7 @@ void	ARPRScene::Tick(float deltaTime)
 	if (plugin->SyncEnabled())
 		RefreshScene();
 
-	if (/*m_RendererWorker->ResizeFramebuffer(RenderTexture->SizeX, RenderTexture->SizeY) ||*/
-		m_TriggerEndFrameRebuild)
+	if (m_TriggerEndFrameRebuild)
 	{
 		// Restart render, skip frame copy
 		if (m_RendererWorker->RestartRender()) // Trylock, might fail

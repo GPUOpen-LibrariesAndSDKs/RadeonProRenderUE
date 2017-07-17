@@ -25,6 +25,7 @@ FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene scene, uin
 ,	m_PreviousRenderedIteration(0)
 ,	m_Width(width)
 ,	m_Height(height)
+,	m_Resize(true)
 ,	m_IsBuildingObjects(false)
 ,	m_ClearFramebuffer(false)
 ,	m_PauseRender(true)
@@ -38,31 +39,6 @@ FRPRRendererWorker::~FRPRRendererWorker()
 
 	delete m_Thread;
 	m_Thread = NULL;
-}
-
-bool	FRPRRendererWorker::Init()
-{
-	check(m_RprContext != NULL);
-
-	m_RprFrameBufferFormat.num_components = 4;
-	m_RprFrameBufferFormat.type = RPR_COMPONENT_TYPE_FLOAT32;
-	m_RprFrameBufferDesc.fb_width = m_Width;
-	m_RprFrameBufferDesc.fb_height = m_Height;
-
-	m_SrcFramebufferData.SetNum(m_Width * m_Height * 4);
-	m_DstFramebufferData.SetNum(m_Width * m_Height * 16);
-
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
-
-	if (rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprFrameBuffer) != RPR_SUCCESS ||
-		rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS ||
-		rprContextSetAOV(m_RprContext, RPR_AOV_COLOR, m_RprFrameBuffer) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRRenderer, Error, TEXT("RPR FrameBuffer creation failed"));
-		return false;
-	}
-	return true;
 }
 
 void	FRPRRendererWorker::SetTrace(bool trace, const FString &tracePath)
@@ -128,15 +104,13 @@ bool	FRPRRendererWorker::ResizeFramebuffer(uint32 width, uint32 height)
 	if (m_Width == width && m_Height == height)
 		return false;
 
+	m_PreRenderLock.Lock();
 	m_Width = width;
 	m_Height = height;
 
-	m_RprFrameBufferDesc.fb_width = m_Width;
-	m_RprFrameBufferDesc.fb_height = m_Height;
+	m_Resize = true;
 
-	m_SrcFramebufferData.SetNum(m_Width * m_Height * 4);
-	m_DstFramebufferData.SetNum(m_Width * m_Height * 16);
-
+	m_PreRenderLock.Unlock();
 	return true;
 }
 
@@ -251,8 +225,9 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 	m_DataLock.Lock();
 	uint8			*dstPixels = m_DstFramebufferData.GetData();
 	const float		*srcPixels = m_SrcFramebufferData.GetData();
-	const uint32	pixelCount = m_Width * m_Height;
+	const uint32	pixelCount = m_RprFrameBufferDesc.fb_width * m_RprFrameBufferDesc.fb_height;
 
+	check(pixelCount == totalByteCount / 16);
 	for (uint32 i = 0; i < pixelCount; ++i)
 	{
 		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++, 255.0f);
@@ -287,6 +262,59 @@ void	FRPRRendererWorker::BuildQueuedObjects()
 	m_BuildQueue.Empty();
 }
 
+void	FRPRRendererWorker::ResizeFramebuffer()
+{
+	check(m_RprContext != NULL);
+
+	m_DataLock.Lock();
+
+	if (m_RprFrameBuffer != NULL)
+	{
+		rprObjectDelete(m_RprFrameBuffer);
+		m_RprFrameBuffer = NULL;
+	}
+
+	m_RprFrameBufferFormat.num_components = 4;
+	m_RprFrameBufferFormat.type = RPR_COMPONENT_TYPE_FLOAT32;
+	m_RprFrameBufferDesc.fb_width = m_Width;
+	m_RprFrameBufferDesc.fb_height = m_Height;
+
+	m_SrcFramebufferData.SetNum(m_Width * m_Height * 4);
+	m_DstFramebufferData.SetNum(m_Width * m_Height * 16);
+
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
+
+	if (rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprFrameBuffer) != RPR_SUCCESS ||
+		rprContextSetAOV(m_RprContext, RPR_AOV_COLOR, m_RprFrameBuffer) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRRenderer, Error, TEXT("RPR FrameBuffer creation failed"));
+	}
+	else
+	{
+		UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully created (%d,%d)"), m_Width, m_Height);
+	}
+
+	m_Resize = false;
+	m_ClearFramebuffer = true;
+	m_DataLock.Unlock();
+}
+
+void	FRPRRendererWorker::ClearFramebuffer()
+{
+	if (rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't clear framebuffer"));
+	}
+	else
+	{
+		m_CurrentIteration = 0;
+		m_PreviousRenderedIteration = 0;
+		m_ClearFramebuffer = false;
+		UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully cleared"));
+	}
+}
+
 uint32	FRPRRendererWorker::Run()
 {
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
@@ -298,19 +326,10 @@ uint32	FRPRRendererWorker::Run()
 		m_PreRenderLock.Lock();
 		if (m_IsBuildingObjects)
 			BuildQueuedObjects();
+		if (m_Resize)
+			ResizeFramebuffer();
 		if (m_ClearFramebuffer)
-		{
-			if (rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS)
-			{
-				UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't clear framebuffer"));
-				m_PreRenderLock.Unlock();
-				break;
-			}
-			UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully cleared"));
-			m_CurrentIteration = 0;
-			m_PreviousRenderedIteration = 0;
-			m_ClearFramebuffer = false;
-		}
+			ClearFramebuffer();
 		const bool	isPaused = m_PauseRender;
 		m_PreRenderLock.Unlock();
 		if (m_CurrentIteration < settings->MaximumRenderIterations && !isPaused && m_RenderLock.TryLock())
@@ -326,10 +345,7 @@ uint32	FRPRRendererWorker::Run()
 			++m_CurrentIteration;
 		}
 		else
-		{
-			m_RenderLock.Unlock();
 			FPlatformProcess::Sleep(0.1f);
-		}
 	}
 	ReleaseResources();
 	return 0;

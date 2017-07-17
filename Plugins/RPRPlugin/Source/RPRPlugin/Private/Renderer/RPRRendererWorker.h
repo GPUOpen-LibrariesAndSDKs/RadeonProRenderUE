@@ -14,7 +14,7 @@ public:
 	virtual ~FRPRRendererWorker();
 
 	// Begin FRunnable interface.
-	virtual bool	Init() override;
+	virtual bool	Init() override { return true; }
 	virtual uint32	Run() override;
 	virtual void	Stop() override;
 	// End FRunnable interface
@@ -44,6 +44,8 @@ private:
 	bool		BuildFramebufferData();
 	void		ReleaseResources();
 	void		BuildQueuedObjects();
+	void		ResizeFramebuffer();
+	void		ClearFramebuffer();
 private:
 	FRunnableThread				*m_Thread;
 	FThreadSafeCounter			m_StopTaskCounter;
@@ -65,6 +67,7 @@ private:
 	TArray<float>				m_SrcFramebufferData;
 	TArray<uint8>				m_DstFramebufferData;
 
+	bool						m_Resize;
 	bool						m_IsBuildingObjects;
 	bool						m_ClearFramebuffer;
 	bool						m_PauseRender;

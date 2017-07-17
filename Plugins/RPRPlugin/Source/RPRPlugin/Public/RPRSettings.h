@@ -31,10 +31,6 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = General)
 	uint32		MaximumRenderIterations;
 
-	/** Defines ProRender framebuffer size. */
-	UPROPERTY(Config, EditAnywhere, Category = General)
-	FIntPoint	RenderTargetDimensions;
-
 	/** Enables GPU1 usage */
 	UPROPERTY(Config, EditAnywhere, Category = Devices)
 	uint32		bEnableGPU1 : 1;

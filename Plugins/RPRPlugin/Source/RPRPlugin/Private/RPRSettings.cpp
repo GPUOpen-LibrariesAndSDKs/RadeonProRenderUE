@@ -9,7 +9,6 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 ,	RenderCachePath(FPaths::GameSavedDir() + "/RadeonProRender/Cache/")
 ,	TraceFolder(FPaths::GameSavedDir() + "/RadeonProRender/Trace/")
 ,	MaximumRenderIterations(32)
-,	RenderTargetDimensions(1920, 1080)
 ,	bEnableGPU1(true)
 ,	bEnableGPU2(true)
 ,	bEnableGPU3(true)
@@ -30,10 +29,6 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 
 	UProperty	*prop = propertyThatChanged.Property;
 	if (prop->GetName() == "RenderCachePath")
-	{
-		// TODO: Cleanup the path & notify scene
-	}
-	else if (prop->GetName() == "RenderTargetDimensions")
 	{
 		// TODO: Cleanup the path & notify scene
 	}

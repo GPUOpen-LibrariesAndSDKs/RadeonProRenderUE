@@ -22,12 +22,12 @@ void	FRPRViewportClient::Draw(FViewport *viewport, FCanvas *canvas)
 	if (m_Plugin == NULL)
 		return;
 
-	UTexture2DDynamic	*renderTexture = Cast<UTexture2DDynamic>(m_Plugin->GetRenderTexture().Get());
+	UTexture2DDynamic	*renderTexture = m_Plugin->GetRenderTexture().Get();
 	if (renderTexture == NULL)
 		return;
 
 	const FVector2D	viewportDimensions = m_Plugin->m_Viewport->GetSizeXY();
-	const FVector2D	textureDimensions = CalculateTextureDimensions(viewportDimensions);
+	const FVector2D	textureDimensions = CalculateTextureDimensions(renderTexture, viewportDimensions);
 	const FVector2D	ratio(viewportDimensions.X / textureDimensions.X, viewportDimensions.Y / textureDimensions.Y);
 	const FVector2D	renderOffset(
 		(ratio.X > 1.0f) ? ((viewportDimensions.X - (viewportDimensions.X / ratio.X)) * 0.5f) : 0,
@@ -56,13 +56,10 @@ bool	FRPRViewportClient::InputGesture(FViewport *viewport, EGestureEvent::Type g
 	return false;
 }
 
-FVector2D	FRPRViewportClient::CalculateTextureDimensions(const FVector2D &viewportDimensions) const
+FVector2D	FRPRViewportClient::CalculateTextureDimensions(const UTexture2DDynamic *renderTexture, const FVector2D &viewportDimensions) const
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
-
-	uint32			width = settings->RenderTargetDimensions.X;
-	uint32			height = settings->RenderTargetDimensions.Y;
+	uint32			width = renderTexture->SizeX;
+	uint32			height = renderTexture->SizeY;
 	const uint32	maxWidth = viewportDimensions.X;
 	const uint32	maxHeight = viewportDimensions.Y;
 
