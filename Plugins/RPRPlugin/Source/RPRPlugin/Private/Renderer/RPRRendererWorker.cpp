@@ -375,16 +375,26 @@ void	FRPRRendererWorker::ReleaseResources()
 		m_RprFrameBuffer = NULL;
 	}
 	m_PreRenderLock.Lock();
+
 	const uint32	objectCount = m_BuildQueue.Num();
 	for (uint32 iObject = 0; iObject < objectCount; ++iObject)
 	{
-		ARPRActor	*actor = m_BuildQueue[iObject];
-		if (actor == NULL ||
-			actor->GetWorld() == NULL)
+		if (m_BuildQueue[iObject] == NULL)
 			continue;
-		actor->GetWorld()->DestroyActor(actor);
+		m_BuildQueue[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+		m_BuildQueue[iObject]->Destroy();
 	}
 	m_BuildQueue.Empty();
+	const uint32	builtCount = m_BuiltObjects.Num();
+	for (uint32 iObject = 0; iObject < builtCount; ++iObject)
+	{
+		if (m_BuiltObjects[iObject] == NULL)
+			continue;
+		m_BuiltObjects[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+		m_BuiltObjects[iObject]->Destroy();
+	}
+	m_BuiltObjects.Empty();
+
 	m_PreRenderLock.Unlock();
 	m_RprContext = NULL;
 	m_RprScene = NULL;

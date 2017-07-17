@@ -175,6 +175,7 @@ void	URPRCameraComponent::BeginDestroy()
 	Super::BeginDestroy();
 	if (m_RprCamera != NULL)
 	{
+		check(Scene != NULL);
 		rprObjectDelete(m_RprCamera);
 		m_RprCamera = NULL;
 	}

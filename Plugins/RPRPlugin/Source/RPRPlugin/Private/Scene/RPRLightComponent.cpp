@@ -409,13 +409,14 @@ void	URPRLightComponent::BeginDestroy()
 	Super::BeginDestroy();
 	if (m_RprLight != NULL)
 	{
-		if (Scene != NULL)
-			rprSceneDetachLight(Scene->m_RprScene, m_RprLight);
+		check(Scene != NULL);
+		rprSceneDetachLight(Scene->m_RprScene, m_RprLight);
 		rprObjectDelete(m_RprLight);
 		m_RprLight = NULL;
 	}
 	if (m_RprImage != NULL)
 	{
+		check(Scene != NULL);
 		rprObjectDelete(m_RprImage);
 		m_RprImage = NULL;
 	}

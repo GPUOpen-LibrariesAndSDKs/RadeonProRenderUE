@@ -151,13 +151,13 @@ void	ARPRScene::RemoveActor(ARPRActor *actor)
 {
 	check(Cast<ARPRActor>(actor) != NULL);
 	check(actor->GetRootComponent() != NULL);
-	check(GetWorld() != NULL);
-
-	GetWorld()->DestroyActor(actor);
-	actor->GetRootComponent()->ConditionalBeginDestroy();
 
 	SceneContent.Remove(Cast<ARPRActor>(actor));
 	BuildQueue.Remove(Cast<ARPRActor>(actor));
+
+	actor->GetRootComponent()->ConditionalBeginDestroy();
+	actor->Destroy();
+
 	TriggerFrameRebuild();
 }
 
@@ -175,8 +175,7 @@ bool	ARPRScene::BuildViewportCamera()
 	// Profile that, if too much, do one "immediate build object" per frame ?
 	if (!ViewportCameraComponent->Build())
 	{
-		// TODO : Make sure DestroyComponent actually destroys it
-		ViewportCameraComponent->DestroyComponent();
+		ViewportCameraComponent->ConditionalBeginDestroy();
 		return false;
 	}
 	return true;
@@ -566,19 +565,27 @@ void	ARPRScene::Tick(float deltaTime)
 
 void	ARPRScene::RemoveSceneContent()
 {
-	UWorld	*world = GetWorld();
-	if (world != NULL)
+	for (int32 iObject = 0; iObject < SceneContent.Num(); ++iObject)
 	{
-		// TODO make sure objects were correctly deleted
-		const uint32	objectCount = SceneContent.Num();
-		for (uint32 iObject = 0; iObject < objectCount; ++iObject)
-		{
-			if (SceneContent[iObject] == NULL)
-				continue;
-			world->DestroyActor(SceneContent[iObject]);
-		}
+		if (SceneContent[iObject] == NULL)
+			continue;
+		SceneContent[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+		SceneContent[iObject]->Destroy();
 	}
 	SceneContent.Empty();
+	for (int32 iObject = 0; iObject < BuildQueue.Num(); ++iObject)
+	{
+		if (BuildQueue[iObject] == NULL)
+			continue;
+		BuildQueue[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+		BuildQueue[iObject]->Destroy();
+	}
+	BuildQueue.Empty();
+	if (ViewportCameraComponent != NULL)
+	{
+		ViewportCameraComponent->ConditionalBeginDestroy();
+		ViewportCameraComponent = NULL;
+	}
 	Cameras.Empty();
 }
 
@@ -586,12 +593,12 @@ void	ARPRScene::BeginDestroy()
 {
 	Super::BeginDestroy();
 
-	RemoveSceneContent();
 	if (m_RendererWorker.IsValid())
 	{
 		m_RendererWorker->EnsureCompletion();
 		m_RendererWorker = NULL; // TODO MAKE SURE TSharedPtr correctly deletes the renderer
 	}
+	RemoveSceneContent();
 	if (m_RprScene != NULL)
 	{
 		rprObjectDelete(m_RprScene);
