@@ -681,7 +681,8 @@ UMaterial const* UE4InterchangeMaterialGraph::GetUE4Material() const
 
 char const* UE4InterchangeMaterialGraph::GetName() const
 {
-	return TCHAR_TO_ANSI(*ue4Mat->GetName());
+	name = TCHAR_TO_ANSI(*ue4Mat->GetName());
+	return name.c_str();
 }
 
 size_t UE4InterchangeMaterialGraph::GetNumberOfMaterialValues() const
