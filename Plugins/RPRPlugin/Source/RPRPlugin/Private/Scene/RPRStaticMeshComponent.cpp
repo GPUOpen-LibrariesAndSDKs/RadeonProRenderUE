@@ -62,7 +62,7 @@ void	URPRStaticMeshComponent::CleanCache()
 	// TODO : Put a safer cache system in place *or* ensure there can only be one context
 	Cache.Empty();
 }
-#define RPR_UMS_INTEGRATION 0
+#define RPR_UMS_INTEGRATION 1
 #define RPR_UMS_DUMP_RPIF 0
 
 bool	URPRStaticMeshComponent::BuildMaterials()
@@ -165,12 +165,20 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 			if(firstResult->type == 0)
 			{
 				rpr_material_node rprMatNode = reinterpret_cast<rpr_material_node>(firstResult->data);
-				rprShapeSetMaterial(shape, rprMatNode);
+				rpr_int status = rprShapeSetMaterial(shape, rprMatNode);
 			} else
 			{
 				rprx_material rprMatX = reinterpret_cast<rprx_material>(firstResult->data);
-				rprxShapeAttachMaterial(m_RprSupportCtx, shape, rprMatX);
-				rprxMaterialCommit(m_RprSupportCtx, rprMatX);
+				rpr_int status = rprxShapeAttachMaterial(m_RprSupportCtx, shape, rprMatX);
+				if(status != RPR_SUCCESS)
+				{
+					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR X material to the RPR shape"));
+				}
+				status = rprxMaterialCommit(m_RprSupportCtx, rprMatX);
+				if (status != RPR_SUCCESS)
+				{
+					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't commit RPR X material"));
+				}
 			}
 
 #endif
