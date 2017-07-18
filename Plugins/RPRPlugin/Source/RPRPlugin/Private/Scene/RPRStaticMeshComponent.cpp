@@ -87,8 +87,8 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR material node"));
 				return false;
 			}
-			if (rprMaterialNodeSetInputF(m_Shapes[iShape].m_RprMaterial, "color", 0.5f, 0.5f, 0.5f, 1.0f) != RPR_SUCCESS ||
-				rprShapeSetMaterial(shape, m_Shapes[iShape].m_RprMaterial) != RPR_SUCCESS)
+			if (rprMaterialNodeSetInputF(material, "color", 0.5f, 0.5f, 0.5f, 1.0f) != RPR_SUCCESS ||
+				rprShapeSetMaterial(shape, material) != RPR_SUCCESS)
 			{
 				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR material to the RPR shape"));
 				rprObjectDelete(material);
@@ -121,21 +121,10 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 				return false;
 			}
 		}
-		RadeonProRender::matrix	matrix = BuildMatrixWithScale(SrcComponent->ComponentToWorld);
-		if (rprShapeSetTransform(shape, RPR_TRUE, &matrix.m00) != RPR_SUCCESS ||
-			rprShapeSetVisibility(shape, SrcComponent->IsVisible()) != RPR_SUCCESS ||
-			rprShapeSetShadow(shape, component->bCastStaticShadow) != RPR_SUCCESS ||
-			rprSceneAttachShape(Scene->m_RprScene, shape) != RPR_SUCCESS)
-		{
-			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't attach RPR shape to the RPR scene"));
-			rprObjectDelete(material);
-			return false;
-		}
 		m_Shapes[iShape].m_RprMaterial = material;
 	}
 	return true;
 }
-
 
 bool	URPRStaticMeshComponent::Build()
 {
@@ -348,6 +337,21 @@ bool	URPRStaticMeshComponent::Build()
 		const uint32	shapeCount = shapes.Num();
 		for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 			m_Shapes.Add(shapes[iShape]);
+	}
+
+	const uint32			shapeCount = m_Shapes.Num();
+	RadeonProRender::matrix	matrix = BuildMatrixWithScale(SrcComponent->ComponentToWorld);
+	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
+	{
+		rpr_shape	shape = m_Shapes[iShape].m_RprShape;
+		if (rprShapeSetTransform(shape, RPR_TRUE, &matrix.m00) != RPR_SUCCESS ||
+			rprShapeSetVisibility(shape, staticMeshComponent->IsVisible()) != RPR_SUCCESS ||
+			rprShapeSetShadow(shape, staticMeshComponent->bCastStaticShadow) != RPR_SUCCESS ||
+			rprSceneAttachShape(Scene->m_RprScene, shape) != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't attach RPR shape to the RPR scene"));
+			return false;
+		}
 	}
 	return Super::Build();
 }
