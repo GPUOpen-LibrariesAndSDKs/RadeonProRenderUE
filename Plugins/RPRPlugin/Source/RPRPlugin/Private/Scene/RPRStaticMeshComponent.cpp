@@ -175,8 +175,8 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 			} else
 			{
 				rprx_material rprMatX = reinterpret_cast<rprx_material>(firstResult->data);
-				rprxMaterialCommit(m_RprSupportCtx, rprMatX);
 				rprxShapeAttachMaterial(m_RprSupportCtx, shape, rprMatX);
+				rprxMaterialCommit(m_RprSupportCtx, rprMatX);
 			}
 
 #endif
