@@ -17,6 +17,7 @@ DEFINE_LOG_CATEGORY_STATIC(LogRPRRenderer, Log, All);
 
 FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene scene, uint32 width, uint32 height, uint32 numDevices)
 :	m_RprFrameBuffer(NULL)
+,	m_RprResolvedFrameBuffer(NULL)
 ,	m_RprContext(context)
 ,	m_RprScene(scene)
 ,	m_CurrentIteration(0)
@@ -85,7 +86,7 @@ void	FRPRRendererWorker::SaveToFile(const FString &filename)
 	{
 		// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
 		m_RenderLock.Lock();
-		const bool	saved = rprFrameBufferSaveToFile(m_RprFrameBuffer, TCHAR_TO_ANSI(*filename)) == RPR_SUCCESS;
+		const bool	saved = rprFrameBufferSaveToFile(m_RprResolvedFrameBuffer, TCHAR_TO_ANSI(*filename)) == RPR_SUCCESS;
 		m_RenderLock.Unlock();
 
 		if (saved)
@@ -116,7 +117,8 @@ bool	FRPRRendererWorker::ResizeFramebuffer(uint32 width, uint32 height)
 
 bool	FRPRRendererWorker::RestartRender()
 {
-	if (m_RprFrameBuffer == NULL)
+	if (m_RprFrameBuffer == NULL ||
+		m_RprResolvedFrameBuffer == NULL)
 		return false;
 	if (!m_PreRenderLock.TryLock())
 		return false;
@@ -217,7 +219,7 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 	SCOPE_CYCLE_COUNTER(STAT_ProRender_Readback);
 
 	size_t	totalByteCount = 0;
-	if (rprFrameBufferGetInfo(m_RprFrameBuffer, RPR_FRAMEBUFFER_DATA, 0, NULL, &totalByteCount) != RPR_SUCCESS)
+	if (rprFrameBufferGetInfo(m_RprResolvedFrameBuffer, RPR_FRAMEBUFFER_DATA, 0, NULL, &totalByteCount) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't get framebuffer infos"));
 		return false;
@@ -229,7 +231,7 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 		return false;
 	}
 	// Get framebuffer data
-	if (rprFrameBufferGetInfo(m_RprFrameBuffer, RPR_FRAMEBUFFER_DATA, totalByteCount, m_SrcFramebufferData.GetData(), NULL) != RPR_SUCCESS)
+	if (rprFrameBufferGetInfo(m_RprResolvedFrameBuffer, RPR_FRAMEBUFFER_DATA, totalByteCount, m_SrcFramebufferData.GetData(), NULL) != RPR_SUCCESS)
 	{
 		// No frame ready yet
 		return false;
@@ -283,6 +285,11 @@ void	FRPRRendererWorker::ResizeFramebuffer()
 		rprObjectDelete(m_RprFrameBuffer);
 		m_RprFrameBuffer = NULL;
 	}
+	if (m_RprResolvedFrameBuffer != NULL)
+	{
+		rprObjectDelete(m_RprResolvedFrameBuffer);
+		m_RprResolvedFrameBuffer = NULL;
+	}
 
 	m_RprFrameBufferFormat.num_components = 4;
 	m_RprFrameBufferFormat.type = RPR_COMPONENT_TYPE_FLOAT32;
@@ -296,6 +303,7 @@ void	FRPRRendererWorker::ResizeFramebuffer()
 	check(settings != NULL);
 
 	if (rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprFrameBuffer) != RPR_SUCCESS ||
+		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprResolvedFrameBuffer) != RPR_SUCCESS ||
 		rprContextSetAOV(m_RprContext, RPR_AOV_COLOR, m_RprFrameBuffer) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRRenderer, Error, TEXT("RPR FrameBuffer creation failed"));
@@ -312,7 +320,8 @@ void	FRPRRendererWorker::ResizeFramebuffer()
 
 void	FRPRRendererWorker::ClearFramebuffer()
 {
-	if (rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS)
+	if (rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS ||
+		rprFrameBufferClear(m_RprResolvedFrameBuffer) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't clear framebuffer"));
 	}
@@ -346,7 +355,8 @@ uint32	FRPRRendererWorker::Run()
 		{
 			const uint32	sampleCount = FGenericPlatformMath::Min((m_CurrentIteration + 4) / 4, m_NumDevices);
 			if (rprContextSetParameter1u(m_RprContext, "aasamples", sampleCount) != RPR_SUCCESS ||
-				rprContextRender(m_RprContext) != RPR_SUCCESS)
+				rprContextRender(m_RprContext) != RPR_SUCCESS ||
+				rprContextResolveFrameBuffer(m_RprContext, m_RprFrameBuffer, m_RprResolvedFrameBuffer) != RPR_SUCCESS) // TODO: Time resolve
 			{
 				m_RenderLock.Unlock();
 				UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't render iteration %d"), m_CurrentIteration);
@@ -385,6 +395,11 @@ void	FRPRRendererWorker::ReleaseResources()
 	{
 		rprObjectDelete(m_RprFrameBuffer);
 		m_RprFrameBuffer = NULL;
+	}
+	if (m_RprResolvedFrameBuffer != NULL)
+	{
+		rprObjectDelete(m_RprResolvedFrameBuffer);
+		m_RprResolvedFrameBuffer = NULL;
 	}
 	m_PreRenderLock.Lock();
 

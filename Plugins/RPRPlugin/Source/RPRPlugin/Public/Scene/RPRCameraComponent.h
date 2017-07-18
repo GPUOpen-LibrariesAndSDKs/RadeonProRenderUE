@@ -32,4 +32,6 @@ private:
 	float						m_CachedAperture;
 	float						m_CachedAspectRatio;
 	FVector2D					m_CachedSensorSize;
+
+	float						m_CachedWhiteBalanceTemp;
 };

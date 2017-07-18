@@ -28,6 +28,9 @@ public:
 	rpr_context		m_RprContext;
 	rpr_scene		m_RprScene;
 
+	rpr_post_effect	m_RprWhiteBalance;
+	rpr_post_effect	m_RprGammaCorrection;
+
 	class URPRSceneComponent	*m_ActiveCamera;
 
 	void	OnRender(uint32 &outObjectToBuildCount);

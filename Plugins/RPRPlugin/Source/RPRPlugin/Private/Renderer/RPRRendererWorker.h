@@ -64,6 +64,7 @@ private:
 	rpr_framebuffer_format		m_RprFrameBufferFormat;
 	rpr_framebuffer_desc		m_RprFrameBufferDesc;
 	rpr_framebuffer				m_RprFrameBuffer;
+	rpr_framebuffer				m_RprResolvedFrameBuffer;
 	rpr_scene					m_RprScene;
 	rpr_context					m_RprContext;
 

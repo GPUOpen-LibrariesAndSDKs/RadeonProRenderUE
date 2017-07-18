@@ -16,6 +16,7 @@ URPRCameraComponent::URPRCameraComponent()
 ,	m_CachedAperture(0.0f)
 ,	m_CachedAspectRatio(0.0f)
 ,	m_CachedSensorSize(0.0f, 0.0f)
+,	m_CachedWhiteBalanceTemp(0.0f)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
@@ -134,7 +135,21 @@ bool	URPRCameraComponent::RefreshProperties(bool force)
 		m_CachedAspectRatio = cam->AspectRatio;
 		Scene->TriggerResize();
 	}
-	if (force || cam->ProjectionMode != m_CachedProjectionMode)
+	bool	refresh = false;
+	if (force ||
+		cam->PostProcessSettings.WhiteTemp != m_CachedWhiteBalanceTemp)
+	{
+		if (rprContextAttachPostEffect(Scene->m_RprContext, Scene->m_RprWhiteBalance) != RPR_SUCCESS ||
+			rprPostEffectSetParameter1f(Scene->m_RprWhiteBalance, "colortemp", cam->PostProcessSettings.WhiteTemp) != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't apply camera post processes"));
+			return false;
+		}
+		refresh = true;
+		m_CachedWhiteBalanceTemp = cam->PostProcessSettings.WhiteTemp;
+	}
+	if (force ||
+		cam->ProjectionMode != m_CachedProjectionMode)
 	{
 		const bool	orthoCam = cam->ProjectionMode == ECameraProjectionMode::Orthographic;
 		if (rprCameraSetMode(m_RprCamera, orthoCam ? RPR_CAMERA_MODE_ORTHOGRAPHIC : RPR_CAMERA_MODE_PERSPECTIVE) != RPR_SUCCESS)
@@ -143,11 +158,10 @@ bool	URPRCameraComponent::RefreshProperties(bool force)
 			return false;
 		}
 		m_CachedProjectionMode = cam->ProjectionMode;
-		if (cineCam == NULL)
-			return true;
+		refresh = true;
 	}
 	if (cineCam == NULL)
-		return false;
+		return refresh;
 	if (force ||
 		cineCam->CurrentFocalLength != m_CachedFocalLength ||
 		cineCam->CurrentFocusDistance != m_CachedFocusDistance ||
@@ -170,7 +184,7 @@ bool	URPRCameraComponent::RefreshProperties(bool force)
 		m_CachedSensorSize = FVector2D(cineCam->FilmbackSettings.SensorWidth, cineCam->FilmbackSettings.SensorHeight);
 		return true;
 	}
-	return false;
+	return refresh;
 }
 
 void	URPRCameraComponent::BeginDestroy()

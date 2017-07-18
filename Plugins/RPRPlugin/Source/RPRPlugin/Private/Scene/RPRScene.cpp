@@ -33,6 +33,8 @@ DEFINE_LOG_CATEGORY_STATIC(LogRPRScene, Log, All);
 ARPRScene::ARPRScene()
 :	m_RprContext(NULL)
 ,	m_RprScene(NULL)
+,	m_RprWhiteBalance(NULL)
+,	m_RprGammaCorrection(NULL)
 ,	m_ActiveCamera(NULL)
 ,	m_TriggerEndFrameResize(false)
 ,	m_TriggerEndFrameRebuild(false)
@@ -406,6 +408,15 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 			UE_LOG(LogRPRScene, Error, TEXT("RPR Scene setup failed"));
 			return;
 		}
+		if (rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_WHITE_BALANCE, &m_RprWhiteBalance) != RPR_SUCCESS ||
+			rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_GAMMA_CORRECTION, &m_RprGammaCorrection) != RPR_SUCCESS ||
+			rprPostEffectSetParameter1u(m_RprWhiteBalance, "colorspace", RPR_COLOR_SPACE_SRGB) != RPR_SUCCESS ||
+			rprContextAttachPostEffect(m_RprContext, m_RprWhiteBalance) != RPR_SUCCESS/* ||
+			rprContextAttachPostEffect(m_RprContext, m_RprGammaCorrection) != RPR_SUCCESS*/)
+		{
+			UE_LOG(LogRPRScene, Error, TEXT("RPR Post effects creation failed"));
+			return;
+		}
 		SetTrace(settings->bTrace);
 		UE_LOG(LogRPRScene, Log, TEXT("ProRender scene created"));
 
@@ -623,6 +634,16 @@ void	ARPRScene::BeginDestroy()
 	{
 		rprObjectDelete(m_RprContext);
 		m_RprContext = NULL;
+	}
+	if (m_RprWhiteBalance != NULL)
+	{
+		rprObjectDelete(m_RprWhiteBalance);
+		m_RprWhiteBalance = NULL;
+	}
+	if (m_RprGammaCorrection != NULL)
+	{
+		rprObjectDelete(m_RprGammaCorrection);
+		m_RprWhiteBalance = NULL;
 	}
 }
 
