@@ -106,7 +106,10 @@ void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FA
 
 	check(m_Plugin != NULL);
 
-	if (!m_Plugin->SyncEnabled())
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
+
+	if (!settings->bSync)
 		return;
 	// If we are not the main camera, don't rebuild
 	if (Scene->m_ActiveCamera != this)

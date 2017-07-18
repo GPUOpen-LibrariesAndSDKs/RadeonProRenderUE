@@ -6,6 +6,7 @@
 #include "CanvasItem.h"
 #include "Texture2DPreview.h"
 
+#include "Slate/SceneViewport.h"
 #include "Engine/Texture2DDynamic.h"
 
 FRPRViewportClient::FRPRViewportClient(FRPRPluginModule *plugin)
@@ -25,7 +26,7 @@ void	FRPRViewportClient::Draw(FViewport *viewport, FCanvas *canvas)
 		return;
 	canvas->Clear(FLinearColor(0.0f, 0.0f, 0.0f, 0.0f));
 
-	UTexture2DDynamic	*renderTexture = m_Plugin->GetRenderTexture().Get();
+	UTexture2DDynamic	*renderTexture = m_Plugin->GetRenderTexture();
 	if (renderTexture == NULL)
 		return;
 

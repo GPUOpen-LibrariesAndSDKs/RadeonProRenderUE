@@ -13,7 +13,7 @@ URPRSceneComponent::URPRSceneComponent()
 
 bool	URPRSceneComponent::Build()
 {
-	m_Plugin = FRPRPluginModule::Get();
+	m_Plugin = &FRPRPluginModule::Get();
 
 	check(SrcComponent != NULL);
 	m_CachedTransforms = SrcComponent->ComponentToWorld;
@@ -35,7 +35,10 @@ void	URPRSceneComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 		return;
 	}
 	check(m_Plugin != NULL);
-	if (!m_Plugin->SyncEnabled())
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
+
+	if (!settings->bSync)
 		return;
 	// Seem to be the only way..
 	// There is no runtime enabled callbacks

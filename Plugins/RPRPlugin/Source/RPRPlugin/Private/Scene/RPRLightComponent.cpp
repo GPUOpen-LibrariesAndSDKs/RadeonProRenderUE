@@ -240,7 +240,10 @@ void	URPRLightComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 	check(SrcComponent != NULL);
 	check(m_Plugin != NULL);
 
-	if (!m_Plugin->SyncEnabled())
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
+
+	if (!settings->bSync)
 		return;
 	// Check all cached properties (might be a better way)
 	// There is PostEditChangeProperty but this is editor only

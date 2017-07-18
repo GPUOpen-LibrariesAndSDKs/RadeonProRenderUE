@@ -61,17 +61,17 @@ private:
 
 	TSharedPtr<class FRPRRendererWorker>	m_RendererWorker;
 
-	TSharedPtr<UTexture2DDynamic>		RenderTexture;
+	UTexture2DDynamic						*m_RenderTexture;
 
 	UPROPERTY(Transient)
-	TArray<class ARPRActor*>			SceneContent;
+	TArray<class ARPRActor*>				SceneContent;
 
 	UPROPERTY(Transient)
-	TArray<class ARPRActor*>			BuildQueue;
+	TArray<class ARPRActor*>				BuildQueue;
 
 	UPROPERTY(Transient)
-	TArray<class URPRCameraComponent*>	Cameras;
+	TArray<class URPRCameraComponent*>		Cameras;
 
 	UPROPERTY(Transient)
-	class URPRViewportCameraComponent*	ViewportCameraComponent;
+	class URPRViewportCameraComponent*		ViewportCameraComponent;
 };

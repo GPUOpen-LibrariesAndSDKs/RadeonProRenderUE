@@ -100,7 +100,10 @@ void	URPRViewportCameraComponent::TickComponent(float deltaTime, ELevelTick tick
 	if (!m_Built)
 		return;
 	check(m_Plugin != NULL);
-	if (!m_Plugin->SyncEnabled())
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
+
+	if (!settings->bSync)
 		return;
 	if (RebuildCameraTransforms())
 		Scene->TriggerFrameRebuild();

@@ -9,6 +9,9 @@
 #include "Scene/RPRViewportCameraComponent.h"
 #include "Renderer/RPRRendererWorker.h"
 
+#include "HAL/PlatformFileManager.h"
+#include "Slate/SceneViewport.h"
+
 #include "RPRPlugin.h"
 #include "DesktopPlatformModule.h"
 
@@ -34,6 +37,7 @@ ARPRScene::ARPRScene()
 ,	m_TriggerEndFrameResize(false)
 ,	m_TriggerEndFrameRebuild(false)
 ,	m_RendererWorker(NULL)
+,	m_RenderTexture(NULL)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -208,7 +212,8 @@ bool	ARPRScene::ResizeRenderTarget()
 	check(IsInGameThread());
 
 	if (m_ActiveCamera == NULL ||
-		!m_RendererWorker.IsValid())
+		!m_RendererWorker.IsValid() ||
+		m_RenderTexture == NULL)
 		return false;
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
 	check(settings != NULL);
@@ -233,14 +238,11 @@ bool	ARPRScene::ResizeRenderTarget()
 	const uint32	width = FGenericPlatformMath::Sqrt(megapixels * horizontalRatio * 1000000.0f);
 	const uint32	height = width / horizontalRatio;
 
-	FRPRPluginModule	*plugin = FRPRPluginModule::Get();
-	check(plugin != NULL);
-	UTexture2DDynamic	*texture = plugin->GetRenderTexture().Get();
-	check(texture != NULL);
-	if (width != texture->SizeX || height != texture->SizeY)
+	FRPRPluginModule	*plugin = &FRPRPluginModule::Get();
+	if (width != m_RenderTexture->SizeX || height != m_RenderTexture->SizeY)
 	{
-		texture->Init(width, height, PF_R8G8B8A8);
-		m_RendererWorker->ResizeFramebuffer(RenderTexture->SizeX, RenderTexture->SizeY);
+		m_RenderTexture->Init(width, height, PF_R8G8B8A8);
+		m_RendererWorker->ResizeFramebuffer(m_RenderTexture->SizeX, m_RenderTexture->SizeY);
 	}
 	m_TriggerEndFrameResize = false;
 	return true;
@@ -352,10 +354,9 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		check(settings != NULL);
 
 		// Initialize everything
-		FRPRPluginModule	*plugin = FRPRPluginModule::Get();
-		if (!plugin->GetRenderTexture().IsValid())
-			return;// No RPR viewport created
-		RenderTexture = plugin->GetRenderTexture();
+		FRPRPluginModule	*plugin = &FRPRPluginModule::Get();
+		if (!ensure(plugin->GetRenderTexture() != NULL))
+			return;
 
 		FString	cachePath = settings->RenderCachePath;
 		FString	dllPath = FPaths::GameDir() + "/Binaries/Win64/Tahoe64.dll"; // To get from settings ?
@@ -394,7 +395,7 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 			UE_LOG(LogRPRScene, Error, TEXT("RPR Scene setup failed"));
 			return;
 		}
-		SetTrace(plugin->TraceEnabled());
+		SetTrace(settings->bTrace);
 		UE_LOG(LogRPRScene, Log, TEXT("ProRender scene created"));
 
 		outObjectToBuildCount = BuildScene();
@@ -412,7 +413,8 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		}
 		TriggerFrameRebuild();
 
-		m_RendererWorker = MakeShareable(new FRPRRendererWorker(m_RprContext, m_RprScene, RenderTexture->SizeX, RenderTexture->SizeY));
+		m_RenderTexture = plugin->GetRenderTexture();
+		m_RendererWorker = MakeShareable(new FRPRRendererWorker(m_RprContext, m_RprScene, m_RenderTexture->SizeX, m_RenderTexture->SizeY));
 		m_RendererWorker->SetQualitySettings(settings->QualitySettings);
 	}
 	m_RendererWorker->SetPaused(false);
@@ -507,12 +509,11 @@ void	ARPRScene::OnSave()
 void	ARPRScene::Tick(float deltaTime)
 {
 	if (!m_RendererWorker.IsValid() ||
-		!RenderTexture.IsValid() ||
-		RenderTexture->Resource == NULL)
+		m_RenderTexture == NULL ||
+		m_RenderTexture->Resource == NULL)
 		return;
 
-	FRPRPluginModule	*plugin = FRPRPluginModule::Get();
-	check(plugin != NULL);
+	FRPRPluginModule	*plugin = &FRPRPluginModule::Get();
 	if (plugin->RenderPaused())
 		return;
 
@@ -522,7 +523,10 @@ void	ARPRScene::Tick(float deltaTime)
 	if (actorCount != SceneContent.Num())
 		TriggerFrameRebuild();
 
-	if (plugin->SyncEnabled())
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
+
+	if (settings->bSync)
 		RefreshScene();
 
 	if (m_TriggerEndFrameResize)
@@ -541,7 +545,7 @@ void	ARPRScene::Tick(float deltaTime)
 		const uint8	*textureData = m_RendererWorker->GetFramebufferData();
 		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
 			UpdateDynamicTextureCode,
-			UTexture2DDynamic*, RenderTexture, RenderTexture.Get(),
+			UTexture2DDynamic*, renderTexture, m_RenderTexture,
 			const uint8*, textureData, textureData,
 			{
 				FUpdateTextureRegion2D	region;
@@ -549,11 +553,11 @@ void	ARPRScene::Tick(float deltaTime)
 				region.SrcY = 0;
 				region.DestX = 0;
 				region.DestY = 0;
-				region.Width = RenderTexture->SizeX;
-				region.Height = RenderTexture->SizeY;
+				region.Width = renderTexture->SizeX;
+				region.Height = renderTexture->SizeY;
 
 				const uint32	pitch = region.Width * sizeof(uint8) * 4;
-				FRHITexture2D	*resource = (FRHITexture2D*)RenderTexture->Resource->TextureRHI.GetReference();
+				FRHITexture2D	*resource = (FRHITexture2D*)renderTexture->Resource->TextureRHI.GetReference();
 				RHIUpdateTexture2D(resource, 0, region, pitch, textureData);
 			});
 		FlushRenderingCommands();

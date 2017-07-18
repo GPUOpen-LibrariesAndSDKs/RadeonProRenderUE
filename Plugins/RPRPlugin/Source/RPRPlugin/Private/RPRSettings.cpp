@@ -20,6 +20,8 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 ,	bEnableCPU(false) // By default, no GPUs available, abort
 ,	QualitySettings(ERPRQualitySettings::Medium)
 ,	MegaPixelCount(2.0f)
+,	bSync(true)
+,	bTrace(false)
 {
 }
 

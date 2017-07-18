@@ -72,4 +72,10 @@ public:
 
 	UPROPERTY(Config)
 	float		MegaPixelCount;
+
+	UPROPERTY(Config)
+	uint32		bSync:1;
+
+	UPROPERTY(Config)
+	uint32		bTrace:1;
 };

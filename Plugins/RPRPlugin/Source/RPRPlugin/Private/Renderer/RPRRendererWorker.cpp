@@ -241,7 +241,7 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 
 void	FRPRRendererWorker::BuildQueuedObjects()
 {
-	FRPRPluginModule	*plugin = FRPRPluginModule::Get();
+	FRPRPluginModule	*plugin = &FRPRPluginModule::Get();
 
 	const uint32	objectCount = m_BuildQueue.Num();
 	for (uint32 iObject = 0; iObject < objectCount; ++iObject)
