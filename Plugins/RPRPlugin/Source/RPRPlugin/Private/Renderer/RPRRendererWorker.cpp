@@ -129,10 +129,24 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 {
 	if (m_PreRenderLock.TryLock())
 	{
-		uint32	queueCount = newBuildQueue.Num();
+		const uint32	queueCount = newBuildQueue.Num();
 		for (uint32 iObject = 0; iObject < queueCount; ++iObject)
 			m_BuildQueue.Add(newBuildQueue[iObject]);
-		outBuiltObjects.Append(m_BuiltObjects);
+
+		const uint32	builtCount = m_BuiltObjects.Num();
+		for (uint32 iObject = 0; iObject < builtCount; ++iObject)
+		{
+			check(m_BuiltObjects[iObject] != NULL);
+			URPRSceneComponent	*comp = Cast<URPRSceneComponent>(m_BuiltObjects[iObject]->GetRootComponent());
+			check(comp != NULL);
+			if (comp->PostBuild())
+				outBuiltObjects.Append(m_BuiltObjects);
+			else
+			{
+				m_BuiltObjects[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+				m_BuiltObjects[iObject]->Destroy();
+			}
+		}
 		m_BuiltObjects.Empty();
 		m_IsBuildingObjects = m_BuildQueue.Num() > 0;
 
