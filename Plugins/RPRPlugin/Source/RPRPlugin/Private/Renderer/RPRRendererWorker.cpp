@@ -15,14 +15,13 @@ DEFINE_STAT(STAT_ProRender_Readback);
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRRenderer, Log, All);
 
-static uint32	kMaxIterations = 64;
-
-FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene scene, uint32 width, uint32 height)
+FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene scene, uint32 width, uint32 height, uint32 numDevices)
 :	m_RprFrameBuffer(NULL)
 ,	m_RprContext(context)
 ,	m_RprScene(scene)
 ,	m_CurrentIteration(0)
 ,	m_PreviousRenderedIteration(0)
+,	m_NumDevices(numDevices)
 ,	m_Width(width)
 ,	m_Height(height)
 ,	m_Resize(true)
@@ -149,38 +148,32 @@ void	FRPRRendererWorker::SetQualitySettings(ERPRQualitySettings qualitySettings)
 	if (m_RprContext == NULL)
 		return;
 
-	uint32	numSamples = 0;
 	uint32	numRayBounces = 0;
 	switch (qualitySettings)
 	{
 		case	ERPRQualitySettings::Interactive:
 		{
-			numSamples = 1;
 			numRayBounces = 1;
 			break;
 		}
 		case	ERPRQualitySettings::Low:
 		{
-			numSamples = 1;
 			numRayBounces = 8;
 			break;
 		}
 		case	ERPRQualitySettings::Medium:
 		{
-			numSamples = 8;
 			numRayBounces = 15;
 			break;
 		}
 		case	ERPRQualitySettings::High:
 		{
-			numSamples = 16;
 			numRayBounces = 25;
 			break;
 		}
 	}
 	m_RenderLock.Lock();
-	if (rprContextSetParameter1u(m_RprContext, "aasamples", numSamples) != RPR_SUCCESS ||
-		rprContextSetParameter1u(m_RprContext, "maxRecursion", numRayBounces) != RPR_SUCCESS)
+	if (rprContextSetParameter1u(m_RprContext, "maxRecursion", numRayBounces) != RPR_SUCCESS)
 	{
 		m_RenderLock.Unlock();
 		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't set quality settings"));
@@ -189,7 +182,7 @@ void	FRPRRendererWorker::SetQualitySettings(ERPRQualitySettings qualitySettings)
 	{
 		m_RenderLock.Unlock();
 		RestartRender();
-		UE_LOG(LogRPRRenderer, Log, TEXT("Quality settings successfully modified: %d AA Samples, %d Ray bounces"), numSamples, numRayBounces);
+		UE_LOG(LogRPRRenderer, Log, TEXT("Quality settings successfully modified: %d Ray bounces"), numRayBounces);
 	}
 }
 
@@ -342,7 +335,7 @@ uint32	FRPRRendererWorker::Run()
 			}
 			m_RenderLock.Unlock();
 			BuildFramebufferData();
-			++m_CurrentIteration;
+			m_CurrentIteration += m_NumDevices;
 		}
 		else
 			FPlatformProcess::Sleep(0.1f);
@@ -364,7 +357,7 @@ void	FRPRRendererWorker::EnsureCompletion()
 
 bool	FRPRRendererWorker::Flush() const
 {
-	return m_CurrentIteration != m_PreviousRenderedIteration && m_CurrentIteration != kMaxIterations;
+	return m_CurrentIteration != m_PreviousRenderedIteration;
 }
 
 void	FRPRRendererWorker::ReleaseResources()

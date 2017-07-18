@@ -10,7 +10,7 @@
 class FRPRRendererWorker : public FRunnable
 {
 public:
-	FRPRRendererWorker(rpr_context context, rpr_scene scene, uint32 width, uint32 height);
+	FRPRRendererWorker(rpr_context context, rpr_scene scene, uint32 width, uint32 height, uint32 numDevices);
 	virtual ~FRPRRendererWorker();
 
 	// Begin FRunnable interface.
@@ -55,6 +55,7 @@ private:
 	uint32						m_CurrentIteration;
 	uint32						m_PreviousRenderedIteration;
 
+	uint32						m_NumDevices;
 	uint32						m_Width;
 	uint32						m_Height;
 

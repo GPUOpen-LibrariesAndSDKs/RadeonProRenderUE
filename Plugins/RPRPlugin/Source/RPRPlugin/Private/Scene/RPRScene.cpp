@@ -373,7 +373,13 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 			UE_LOG(LogRPRScene, Error, TEXT("Couldn't find a compatible device"));
 			return;
 		}
-		if (rprCreateContext(RPR_API_VERSION, &tahoePluginId, 1, creationFlags, NULL, TCHAR_TO_ANSI(*cachePath), &m_RprContext) != RPR_SUCCESS)
+
+		uint32	numDevices = 0;
+		for (uint32 s = RPR_CREATION_FLAGS_ENABLE_GPU7; s; s >>= 1)
+			numDevices += (creationFlags & s) != 0;
+
+		if (rprCreateContext(RPR_API_VERSION, &tahoePluginId, 1, creationFlags, NULL, TCHAR_TO_ANSI(*cachePath), &m_RprContext) != RPR_SUCCESS ||
+			rprContextSetParameter1u(m_RprContext, "aasamples", numDevices) != RPR_SUCCESS)
 		{
 			UE_LOG(LogRPRScene, Error, TEXT("RPR Context creation failed: check your OpenCL runtime and driver versions."));
 			return;
@@ -414,7 +420,8 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		TriggerFrameRebuild();
 
 		m_RenderTexture = plugin->GetRenderTexture();
-		m_RendererWorker = MakeShareable(new FRPRRendererWorker(m_RprContext, m_RprScene, m_RenderTexture->SizeX, m_RenderTexture->SizeY));
+
+		m_RendererWorker = MakeShareable(new FRPRRendererWorker(m_RprContext, m_RprScene, m_RenderTexture->SizeX, m_RenderTexture->SizeY, numDevices));
 		m_RendererWorker->SetQualitySettings(settings->QualitySettings);
 	}
 	m_RendererWorker->SetPaused(false);
