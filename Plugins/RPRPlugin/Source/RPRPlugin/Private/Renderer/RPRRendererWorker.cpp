@@ -29,6 +29,7 @@ FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene scene, uin
 ,	m_ClearFramebuffer(false)
 ,	m_PauseRender(true)
 {
+	m_Plugin = &FRPRPluginModule::Get();
 	m_Thread = FRunnableThread::Create(this, TEXT("FRPRRendererWorker"));
 }
 
@@ -234,12 +235,10 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 
 void	FRPRRendererWorker::BuildQueuedObjects()
 {
-	FRPRPluginModule	*plugin = &FRPRPluginModule::Get();
-
 	const uint32	objectCount = m_BuildQueue.Num();
 	for (uint32 iObject = 0; iObject < objectCount; ++iObject)
 	{
-		plugin->NotifyObjectBuilt();
+		m_Plugin->NotifyObjectBuilt();
 
 		ARPRActor	*actor = m_BuildQueue[iObject];
 		check(actor != NULL);

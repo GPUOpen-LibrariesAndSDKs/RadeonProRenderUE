@@ -10,7 +10,7 @@ SRPRViewportTabContent::~SRPRViewportTabContent()
 	m_ViewportClient = NULL;
 	m_ViewportWidget = NULL;
 
-	FRPRPluginModule::Get().m_Viewport = NULL;
+	m_Plugin->m_Viewport = NULL;
 }
 
 FText	SRPRViewportTabContent::GetImportStatus() const
@@ -385,7 +385,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 	];
 
 	m_ViewportClient = MakeShareable(new FRPRViewportClient(m_Plugin));
-	FRPRPluginModule::Get().m_Viewport = MakeShareable(new FSceneViewport(m_ViewportClient.Get(), m_ViewportWidget));
+	m_Plugin->m_Viewport = MakeShareable(new FSceneViewport(m_ViewportClient.Get(), m_ViewportWidget));
 	m_ViewportWidget->SetViewportInterface(m_Plugin->m_Viewport.ToSharedRef());
 }
 

@@ -13,7 +13,8 @@ public:
 	virtual void	StartupModule() override;
 	virtual void	ShutdownModule() override;
 
-	static inline FRPRPluginModule	&Get() { return FModuleManager::LoadModuleChecked<FRPRPluginModule>("RPRPlugin"); }
+	static inline FRPRPluginModule	&Get() { return FModuleManager::GetModuleChecked<FRPRPluginModule>("RPRPlugin"); }
+	static inline FRPRPluginModule	&Load() { return FModuleManager::LoadModuleChecked<FRPRPluginModule>("RPRPlugin"); }
 
 	bool							RenderPaused() const { return m_RPRPaused; }
 

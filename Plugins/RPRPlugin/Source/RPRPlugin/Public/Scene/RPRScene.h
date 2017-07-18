@@ -61,6 +61,7 @@ private:
 
 	TSharedPtr<class FRPRRendererWorker>	m_RendererWorker;
 
+	class FRPRPluginModule					*m_Plugin;
 	UTexture2DDynamic						*m_RenderTexture;
 
 	UPROPERTY(Transient)

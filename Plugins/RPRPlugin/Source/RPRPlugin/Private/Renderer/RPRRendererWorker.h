@@ -52,6 +52,8 @@ private:
 	FCriticalSection			m_RenderLock;
 	FCriticalSection			m_PreRenderLock;
 
+	class FRPRPluginModule		*m_Plugin;
+
 	uint32						m_CurrentIteration;
 	uint32						m_PreviousRenderedIteration;
 

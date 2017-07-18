@@ -37,10 +37,12 @@ ARPRScene::ARPRScene()
 ,	m_TriggerEndFrameResize(false)
 ,	m_TriggerEndFrameRebuild(false)
 ,	m_RendererWorker(NULL)
+,	m_Plugin(NULL)
 ,	m_RenderTexture(NULL)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	m_Plugin = &FRPRPluginModule::Load();
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 }
 
@@ -238,7 +240,6 @@ bool	ARPRScene::ResizeRenderTarget()
 	const uint32	width = FGenericPlatformMath::Sqrt(megapixels * horizontalRatio * 1000000.0f);
 	const uint32	height = width / horizontalRatio;
 
-	FRPRPluginModule	*plugin = &FRPRPluginModule::Get();
 	if (width != m_RenderTexture->SizeX || height != m_RenderTexture->SizeY)
 	{
 		m_RenderTexture->Init(width, height, PF_R8G8B8A8);
@@ -353,9 +354,7 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		URPRSettings	*settings = GetMutableDefault<URPRSettings>();
 		check(settings != NULL);
 
-		// Initialize everything
-		FRPRPluginModule	*plugin = &FRPRPluginModule::Get();
-		if (!ensure(plugin->GetRenderTexture() != NULL))
+		if (!ensure(m_Plugin->GetRenderTexture() != NULL))
 			return;
 
 		FString	cachePath = settings->RenderCachePath;
@@ -410,8 +409,8 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		if (!BuildViewportCamera())
 			return;
 		// Pickup the specified camera
-		if (!plugin->ActiveCameraName().IsEmpty()) // Otherwise, it'll just use the last found camera in the scene
-			SetActiveCamera(plugin->ActiveCameraName());
+		if (!m_Plugin->ActiveCameraName().IsEmpty()) // Otherwise, it'll just use the last found camera in the scene
+			SetActiveCamera(m_Plugin->ActiveCameraName());
 		else
 		{
 			// IF in editor
@@ -419,7 +418,7 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		}
 		TriggerFrameRebuild();
 
-		m_RenderTexture = plugin->GetRenderTexture();
+		m_RenderTexture = m_Plugin->GetRenderTexture();
 
 		m_RendererWorker = MakeShareable(new FRPRRendererWorker(m_RprContext, m_RprScene, m_RenderTexture->SizeX, m_RenderTexture->SizeY, numDevices));
 		m_RendererWorker->SetQualitySettings(settings->QualitySettings);
@@ -520,8 +519,7 @@ void	ARPRScene::Tick(float deltaTime)
 		m_RenderTexture->Resource == NULL)
 		return;
 
-	FRPRPluginModule	*plugin = &FRPRPluginModule::Get();
-	if (plugin->RenderPaused())
+	if (m_Plugin->RenderPaused())
 		return;
 
 	// First, launch build of queued actors on the RPR thread
@@ -570,7 +568,7 @@ void	ARPRScene::Tick(float deltaTime)
 		FlushRenderingCommands();
 		m_RendererWorker->m_DataLock.Unlock();
 
-		plugin->m_Viewport->Draw();
+		m_Plugin->m_Viewport->Draw();
 	}
 }
 
