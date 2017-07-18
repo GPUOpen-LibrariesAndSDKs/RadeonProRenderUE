@@ -14,21 +14,21 @@
 #include "RPRInterchangeMaterial.h"
 #include "RprSupport.h"
 
-// chuck these up here for now. Move to own file asap
-namespace 
-{
-void    rpriLogger(char const * _log) 
-{
-	int a = 0;
-}
-}
+extern "C" void OutputDebugStringA(char const *);
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
-
+// chuck these up here for now. Move to own file asap
+namespace
+{
+void    rpriLogger(char const * _log)
+{
+	OutputDebugStringA(_log);
+}
+}
 TMap<UStaticMesh*, TArray<SRPRCachedMesh>>	URPRStaticMeshComponent::Cache;
 
 URPRStaticMeshComponent::URPRStaticMeshComponent()
-:	m_RprMaterialSystem(NULL)
+	:	m_RprMaterialSystem(NULL)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
@@ -62,6 +62,8 @@ void	URPRStaticMeshComponent::CleanCache()
 	// TODO : Put a safer cache system in place *or* ensure there can only be one context
 	Cache.Empty();
 }
+#define RPR_UMS_INTEGRATION 0
+#define RPR_UMS_DUMP_RPIF 0
 
 bool	URPRStaticMeshComponent::BuildMaterials()
 {
@@ -87,11 +89,15 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR material node"));
 				return false;
 			}
-			if (rprMaterialNodeSetInputF(material, "color", 0.5f, 0.5f, 0.5f, 1.0f) != RPR_SUCCESS ||
-				rprShapeSetMaterial(shape, material) != RPR_SUCCESS)
+			m_Shapes[iShape].m_RprMaterial = material;
+			if (rprMaterialNodeSetInputF(m_Shapes[iShape].m_RprMaterial, "color", 0.5f, 0.5f, 0.5f, 1.0f) != RPR_SUCCESS)
 			{
 				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR material to the RPR shape"));
-				rprObjectDelete(material);
+				return false;
+			}
+			if (rprShapeSetMaterial(shape, m_Shapes[iShape].m_RprMaterial) != RPR_SUCCESS)
+			{
+				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR material to the RPR shape"));
 				return false;
 			}
 		}
@@ -107,21 +113,83 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 			{
 				// ...
 			}
+
+#if RPR_UMS_INTEGRATION == 1
+			// currently do 1 material at a time with no node sharing
+			UE4InterchangeMaterialGraph *mg = nullptr;
+			mg = new UE4InterchangeMaterialGraph(parentMaterial);
+
+			static char const UE4ImporterString[] = "UE4 Importer";
+			rpri::generic::IMaterialGraph* first = mg;
+			rpriImportProperty importProps[] = {
+				{ "Import", reinterpret_cast<uintptr_t>(UE4ImporterString) },
+				{ "Num Materials", 1 },
+				{ "Material Import Array", reinterpret_cast<uintptr_t>(first) }
+			};
+			uint32_t const numImportProps = sizeof(importProps) / sizeof(importProps[0]);
+
+			rpriContext ctx;
+			rpriAllocateContext(&ctx);
+			rpriErrorOptions(ctx, 5, false, false);
+			rpriSetLoggers(ctx, rpriLogger, rpriLogger, rpriLogger);
+
+			rpriImportFromMemory(ctx, "Generic", numImportProps, importProps);
+
+#if RPR_UMS_DUMP_RPIF == 1
+			static int testCounter = 0;
+			std::stringstream ss;
+			ss << testCounter++;
+			std::string sss = "C:/Users/AMD/Source/Repos/AMD/RadeonProRenderUE/test" + ss.str();
+			rpriExportProperty exportProps[] = {
+				{ "Export Path", reinterpret_cast<uintptr_t>(sss.c_str()) },
+			};
+			uint32_t const numExportProps = sizeof(exportProps) / sizeof(exportProps[0]);
+
+			rpriExport(ctx, "RPIF Exporter", numExportProps, exportProps);
+#else
+			std::vector<rpriExportRprMaterialResult> resultArray;
+			resultArray.resize(1);
+			rpriExportRprMaterialResult* firstResult = resultArray.data();
+
+			rpriExportProperty exportProps[] = {
+				{ "RPR Context", reinterpret_cast<uintptr_t>(&Scene->m_RprContext) },
+				{ "RPR Material System", reinterpret_cast<uintptr_t>(&m_RprMaterialSystem) },
+				{ "RPRX Context", reinterpret_cast<uintptr_t>(&m_RprSupportCtx) },
+				{ "Num RPR Materials", static_cast<uintptr_t>(1) },
+				{ "RPR Material Result Array", reinterpret_cast<uintptr_t>(firstResult) },
+			};
+			uint32_t const numExportProps = sizeof(exportProps) / sizeof(exportProps[0]);
+
+			rpriExport(ctx, "RPR API Exporter", numExportProps, exportProps);
+
+			if(firstResult->type == 0)
+			{
+				rpr_material_node rprMatNode = reinterpret_cast<rpr_material_node>(firstResult->data);
+				rprShapeSetMaterial(shape, rprMatNode);
+			} else
+			{
+				rprx_material rprMatX = reinterpret_cast<rprx_material>(firstResult->data);
+				rprxShapeAttachMaterial(m_RprSupportCtx, shape, rprMatX);
+				rprxMaterialCommit(m_RprSupportCtx, rprMatX);
+			}
+
+#endif
+			rpriFreeContext(ctx);
+#else
 			if (rprMaterialSystemCreateNode(m_RprMaterialSystem, RPR_MATERIAL_NODE_DIFFUSE, &material) != RPR_SUCCESS)
 			{
 				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR material node"));
-				rprObjectDelete(material);
 				return false;
 			}
+			m_Shapes[iShape].m_RprMaterial = material;
 			if (rprMaterialNodeSetInputF(material, "color", 0.5f, 0.5f, 0.5f, 1.0f) != RPR_SUCCESS ||
 				rprShapeSetMaterial(shape, material) != RPR_SUCCESS)
 			{
 				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR material to the RPR shape"));
-				rprObjectDelete(material);
 				return false;
 			}
+#endif
 		}
-		m_Shapes[iShape].m_RprMaterial = material;
 	}
 	return true;
 }
@@ -148,7 +216,7 @@ bool	URPRStaticMeshComponent::Build()
 		UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR material system"));
 		return false;
 	}
-	if (rprxCreateContext(Scene->m_RprContext, RPRX_FLAGS_ENABLE_LOGGING, &m_RprSupportCtx) != RPR_SUCCESS)
+	if (rprxCreateContext(m_RprMaterialSystem, RPRX_FLAGS_ENABLE_LOGGING, &m_RprSupportCtx) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR material X system"));
 		return false;
@@ -171,82 +239,6 @@ bool	URPRStaticMeshComponent::Build()
 	const FStaticMeshLODResources		&lodRes = staticMesh->RenderData->LODResources[0];
 	if (lodRes.Sections.Num() == 0)
 		return false;
-
-#define RPR_UMS_INTEGRATION 0
-
-#if RPR_UMS_INTEGRATION
-	std::map<UMaterial const *, UE4InterchangeMaterialGraph*> materialMap;
-
-	for(int i =0;i < staticMeshComponent->GetNumMaterials();++i)
-	{
-		const UMaterialInterface	*ueMatIF = staticMeshComponent->GetMaterial(i);
-		const UMaterial			 *ue4Mat = ueMatIF->GetMaterial();
-
-		UE4InterchangeMaterialGraph *mg = nullptr;
-		if (materialMap.find(ue4Mat) == materialMap.end())
-		{
-			mg = new UE4InterchangeMaterialGraph(ue4Mat);
-			materialMap[ue4Mat] = mg;
-		}
-		else
-		{
-			mg = materialMap[ue4Mat];
-		}
-	}
-
-	std::vector<rpri::generic::IMaterialGraph*> flatGraphs;
-	for(auto&& it : materialMap)
-	{
-		flatGraphs.push_back(it.second);
-	}
-
-	static char const UE4ImporterString[] = "UE4 Importer";
-	rpri::generic::IMaterialGraph* first = *flatGraphs.data();
-	rpriImportProperty importProps[] = {
-		{"Import", reinterpret_cast<uintptr_t>(UE4ImporterString)},
-		{"Num Materials", materialMap.size() },
-		{"Material Import Array", reinterpret_cast<uintptr_t>(first) }
-	};
-	uint32_t const numImportProps = sizeof(importProps) / sizeof(importProps[0]);
-
-	rpriContext ctx;
-	rpriAllocateContext(&ctx);
-	rpriErrorOptions(ctx, 5, false, false);
-	rpriSetLoggers(ctx, rpriLogger, rpriLogger, rpriLogger);
-
-	rpriImportFromMemory(ctx, "Generic", numImportProps, importProps);
-
-#if RPR_UMS_DUMP_RPIF == 1
-	static int testCounter = 0;
-	std::stringstream ss;
-	ss << testCounter++;
-	std::string sss = "C:/Users/AMD/Source/Repos/AMD/RadeonProRenderUE/test" +ss.str();
-	rpriExportProperty exportProps[] = {
-		{ "Export Path", reinterpret_cast<uintptr_t>(sss.c_str()) },
-	};
-	uint32_t const numExportProps = sizeof(exportProps) / sizeof(exportProps[0]);
-
-	rpriExport(ctx, "RPIF Exporter", numExportProps, exportProps);
-#else
-	std::vector<rpriExportRprMaterialResult> resultArray;
-	resultArray.resize(materialMap.size());
-	rpriExportRprMaterialResult* firstResult = resultArray.data();
-
-	rpriExportProperty exportProps[] = {
-		{ "RPR Context", reinterpret_cast<uintptr_t>(Scene->m_RprContext) },
-		{ "RPR Material System", reinterpret_cast<uintptr_t>(m_RprMaterialSystem) },
-		{ "RPRX Context", reinterpret_cast<uintptr_t>(m_RprSupportCtx) },
-		{ "Num RPR Materials", reinterpret_cast<uintptr_t>(materialMap.size()) },
-		{ "RPR Material Result Array", reinterpret_cast<uintptr_t>(firstResult) },
-	};
-	uint32_t const numExportProps = sizeof(exportProps) / sizeof(exportProps[0]);
-
-	rpriExport(ctx, "RPR API Exporter", numExportProps, exportProps);
-
-#endif
-
-	rpriFreeContext(ctx);
-#endif
 
 	TArray<SRPRCachedMesh>	shapes = GetMeshInstances(staticMesh);
 	if (shapes.Num() == 0) // No mesh in cache ?
@@ -309,14 +301,14 @@ bool	URPRStaticMeshComponent::Build()
 			rpr_shape	shape = NULL;
 
 			if (rprContextCreateMesh(Scene->m_RprContext,
-				(rpr_float const *)positions.GetData(), positions.Num(), sizeof(float) * 3,
-				(rpr_float const *)normals.GetData(), normals.Num(), sizeof(float) * 3,
-				(rpr_float const *)uvs.GetData(), uvs.Num(), sizeof(float) * 2,
-				(rpr_int const *)indices.GetData(), sizeof(int32),
-				(rpr_int const *)indices.GetData(), sizeof(int32),
-				(rpr_int const *)indices.GetData(), sizeof(int32),
-					(rpr_int const *)numFaceVertices.GetData(), numFaceVertices.Num(),
-				&shape) != RPR_SUCCESS)
+			                         (rpr_float const *)positions.GetData(), positions.Num(), sizeof(float) * 3,
+			                         (rpr_float const *)normals.GetData(), normals.Num(), sizeof(float) * 3,
+			                         (rpr_float const *)uvs.GetData(), uvs.Num(), sizeof(float) * 2,
+			                         (rpr_int const *)indices.GetData(), sizeof(int32),
+			                         (rpr_int const *)indices.GetData(), sizeof(int32),
+			                         (rpr_int const *)indices.GetData(), sizeof(int32),
+			                         (rpr_int const *)numFaceVertices.GetData(), numFaceVertices.Num(),
+			                         &shape) != RPR_SUCCESS)
 			{
 				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh from '%s', section %d. Num indices = %d, Num vertices = %d"), *SrcComponent->GetName(), iSection, indices.Num(), positions.Num());
 				return false;
@@ -360,11 +352,10 @@ bool	URPRStaticMeshComponent::PostBuild()
 {
 	if (!m_Built)
 		return true; // We keep it anyway
-	// Temporary :
-#if (RPR_UMS_INTEGRATION == 0)
+
 	if (!BuildMaterials())
 		return false;
-#endif
+
 	return Super::PostBuild();
 }
 

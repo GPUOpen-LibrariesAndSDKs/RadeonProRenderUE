@@ -129,10 +129,12 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 {
 	if (m_PreRenderLock.TryLock())
 	{
-		const uint32	queueCount = newBuildQueue.Num();
+		// Append objects to build
+		uint32	queueCount = newBuildQueue.Num();
 		for (uint32 iObject = 0; iObject < queueCount; ++iObject)
 			m_BuildQueue.Add(newBuildQueue[iObject]);
 
+		// PostBuild
 		m_RenderLock.Lock();
 		const uint32	builtCount = m_BuiltObjects.Num();
 		for (uint32 iObject = 0; iObject < builtCount; ++iObject)
@@ -149,6 +151,7 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 			}
 		}
 		m_RenderLock.Unlock();
+
 		m_BuiltObjects.Empty();
 		m_IsBuildingObjects = m_BuildQueue.Num() > 0;
 
@@ -192,15 +195,14 @@ void	FRPRRendererWorker::SetQualitySettings(ERPRQualitySettings qualitySettings)
 	m_RenderLock.Lock();
 	if (rprContextSetParameter1u(m_RprContext, "maxRecursion", numRayBounces) != RPR_SUCCESS)
 	{
-		m_RenderLock.Unlock();
 		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't set quality settings"));
 	}
 	else
 	{
-		m_RenderLock.Unlock();
 		RestartRender();
 		UE_LOG(LogRPRRenderer, Log, TEXT("Quality settings successfully modified: %d Ray bounces"), numRayBounces);
 	}
+	m_RenderLock.Unlock();
 }
 
 void	FRPRRendererWorker::SetPaused(bool pause)

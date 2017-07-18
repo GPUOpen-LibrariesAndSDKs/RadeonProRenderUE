@@ -4,7 +4,6 @@
 
 #include "RPRSettings.generated.h"
 
-
 UENUM()
 enum	ERPRQualitySettings
 {
