@@ -25,9 +25,10 @@ public:
 	/* Build the RPR object based on the UE4 component */
 	virtual bool	Build();
 
+#ifdef BACKED_OUT
 	/* Called on the Game thread, after the object has been built */
 	virtual bool	PostBuild() { return true; }
-
+#endif
 	/* Rebuild the RPR transforms */
 	virtual bool	RebuildTransforms() { return false; }
 protected:

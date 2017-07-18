@@ -141,6 +141,9 @@ bool	ARPRScene::QueueBuildRPRActor(UWorld *world, USceneComponent *srcComponent,
 	{
 		// Profile that, if too much, do one "immediate build object" per frame ?
 		comp->Build();
+#ifndef BACKED_OUT
+		SceneContent.Add(newActor);
+#else
 		if (comp->PostBuild())
 			SceneContent.Add(newActor);
 		else
@@ -148,6 +151,7 @@ bool	ARPRScene::QueueBuildRPRActor(UWorld *world, USceneComponent *srcComponent,
 			newActor->GetRootComponent()->ConditionalBeginDestroy();
 			newActor->Destroy();
 		}
+#endif
 		return false;
 	}
 	else

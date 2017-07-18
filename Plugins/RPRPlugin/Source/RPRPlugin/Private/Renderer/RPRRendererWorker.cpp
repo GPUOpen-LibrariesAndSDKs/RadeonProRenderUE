@@ -129,10 +129,15 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 {
 	if (m_PreRenderLock.TryLock())
 	{
-		const uint32	queueCount = newBuildQueue.Num();
+#ifndef BACKED_OUT
+		uint32	queueCount = newBuildQueue.Num();
 		for (uint32 iObject = 0; iObject < queueCount; ++iObject)
 			m_BuildQueue.Add(newBuildQueue[iObject]);
-
+		outBuiltObjects.Append(m_BuiltObjects);
+#else
+		uint32	queueCount = newBuildQueue.Num();
+		for (uint32 iObject = 0; iObject < queueCount; ++iObject)
+			m_BuildQueue.Add(newBuildQueue[iObject]);
 		const uint32	builtCount = m_BuiltObjects.Num();
 		for (uint32 iObject = 0; iObject < builtCount; ++iObject)
 		{
@@ -147,6 +152,7 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 				m_BuiltObjects[iObject]->Destroy();
 			}
 		}
+#endif
 		m_BuiltObjects.Empty();
 		m_IsBuildingObjects = m_BuildQueue.Num() > 0;
 

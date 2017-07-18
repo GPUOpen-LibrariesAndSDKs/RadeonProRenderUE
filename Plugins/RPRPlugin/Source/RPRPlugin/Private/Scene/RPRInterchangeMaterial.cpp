@@ -121,6 +121,7 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 			// should not get here
 			assert(false);
 		}
+		_collection.valueStorage[valueName.c_str()] = valuePtr;
 
 		return _collection.FindMux(valueName.c_str());
 
@@ -246,29 +247,18 @@ UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collect
 													name.c_str(),
 													ue4Mat->BaseColor.Constant);
 		auto muxPtr = _collection.FindMux(name.c_str());
-		if (muxPtr)
-		{
-			muxes[0] = muxPtr;
-		}
+		assert(muxPtr);
+		muxes[0] = muxPtr;
 	}
 	else
 	{
 		auto ue4Name = ue4Mat->BaseColor.Expression->GetName();
 		auto cName = TCHAR_TO_ANSI(*ue4Name);
 
-		auto node = UE4InterchangeMaterialNode::New(_collection,
+		auto mux = UE4InterchangeMaterialNode::New(_collection,
 													cName,
 													ue4Mat->BaseColor.Expression);
-
-		auto muxPtr = _collection.FindMux(cName);
-		if (muxPtr)
-		{
-			muxes[0] = muxPtr;
-		}
-		else
-		{
-			muxes[0] = nullptr;
-		}
+		muxes[0] = mux;
 	}
 }
 IMaterialValuePtr UE4InterchangeMaterialValue::New(

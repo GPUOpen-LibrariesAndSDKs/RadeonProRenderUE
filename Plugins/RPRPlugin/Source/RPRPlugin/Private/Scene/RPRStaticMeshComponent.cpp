@@ -62,7 +62,7 @@ void	URPRStaticMeshComponent::CleanCache()
 	// TODO : Put a safer cache system in place *or* ensure there can only be one context
 	Cache.Empty();
 }
-#define RPR_UMS_INTEGRATION 0
+#define RPR_UMS_INTEGRATION 1
 #define RPR_UMS_DUMP_RPIF 0
 
 bool	URPRStaticMeshComponent::BuildMaterials()
@@ -351,6 +351,8 @@ bool	URPRStaticMeshComponent::Build()
 	}
 	return Super::Build();
 }
+// this change as broken the main build, ifdef out for now
+#ifdef BACKED_OUT 
 
 bool	URPRStaticMeshComponent::PostBuild()
 {
@@ -362,6 +364,7 @@ bool	URPRStaticMeshComponent::PostBuild()
 
 	return Super::PostBuild();
 }
+#endif
 
 bool	URPRStaticMeshComponent::RebuildTransforms()
 {

@@ -47,7 +47,10 @@ private:
 	bool					BuildMaterials();
 
 	virtual void	BeginDestroy() override;
+	// this change as broken the main build, ifdef out for now
+#ifdef BACKED_OUT
 	virtual bool	PostBuild() override;
+#endif
 private:
 	rpr_material_system	m_RprMaterialSystem;
 	rprx_context		m_RprSupportCtx;

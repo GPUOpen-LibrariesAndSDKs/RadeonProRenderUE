@@ -142,7 +142,7 @@ private:
 };
 
 static char const * PBRNodeFieldNames[10]{
-	"BaseColor",
+	"Base.Color",
 	"Roughness",
 	"Metallic",
 	"Specular",
