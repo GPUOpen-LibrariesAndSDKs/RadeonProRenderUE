@@ -326,7 +326,9 @@ uint32	FRPRRendererWorker::Run()
 		m_PreRenderLock.Unlock();
 		if (m_CurrentIteration < settings->MaximumRenderIterations && !isPaused && m_RenderLock.TryLock())
 		{
-			if (rprContextRender(m_RprContext) != RPR_SUCCESS)
+			const uint32	sampleCount = FGenericPlatformMath::Min((m_CurrentIteration + 4) / 4, m_NumDevices);
+			if (rprContextSetParameter1u(m_RprContext, "aasamples", sampleCount) != RPR_SUCCESS ||
+				rprContextRender(m_RprContext) != RPR_SUCCESS)
 			{
 				m_RenderLock.Unlock();
 				UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't render iteration %d"), m_CurrentIteration);
@@ -334,7 +336,7 @@ uint32	FRPRRendererWorker::Run()
 			}
 			m_RenderLock.Unlock();
 			BuildFramebufferData();
-			m_CurrentIteration += m_NumDevices;
+			m_CurrentIteration += sampleCount;
 		}
 		else
 			FPlatformProcess::Sleep(0.1f);
