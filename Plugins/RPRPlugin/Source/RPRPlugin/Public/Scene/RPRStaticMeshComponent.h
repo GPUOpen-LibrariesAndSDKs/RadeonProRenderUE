@@ -8,13 +8,25 @@
 #include "RprSupport.h"
 #include "RPRStaticMeshComponent.generated.h"
 
+struct	SRPRCachedMesh
+{
+	rpr_shape	m_RprShape;
+	int32		m_UEMaterialIndex;
+
+	SRPRCachedMesh(rpr_shape shape, int32 materialIndex)
+	:	m_RprShape(shape)
+	,	m_UEMaterialIndex(materialIndex) { }
+};
+
 struct	SRPRShape
 {
 	rpr_shape			m_RprShape;
 	rpr_material_node	m_RprMaterial;
+	int32				m_UEMaterialIndex;
 
-	SRPRShape(rpr_shape shape)
-	:	m_RprShape(shape)
+	SRPRShape(const SRPRCachedMesh &cached)
+	:	m_RprShape(cached.m_RprShape)
+	,	m_UEMaterialIndex(cached.m_UEMaterialIndex)
 	,	m_RprMaterial(NULL) { }
 };
 
@@ -28,13 +40,14 @@ public:
 	virtual bool	Build() override;
 	virtual bool	RebuildTransforms() override;
 private:
-	static TMap<UStaticMesh*, TArray<rpr_shape>>	Cache;
-	static void										CleanCache();
+	static TMap<UStaticMesh*, TArray<SRPRCachedMesh>>	Cache;
+	static void											CleanCache();
 
-	TArray<rpr_shape>	GetMeshInstances(UStaticMesh *mesh);
-	bool				BuildMaterials();
+	TArray<SRPRCachedMesh>	GetMeshInstances(UStaticMesh *mesh);
+	bool					BuildMaterials();
 
 	virtual void	BeginDestroy() override;
+	virtual bool	PostBuild() override;
 private:
 	rpr_material_system	m_RprMaterialSystem;
 	rprx_context		m_RprSupportCtx;

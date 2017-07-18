@@ -25,7 +25,7 @@ void    rpriLogger(char const * _log)
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
 
-TMap<UStaticMesh*, TArray<rpr_shape>>	URPRStaticMeshComponent::Cache;
+TMap<UStaticMesh*, TArray<SRPRCachedMesh>>	URPRStaticMeshComponent::Cache;
 
 URPRStaticMeshComponent::URPRStaticMeshComponent()
 :	m_RprMaterialSystem(NULL)
@@ -33,25 +33,25 @@ URPRStaticMeshComponent::URPRStaticMeshComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-TArray<rpr_shape>	URPRStaticMeshComponent::GetMeshInstances(UStaticMesh *mesh)
+TArray<SRPRCachedMesh>	URPRStaticMeshComponent::GetMeshInstances(UStaticMesh *mesh)
 {
 	if (!Cache.Contains(mesh))
-		return TArray<rpr_shape>();
-	TArray<rpr_shape>		instances;
-	const TArray<rpr_shape>	&srcShapes = Cache[mesh];
+		return TArray<SRPRCachedMesh>();
+	TArray<SRPRCachedMesh>			instances;
+	const TArray<SRPRCachedMesh>	&srcShapes = Cache[mesh];
 
 	const uint32	shapeCount = srcShapes.Num();
 	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 	{
 		rpr_shape	newShape = NULL;
-		if (rprContextCreateInstance(Scene->m_RprContext, srcShapes[iShape], &newShape) != RPR_SUCCESS)
+		if (rprContextCreateInstance(Scene->m_RprContext, srcShapes[iShape].m_RprShape, &newShape) != RPR_SUCCESS)
 		{
 			for (int32 jShape = 0; jShape < instances.Num(); ++jShape)
-				rprObjectDelete(instances[jShape]);
+				rprObjectDelete(instances[jShape].m_RprShape);
 			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh instance from '%s'"), *SrcComponent->GetName());
-			return TArray<rpr_shape>();
+			return TArray<SRPRCachedMesh>();
 		}
-		instances.Add(newShape);
+		instances.Add(SRPRCachedMesh(newShape, srcShapes[iShape].m_UEMaterialIndex));
 	}
 	return instances;
 }
@@ -73,21 +73,53 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 	const uint32	shapeCount = m_Shapes.Num();
 	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 	{
-		rpr_shape			shape = m_Shapes[iShape].m_RprShape;
+		// If we have a wrong index, it ll just return NULL, and fallback to a dummy material
+		const UMaterialInterface	*matInstance = component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
+		const UMaterial				*parentMaterial = matInstance != NULL ? matInstance->GetMaterial() : NULL;
+		rpr_shape					shape = m_Shapes[iShape].m_RprShape;
+
 		rpr_material_node	material = NULL;
-		if (rprMaterialSystemCreateNode(m_RprMaterialSystem, RPR_MATERIAL_NODE_DIFFUSE, &material) != RPR_SUCCESS)
+		if (parentMaterial == NULL)
 		{
-			rprObjectDelete(shape);
-			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR material node"));
-			return false;
+			// Default dummy material creation
+			if (rprMaterialSystemCreateNode(m_RprMaterialSystem, RPR_MATERIAL_NODE_DIFFUSE, &material) != RPR_SUCCESS)
+			{
+				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR material node"));
+				return false;
+			}
+			if (rprMaterialNodeSetInputF(m_Shapes[iShape].m_RprMaterial, "color", 0.5f, 0.5f, 0.5f, 1.0f) != RPR_SUCCESS ||
+				rprShapeSetMaterial(shape, m_Shapes[iShape].m_RprMaterial) != RPR_SUCCESS)
+			{
+				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR material to the RPR shape"));
+				rprObjectDelete(material);
+				return false;
+			}
 		}
-		if (rprMaterialNodeSetInputF(material, "color", 0.5f, 0.5f, 0.5f, 1.0f) != RPR_SUCCESS ||
-			rprShapeSetMaterial(shape, material) != RPR_SUCCESS)
+		else
 		{
-			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR material to the RPR shape"));
-			rprObjectDelete(shape);
-			rprObjectDelete(material);
-			return false;
+			// Here code for Sean, namechecks
+			// Uncomment all the necessary code below and replace with your tests
+			if (parentMaterial->GetName() == "SomeMaterial1")
+			{
+				// ...
+			}
+			else if (parentMaterial->GetName() == "Rubyredsomething")
+			{
+				// ...
+			}
+			if (rprMaterialSystemCreateNode(m_RprMaterialSystem, RPR_MATERIAL_NODE_DIFFUSE, &material) != RPR_SUCCESS)
+			{
+				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR material node"));
+				rprObjectDelete(material);
+				return false;
+			}
+			if (rprMaterialNodeSetInputF(material, "color", 0.5f, 0.5f, 0.5f, 1.0f) != RPR_SUCCESS ||
+				rprShapeSetMaterial(shape, material) != RPR_SUCCESS)
+			{
+				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR material to the RPR shape"));
+				rprObjectDelete(material);
+				return false;
+			}
 		}
 		RadeonProRender::matrix	matrix = BuildMatrixWithScale(SrcComponent->ComponentToWorld);
 		if (rprShapeSetTransform(shape, RPR_TRUE, &matrix.m00) != RPR_SUCCESS ||
@@ -96,9 +128,10 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 			rprSceneAttachShape(Scene->m_RprScene, shape) != RPR_SUCCESS)
 		{
 			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't attach RPR shape to the RPR scene"));
-			rprObjectDelete(shape);
+			rprObjectDelete(material);
 			return false;
 		}
+		m_Shapes[iShape].m_RprMaterial = material;
 	}
 	return true;
 }
@@ -226,7 +259,7 @@ bool	URPRStaticMeshComponent::Build()
 	rpriFreeContext(ctx);
 #endif
 
-	TArray<rpr_shape>	shapes = GetMeshInstances(staticMesh);
+	TArray<SRPRCachedMesh>	shapes = GetMeshInstances(staticMesh);
 	if (shapes.Num() == 0) // No mesh in cache ?
 	{
 		FIndexArrayView					srcIndices = lodRes.IndexBuffer.GetArrayView();
@@ -302,11 +335,12 @@ bool	URPRStaticMeshComponent::Build()
 
 
 
-			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape created from '%s'"), *SrcComponent->GetName());
+			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape created from '%s' section %d"), *staticMesh->GetName(), iSection);
+			SRPRCachedMesh	newShape(shape, section.MaterialIndex);
 			if (!Cache.Contains(staticMesh))
 				Cache.Add(staticMesh);
-			Cache[staticMesh].Add(shape);
-			m_Shapes.Add(shape);
+			Cache[staticMesh].Add(newShape);
+			m_Shapes.Add(newShape);
 		}
 	}
 	else
@@ -315,10 +349,19 @@ bool	URPRStaticMeshComponent::Build()
 		for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 			m_Shapes.Add(shapes[iShape]);
 	}
+	return Super::Build();
+}
+
+bool	URPRStaticMeshComponent::PostBuild()
+{
+	if (!m_Built)
+		return true; // We keep it anyway
+	// Temporary :
+#if (RPR_UMS_INTEGRATION == 0)
 	if (!BuildMaterials())
 		return false;
-
-	return Super::Build();
+#endif
+	return Super::PostBuild();
 }
 
 bool	URPRStaticMeshComponent::RebuildTransforms()

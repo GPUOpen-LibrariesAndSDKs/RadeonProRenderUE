@@ -140,7 +140,7 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 			URPRSceneComponent	*comp = Cast<URPRSceneComponent>(m_BuiltObjects[iObject]->GetRootComponent());
 			check(comp != NULL);
 			if (comp->PostBuild())
-				outBuiltObjects.Append(m_BuiltObjects);
+				outBuiltObjects.Add(m_BuiltObjects[iObject]);
 			else
 			{
 				m_BuiltObjects[iObject]->GetRootComponent()->ConditionalBeginDestroy();
