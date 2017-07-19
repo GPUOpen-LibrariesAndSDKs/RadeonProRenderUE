@@ -448,25 +448,25 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 				]
 			]
 			+ SSplitter::Slot()
-			//.SizeRule(SSplitter::ESizeRule::SizeToContent)
+			.SizeRule(SSplitter::ESizeRule::SizeToContent)
 			//.Value(120.0f)
 			[
 				SNew(SVerticalBox)
 				+ SVerticalBox::Slot().AutoHeight()
 				[
 					SNew(SVerticalBox)
-					+ SVerticalBox::Slot()
+					+ SVerticalBox::Slot().Padding(5.0f)
 					[
 						SNew(STextBlock)
 						.Text(LOCTEXT("PhotolinearTonemapTitle", "Photolinear tonemap"))
 					]
-					+ SVerticalBox::Slot().MaxHeight(16.0f)
+					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
 					[
 						SNew(SHorizontalBox)
 						+ SHorizontalBox::Slot()
 						[
 							SNew(STextBlock)
-							.Text(LOCTEXT("PhotolinearTonemapSensitivity", "Sensitivity : "))
+							.Text(LOCTEXT("PhotolinearTonemapSensitivity", "Sensitivity"))
 						]
 						+ SHorizontalBox::Slot()
 						[
@@ -480,13 +480,13 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 							.AllowSpin(true)
 						]
 					]
-					+ SVerticalBox::Slot().MaxHeight(16.0f)
+					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
 					[
 						SNew(SHorizontalBox)
 						+ SHorizontalBox::Slot()
 						[
 							SNew(STextBlock)
-							.Text(LOCTEXT("PhotolinearTonemapExposure", "Exposure : "))
+							.Text(LOCTEXT("PhotolinearTonemapExposure", "Exposure"))
 						]
 						+ SHorizontalBox::Slot()
 						[
@@ -500,13 +500,13 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 							.AllowSpin(true)
 						]
 					]
-					+ SVerticalBox::Slot().MaxHeight(16.0f)
+					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
 					[
 						SNew(SHorizontalBox)
 						+ SHorizontalBox::Slot()
 						[
 							SNew(STextBlock)
-							.Text(LOCTEXT("PhotolinearTonemapFStop", "FStop : "))
+							.Text(LOCTEXT("PhotolinearTonemapFStop", "FStop"))
 						]
 						+ SHorizontalBox::Slot()
 						[
@@ -524,18 +524,18 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 				+ SVerticalBox::Slot().AutoHeight()
 				[
 					SNew(SVerticalBox)
-					+ SVerticalBox::Slot()
+					+ SVerticalBox::Slot().Padding(5.0f)
 					[
 						SNew(STextBlock)
 						.Text(LOCTEXT("SimpleTonemapTitle", "Simple tonemap"))
 					]
-					+ SVerticalBox::Slot().MaxHeight(16.0f)
+					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
 					[
 						SNew(SHorizontalBox)
 						+ SHorizontalBox::Slot()
 						[
 							SNew(STextBlock)
-							.Text(LOCTEXT("SimpleTonemapExposure", "Exposure : "))
+							.Text(LOCTEXT("SimpleTonemapExposure", "Exposure"))
 						]
 						+ SHorizontalBox::Slot()
 						[
@@ -549,13 +549,13 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 							.AllowSpin(true)
 						]
 					]
-					+ SVerticalBox::Slot().MaxHeight(16.0f)
+					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
 					[
 						SNew(SHorizontalBox)
 						+ SHorizontalBox::Slot()
 						[
 							SNew(STextBlock)
-							.Text(LOCTEXT("SimpleTonemapContrast", "Contrast : "))
+							.Text(LOCTEXT("SimpleTonemapContrast", "Contrast"))
 						]
 						+ SHorizontalBox::Slot()
 						[
@@ -573,18 +573,18 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 				+ SVerticalBox::Slot().AutoHeight()
 				[
 					SNew(SVerticalBox)
-					+ SVerticalBox::Slot()
+					+ SVerticalBox::Slot().Padding(5.0f)
 					[
 						SNew(STextBlock)
 						.Text(LOCTEXT("WhiteBalanceTitle", "White Balance"))
 					]
-					+ SVerticalBox::Slot().MaxHeight(16.0f)
+					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
 					[
 						SNew(SHorizontalBox)
 						+ SHorizontalBox::Slot()
 						[
 							SNew(STextBlock)
-							.Text(LOCTEXT("TemperatureTitle", "Temperature : "))
+							.Text(LOCTEXT("TemperatureTitle", "Temperature"))
 						]
 						+ SHorizontalBox::Slot()
 						[
@@ -602,18 +602,18 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 				+ SVerticalBox::Slot().AutoHeight()
 				[
 					SNew(SVerticalBox)
-					+ SVerticalBox::Slot()
+					+ SVerticalBox::Slot().Padding(5.0f)
 					[
 						SNew(STextBlock)
 						.Text(LOCTEXT("GammaCorrectionTitle", "Gamma correction"))
 					]
-					+ SVerticalBox::Slot().MaxHeight(16.0f)
+					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
 					[
 						SNew(SHorizontalBox)
 						+ SHorizontalBox::Slot()
 						[
 							SNew(STextBlock)
-							.Text(LOCTEXT("DisplayGammaTitle", "Display gamma : "))
+							.Text(LOCTEXT("DisplayGammaTitle", "Display gamma"))
 						]
 						+ SHorizontalBox::Slot()
 						[
