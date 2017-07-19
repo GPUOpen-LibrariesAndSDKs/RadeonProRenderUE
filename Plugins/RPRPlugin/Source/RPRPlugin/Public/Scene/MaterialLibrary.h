@@ -23,7 +23,7 @@ namespace rpr
 
         bool HasMaterialName(const std::string& name);
         
-        rpr_material_node CreateMaterial(const UMaterialInstance* ueMaterialInstance, rpr_context context, rpr_material_system materialSystem);
+		rpr_material_node CreateMaterial(const UMaterialInterface* ueMaterialInstance, rpr_context context, rpr_material_system materialSystem);
 
     private:
         void LoadMaterialXML(const std::string& filename);

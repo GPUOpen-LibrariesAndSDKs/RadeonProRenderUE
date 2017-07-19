@@ -75,174 +75,181 @@ namespace rpr
 
     bool MaterialLibrary::HasMaterialName(const std::string& name)
     {
+		UE_LOG(LogMaterialLibrary, Log, TEXT("Looking for material library material %s"), UTF8_TO_TCHAR(name.c_str()));
         return (m_materialDescriptions.find(name) != m_materialDescriptions.end());
     }
 
-    rpr_material_node MaterialLibrary::CreateMaterial(const UMaterialInstance* ueMaterialInstance, rpr_context context, rpr_material_system materialSystem)
-    {
-        // Make sure material name exists in library.
-        std::string name = TCHAR_TO_ANSI(*ueMaterialInstance->GetName());
-        auto itr = m_materialDescriptions.find(name);
-        if (itr == m_materialDescriptions.end())
-        {
-            UE_LOG(LogMaterialLibrary, Log, TEXT("Material name %s not found in library"), UTF8_TO_TCHAR(name.c_str()));
-            return nullptr;
-        }
 
-        // Create lookup tables for all of the UMaterialInstance's replacement parameters.
-        std::unordered_map<std::string, float> scalarReplacementParameters;
-        for (auto& param : ueMaterialInstance->ScalarParameterValues)
-            scalarReplacementParameters.emplace(std::string(TCHAR_TO_ANSI(*param.ParameterName.GetPlainNameString())), param.ParameterValue);
+	rpr_material_node MaterialLibrary::CreateMaterial(const UMaterialInterface* ueMaterialInterfaceObject, rpr_context context, rpr_material_system materialSystem)
+	{
+		// Make sure material name exists in library.
+		std::string name = TCHAR_TO_ANSI(*ueMaterialInterfaceObject->GetName());
+		auto itr = m_materialDescriptions.find(name);
+		if (itr == m_materialDescriptions.end())
+		{
+			UE_LOG(LogMaterialLibrary, Log, TEXT("Material name %s not found in library"), UTF8_TO_TCHAR(name.c_str()));
+			return nullptr;
+		}
 
-        std::unordered_map<std::string, FLinearColor> vectorReplacementParams;
-        for (auto& param : ueMaterialInstance->VectorParameterValues)
-            vectorReplacementParams.emplace(std::string(TCHAR_TO_ANSI(*param.ParameterName.GetPlainNameString())), param.ParameterValue);
-        
-        std::unordered_map<std::string, UTexture*> textureReplacements;
-        auto parentMaterial = ueMaterialInstance->GetMaterial();
-        TArray<UTexture*> textures;
-        parentMaterial->GetUsedTextures(textures, EMaterialQualityLevel::Num, true, ERHIFeatureLevel::Num, true);
-        for (auto& texture : textures)
-        {
-            textureReplacements.emplace(std::string(TCHAR_TO_ANSI(*texture->GetName())), texture);
-        }
+		// Create lookup tables for all of the UMaterialInstance's replacement parameters.
+		std::unordered_map<std::string, float> scalarReplacementParameters;
+		std::unordered_map<std::string, FLinearColor> vectorReplacementParams;
 
-        // First create all rpr_material_node objects.
-        rpr_material_node rootMaterialNode = nullptr;
-        std::unordered_map<std::string, void*> materialNodes; // NOTE: Also contains rpr_image handles.
-        auto& material = itr->second;
-        for (auto& node : material.nodes)
-        {
-            // Handle INPUT_TEXTURE case separately.
-            void* handle = nullptr;
-            if (node.type == "INPUT_TEXTURE")
-            {
-                // Texture MUST be replaced by one from UE.
-                auto itr = textureReplacements.find(node.tag);
-                if (itr != textureReplacements.end())
-                {
-                    UTexture* texture = itr->second;
+		// It is only valid to get the replacement parameters for a materialInstance (and not a UEMaterial) for now.
+		const UMaterialInstance *materialInstance = Cast<UMaterialInstance>(ueMaterialInterfaceObject);
+		if (materialInstance != NULL) {
+			for (auto& param : materialInstance->ScalarParameterValues)
+				scalarReplacementParameters.emplace(std::string(TCHAR_TO_ANSI(*param.ParameterName.GetPlainNameString())), param.ParameterValue);
 
-                    rpr_image_format format = {};
-                    switch (texture->Source.GetFormat())
-                    {
-                    case ETextureSourceFormat::TSF_G8:
-                        format.num_components = 1;
-                        format.type = RPR_COMPONENT_TYPE_UINT8;
-                        break;
+			for (auto& param : materialInstance->VectorParameterValues)
+				vectorReplacementParams.emplace(std::string(TCHAR_TO_ANSI(*param.ParameterName.GetPlainNameString())), param.ParameterValue);
+		}
 
-                    case ETextureSourceFormat::TSF_BGRA8:
-                    case ETextureSourceFormat::TSF_BGRE8:
-                    case ETextureSourceFormat::TSF_RGBA8:
-                    case ETextureSourceFormat::TSF_RGBE8:
-                        format.num_components = 4;
-                        format.type = RPR_COMPONENT_TYPE_UINT8;
-                        break;
+		std::unordered_map<std::string, UTexture*> textureReplacements;
+		auto parentMaterial = ueMaterialInterfaceObject->GetMaterial();
+		TArray<UTexture*> textures;
+		parentMaterial->GetUsedTextures(textures, EMaterialQualityLevel::Num, true, ERHIFeatureLevel::Num, true);
+		for (auto& texture : textures)
+		{
+			textureReplacements.emplace(std::string(TCHAR_TO_ANSI(*texture->GetName())), texture);
+		}
 
-                    case ETextureSourceFormat::TSF_RGBA16:
-                    case ETextureSourceFormat::TSF_RGBA16F:
-                        format.num_components = 4;
-                        format.type = RPR_COMPONENT_TYPE_FLOAT16;
-                        break;
-                    }
+		// First create all rpr_material_node objects.
+		rpr_material_node rootMaterialNode = nullptr;
+		std::unordered_map<std::string, void*> materialNodes; // NOTE: Also contains rpr_image handles.
+		auto& material = itr->second;
+		for (auto& node : material.nodes)
+		{
+			// Handle INPUT_TEXTURE case separately.
+			void* handle = nullptr;
+			if (node.type == "INPUT_TEXTURE")
+			{
+				// Texture MUST be replaced by one from UE.
+				auto itr = textureReplacements.find(node.tag);
+				if (itr != textureReplacements.end())
+				{
+					UTexture* texture = itr->second;
 
-                    rpr_image_desc desc = {
-                        texture->Source.GetSizeX(), texture->Source.GetSizeY(), 1,
-                        texture->Source.GetSizeX() * texture->Source.GetBytesPerPixel(),
-                        texture->Source.GetSizeX() * texture->Source.GetSizeY() * texture->Source.GetBytesPerPixel()
-                    };
+					rpr_image_format format = {};
+					switch (texture->Source.GetFormat())
+					{
+					case ETextureSourceFormat::TSF_G8:
+						format.num_components = 1;
+						format.type = RPR_COMPONENT_TYPE_UINT8;
+						break;
 
-                    TArray<uint8> mipData;
-                    texture->Source.GetMipData(mipData, 0);
+					case ETextureSourceFormat::TSF_BGRA8:
+					case ETextureSourceFormat::TSF_BGRE8:
+					case ETextureSourceFormat::TSF_RGBA8:
+					case ETextureSourceFormat::TSF_RGBE8:
+						format.num_components = 4;
+						format.type = RPR_COMPONENT_TYPE_UINT8;
+						break;
 
-                    rpr_int result = rprContextCreateImage(context, format, &desc, mipData.GetData(), &reinterpret_cast<rpr_image>(handle));
-                    if (result != RPR_SUCCESS)
-                        UE_LOG(LogMaterialLibrary, Error, TEXT("rprContextCreateImage failed (%d) for node tag %s"), result, UTF8_TO_TCHAR(node.tag.c_str()));
-                }
-                else
-                {
-                    // Load the RPR texture from disk.
-                    std::string filename = material.directory + "/" + node.params[0].value;
-                    rpr_int result = rprContextCreateImageFromFile(context, filename.c_str(), &reinterpret_cast<rpr_image>(handle));
-                    if (result != RPR_SUCCESS)
-                        UE_LOG(LogMaterialLibrary, Error, TEXT("rprContextCreateImageFromFile failed (%d) to load %s"), result, UTF8_TO_TCHAR(filename.c_str()));
-                }
-            }
-            else
-            {
-                // Create the RPR handle.
-                rpr_int result = rprMaterialSystemCreateNode(materialSystem, typeStringsToRPRMap.at(node.type), &reinterpret_cast<rpr_material_node>(handle));
-                if (result != RPR_SUCCESS)
-                {
-                    UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialSystemCreateNode failed (%d) for type %s"), result, UTF8_TO_TCHAR(node.type.c_str()));
-                    return nullptr;
-                }
+					case ETextureSourceFormat::TSF_RGBA16:
+					case ETextureSourceFormat::TSF_RGBA16F:
+						format.num_components = 4;
+						format.type = RPR_COMPONENT_TYPE_FLOAT16;
+						break;
+					}
 
-            }
+					rpr_image_desc desc = {
+						texture->Source.GetSizeX(), texture->Source.GetSizeY(), 1,
+						texture->Source.GetSizeX() * texture->Source.GetBytesPerPixel(),
+						texture->Source.GetSizeX() * texture->Source.GetSizeY() * texture->Source.GetBytesPerPixel()
+					};
 
-            // Set a custom name for the node.
-            rprObjectSetName(handle, node.name.c_str());
+					TArray<uint8> mipData;
+					texture->Source.GetMipData(mipData, 0);
 
-            // Store in node map.
-            materialNodes.emplace(node.name, handle);
+					rpr_int result = rprContextCreateImage(context, format, &desc, mipData.GetData(), &reinterpret_cast<rpr_image>(handle));
+					if (result != RPR_SUCCESS)
+						UE_LOG(LogMaterialLibrary, Error, TEXT("rprContextCreateImage failed (%d) for node tag %s"), result, UTF8_TO_TCHAR(node.tag.c_str()));
+				}
+				else
+				{
+					// Load the RPR texture from disk.
+					std::string filename = material.directory + "/" + node.params[0].value;
+					rpr_int result = rprContextCreateImageFromFile(context, filename.c_str(), &reinterpret_cast<rpr_image>(handle));
+					if (result != RPR_SUCCESS)
+						UE_LOG(LogMaterialLibrary, Error, TEXT("rprContextCreateImageFromFile failed (%d) to load %s"), result, UTF8_TO_TCHAR(filename.c_str()));
+				}
+			}
+			else
+			{
+				// Create the RPR handle.
+				rpr_int result = rprMaterialSystemCreateNode(materialSystem, typeStringsToRPRMap.at(node.type), &reinterpret_cast<rpr_material_node>(handle));
+				if (result != RPR_SUCCESS)
+				{
+					UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialSystemCreateNode failed (%d) for type %s"), result, UTF8_TO_TCHAR(node.type.c_str()));
+					return nullptr;
+				}
 
-            // The very first node is the root.
-            if (!rootMaterialNode)
-                rootMaterialNode = handle;
-        }
+			}
 
-        // Second, set up material parameters.
-        for (auto& node : material.nodes)
-        {
-            // Skip INPUT_TEXTURE nodes since their only parameter is file_path and it should have been set above.
-            if (node.type == "INPUT_TEXTURE")
-                continue;
+			// Set a custom name for the node.
+			rprObjectSetName(handle, node.name.c_str());
 
-            // Retrieve the node's rpr_material_node handle.
-            auto handle = materialNodes.at(node.name);
+			// Store in node map.
+			materialNodes.emplace(node.name, handle);
 
-            // Hook up all of the parameters.
-            for (auto& param : node.params)
-            {
-                // For "connection" type, lookup the RPR handle.
-                if (param.type == "connection")
-                {
-                    // Handle IMAGE_TEXTURE node type case.
-                    if (node.type == "IMAGE_TEXTURE") rprMaterialNodeSetInputImageData(handle, param.name.c_str(), reinterpret_cast<rpr_image>(materialNodes.at(param.value)));
-                    else rprMaterialNodeSetInputN(handle, param.name.c_str(), reinterpret_cast<rpr_material_node>(materialNodes.at(param.value)));
-                }
-                // Handle uint type which should never need to be replaced by an UE parameter value.
-                else if (param.type == "uint")
-                {                    
-                    rpr_uint value;
-                    sscanf_s(param.value.c_str(), "%u", &value);
-                    rprMaterialNodeSetInputU(handle, param.name.c_str(), value);
-                }
-                // Handle floating point scalar and vector values.
-                else if (param.type.find("float") != std::string::npos)
-                {
-                    rpr_float value[4] = { 0.0f };
-                    int count = sscanf_s(param.value.c_str(), "%f, %f, %f, %f", &value[0], &value[1], &value[2], &value[3]);
+			// The very first node is the root.
+			if (!rootMaterialNode)
+				rootMaterialNode = handle;
+		}
 
-                    // Check for parameter replacement form UE material.
-                    if (scalarReplacementParameters.find(param.tag) != scalarReplacementParameters.end())
-                        value[0] = scalarReplacementParameters.find(param.tag)->second;
-                    else if (vectorReplacementParams.find(param.tag) != vectorReplacementParams.end())
-                    {
-                        auto& newValue = vectorReplacementParams.find(param.tag)->second;
-                        value[0] = newValue.R;
-                        value[1] = newValue.G;
-                        value[2] = newValue.B;
-                        value[3] = newValue.A;
-                    }
+		// Second, set up material parameters.
+		for (auto& node : material.nodes)
+		{
+			// Skip INPUT_TEXTURE nodes since their only parameter is file_path and it should have been set above.
+			if (node.type == "INPUT_TEXTURE")
+				continue;
 
-                    rprMaterialNodeSetInputF(handle, param.name.c_str(), value[0], value[1], value[2], value[3]);
-                }
-            }
-        }
+			// Retrieve the node's rpr_material_node handle.
+			auto handle = materialNodes.at(node.name);
 
-        return rootMaterialNode;
-    }
+			// Hook up all of the parameters.
+			for (auto& param : node.params)
+			{
+				// For "connection" type, lookup the RPR handle.
+				if (param.type == "connection")
+				{
+					// Handle IMAGE_TEXTURE node type case.
+					if (node.type == "IMAGE_TEXTURE") rprMaterialNodeSetInputImageData(handle, param.name.c_str(), reinterpret_cast<rpr_image>(materialNodes.at(param.value)));
+					else rprMaterialNodeSetInputN(handle, param.name.c_str(), reinterpret_cast<rpr_material_node>(materialNodes.at(param.value)));
+				}
+				// Handle uint type which should never need to be replaced by an UE parameter value.
+				else if (param.type == "uint")
+				{
+					rpr_uint value;
+					sscanf_s(param.value.c_str(), "%u", &value);
+					rprMaterialNodeSetInputU(handle, param.name.c_str(), value);
+				}
+				// Handle floating point scalar and vector values.
+				else if (param.type.find("float") != std::string::npos)
+				{
+					rpr_float value[4] = { 0.0f };
+					int count = sscanf_s(param.value.c_str(), "%f, %f, %f, %f", &value[0], &value[1], &value[2], &value[3]);
+
+					// Check for parameter replacement form UE material.
+					if (scalarReplacementParameters.find(param.tag) != scalarReplacementParameters.end())
+						value[0] = scalarReplacementParameters.find(param.tag)->second;
+					else if (vectorReplacementParams.find(param.tag) != vectorReplacementParams.end())
+					{
+						auto& newValue = vectorReplacementParams.find(param.tag)->second;
+						value[0] = newValue.R;
+						value[1] = newValue.G;
+						value[2] = newValue.B;
+						value[3] = newValue.A;
+					}
+
+					rprMaterialNodeSetInputF(handle, param.name.c_str(), value[0], value[1], value[2], value[3]);
+				}
+			}
+		}
+
+		return rootMaterialNode;
+	}
 
     void MaterialLibrary::LoadMaterialXML(const std::string& filename)
     {
