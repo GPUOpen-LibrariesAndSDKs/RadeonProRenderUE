@@ -2,6 +2,8 @@
 
 #include "SRPRViewportTabContent.h"
 
+#include "Widgets/Input/SNumericEntryBox.h"
+
 #define LOCTEXT_NAMESPACE "SRPRViewportTabContent"
 
 SRPRViewportTabContent::~SRPRViewportTabContent()
@@ -215,6 +217,40 @@ FText	SRPRViewportTabContent::GetTraceStatus() const
 	return FText::FromString("Trace : Off");
 }
 
+TOptional<uint32>	SRPRViewportTabContent::GetWhiteBalanceTemperature() const
+{
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
+
+	return settings->WhiteBalanceTemperature;
+}
+
+void	SRPRViewportTabContent::OnWhiteBalanceTemperatureChanged(uint32 newValue)
+{
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
+
+	settings->WhiteBalanceTemperature = newValue;
+	settings->SaveConfig(); // Profile this, can be pretty intense with sliders
+}
+
+TOptional<float>	SRPRViewportTabContent::GetGammaCorrectionValue() const
+{
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
+
+	return settings->GammaCorrectionValue;
+}
+
+void	SRPRViewportTabContent::OnGammaCorrectionValueChanged(float newValue)
+{
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
+
+	settings->GammaCorrectionValue = newValue;
+	settings->SaveConfig(); // Profile this, can be pretty intense with sliders
+}
+
 void	SRPRViewportTabContent::Construct(const FArguments &args)
 {
 	m_Plugin = &FRPRPluginModule::Get();
@@ -252,6 +288,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 			.Padding(2.0f)
 			[
 				SNew(SButton)
+				.ButtonStyle(FEditorStyle::Get(), "FlatButton")
 				.Text(LOCTEXT("RenderLabel", "Render"))
 				.ToolTipText(LOCTEXT("RenderTooltip", "Toggles scene rendering."))
 				.OnClicked(this, &SRPRViewportTabContent::OnToggleRender)
@@ -266,6 +303,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 			.Padding(2.0f)
 			[
 				SNew(SButton)
+				.ButtonStyle(FEditorStyle::Get(), "FlatButton")
 				.Text(LOCTEXT("SyncLabel", "Sync"))
 				.ToolTipText(LOCTEXT("SyncTooltip", "Toggles scene synchronization."))
 				.OnClicked(this, &SRPRViewportTabContent::OnToggleSync)
@@ -280,6 +318,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 			.Padding(2.0f)
 			[
 				SNew(SButton)
+				.ButtonStyle(FEditorStyle::Get(), "FlatButton")
 				.Text(LOCTEXT("SaveLabel", "Save"))
 				.ToolTipText(LOCTEXT("SaveTooltip", "Save the framebuffer state or ProRender scene."))
 				.OnClicked(this, &SRPRViewportTabContent::OnSave)
@@ -294,6 +333,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 			.Padding(2.0f)
 			[
 				SNew(SButton)
+				.ButtonStyle(FEditorStyle::Get(), "FlatButton")
 				.Text(LOCTEXT("ToggleTraceLabel", "Trace"))
 				.ToolTipText(LOCTEXT("TraceTooltip", "Toggles RPR Tracing."))
 				.OnClicked(this, &SRPRViewportTabContent::OnToggleTrace)
@@ -359,8 +399,8 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 				[
 				
 					SAssignNew(m_ViewportWidget, SViewport)
-						.IsEnabled(true)
-						.EnableBlending(true)
+					.IsEnabled(true)
+					.EnableBlending(true)
 				]
 				+ SOverlay::Slot()
 				.VAlign(VAlign_Bottom)
@@ -385,6 +425,72 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 				[
 					SNew(STextBlock)
 					.Text(this, &SRPRViewportTabContent::GetImportStatus)
+				]
+			]
+			+ SSplitter::Slot()
+			//.SizeRule(SSplitter::ESizeRule::SizeToContent)
+			//.Value(120.0f)
+			[
+				SNew(SVerticalBox)
+				+ SVerticalBox::Slot().AutoHeight()
+				[
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot()
+					[
+						SNew(STextBlock)
+						.Text(LOCTEXT("WhiteBalanceTitle", "White Balance"))
+					]
+					+ SVerticalBox::Slot()
+					.MaxHeight(16.0f)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("TemperatureTitle", "Temperature : "))
+						]
+						+ SHorizontalBox::Slot()
+						[
+							SNew(SNumericEntryBox<uint32>)
+							.Value(this, &SRPRViewportTabContent::GetWhiteBalanceTemperature)
+							.OnValueChanged(this, &SRPRViewportTabContent::OnWhiteBalanceTemperatureChanged)
+							.MinValue(10)
+							.MaxValue(20000)
+							.MinSliderValue(10)
+							.MaxSliderValue(20000)
+							.AllowSpin(true)
+						]
+					]
+				]
+				+ SVerticalBox::Slot().AutoHeight()
+				[
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot()
+					[
+						SNew(STextBlock)
+						.Text(LOCTEXT("GammaCorrectionTitle", "Gamma correction"))
+					]
+					+ SVerticalBox::Slot()
+					.MaxHeight(16.0f)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("DisplayGammaTitle", "Display gamma : "))
+						]
+						+ SHorizontalBox::Slot()
+						[
+							SNew(SNumericEntryBox<float>)
+							.Value(this, &SRPRViewportTabContent::GetGammaCorrectionValue)
+							.OnValueChanged(this, &SRPRViewportTabContent::OnGammaCorrectionValueChanged)
+							.MinValue(0.0f)
+							.MaxValue(2.0f)
+							.MinSliderValue(0.0f)
+							.MaxSliderValue(2.0f)
+							.AllowSpin(true)
+						]
+					]
 				]
 			]
 		]

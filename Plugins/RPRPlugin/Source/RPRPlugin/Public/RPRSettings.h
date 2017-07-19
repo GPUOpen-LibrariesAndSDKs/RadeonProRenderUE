@@ -77,4 +77,10 @@ public:
 
 	UPROPERTY(Config)
 	uint32		bTrace:1;
+
+	UPROPERTY(Config)
+	uint32		WhiteBalanceTemperature;
+
+	UPROPERTY(Config)
+	float		GammaCorrectionValue;
 };

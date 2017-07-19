@@ -22,6 +22,8 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 ,	MegaPixelCount(2.0f)
 ,	bSync(true)
 ,	bTrace(false)
+,	WhiteBalanceTemperature(6500)
+,	GammaCorrectionValue(1.0001f)
 {
 }
 

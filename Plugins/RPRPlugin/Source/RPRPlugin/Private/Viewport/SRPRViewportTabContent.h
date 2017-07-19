@@ -39,6 +39,12 @@ private:
 	FText					GetSelectedMegaPixelName() const;
 	FText					GetCurrentRenderIteration() const;
 	FText					GetTraceStatus() const;
+
+	void					OnWhiteBalanceTemperatureChanged(uint32 newValue);
+	void					OnGammaCorrectionValueChanged(float newValue);
+
+	TOptional<uint32>		GetWhiteBalanceTemperature() const;
+	TOptional<float>		GetGammaCorrectionValue() const;
 private:
 	TSharedPtr<class FRPRViewportClient>	m_ViewportClient;
 	TSharedPtr<class SViewport>				m_ViewportWidget;
