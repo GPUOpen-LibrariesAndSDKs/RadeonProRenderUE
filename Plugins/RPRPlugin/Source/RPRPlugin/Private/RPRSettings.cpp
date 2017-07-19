@@ -24,6 +24,8 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 ,	bTrace(false)
 ,	WhiteBalanceTemperature(6500)
 ,	GammaCorrectionValue(1.0001f)
+,	SimpleTonemapExposure(0.0f)
+,	SimpleTonemapContrast(1.0f)
 {
 }
 

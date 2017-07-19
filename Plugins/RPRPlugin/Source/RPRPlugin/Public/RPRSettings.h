@@ -83,4 +83,10 @@ public:
 
 	UPROPERTY(Config)
 	float		GammaCorrectionValue;
+
+	UPROPERTY(Config)
+	float		SimpleTonemapExposure;
+
+	UPROPERTY(Config)
+	float		SimpleTonemapContrast;
 };

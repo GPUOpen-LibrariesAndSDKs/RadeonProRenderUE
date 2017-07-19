@@ -42,9 +42,13 @@ private:
 
 	void					OnWhiteBalanceTemperatureChanged(uint32 newValue);
 	void					OnGammaCorrectionValueChanged(float newValue);
+	void					OnSimpleTonemapExposureChanged(float newValue);
+	void					OnSimpleTonemapContrastChanged(float newValue);
 
 	TOptional<uint32>		GetWhiteBalanceTemperature() const;
 	TOptional<float>		GetGammaCorrectionValue() const;
+	TOptional<float>		GetSimpleTonemapExposure() const;
+	TOptional<float>		GetSimpleTonemapContrast() const;
 private:
 	TSharedPtr<class FRPRViewportClient>	m_ViewportClient;
 	TSharedPtr<class SViewport>				m_ViewportWidget;

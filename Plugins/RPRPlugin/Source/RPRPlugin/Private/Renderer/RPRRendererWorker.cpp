@@ -351,12 +351,12 @@ void	FRPRRendererWorker::UpdatePostEffectSettings()
 
 		if (rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_WHITE_BALANCE, &m_RprWhiteBalance) != RPR_SUCCESS ||
 			rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_GAMMA_CORRECTION, &m_RprGammaCorrection) != RPR_SUCCESS ||
-			//rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_SIMPLE_TONEMAP, &m_RprSimpleTonemap) != RPR_SUCCESS ||
-			//rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_NORMALIZATION, &m_RprNormalization) != RPR_SUCCESS ||
-			//rprContextAttachPostEffect(m_RprContext, m_RprNormalization) != RPR_SUCCESS ||
+			rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_SIMPLE_TONEMAP, &m_RprSimpleTonemap) != RPR_SUCCESS ||
+			rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_NORMALIZATION, &m_RprNormalization) != RPR_SUCCESS ||
+			rprContextAttachPostEffect(m_RprContext, m_RprGammaCorrection) != RPR_SUCCESS ||
 			rprContextAttachPostEffect(m_RprContext, m_RprWhiteBalance) != RPR_SUCCESS ||
-			//rprContextAttachPostEffect(m_RprContext, m_RprSimpleTonemap) != RPR_SUCCESS ||
-			rprContextAttachPostEffect(m_RprContext, m_RprGammaCorrection) != RPR_SUCCESS)
+			rprContextAttachPostEffect(m_RprContext, m_RprSimpleTonemap) != RPR_SUCCESS/* ||
+			rprContextAttachPostEffect(m_RprContext, m_RprNormalization) != RPR_SUCCESS*/)
 		{
 			UE_LOG(LogRPRRenderer, Error, TEXT("RPR Post effects creation failed"));
 			return;
@@ -365,13 +365,13 @@ void	FRPRRendererWorker::UpdatePostEffectSettings()
 	check(m_RprWhiteBalance != NULL);
 	check(m_RprGammaCorrection != NULL);
 	//check(m_RprNormalization != NULL);
-	//check(m_RprSimpleTonemap != NULL);
+	check(m_RprSimpleTonemap != NULL);
 
 	if (rprPostEffectSetParameter1f(m_RprWhiteBalance, "colortemp", settings->WhiteBalanceTemperature) != RPR_SUCCESS ||
 		rprPostEffectSetParameter1u(m_RprWhiteBalance, "colorspace", RPR_COLOR_SPACE_SRGB) != RPR_SUCCESS ||
-		rprContextSetParameter1f(m_RprContext, "displaygamma", settings->GammaCorrectionValue) != RPR_SUCCESS/* ||
-		rprPostEffectSetParameter1f(Scene->m_RprSimpleTonemap, "contrast", cam->PostProcessSettings.ColorContrast.W) != RPR_SUCCESS ||
-		rprPostEffectSetParameter1f(m_RprSimpleTonemap, "exposure", 1.0f) != RPR_SUCCESS*/)
+		rprContextSetParameter1f(m_RprContext, "displaygamma", settings->GammaCorrectionValue) != RPR_SUCCESS ||
+		rprPostEffectSetParameter1f(m_RprSimpleTonemap, "exposure", settings->SimpleTonemapExposure) != RPR_SUCCESS ||
+		rprPostEffectSetParameter1f(m_RprSimpleTonemap, "contrast", settings->SimpleTonemapContrast) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRRenderer, Warning, TEXT("Couldn't apply post effect properties"));
 	}
@@ -449,11 +449,11 @@ void	FRPRRendererWorker::ReleaseResources()
 	{
 		check(m_RprGammaCorrection != NULL);
 		check(m_RprSimpleTonemap != NULL);
-		check(m_RprNormalization != NULL);
+		//check(m_RprNormalization != NULL);
 
 		rprObjectDelete(m_RprWhiteBalance);
 		rprObjectDelete(m_RprGammaCorrection);
-		//rprObjectDelete(m_RprSimpleTonemap);
+		rprObjectDelete(m_RprSimpleTonemap);
 		//rprObjectDelete(m_RprNormalization);
 
 		m_RprWhiteBalance = NULL;

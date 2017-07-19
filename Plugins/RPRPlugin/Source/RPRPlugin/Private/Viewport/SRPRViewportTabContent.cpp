@@ -195,6 +195,28 @@ FText	SRPRViewportTabContent::GetTraceStatus() const
 	return FText::FromString("Trace : Off");
 }
 
+TOptional<float>	SRPRViewportTabContent::GetSimpleTonemapExposure() const
+{
+	return m_Settings->SimpleTonemapExposure;
+}
+
+void	SRPRViewportTabContent::OnSimpleTonemapExposureChanged(float newValue)
+{
+	m_Settings->SimpleTonemapExposure = newValue;
+	m_Settings->SaveConfig();
+}
+
+TOptional<float>	SRPRViewportTabContent::GetSimpleTonemapContrast() const
+{
+	return m_Settings->SimpleTonemapContrast;
+}
+
+void	SRPRViewportTabContent::OnSimpleTonemapContrastChanged(float newValue)
+{
+	m_Settings->SimpleTonemapContrast = newValue;
+	m_Settings->SaveConfig();
+}
+
 TOptional<uint32>	SRPRViewportTabContent::GetWhiteBalanceTemperature() const
 {
 	return m_Settings->WhiteBalanceTemperature;
@@ -397,6 +419,78 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 			//.Value(120.0f)
 			[
 				SNew(SVerticalBox)
+				+ SVerticalBox::Slot().AutoHeight()
+				[
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot()
+					[
+						SNew(STextBlock)
+						.Text(LOCTEXT("SimpleTonemapTitle", "Simple tonemap"))
+					]
+					+ SVerticalBox::Slot()
+					.MaxHeight(16.0f)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("SimpleTonemapExposure", "Exposure : "))
+						]
+						+ SHorizontalBox::Slot()
+						[
+							SNew(SNumericEntryBox<float>)
+							.Value(this, &SRPRViewportTabContent::GetSimpleTonemapExposure)
+							.OnValueChanged(this, &SRPRViewportTabContent::OnSimpleTonemapExposureChanged)
+							.MinValue(0.0f)
+							.MaxValue(2.0f)
+							.MinSliderValue(0.0f)
+							.MaxSliderValue(2.0f)
+							.AllowSpin(true)
+						]
+					]
+					+ SVerticalBox::Slot()
+					.MaxHeight(16.0f)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("SimpleTonemapContrast", "Contrast : "))
+						]
+						+ SHorizontalBox::Slot()
+						[
+							SNew(SNumericEntryBox<float>)
+							.Value(this, &SRPRViewportTabContent::GetSimpleTonemapContrast)
+							.OnValueChanged(this, &SRPRViewportTabContent::OnSimpleTonemapContrastChanged)
+							.MinValue(0.0f)
+							.MaxValue(2.0f)
+							.MinSliderValue(0.0f)
+							.MaxSliderValue(2.0f)
+							.AllowSpin(true)
+						]
+					]
+					+ SVerticalBox::Slot()
+					.MaxHeight(16.0f)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("DisplayGammaTitle", "Display gamma : "))
+						]
+						+ SHorizontalBox::Slot()
+						[
+							SNew(SNumericEntryBox<float>)
+							.Value(this, &SRPRViewportTabContent::GetGammaCorrectionValue)
+							.OnValueChanged(this, &SRPRViewportTabContent::OnGammaCorrectionValueChanged)
+							.MinValue(0.0f)
+							.MaxValue(2.0f)
+							.MinSliderValue(0.0f)
+							.MaxSliderValue(2.0f)
+							.AllowSpin(true)
+						]
+					]
+				]
 				+ SVerticalBox::Slot().AutoHeight()
 				[
 					SNew(SVerticalBox)
