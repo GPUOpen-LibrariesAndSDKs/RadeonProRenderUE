@@ -2,7 +2,7 @@
 
 #include "RPRScene.h"
 
-#include "RprTools.h"
+#include "_SDK/RprTools.h"
 
 #include "Scene/RPRLightComponent.h"
 #include "Scene/RPRStaticMeshComponent.h"
@@ -324,7 +324,7 @@ uint32	ARPRScene::GetContextCreationFlags(const FString &dllPath)
 	return 0; // incompatible
 #endif
 
-	rprAreDevicesCompatible(TCHAR_TO_ANSI(*dllPath), false, maxCreationFlags, &creationFlags, os);
+	rprAreDevicesCompatible(TCHAR_TO_ANSI(*dllPath), TCHAR_TO_ANSI(*settings->RenderCachePath), false, maxCreationFlags, &creationFlags, os);
 	if (creationFlags > 0)
 	{
 		if (creationFlags != RPR_CREATION_FLAGS_ENABLE_CPU)
@@ -367,10 +367,8 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		if (!ensure(m_Plugin->GetRenderTexture() != NULL))
 			return;
 
-		FString	cachePath = settings->RenderCachePath;
-		FString	dllPath = FPaths::GameDir() + "/Binaries/Win64/Tahoe64.dll"; // To get from settings ?
-
-		rpr_int	tahoePluginId = rprRegisterPlugin(TCHAR_TO_ANSI(*dllPath)); // Seems to be mandatory
+		const FString	dllPath = FPaths::GameDir() + "/Binaries/Win64/Tahoe64.dll"; // To get from settings ?
+		rpr_int			tahoePluginId = rprRegisterPlugin(TCHAR_TO_ANSI(*dllPath)); // Seems to be mandatory
 		if (tahoePluginId == -1)
 		{
 			UE_LOG(LogRPRScene, Error, TEXT("\"%s\" not registered by \"%s\" path."), "Tahoe64.dll", *dllPath);
@@ -387,8 +385,9 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		for (uint32 s = RPR_CREATION_FLAGS_ENABLE_GPU7; s; s >>= 1)
 			numDevices += (creationFlags & s) != 0;
 
-		if (rprCreateContext(RPR_API_VERSION, &tahoePluginId, 1, creationFlags, NULL, TCHAR_TO_ANSI(*cachePath), &m_RprContext) != RPR_SUCCESS ||
-			rprContextSetParameter1u(m_RprContext, "aasamples", numDevices) != RPR_SUCCESS)
+		if (rprCreateContext(RPR_API_VERSION, &tahoePluginId, 1, creationFlags, NULL, TCHAR_TO_ANSI(*settings->RenderCachePath), &m_RprContext) != RPR_SUCCESS ||
+			rprContextSetParameter1u(m_RprContext, "aasamples", numDevices) != RPR_SUCCESS/* ||
+			rprContextSetParameter1u(m_RprContext, "preview", 1) != RPR_SUCCESS*/)
 		{
 			UE_LOG(LogRPRScene, Error, TEXT("RPR Context creation failed: check your OpenCL runtime and driver versions."));
 			return;

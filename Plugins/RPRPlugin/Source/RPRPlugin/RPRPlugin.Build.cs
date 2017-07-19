@@ -9,25 +9,31 @@ public class RPRPlugin : ModuleRules
 	public RPRPlugin(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-		
+
 		PublicIncludePaths.AddRange(
 			new string[] {
 				"RPRPlugin/Public"
 				// ... add public include paths required here ...
 			}
 			);
-				
-		
+
+
+		string pluginRoot = ModuleDirectory + "/../..";
+		pluginRoot = Path.GetFullPath(pluginRoot);
+		pluginRoot = Utils.CleanDirectorySeparators(pluginRoot, '/') + "/";
+
+		string SDKRoot = pluginRoot + "/ProRenderSDK/";
+
 		PrivateIncludePaths.AddRange(
 			new string[] {
 				"RPRPlugin/Private",
-				"RPRPlugin/ThirdParty/RadeonProRender",
-				"RPRPlugin/ThirdParty/RadeonProRender/inc",
-				"RPRPlugin/ThirdParty/RadeonProRenderInterchange/include"
+				SDKRoot + "RadeonProRender",
+				SDKRoot + "RadeonProRender/inc",
+				SDKRoot + "RadeonProRenderInterchange/include"
 			}
 			);
-			
-		
+
+
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
@@ -35,8 +41,8 @@ public class RPRPlugin : ModuleRules
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
-			
-		
+
+
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
@@ -58,46 +64,32 @@ public class RPRPlugin : ModuleRules
 				"Slate",
 				"LevelEditor",
 				// ... add private dependencies that you statically link with here ...	
-			}
-			);
-		
-		
-		DynamicallyLoadedModuleNames.AddRange(
-			new string[]
-			{
-				// ... add any modules that your module loads dynamically here ...
-			}
-			);
-			
+			});
 
-                //Console.WriteLine ( Path.GetFullPath ( Path.Combine ( ModuleDirectory, "RPRPlugin/ThirdParty/RadeonProRender/libWin64/" ) ) );
-		PublicAdditionalLibraries.Add (
-                  Path.Combine ( Path.GetFullPath ( Path.Combine ( ModuleDirectory,
-                                                                   "ThirdParty/RadeonProRender/libWin64/" ) ),
-                                 "RadeonProRender64.lib" )
-                  );
-		PublicAdditionalLibraries.Add ( Path.Combine ( Path.GetFullPath ( Path.Combine ( ModuleDirectory,
-                  "ThirdParty/RadeonProRender/libWin64/" ) ), "RprLoadStore64.lib" ) );
-		PublicAdditionalLibraries.Add ( Path.Combine ( Path.GetFullPath ( Path.Combine ( ModuleDirectory,
-                  "ThirdParty/RadeonProRender/libWin64/" ) ), "RprSupport64.lib" ) );
-		PublicAdditionalLibraries.Add ( Path.Combine ( Path.GetFullPath ( Path.Combine ( ModuleDirectory,
-                  "ThirdParty/RadeonProRender/libWin64/" ) ), "Tahoe64.lib" ) );
-        if (Target.Configuration != UnrealTargetConfiguration.DebugGame)
-        {
-            PublicAdditionalLibraries.Add(Path.Combine(Path.GetFullPath(Path.Combine(ModuleDirectory,
-                  "ThirdParty/RadeonProRenderInterchange/libWin64/")), "RadeonProRenderInterchange64.lib"));
-        }
-        else
-        {
-            PublicAdditionalLibraries.Add(Path.Combine(Path.GetFullPath(Path.Combine(ModuleDirectory,
-                  "ThirdParty/RadeonProRenderInterchange/libWin64/")), "RadeonProRenderInterchange64D.lib"));
-        }
-                                    
-                //RuntimeDependencies.Add ( "RadeonProRender64.dll" );
-                //RuntimeDependencies.Add ( "OpenImageIO_RPR.dll" );
-                //RuntimeDependencies.Add ( "RprLoadStore64.dll" );
-                //RuntimeDependencies.Add ( "RprSupport64.dll" );
-                //RuntimeDependencies.Add ( "Tahoe64.dll" );
-			
+		bool forceRelease = false;
+		string libSuffix = ".lib";
+		if (Target.Configuration == UnrealTargetConfiguration.DebugGame && !forceRelease)
+			libSuffix = ".lib";
+
+		// TODO: Modify this so it is multi platform or throw errors on non supported platforms
+		PublicAdditionalLibraries.AddRange(new string[]
+		{
+			SDKRoot + "RadeonProRender/libWin64/RadeonProRender64.lib",
+			SDKRoot + "RadeonProRender/libWin64/RprLoadStore64.lib",
+			SDKRoot + "RadeonProRender/libWin64/RprSupport64.lib",
+			SDKRoot + "RadeonProRender/libWin64/Tahoe64.lib",
+			SDKRoot + "RadeonProRenderInterchange/libWin64/RadeonProRenderInterchange64" + libSuffix,
+		});
+
+		// TODO: This WONT work when plugin is installed in the engine plugins folder, fix that
+		string gameBinDir = pluginRoot + "/../../Binaries/" + Target.Platform.ToString() + "/";
+		if (!Directory.Exists(gameBinDir))
+			Directory.CreateDirectory(gameBinDir);
+
+		File.Copy(SDKRoot + "RadeonProRender/binWin64/OpenImageIO_RPR.dll", gameBinDir + "OpenImageIO_RPR.dll", true);
+		File.Copy(SDKRoot + "RadeonProRender/binWin64/RadeonProRender64.dll", gameBinDir + "RadeonProRender64.dll", true);
+		File.Copy(SDKRoot + "RadeonProRender/binWin64/RprLoadStore64.dll", gameBinDir + "RprLoadStore64.dll", true);
+		File.Copy(SDKRoot + "RadeonProRender/binWin64/RprSupport64.dll", gameBinDir + "RprSupport64.dll", true);
+		File.Copy(SDKRoot + "RadeonProRender/binWin64/Tahoe64.dll", gameBinDir + "Tahoe64.dll", true);
 	}
 }

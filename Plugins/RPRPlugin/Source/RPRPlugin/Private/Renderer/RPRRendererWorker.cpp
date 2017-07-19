@@ -86,7 +86,7 @@ void	FRPRRendererWorker::SaveToFile(const FString &filename)
 	{
 		// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
 		m_RenderLock.Lock();
-		const bool	saved = rprFrameBufferSaveToFile(m_RprResolvedFrameBuffer, TCHAR_TO_ANSI(*filename)) == RPR_SUCCESS;
+		const bool	saved = rprFrameBufferSaveToFile(/*m_RprResolvedFrameBuffer*/m_RprFrameBuffer, TCHAR_TO_ANSI(*filename)) == RPR_SUCCESS;
 		m_RenderLock.Unlock();
 
 		if (saved)
@@ -219,7 +219,7 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 	SCOPE_CYCLE_COUNTER(STAT_ProRender_Readback);
 
 	size_t	totalByteCount = 0;
-	if (rprFrameBufferGetInfo(m_RprResolvedFrameBuffer, RPR_FRAMEBUFFER_DATA, 0, NULL, &totalByteCount) != RPR_SUCCESS)
+	if (rprFrameBufferGetInfo(/*m_RprResolvedFrameBuffer*/m_RprFrameBuffer, RPR_FRAMEBUFFER_DATA, 0, NULL, &totalByteCount) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't get framebuffer infos"));
 		return false;
@@ -231,7 +231,7 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 		return false;
 	}
 	// Get framebuffer data
-	if (rprFrameBufferGetInfo(m_RprResolvedFrameBuffer, RPR_FRAMEBUFFER_DATA, totalByteCount, m_SrcFramebufferData.GetData(), NULL) != RPR_SUCCESS)
+	if (rprFrameBufferGetInfo(/*m_RprResolvedFrameBuffer*/m_RprFrameBuffer, RPR_FRAMEBUFFER_DATA, totalByteCount, m_SrcFramebufferData.GetData(), NULL) != RPR_SUCCESS)
 	{
 		// No frame ready yet
 		return false;
