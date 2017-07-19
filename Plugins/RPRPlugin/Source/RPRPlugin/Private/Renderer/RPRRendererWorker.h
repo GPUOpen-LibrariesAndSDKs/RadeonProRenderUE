@@ -41,6 +41,7 @@ public:
 public:
 	FCriticalSection	m_DataLock;
 private:
+	void		UpdatePostEffectSettings();
 	bool		BuildFramebufferData();
 	void		ReleaseResources();
 	void		BuildQueuedObjects();
@@ -67,6 +68,12 @@ private:
 	rpr_framebuffer				m_RprResolvedFrameBuffer;
 	rpr_scene					m_RprScene;
 	rpr_context					m_RprContext;
+
+	rpr_post_effect				m_RprWhiteBalance;
+	rpr_post_effect				m_RprGammaCorrection;
+	rpr_post_effect				m_RprSimpleTonemap;
+	rpr_post_effect				m_RprPhotolinearTonemap;
+	rpr_post_effect				m_RprNormalization;
 
 	TArray<float>				m_SrcFramebufferData;
 	TArray<uint8>				m_DstFramebufferData;

@@ -22,6 +22,13 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 ,	MegaPixelCount(2.0f)
 ,	bSync(true)
 ,	bTrace(false)
+,	WhiteBalanceTemperature(6500)
+,	GammaCorrectionValue(1.0001f)
+,	SimpleTonemapExposure(0.0f)
+,	SimpleTonemapContrast(1.0f)
+,	PhotolinearTonemapSensitivity(20.0f)
+,	PhotolinearTonemapExposure(0.01f)
+,	PhotolinearTonemapFStop(2.0f)
 {
 }
 

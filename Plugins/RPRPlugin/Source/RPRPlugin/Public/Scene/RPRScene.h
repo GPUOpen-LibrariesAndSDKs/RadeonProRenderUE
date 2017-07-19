@@ -29,11 +29,6 @@ public:
 	rpr_context		m_RprContext;
 	rpr_scene		m_RprScene;
 
-	rpr_post_effect	m_RprWhiteBalance;
-	rpr_post_effect	m_RprGammaCorrection;
-	rpr_post_effect	m_RprSimpleTonemap;
-	rpr_post_effect	m_RprNormalization;
-
 	rpr::MaterialLibrary m_materialLibrary;
 	
 	class URPRSceneComponent	*m_ActiveCamera;

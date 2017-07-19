@@ -2,6 +2,8 @@
 
 #include "SRPRViewportTabContent.h"
 
+#include "Widgets/Input/SNumericEntryBox.h"
+
 #define LOCTEXT_NAMESPACE "SRPRViewportTabContent"
 
 SRPRViewportTabContent::~SRPRViewportTabContent()
@@ -46,12 +48,20 @@ FReply	SRPRViewportTabContent::OnToggleRender()
 
 FReply	SRPRViewportTabContent::OnToggleSync()
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
-
-	settings->bSync = !settings->bSync;
-	settings->SaveConfig();
+	m_Settings->bSync = !m_Settings->bSync;
+	m_Settings->SaveConfig();
 	return FReply::Handled();
+}
+
+FReply	SRPRViewportTabContent::OnToggleDisplayPostEffectProperties()
+{
+	m_DisplayPostEffects = !m_DisplayPostEffects;
+	return FReply::Handled();
+}
+
+EVisibility	SRPRViewportTabContent::GetPostEffectPropertiesVisibility() const
+{
+	return m_DisplayPostEffects ? EVisibility::Visible : EVisibility::Collapsed;
 }
 
 FReply	SRPRViewportTabContent::OnSave()
@@ -64,14 +74,11 @@ FReply	SRPRViewportTabContent::OnSave()
 
 FReply	SRPRViewportTabContent::OnToggleTrace()
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
-
-	settings->bTrace = !settings->bTrace;
-	settings->SaveConfig();
+	m_Settings->bTrace = !m_Settings->bTrace;
+	m_Settings->SaveConfig();
 	ARPRScene	*scene = m_Plugin->GetCurrentScene();
 	if (scene != NULL)
-		scene->SetTrace(settings->bTrace);
+		scene->SetTrace(m_Settings->bTrace);
 	return FReply::Handled();
 }
 
@@ -99,11 +106,16 @@ void	SRPRViewportTabContent::OnCameraChanged(TSharedPtr<FString> item, ESelectIn
 
 const FSlateBrush	*SRPRViewportTabContent::GetSyncIcon() const
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
-	if (settings->bSync)
+	if (m_Settings->bSync)
 		return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.SyncOn").GetIcon();
 	return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.SyncOff").GetIcon();
+}
+
+const FSlateBrush	*SRPRViewportTabContent::GetDisplayPostEffectPropertiesIcon() const
+{
+	if (m_DisplayPostEffects)
+		return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.DisplayPostEffectsOn").GetIcon();
+	return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.DisplayPostEffectsOff").GetIcon();
 }
 
 const FSlateBrush	*SRPRViewportTabContent::GetRenderIcon() const
@@ -122,8 +134,6 @@ TSharedRef<SWidget>	SRPRViewportTabContent::OnGenerateQualitySettingsWidget(TSha
 void	SRPRViewportTabContent::OnQualitySettingsChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo)
 {
 	const FString	settingsString = *item.Get();
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
 
 	ERPRQualitySettings	newSettings = ERPRQualitySettings::Interactive;
 	if (settingsString == "Interactive")
@@ -134,29 +144,26 @@ void	SRPRViewportTabContent::OnQualitySettingsChanged(TSharedPtr<FString> item, 
 		newSettings = ERPRQualitySettings::Medium;
 	else if (settingsString == "High")
 		newSettings = ERPRQualitySettings::High;
-	settings->QualitySettings = newSettings;
-	settings->SaveConfig();
+	m_Settings->QualitySettings = newSettings;
+	m_Settings->SaveConfig();
 
 	ARPRScene	*scene = m_Plugin->GetCurrentScene();
 	if (scene != NULL)
-		scene->SetQualitySettings(settings->QualitySettings);
+		scene->SetQualitySettings(m_Settings->QualitySettings);
 }
 
 FText	SRPRViewportTabContent::GetSelectedQualitySettingsName() const
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
-
-	switch (settings->QualitySettings)
+	switch (m_Settings->QualitySettings)
 	{
-	case	ERPRQualitySettings::Interactive:
-		return LOCTEXT("InteractiveTitle", "Quality : Interactive");
-	case	ERPRQualitySettings::Low:
-		return LOCTEXT("LowTitle", "Quality : Low");
-	case	ERPRQualitySettings::Medium:
-		return LOCTEXT("MediumTitle", "Quality : Medium");
-	case	ERPRQualitySettings::High:
-		return LOCTEXT("HighTitle", "Quality : High");
+		case	ERPRQualitySettings::Interactive:
+			return LOCTEXT("InteractiveTitle", "Quality : Interactive");
+		case	ERPRQualitySettings::Low:
+			return LOCTEXT("LowTitle", "Quality : Low");
+		case	ERPRQualitySettings::Medium:
+			return LOCTEXT("MediumTitle", "Quality : Medium");
+		case	ERPRQualitySettings::High:
+			return LOCTEXT("HighTitle", "Quality : High");
 	}
 	return FText();
 }
@@ -170,11 +177,8 @@ TSharedRef<SWidget>	SRPRViewportTabContent::OnGenerateMegaPixelWidget(TSharedPtr
 
 void	SRPRViewportTabContent::OnMegaPixelChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo)
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
-
-	settings->MegaPixelCount = FCString::Atof(**item.Get());
-	settings->SaveConfig();
+	m_Settings->MegaPixelCount = FCString::Atof(**item.Get());
+	m_Settings->SaveConfig();
 
 	ARPRScene	*scene = m_Plugin->GetCurrentScene();
 	if (scene != NULL)
@@ -183,13 +187,10 @@ void	SRPRViewportTabContent::OnMegaPixelChanged(TSharedPtr<FString> item, ESelec
 
 FText	SRPRViewportTabContent::GetSelectedMegaPixelName() const
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
-
 	// TODO: Cache this
 	FNumberFormattingOptions	formatOptions;
 	formatOptions.MaximumIntegralDigits = 1;
-	return FText::Format(LOCTEXT("MegaPixelTitle", "{0} Megapixel"), FText::AsNumber(settings->MegaPixelCount, &formatOptions));
+	return FText::Format(LOCTEXT("MegaPixelTitle", "{0} Megapixel"), FText::AsNumber(m_Settings->MegaPixelCount, &formatOptions));
 }
 
 FText	SRPRViewportTabContent::GetCurrentRenderIteration() const
@@ -207,21 +208,96 @@ FText	SRPRViewportTabContent::GetCurrentRenderIteration() const
 
 FText	SRPRViewportTabContent::GetTraceStatus() const
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
-
-	if (settings->bTrace)
+	if (m_Settings->bTrace)
 		return FText::FromString("Trace : On");
 	return FText::FromString("Trace : Off");
+}
+
+TOptional<float>	SRPRViewportTabContent::GetPhotolinearTonemapSensitivity() const
+{
+	return m_Settings->PhotolinearTonemapSensitivity;
+}
+
+void	SRPRViewportTabContent::OnPhotolinearTonemapSensitivityChanged(float newValue)
+{
+	m_Settings->PhotolinearTonemapSensitivity = newValue;
+	m_Settings->SaveConfig();
+}
+
+TOptional<float>	SRPRViewportTabContent::GetPhotolinearTonemapExposure() const
+{
+	return m_Settings->PhotolinearTonemapExposure;
+}
+
+void	SRPRViewportTabContent::OnPhotolinearTonemapExposureChanged(float newValue)
+{
+	m_Settings->PhotolinearTonemapExposure = newValue;
+	m_Settings->SaveConfig();
+}
+
+TOptional<float>	SRPRViewportTabContent::GetPhotolinearTonemapFStop() const
+{
+	return m_Settings->PhotolinearTonemapFStop;
+}
+
+void	SRPRViewportTabContent::OnPhotolinearTonemapFStopChanged(float newValue)
+{
+	m_Settings->PhotolinearTonemapFStop = newValue;
+	m_Settings->SaveConfig();
+}
+
+TOptional<float>	SRPRViewportTabContent::GetSimpleTonemapExposure() const
+{
+	return m_Settings->SimpleTonemapExposure;
+}
+
+void	SRPRViewportTabContent::OnSimpleTonemapExposureChanged(float newValue)
+{
+	m_Settings->SimpleTonemapExposure = newValue;
+	m_Settings->SaveConfig();
+}
+
+TOptional<float>	SRPRViewportTabContent::GetSimpleTonemapContrast() const
+{
+	return m_Settings->SimpleTonemapContrast;
+}
+
+void	SRPRViewportTabContent::OnSimpleTonemapContrastChanged(float newValue)
+{
+	m_Settings->SimpleTonemapContrast = newValue;
+	m_Settings->SaveConfig();
+}
+
+TOptional<uint32>	SRPRViewportTabContent::GetWhiteBalanceTemperature() const
+{
+	return m_Settings->WhiteBalanceTemperature;
+}
+
+void	SRPRViewportTabContent::OnWhiteBalanceTemperatureChanged(uint32 newValue)
+{
+	m_Settings->WhiteBalanceTemperature = newValue;
+	m_Settings->SaveConfig(); // Profile this, can be pretty intense with sliders
+}
+
+TOptional<float>	SRPRViewportTabContent::GetGammaCorrectionValue() const
+{
+	return m_Settings->GammaCorrectionValue;
+}
+
+void	SRPRViewportTabContent::OnGammaCorrectionValueChanged(float newValue)
+{
+	m_Settings->GammaCorrectionValue = newValue;
+	m_Settings->SaveConfig(); // Profile this, can be pretty intense with sliders
 }
 
 void	SRPRViewportTabContent::Construct(const FArguments &args)
 {
 	m_Plugin = &FRPRPluginModule::Get();
+	m_Settings = GetMutableDefault<URPRSettings>();
 
-	// Create widgets content
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
+	m_DisplayPostEffects = false;
+
+	check(m_Settings != NULL);
 
 	m_QualitySettingsList.Empty();
 	m_AvailableMegaPixel.Empty();
@@ -252,6 +328,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 			.Padding(2.0f)
 			[
 				SNew(SButton)
+				.ButtonStyle(FEditorStyle::Get(), "FlatButton")
 				.Text(LOCTEXT("RenderLabel", "Render"))
 				.ToolTipText(LOCTEXT("RenderTooltip", "Toggles scene rendering."))
 				.OnClicked(this, &SRPRViewportTabContent::OnToggleRender)
@@ -266,6 +343,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 			.Padding(2.0f)
 			[
 				SNew(SButton)
+				.ButtonStyle(FEditorStyle::Get(), "FlatButton")
 				.Text(LOCTEXT("SyncLabel", "Sync"))
 				.ToolTipText(LOCTEXT("SyncTooltip", "Toggles scene synchronization."))
 				.OnClicked(this, &SRPRViewportTabContent::OnToggleSync)
@@ -280,6 +358,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 			.Padding(2.0f)
 			[
 				SNew(SButton)
+				.ButtonStyle(FEditorStyle::Get(), "FlatButton")
 				.Text(LOCTEXT("SaveLabel", "Save"))
 				.ToolTipText(LOCTEXT("SaveTooltip", "Save the framebuffer state or ProRender scene."))
 				.OnClicked(this, &SRPRViewportTabContent::OnSave)
@@ -294,6 +373,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 			.Padding(2.0f)
 			[
 				SNew(SButton)
+				.ButtonStyle(FEditorStyle::Get(), "FlatButton")
 				.Text(LOCTEXT("ToggleTraceLabel", "Trace"))
 				.ToolTipText(LOCTEXT("TraceTooltip", "Toggles RPR Tracing."))
 				.OnClicked(this, &SRPRViewportTabContent::OnToggleTrace)
@@ -343,43 +423,253 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 					.Text(this, &SRPRViewportTabContent::GetSelectedMegaPixelName)
 				]
 			]
+			+SHorizontalBox::Slot()
+			.FillWidth(1.0f)
+			[
+				SNew(SSpacer)
+			]
+			+ SHorizontalBox::Slot()
+			.HAlign(HAlign_Right)
+			.AutoWidth()
+			.Padding(2.0f)
+			[
+				SNew(SButton)
+				.ButtonStyle(FEditorStyle::Get(), "FlatButton")
+				.Text(LOCTEXT("DisplayPostEffectPropsLabel", "Toggle post effect properties display"))
+				.ToolTipText(LOCTEXT("SyncTooltip", "Toggles post effect properties display."))
+				.OnClicked(this, &SRPRViewportTabContent::OnToggleDisplayPostEffectProperties)
+				.Content()
+				[
+					SNew(SImage)
+					.Image(this, &SRPRViewportTabContent::GetDisplayPostEffectPropertiesIcon)
+				]
+			]
 		]
 		+ SVerticalBox::Slot()
 		.FillHeight(1.0f)
 		[
-			SNew(SOverlay)
-			+ SOverlay::Slot()
-			.VAlign(VAlign_Fill)
-			.HAlign(HAlign_Fill)
+			SNew(SSplitter)
+			.Orientation(Orient_Horizontal)
+			.ResizeMode(ESplitterResizeMode::Fill)
+			+ SSplitter::Slot()
 			[
-			
-				SAssignNew(m_ViewportWidget, SViewport)
+				SNew(SOverlay)
+				+ SOverlay::Slot()
+				.VAlign(VAlign_Fill)
+				.HAlign(HAlign_Fill)
+				[
+				
+					SAssignNew(m_ViewportWidget, SViewport)
 					.IsEnabled(true)
 					.EnableBlending(true)
+				]
+				+ SOverlay::Slot()
+				.VAlign(VAlign_Bottom)
+				.HAlign(HAlign_Right)
+				.Padding(5.0f)
+				[
+					SNew(STextBlock)
+					.Text(this, &SRPRViewportTabContent::GetCurrentRenderIteration)
+				]
+				+ SOverlay::Slot()
+				.VAlign(VAlign_Bottom)
+				.HAlign(HAlign_Right)
+				.Padding(0.0f, 0.0f, 5.0f, 20.0f)
+				[
+					SNew(STextBlock)
+					.Text(this, &SRPRViewportTabContent::GetTraceStatus)
+				]
+				+ SOverlay::Slot()
+				.VAlign(VAlign_Bottom)
+				.HAlign(HAlign_Left)
+				.Padding(5.0f)
+				[
+					SNew(STextBlock)
+					.Text(this, &SRPRViewportTabContent::GetImportStatus)
+				]
 			]
-			+ SOverlay::Slot()
-			.VAlign(VAlign_Bottom)
-			.HAlign(HAlign_Right)
-			.Padding(5.0f)
+			+ SSplitter::Slot()
+			.SizeRule(SSplitter::ESizeRule::SizeToContent)
+			//.Value(120.0f)
 			[
-				SNew(STextBlock)
-				.Text(this, &SRPRViewportTabContent::GetCurrentRenderIteration)
-			]
-			+ SOverlay::Slot()
-			.VAlign(VAlign_Bottom)
-			.HAlign(HAlign_Right)
-			.Padding(0.0f, 0.0f, 5.0f, 20.0f)
-			[
-				SNew(STextBlock)
-				.Text(this, &SRPRViewportTabContent::GetTraceStatus)
-			]
-			+ SOverlay::Slot()
-			.VAlign(VAlign_Bottom)
-			.HAlign(HAlign_Left)
-			.Padding(5.0f)
-			[
-				SNew(STextBlock)
-				.Text(this, &SRPRViewportTabContent::GetImportStatus)
+				SNew(SVerticalBox)
+				.Visibility(this, &SRPRViewportTabContent::GetPostEffectPropertiesVisibility)
+				+ SVerticalBox::Slot().AutoHeight()
+				[
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot().Padding(5.0f)
+					[
+						SNew(STextBlock)
+						.Text(LOCTEXT("PhotolinearTonemapTitle", "Photolinear tonemap"))
+					]
+					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("PhotolinearTonemapSensitivity", "Sensitivity"))
+						]
+						+ SHorizontalBox::Slot()
+						[
+							SNew(SNumericEntryBox<float>)
+							.Value(this, &SRPRViewportTabContent::GetPhotolinearTonemapSensitivity)
+							.OnValueChanged(this, &SRPRViewportTabContent::OnPhotolinearTonemapSensitivityChanged)
+							.MinValue(0.0f)
+							.MaxValue(6400.0f)
+							.MinSliderValue(0.0f)
+							.MaxSliderValue(200.0f)
+							.AllowSpin(true)
+						]
+					]
+					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("PhotolinearTonemapExposure", "Exposure"))
+						]
+						+ SHorizontalBox::Slot()
+						[
+							SNew(SNumericEntryBox<float>)
+							.Value(this, &SRPRViewportTabContent::GetPhotolinearTonemapExposure)
+							.OnValueChanged(this, &SRPRViewportTabContent::OnPhotolinearTonemapExposureChanged)
+							.MinValue(0.0f)
+							.MaxValue(100.0f)
+							.MinSliderValue(0.0f)
+							.MaxSliderValue(0.1f)
+							.AllowSpin(true)
+						]
+					]
+					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("PhotolinearTonemapFStop", "FStop"))
+						]
+						+ SHorizontalBox::Slot()
+						[
+							SNew(SNumericEntryBox<float>)
+							.Value(this, &SRPRViewportTabContent::GetPhotolinearTonemapFStop)
+							.OnValueChanged(this, &SRPRViewportTabContent::OnPhotolinearTonemapFStopChanged)
+							.MinValue(0.0f)
+							.MaxValue(128.0f)
+							.MinSliderValue(0.0f)
+							.MaxSliderValue(10.0f)
+							.AllowSpin(true)
+						]
+					]
+				]
+				+ SVerticalBox::Slot().AutoHeight()
+				[
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot().Padding(5.0f)
+					[
+						SNew(STextBlock)
+						.Text(LOCTEXT("SimpleTonemapTitle", "Simple tonemap"))
+					]
+					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("SimpleTonemapExposure", "Exposure"))
+						]
+						+ SHorizontalBox::Slot()
+						[
+							SNew(SNumericEntryBox<float>)
+							.Value(this, &SRPRViewportTabContent::GetSimpleTonemapExposure)
+							.OnValueChanged(this, &SRPRViewportTabContent::OnSimpleTonemapExposureChanged)
+							.MinValue(-100.0f)
+							.MaxValue(100.0f)
+							.MinSliderValue(-5.0f)
+							.MaxSliderValue(5.0f)
+							.AllowSpin(true)
+						]
+					]
+					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("SimpleTonemapContrast", "Contrast"))
+						]
+						+ SHorizontalBox::Slot()
+						[
+							SNew(SNumericEntryBox<float>)
+							.Value(this, &SRPRViewportTabContent::GetSimpleTonemapContrast)
+							.OnValueChanged(this, &SRPRViewportTabContent::OnSimpleTonemapContrastChanged)
+							.MinValue(-100.0f)
+							.MaxValue(100.0f)
+							.MinSliderValue(-100.0f)
+							.MaxSliderValue(100.0f)
+							.AllowSpin(true)
+						]
+					]
+				]
+				+ SVerticalBox::Slot().AutoHeight()
+				[
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot().Padding(5.0f)
+					[
+						SNew(STextBlock)
+						.Text(LOCTEXT("WhiteBalanceTitle", "White Balance"))
+					]
+					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("TemperatureTitle", "Temperature"))
+						]
+						+ SHorizontalBox::Slot()
+						[
+							SNew(SNumericEntryBox<uint32>)
+							.Value(this, &SRPRViewportTabContent::GetWhiteBalanceTemperature)
+							.OnValueChanged(this, &SRPRViewportTabContent::OnWhiteBalanceTemperatureChanged)
+							.MinValue(1000)
+							.MaxValue(40000)
+							.MinSliderValue(2000)
+							.MaxSliderValue(12000)
+							.AllowSpin(true)
+						]
+					]
+				]
+				+ SVerticalBox::Slot().AutoHeight()
+				[
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot().Padding(5.0f)
+					[
+						SNew(STextBlock)
+						.Text(LOCTEXT("GammaCorrectionTitle", "Gamma correction"))
+					]
+					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("DisplayGammaTitle", "Display gamma"))
+						]
+						+ SHorizontalBox::Slot()
+						[
+							SNew(SNumericEntryBox<float>)
+							.Value(this, &SRPRViewportTabContent::GetGammaCorrectionValue)
+							.OnValueChanged(this, &SRPRViewportTabContent::OnGammaCorrectionValueChanged)
+							.MinValue(0.0f)
+							.MaxValue(100.0f)
+							.MinSliderValue(0.0f)
+							.MaxSliderValue(100.0f)
+							.AllowSpin(true)
+						]
+					]
+				]
 			]
 		]
 	];

@@ -77,4 +77,25 @@ public:
 
 	UPROPERTY(Config)
 	uint32		bTrace:1;
+
+	UPROPERTY(Config)
+	uint32		WhiteBalanceTemperature;
+
+	UPROPERTY(Config)
+	float		GammaCorrectionValue;
+
+	UPROPERTY(Config)
+	float		SimpleTonemapExposure;
+
+	UPROPERTY(Config)
+	float		SimpleTonemapContrast;
+
+	UPROPERTY(Config)
+	float		PhotolinearTonemapSensitivity;
+
+	UPROPERTY(Config)
+	float		PhotolinearTonemapExposure;
+
+	UPROPERTY(Config)
+	float		PhotolinearTonemapFStop;
 };

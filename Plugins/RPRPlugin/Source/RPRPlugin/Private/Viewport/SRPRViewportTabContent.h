@@ -20,6 +20,7 @@ private:
 	FReply					OnToggleSync();
 	FReply					OnSave();
 	FReply					OnToggleTrace();
+	FReply					OnToggleDisplayPostEffectProperties();
 
 	TSharedRef<SWidget>		OnGenerateCameraWidget(TSharedPtr<FString> inItem) const;
 	TSharedRef<SWidget>		OnGenerateQualitySettingsWidget(TSharedPtr<FString> inItem) const;
@@ -30,6 +31,7 @@ private:
 	void					OnMegaPixelChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo);
 	void					OnRefreshCameraList();
 
+	const FSlateBrush		*GetDisplayPostEffectPropertiesIcon() const;
 	const FSlateBrush		*GetSyncIcon() const;
 	const FSlateBrush		*GetRenderIcon() const;
 
@@ -39,6 +41,24 @@ private:
 	FText					GetSelectedMegaPixelName() const;
 	FText					GetCurrentRenderIteration() const;
 	FText					GetTraceStatus() const;
+
+	EVisibility				GetPostEffectPropertiesVisibility() const;
+
+	void					OnWhiteBalanceTemperatureChanged(uint32 newValue);
+	void					OnGammaCorrectionValueChanged(float newValue);
+	void					OnSimpleTonemapExposureChanged(float newValue);
+	void					OnSimpleTonemapContrastChanged(float newValue);
+	void					OnPhotolinearTonemapSensitivityChanged(float newValue);
+	void					OnPhotolinearTonemapExposureChanged(float newValue);
+	void					OnPhotolinearTonemapFStopChanged(float newValue);
+
+	TOptional<uint32>		GetWhiteBalanceTemperature() const;
+	TOptional<float>		GetGammaCorrectionValue() const;
+	TOptional<float>		GetSimpleTonemapExposure() const;
+	TOptional<float>		GetSimpleTonemapContrast() const;
+	TOptional<float>		GetPhotolinearTonemapSensitivity() const;
+	TOptional<float>		GetPhotolinearTonemapExposure() const;
+	TOptional<float>		GetPhotolinearTonemapFStop() const;
 private:
 	TSharedPtr<class FRPRViewportClient>	m_ViewportClient;
 	TSharedPtr<class SViewport>				m_ViewportWidget;
@@ -48,5 +68,8 @@ private:
 	TArray<TSharedPtr<FString>>				m_QualitySettingsList;
 
 	class FRPRPluginModule					*m_Plugin;
+	class URPRSettings						*m_Settings;
+
+	bool									m_DisplayPostEffects;
 };
 
