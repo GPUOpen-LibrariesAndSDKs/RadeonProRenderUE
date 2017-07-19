@@ -307,7 +307,27 @@ namespace RadeonProRender
 		pmat.m33 = 1;
 
 		if (determinant(pmat) == 0.f)
-			return 0;
+		{
+			scale.x = 0.f;
+			scale.y = 0.f;
+			scale.z = 0.f;
+
+			shear.x = 0.f;
+			shear.y = 0.f;
+			shear.z = 0.f;
+
+			rotation.x = 0.f;
+			rotation.y = 0.f;
+			rotation.z = 0.f;
+
+			perspective.x = perspective.y = perspective.z =
+			perspective.w = 0;
+
+			translation.x = locmat.m30;
+			translation.y = locmat.m31;
+			translation.z = locmat.m32;
+			return 1;
+		}
 
 		/* First, isolate perspective.  This is the messiest. */
 		if (locmat.m03 != 0 || locmat.m13 != 0 ||

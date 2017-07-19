@@ -81,18 +81,18 @@ bool IsDeviceNameWhitelisted(const char* deviceName, RPR_TOOLS_OS os)
 	std::vector<std::string> listOfKnownCompatibleDevices_partial; // partial names, example : "WX 4100"
 
 	//AMD
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro W600");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro W2100");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro W4100");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro W4300");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro W5000");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro W5100");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro W7000");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro W7100");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro W8000");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro W8100");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro W9000");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro W9100");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro W600");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro W2100");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro W4100");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro W4300");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro W5000");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro W5100");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro W7000");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro W7100");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro W8000");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro W8100");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro W9000");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro W9100");
 	//listOfKnownCompatibleDevices_exact.push_back("AMD Radeon (TM) R9 Fury Series");
 	listOfKnownCompatibleDevices_exact.push_back("Radeon (TM) Pro Duo");
 	listOfKnownCompatibleDevices_exact.push_back("AMD Radeon (TM) Pro Duo");
@@ -106,18 +106,18 @@ bool IsDeviceNameWhitelisted(const char* deviceName, RPR_TOOLS_OS os)
 	//listOfKnownCompatibleDevices_exact.push_back("AMD Radeon (TM) Pro WX 4100 Graphics");
 	//listOfKnownCompatibleDevices_exact.push_back("Radeon Pro WX4100 Graphics");
 
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro S4000X");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro S7000");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro S7100X");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro S7150");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro S7150x2");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro S9000");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro S9050");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro S9100");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro S9150");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro S9170");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro S9300 X2");
-	listOfKnownCompatibleDevices_exact.push_back("AMD FirePro S10000");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro S4000X");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro S7000");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro S7100X");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro S7150");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro S7150x2");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro S9000");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro S9050");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro S9100");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro S9150");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro S9170");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro S9300 X2");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro S10000");
 
 	if ( os != RPRTOS_MACOS )
 	{
@@ -178,7 +178,7 @@ bool IsDeviceNameWhitelisted(const char* deviceName, RPR_TOOLS_OS os)
 
 #ifndef RADEONPRORENDERTOOLS_DONTUSERPR
 
-RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(const rpr_char* rendererDLL, RPR_TOOLS_DEVICE device, bool doWhiteListTest, RPR_TOOLS_OS os)
+RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(const rpr_char* rendererDLL, RPR_TOOLS_DEVICE device, rpr_char const * cache_path, bool doWhiteListTest, RPR_TOOLS_OS os)
 {
 	
     rpr_int status = RPR_SUCCESS;
@@ -209,7 +209,7 @@ RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(const rpr_char* rendererDLL, RPR_T
 			else if ( device == RPRTD_GPU7 ) { flags = RPR_CREATION_FLAGS_ENABLE_GPU7; contextInfo = RPR_CONTEXT_GPU7_NAME;}
 			else if ( device == RPRTD_CPU )  { flags = RPR_CREATION_FLAGS_ENABLE_CPU;  contextInfo = RPR_CONTEXT_CPU_NAME;}
 			else { throw  RPRTC_INCOMPATIBLE_UNKNOWN; }
-			status = rprCreateContext(RPR_API_VERSION, plugins, pluginCount, flags, NULL, NULL, &temporaryContext);
+			status = rprCreateContext(RPR_API_VERSION, plugins, pluginCount, flags, NULL, cache_path, &temporaryContext);
 			if ( status != RPR_SUCCESS )
 			{
 				if ( status == RPR_ERROR_UNSUPPORTED )
@@ -256,7 +256,7 @@ RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(const rpr_char* rendererDLL, RPR_T
 			if ( status != RPR_SUCCESS ) { return RPRTC_INCOMPATIBLE_UNKNOWN; }
 		}
         return i;
-    }
+  }
 
 	if ( temporaryContext )
 	{
@@ -269,20 +269,20 @@ RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(const rpr_char* rendererDLL, RPR_T
 
 
 
-void rprAreDevicesCompatible(const rpr_char* rendererDLL, bool doWhiteListTest, rpr_creation_flags devicesUsed,  rpr_creation_flags* devicesCompatibleOut, RPR_TOOLS_OS os)
+void rprAreDevicesCompatible(const rpr_char* rendererDLL, rpr_char const * cache_path, bool doWhiteListTest, rpr_creation_flags devicesUsed,  rpr_creation_flags* devicesCompatibleOut, RPR_TOOLS_OS os)
 {
 	*devicesCompatibleOut = devicesUsed;
 
 	rpr_int compatibility = RPR_ERROR_INVALID_PARAMETER;
-	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU0 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU0,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU0; } }
-	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU1 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU1,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU1; } }
-	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU2 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU2,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU2; } }
-	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU3 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU3,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU3; } }
-	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU4 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU4,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU4; } }
-	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU5 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU5,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU5; } }
-	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU6 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU6,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU6; } }
-	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU7 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU7,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU7; } }
-	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_CPU )  { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_CPU,doWhiteListTest,os)  != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_CPU; } }
+	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU0 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU0,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU0; } }
+	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU1 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU1,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU1; } }
+	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU2 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU2,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU2; } }
+	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU3 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU3,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU3; } }
+	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU4 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU4,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU4; } }
+	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU5 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU5,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU5; } }
+	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU6 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU6,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU6; } }
+	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU7 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU7,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU7; } }
+	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_CPU )  { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_CPU,cache_path,doWhiteListTest,os)  != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_CPU; } }
 
 	return;
 }

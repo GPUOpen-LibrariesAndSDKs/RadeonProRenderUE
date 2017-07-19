@@ -27,7 +27,7 @@ extern "C" {
 
 #include "cstddef"
 
-#define RPR_API_VERSION 0x010027000 
+#define RPR_API_VERSION 0x010027200 
 
 /* rpr_status */
 #define RPR_SUCCESS 0 
@@ -64,11 +64,6 @@ extern "C" {
 #define RPR_PARAMETER_TYPE_STRING 0x6 
 #define RPR_PARAMETER_TYPE_SHADER 0x7 
 #define RPR_PARAMETER_TYPE_UINT 0x8 
-
-/* rpr_image_type */
-#define RPR_IMAGE_TYPE_1D 0x1 
-#define RPR_IMAGE_TYPE_2D 0x2 
-#define RPR_IMAGE_TYPE_3D 0x3 
 
 /* rpr_context_type */
 #define RPR_CONTEXT_OPENCL (1 << 0) 
@@ -111,6 +106,9 @@ extern "C" {
 
 /* rpr_object_info */
 #define RPR_OBJECT_NAME 0x777777 
+
+/* rpr_context_properties */
+#define RPR_CONTEXT_CREATEPROP_CPU_THREAD_LIMIT 0x600 
 
 /* rpr_context_info */
 #define RPR_CONTEXT_CREATION_FLAGS 0x102 
@@ -165,9 +163,11 @@ extern "C" {
 #define RPR_CONTEXT_AO_RAY_LENGTH 0x133 
 #define RPR_CONTEXT_OOC_TEXTURE_CACHE 0x134 
 #define RPR_CONTEXT_PREVIEW 0x135 
+#define RPR_CONTEXT_CPU_THREAD_LIMIT 0x136 
+#define RPR_CONTEXT_LAST_ERROR_MESSAGE 0x137 
 
 /* last of the RPR_CONTEXT_* */
-#define RPR_CONTEXT_MAX 0x136 
+#define RPR_CONTEXT_MAX 0x138 
 
 /* rpr_camera_info */
 #define RPR_CAMERA_TRANSFORM 0x201 
@@ -188,6 +188,8 @@ extern "C" {
 #define RPR_CAMERA_LENS_SHIFT 0x210 
 #define RPR_CAMERA_IPD 0x211 
 #define RPR_CAMERA_TILT_CORRECTION 0x212 
+#define RPR_CAMERA_NEAR_PLANE 0x213 
+#define RPR_CAMERA_FAR_PLANE 0x214 
 
 /* rpr_image_info */
 #define RPR_IMAGE_FORMAT 0x301 
@@ -195,6 +197,14 @@ extern "C" {
 #define RPR_IMAGE_DATA 0x303 
 #define RPR_IMAGE_DATA_SIZEBYTE 0x304 
 #define RPR_IMAGE_WRAP 0x305 
+
+/* rpr_image_option */
+#define RPR_IMAGE_FILTER_NEAREST (1 << 0) 
+#define RPR_IMAGE_FILTER_LINEAR (1 << 1) 
+#define RPR_IMAGE_WRAP_REPEAT (1 << 2) 
+#define RPR_IMAGE_WRAP_MIRRORED_REPEAT (1 << 3) 
+#define RPR_IMAGE_WRAP_CLAMP_TO_EDGE (1 << 4) 
+#define RPR_IMAGE_WRAP_CLAMP_TO_BORDER (1 << 5) 
 
 /* rpr_shape_info */
 #define RPR_SHAPE_TYPE 0x401 
@@ -215,6 +225,7 @@ extern "C" {
 #define RPR_SHAPE_SUBDIVISION_CREASEWEIGHT 0x411 
 #define RPR_SHAPE_SUBDIVISION_BOUNDARYINTEROP 0x412 
 #define RPR_SHAPE_DISPLACEMENT_MATERIAL 0x413 
+#define RPR_SHAPE_MATERIALS_PER_FACE 0x415 
 
 /* rpr_mesh_info */
 #define RPR_MESH_POLYGON_COUNT 0x501 
@@ -251,6 +262,7 @@ extern "C" {
 #define RPR_SCENE_ENVIRONMENT_OVERRIDE_REFRACTION 0x70A 
 #define RPR_SCENE_ENVIRONMENT_OVERRIDE_TRANSPARENCY 0x70B 
 #define RPR_SCENE_ENVIRONMENT_OVERRIDE_BACKGROUND 0x70C 
+#define RPR_SCENE_AABB 0x70D 
 
 /* rpr_light_info */
 #define RPR_LIGHT_TYPE 0x801 
@@ -526,7 +538,9 @@ extern "C" {
 #define RPR_AOV_OBJECT_GROUP_ID 0x9 
 #define RPR_AOV_SHADOW_CATCHER 0x0a 
 #define RPR_AOV_BACKGROUND 0x0b 
-#define RPR_AOV_MAX 0x0c 
+#define RPR_AOV_EMISSION 0x0c 
+#define RPR_AOV_VELOCITY 0x0d 
+#define RPR_AOV_MAX 0x0e 
 
 /*rpr_post_effect_type*/
 #define RPR_POST_EFFECT_TONE_MAP 0x0 
@@ -624,7 +638,7 @@ typedef void * rpr_post_effect;
 typedef void * rpr_context_properties;
 typedef void * rpr_composite;
 typedef rpr_uint rpr_light_type;
-typedef rpr_uint rpr_image_type;
+typedef rpr_uint rpr_image_option;
 typedef rpr_uint rpr_shape_type;
 typedef rpr_uint rpr_context_type;
 typedef rpr_bitfield rpr_creation_flags;
@@ -738,8 +752,11 @@ extern RPR_API_ENTRY rpr_int rprRegisterPlugin(rpr_char const * path);
   *  @param api_version     Api version constant
   *	 @param context_type    Determines compute API to use, OPENCL only is supported for now
   *  @param creation_flags  Determines multi-gpu or cpu-gpu configuration
-  *  @param props           Context properties, reserved for future use
+  *  @param props           Context creation properties. Specifies a list of context property names and their corresponding values. 
+  *                         Each property name is immediately followed by the corresponding desired value. 
+  *                         The list is terminated with 0.  
   *  @param cache_path      Full path to kernel cache created by FireRender, NULL means to use current folder
+  *  @param cpu_thread_limit	Limit for the number of threads used for CPU rendering
   *  @param out_context		Pointer to context object
   *  @return                RPR_SUCCESS in case of success, error code otherwise
 */
@@ -1086,6 +1103,19 @@ extern RPR_API_ENTRY rpr_int rprCameraSetFocalLength(rpr_camera camera, rpr_floa
  */
 extern RPR_API_ENTRY rpr_int rprCameraSetFocusDistance(rpr_camera camera, rpr_float fdist);
 
+/** @brief Sets an image option
+ *
+ *	The default option for each image is FR_IMAGE_FILTER_LINEAR | FR_IMAGE_WRAP_REPEAT
+ *  Possible error codes are:
+ *
+ *      FR_ERROR_INVALID_PARAMETER
+ *
+ *  @param  image				The image to set the option for
+ *  @param  option      The option to set
+ *  @return             RPR_SUCCESS in case of success, error code otherwise
+ */
+extern RPR_API_ENTRY rpr_int rprImageSetOption(rpr_image image, rpr_image_option option);
+
 /** @brief Set world transform for the camera
  *
  *  @param  camera      The camera to set transform for
@@ -1189,6 +1219,22 @@ extern RPR_API_ENTRY rpr_int rprCameraSetTiltCorrection(rpr_camera camera, rpr_f
 */
 extern RPR_API_ENTRY rpr_int rprCameraSetOrthoHeight(rpr_camera camera, rpr_float height);
 
+/** @brief Set near plane of a camear
+*
+*  @param  camera  The camera to set near plane for
+*  @param  near   Near plane distance in meters, default is 0.01f
+*  @return         RPR_SUCCESS in case of success, error code otherwise
+*/
+extern RPR_API_ENTRY rpr_int rprCameraSetNearPlane(rpr_camera camera, rpr_float near);
+
+/** @brief Set far plane of a camear
+*
+*  @param  camera  The camera to set far plane for
+*  @param  far   Far plane distance in meters, default is 100000000.f
+*  @return         RPR_SUCCESS in case of success, error code otherwise
+*/
+extern RPR_API_ENTRY rpr_int rprCameraSetFarPlane(rpr_camera camera, rpr_float far);
+
 /* rpr_image*/
 /** @brief Query information about an image
  *
@@ -1285,6 +1331,15 @@ extern RPR_API_ENTRY rpr_int rprShapeSetDisplacementMaterial(rpr_shape shape, rp
 *
 */
 extern RPR_API_ENTRY rpr_int rprShapeSetMaterial(rpr_shape shape, rpr_material_node node);
+
+/** @brief Set shape materials for specific faces
+*
+*  @param  shape	The shape to set the material for
+*  @param  node 	The material to set
+*  @param  face_indices	
+*  @return		RPR_SUCCESS in case of success, error code otherwise
+*/
+extern RPR_API_ENTRY rpr_int rprShapeSetMaterialFaces(rpr_shape shape, rpr_material_node node, rpr_int* face_indices, size_t num_faces);
 
 
 
@@ -1894,6 +1949,15 @@ extern RPR_API_ENTRY rpr_int rprContextCreateMaterialSystem(rpr_context in_conte
 *      RPR_ERROR_OUT_OF_VIDEO_MEMORY
 *
 */
+extern RPR_API_ENTRY rpr_int rprMaterialSystemGetSize(rpr_context in_context, rpr_uint * out_size);
+
+/** @brief Returns the number of material nodes for a given material system
+*
+*   Possible error codes:
+*      RPR_ERROR_OUT_OF_SYSTEM_MEMORY
+*      RPR_ERROR_OUT_OF_VIDEO_MEMORY
+*
+*/
 extern RPR_API_ENTRY rpr_int rprMaterialSystemCreateNode(rpr_material_system in_matsys, rpr_material_node_type in_type, rpr_material_node * out_node);
 
 /** @brief Connect nodes
@@ -1986,7 +2050,7 @@ extern RPR_API_ENTRY rpr_int rprContextGetAttachedPostEffectCount(rpr_context co
 extern RPR_API_ENTRY rpr_int rprContextGetAttachedPostEffect(rpr_context context, rpr_uint i, rpr_post_effect * out_effect);
 extern RPR_API_ENTRY rpr_int rprPostEffectGetInfo(rpr_post_effect effect, rpr_post_effect_info info, size_t size,  void *  data, size_t *  size_ret);
 /***************compatibility part***************/
-#define FR_API_VERSION 0x010027000 
+#define FR_API_VERSION 0x010027200 
 #define FR_SUCCESS 0 
 #define FR_ERROR_COMPUTE_API_NOT_SUPPORTED -1 
 #define FR_ERROR_OUT_OF_SYSTEM_MEMORY -2 
@@ -2019,9 +2083,6 @@ extern RPR_API_ENTRY rpr_int rprPostEffectGetInfo(rpr_post_effect effect, rpr_po
 #define FR_PARAMETER_TYPE_STRING 0x6 
 #define FR_PARAMETER_TYPE_SHADER 0x7 
 #define FR_PARAMETER_TYPE_UINT 0x8 
-#define FR_IMAGE_TYPE_1D 0x1 
-#define FR_IMAGE_TYPE_2D 0x2 
-#define FR_IMAGE_TYPE_3D 0x3 
 #define FR_CONTEXT_OPENCL (1 << 0) 
 #define FR_CONTEXT_DIRECTCOMPUTE (1 << 1) 
 #define FR_CONTEXT_REFERENCE (1 << 2) 
@@ -2052,6 +2113,7 @@ extern RPR_API_ENTRY rpr_int rprPostEffectGetInfo(rpr_post_effect effect, rpr_po
 #define FR_LIGHT_TYPE_SKY 0x5 
 #define FR_LIGHT_TYPE_IES 0x6 
 #define FR_OBJECT_NAME 0x777777 
+#define FR_CONTEXT_CREATEPROP_CPU_THREAD_LIMIT 0x600 
 #define FR_CONTEXT_CREATION_FLAGS 0x102 
 #define FR_CONTEXT_CACHE_PATH 0x103 
 #define FR_CONTEXT_RENDER_STATUS 0x104 
@@ -2104,7 +2166,9 @@ extern RPR_API_ENTRY rpr_int rprPostEffectGetInfo(rpr_post_effect effect, rpr_po
 #define FR_CONTEXT_AO_RAY_LENGTH 0x133 
 #define FR_CONTEXT_OOC_TEXTURE_CACHE 0x134 
 #define FR_CONTEXT_PREVIEW 0x135 
-#define FR_CONTEXT_MAX 0x136 
+#define FR_CONTEXT_CPU_THREAD_LIMIT 0x136 
+#define FR_CONTEXT_LAST_ERROR_MESSAGE 0x137 
+#define FR_CONTEXT_MAX 0x138 
 #define FR_CAMERA_TRANSFORM 0x201 
 #define FR_CAMERA_FSTOP 0x202 
 #define FR_CAMERA_APERTURE_BLADES 0x203 
@@ -2123,11 +2187,19 @@ extern RPR_API_ENTRY rpr_int rprPostEffectGetInfo(rpr_post_effect effect, rpr_po
 #define FR_CAMERA_LENS_SHIFT 0x210 
 #define FR_CAMERA_IPD 0x211 
 #define FR_CAMERA_TILT_CORRECTION 0x212 
+#define FR_CAMERA_NEAR_PLANE 0x213 
+#define FR_CAMERA_FAR_PLANE 0x214 
 #define FR_IMAGE_FORMAT 0x301 
 #define FR_IMAGE_DESC 0x302 
 #define FR_IMAGE_DATA 0x303 
 #define FR_IMAGE_DATA_SIZEBYTE 0x304 
 #define FR_IMAGE_WRAP 0x305 
+#define FR_IMAGE_FILTER_NEAREST (1 << 0) 
+#define FR_IMAGE_FILTER_LINEAR (1 << 1) 
+#define FR_IMAGE_WRAP_REPEAT (1 << 2) 
+#define FR_IMAGE_WRAP_MIRRORED_REPEAT (1 << 3) 
+#define FR_IMAGE_WRAP_CLAMP_TO_EDGE (1 << 4) 
+#define FR_IMAGE_WRAP_CLAMP_TO_BORDER (1 << 5) 
 #define FR_SHAPE_TYPE 0x401 
 #define FR_SHAPE_VIDMEM_USAGE 0x402 
 #define FR_SHAPE_TRANSFORM 0x403 
@@ -2146,6 +2218,7 @@ extern RPR_API_ENTRY rpr_int rprPostEffectGetInfo(rpr_post_effect effect, rpr_po
 #define FR_SHAPE_SUBDIVISION_CREASEWEIGHT 0x411 
 #define FR_SHAPE_SUBDIVISION_BOUNDARYINTEROP 0x412 
 #define FR_SHAPE_DISPLACEMENT_MATERIAL 0x413 
+#define FR_SHAPE_MATERIALS_PER_FACE 0x415 
 #define FR_MESH_POLYGON_COUNT 0x501 
 #define FR_MESH_VERTEX_COUNT 0x502 
 #define FR_MESH_NORMAL_COUNT 0x503 
@@ -2178,6 +2251,7 @@ extern RPR_API_ENTRY rpr_int rprPostEffectGetInfo(rpr_post_effect effect, rpr_po
 #define FR_SCENE_ENVIRONMENT_OVERRIDE_REFRACTION 0x70A 
 #define FR_SCENE_ENVIRONMENT_OVERRIDE_TRANSPARENCY 0x70B 
 #define FR_SCENE_ENVIRONMENT_OVERRIDE_BACKGROUND 0x70C 
+#define FR_SCENE_AABB 0x70D 
 #define FR_LIGHT_TYPE 0x801 
 #define FR_LIGHT_TRANSFORM 0x803 
 #define FR_POINT_LIGHT_RADIANT_POWER 0x804 
@@ -2400,7 +2474,9 @@ extern RPR_API_ENTRY rpr_int rprPostEffectGetInfo(rpr_post_effect effect, rpr_po
 #define FR_AOV_OBJECT_GROUP_ID 0x9 
 #define FR_AOV_SHADOW_CATCHER 0x0a 
 #define FR_AOV_BACKGROUND 0x0b 
-#define FR_AOV_MAX 0x0c 
+#define FR_AOV_EMISSION 0x0c 
+#define FR_AOV_VELOCITY 0x0d 
+#define FR_AOV_MAX 0x0e 
 #define FR_POST_EFFECT_TONE_MAP 0x0 
 #define FR_POST_EFFECT_WHITE_BALANCE 0x1 
 #define FR_POST_EFFECT_SIMPLE_TONEMAP 0x2 
@@ -2477,7 +2553,7 @@ typedef rpr_post_effect fr_post_effect;
 typedef rpr_context_properties fr_context_properties;
 typedef rpr_composite fr_composite;
 typedef rpr_light_type fr_light_type;
-typedef rpr_image_type fr_image_type;
+typedef rpr_image_option fr_image_option;
 typedef rpr_shape_type fr_shape_type;
 typedef rpr_context_type fr_context_type;
 typedef rpr_creation_flags fr_creation_flags;
@@ -2556,6 +2632,7 @@ extern RPR_API_ENTRY fr_int frContextCreateFrameBuffer(fr_context context, fr_fr
 extern RPR_API_ENTRY fr_int frCameraGetInfo(fr_camera camera, fr_camera_info camera_info, size_t size, void * data, size_t * size_ret);
 extern RPR_API_ENTRY fr_int frCameraSetFocalLength(fr_camera camera, fr_float flength);
 extern RPR_API_ENTRY fr_int frCameraSetFocusDistance(fr_camera camera, fr_float fdist);
+extern RPR_API_ENTRY fr_int frImageSetOption(fr_image image, fr_image_option option);
 extern RPR_API_ENTRY fr_int frCameraSetTransform(fr_camera camera, fr_bool transpose, fr_float * transform);
 extern RPR_API_ENTRY fr_int frCameraSetSensorSize(fr_camera camera, fr_float width, fr_float height);
 extern RPR_API_ENTRY fr_int frCameraLookAt(fr_camera camera, fr_float posx, fr_float posy, fr_float posz, fr_float atx, fr_float aty, fr_float atz, fr_float upx, fr_float upy, fr_float upz);
@@ -2569,6 +2646,8 @@ extern RPR_API_ENTRY fr_int frCameraSetIPD(fr_camera camera, fr_float ipd);
 extern RPR_API_ENTRY fr_int frCameraSetLensShift(fr_camera camera, fr_float shiftx, fr_float shifty);
 extern RPR_API_ENTRY fr_int frCameraSetTiltCorrection(fr_camera camera, fr_float tiltX, fr_float tiltY);
 extern RPR_API_ENTRY fr_int frCameraSetOrthoHeight(fr_camera camera, fr_float height);
+extern RPR_API_ENTRY fr_int frCameraSetNearPlane(fr_camera camera, fr_float near);
+extern RPR_API_ENTRY fr_int frCameraSetFarPlane(fr_camera camera, fr_float far);
 extern RPR_API_ENTRY fr_int frImageGetInfo(fr_image image, fr_image_info image_info, size_t size, void * data, size_t * size_ret);
 extern RPR_API_ENTRY fr_int frImageSetWrap(fr_image image, fr_image_wrap_type type);
 extern RPR_API_ENTRY fr_int frShapeSetTransform(fr_shape shape, fr_bool transpose, fr_float const * transform);
@@ -2579,6 +2658,7 @@ extern RPR_API_ENTRY fr_int frShapeSetDisplacementScale(fr_shape shape, fr_float
 extern RPR_API_ENTRY fr_int frShapeSetObjectGroupID(fr_shape shape, fr_uint objectGroupID);
 extern RPR_API_ENTRY fr_int frShapeSetDisplacementMaterial(fr_shape shape, fr_material_node materialNode);
 extern RPR_API_ENTRY fr_int frShapeSetMaterial(fr_shape shape, fr_material_node node);
+extern RPR_API_ENTRY fr_int frShapeSetMaterialFaces(fr_shape shape, fr_material_node node, fr_int* face_indices, size_t num_faces);
 extern RPR_API_ENTRY fr_int frShapeSetVolumeMaterial(fr_shape shape, fr_material_node node);
 extern RPR_API_ENTRY fr_int frShapeSetLinearMotion(fr_shape shape, fr_float x, fr_float y, fr_float z);
 extern RPR_API_ENTRY fr_int frShapeSetAngularMotion(fr_shape shape, fr_float x, fr_float y, fr_float z, fr_float w);
@@ -2633,6 +2713,7 @@ extern RPR_API_ENTRY fr_int frFrameBufferClear(fr_framebuffer frame_buffer);
 extern RPR_API_ENTRY fr_int frFrameBufferSaveToFile(fr_framebuffer frame_buffer, fr_char const * file_path);
 extern RPR_API_ENTRY fr_int frContextResolveFrameBuffer(fr_context context, fr_framebuffer src_frame_buffer, fr_framebuffer dst_frame_buffer, fr_bool normalizeOnly = false);
 extern RPR_API_ENTRY fr_int frContextCreateMaterialSystem(fr_context in_context, fr_material_system_type type, fr_material_system * out_matsys);
+extern RPR_API_ENTRY fr_int frMaterialSystemGetSize(fr_context in_context, fr_uint * out_size);
 extern RPR_API_ENTRY fr_int frMaterialSystemCreateNode(fr_material_system in_matsys, fr_material_node_type in_type, fr_material_node * out_node);
 extern RPR_API_ENTRY fr_int frMaterialNodeSetInputN(fr_material_node in_node, fr_char const * in_input, fr_material_node in_input_node);
 extern RPR_API_ENTRY fr_int frMaterialNodeSetInputF(fr_material_node in_node, fr_char const * in_input, fr_float in_value_x, fr_float in_value_y, fr_float in_value_z, fr_float in_value_w);
