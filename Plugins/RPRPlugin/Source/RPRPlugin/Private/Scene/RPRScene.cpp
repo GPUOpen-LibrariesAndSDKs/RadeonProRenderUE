@@ -2,7 +2,7 @@
 
 #include "RPRScene.h"
 
-#include "RprTools.h"
+#include "_SDK/RprTools.h"
 
 #include "Scene/RPRLightComponent.h"
 #include "Scene/RPRStaticMeshComponent.h"
