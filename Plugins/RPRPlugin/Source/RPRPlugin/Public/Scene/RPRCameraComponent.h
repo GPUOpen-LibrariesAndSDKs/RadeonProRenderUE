@@ -34,4 +34,6 @@ private:
 	FVector2D					m_CachedSensorSize;
 
 	float						m_CachedWhiteBalanceTemp;
+	float						m_CachedGamma;
+	float						m_CachedContrast;
 };

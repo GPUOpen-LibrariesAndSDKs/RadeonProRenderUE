@@ -17,6 +17,8 @@ URPRCameraComponent::URPRCameraComponent()
 ,	m_CachedAspectRatio(0.0f)
 ,	m_CachedSensorSize(0.0f, 0.0f)
 ,	m_CachedWhiteBalanceTemp(0.0f)
+,	m_CachedGamma(0.0f)
+,	m_CachedContrast(0.0f)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
@@ -137,15 +139,21 @@ bool	URPRCameraComponent::RefreshProperties(bool force)
 	}
 	bool	refresh = false;
 	if (force ||
-		cam->PostProcessSettings.WhiteTemp != m_CachedWhiteBalanceTemp)
+		cam->PostProcessSettings.WhiteTemp != m_CachedWhiteBalanceTemp ||
+		cam->PostProcessSettings.ColorGamma.W != m_CachedGamma ||
+		cam->PostProcessSettings.ColorContrast.W != m_CachedContrast)
 	{
 		if (rprContextAttachPostEffect(Scene->m_RprContext, Scene->m_RprWhiteBalance) != RPR_SUCCESS ||
-			rprPostEffectSetParameter1f(Scene->m_RprWhiteBalance, "colortemp", cam->PostProcessSettings.WhiteTemp) != RPR_SUCCESS)
+			rprPostEffectSetParameter1f(Scene->m_RprWhiteBalance, "colortemp", cam->PostProcessSettings.WhiteTemp) != RPR_SUCCESS ||
+			rprContextSetParameter1f(Scene->m_RprContext, "displaygamma", cam->PostProcessSettings.ColorGamma.W) != RPR_SUCCESS ||
+			rprPostEffectSetParameter1f(Scene->m_RprSimpleTonemap, "contrast", cam->PostProcessSettings.ColorContrast.W) != RPR_SUCCESS)
 		{
 			UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't apply camera post processes"));
 			return false;
 		}
 		refresh = true;
+		m_CachedGamma = cam->PostProcessSettings.ColorGamma.W;
+		m_CachedContrast = cam->PostProcessSettings.ColorContrast.W;
 		m_CachedWhiteBalanceTemp = cam->PostProcessSettings.WhiteTemp;
 	}
 	if (force ||
