@@ -64,8 +64,7 @@ public class RPRPlugin : ModuleRules
 				"Slate",
 				"LevelEditor",
 				// ... add private dependencies that you statically link with here ...	
-			}
-			);
+			});
 
 		bool forceRelease = false;
 		string libSuffix = ".lib";
@@ -81,5 +80,16 @@ public class RPRPlugin : ModuleRules
 			SDKRoot + "RadeonProRender/libWin64/Tahoe64.lib",
 			SDKRoot + "RadeonProRenderInterchange/libWin64/RadeonProRenderInterchange64" + libSuffix,
 		});
+
+		// TODO: This WONT work when plugin is installed in the engine plugins folder, fix that
+		string gameBinDir = pluginRoot + "/../../Binaries/" + Target.Platform.ToString() + "/";
+		if (!Directory.Exists(gameBinDir))
+			Directory.CreateDirectory(gameBinDir);
+
+		File.Copy(SDKRoot + "RadeonProRender/binWin64/OpenImageIO_RPR.dll", gameBinDir + "OpenImageIO_RPR.dll", true);
+		File.Copy(SDKRoot + "RadeonProRender/binWin64/RadeonProRender64.dll", gameBinDir + "RadeonProRender64.dll", true);
+		File.Copy(SDKRoot + "RadeonProRender/binWin64/RprLoadStore64.dll", gameBinDir + "RprLoadStore64.dll", true);
+		File.Copy(SDKRoot + "RadeonProRender/binWin64/RprSupport64.dll", gameBinDir + "RprSupport64.dll", true);
+		File.Copy(SDKRoot + "RadeonProRender/binWin64/Tahoe64.dll", gameBinDir + "Tahoe64.dll", true);
 	}
 }
