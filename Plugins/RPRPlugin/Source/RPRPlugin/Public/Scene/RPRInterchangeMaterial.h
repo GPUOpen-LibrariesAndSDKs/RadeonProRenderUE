@@ -9,6 +9,8 @@
 #include <memory>
 #include <vector>
 #include <set>
+#include "MaterialExpressionIO.h"
+#include "Materials/MaterialExpressionTextureSample.h"
 
 struct FColor;
 struct FLinearColor;
@@ -18,11 +20,17 @@ class UMaterial;
 typedef std::shared_ptr<rpri::generic::IMaterialNode> IMaterialNodePtr;
 typedef std::shared_ptr<rpri::generic::IMaterialValue> IMaterialValuePtr;
 typedef std::shared_ptr<rpri::generic::IMaterialNodeMux> IMaterialNodeMuxPtr;
+typedef std::shared_ptr<rpri::generic::IImage> IImagePtr;
+typedef std::shared_ptr<rpri::generic::ITexture> ITexturePtr;
+typedef std::shared_ptr<rpri::generic::ISampler> ISamplerPtr;
 
 struct UEInterchangeCollection
 {
 	std::map<std::string, IMaterialNodePtr> nodeStorage;
 	std::map<std::string, IMaterialValuePtr> valueStorage;
+	std::map<std::string, IImagePtr> imageStorage;
+	std::map<std::string, ITexturePtr> textureStorage;
+	std::map<std::string, ISamplerPtr> samplerStorage;
 
 	// mux storage / cache
 	std::map<std::string, std::shared_ptr<rpri::generic::IMaterialNodeMux>> muxStorage;
@@ -58,6 +66,10 @@ private:
 									std::string const & _id,
 									UMaterialExpression * _expression);
 
+	void ConvertFExpressionInput(UEInterchangeCollection& _collection, 
+								FExpressionInput* _input,
+								char const *_name);
+	void ConvertTextureSampleExpression(UEInterchangeCollection& _collection, UMaterialExpressionTextureSample* con);
 	UE4InterchangeMaterialNode(UEInterchangeCollection & _collection,
 								std::string const & _id,
 								UMaterialExpression * _expression);
@@ -67,6 +79,8 @@ private:
 	std::vector<rpri::generic::IMaterialValue const *> values;
 	std::vector<IMaterialNodeMuxPtr> muxes;
 	std::vector<std::string> inputNames;
+
+	rpri::generic::ITexture const * texture;
 
 	std::string id;
 	std::string name;
@@ -89,6 +103,8 @@ public:
 					FLinearColor _col);
 	static IMaterialValuePtr New(UEInterchangeCollection & _collection, char const * _id,
 					FColor _col);
+	static IMaterialValuePtr New(UEInterchangeCollection & _collection, char const * _id,
+		std::string const & _string);
 
 	virtual ~UE4InterchangeMaterialValue() {};
 
@@ -117,8 +133,10 @@ private:
 	UE4InterchangeMaterialValue(char const * _id, float _a, float _b, float _c, float _d);
 	UE4InterchangeMaterialValue(char const * _id, FLinearColor _col);
 	UE4InterchangeMaterialValue(char const * _id, FColor _col);
+	UE4InterchangeMaterialValue(char const * _id, std::string const & _string);
 
 	std::string id;
+	std::string str;
 	std::vector<float> values;
 };
 
@@ -199,13 +217,99 @@ public:
 	char const* GetMetadata() const override;
 
 	UMaterial const* GetUE4Material() const;
+	rpri::generic::IMaterialNode const * GetRootNode() const override;
 
 private:	
 	std::vector<std::shared_ptr<rpri::generic::IMaterialNode>> nodeStorage;
 	std::vector<std::shared_ptr<rpri::generic::IMaterialValue>> valueStorage;
 	std::vector<std::shared_ptr<rpri::generic::IMaterialNodeMux>> muxStorage;
+	std::vector<std::shared_ptr<rpri::generic::IImage>> imageStorage;
+	std::vector<std::shared_ptr<rpri::generic::ISampler>> samplerStorage;
+	std::vector<std::shared_ptr<rpri::generic::ITexture>> textureStorage;
 
+	std::shared_ptr<rpri::generic::IMaterialNode> rootNode;
 	mutable std::string name;
 	friend class UE4InterchangePBRNode;
 	const UMaterial* ue4Mat;
+};
+
+class UE4InterchangeImage : public rpri::generic::IImage
+{
+public:
+	UE4InterchangeImage(UTexture* _ueTexture);
+
+	~UE4InterchangeImage() {};
+
+	char const* GetId() const override;
+
+	size_t GetWidth() const override;
+	size_t GetHeight() const override;
+	size_t GetDepth() const override;
+	size_t GetSlices() const override;
+
+	size_t GetNumberofComponents() const override;
+	ComponentFormat GetComponentFormat(size_t _index) const override;
+	ColourSpace GetColourSpace() const override;
+
+	size_t GetPixelSizeInBits() const override;
+	size_t GetRowStrideInBits() const override;
+	size_t GetRawSizeInBytes() const override;
+
+	uint8_t const * GetRawByteData() const override;
+	std::string GetOriginalPath() const override;
+
+	float GetComponent2DAsFloat(size_t _x, size_t _y, size_t _comp) const override;
+	uint8_t GetComponent2DAsUint8(size_t _x, size_t _y, size_t _comp) const override;
+
+
+	char const* GetMetadata() const override;
+protected:
+	friend class UE4InterchangeTexture;
+	mutable std::string name;
+	UTexture* ueTexture;
+};
+
+class UE4InterchangeSampler : public rpri::generic::ISampler
+{
+public:
+	UE4InterchangeSampler(UTexture* _ueTexture);
+
+	char const * GetId() const override;
+
+	FilterType GetMinFilter() const override;
+	FilterType GetMagFilter() const override;
+
+	WrapType GetWrapS() const override;
+	WrapType GetWrapT() const override;
+	WrapType GetWrapR() const override;
+
+	char const * GetMetadata() const override;
+protected:
+	mutable std::string name;
+	UTexture* ueTexture;
+};
+
+
+class UE4InterchangeTexture : public rpri::generic::ITexture
+{
+public:
+	UE4InterchangeTexture(	UE4InterchangeSampler * _sampler,
+							UE4InterchangeImage * _image);
+
+	char const * GetId() const override;
+
+	rpri::generic::ISampler const * GetSampler() const override;
+
+	rpri::generic::IImage const * GetImage() const override;
+
+	bool GetImageYUp() const override;
+
+	ITexture::TextureType GetTextureType() const override;
+
+	char const * GetMetadata() const override;
+protected:
+	mutable std::string name;
+
+	UE4InterchangeSampler *sampler;
+	UE4InterchangeImage * image;
 };

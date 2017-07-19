@@ -105,6 +105,7 @@ struct IMaterialGraph
     virtual IMaterialNode const * GetMaterialNodeAt(size_t _index) const = 0;
 
     virtual char const * GetMetadata() const = 0;
+    virtual IMaterialNode const * GetRootNode() const = 0;
 };
 
 
@@ -221,6 +222,9 @@ struct IImage
     enum class ComponentFormat
     {
         Uint8 = 0,
+        Float = 1,
+
+        Unknown = 0xff,
     };
 
     virtual char const * GetId() const = 0;
@@ -244,11 +248,13 @@ struct IImage
 
     // TODO better extraction function for different bitwidths, packed etc.
     virtual float GetComponent2DAsFloat(size_t _x, size_t _y, size_t _comp) const = 0;
-    virtual uint8_t GetUint8Component2D(size_t _x, size_t _y, size_t _comp) const = 0;
+    virtual uint8_t GetComponent2DAsUint8(size_t _x, size_t _y, size_t _comp) const = 0;
 
     static constexpr size_t GetComponentBitWidth(ComponentFormat _format)
     {
-        return (_format == ComponentFormat::Uint8) ? sizeof(uint8_t) * 8 : 0;
+        return	(_format == ComponentFormat::Uint8) ? sizeof(uint8_t) * 8 : 
+                (_format == ComponentFormat::Float) ? sizeof(float) : 
+            0;
     }
 
     virtual char const * GetMetadata() const = 0;

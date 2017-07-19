@@ -125,7 +125,7 @@ void	SRPRViewportTabContent::OnQualitySettingsChanged(TSharedPtr<FString> item, 
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
 	check(settings != NULL);
 
-	ERPRQualitySettings	newSettings;
+	ERPRQualitySettings	newSettings = ERPRQualitySettings::Interactive;
 	if (settingsString == "Interactive")
 		newSettings = ERPRQualitySettings::Interactive;
 	else if (settingsString == "Low")
