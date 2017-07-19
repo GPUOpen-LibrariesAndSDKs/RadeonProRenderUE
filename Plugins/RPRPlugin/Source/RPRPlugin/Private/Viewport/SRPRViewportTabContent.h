@@ -20,6 +20,7 @@ private:
 	FReply					OnToggleSync();
 	FReply					OnSave();
 	FReply					OnToggleTrace();
+	FReply					OnToggleDisplayPostEffectProperties();
 
 	TSharedRef<SWidget>		OnGenerateCameraWidget(TSharedPtr<FString> inItem) const;
 	TSharedRef<SWidget>		OnGenerateQualitySettingsWidget(TSharedPtr<FString> inItem) const;
@@ -30,6 +31,7 @@ private:
 	void					OnMegaPixelChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo);
 	void					OnRefreshCameraList();
 
+	const FSlateBrush		*GetDisplayPostEffectPropertiesIcon() const;
 	const FSlateBrush		*GetSyncIcon() const;
 	const FSlateBrush		*GetRenderIcon() const;
 
@@ -39,6 +41,8 @@ private:
 	FText					GetSelectedMegaPixelName() const;
 	FText					GetCurrentRenderIteration() const;
 	FText					GetTraceStatus() const;
+
+	EVisibility				GetPostEffectPropertiesVisibility() const;
 
 	void					OnWhiteBalanceTemperatureChanged(uint32 newValue);
 	void					OnGammaCorrectionValueChanged(float newValue);
@@ -65,5 +69,7 @@ private:
 
 	class FRPRPluginModule					*m_Plugin;
 	class URPRSettings						*m_Settings;
+
+	bool									m_DisplayPostEffects;
 };
 

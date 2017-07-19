@@ -53,6 +53,17 @@ FReply	SRPRViewportTabContent::OnToggleSync()
 	return FReply::Handled();
 }
 
+FReply	SRPRViewportTabContent::OnToggleDisplayPostEffectProperties()
+{
+	m_DisplayPostEffects = !m_DisplayPostEffects;
+	return FReply::Handled();
+}
+
+EVisibility	SRPRViewportTabContent::GetPostEffectPropertiesVisibility() const
+{
+	return m_DisplayPostEffects ? EVisibility::Visible : EVisibility::Collapsed;
+}
+
 FReply	SRPRViewportTabContent::OnSave()
 {
 	ARPRScene	*scene = m_Plugin->GetCurrentScene();
@@ -98,6 +109,13 @@ const FSlateBrush	*SRPRViewportTabContent::GetSyncIcon() const
 	if (m_Settings->bSync)
 		return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.SyncOn").GetIcon();
 	return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.SyncOff").GetIcon();
+}
+
+const FSlateBrush	*SRPRViewportTabContent::GetDisplayPostEffectPropertiesIcon() const
+{
+	if (m_DisplayPostEffects)
+		return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.DisplayPostEffectsOn").GetIcon();
+	return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.DisplayPostEffectsOff").GetIcon();
 }
 
 const FSlateBrush	*SRPRViewportTabContent::GetRenderIcon() const
@@ -277,6 +295,8 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 	m_Plugin = &FRPRPluginModule::Get();
 	m_Settings = GetMutableDefault<URPRSettings>();
 
+	m_DisplayPostEffects = false;
+
 	check(m_Settings != NULL);
 
 	m_QualitySettingsList.Empty();
@@ -403,6 +423,27 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 					.Text(this, &SRPRViewportTabContent::GetSelectedMegaPixelName)
 				]
 			]
+			+SHorizontalBox::Slot()
+			.FillWidth(1.0f)
+			[
+				SNew(SSpacer)
+			]
+			+ SHorizontalBox::Slot()
+			.HAlign(HAlign_Right)
+			.AutoWidth()
+			.Padding(2.0f)
+			[
+				SNew(SButton)
+				.ButtonStyle(FEditorStyle::Get(), "FlatButton")
+				.Text(LOCTEXT("DisplayPostEffectPropsLabel", "Toggle post effect properties display"))
+				.ToolTipText(LOCTEXT("SyncTooltip", "Toggles post effect properties display."))
+				.OnClicked(this, &SRPRViewportTabContent::OnToggleDisplayPostEffectProperties)
+				.Content()
+				[
+					SNew(SImage)
+					.Image(this, &SRPRViewportTabContent::GetDisplayPostEffectPropertiesIcon)
+				]
+			]
 		]
 		+ SVerticalBox::Slot()
 		.FillHeight(1.0f)
@@ -452,6 +493,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 			//.Value(120.0f)
 			[
 				SNew(SVerticalBox)
+				.Visibility(this, &SRPRViewportTabContent::GetPostEffectPropertiesVisibility)
 				+ SVerticalBox::Slot().AutoHeight()
 				[
 					SNew(SVerticalBox)
