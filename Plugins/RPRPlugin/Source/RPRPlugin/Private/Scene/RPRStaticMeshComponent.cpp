@@ -84,6 +84,25 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		const UMaterial				*parentMaterial = matInterface != NULL ? matInterface->GetMaterial() : NULL;
 		rpr_shape					shape = m_Shapes[iShape].m_RprShape;
 
+        // SAMPLE CODE
+        // Get all texture is sampled by the material.
+        if (matInterface != nullptr)
+        {
+            const FMaterialResource *mat_res = matInterface->GetMaterialResource(ERHIFeatureLevel::Type::SM5, EMaterialQualityLevel::Type::High);
+            if (mat_res != nullptr)
+            {
+                const TArray < UTexture * > & textures_ = mat_res->GetReferencedTextures();
+
+                for (size_t tex_ = 0; tex_ < textures_.Num(); tex_++)
+                {                    
+                    UE_LOG(LogRPRStaticMeshComponent
+                        , Log
+                        , TEXT("Texture %s")
+                        , *textures_[tex_]->GetFName().ToString());
+                }
+            }            
+        }
+
 		rpr_material_node	material = NULL;
 		if (parentMaterial == NULL)
 		{

@@ -69,7 +69,7 @@ public class RPRPlugin : ModuleRules
 		bool forceRelease = false;
 		string libSuffix = ".lib";
 		if (Target.Configuration == UnrealTargetConfiguration.DebugGame && !forceRelease)
-			libSuffix = "D.lib";
+			libSuffix = ".lib";
 
 		// TODO: Modify this so it is multi platform or throw errors on non supported platforms
 		PublicAdditionalLibraries.AddRange(new string[]
