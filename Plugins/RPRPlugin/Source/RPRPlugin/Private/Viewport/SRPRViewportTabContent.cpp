@@ -347,39 +347,45 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 		+ SVerticalBox::Slot()
 		.FillHeight(1.0f)
 		[
-			SNew(SOverlay)
-			+ SOverlay::Slot()
-			.VAlign(VAlign_Fill)
-			.HAlign(HAlign_Fill)
+			SNew(SSplitter)
+			.Orientation(Orient_Horizontal)
+			.ResizeMode(ESplitterResizeMode::Fill)
+			+ SSplitter::Slot()
 			[
-			
-				SAssignNew(m_ViewportWidget, SViewport)
-					.IsEnabled(true)
-					.EnableBlending(true)
-			]
-			+ SOverlay::Slot()
-			.VAlign(VAlign_Bottom)
-			.HAlign(HAlign_Right)
-			.Padding(5.0f)
-			[
-				SNew(STextBlock)
-				.Text(this, &SRPRViewportTabContent::GetCurrentRenderIteration)
-			]
-			+ SOverlay::Slot()
-			.VAlign(VAlign_Bottom)
-			.HAlign(HAlign_Right)
-			.Padding(0.0f, 0.0f, 5.0f, 20.0f)
-			[
-				SNew(STextBlock)
-				.Text(this, &SRPRViewportTabContent::GetTraceStatus)
-			]
-			+ SOverlay::Slot()
-			.VAlign(VAlign_Bottom)
-			.HAlign(HAlign_Left)
-			.Padding(5.0f)
-			[
-				SNew(STextBlock)
-				.Text(this, &SRPRViewportTabContent::GetImportStatus)
+				SNew(SOverlay)
+				+ SOverlay::Slot()
+				.VAlign(VAlign_Fill)
+				.HAlign(HAlign_Fill)
+				[
+				
+					SAssignNew(m_ViewportWidget, SViewport)
+						.IsEnabled(true)
+						.EnableBlending(true)
+				]
+				+ SOverlay::Slot()
+				.VAlign(VAlign_Bottom)
+				.HAlign(HAlign_Right)
+				.Padding(5.0f)
+				[
+					SNew(STextBlock)
+					.Text(this, &SRPRViewportTabContent::GetCurrentRenderIteration)
+				]
+				+ SOverlay::Slot()
+				.VAlign(VAlign_Bottom)
+				.HAlign(HAlign_Right)
+				.Padding(0.0f, 0.0f, 5.0f, 20.0f)
+				[
+					SNew(STextBlock)
+					.Text(this, &SRPRViewportTabContent::GetTraceStatus)
+				]
+				+ SOverlay::Slot()
+				.VAlign(VAlign_Bottom)
+				.HAlign(HAlign_Left)
+				.Padding(5.0f)
+				[
+					SNew(STextBlock)
+					.Text(this, &SRPRViewportTabContent::GetImportStatus)
+				]
 			]
 		]
 	];
