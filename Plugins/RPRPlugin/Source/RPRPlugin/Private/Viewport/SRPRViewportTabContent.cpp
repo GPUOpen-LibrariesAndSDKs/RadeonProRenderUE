@@ -505,12 +505,17 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
 					[
 						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot()
+						+ SHorizontalBox::Slot().AutoWidth()
 						[
 							SNew(STextBlock)
-							.Text(LOCTEXT("PhotolinearTonemapSensitivity", "Sensitivity"))
+							.Text(LOCTEXT("PhotolinearTonemapSensitivity", "Sensitivity  "))
 						]
 						+ SHorizontalBox::Slot()
+						.FillWidth(1.0f)
+						[
+							SNew(SSpacer)
+						]
+						+ SHorizontalBox::Slot().AutoWidth()
 						[
 							SNew(SNumericEntryBox<float>)
 							.Value(this, &SRPRViewportTabContent::GetPhotolinearTonemapSensitivity)
@@ -525,12 +530,17 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
 					[
 						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot()
+						+ SHorizontalBox::Slot().AutoWidth()
 						[
 							SNew(STextBlock)
-							.Text(LOCTEXT("PhotolinearTonemapExposure", "Exposure"))
+							.Text(LOCTEXT("PhotolinearTonemapExposure", "Exposure  "))
 						]
 						+ SHorizontalBox::Slot()
+						.FillWidth(1.0f)
+						[
+							SNew(SSpacer)
+						]
+						+ SHorizontalBox::Slot().AutoWidth()
 						[
 							SNew(SNumericEntryBox<float>)
 							.Value(this, &SRPRViewportTabContent::GetPhotolinearTonemapExposure)
@@ -545,12 +555,17 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
 					[
 						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot()
+						+ SHorizontalBox::Slot().AutoWidth()
 						[
 							SNew(STextBlock)
-							.Text(LOCTEXT("PhotolinearTonemapFStop", "FStop"))
+							.Text(LOCTEXT("PhotolinearTonemapFStop", "FStop  "))
 						]
 						+ SHorizontalBox::Slot()
+						.FillWidth(1.0f)
+						[
+							SNew(SSpacer)
+						]
+						+ SHorizontalBox::Slot().AutoWidth()
 						[
 							SNew(SNumericEntryBox<float>)
 							.Value(this, &SRPRViewportTabContent::GetPhotolinearTonemapFStop)
@@ -574,12 +589,17 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
 					[
 						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot()
+						+ SHorizontalBox::Slot().AutoWidth()
 						[
 							SNew(STextBlock)
-							.Text(LOCTEXT("SimpleTonemapExposure", "Exposure"))
+							.Text(LOCTEXT("SimpleTonemapExposure", "Exposure  "))
 						]
 						+ SHorizontalBox::Slot()
+						.FillWidth(1.0f)
+						[
+							SNew(SSpacer)
+						]
+						+ SHorizontalBox::Slot().AutoWidth()
 						[
 							SNew(SNumericEntryBox<float>)
 							.Value(this, &SRPRViewportTabContent::GetSimpleTonemapExposure)
@@ -594,12 +614,17 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
 					[
 						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot()
+						+ SHorizontalBox::Slot().AutoWidth()
 						[
 							SNew(STextBlock)
-							.Text(LOCTEXT("SimpleTonemapContrast", "Contrast"))
+							.Text(LOCTEXT("SimpleTonemapContrast", "Contrast  "))
 						]
 						+ SHorizontalBox::Slot()
+						.FillWidth(1.0f)
+						[
+							SNew(SSpacer)
+						]
+						+ SHorizontalBox::Slot().AutoWidth()
 						[
 							SNew(SNumericEntryBox<float>)
 							.Value(this, &SRPRViewportTabContent::GetSimpleTonemapContrast)
@@ -623,12 +648,17 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
 					[
 						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot()
+						+ SHorizontalBox::Slot().AutoWidth()
 						[
 							SNew(STextBlock)
-							.Text(LOCTEXT("TemperatureTitle", "Temperature"))
+							.Text(LOCTEXT("TemperatureTitle", "Temperature  "))
 						]
 						+ SHorizontalBox::Slot()
+						.FillWidth(1.0f)
+						[
+							SNew(SSpacer)
+						]
+						+ SHorizontalBox::Slot().AutoWidth()
 						[
 							SNew(SNumericEntryBox<uint32>)
 							.Value(this, &SRPRViewportTabContent::GetWhiteBalanceTemperature)
@@ -652,12 +682,17 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
 					[
 						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot()
+						+ SHorizontalBox::Slot().AutoWidth()
 						[
 							SNew(STextBlock)
-							.Text(LOCTEXT("DisplayGammaTitle", "Display gamma"))
+							.Text(LOCTEXT("DisplayGammaTitle", "Display gamma  "))
 						]
 						+ SHorizontalBox::Slot()
+						.FillWidth(1.0f)
+						[
+							SNew(SSpacer)
+						]
+						+ SHorizontalBox::Slot().AutoWidth()
 						[
 							SNew(SNumericEntryBox<float>)
 							.Value(this, &SRPRViewportTabContent::GetGammaCorrectionValue)
