@@ -11,6 +11,9 @@
 #include "Materials/MaterialExpressionLinearInterpolate.h"
 #include <regex>
 #include "Materials/MaterialExpressionVectorParameter.h"
+#include "Materials/MaterialExpressionTextureSample.h"
+#include "RPRCrackers.h"
+#include <sstream>
 
 
 std::shared_ptr<rpri::generic::IMaterialNodeMux> 
@@ -130,13 +133,6 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 		// node
 		IMaterialValuePtr valuePtr;
 
-		// to investigate if some classes don't expose inputs in a generic
-		// method sometimes (I think its when usign 'value' semantics on certain
-		// inputs. If so will have to handle each expression subclass manually
-		// *sob*
-		if (_expression->IsA(UMaterialExpressionLinearInterpolate::StaticClass()))
-		{
-		}
 		auto node = IMaterialNodePtr(new UE4InterchangeMaterialNode(_collection, _id, _expression));
 		_collection.nodeStorage[_id.c_str()] = node;
 		return _collection.FindMux(_id.c_str());
@@ -144,52 +140,101 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 	}
 
 }
+#pragma optimize("",off)
 
+
+void UE4InterchangeMaterialNode::ConvertFExpressionInput(UEInterchangeCollection& _collection, 
+														FExpressionInput* _input,
+														char const *_name)
+{
+	if (_input->Expression != nullptr)
+	{
+		std::string ename = TCHAR_TO_ANSI(*_input->Expression->GetName());
+		auto childMux = UE4InterchangeMaterialNode::New(_collection,
+		                                                ename,
+		                                                _input->Expression);
+		if (!childMux->IsEmpty())
+		{
+			muxes.emplace_back(childMux);
+
+			if (childMux->IsNode())
+			{
+				nodes.push_back(childMux->GetAsNode());
+			}
+			else
+			{
+				values.push_back(childMux->GetAsValue());
+			}
+
+			inputNames.emplace_back(_name);
+		}
+	}
+}
+void UE4InterchangeMaterialNode::ConvertTextureSampleExpression(
+									UEInterchangeCollection& _collection, 
+									UMaterialExpressionTextureSample* con)
+{
+	if (con->Texture != nullptr)
+	{
+		auto image = std::make_shared<UE4InterchangeImage>(con->Texture);
+		auto sampler = std::make_shared<UE4InterchangeSampler>(con->Texture);
+		auto tex = std::make_shared<UE4InterchangeTexture>(sampler.get(), image.get());
+		_collection.imageStorage[image->GetId()] = image;
+		_collection.samplerStorage[sampler->GetId()] = sampler;
+		_collection.textureStorage[tex->GetId()] = tex;
+		texture = tex.get();
+
+		std::string valId = std::string(tex->GetId()) + "Mux";
+		auto texValue = UE4InterchangeMaterialValue::New(_collection, valId.c_str(), tex->GetId());
+
+		muxes.emplace_back(_collection.FindMux(texValue->GetId()));
+		inputNames.emplace_back("Tex");
+
+		values.push_back(texValue.get());
+		_collection.valueStorage[texValue->GetId()] = texValue;
+
+
+	} else
+	{
+		// look up TextureObject?
+	}
+	ConvertFExpressionInput(_collection, &con->Coordinates, "UV");
+}
 
 UE4InterchangeMaterialNode::UE4InterchangeMaterialNode(
 	UEInterchangeCollection & _collection,
 	std::string const & _id,
 	UMaterialExpression * _expression) :
-	expression(_expression)
+	expression(_expression),
+	texture(nullptr)
 {
 	id = _id;
 	name = TCHAR_TO_ANSI(*expression->GetName());
 	type = expression->GetClass()->GetFName().GetPlainANSIString();
 	type = std::regex_replace(type, std::regex("MaterialExpression"), "UE4");
-	// do the inputs 
-	for (int i = 0; i < _expression->GetInputs().Num(); ++i)
+
+	// some classes don't expose inputs via the generic methods 
+	// so handle each one we care about with custom handler
+	if (_expression->IsA(UMaterialExpressionTextureSample::StaticClass()))
+	{	
+		auto con = static_cast<UMaterialExpressionTextureSample*>(_expression);
+		ConvertTextureSampleExpression(_collection, con);
+	}
+	else
 	{
-		if (_expression->GetInput(i) == nullptr)
-			continue;
-
-		FExpressionInput* input = _expression->GetInput(i);
-		if (input->Expression != nullptr)
+		// do the inputs 
+		for (int i = 0; i < _expression->GetInputs().Num(); ++i)
 		{
-			auto childMux = UE4InterchangeMaterialNode::New(_collection,
-								std::string(),
-								input->Expression);
+			if (_expression->GetInput(i) == nullptr)
+				continue;
 
-			if(!childMux->IsEmpty())
-			{
-				muxes.emplace_back(childMux);
-
-				if(childMux->IsNode())
-				{
-					nodes.push_back(childMux->GetAsNode());
-				} else
-				{
-					values.push_back(childMux->GetAsValue());
-				}
-
-				inputNames.emplace_back(TCHAR_TO_ANSI(*expression->GetInputName(i)));
-			}
-
+			FExpressionInput* input = _expression->GetInput(i);
+			auto name = TCHAR_TO_ANSI(*expression->GetInputName(i));
+			ConvertFExpressionInput(_collection, input, name);
 		}
 	}
-
-
-
 }
+#pragma optimize("",on)
 
 IMaterialNodeMuxPtr
 UE4InterchangeMaterialNode::New(UEInterchangeCollection & _collection,
@@ -347,6 +392,22 @@ IMaterialValuePtr UE4InterchangeMaterialValue::New(
 		return it->second;
 	}
 }
+IMaterialValuePtr UE4InterchangeMaterialValue::New(
+	UEInterchangeCollection & _collection, char const * _id, std::string const & _string)
+{
+	auto it = _collection.valueStorage.find(_id);
+	if (it == _collection.valueStorage.end())
+	{
+		auto val = IMaterialValuePtr(new UE4InterchangeMaterialValue(_id, _string));
+		_collection.valueStorage[_id] = val;
+
+		return val;
+	}
+	else
+	{
+		return it->second;
+	}
+}
 
 IMaterialValuePtr UE4InterchangeMaterialValue::New(
 	UEInterchangeCollection & _collection, char const * _id, FColor _col)
@@ -399,12 +460,12 @@ char const * UE4InterchangeMaterialNode::GetInputNameAt(size_t _index) const
 // this allow access to it
 bool UE4InterchangeMaterialNode::HasTextureInput() const
 {
-	return false;
+	return texture != nullptr;
 }
 rpri::generic::ITexture const *
 UE4InterchangeMaterialNode::GetTextureInput() const
 {
-	return nullptr;
+	return texture;
 }
 
 char const * UE4InterchangeMaterialNode::GetMetadata() const
@@ -466,7 +527,12 @@ UE4InterchangeMaterialValue::UE4InterchangeMaterialValue(
 	values.push_back(lc.B);
 	values.push_back(lc.A);
 }
-
+UE4InterchangeMaterialValue::UE4InterchangeMaterialValue(
+	char const * _id, std::string const & _string)
+{
+	id = _id;
+	str = _string;
+}
 char const* UE4InterchangeMaterialValue::GetId() const
 {
 	return id.c_str();
@@ -474,7 +540,13 @@ char const* UE4InterchangeMaterialValue::GetId() const
 
 rpri::generic::IMaterialValue::ValueType UE4InterchangeMaterialValue::GetType() const
 {
-	return ValueType::Float;
+	if (str.empty())
+	{
+		return ValueType::Float;
+	} else
+	{
+		return ValueType::String;
+	}
 }
 
 size_t UE4InterchangeMaterialValue::GetNumberOfValues() const
@@ -539,7 +611,26 @@ char const* UE4InterchangeMaterialValue::GetMetadata() const
 
 std::string UE4InterchangeMaterialValue::GetValueAsString() const
 {
-	return "";
+	if(str.empty())
+	{
+		std::stringstream ss;
+		ss << "float" << GetNumberOfValues() << "(";
+		for (size_t i = 0; i < GetNumberOfValues(); i++)
+		{
+			ss << values[i];
+			if(i < GetNumberOfValues() - 1)
+			{
+				ss << ", ";
+			} else
+			{
+				ss << ")" << std::endl;
+			}
+		}
+		return ss.str();
+	} else
+	{
+		return str;
+	}
 }
 
 UE4InterchangeMaterialNodeMux::UE4InterchangeMaterialNodeMux(
@@ -641,7 +732,7 @@ UE4InterchangeMaterialGraph::UE4InterchangeMaterialGraph(const UMaterial* _ue4Ma
 	std::string name = TCHAR_TO_ANSI(*_ue4Mat->GetName());
 
 	// Interchange treats the destination PBR object as a node
-	UE4InterchangePBRNode::New(collection, name + "PBRMaterial", this);
+	rootNode = UE4InterchangePBRNode::New(collection, name + "PBRMaterial", this);
 
 	for(auto && value : collection.valueStorage)
 	{
@@ -654,6 +745,18 @@ UE4InterchangeMaterialGraph::UE4InterchangeMaterialGraph(const UMaterial* _ue4Ma
 	for (auto && mux : collection.muxStorage)
 	{
 		muxStorage.push_back(mux.second);
+	}
+	for (auto && tex : collection.textureStorage)
+	{
+		textureStorage.push_back(tex.second);
+	}
+	for (auto && sampler : collection.samplerStorage)
+	{
+		samplerStorage.push_back(sampler.second);
+	}
+	for (auto && image : collection.imageStorage)
+	{
+		imageStorage.push_back(image.second);
 	}
 
 }
@@ -698,6 +801,551 @@ UE4InterchangeMaterialGraph::GetMaterialNodeAt(size_t _index) const
 }
 
 char const* UE4InterchangeMaterialGraph::GetMetadata() const
+{
+	return "";
+}
+rpri::generic::IMaterialNode const * 
+UE4InterchangeMaterialGraph::GetRootNode() const
+{
+	return rootNode.get();
+}
+
+UE4InterchangeImage::UE4InterchangeImage(UTexture* _ueTexture) :
+	ueTexture(_ueTexture)
+{
+}
+
+char const* UE4InterchangeImage::GetId() const
+{
+	name = TCHAR_TO_ANSI(*ueTexture->GetName());
+	return name.c_str();
+}
+
+size_t UE4InterchangeImage::GetWidth() const
+{
+	FTextureSource & source = ueTexture->Source;
+	FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
+	if(plats != nullptr)
+	{
+		FTexturePlatformData * plat0 = plats[0];
+		auto mip = plat0->Mips[0];
+		return mip.SizeX;
+	}
+	else
+	{
+		return source.GetSizeX();
+	}
+}
+
+size_t UE4InterchangeImage::GetHeight() const
+{
+	FTextureSource & source = ueTexture->Source;
+	FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
+	if (plats != nullptr)
+	{
+		FTexturePlatformData * plat0 = plats[0];
+		auto mip = plat0->Mips[0];
+		return mip.SizeY;
+	}
+	else
+	{
+		return source.GetSizeY();
+	}
+}
+
+size_t UE4InterchangeImage::GetDepth() const
+{
+	return 1;
+}
+
+size_t UE4InterchangeImage::GetSlices() const
+{
+	auto & source = ueTexture->Source;
+	return source.GetNumSlices();
+}
+
+size_t UE4InterchangeImage::GetNumberofComponents() const
+{
+	FTextureSource & source = ueTexture->Source;
+	FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
+	if (plats != nullptr)
+	{
+		FTexturePlatformData * plat0 = plats[0];
+		auto mip = plat0->Mips[0];
+		EPixelFormat format = plat0->PixelFormat;
+		size_t compCount = CrackNumofComponents(format);
+		if (compCount > 0) 
+		{
+			assert(mip.BulkData.GetElementCount() == compCount);
+			return compCount;
+		}
+	}
+
+	ETextureSourceFormat sformat = source.GetFormat();
+	size_t compCount = CrackNumofComponents(sformat);
+	return compCount;
+}
+rpri::generic::IImage::ComponentFormat UE4InterchangeImage::GetComponentFormat(size_t _index) const
+{
+	FTextureSource & source = ueTexture->Source;
+	FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
+	if (plats != nullptr)
+	{
+		FTexturePlatformData * plat0 = plats[0];
+		auto mip = plat0->Mips[0];
+		EPixelFormat format = plat0->PixelFormat;
+		ComponentFormat cformat = CrackComponentFormat(format);
+		if (cformat != ComponentFormat::Unknown) return cformat;
+	}
+	ETextureSourceFormat sformat = source.GetFormat();
+	ComponentFormat cformat = CrackComponentFormat(sformat);
+	return cformat;
+}
+
+rpri::generic::IImage::ColourSpace UE4InterchangeImage::GetColourSpace() const
+{
+	using cs = rpri::generic::IImage::ColourSpace;
+	return ueTexture->SRGB ? cs::sRGB : cs::Linear;
+}
+
+size_t UE4InterchangeImage::GetPixelSizeInBits() const
+{
+	FTextureSource & source = ueTexture->Source;
+	FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
+	if (plats != nullptr)
+	{
+		FTexturePlatformData * plat0 = plats[0];
+		auto mip = plat0->Mips[0];
+		EPixelFormat format = plat0->PixelFormat;
+		size_t bitSize = CrackPixelSizeInBits(format);
+		if (bitSize > 0)
+		{
+			assert(mip.BulkData.GetElementSize() * 8 == bitSize);
+			return bitSize;
+		}
+	}
+	ETextureSourceFormat sformat = source.GetFormat();
+	size_t bitSize = CrackPixelSizeInBits(sformat);
+	return bitSize;
+}
+
+size_t UE4InterchangeImage::GetRowStrideInBits() const
+{	
+	FTextureSource & source = ueTexture->Source;
+	FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
+	if (plats != nullptr)
+	{
+		FTexturePlatformData * plat0 = plats[0];
+		FTexture2DMipMap const mip = plat0->Mips[0];
+		return mip.BulkData.GetElementSize() * mip.SizeX * 8;
+	}
+	return source.GetBytesPerPixel() * source.GetSizeX() * 8;
+}
+size_t UE4InterchangeImage::GetRawSizeInBytes() const
+{
+	return GetRowStrideInBits() * GetHeight() / 8;
+}
+
+uint8_t const * UE4InterchangeImage::GetRawByteData() const
+{	
+	// we don't support this access method (too complicated)
+	return nullptr;
+}
+
+std::string UE4InterchangeImage::GetOriginalPath() const
+{
+	// don't think this is right but should be okay
+	FTextureSource & source = ueTexture->Source;
+	std::string txt = TCHAR_TO_ANSI(*ueTexture->GetName());
+	return txt;
+}
+
+float UE4InterchangeImage::GetComponent2DAsFloat(size_t _x, size_t _y, size_t _comp) const
+{
+	FTextureSource & source = ueTexture->Source;
+	FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
+	if (plats != nullptr)
+	{
+		FTexturePlatformData * plat0 = plats[0];
+		FTexture2DMipMap const mip = plat0->Mips[0];
+		EPixelFormat const format = plat0->PixelFormat;
+		void const * rawData = mip.BulkData.LockReadOnly();
+		if (_comp >= GetNumberofComponents()) return float();
+
+		uint8_t const * src = reinterpret_cast<uint8_t const*>(rawData);
+
+		src = src + (_y * mip.BulkData.GetElementSize() * mip.SizeX) +
+			(_x * mip.BulkData.GetElementSize());
+		// We swizzle for the RGBA vs BGRA etc. but no other reason
+		// TODO need to match the GPU HW swizzle which might occur
+		// on some formats..
+		switch (format)
+		{
+		case PF_G32R32F:
+		case PF_R32_FLOAT:
+		case PF_FloatRGB:
+		case PF_FloatRGBA:
+		case PF_A32B32G32R32F: {
+			float const * srcData = reinterpret_cast<float const*>(src);
+			float r = srcData[_comp];
+			mip.BulkData.Unlock();
+			return r;
+		}
+
+		case PF_A8:
+		case PF_L8:
+		case PF_G8:
+		case PF_R8G8:
+		case PF_V8U8:
+		case PF_R8_UINT:
+		case PF_R8G8B8A8:
+		{
+			uint8_t const * srcData = reinterpret_cast<uint8_t const *>(src);
+			float r = float(srcData[_comp]) / 255.0f;
+			mip.BulkData.Unlock();
+			return r;
+		}
+		case PF_A8R8G8B8:
+		{
+			uint8_t const * srcData = reinterpret_cast<uint8_t const *>(src);
+			float r = 0;
+			switch (_comp)
+			{
+			case 0: r = float(srcData[3]); break;
+			case 1: r = float(srcData[0]); break;
+			case 2: r = float(srcData[1]); break;
+			case 3: r = float(srcData[2]); break;
+			default:;
+			}
+			r = r / 255.0f;
+			mip.BulkData.Unlock();
+			return r;
+		}
+		case PF_B8G8R8A8:
+		{
+			uint8_t const * srcData = reinterpret_cast<uint8_t const *>(src);
+			float r = 0;
+			switch (_comp)
+			{
+			case 0: r = float(srcData[2]); break;
+			case 1: r = float(srcData[1]); break;
+			case 2: r = float(srcData[0]); break;
+			case 3: r = float(srcData[3]); break;
+			default:;
+			}
+			r = r / 255.0f;
+			mip.BulkData.Unlock();
+			return r;
+		}
+		case PF_G16:
+		case PF_G16R16:
+		case PF_R16_UINT:
+		case PF_R16G16_UINT:
+		case PF_R16G16B16A16_UINT:
+		case PF_A16B16G16R16:
+		{
+			// todo check if non UINT type are normalized and UINT aren't
+			// this may be wrong for UINT
+			uint16_t const * srcData = reinterpret_cast<uint16_t const *>(src);
+			float r = float(srcData[_comp]) / 65536.0f;
+			mip.BulkData.Unlock();
+			return r;
+
+		}
+		case PF_R16_SINT:
+		case PF_R16G16B16A16_SINT:
+		{
+			// todo check if non SINT type are normalized and SINT aren't
+			// this may be wrong for SINT
+			int16_t const * srcData = reinterpret_cast<int16_t const *>(src);
+			float r = float(srcData[_comp]) / (65536.0f / 2.0f);
+			mip.BulkData.Unlock();
+			return r;
+		}
+		case PF_R32_UINT:
+		case PF_R32G32B32A32_UINT:
+		{
+			// this is lossy, we lose 9 bits (or 8 or 10 would have to check)
+			uint32_t const * srcData = reinterpret_cast<uint32_t const *>(src);
+			float r = float(srcData[_comp]);
+			mip.BulkData.Unlock();
+			return r;
+		}
+		case PF_R32_SINT:
+		{
+			// this is lossy, we lose 9 bits
+			int32_t const * srcData = reinterpret_cast<int32_t const *>(src);
+			float r = float(srcData[_comp]);
+			mip.BulkData.Unlock();
+			return r;
+		}
+
+		case PF_A1:
+		{
+			src = src + (_y * mip.BulkData.GetElementSize() * mip.SizeX) +
+				(_x * (mip.BulkData.GetElementSize() / 8));
+			uint8_t const * srcData = reinterpret_cast<uint8_t const *>(src);
+			uint8_t bit = srcData[_comp] & (1 << (_x & 0x7));
+			mip.BulkData.Unlock();
+			return bit ? float(1) : float(0);
+		}
+
+		// todo FP16
+		case PF_R16F:
+		case PF_G16R16F:
+		case PF_R16F_FILTER:
+		case PF_G16R16F_FILTER:
+			break;
+
+		case PF_FloatR11G11B10:
+		case PF_R5G6B5_UNORM:
+		case PF_BC5:
+		case PF_BC4:
+		case PF_DepthStencil:
+		case PF_ShadowDepth:
+		case PF_A2B10G10R10:
+		case PF_D24:
+		case PF_DXT1:
+		case PF_DXT3:
+		case PF_DXT5:
+		case PF_UYVY:
+		case PF_PVRTC2:
+		case PF_PVRTC4:
+		case PF_ATC_RGB:
+		case PF_ATC_RGBA_E:
+		case PF_ATC_RGBA_I:
+		case PF_X24_G8:
+		case PF_ETC1:
+		case PF_ETC2_RGB:
+		case PF_ETC2_RGBA:
+		case PF_ASTC_4x4:
+		case PF_ASTC_6x6:
+		case PF_ASTC_8x8:
+		case PF_ASTC_10x10:
+		case PF_ASTC_12x12:
+		case PF_BC6H:
+		case PF_BC7:
+		case PF_Unknown:
+		case PF_MAX:
+		default: 
+			mip.BulkData.Unlock();
+			break;
+		}
+	}
+	void const * rawData = source.LockMip(0);
+	if (_comp >= GetNumberofComponents()) return float();
+
+	uint8_t const * src = reinterpret_cast<uint8_t const*>(rawData);
+
+	src = src + (_y * source.GetBytesPerPixel() * source.GetSizeX()) +
+		(_x * source.GetBytesPerPixel());
+
+	// TODO swizzle in this case as its source
+	ETextureSourceFormat sformat = source.GetFormat();
+	switch (sformat)
+	{
+	case TSF_G8:
+	case TSF_BGRA8:
+	{
+		uint8_t const * srcData = reinterpret_cast<uint8_t const *>(src);
+		float r = 0;
+		switch(_comp)
+		{
+		case 0: r = float(srcData[2]); break;
+		case 1: r = float(srcData[1]); break;
+		case 2: r = float(srcData[0]); break;
+		case 3: r = float(srcData[3]); break;
+		}
+		r = r / 255.0f;
+		return r;
+	}
+	case TSF_BGRE8:
+	{
+		// TODO the exponent part
+		uint8_t const * srcData = reinterpret_cast<uint8_t const *>(src);
+		float r = 0;
+		switch (_comp)
+		{
+		case 0: r = float(srcData[2]); break;
+		case 1: r = float(srcData[1]); break;
+		case 2: r = float(srcData[0]); break;
+		case 3: r = float(1); break;
+		}
+		r = r / 255.0f;
+		return r;
+	}
+	case TSF_RGBA8:
+	{
+		uint8_t const * srcData = reinterpret_cast<uint8_t const *>(src);
+		float r = 0;
+		switch (_comp)
+		{
+		case 0: r = float(srcData[0]); break;
+		case 1: r = float(srcData[1]); break;
+		case 2: r = float(srcData[2]); break;
+		case 3: r = float(srcData[3]); break;
+		}
+		r = r / 255.0f;
+		return r;
+	}
+	case TSF_RGBE8:
+	{
+		// TODO the exponent part
+		uint8_t const * srcData = reinterpret_cast<uint8_t const *>(src);
+		float r = 0;
+		switch (_comp)
+		{
+		case 0: r = float(srcData[2]); break;
+		case 1: r = float(srcData[1]); break;
+		case 2: r = float(srcData[0]); break;
+		case 3: r = float(1); break;
+		}
+		r = r / 255.0f;
+		return r;
+	}
+
+	// todo fp16
+	case TSF_RGBA16:
+	case TSF_RGBA16F:
+		break;
+	case TSF_Invalid:
+	case TSF_MAX:
+	default: break;
+	}
+
+	// return green error texture (assuming RGB format)
+	if (_comp == 1 || _comp == 3)
+	{
+		return float(1);
+	}
+	else
+	{
+		return float(0);
+	}
+}
+
+
+uint8_t UE4InterchangeImage::GetComponent2DAsUint8(size_t _x, size_t _y, size_t _comp) const
+{
+
+	float r = GetComponent2DAsFloat(_x, _y, _comp);
+	return uint8_t(r * 255.0f);
+}
+
+char const* UE4InterchangeImage::GetMetadata() const
+{
+	return "";
+}
+
+
+UE4InterchangeSampler::UE4InterchangeSampler(UTexture* _ueTexture) :
+	ueTexture(_ueTexture)
+{
+}
+char const * UE4InterchangeSampler::GetId() const
+{
+	name = TCHAR_TO_ANSI(*ueTexture->GetName());
+	name = name +"Sampler";
+	return name.c_str();
+}
+
+rpri::generic::ISampler::FilterType UE4InterchangeSampler::GetMinFilter() const
+{
+	return CrackTextureFilter(ueTexture->Filter);
+}
+
+rpri::generic::ISampler::FilterType UE4InterchangeSampler::GetMagFilter() const
+{
+	return CrackTextureFilter(ueTexture->Filter);
+}
+
+rpri::generic::ISampler::WrapType UE4InterchangeSampler::GetWrapS() const
+{
+	using wt = rpri::generic::ISampler::WrapType;
+	if(ueTexture->bNoTiling)
+	{
+		return wt::ClampToEdge;
+	} else
+	{
+		return wt::Repeat;
+	}
+}
+
+rpri::generic::ISampler::WrapType UE4InterchangeSampler::GetWrapT() const
+{
+	using wt = rpri::generic::ISampler::WrapType;
+	if (ueTexture->bNoTiling)
+	{
+		return wt::ClampToEdge;
+	}
+	else
+	{
+		return wt::Repeat;
+	}
+}
+
+rpri::generic::ISampler::WrapType UE4InterchangeSampler::GetWrapR() const
+{
+	using wt = rpri::generic::ISampler::WrapType;
+	if (ueTexture->bNoTiling)
+	{
+		return wt::ClampToEdge;
+	}
+	else
+	{
+		return wt::Repeat;
+	}
+}
+
+char const * UE4InterchangeSampler::GetMetadata() const
+{
+	return "";
+}
+
+UE4InterchangeTexture::UE4InterchangeTexture(
+										UE4InterchangeSampler * _sampler,
+										UE4InterchangeImage * _image) :
+	sampler(_sampler), image(_image)
+{
+}
+
+char const * UE4InterchangeTexture::GetId() const
+{
+	name = image->GetId();
+	name = name + "Texture";
+	return name.c_str();
+
+}
+
+rpri::generic::ISampler const * UE4InterchangeTexture::GetSampler() const
+{
+	return sampler;
+}
+
+rpri::generic::IImage const * UE4InterchangeTexture::GetImage() const
+{
+	return image;
+}
+
+bool UE4InterchangeTexture::GetImageYUp() const
+{
+	return true;
+}
+
+rpri::generic::ITexture::TextureType UE4InterchangeTexture::GetTextureType() const
+{
+	using tt = rpri::generic::ITexture::TextureType;
+
+	if(image->ueTexture->IsNormalMap())
+	{
+		return tt::Normal;
+	} else
+	{
+		// todo better classifications
+		return tt::General;
+	}
+}
+char const* UE4InterchangeTexture::GetMetadata() const
 {
 	return "";
 }
