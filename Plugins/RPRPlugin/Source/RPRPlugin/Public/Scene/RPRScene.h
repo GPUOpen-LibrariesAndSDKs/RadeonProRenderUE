@@ -7,6 +7,7 @@
 #include "RPRPlugin.h"
 #include "RPRSettings.h"
 #include "GameFramework/Actor.h"
+#include "MaterialLibrary.h"
 #include "RPRScene.generated.h"
 
 /**
@@ -33,6 +34,8 @@ public:
 	rpr_post_effect	m_RprSimpleTonemap;
 	rpr_post_effect	m_RprNormalization;
 
+	rpr::MaterialLibrary m_materialLibrary;
+	
 	class URPRSceneComponent	*m_ActiveCamera;
 
 	void	OnRender(uint32 &outObjectToBuildCount);

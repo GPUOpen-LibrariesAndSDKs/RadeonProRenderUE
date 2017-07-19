@@ -80,8 +80,8 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 	{
 		// If we have a wrong index, it ll just return NULL, and fallback to a dummy material
-		const UMaterialInterface	*matInstance = component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
-		const UMaterial				*parentMaterial = matInstance != NULL ? matInstance->GetMaterial() : NULL;
+		const UMaterialInterface	*matInterface = component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
+		const UMaterial				*parentMaterial = matInterface != NULL ? matInterface->GetMaterial() : NULL;
 		rpr_shape					shape = m_Shapes[iShape].m_RprShape;
 
 		rpr_material_node	material = NULL;
@@ -107,16 +107,61 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		}
 		else
 		{
-			// Here code for Sean, namechecks
-			// Uncomment all the necessary code below and replace with your tests
-			if (parentMaterial->GetName() == "SomeMaterial1")
-			{
-				// ...
-			}
-			else if (parentMaterial->GetName() == "Rubyredsomething")
-			{
-				// ...
-			}
+            // Attempt to map UE material to one in the Radeon ProRender material library loaded from disk.
+            const char* materialName = TCHAR_TO_ANSI(*matInterface->GetName());
+            if (Scene->m_materialLibrary.HasMaterialName(materialName))
+            {
+                UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("Found %s"), UTF8_TO_TCHAR(materialName));
+
+                if (matInterface)
+                {
+                    const UMaterialInstance* matInstance = Cast<UMaterialInstance>(matInterface);
+
+                    UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\t[SCALARS]:"));
+                    for (auto& param : matInstance->ScalarParameterValues)
+                    {
+                        UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\tName=%s, Value=%f"), *param.ParameterName.GetPlainNameString(), param.ParameterValue);
+                    }
+
+                    UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\n\t[VECTORS]:"));
+                    for (auto& param : matInstance->VectorParameterValues)
+                    {
+                        UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\tName=%s, Value=%f,%f,%f,%f"), *param.ParameterName.GetPlainNameString(),
+                            param.ParameterValue.R, param.ParameterValue.G, param.ParameterValue.B, param.ParameterValue.A);
+                    }
+
+                    UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\n\t[TEXTURES]:"));
+                    for (auto& param : matInstance->TextureParameterValues)
+                    {
+                        UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\tName=%s"), *param.ParameterName.GetPlainNameString());
+                    }
+                }
+
+                {
+                    TArray<FName> names;
+                    TArray<FGuid> ids;
+                    parentMaterial->GetAllTextureParameterNames(names, ids);
+                    UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\n\t[GetAllTextureParameterNames]:"));
+                    for (auto& name : names)
+                    {
+                        UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\tName=%s"), *name.GetPlainNameString());
+
+                        UTexture* value = nullptr;
+                        if (parentMaterial->GetTextureParameterValue(name, value))
+                        {
+                            UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\t\tGot value"));
+                        }
+                    }
+
+                    UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\n\t[GetUsedTextures]:"));
+                    TArray<UTexture*> textures;
+                    parentMaterial->GetUsedTextures(textures, EMaterialQualityLevel::Low, false, ERHIFeatureLevel::SM5, false);
+                    for (auto& texture : textures)
+                    {
+                        UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\tName=%s"), *texture->GetName());
+                    }
+                }
+            }
 
 #if RPR_UMS_INTEGRATION == 1
 			// currently do 1 material at a time with no node sharing

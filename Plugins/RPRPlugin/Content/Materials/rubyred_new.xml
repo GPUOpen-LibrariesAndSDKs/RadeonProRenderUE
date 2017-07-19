@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<material name="rubyred_new" version="0x10000244">
+    <description></description>
+    <node name="Material #54" type="BLEND">
+        <param name="color0" type="connection" value="Material #46"/>
+        <param name="color1" type="connection" value="Material #52"/>
+        <param name="weight" type="connection" value="box0"/>
+    </node>
+    <node name="Material #52" type="BLEND">
+        <param name="color0" type="connection" value="Material #53"/>
+        <param name="color1" type="connection" value="Material #51"/>
+        <param name="weight" type="connection" value="box1"/>
+    </node>
+    <node name="box0" type="FRESNEL">
+        <param name="ior" type="float4" value="1.7, 1.7, 1.7, 0"/>
+    </node>
+    <node name="box1" type="ARITHMETIC">
+        <param name="color0" type="connection" value="box2"/>
+        <param name="color1" type="float4" value="0.917647, 0.917647, 0.917647, 0"/>
+        <param name="op" type="uint" value="2"/>
+    </node>
+    <node name="box2" type="IMAGE_TEXTURE">
+        <param name="data" type="connection" value="box22"/>
+    </node>
+    <node name="Material #51" type="MICROFACET">
+        <param name="color" type="connection" value="box13"/>
+        <param name="normal" type="connection" value="box3"/>
+        <param name="roughness" type="float4" value="0, 0, 0, 0"/>
+    </node>
+    <node name="box3" type="NORMAL_MAP">
+        <param name="uv" type="connection" value="box4"/>
+        <param name="data" type="connection" value="box23"/>
+        <param name="bumpscale" type="float4" value="10, 10, 10, 0"/>
+    </node>
+    <node name="box4" type="INPUT_LOOKUP">
+        <param name="value" type="uint" value="0"/>
+    </node>
+    <node name="Material #46" type="BLEND">
+        <param name="color0" type="connection" value="Material #47"/>
+        <param name="color1" type="connection" value="Material #48"/>
+        <param name="weight" type="float4" value="0.756863, 0.678431, 0.678431, 0"/>
+    </node>
+    <node name="Material #48" type="MICROFACET">
+        <param name="color" type="connection" value="box5"/>
+        <param name="roughness" type="connection" value="box8"/>
+    </node>
+    <node name="box5" type="ARITHMETIC">
+        <param name="color0" type="connection" value="box6"/>
+        <param name="color1" type="float4" value="0.796079, 0.796079, 0.796079, 0"/>
+        <param name="op" type="uint" value="2"/>
+    </node>
+    <node name="box6" type="BLEND_VALUE">
+        <param name="color0" type="float4" value="0.603922, 0.0705882, 0.0313726, 0"/>
+        <param name="color1" type="float4" value="0.027451, 0.0470588, 0.945098, 0"/>
+        <param name="weight" type="connection" value="box7"/>
+    </node>
+    <node name="box7" type="FRESNEL">
+        <param name="ior" type="float4" value="1.3, 1.3, 1.3, 0"/>
+    </node>
+    <node name="box8" type="ARITHMETIC">
+        <param name="color0" type="connection" value="box9"/>
+        <param name="color1" type="float4" value="1, 1, 1, 0"/>
+        <param name="op" type="uint" value="2"/>
+    </node>
+    <node name="box9" type="BLEND_VALUE">
+        <param name="color0" type="float4" value="0.309804, 0.309804, 0.309804, 0"/>
+        <param name="color1" type="float4" value="1, 1, 1, 0"/>
+        <param name="weight" type="connection" value="box7"/>
+    </node>
+    <node name="Material #53" type="MICROFACET">
+        <param name="color" type="float4" value="1, 1, 1, 0"/>
+        <param name="normal" type="connection" value="box10"/>
+        <param name="roughness" type="connection" value="box12"/>
+    </node>
+    <node name="box10" type="NORMAL_MAP">
+        <param name="uv" type="connection" value="box11"/>
+        <param name="data" type="connection" value="box23"/>
+        <param name="bumpscale" type="float4" value="0.01, 0.01, 0.01, 0"/>
+    </node>
+    <node name="box11" type="INPUT_LOOKUP">
+        <param name="value" type="uint" value="0"/>
+    </node>
+    <node name="box12" type="ARITHMETIC">
+        <param name="color0" type="connection" value="box17"/>
+        <param name="color1" type="float4" value="0.0901961, 0.0901961, 0.0901961, 0"/>
+        <param name="op" type="uint" value="2"/>
+    </node>
+    <node name="box13" type="BLEND_VALUE">
+        <param name="color0" type="float4" value="1, 1, 1, 0"/>
+        <param name="color1" type="connection" value="box15"/>
+        <param name="weight" type="connection" value="box14"/>
+    </node>
+    <node name="box14" type="IMAGE_TEXTURE">
+        <param name="data" type="connection" value="box23"/>
+    </node>
+    <node name="box15" type="BLEND_VALUE">
+        <param name="color0" type="float4" value="0.00784314, 0, 0.0509804, 0"/>
+        <param name="color1" type="float4" value="0.894118, 0.909804, 0.980392, 0"/>
+        <param name="weight" type="connection" value="box16"/>
+    </node>
+    <node name="box16" type="FRESNEL">
+        <param name="ior" type="float4" value="1.52, 1.52, 1.52, 0"/>
+    </node>
+    <node name="box17" type="ARITHMETIC">
+        <param name="color0" type="connection" value="box18"/>
+        <param name="color1" type="float4" value="1, 1, 1, 0"/>
+        <param name="op" type="uint" value="2"/>
+    </node>
+    <node name="box18" type="ARITHMETIC">
+        <param name="color0" type="connection" value="box19"/>
+        <param name="color1" type="float4" value="-0.0908096, -0.0908096, -0.0908096, 0"/>
+        <param name="op" type="uint" value="0"/>
+    </node>
+    <node name="box19" type="ARITHMETIC">
+        <param name="color0" type="connection" value="box20"/>
+        <param name="color1" type="float4" value="1.18162, 1.18162, 1.18162, 0"/>
+        <param name="op" type="uint" value="2"/>
+    </node>
+    <node name="box20" type="ARITHMETIC">
+        <param name="color0" type="float4" value="1, 1, 1, 0"/>
+        <param name="color1" type="connection" value="box21"/>
+        <param name="op" type="uint" value="1"/>
+    </node>
+    <node name="box21" type="IMAGE_TEXTURE">
+        <param name="data" type="connection" value="box22"/>
+    </node>
+    <node name="Material #47" type="DIFFUSE">
+        <param name="color" type="connection" value="box5"/>
+    </node>
+    <node name="box23" type="INPUT_TEXTURE">
+        <param name="path" type="file_path" value="C:\Users\amd\Downloads\flakes2.png"/>
+    </node>
+    <node name="box22" type="INPUT_TEXTURE">
+        <param name="path" type="file_path" value="C:\dev\tmp\datagen\Resources\kitchen\concrete-17_b010.png"/>
+    </node>
+</material>
