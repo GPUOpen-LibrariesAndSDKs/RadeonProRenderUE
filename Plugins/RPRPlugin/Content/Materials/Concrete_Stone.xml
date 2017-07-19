@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<material name="Concrete_Stone" version="0x10000223">
+    <description></description>
+    <node name="Concrete_Stone" type="DIFFUSE">
+        <param name="color" type="connection" value="Map #189"/>
+        <param name="normal" type="connection" value="Map #190"/>
+    </node>
+    <node name="Map #190" type="NORMAL_MAP">
+        <param name="data" type="connection" value="box0"/>
+    </node>
+    <node name="Map #189" type="IMAGE_TEXTURE">
+        <param name="data" type="connection" value="box1"/>
+    </node>
+    <node name="box1" type="INPUT_TEXTURE">
+        <param name="path" type="file_path" value="RadeonProRMaps\cement_stone.jpg"/>
+    </node>
+    <node name="box0" type="INPUT_TEXTURE">
+        <param name="path" type="file_path" value="RadeonProRMaps\cement_stone_normal.jpg"/>
+    </node>
+</material>

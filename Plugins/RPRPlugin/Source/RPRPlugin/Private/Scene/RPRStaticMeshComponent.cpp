@@ -84,6 +84,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		const UMaterial				*parentMaterial = matInterface != NULL ? matInterface->GetMaterial() : NULL;
 		rpr_shape					shape = m_Shapes[iShape].m_RprShape;
 
+#if 0
         // SAMPLE CODE
         // Get all texture is sampled by the material.
         if (matInterface != nullptr)
@@ -102,6 +103,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
                 }
             }            
         }
+#endif
 
 		rpr_material_node	material = NULL;
 		if (parentMaterial == NULL)

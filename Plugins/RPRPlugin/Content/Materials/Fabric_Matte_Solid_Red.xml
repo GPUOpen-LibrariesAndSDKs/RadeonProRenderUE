@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<material name="Fabric_Matte_Solid_Red" version="0x10000223">
+    <description></description>
+    <node name="Fabric_Matte_Solid_Red" type="BLEND">
+        <param name="color0" type="connection" value="Material #25"/>
+        <param name="color1" type="connection" value="Material #26"/>
+        <param name="weight" type="connection" value="Map #1"/>
+    </node>
+    <node name="Map #1" type="FRESNEL">
+        <param name="ior" type="float4" value="1.6, 1.6, 1.6, 0"/>
+    </node>
+    <node name="Material #26" type="MICROFACET">
+        <param name="color" type="float4" value="0.609804, 0.5, 0.5, 0"/>
+        <param name="normal" type="connection" value="Map #2"/>
+        <param name="roughness" type="float4" value="0.8, 0.8, 0.8, 0"/>
+    </node>
+    <node name="Map #2" type="NORMAL_MAP">
+        <param name="data" type="connection" value="box0"/>
+    </node>
+    <node name="Material #25" type="DIFFUSE">
+        <param name="color" type="float4" value="0.219608, 0, 0, 0"/>
+        <param name="normal" type="connection" value="Map #2"/>
+    </node>
+    <node name="box0" type="INPUT_TEXTURE">
+        <param name="path" type="file_path" value="RadeonProRMaps\pattern_normal.jpg"/>
+    </node>
+</material>

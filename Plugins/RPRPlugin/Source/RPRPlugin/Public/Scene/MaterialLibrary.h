@@ -46,6 +46,7 @@ namespace rpr
 
         struct Material
         {
+            std::string directory;
             std::string name;
             std::string version;
             std::vector<Node> nodes;

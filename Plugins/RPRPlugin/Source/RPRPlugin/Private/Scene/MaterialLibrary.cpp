@@ -160,7 +160,13 @@ namespace rpr
                         UE_LOG(LogMaterialLibrary, Error, TEXT("rprContextCreateImage failed (%d) for node tag %s"), result, UTF8_TO_TCHAR(node.tag.c_str()));
                 }
                 else
-                    UE_LOG(LogMaterialLibrary, Warning, TEXT("No texture replacement found for RPR node %s"), UTF8_TO_TCHAR(node.tag.c_str()));
+                {
+                    // Load the RPR texture from disk.
+                    std::string filename = material.directory + "/" + node.params[0].value;
+                    rpr_int result = rprContextCreateImageFromFile(context, filename.c_str(), &reinterpret_cast<rpr_image>(handle));
+                    if (result != RPR_SUCCESS)
+                        UE_LOG(LogMaterialLibrary, Error, TEXT("rprContextCreateImageFromFile failed (%d) to load %s"), result, UTF8_TO_TCHAR(filename.c_str()));
+                }
             }
             else
             {
@@ -250,6 +256,7 @@ namespace rpr
 
         // Create a new material object.
         Material material;
+        material.directory = fs::path(filename).parent_path().generic_string();
 
         // Parse the material attributes.
         auto elem = doc.FirstChildElement("material");
