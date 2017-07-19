@@ -427,6 +427,9 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		SetTrace(settings->bTrace);
 		UE_LOG(LogRPRScene, Log, TEXT("ProRender scene created"));
 
+        // Initialize material library for UE material to RPR replacement.     
+        m_materialLibrary.AddDirectory(TCHAR_TO_ANSI(*(FPaths::GameDir() + "/Plugins/RPRPlugin/Content/Materials")));
+
 		outObjectToBuildCount = BuildScene();
 
 		// IF in editor

@@ -155,13 +155,21 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 
                     UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\n\t[GetUsedTextures]:"));
                     TArray<UTexture*> textures;
-                    parentMaterial->GetUsedTextures(textures, EMaterialQualityLevel::Low, false, ERHIFeatureLevel::SM5, false);
+                    parentMaterial->GetUsedTextures(textures, EMaterialQualityLevel::Num, true, ERHIFeatureLevel::Num, true);
                     for (auto& texture : textures)
                     {
                         UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\tName=%s"), *texture->GetName());
                     }
+
+                    /*UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\n\t[Expressions]:"));
+                    for (auto& expression : parentMaterial->Expressions)
+                    {
+                        UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\tName=%s, %s"), expression->GetName(), *expression->GetCreationName().ToString());
+                    }*/
                 }
             }
+
+#define RPR_UMS_INTEGRATION 0
 
 #if RPR_UMS_INTEGRATION == 1
 			// currently do 1 material at a time with no node sharing

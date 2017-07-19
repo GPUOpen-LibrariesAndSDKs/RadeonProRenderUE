@@ -3,6 +3,7 @@
 #include <fstream>
 #include <experimental/filesystem>
 #include <CoreMinimal.h>
+#include <Engine/Texture.h>
 namespace fs = std::experimental::filesystem;
 
 namespace rpr
@@ -77,7 +78,7 @@ namespace rpr
         return (m_materialDescriptions.find(name) != m_materialDescriptions.end());
     }
 
-    rpr_material_node MaterialLibrary::CreateMaterial(const UMaterialInstance* ueMaterialInstance, rpr_material_system materialSystem)
+    rpr_material_node MaterialLibrary::CreateMaterial(const UMaterialInstance* ueMaterialInstance, rpr_context context, rpr_material_system materialSystem)
     {
         // Make sure material name exists in library.
         std::string name = TCHAR_TO_ANSI(*ueMaterialInstance->GetName());
@@ -97,23 +98,80 @@ namespace rpr
         for (auto& param : ueMaterialInstance->VectorParameterValues)
             vectorReplacementParams.emplace(std::string(TCHAR_TO_ANSI(*param.ParameterName.GetPlainNameString())), param.ParameterValue);
         
+        std::unordered_map<std::string, UTexture*> textureReplacements;
+        auto parentMaterial = ueMaterialInstance->GetMaterial();
+        TArray<UTexture*> textures;
+        parentMaterial->GetUsedTextures(textures, EMaterialQualityLevel::Num, true, ERHIFeatureLevel::Num, true);
+        for (auto& texture : textures)
+        {
+            textureReplacements.emplace(std::string(TCHAR_TO_ANSI(*texture->GetName())), texture);
+        }
+
         // First create all rpr_material_node objects.
         rpr_material_node rootMaterialNode = nullptr;
-        std::unordered_map<std::string, rpr_material_node> materialNodes;
+        std::unordered_map<std::string, void*> materialNodes; // NOTE: Also contains rpr_image handles.
         auto& material = itr->second;
         for (auto& node : material.nodes)
         {
-            // Skip the INPUT_TEXTURE nodes in this first pass.
+            // Handle INPUT_TEXTURE case separately.
+            void* handle = nullptr;
             if (node.type == "INPUT_TEXTURE")
-                continue;
-
-            // Create the RPR handle.
-            rpr_material_node handle = nullptr;
-            rpr_int result = rprMaterialSystemCreateNode(materialSystem, typeStringsToRPRMap.at(node.type), &handle);
-            if (result != RPR_SUCCESS)
             {
-                UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialSystemCreateNode failed (%d) for type %s"), result, UTF8_TO_TCHAR(node.type.c_str()));
-                return nullptr;
+                // Texture MUST be replaced by one from UE.
+                auto itr = textureReplacements.find(node.tag);
+                if (itr != textureReplacements.end())
+                {
+                    UTexture* texture = itr->second;
+
+                    rpr_image_format format = {};
+                    switch (texture->Source.GetFormat())
+                    {
+                    case ETextureSourceFormat::TSF_G8:
+                        format.num_components = 1;
+                        format.type = RPR_COMPONENT_TYPE_UINT8;
+                        break;
+
+                    case ETextureSourceFormat::TSF_BGRA8:
+                    case ETextureSourceFormat::TSF_BGRE8:
+                    case ETextureSourceFormat::TSF_RGBA8:
+                    case ETextureSourceFormat::TSF_RGBE8:
+                        format.num_components = 4;
+                        format.type = RPR_COMPONENT_TYPE_UINT8;
+                        break;
+
+                    case ETextureSourceFormat::TSF_RGBA16:
+                    case ETextureSourceFormat::TSF_RGBA16F:
+                        format.num_components = 4;
+                        format.type = RPR_COMPONENT_TYPE_FLOAT16;
+                        break;
+                    }
+
+                    rpr_image_desc desc = {
+                        texture->Source.GetSizeX(), texture->Source.GetSizeY(), 1,
+                        texture->Source.GetSizeX() * texture->Source.GetBytesPerPixel(),
+                        texture->Source.GetSizeX() * texture->Source.GetSizeY() * texture->Source.GetBytesPerPixel()
+                    };
+
+                    TArray<uint8> mipData;
+                    texture->Source.GetMipData(mipData, 0);
+
+                    rpr_int result = rprContextCreateImage(context, format, &desc, mipData.GetData(), &reinterpret_cast<rpr_image>(handle));
+                    if (result != RPR_SUCCESS)
+                        UE_LOG(LogMaterialLibrary, Error, TEXT("rprContextCreateImage failed (%d) for node tag %s"), result, UTF8_TO_TCHAR(node.tag.c_str()));
+                }
+                else
+                    UE_LOG(LogMaterialLibrary, Warning, TEXT("No texture replacement found for RPR node %s"), UTF8_TO_TCHAR(node.tag.c_str()));
+            }
+            else
+            {
+                // Create the RPR handle.
+                rpr_int result = rprMaterialSystemCreateNode(materialSystem, typeStringsToRPRMap.at(node.type), &reinterpret_cast<rpr_material_node>(handle));
+                if (result != RPR_SUCCESS)
+                {
+                    UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialSystemCreateNode failed (%d) for type %s"), result, UTF8_TO_TCHAR(node.type.c_str()));
+                    return nullptr;
+                }
+
             }
 
             // Set a custom name for the node.
@@ -130,7 +188,7 @@ namespace rpr
         // Second, set up material parameters.
         for (auto& node : material.nodes)
         {
-            // Skip INPUT_TEXTURE nodes again.
+            // Skip INPUT_TEXTURE nodes since their only parameter is file_path and it should have been set above.
             if (node.type == "INPUT_TEXTURE")
                 continue;
 
@@ -143,25 +201,35 @@ namespace rpr
                 // For "connection" type, lookup the RPR handle.
                 if (param.type == "connection")
                 {
-                    rprMaterialNodeSetInputN(handle, param.name.c_str(), materialNodes.at(param.value));
-                }
-                // Handle file paths which should typically be texture filenames.
-                else if (param.type == "file_path")
-                {
-
+                    // Handle IMAGE_TEXTURE node type case.
+                    if (node.type == "IMAGE_TEXTURE") rprMaterialNodeSetInputImageData(handle, param.name.c_str(), reinterpret_cast<rpr_image>(materialNodes.at(param.value)));
+                    else rprMaterialNodeSetInputN(handle, param.name.c_str(), reinterpret_cast<rpr_material_node>(materialNodes.at(param.value)));
                 }
                 // Handle uint type which should never need to be replaced by an UE parameter value.
                 else if (param.type == "uint")
-                {
+                {                    
                     rpr_uint value;
                     sscanf_s(param.value.c_str(), "%u", &value);
                     rprMaterialNodeSetInputU(handle, param.name.c_str(), value);
                 }
                 // Handle floating point scalar and vector values.
                 else if (param.type.find("float") != std::string::npos)
-                {                    
+                {
                     rpr_float value[4] = { 0.0f };
                     int count = sscanf_s(param.value.c_str(), "%f, %f, %f, %f", &value[0], &value[1], &value[2], &value[3]);
+
+                    // Check for parameter replacement form UE material.
+                    if (scalarReplacementParameters.find(param.tag) != scalarReplacementParameters.end())
+                        value[0] = scalarReplacementParameters.find(param.tag)->second;
+                    else if (vectorReplacementParams.find(param.tag) != vectorReplacementParams.end())
+                    {
+                        auto& newValue = vectorReplacementParams.find(param.tag)->second;
+                        value[0] = newValue.R;
+                        value[1] = newValue.G;
+                        value[2] = newValue.B;
+                        value[3] = newValue.A;
+                    }
+
                     rprMaterialNodeSetInputF(handle, param.name.c_str(), value[0], value[1], value[2], value[3]);
                 }
             }
@@ -195,6 +263,7 @@ namespace rpr
             // Create a new node object and parse attributes.
             Node node;
             node.name = elem->Attribute("name");
+            node.tag = elem->Attribute("tag") ? elem->Attribute("tag") : "";
             node.type = elem->Attribute("type");
 
             // Parse node's parameters.
