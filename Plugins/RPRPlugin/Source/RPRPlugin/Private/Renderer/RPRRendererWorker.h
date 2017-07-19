@@ -72,6 +72,7 @@ private:
 	rpr_post_effect				m_RprWhiteBalance;
 	rpr_post_effect				m_RprGammaCorrection;
 	rpr_post_effect				m_RprSimpleTonemap;
+	rpr_post_effect				m_RprPhotolinearTonemap;
 	rpr_post_effect				m_RprNormalization;
 
 	TArray<float>				m_SrcFramebufferData;

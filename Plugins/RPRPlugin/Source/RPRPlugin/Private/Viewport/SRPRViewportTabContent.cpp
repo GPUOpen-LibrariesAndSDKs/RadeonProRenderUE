@@ -195,6 +195,39 @@ FText	SRPRViewportTabContent::GetTraceStatus() const
 	return FText::FromString("Trace : Off");
 }
 
+TOptional<float>	SRPRViewportTabContent::GetPhotolinearTonemapSensitivity() const
+{
+	return m_Settings->PhotolinearTonemapSensitivity;
+}
+
+void	SRPRViewportTabContent::OnPhotolinearTonemapSensitivityChanged(float newValue)
+{
+	m_Settings->PhotolinearTonemapSensitivity = newValue;
+	m_Settings->SaveConfig();
+}
+
+TOptional<float>	SRPRViewportTabContent::GetPhotolinearTonemapExposure() const
+{
+	return m_Settings->PhotolinearTonemapExposure;
+}
+
+void	SRPRViewportTabContent::OnPhotolinearTonemapExposureChanged(float newValue)
+{
+	m_Settings->PhotolinearTonemapExposure = newValue;
+	m_Settings->SaveConfig();
+}
+
+TOptional<float>	SRPRViewportTabContent::GetPhotolinearTonemapFStop() const
+{
+	return m_Settings->PhotolinearTonemapFStop;
+}
+
+void	SRPRViewportTabContent::OnPhotolinearTonemapFStopChanged(float newValue)
+{
+	m_Settings->PhotolinearTonemapFStop = newValue;
+	m_Settings->SaveConfig();
+}
+
 TOptional<float>	SRPRViewportTabContent::GetSimpleTonemapExposure() const
 {
 	return m_Settings->SimpleTonemapExposure;
@@ -425,10 +458,78 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 					+ SVerticalBox::Slot()
 					[
 						SNew(STextBlock)
+						.Text(LOCTEXT("PhotolinearTonemapTitle", "Photolinear tonemap"))
+					]
+					+ SVerticalBox::Slot().MaxHeight(16.0f)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("PhotolinearTonemapSensitivity", "Sensitivity : "))
+						]
+						+ SHorizontalBox::Slot()
+						[
+							SNew(SNumericEntryBox<float>)
+							.Value(this, &SRPRViewportTabContent::GetPhotolinearTonemapSensitivity)
+							.OnValueChanged(this, &SRPRViewportTabContent::OnPhotolinearTonemapSensitivityChanged)
+							.MinValue(0.0f)
+							.MaxValue(2.0f)
+							.MinSliderValue(0.0f)
+							.MaxSliderValue(2.0f)
+							.AllowSpin(true)
+						]
+					]
+					+ SVerticalBox::Slot().MaxHeight(16.0f)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("PhotolinearTonemapExposure", "Exposure : "))
+						]
+						+ SHorizontalBox::Slot()
+						[
+							SNew(SNumericEntryBox<float>)
+							.Value(this, &SRPRViewportTabContent::GetPhotolinearTonemapExposure)
+							.OnValueChanged(this, &SRPRViewportTabContent::OnPhotolinearTonemapExposureChanged)
+							.MinValue(0.0f)
+							.MaxValue(2.0f)
+							.MinSliderValue(0.0f)
+							.MaxSliderValue(2.0f)
+							.AllowSpin(true)
+						]
+					]
+					+ SVerticalBox::Slot().MaxHeight(16.0f)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("PhotolinearTonemapFStop", "FStop : "))
+						]
+						+ SHorizontalBox::Slot()
+						[
+							SNew(SNumericEntryBox<float>)
+							.Value(this, &SRPRViewportTabContent::GetPhotolinearTonemapFStop)
+							.OnValueChanged(this, &SRPRViewportTabContent::OnPhotolinearTonemapFStopChanged)
+							.MinValue(0.0f)
+							.MaxValue(2.0f)
+							.MinSliderValue(0.0f)
+							.MaxSliderValue(2.0f)
+							.AllowSpin(true)
+						]
+					]
+				]
+				+ SVerticalBox::Slot().AutoHeight()
+				[
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot()
+					[
+						SNew(STextBlock)
 						.Text(LOCTEXT("SimpleTonemapTitle", "Simple tonemap"))
 					]
-					+ SVerticalBox::Slot()
-					.MaxHeight(16.0f)
+					+ SVerticalBox::Slot().MaxHeight(16.0f)
 					[
 						SNew(SHorizontalBox)
 						+ SHorizontalBox::Slot()
@@ -448,8 +549,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 							.AllowSpin(true)
 						]
 					]
-					+ SVerticalBox::Slot()
-					.MaxHeight(16.0f)
+					+ SVerticalBox::Slot().MaxHeight(16.0f)
 					[
 						SNew(SHorizontalBox)
 						+ SHorizontalBox::Slot()
@@ -469,27 +569,6 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 							.AllowSpin(true)
 						]
 					]
-					+ SVerticalBox::Slot()
-					.MaxHeight(16.0f)
-					[
-						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot()
-						[
-							SNew(STextBlock)
-							.Text(LOCTEXT("DisplayGammaTitle", "Display gamma : "))
-						]
-						+ SHorizontalBox::Slot()
-						[
-							SNew(SNumericEntryBox<float>)
-							.Value(this, &SRPRViewportTabContent::GetGammaCorrectionValue)
-							.OnValueChanged(this, &SRPRViewportTabContent::OnGammaCorrectionValueChanged)
-							.MinValue(0.0f)
-							.MaxValue(2.0f)
-							.MinSliderValue(0.0f)
-							.MaxSliderValue(2.0f)
-							.AllowSpin(true)
-						]
-					]
 				]
 				+ SVerticalBox::Slot().AutoHeight()
 				[
@@ -499,8 +578,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 						SNew(STextBlock)
 						.Text(LOCTEXT("WhiteBalanceTitle", "White Balance"))
 					]
-					+ SVerticalBox::Slot()
-					.MaxHeight(16.0f)
+					+ SVerticalBox::Slot().MaxHeight(16.0f)
 					[
 						SNew(SHorizontalBox)
 						+ SHorizontalBox::Slot()
@@ -529,8 +607,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 						SNew(STextBlock)
 						.Text(LOCTEXT("GammaCorrectionTitle", "Gamma correction"))
 					]
-					+ SVerticalBox::Slot()
-					.MaxHeight(16.0f)
+					+ SVerticalBox::Slot().MaxHeight(16.0f)
 					[
 						SNew(SHorizontalBox)
 						+ SHorizontalBox::Slot()

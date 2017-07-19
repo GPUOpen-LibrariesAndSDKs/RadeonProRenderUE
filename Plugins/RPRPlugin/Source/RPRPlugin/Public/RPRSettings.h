@@ -89,4 +89,13 @@ public:
 
 	UPROPERTY(Config)
 	float		SimpleTonemapContrast;
+
+	UPROPERTY(Config)
+	float		PhotolinearTonemapSensitivity;
+
+	UPROPERTY(Config)
+	float		PhotolinearTonemapExposure;
+
+	UPROPERTY(Config)
+	float		PhotolinearTonemapFStop;
 };
