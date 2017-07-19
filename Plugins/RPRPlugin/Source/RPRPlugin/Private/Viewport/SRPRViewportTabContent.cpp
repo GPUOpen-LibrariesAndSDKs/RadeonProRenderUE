@@ -48,11 +48,8 @@ FReply	SRPRViewportTabContent::OnToggleRender()
 
 FReply	SRPRViewportTabContent::OnToggleSync()
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
-
-	settings->bSync = !settings->bSync;
-	settings->SaveConfig();
+	m_Settings->bSync = !m_Settings->bSync;
+	m_Settings->SaveConfig();
 	return FReply::Handled();
 }
 
@@ -66,14 +63,11 @@ FReply	SRPRViewportTabContent::OnSave()
 
 FReply	SRPRViewportTabContent::OnToggleTrace()
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
-
-	settings->bTrace = !settings->bTrace;
-	settings->SaveConfig();
+	m_Settings->bTrace = !m_Settings->bTrace;
+	m_Settings->SaveConfig();
 	ARPRScene	*scene = m_Plugin->GetCurrentScene();
 	if (scene != NULL)
-		scene->SetTrace(settings->bTrace);
+		scene->SetTrace(m_Settings->bTrace);
 	return FReply::Handled();
 }
 
@@ -101,9 +95,7 @@ void	SRPRViewportTabContent::OnCameraChanged(TSharedPtr<FString> item, ESelectIn
 
 const FSlateBrush	*SRPRViewportTabContent::GetSyncIcon() const
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
-	if (settings->bSync)
+	if (m_Settings->bSync)
 		return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.SyncOn").GetIcon();
 	return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.SyncOff").GetIcon();
 }
@@ -124,8 +116,6 @@ TSharedRef<SWidget>	SRPRViewportTabContent::OnGenerateQualitySettingsWidget(TSha
 void	SRPRViewportTabContent::OnQualitySettingsChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo)
 {
 	const FString	settingsString = *item.Get();
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
 
 	ERPRQualitySettings	newSettings = ERPRQualitySettings::Interactive;
 	if (settingsString == "Interactive")
@@ -136,29 +126,26 @@ void	SRPRViewportTabContent::OnQualitySettingsChanged(TSharedPtr<FString> item, 
 		newSettings = ERPRQualitySettings::Medium;
 	else if (settingsString == "High")
 		newSettings = ERPRQualitySettings::High;
-	settings->QualitySettings = newSettings;
-	settings->SaveConfig();
+	m_Settings->QualitySettings = newSettings;
+	m_Settings->SaveConfig();
 
 	ARPRScene	*scene = m_Plugin->GetCurrentScene();
 	if (scene != NULL)
-		scene->SetQualitySettings(settings->QualitySettings);
+		scene->SetQualitySettings(m_Settings->QualitySettings);
 }
 
 FText	SRPRViewportTabContent::GetSelectedQualitySettingsName() const
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
-
-	switch (settings->QualitySettings)
+	switch (m_Settings->QualitySettings)
 	{
-	case	ERPRQualitySettings::Interactive:
-		return LOCTEXT("InteractiveTitle", "Quality : Interactive");
-	case	ERPRQualitySettings::Low:
-		return LOCTEXT("LowTitle", "Quality : Low");
-	case	ERPRQualitySettings::Medium:
-		return LOCTEXT("MediumTitle", "Quality : Medium");
-	case	ERPRQualitySettings::High:
-		return LOCTEXT("HighTitle", "Quality : High");
+		case	ERPRQualitySettings::Interactive:
+			return LOCTEXT("InteractiveTitle", "Quality : Interactive");
+		case	ERPRQualitySettings::Low:
+			return LOCTEXT("LowTitle", "Quality : Low");
+		case	ERPRQualitySettings::Medium:
+			return LOCTEXT("MediumTitle", "Quality : Medium");
+		case	ERPRQualitySettings::High:
+			return LOCTEXT("HighTitle", "Quality : High");
 	}
 	return FText();
 }
@@ -172,11 +159,8 @@ TSharedRef<SWidget>	SRPRViewportTabContent::OnGenerateMegaPixelWidget(TSharedPtr
 
 void	SRPRViewportTabContent::OnMegaPixelChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo)
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
-
-	settings->MegaPixelCount = FCString::Atof(**item.Get());
-	settings->SaveConfig();
+	m_Settings->MegaPixelCount = FCString::Atof(**item.Get());
+	m_Settings->SaveConfig();
 
 	ARPRScene	*scene = m_Plugin->GetCurrentScene();
 	if (scene != NULL)
@@ -185,13 +169,10 @@ void	SRPRViewportTabContent::OnMegaPixelChanged(TSharedPtr<FString> item, ESelec
 
 FText	SRPRViewportTabContent::GetSelectedMegaPixelName() const
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
-
 	// TODO: Cache this
 	FNumberFormattingOptions	formatOptions;
 	formatOptions.MaximumIntegralDigits = 1;
-	return FText::Format(LOCTEXT("MegaPixelTitle", "{0} Megapixel"), FText::AsNumber(settings->MegaPixelCount, &formatOptions));
+	return FText::Format(LOCTEXT("MegaPixelTitle", "{0} Megapixel"), FText::AsNumber(m_Settings->MegaPixelCount, &formatOptions));
 }
 
 FText	SRPRViewportTabContent::GetCurrentRenderIteration() const
@@ -209,55 +190,39 @@ FText	SRPRViewportTabContent::GetCurrentRenderIteration() const
 
 FText	SRPRViewportTabContent::GetTraceStatus() const
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
-
-	if (settings->bTrace)
+	if (m_Settings->bTrace)
 		return FText::FromString("Trace : On");
 	return FText::FromString("Trace : Off");
 }
 
 TOptional<uint32>	SRPRViewportTabContent::GetWhiteBalanceTemperature() const
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
-
-	return settings->WhiteBalanceTemperature;
+	return m_Settings->WhiteBalanceTemperature;
 }
 
 void	SRPRViewportTabContent::OnWhiteBalanceTemperatureChanged(uint32 newValue)
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
-
-	settings->WhiteBalanceTemperature = newValue;
-	settings->SaveConfig(); // Profile this, can be pretty intense with sliders
+	m_Settings->WhiteBalanceTemperature = newValue;
+	m_Settings->SaveConfig(); // Profile this, can be pretty intense with sliders
 }
 
 TOptional<float>	SRPRViewportTabContent::GetGammaCorrectionValue() const
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
-
-	return settings->GammaCorrectionValue;
+	return m_Settings->GammaCorrectionValue;
 }
 
 void	SRPRViewportTabContent::OnGammaCorrectionValueChanged(float newValue)
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
-
-	settings->GammaCorrectionValue = newValue;
-	settings->SaveConfig(); // Profile this, can be pretty intense with sliders
+	m_Settings->GammaCorrectionValue = newValue;
+	m_Settings->SaveConfig(); // Profile this, can be pretty intense with sliders
 }
 
 void	SRPRViewportTabContent::Construct(const FArguments &args)
 {
 	m_Plugin = &FRPRPluginModule::Get();
+	m_Settings = GetMutableDefault<URPRSettings>();
 
-	// Create widgets content
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
+	check(m_Settings != NULL);
 
 	m_QualitySettingsList.Empty();
 	m_AvailableMegaPixel.Empty();

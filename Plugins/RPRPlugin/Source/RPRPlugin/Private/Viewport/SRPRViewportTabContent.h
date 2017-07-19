@@ -54,5 +54,6 @@ private:
 	TArray<TSharedPtr<FString>>				m_QualitySettingsList;
 
 	class FRPRPluginModule					*m_Plugin;
+	class URPRSettings						*m_Settings;
 };
 
