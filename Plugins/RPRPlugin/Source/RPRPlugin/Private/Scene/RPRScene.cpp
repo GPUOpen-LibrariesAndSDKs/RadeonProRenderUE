@@ -416,10 +416,10 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 			rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_NORMALIZATION, &m_RprNormalization) != RPR_SUCCESS ||
 			rprPostEffectSetParameter1u(m_RprWhiteBalance, "colorspace", RPR_COLOR_SPACE_SRGB) != RPR_SUCCESS ||
 			rprPostEffectSetParameter1f(m_RprSimpleTonemap, "exposure", 1.0f) != RPR_SUCCESS ||
+			rprContextAttachPostEffect(m_RprContext, m_RprNormalization) != RPR_SUCCESS ||
 			rprContextAttachPostEffect(m_RprContext, m_RprWhiteBalance) != RPR_SUCCESS ||
-			rprContextAttachPostEffect(m_RprContext, m_RprGammaCorrection) != RPR_SUCCESS ||
 			rprContextAttachPostEffect(m_RprContext, m_RprSimpleTonemap) != RPR_SUCCESS ||
-			rprContextAttachPostEffect(m_RprContext, m_RprNormalization) != RPR_SUCCESS)
+			rprContextAttachPostEffect(m_RprContext, m_RprGammaCorrection) != RPR_SUCCESS)
 		{
 			UE_LOG(LogRPRScene, Error, TEXT("RPR Post effects creation failed"));
 			return;
