@@ -66,7 +66,7 @@ void	URPRStaticMeshComponent::CleanCache()
 	// TODO : Put a safer cache system in place *or* ensure there can only be one context
 	Cache.Empty();
 }
-#define RPR_UMS_INTEGRATION 1
+#define RPR_UMS_INTEGRATION 0
 #define RPR_UMS_DUMP_RPIF 0
 
 bool	URPRStaticMeshComponent::BuildMaterials()
@@ -219,7 +219,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 #if RPR_UMS_INTEGRATION == 1
 		// currently do 1 material at a time with no node sharing
 		UE4InterchangeMaterialGraph *mg = nullptr;
-		mg = new UE4InterchangeMaterialGraph(parentMaterial);
+		mg = new UE4InterchangeMaterialGraph(matInterface, parentMaterial);
 
 		static char const UE4ImporterString[] = "UE4 Importer";
 		rpri::generic::IMaterialGraph* first = mg;

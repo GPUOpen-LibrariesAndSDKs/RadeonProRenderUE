@@ -26,6 +26,8 @@ typedef std::shared_ptr<rpri::generic::ISampler> ISamplerPtr;
 
 struct UEInterchangeCollection
 {
+	UMaterialInterface const * ue4MatInterface;
+
 	std::map<std::string, IMaterialNodePtr> nodeStorage;
 	std::map<std::string, IMaterialValuePtr> valueStorage;
 	std::map<std::string, IImagePtr> imageStorage;
@@ -206,7 +208,8 @@ private:
 class UE4InterchangeMaterialGraph : public rpri::generic::IMaterialGraph
 {
 public:
-	UE4InterchangeMaterialGraph(const UMaterial* _ue4Mat);
+	UE4InterchangeMaterialGraph(UMaterialInterface const * _ue4MatInterface,
+								UMaterial const * _ue4Mat);
 
 	char const* GetId() const override;
 	char const* GetName() const override;
@@ -230,7 +233,8 @@ private:
 	std::shared_ptr<rpri::generic::IMaterialNode> rootNode;
 	mutable std::string name;
 	friend class UE4InterchangePBRNode;
-	const UMaterial* ue4Mat;
+	UMaterialInterface const * ue4MatInterface;
+	UMaterial const * ue4Mat;
 };
 
 class UE4InterchangeImage : public rpri::generic::IImage
