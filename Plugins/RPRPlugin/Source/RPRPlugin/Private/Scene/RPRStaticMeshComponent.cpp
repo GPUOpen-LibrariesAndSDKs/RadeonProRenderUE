@@ -156,19 +156,19 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 				}
 			}
 
-			// We have a match - go ahead and use the relevent material.
-			rpr_material_node xmlMaterial = Scene->m_materialLibrary.CreateMaterial(matInterface, m_RprSupportCtx, m_RprMaterialSystem);
-
-			// If we failed to create the xmlMaterial, go ahead with red default one and just log the error
-			if (!xmlMaterial) {
-				if (rprMaterialSystemCreateNode(m_RprMaterialSystem, RPR_MATERIAL_NODE_DIFFUSE, &xmlMaterial) != RPR_SUCCESS)
-				{
-					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create a default RPR material node"));
-					return false;
-				}
-
-				// We choose to ignore errors below - it won't happen.
-				rprMaterialNodeSetInputF(xmlMaterial, "color", 1.0f, 0.5f, 0.5f, 1.0f);
+				// We have a match - go ahead and use the relevent material.
+				rpr_material_node xmlMaterial = Scene->m_materialLibrary.CreateMaterial(matInterface, Scene->m_RprContext, m_RprMaterialSystem);
+				
+				// If we failed to create the xmlMaterial, go ahead with red default one and just log the error
+				if (!xmlMaterial) {
+					if (rprMaterialSystemCreateNode(m_RprMaterialSystem, RPR_MATERIAL_NODE_DIFFUSE, &xmlMaterial) != RPR_SUCCESS)
+					{
+						UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create a default RPR material node"));
+						return false;
+					}
+					
+					// We choose to ignore errors below - it won't happen.
+					rprMaterialNodeSetInputF(xmlMaterial, "color", 1.0f, 0.5f, 0.5f, 1.0f);
 
 			}
 			// save the material
@@ -215,6 +215,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 			}
 			continue;
 		}
+#define RPR_UMS_INTEGRATION 0
 #if RPR_UMS_INTEGRATION == 1
 		// currently do 1 material at a time with no node sharing
 		UE4InterchangeMaterialGraph *mg = nullptr;
