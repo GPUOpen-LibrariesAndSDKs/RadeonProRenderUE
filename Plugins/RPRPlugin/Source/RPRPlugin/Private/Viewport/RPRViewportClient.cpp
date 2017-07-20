@@ -9,8 +9,12 @@
 #include "Slate/SceneViewport.h"
 #include "Engine/Texture2DDynamic.h"
 
+DEFINE_LOG_CATEGORY_STATIC(LogRPRViewportClient, Log, All);
+
 FRPRViewportClient::FRPRViewportClient(FRPRPluginModule *plugin)
-	: m_Plugin(plugin)
+:	m_Plugin(plugin)
+,	m_PrevMousePos(FIntPoint::ZeroValue)
+,	m_StartOrbit(false)
 {
 }
 
@@ -52,7 +56,26 @@ void	FRPRViewportClient::Draw(FViewport *viewport, FCanvas *canvas)
 
 bool	FRPRViewportClient::InputKey(FViewport *viewport, int32 controllerId, FKey key, EInputEvent e, float amountDepressed, bool gamepad)
 {
+	if (key == EKeys::LeftMouseButton)
+	{
+		if (e == IE_Pressed)
+		{
+			m_PrevMousePos = FIntPoint(m_Plugin->m_Viewport->GetMouseX(), m_Plugin->m_Viewport->GetMouseY());
+			m_StartOrbit = true;
+		}
+		else if (e == IE_Released)
+			m_StartOrbit = false;
+	}
 	return false;
+}
+
+void	FRPRViewportClient::CapturedMouseMove(FViewport *inViewport, int32 inMouseX, int32 inMouseY)
+{
+	if (!m_StartOrbit)
+		return;
+	m_Plugin->AddOrbitDelta(inMouseX - m_PrevMousePos.X, inMouseY - m_PrevMousePos.Y);
+	m_PrevMousePos.X = inMouseX;
+	m_PrevMousePos.Y = inMouseY;
 }
 
 bool	FRPRViewportClient::InputGesture(FViewport *viewport, EGestureEvent::Type gestureType, const FVector2D &gestureDelta, bool bIsDirectionInvertedFromDevice)

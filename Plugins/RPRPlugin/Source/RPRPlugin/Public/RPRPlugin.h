@@ -20,6 +20,11 @@ public:
 
 	const FString					&ActiveCameraName() const { return m_ActiveCameraName; }
 
+	void							ToggleOrbit();
+	bool							IsOrbitting() const { return m_OrbitEnabled; }
+	FIntPoint						OrbitDelta();
+	void							AddOrbitDelta(int32 X, int32 Y);
+
 	void							NotifyObjectBuilt();
 
 	UTexture2DDynamic				*GetRenderTexture() { return m_RenderTexture; }
@@ -51,6 +56,9 @@ private:
 	class UWorld			*m_EditorWorld;
 
 	TSharedPtr<FExtender>	m_Extender;
+
+	FIntPoint				m_OrbitDelta;
+	bool					m_OrbitEnabled;
 
 	bool					m_Loaded;
 };

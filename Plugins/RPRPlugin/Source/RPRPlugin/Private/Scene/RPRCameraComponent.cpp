@@ -16,6 +16,9 @@ URPRCameraComponent::URPRCameraComponent()
 ,	m_CachedAperture(0.0f)
 ,	m_CachedAspectRatio(0.0f)
 ,	m_CachedSensorSize(0.0f, 0.0f)
+,	m_Orbit(false)
+,	m_OrbitLocation(FVector::ZeroVector)
+,	m_OrbitCenter(FVector::ZeroVector)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
@@ -41,6 +44,42 @@ void	URPRCameraComponent::SetAsActiveCamera()
 	Scene->TriggerFrameRebuild();
 }
 
+void	URPRCameraComponent::SetOrbit(bool orbit)
+{
+	if (m_Orbit == orbit)
+		return;
+	if (SrcComponent == NULL)
+		return;
+	m_Orbit = !m_Orbit;
+	m_Sync = !m_Orbit;
+	if (m_RprCamera != NULL)
+	{
+		// We are building, it will be called later
+		if (RebuildTransforms())
+			Scene->TriggerFrameRebuild();
+	}
+	if (!m_Orbit)
+		return;
+
+	UWorld	*world = GetWorld();
+	check(world != NULL);
+
+	m_OrbitLocation = SrcComponent->ComponentToWorld.GetLocation();
+
+	static const float	kTraceDist = 10000000.0f;
+	FHitResult	hit;
+	const FVector	camDirection = SrcComponent->ComponentToWorld.GetRotation().GetForwardVector();
+	if (world->LineTraceSingleByChannel(hit, m_OrbitLocation, camDirection * kTraceDist, ECC_Visibility) &&
+		hit.bBlockingHit &&
+		hit.Component != NULL)
+	{
+		//m_OrbitCenter = hit.ImpactPoint;
+		m_OrbitCenter = hit.Component->ComponentToWorld.GetLocation();
+	}
+	else
+		m_OrbitCenter = FVector::ZeroVector;
+}
+
 FString	URPRCameraComponent::GetCameraName() const
 {
 	check(SrcComponent != NULL);
@@ -60,12 +99,7 @@ bool	URPRCameraComponent::Build()
 		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't create RPR camera"));
 		return false;
 	}
-	const float	exposure = 1.0f; // Get this from settings ?
-	FVector		camPos = SrcComponent->ComponentToWorld.GetLocation() * 0.1f;
-	FVector		forward = camPos + SrcComponent->ComponentToWorld.GetRotation().GetForwardVector();
-	if (!RefreshProperties(true) ||
-		rprCameraLookAt(m_RprCamera, camPos.X, camPos.Z, camPos.Y, forward.X, forward.Z, forward.Y, 0, 1, 0) != RPR_SUCCESS ||
-		rprCameraSetExposure(m_RprCamera, exposure) != RPR_SUCCESS)
+	if (!RefreshProperties(true))
 	{
 		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't set RPR camera properties"));
 		return false;
@@ -85,12 +119,25 @@ bool	URPRCameraComponent::RebuildTransforms()
 	if (Scene->m_ActiveCamera != this)
 		return false;
 
-	FVector	camPos = SrcComponent->ComponentToWorld.GetLocation() * 0.1f;
-	FVector	forward = camPos + SrcComponent->ComponentToWorld.GetRotation().GetForwardVector();
-	if (rprCameraLookAt(m_RprCamera, camPos.X, camPos.Z, camPos.Y, forward.X, forward.Z, forward.Y, 0.0f, 1.0f, 0.0f))
+	if (m_Orbit)
 	{
-		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't rebuild RPR camera transforms"));
-		return false;
+		FVector	camPos = m_OrbitLocation * 0.1f;
+		FVector	camLookAt = m_OrbitCenter * 0.1f;
+		if (rprCameraLookAt(m_RprCamera, camPos.X, camPos.Z, camPos.Y, camLookAt.X, camLookAt.Z, camLookAt.Y, 0.0f, 1.0f, 0.0f))
+		{
+			UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't rebuild RPR camera transforms"));
+			return false;
+		}
+	}
+	else
+	{
+		FVector	camPos = SrcComponent->ComponentToWorld.GetLocation() * 0.1f;
+		FVector	forward = camPos + SrcComponent->ComponentToWorld.GetRotation().GetForwardVector();
+		if (rprCameraLookAt(m_RprCamera, camPos.X, camPos.Z, camPos.Y, forward.X, forward.Z, forward.Y, 0.0f, 1.0f, 0.0f))
+		{
+			UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't rebuild RPR camera transforms"));
+			return false;
+		}
 	}
 	return true;
 }
@@ -118,6 +165,20 @@ void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FA
 	// There is PostEditChangeProperty but this is editor only
 	if (RefreshProperties(false))
 		Scene->TriggerFrameRebuild();
+
+	if (!m_Orbit)
+		return;
+	const FIntPoint	&orbitDelta = m_Plugin->OrbitDelta();
+	if (orbitDelta != FIntPoint::ZeroValue)
+	{
+		m_OrbitLocation -= m_OrbitCenter;
+		m_OrbitLocation = m_OrbitLocation.RotateAngleAxis(orbitDelta.Y, FVector(0.0f, -1.0f, 0.0f));
+		m_OrbitLocation = m_OrbitLocation.RotateAngleAxis(orbitDelta.X, FVector(0.0f, 0.0f, 1.0f));
+		m_OrbitLocation += m_OrbitCenter;
+
+		if (RebuildTransforms())
+			Scene->TriggerFrameRebuild();
+	}
 }
 
 bool	URPRCameraComponent::RefreshProperties(bool force)

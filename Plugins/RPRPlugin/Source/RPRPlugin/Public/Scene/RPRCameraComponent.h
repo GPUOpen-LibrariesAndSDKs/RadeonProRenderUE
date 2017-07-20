@@ -15,6 +15,7 @@ public:
 	URPRCameraComponent();
 
 	void			SetAsActiveCamera();
+	void			SetOrbit(bool orbit);
 	FString			GetCameraName() const;
 private:
 	virtual bool	Build() override;
@@ -32,4 +33,8 @@ private:
 	float						m_CachedAperture;
 	float						m_CachedAspectRatio;
 	FVector2D					m_CachedSensorSize;
+
+	bool		m_Orbit;
+	FVector		m_OrbitLocation;
+	FVector		m_OrbitCenter;
 };

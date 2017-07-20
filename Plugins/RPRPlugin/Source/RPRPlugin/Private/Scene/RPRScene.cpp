@@ -427,6 +427,7 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 			// IF in editor
 			SetActiveCamera(kViewportCameraName);
 		}
+		SetOrbit(m_Plugin->IsOrbitting());
 		TriggerFrameRebuild();
 
 		m_RenderTexture = m_Plugin->GetRenderTexture();
@@ -442,6 +443,16 @@ void	ARPRScene::OnPause()
 	if (!m_RendererWorker.IsValid())
 		return;
 	m_RendererWorker->SetPaused(true);
+}
+
+void	ARPRScene::SetOrbit(bool orbit)
+{
+	if (m_ActiveCamera == NULL)
+		return;
+	if (m_ActiveCamera == ViewportCameraComponent)
+		return; // Not handled for now
+	URPRCameraComponent	*comp = Cast<URPRCameraComponent>(m_ActiveCamera);
+	comp->SetOrbit(orbit);
 }
 
 void	ARPRScene::SetTrace(bool trace)

@@ -31,6 +31,8 @@ FRPRPluginModule::FRPRPluginModule()
 ,	m_ObjectBeingBuilt(0)
 ,	m_ObjectsToBuild()
 ,	m_RPRPaused(true)
+,	m_OrbitDelta(FIntPoint::ZeroValue)
+,	m_OrbitEnabled(false)
 ,	m_Loaded(false)
 {
 
@@ -67,6 +69,15 @@ void	FRPRPluginModule::NotifyObjectBuilt()
 		m_ObjectsToBuild = 0;
 		m_ObjectBeingBuilt = 0;
 	}
+}
+
+void	FRPRPluginModule::ToggleOrbit()
+{
+	m_OrbitEnabled = !m_OrbitEnabled;
+
+	ARPRScene	*scene = GetCurrentScene();
+	if (scene != NULL)
+		scene->SetOrbit(m_OrbitEnabled);
 }
 
 TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &spawnArgs)
@@ -212,6 +223,19 @@ void	FRPRPluginModule::StartupModule()
 		.SetDisplayName(LOCTEXT("TabTitle", "ProRender Viewport"))
 		.SetTooltipText(LOCTEXT("TooltipText", "Opens a Radeon ProRender viewport."))
 		.SetIcon(FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.Tabs.Viewports"));
+}
+
+FIntPoint	FRPRPluginModule::OrbitDelta()
+{
+	FIntPoint	delta = m_OrbitDelta;
+	m_OrbitDelta = FIntPoint::ZeroValue;
+	return delta;
+}
+
+void	FRPRPluginModule::AddOrbitDelta(int32 X, int32 Y)
+{
+	m_OrbitDelta.X += X;
+	m_OrbitDelta.Y += Y;
 }
 
 void	FRPRPluginModule::ShutdownModule()
