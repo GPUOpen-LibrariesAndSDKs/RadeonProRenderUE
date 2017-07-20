@@ -323,8 +323,11 @@ bool	URPRStaticMeshComponent::Build()
 	// like the camera or pawn etc
 	//	if (Cast<AStaticMeshActor>(SrcComponent->GetOwner()) == NULL)
 	//		return false;
-	if (Cast<ACameraActor>(SrcComponent->GetOwner()) != NULL ||
-		Cast<APawn>(SrcComponent->GetOwner()) != NULL)
+	static const FName	kStripTag = "RPR_Strip";
+	const AActor		*actor = SrcComponent->GetOwner();
+	if (Cast<ACameraActor>(actor) != NULL ||
+		Cast<APawn>(actor) != NULL ||
+		actor->ActorHasTag(kStripTag))
 		return false;
 
 	// Not sure if material systems should be created on a per mesh level or per section
