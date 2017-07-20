@@ -524,7 +524,8 @@ void	ARPRScene::Tick(float deltaTime)
 {
 	if (!m_RendererWorker.IsValid() ||
 		m_RenderTexture == NULL ||
-		m_RenderTexture->Resource == NULL)
+		m_RenderTexture->Resource == NULL ||
+		!m_Plugin->m_Viewport.IsValid())
 		return;
 
 	if (m_Plugin->RenderPaused())

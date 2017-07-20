@@ -73,6 +73,9 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 {
 	if (ensure(GEngine != NULL))
 	{
+		GEngine->OnWorldAdded().RemoveAll(this);
+		GEngine->OnWorldAdded().RemoveAll(this);
+
 		GEngine->OnWorldAdded().AddRaw(this, &FRPRPluginModule::OnWorldCreated);
 		GEngine->OnWorldDestroyed().AddRaw(this, &FRPRPluginModule::OnWorldDestroyed);
 
@@ -121,6 +124,9 @@ void	FRPRPluginModule::CreateMenuBarExtension(FMenuBarBuilder &menubarBuilder)
 void	FRPRPluginModule::OnWorldCreated(UWorld *inWorld)
 {
 	if (inWorld == NULL)
+		return;
+	if (inWorld == m_EditorWorld ||
+		inWorld == m_GameWorld)
 		return;
 	if (inWorld->WorldType == EWorldType::Game ||
 		inWorld->WorldType == EWorldType::PIE)
@@ -221,6 +227,11 @@ void	FRPRPluginModule::ShutdownModule()
 		ISettingsModule		*settingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
 		if (settingsModule != NULL)
 			settingsModule->UnregisterSettings("Project", "Plugins", "RadeonProRenderSettings");
+	}
+	if (GEngine != NULL)
+	{
+		GEngine->OnWorldAdded().RemoveAll(this);
+		GEngine->OnWorldAdded().RemoveAll(this);
 	}
 
 	// UE seem to automatically delete the resource

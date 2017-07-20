@@ -468,7 +468,7 @@ void	FRPRRendererWorker::ReleaseResources()
 		rprObjectDelete(m_RprNormalization);
 
 		m_RprWhiteBalance = NULL;
-		m_RprWhiteBalance = NULL;
+		m_RprGammaCorrection = NULL;
 		m_RprSimpleTonemap = NULL;
 		m_RprPhotolinearTonemap = NULL;
 		m_RprNormalization = NULL;
