@@ -91,7 +91,7 @@ void	FRPRRendererWorker::SaveToFile(const FString &filename)
 	{
 		// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
 		m_RenderLock.Lock();
-		const bool	saved = rprFrameBufferSaveToFile(m_RprResolvedFrameBuffer, TCHAR_TO_ANSI(*filename)) == RPR_SUCCESS;
+		const bool	saved = rprFrameBufferSaveToFile(/*m_RprResolvedFrameBuffer*/m_RprFrameBuffer, TCHAR_TO_ANSI(*filename)) == RPR_SUCCESS;
 		m_RenderLock.Unlock();
 
 		if (saved)
@@ -224,7 +224,7 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 	SCOPE_CYCLE_COUNTER(STAT_ProRender_Readback);
 
 	size_t	totalByteCount = 0;
-	if (rprFrameBufferGetInfo(m_RprResolvedFrameBuffer, RPR_FRAMEBUFFER_DATA, 0, NULL, &totalByteCount) != RPR_SUCCESS)
+	if (rprFrameBufferGetInfo(/*m_RprResolvedFrameBuffer*/m_RprFrameBuffer, RPR_FRAMEBUFFER_DATA, 0, NULL, &totalByteCount) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't get framebuffer infos"));
 		return false;
@@ -236,7 +236,7 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 		return false;
 	}
 	// Get framebuffer data
-	if (rprFrameBufferGetInfo(m_RprResolvedFrameBuffer, RPR_FRAMEBUFFER_DATA, totalByteCount, m_SrcFramebufferData.GetData(), NULL) != RPR_SUCCESS)
+	if (rprFrameBufferGetInfo(/*m_RprResolvedFrameBuffer*/m_RprFrameBuffer, RPR_FRAMEBUFFER_DATA, totalByteCount, m_SrcFramebufferData.GetData(), NULL) != RPR_SUCCESS)
 	{
 		// No frame ready yet
 		return false;
@@ -356,12 +356,12 @@ void	FRPRRendererWorker::UpdatePostEffectSettings()
 			rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_SIMPLE_TONEMAP, &m_RprSimpleTonemap) != RPR_SUCCESS ||
 			rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_TONE_MAP, &m_RprPhotolinearTonemap) != RPR_SUCCESS ||
 			rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_NORMALIZATION, &m_RprNormalization) != RPR_SUCCESS ||
-			rprContextAttachPostEffect(m_RprContext, m_RprGammaCorrection) != RPR_SUCCESS ||
-			rprContextAttachPostEffect(m_RprContext, m_RprWhiteBalance) != RPR_SUCCESS ||
+			rprContextAttachPostEffect(m_RprContext, m_RprNormalization) != RPR_SUCCESS ||
 			rprContextAttachPostEffect(m_RprContext, m_RprSimpleTonemap) != RPR_SUCCESS ||
 			rprContextAttachPostEffect(m_RprContext, m_RprPhotolinearTonemap) != RPR_SUCCESS ||
-			rprContextSetParameter1u(m_RprContext, "tonemapping.type", RPR_TONEMAPPING_OPERATOR_PHOTOLINEAR) != RPR_SUCCESS/* ||
-			rprContextAttachPostEffect(m_RprContext, m_RprNormalization) != RPR_SUCCESS*/)
+			rprContextAttachPostEffect(m_RprContext, m_RprWhiteBalance) != RPR_SUCCESS ||
+			rprContextAttachPostEffect(m_RprContext, m_RprGammaCorrection) != RPR_SUCCESS ||
+			rprContextSetParameter1u(m_RprContext, "tonemapping.type", RPR_TONEMAPPING_OPERATOR_PHOTOLINEAR) != RPR_SUCCESS)
 		{
 			UE_LOG(LogRPRRenderer, Error, TEXT("RPR Post effects creation failed"));
 			return;
@@ -369,7 +369,7 @@ void	FRPRRendererWorker::UpdatePostEffectSettings()
 	}
 	check(m_RprWhiteBalance != NULL);
 	check(m_RprGammaCorrection != NULL);
-	//check(m_RprNormalization != NULL);
+	check(m_RprNormalization != NULL);
 	check(m_RprPhotolinearTonemap != NULL);
 	check(m_RprSimpleTonemap != NULL);
 
@@ -459,16 +459,16 @@ void	FRPRRendererWorker::ReleaseResources()
 		check(m_RprGammaCorrection != NULL);
 		check(m_RprSimpleTonemap != NULL);
 		check(m_RprPhotolinearTonemap != NULL);
-		//check(m_RprNormalization != NULL);
+		check(m_RprNormalization != NULL);
 
 		rprObjectDelete(m_RprWhiteBalance);
 		rprObjectDelete(m_RprGammaCorrection);
 		rprObjectDelete(m_RprSimpleTonemap);
 		rprObjectDelete(m_RprPhotolinearTonemap);
-		//rprObjectDelete(m_RprNormalization);
+		rprObjectDelete(m_RprNormalization);
 
 		m_RprWhiteBalance = NULL;
-		m_RprWhiteBalance = NULL;
+		m_RprGammaCorrection = NULL;
 		m_RprSimpleTonemap = NULL;
 		m_RprPhotolinearTonemap = NULL;
 		m_RprNormalization = NULL;
