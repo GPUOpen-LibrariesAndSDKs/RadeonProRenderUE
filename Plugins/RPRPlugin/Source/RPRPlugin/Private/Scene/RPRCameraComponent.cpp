@@ -52,12 +52,6 @@ void	URPRCameraComponent::SetOrbit(bool orbit)
 		return;
 	m_Orbit = !m_Orbit;
 	m_Sync = !m_Orbit;
-	if (m_RprCamera != NULL)
-	{
-		// We are building, it will be called later
-		if (RebuildTransforms())
-			Scene->TriggerFrameRebuild();
-	}
 	if (!m_Orbit)
 		return;
 
@@ -78,6 +72,12 @@ void	URPRCameraComponent::SetOrbit(bool orbit)
 	}
 	else
 		m_OrbitCenter = FVector::ZeroVector;
+	if (m_RprCamera != NULL)
+	{
+		// We are building, it will be called later
+		if (RebuildTransforms())
+			Scene->TriggerFrameRebuild();
+	}
 }
 
 FString	URPRCameraComponent::GetCameraName() const
