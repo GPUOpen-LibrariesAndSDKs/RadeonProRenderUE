@@ -134,7 +134,7 @@ namespace rpr
 
 		// First create all rpr_material_node objects.
 		rpr_material_node rootMaterialNode = nullptr;
-		std::unordered_map<std::string, void*> materialNodes; // NOTE: Also contains rpr_image handles.
+		std::unordered_map<std::string, std::tuple<std::string, void*>> materialNodes; // NOTE: Also contains rpr_image handles.
 		auto& material = itr->second;
 		for (auto& node : material.nodes)
 		{
@@ -214,7 +214,7 @@ namespace rpr
 			    rprObjectSetName(handle, node.name.c_str());
 
 			// Store in node map.
-			materialNodes.emplace(node.name, handle);
+			materialNodes.emplace(node.name, std::make_tuple(node.type, handle));
 
 			// The very first node is the root.
 			if (!rootMaterialNode)
@@ -229,7 +229,7 @@ namespace rpr
 				continue;
 
 			// Retrieve the node's rpr_material_node handle.
-			auto handle = materialNodes.at(node.name);
+			auto handle = std::get<1>(materialNodes.at(node.name));
 
 			// Hook up all of the parameters.
 			for (auto& param : node.params)
@@ -238,11 +238,54 @@ namespace rpr
                 if (param.type == "connection")
                 {
                     // Handle IMAGE_TEXTURE node type case.
-                    auto value = materialNodes.at(param.value);
-                    if (value != nullptr)
+                    auto tuple = materialNodes.at(param.value);
+                    if (std::get<1>(tuple) != nullptr)
                     {
-                        if (node.type == "IMAGE_TEXTURE") rprMaterialNodeSetInputImageData(handle, param.name.c_str(), reinterpret_cast<rpr_image>(value));
-                        else rprMaterialNodeSetInputN(handle, param.name.c_str(), reinterpret_cast<rpr_material_node>(value));
+                        if (node.type == "IMAGE_TEXTURE")
+                        {
+                            auto data = std::get<1>(tuple);
+                            rpr_int result = rprMaterialNodeSetInputImageData(handle, param.name.c_str(), reinterpret_cast<rpr_image>(data));
+                            if (result != RPR_SUCCESS)
+                                UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputImageData failed (%d) param=%s value=%x"), result, UTF8_TO_TCHAR(param.name.c_str()), data);
+                        }
+                        else
+                        {
+                            // Handle older RPR XML format where INPUT_TEXTURE is fed directly into a material node's data or color connection.
+                            if (std::get<0>(tuple) == "INPUT_TEXTURE")
+                            {
+                                // First create an IMAGE_TEXTURE material node since XML file did not specify one between the target node and the INPUT_TEXTURE.
+                                rpr_material_node texture = nullptr;
+                                rpr_int result = rprMaterialSystemCreateNode(materialSystem, RPR_MATERIAL_NODE_IMAGE_TEXTURE, &texture);
+                                if (result != RPR_SUCCESS)
+                                {
+                                    UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialSystemCreateNode failed (%d) line %d"), result, __LINE__);
+                                }
+                                else
+                                {
+                                    // Second feed the INPUT_TEXTURE as input to the new IMAGE_TEXTURE node.
+                                    auto data = std::get<1>(tuple);
+                                    result = rprMaterialNodeSetInputImageData(texture, "data", reinterpret_cast<rpr_image>(data));
+                                    if (result != RPR_SUCCESS)
+                                    {
+                                        UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputImageData failed (%d) line %d"), result, __LINE__);
+                                    }
+                                    else
+                                    {
+                                        // Last connect the IMAGE_TEXTURE to the existing material node's input parameter.
+                                        rpr_int result = rprMaterialNodeSetInputN(handle, param.name.c_str(), texture);
+                                        if (result != RPR_SUCCESS)
+                                            UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputN failed (%d) param=%s line %d"), result, UTF8_TO_TCHAR(param.name.c_str()), __LINE__);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                auto data = std::get<1>(tuple);
+                                rpr_int result = rprMaterialNodeSetInputN(handle, param.name.c_str(), reinterpret_cast<rpr_material_node>(data));
+                                if (result != RPR_SUCCESS)
+                                    UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputN failed (%d) param=%s value=%x"), result, UTF8_TO_TCHAR(param.name.c_str()), data);
+                            }
+                        }
                     }
 				}
 				// Handle uint type which should never need to be replaced by an UE parameter value.
@@ -250,7 +293,9 @@ namespace rpr
 				{
 					rpr_uint value;
 					sscanf_s(param.value.c_str(), "%u", &value);
-					rprMaterialNodeSetInputU(handle, param.name.c_str(), value);
+					rpr_int result = rprMaterialNodeSetInputU(handle, param.name.c_str(), value);
+                    if (result != RPR_SUCCESS)
+                        UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputN failed (%d) param=%s value=%d"), result, UTF8_TO_TCHAR(param.name.c_str()), value);
 				}
 				// Handle floating point scalar and vector values.
 				else if (param.type.find("float") != std::string::npos)
@@ -270,7 +315,9 @@ namespace rpr
 						value[3] = newValue.A;
 					}
 
-					rprMaterialNodeSetInputF(handle, param.name.c_str(), value[0], value[1], value[2], value[3]);
+					rpr_int result = rprMaterialNodeSetInputF(handle, param.name.c_str(), value[0], value[1], value[2], value[3]);
+                    if (result != RPR_SUCCESS)
+                        UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputF failed (%d) param=%s value=%f,%f,%f,%f"), result, UTF8_TO_TCHAR(param.name.c_str()), value[0], value[1], value[2], value[3]);
 				}
 			}
 		}
@@ -317,6 +364,10 @@ namespace rpr
                 param.tag = childElem->Attribute("tag") ? childElem->Attribute("tag") : "";
                 param.type = childElem->Attribute("type");
                 param.value = childElem->Attribute("value");
+
+                // Special case for older XML format where BUMP_MAP param "data" was changed to "color".
+                if (node.type == "BUMP_MAP" && param.name == "data")
+                    param.name = "color";
 
                 // Add param to node.
                 node.params.push_back(param);
