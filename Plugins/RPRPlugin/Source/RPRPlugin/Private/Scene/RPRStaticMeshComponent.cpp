@@ -218,7 +218,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 #if RPR_UMS_INTEGRATION == 1
 		// currently do 1 material at a time with no node sharing
 		UE4InterchangeMaterialGraph *mg = nullptr;
-		mg = new UE4InterchangeMaterialGraph(parentMaterial);
+		mg = new UE4InterchangeMaterialGraph(matInterface, parentMaterial);
 
 		static char const UE4ImporterString[] = "UE4 Importer";
 		rpri::generic::IMaterialGraph* first = mg;

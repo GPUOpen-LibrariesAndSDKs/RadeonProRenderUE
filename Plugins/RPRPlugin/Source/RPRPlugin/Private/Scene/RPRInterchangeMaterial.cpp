@@ -14,6 +14,7 @@
 #include "Materials/MaterialExpressionTextureSample.h"
 #include "RPRCrackers.h"
 #include <sstream>
+#include <cassert>
 
 
 std::shared_ptr<rpri::generic::IMaterialNodeMux> 
@@ -176,24 +177,31 @@ void UE4InterchangeMaterialNode::ConvertTextureSampleExpression(
 {
 	if (con->Texture != nullptr)
 	{
-		auto image = std::make_shared<UE4InterchangeImage>(con->Texture);
-		auto sampler = std::make_shared<UE4InterchangeSampler>(con->Texture);
-		auto tex = std::make_shared<UE4InterchangeTexture>(sampler.get(), image.get());
-		_collection.imageStorage[image->GetId()] = image;
-		_collection.samplerStorage[sampler->GetId()] = sampler;
-		_collection.textureStorage[tex->GetId()] = tex;
-		texture = tex.get();
+		std::string texName = std::string(TCHAR_TO_ANSI(*con->Texture->GetName())) +
+								"Texture";
 
-		std::string valId = std::string(tex->GetId()) + "Mux";
-		auto texValue = UE4InterchangeMaterialValue::New(_collection, valId.c_str(), tex->GetId());
+		auto texIt = _collection.textureStorage.find(texName);
+		if(texIt == _collection.textureStorage.end())
+		{
+			auto image = std::make_shared<UE4InterchangeImage>(con->Texture);
+			auto sampler = std::make_shared<UE4InterchangeSampler>(con->Texture);
+			auto tex = std::make_shared<UE4InterchangeTexture>(sampler.get(), image.get());
+			_collection.imageStorage[image->GetId()] = image;
+			_collection.samplerStorage[sampler->GetId()] = sampler;
+			_collection.textureStorage[tex->GetId()] = tex;
+			texture = tex.get();
+		} else
+		{
+			texture = texIt->second.get();
+		}
+		auto texValue = UE4InterchangeMaterialValue::New(_collection, 
+													(texName + "Mux").c_str(), 
+													texName.c_str());
 
 		muxes.emplace_back(_collection.FindMux(texValue->GetId()));
 		inputNames.emplace_back("Tex");
-
 		values.push_back(texValue.get());
 		_collection.valueStorage[texValue->GetId()] = texValue;
-
-
 	} else
 	{
 		// look up TextureObject?
@@ -225,10 +233,19 @@ UE4InterchangeMaterialNode::UE4InterchangeMaterialNode(
 		// do the inputs 
 		for (int i = 0; i < _expression->GetInputs().Num(); ++i)
 		{
-			if (_expression->GetInput(i) == nullptr)
+			auto fname = FName(*expression->GetInputName(i));
+			FExpressionInput* input = _expression->GetInput(i);
+			float overF = 0.0f;
+			FLinearColor overCol;
+			bool overriden = false;
+			if (!overriden)
+				overriden = _collection.ue4MatInterface->GetScalarParameterValue(fname, overF);
+			if(!overriden)
+				overriden = _collection.ue4MatInterface->GetVectorParameterValue(fname, overCol);
+
+			if (input == nullptr)
 				continue;
 
-			FExpressionInput* input = _expression->GetInput(i);
 			auto name = TCHAR_TO_ANSI(*expression->GetInputName(i));
 			ConvertFExpressionInput(_collection, input, name);
 		}
@@ -284,13 +301,21 @@ UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collect
 
 	id = _id;
 
-	if (ue4Mat->BaseColor.UseConstant)
+	if ((ue4Mat->BaseColor.UseConstant) || 
+		(ue4Mat->BaseColor.Expression == nullptr))
 	{
 		std::string name = id + "BaseColor";
+		// give up assign a horrible color (maybe should match unreal
+		// default colour in release for minimal visible impact...)
+		FColor col = FColor(255, 255, 0, 255);
+		if(ue4Mat->BaseColor.UseConstant)
+		{
+			col = ue4Mat->BaseColor.Constant;
+		}
 
 		auto val = UE4InterchangeMaterialValue::New(_collection,
 													name.c_str(),
-													ue4Mat->BaseColor.Constant);
+													col);
 		auto muxPtr = _collection.FindMux(name.c_str());
 		assert(muxPtr);
 		muxes[0] = muxPtr;
@@ -301,8 +326,8 @@ UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collect
 		auto cName = TCHAR_TO_ANSI(*ue4Name);
 
 		auto mux = UE4InterchangeMaterialNode::New(_collection,
-													cName,
-													ue4Mat->BaseColor.Expression);
+			cName,
+			ue4Mat->BaseColor.Expression);
 		muxes[0] = mux;
 	}
 }
@@ -722,14 +747,17 @@ char const* UE4InterchangePBRNode::GetMetadata() const
 	return "";
 }
 
-UE4InterchangeMaterialGraph::UE4InterchangeMaterialGraph(const UMaterial* _ue4Mat)
-	: ue4Mat(_ue4Mat)
+UE4InterchangeMaterialGraph::UE4InterchangeMaterialGraph(
+	UMaterialInterface const * _ue4MatInterface,
+	UMaterial const * _ue4Mat)
+	: ue4MatInterface(_ue4MatInterface), ue4Mat(_ue4Mat)
 {
 	using namespace rpri::generic;
 
 	UEInterchangeCollection collection;
+	collection.ue4MatInterface = ue4MatInterface;
 
-	std::string name = TCHAR_TO_ANSI(*_ue4Mat->GetName());
+	std::string name = TCHAR_TO_ANSI(*ue4Mat->GetName());
 
 	// Interchange treats the destination PBR object as a node
 	rootNode = UE4InterchangePBRNode::New(collection, name + "PBRMaterial", this);
