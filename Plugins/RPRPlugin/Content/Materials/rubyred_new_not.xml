@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<material name="rubyred_new" version="0x10000244">
+<material name="rubyred_new_not" version="0x10000244">
     <description></description>
     <node name="Material #54" type="BLEND">
         <param name="color0" type="connection" value="Material #46"/>

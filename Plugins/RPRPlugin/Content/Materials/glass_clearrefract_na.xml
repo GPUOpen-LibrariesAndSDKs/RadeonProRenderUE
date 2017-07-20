@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<material name="glass_clearrefract_na" version="0x10000223">
+    <description></description>
+    <node name="glass_clearrefract_na" type="BLEND">
+        <param name="color0" type="connection" value="Material #30"/>
+        <param name="color1" type="connection" value="Material #31"/>
+        <param name="weight" type="connection" value="Map #176"/>
+    </node>
+    <node name="Material #30" type="REFRACTION">
+        <param name="color" type="float4" value="1, 1, 1, 0"/>
+        <param name="ior" type="float4" value="1.52, 1.52, 1.52, 0"/>
+    </node>
+    <node name="Material #31" type="REFLECTION">
+        <param name="color" type="float4" value="1, 1, 1, 0"/>
+    </node>
+    <node name="Map #176" type="FRESNEL">
+        <param name="ior" type="float4" value="1.52, 1.52, 1.52, 0"/>
+    </node>
+</material>
