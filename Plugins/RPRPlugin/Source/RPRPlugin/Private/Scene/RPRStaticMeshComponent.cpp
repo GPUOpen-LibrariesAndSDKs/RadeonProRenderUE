@@ -219,7 +219,8 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 
 			} else {
 
-#define RPR_UMS_INTEGRATION 1
+// CJH - UMS Crashes in the ford mustang scene
+#define RPR_UMS_INTEGRATION 0
 
 #if RPR_UMS_INTEGRATION == 1
 				// currently do 1 material at a time with no node sharing
