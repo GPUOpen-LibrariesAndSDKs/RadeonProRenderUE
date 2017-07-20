@@ -320,7 +320,7 @@ UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collect
 		assert(muxPtr);
 		muxes[0] = muxPtr;
 	}
-	else
+	else if (ue4Mat->BaseColor.Expression != nullptr)
 	{
 		auto ue4Name = ue4Mat->BaseColor.Expression->GetName();
 		auto cName = TCHAR_TO_ANSI(*ue4Name);
