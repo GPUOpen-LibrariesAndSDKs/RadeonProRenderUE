@@ -73,12 +73,30 @@ namespace rpr
         }
     }
 
+    void MaterialLibrary::AddImageSearchPaths(const std::string& paths)
+    {
+        // Paths can be multiple directory strings delimeted by ';'.
+        std::string temp = paths;
+        size_t pos = temp.find_first_of(';');
+        do
+        {
+            // Add the next path found before the first ';'.
+            std::string path = temp.substr(0, pos);
+            m_imageSearchPaths.push_back(path);
+            temp = temp.substr(pos + 1);
+            pos = temp.find_first_of(';');
+
+            // Add the last path.
+            if (pos == std::string::npos)
+                m_imageSearchPaths.push_back(temp);
+        } while (pos != std::string::npos);
+    }
+
     bool MaterialLibrary::HasMaterialName(const std::string& name)
     {
 		UE_LOG(LogMaterialLibrary, Log, TEXT("Looking for material library material %s"), UTF8_TO_TCHAR(name.c_str()));
         return (m_materialDescriptions.find(name) != m_materialDescriptions.end());
     }
-
 
 	rpr_material_node MaterialLibrary::CreateMaterial(const UMaterialInterface* ueMaterialInterfaceObject, rpr_context context, rpr_material_system materialSystem)
 	{
@@ -168,11 +186,15 @@ namespace rpr
 				}
 				else
 				{
-					// Load the RPR texture from disk.
-					std::string filename = material.directory + "/" + node.params[0].value;
-					rpr_int result = rprContextCreateImageFromFile(context, filename.c_str(), &reinterpret_cast<rpr_image>(handle));
-					if (result != RPR_SUCCESS)
-						UE_LOG(LogMaterialLibrary, Error, TEXT("rprContextCreateImageFromFile failed (%d) to load %s"), result, UTF8_TO_TCHAR(filename.c_str()));
+                    // Get the absolute path to the image on disk.  If it doesn't exist, then do nothing.
+                    std::string absoluteFilename = FindAbsoluteImagePath(material.directory, node.params[0].value);
+                    if (absoluteFilename.size() > 0)
+                    {
+                        // Load the RPR texture from disk.
+                        rpr_int result = rprContextCreateImageFromFile(context, absoluteFilename.c_str(), &reinterpret_cast<rpr_image>(handle));
+                        if (result != RPR_SUCCESS)
+                            UE_LOG(LogMaterialLibrary, Error, TEXT("rprContextCreateImageFromFile failed (%d) to load %s"), result, UTF8_TO_TCHAR(absoluteFilename.c_str()));
+                    }
 				}
 			}
 			else
@@ -188,7 +210,8 @@ namespace rpr
 			}
 
 			// Set a custom name for the node.
-			rprObjectSetName(handle, node.name.c_str());
+            if (handle)
+			    rprObjectSetName(handle, node.name.c_str());
 
 			// Store in node map.
 			materialNodes.emplace(node.name, handle);
@@ -212,11 +235,15 @@ namespace rpr
 			for (auto& param : node.params)
 			{
 				// For "connection" type, lookup the RPR handle.
-				if (param.type == "connection")
-				{
-					// Handle IMAGE_TEXTURE node type case.
-					if (node.type == "IMAGE_TEXTURE") rprMaterialNodeSetInputImageData(handle, param.name.c_str(), reinterpret_cast<rpr_image>(materialNodes.at(param.value)));
-					else rprMaterialNodeSetInputN(handle, param.name.c_str(), reinterpret_cast<rpr_material_node>(materialNodes.at(param.value)));
+                if (param.type == "connection")
+                {
+                    // Handle IMAGE_TEXTURE node type case.
+                    auto value = materialNodes.at(param.value);
+                    if (value != nullptr)
+                    {
+                        if (node.type == "IMAGE_TEXTURE") rprMaterialNodeSetInputImageData(handle, param.name.c_str(), reinterpret_cast<rpr_image>(value));
+                        else rprMaterialNodeSetInputN(handle, param.name.c_str(), reinterpret_cast<rpr_material_node>(value));
+                    }
 				}
 				// Handle uint type which should never need to be replaced by an UE parameter value.
 				else if (param.type == "uint")
@@ -312,5 +339,27 @@ namespace rpr
         // Add material to map.
         UE_LOG(LogMaterialLibrary, Log, TEXT("Loading XML File -> %s"), UTF8_TO_TCHAR(material.name.c_str()));
         m_materialDescriptions.emplace(std::make_pair(material.name, std::move(material)));
+    }
+
+    std::string MaterialLibrary::FindAbsoluteImagePath(const std::string& materialDirectory, const std::string& filename)
+    {
+        // If filename is already an absolute path return it as is.
+        fs::path path = filename;
+        if (path.is_absolute())
+            return filename;
+
+        // See if filename is relative to material directory.
+        if (fs::exists(materialDirectory + "/" + filename))
+            return materialDirectory + "/" + filename;
+
+        // Check image search paths.
+        for (auto& searchPath : m_imageSearchPaths)
+        {
+            if (fs::exists(searchPath + "/" + filename))
+                return searchPath + "/" + filename;
+        }
+
+        // File does not exist.
+        return "";
     }
 }

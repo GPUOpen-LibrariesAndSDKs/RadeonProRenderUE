@@ -411,7 +411,10 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
         // Initialize material library for UE material to RPR replacement.     
         m_materialLibrary.AddDirectory(TCHAR_TO_ANSI(*(FPaths::GameDir() + "/Plugins/RPRPlugin/Content/Materials")));
 
-		outObjectToBuildCount = BuildScene();
+        // Add image search paths to material library.
+        m_materialLibrary.AddImageSearchPaths(TCHAR_TO_ANSI(*settings->ImageSearchPaths));
+		
+        outObjectToBuildCount = BuildScene();
 
 		// IF in editor
 		if (!BuildViewportCamera())

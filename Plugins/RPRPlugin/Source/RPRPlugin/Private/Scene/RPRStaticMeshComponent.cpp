@@ -138,7 +138,6 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 				const UMaterialInstance* matInstance = Cast<UMaterialInstance>(matInterface);
 				if (matInterface && matInstance)
                 {
- 
                     UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\t[SCALARS]:"));
                     for (auto& param : matInstance->ScalarParameterValues)
                     {

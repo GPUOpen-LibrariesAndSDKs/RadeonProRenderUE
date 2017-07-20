@@ -21,12 +21,16 @@ namespace rpr
 
         void AddDirectory(const std::string& path); 
 
+        void AddImageSearchPaths(const std::string& paths);
+
         bool HasMaterialName(const std::string& name);
         
 		rpr_material_node CreateMaterial(const UMaterialInterface* ueMaterialInstance, rpr_context context, rpr_material_system materialSystem);
 
     private:
         void LoadMaterialXML(const std::string& filename);
+
+        std::string FindAbsoluteImagePath(const std::string& materialDirectory, const std::string& filename);
 
         struct Param
         {
@@ -53,6 +57,7 @@ namespace rpr
             std::unordered_set<std::string> taggedParams;
         };
 
+        std::vector<std::string> m_imageSearchPaths;
         std::unordered_map<std::string, Material> m_materialDescriptions;
     };
 }
