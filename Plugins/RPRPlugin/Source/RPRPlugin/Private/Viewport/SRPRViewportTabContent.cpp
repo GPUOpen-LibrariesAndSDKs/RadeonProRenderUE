@@ -461,7 +461,8 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 				
 					SAssignNew(m_ViewportWidget, SViewport)
 					.IsEnabled(true)
-					.EnableBlending(true)
+					.EnableBlending(false)
+					.EnableGammaCorrection(false)
 				]
 				+ SOverlay::Slot()
 				.VAlign(VAlign_Bottom)

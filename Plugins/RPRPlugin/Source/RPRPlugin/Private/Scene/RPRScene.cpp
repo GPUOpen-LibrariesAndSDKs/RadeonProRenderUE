@@ -248,7 +248,7 @@ bool	ARPRScene::ResizeRenderTarget()
 
 	if (width != m_RenderTexture->SizeX || height != m_RenderTexture->SizeY)
 	{
-		m_RenderTexture->Init(width, height, PF_R8G8B8A8);
+		m_RenderTexture->Init(width, height, PF_R8G8B8A8, true);
 		m_RendererWorker->ResizeFramebuffer(m_RenderTexture->SizeX, m_RenderTexture->SizeY);
 	}
 	m_TriggerEndFrameResize = false;

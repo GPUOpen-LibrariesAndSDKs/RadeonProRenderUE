@@ -44,7 +44,7 @@ void	FRPRViewportClient::Draw(FViewport *viewport, FCanvas *canvas)
 		static const FLinearColor	kImageTint(1.0f, 1.0f, 1.0f);
 		FCanvasTileItem		tileItem(renderOffset, renderTexture->Resource, textureDimensions, kImageTint);
 
-		tileItem.BlendMode = SE_BLEND_AlphaBlend;
+		tileItem.BlendMode = SE_BLEND_Opaque;
 		tileItem.BatchedElementParameters = batchedElementParameters;
 		canvas->DrawItem(tileItem);
 	}
