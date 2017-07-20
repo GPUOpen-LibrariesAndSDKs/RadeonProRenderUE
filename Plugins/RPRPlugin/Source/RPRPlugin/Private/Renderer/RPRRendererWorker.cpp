@@ -249,10 +249,10 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 	check(pixelCount == totalByteCount / 16);
 	for (uint32 i = 0; i < pixelCount; ++i)
 	{
-		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++ * 255.0f, 255.0f);
-		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++ * 255.0f, 255.0f);
-		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++ * 255.0f, 255.0f);
-		*dstPixels++ = FGenericPlatformMath::Min(*srcPixels++ * 255.0f, 255.0f);
+		*dstPixels++ = FMath::Clamp(*srcPixels++ * 255.0f, 0.0f, 255.0f);
+		*dstPixels++ = FMath::Clamp(*srcPixels++ * 255.0f, 0.0f, 255.0f);
+		*dstPixels++ = FMath::Clamp(*srcPixels++ * 255.0f, 0.0f, 255.0f);
+		*dstPixels++ = FMath::Clamp(*srcPixels++ * 255.0f, 0.0f, 255.0f);
 	}
 	m_DataLock.Unlock();
 	return true;
