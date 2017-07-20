@@ -25,7 +25,7 @@ void	URPRSceneComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 {
 	Super::TickComponent(deltaTime, tickType, tickFunction);
 
-	if (!m_Built || !m_Sync)
+	if (!m_Built)
 		return;
 	check(Scene != NULL);
 	if (SrcComponent == NULL)
@@ -34,6 +34,8 @@ void	URPRSceneComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 		Scene->RemoveActor(Cast<ARPRActor>(GetOwner()));
 		return;
 	}
+	if (!m_Sync)
+		return;
 	check(m_Plugin != NULL);
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
 	check(settings != NULL);

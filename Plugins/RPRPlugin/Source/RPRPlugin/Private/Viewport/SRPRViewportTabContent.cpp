@@ -53,6 +53,12 @@ FReply	SRPRViewportTabContent::OnToggleSync()
 	return FReply::Handled();
 }
 
+FReply	SRPRViewportTabContent::OnToggleOrbit()
+{
+	m_Plugin->ToggleOrbit();
+	return FReply::Handled();
+}
+
 FReply	SRPRViewportTabContent::OnToggleDisplayPostEffectProperties()
 {
 	m_DisplayPostEffects = !m_DisplayPostEffects;
@@ -109,6 +115,13 @@ const FSlateBrush	*SRPRViewportTabContent::GetSyncIcon() const
 	if (m_Settings->bSync)
 		return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.SyncOn").GetIcon();
 	return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.SyncOff").GetIcon();
+}
+
+const FSlateBrush	*SRPRViewportTabContent::GetOrbitIcon() const
+{
+	if (m_Plugin->IsOrbitting())
+		return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.CameraOrbitOn").GetIcon();
+	return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.CameraOrbitOff").GetIcon();
 }
 
 const FSlateBrush	*SRPRViewportTabContent::GetDisplayPostEffectPropertiesIcon() const
@@ -366,6 +379,21 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 				[
 					SNew(SImage)
 					.Image(FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.Save").GetIcon())
+				]
+			]
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(2.0f)
+			[
+				SNew(SButton)
+				.ButtonStyle(FEditorStyle::Get(), "FlatButton")
+				.Text(LOCTEXT("ToggleOrbitLabel", "Orbit"))
+				.ToolTipText(LOCTEXT("OrbitTooltip", "Toggles current camera orbitting."))
+				.OnClicked(this, &SRPRViewportTabContent::OnToggleOrbit)
+				.Content()
+				[
+					SNew(SImage)
+					.Image(this, &SRPRViewportTabContent::GetOrbitIcon)
 				]
 			]
 			+ SHorizontalBox::Slot()

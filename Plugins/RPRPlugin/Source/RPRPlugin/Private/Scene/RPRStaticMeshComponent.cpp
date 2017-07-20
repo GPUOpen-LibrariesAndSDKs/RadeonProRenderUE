@@ -445,6 +445,8 @@ bool	URPRStaticMeshComponent::Build()
 			m_Shapes.Add(shapes[iShape]);
 	}
 
+	static const FName		kPrimaryOnly("RPR_NoBlock");
+	const bool				primaryOnly = !(staticMeshComponent->ComponentHasTag(kPrimaryOnly) || actor->ActorHasTag(kPrimaryOnly));
 	const uint32			shapeCount = m_Shapes.Num();
 	RadeonProRender::matrix	matrix = BuildMatrixWithScale(SrcComponent->ComponentToWorld);
 	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
@@ -452,6 +454,7 @@ bool	URPRStaticMeshComponent::Build()
 		rpr_shape	shape = m_Shapes[iShape].m_RprShape;
 		if (rprShapeSetTransform(shape, RPR_TRUE, &matrix.m00) != RPR_SUCCESS ||
 			rprShapeSetVisibility(shape, staticMeshComponent->IsVisible()) != RPR_SUCCESS ||
+			rprShapeSetVisibilityPrimaryOnly(shape, primaryOnly) != RPR_SUCCESS ||
 			rprShapeSetShadow(shape, staticMeshComponent->bCastStaticShadow) != RPR_SUCCESS ||
 			rprSceneAttachShape(Scene->m_RprScene, shape) != RPR_SUCCESS)
 		{

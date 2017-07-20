@@ -19,6 +19,7 @@ private:
 	FReply					OnToggleRender();
 	FReply					OnToggleSync();
 	FReply					OnSave();
+	FReply					OnToggleOrbit();
 	FReply					OnToggleTrace();
 	FReply					OnToggleDisplayPostEffectProperties();
 
@@ -31,6 +32,7 @@ private:
 	void					OnMegaPixelChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo);
 	void					OnRefreshCameraList();
 
+	const FSlateBrush		*GetOrbitIcon() const;
 	const FSlateBrush		*GetDisplayPostEffectPropertiesIcon() const;
 	const FSlateBrush		*GetSyncIcon() const;
 	const FSlateBrush		*GetRenderIcon() const;

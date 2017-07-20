@@ -382,8 +382,8 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 			numDevices += (creationFlags & s) != 0;
 
 		if (rprCreateContext(RPR_API_VERSION, &tahoePluginId, 1, creationFlags, NULL, TCHAR_TO_ANSI(*settings->RenderCachePath), &m_RprContext) != RPR_SUCCESS ||
-			rprContextSetParameter1u(m_RprContext, "aasamples", numDevices) != RPR_SUCCESS/* ||
-			rprContextSetParameter1u(m_RprContext, "preview", 1) != RPR_SUCCESS*/)
+			rprContextSetParameter1u(m_RprContext, "aasamples", numDevices) != RPR_SUCCESS ||
+			rprContextSetParameter1u(m_RprContext, "preview", 1) != RPR_SUCCESS)
 		{
 			UE_LOG(LogRPRScene, Error, TEXT("RPR Context creation failed: check your OpenCL runtime and driver versions."));
 			return;
@@ -427,6 +427,7 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 			// IF in editor
 			SetActiveCamera(kViewportCameraName);
 		}
+		SetOrbit(m_Plugin->IsOrbitting());
 		TriggerFrameRebuild();
 
 		m_RenderTexture = m_Plugin->GetRenderTexture();
@@ -442,6 +443,16 @@ void	ARPRScene::OnPause()
 	if (!m_RendererWorker.IsValid())
 		return;
 	m_RendererWorker->SetPaused(true);
+}
+
+void	ARPRScene::SetOrbit(bool orbit)
+{
+	if (m_ActiveCamera == NULL)
+		return;
+	if (m_ActiveCamera == ViewportCameraComponent)
+		return; // Not handled for now
+	URPRCameraComponent	*comp = Cast<URPRCameraComponent>(m_ActiveCamera);
+	comp->SetOrbit(orbit);
 }
 
 void	ARPRScene::SetTrace(bool trace)

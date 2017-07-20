@@ -38,6 +38,8 @@ public:
 	void	OnSave();
 	void	SetTrace(bool trace);
 
+	void	SetOrbit(bool orbit);
+
 	void	RemoveActor(ARPRActor *actor);
 	void	FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames);
 	void	SetActiveCamera(const FString &cameraName);
