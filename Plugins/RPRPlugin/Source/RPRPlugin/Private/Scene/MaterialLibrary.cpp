@@ -241,8 +241,18 @@ namespace rpr
                     auto value = materialNodes.at(param.value);
                     if (value != nullptr)
                     {
-                        if (node.type == "IMAGE_TEXTURE") rprMaterialNodeSetInputImageData(handle, param.name.c_str(), reinterpret_cast<rpr_image>(value));
-                        else rprMaterialNodeSetInputN(handle, param.name.c_str(), reinterpret_cast<rpr_material_node>(value));
+                        if (node.type == "IMAGE_TEXTURE")
+                        {
+                            rpr_int result = rprMaterialNodeSetInputImageData(handle, param.name.c_str(), reinterpret_cast<rpr_image>(value));
+                            if (result != RPR_SUCCESS)
+                                UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputImageData failed (%d) param=%s value=%x"), result, UTF8_TO_TCHAR(param.name.c_str()), value);
+                        }
+                        else
+                        {
+                            rpr_int result = rprMaterialNodeSetInputN(handle, param.name.c_str(), reinterpret_cast<rpr_material_node>(value));
+                            if (result != RPR_SUCCESS)
+                                UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputN failed (%d) param=%s value=%x"), result, UTF8_TO_TCHAR(param.name.c_str()), value);
+                        }
                     }
 				}
 				// Handle uint type which should never need to be replaced by an UE parameter value.
@@ -250,7 +260,9 @@ namespace rpr
 				{
 					rpr_uint value;
 					sscanf_s(param.value.c_str(), "%u", &value);
-					rprMaterialNodeSetInputU(handle, param.name.c_str(), value);
+					rpr_int result = rprMaterialNodeSetInputU(handle, param.name.c_str(), value);
+                    if (result != RPR_SUCCESS)
+                        UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputN failed (%d) param=%s value=%d"), result, UTF8_TO_TCHAR(param.name.c_str()), value);
 				}
 				// Handle floating point scalar and vector values.
 				else if (param.type.find("float") != std::string::npos)
@@ -270,7 +282,9 @@ namespace rpr
 						value[3] = newValue.A;
 					}
 
-					rprMaterialNodeSetInputF(handle, param.name.c_str(), value[0], value[1], value[2], value[3]);
+					rpr_int result = rprMaterialNodeSetInputF(handle, param.name.c_str(), value[0], value[1], value[2], value[3]);
+                    if (result != RPR_SUCCESS)
+                        UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputF failed (%d) param=%s value=%f,%f,%f,%f"), result, UTF8_TO_TCHAR(param.name.c_str()), value[0], value[1], value[2], value[3]);
 				}
 			}
 		}
