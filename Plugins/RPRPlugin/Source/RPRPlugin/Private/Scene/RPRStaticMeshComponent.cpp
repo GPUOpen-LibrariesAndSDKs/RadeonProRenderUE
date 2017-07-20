@@ -327,7 +327,8 @@ bool	URPRStaticMeshComponent::Build()
 	const AActor		*actor = SrcComponent->GetOwner();
 	if (Cast<ACameraActor>(actor) != NULL ||
 		Cast<APawn>(actor) != NULL ||
-		actor->ActorHasTag(kStripTag))
+		actor->ActorHasTag(kStripTag) ||
+		SrcComponent->ComponentHasTag(kStripTag))
 		return false;
 
 	// Not sure if material systems should be created on a per mesh level or per section
