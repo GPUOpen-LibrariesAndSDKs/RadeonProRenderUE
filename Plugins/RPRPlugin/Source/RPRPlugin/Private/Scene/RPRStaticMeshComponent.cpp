@@ -159,7 +159,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
                 }
 
 				// We have a match - go ahead and use the relevent material.
-				rpr_material_node xmlMaterial = Scene->m_materialLibrary.CreateMaterial(matInterface, m_RprSupportCtx, m_RprMaterialSystem);
+				rpr_material_node xmlMaterial = Scene->m_materialLibrary.CreateMaterial(matInterface, Scene->m_RprContext, m_RprMaterialSystem);
 				
 				// If we failed to create the xmlMaterial, go ahead with red default one and just log the error
 				if (!xmlMaterial) {

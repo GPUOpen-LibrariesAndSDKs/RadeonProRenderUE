@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<material name="machinedaluminium" version="0x10000223">
+
+    <description></description>
+
+    <node name="machinedaluminium" type="MICROFACET">
+
+        <param name="color" type="float4" value="0.533333, 0.533333, 0.533333, 0"/>
+
+        <param name="normal" type="connection" value="Map #180"/>
+
+        <param name="roughness" type="float4" value="0.05, 0.05, 0.05, 0"/>
+
+    </node>
+
+    <node name="Map #180" type="BUMP_MAP">
+
+        <param name="color" type="connection" value="box0"/>
+
+        <param name="bumpscale" type="float4" value="0.01, 0.01, 0.01, 0"/>
+
+    </node>
+
+    <node name="box0" type="INPUT_TEXTURE">
+
+        <param name="path" type="file_path" value="RadeonProRMaps/metal_scratch2.png"/>
+
+    </node>
+
+</material>

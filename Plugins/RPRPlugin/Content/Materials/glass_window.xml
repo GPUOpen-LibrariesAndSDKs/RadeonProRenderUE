@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<material name="BasicYellowGlass" version="0x10000223">
+<material name="glass_window" version="0x10000223">
     <description></description>
     <node name="Glass_Solid_Clear" type="BLEND">
         <param name="color0" type="connection" value="Material #30"/>
