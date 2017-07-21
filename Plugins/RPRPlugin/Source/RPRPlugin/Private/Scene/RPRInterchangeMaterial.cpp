@@ -748,11 +748,11 @@ char const* UE4InterchangePBRNode::GetMetadata() const
 }
 
 UE4InterchangeMaterialGraph::UE4InterchangeMaterialGraph(
-	UMaterialInterface const * _ue4MatInterface,
-	UMaterial const * _ue4Mat)
-	: ue4MatInterface(_ue4MatInterface), ue4Mat(_ue4Mat)
+	UMaterialInterface const * _ue4MatInterface )
+	: ue4MatInterface(_ue4MatInterface)
 {
 	using namespace rpri::generic;
+	ue4Mat = ue4MatInterface->GetMaterial();
 
 	UEInterchangeCollection collection;
 	collection.ue4MatInterface = ue4MatInterface;
