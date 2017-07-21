@@ -264,6 +264,8 @@ public:
 	float GetComponent2DAsFloat(size_t _x, size_t _y, size_t _comp) const override;
 	uint8_t GetComponent2DAsUint8(size_t _x, size_t _y, size_t _comp) const override;
 
+	void GetBulk2DAsFloats(float * _dest) const;
+
 
 	char const* GetMetadata() const override;
 protected:

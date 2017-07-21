@@ -330,6 +330,34 @@ UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collect
 			ue4Mat->BaseColor.Expression);
 		muxes[0] = mux;
 	}
+
+	if ((ue4Mat->Metallic.UseConstant) ||
+		(ue4Mat->Metallic.Expression == nullptr))
+	{
+		std::string name = id + "Metallic";
+		float metal = 0.5f;
+		if (ue4Mat->Metallic.UseConstant)
+		{
+			metal = ue4Mat->Metallic.Constant;
+		}
+
+		auto val = UE4InterchangeMaterialValue::New(_collection,
+			name.c_str(),
+			metal);
+		auto muxPtr = _collection.FindMux(name.c_str());
+		assert(muxPtr);
+		muxes[1] = muxPtr;
+	}
+	else if (ue4Mat->Metallic.Expression != nullptr)
+	{
+		auto ue4Name = ue4Mat->Metallic.Expression->GetName();
+		auto cName = TCHAR_TO_ANSI(*ue4Name);
+
+		auto mux = UE4InterchangeMaterialNode::New(_collection,
+			cName,
+			ue4Mat->Metallic.Expression);
+		muxes[1] = mux;
+	}
 }
 IMaterialValuePtr UE4InterchangeMaterialValue::New(
 	UEInterchangeCollection & _collection, char const * _id, float _a)
@@ -988,6 +1016,32 @@ std::string UE4InterchangeImage::GetOriginalPath() const
 	return txt;
 }
 
+void UE4InterchangeImage::GetBulk2DAsFloats(float * _dest) const
+{	
+	FTextureSource & source = ueTexture->Source;
+	FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
+	if (plats != nullptr)
+	{
+		FTexturePlatformData * plat0 = plats[0];
+		FTexture2DMipMap const mip = plat0->Mips[0];
+		EPixelFormat const format = plat0->PixelFormat;
+		void const * rawData = mip.BulkData.LockReadOnly();
+
+		switch (format)
+		{
+		case PF_R32_FLOAT:
+		case PF_G32R32F:
+		case PF_A32B32G32R32F: {
+			// easy case just a memcpy
+			memcpy(_dest, rawData, mip.BulkData.GetBulkDataSize());
+			break; }
+		}
+
+		mip.BulkData.Unlock();
+
+	}
+}
+
 float UE4InterchangeImage::GetComponent2DAsFloat(size_t _x, size_t _y, size_t _comp) const
 {
 	FTextureSource & source = ueTexture->Source;
@@ -1011,8 +1065,6 @@ float UE4InterchangeImage::GetComponent2DAsFloat(size_t _x, size_t _y, size_t _c
 		{
 		case PF_G32R32F:
 		case PF_R32_FLOAT:
-		case PF_FloatRGB:
-		case PF_FloatRGBA:
 		case PF_A32B32G32R32F: {
 			float const * srcData = reinterpret_cast<float const*>(src);
 			float r = srcData[_comp];
@@ -1123,6 +1175,8 @@ float UE4InterchangeImage::GetComponent2DAsFloat(size_t _x, size_t _y, size_t _c
 		case PF_G16R16F:
 		case PF_R16F_FILTER:
 		case PF_G16R16F_FILTER:
+		case PF_FloatRGB:
+		case PF_FloatRGBA:
 			break;
 
 		case PF_FloatR11G11B10:
