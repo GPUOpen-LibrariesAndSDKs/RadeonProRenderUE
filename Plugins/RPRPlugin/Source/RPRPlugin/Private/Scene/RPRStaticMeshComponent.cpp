@@ -128,6 +128,8 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		}
 		// Attempt to map UE material to one in the Radeon ProRender material library loaded from disk.
 		const char* materialName = TCHAR_TO_ANSI(*matInterface->GetName());
+
+		bool isMaterialInstance = Cast<UMaterialInstance>(matInterface) != NULL;
 		if (Scene->m_materialLibrary.HasMaterialName(materialName))
 		{
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("Found %s"), UTF8_TO_TCHAR(materialName));
@@ -216,7 +218,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 			continue;
 		}
 		if (Scene->m_UMSControl.IsMaterialUMSEnabled(materialName)) {
-			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("UMS Enabled for %s"), UTF8_TO_TCHAR(materialName));
+			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("UMS Enabled for %s%s"), UTF8_TO_TCHAR(materialName),UTF8_TO_TCHAR(isMaterialInstance?" (Instance)":" NOT INSTANCE"));
 
 			// currently do 1 material at a time with no node sharing
 			UE4InterchangeMaterialGraph *mg = nullptr;
