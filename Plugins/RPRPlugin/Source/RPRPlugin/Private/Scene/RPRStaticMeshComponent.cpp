@@ -336,24 +336,27 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		rpr_shape shape = m_Shapes[iShape].m_RprShape;
 		auto indexIt = indexToMgIndexMap.find(m_Shapes[iShape].m_UEMaterialIndex);
 
-		rpriExportRprMaterialResult const & result = resultArray[indexIt->second];
-		if (result.type == 0)
-		{
-			rpr_material_node rprMatNode = reinterpret_cast<rpr_material_node>(result.data);
-			rpr_int status = rprShapeSetMaterial(shape, rprMatNode);
-		}
-		else
-		{
-			rprx_material rprMatX = reinterpret_cast<rprx_material>(result.data);
-			rpr_int status = rprxShapeAttachMaterial(m_RprSupportCtx, shape, rprMatX);
-			if (status != RPR_SUCCESS)
+		// DEAN - I assume that this case means it is not a UMS case and its ok to do nothing.
+		if (indexIt != indexToMgIndexMap.end()) {
+			rpriExportRprMaterialResult const & result = resultArray[indexIt->second];
+			if (result.type == 0)
 			{
-				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR X material to the RPR shape"));
+				rpr_material_node rprMatNode = reinterpret_cast<rpr_material_node>(result.data);
+				rpr_int status = rprShapeSetMaterial(shape, rprMatNode);
 			}
-			status = rprxMaterialCommit(m_RprSupportCtx, rprMatX);
-			if (status != RPR_SUCCESS)
+			else
 			{
-				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't commit RPR X material"));
+				rprx_material rprMatX = reinterpret_cast<rprx_material>(result.data);
+				rpr_int status = rprxShapeAttachMaterial(m_RprSupportCtx, shape, rprMatX);
+				if (status != RPR_SUCCESS)
+				{
+					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR X material to the RPR shape"));
+				}
+				status = rprxMaterialCommit(m_RprSupportCtx, rprMatX);
+				if (status != RPR_SUCCESS)
+				{
+					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't commit RPR X material"));
+				}
 			}
 		}
 
