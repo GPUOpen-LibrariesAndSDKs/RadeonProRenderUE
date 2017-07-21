@@ -40,6 +40,7 @@ public:
 	void	OnSave();
 	void	SetTrace(bool trace);
 
+	void	StartOrbitting(const FIntPoint &mousePos);
 	void	SetOrbit(bool orbit);
 
 	void	RemoveActor(ARPRActor *actor);

@@ -238,6 +238,25 @@ void	FRPRPluginModule::AddOrbitDelta(int32 X, int32 Y)
 	m_OrbitDelta.Y += Y;
 }
 
+int32	FRPRPluginModule::Zoom()
+{
+	const int32	zoom = m_Zoom;
+	m_Zoom = 0;
+	return zoom;
+}
+
+void	FRPRPluginModule::AddZoom(int32 zoom)
+{
+	m_Zoom += zoom;
+}
+
+void	FRPRPluginModule::StartOrbitting(const FIntPoint &mousePos)
+{
+	ARPRScene	*scene = GetCurrentScene();
+	if (scene != NULL)
+		scene->StartOrbitting(mousePos);
+}
+
 void	FRPRPluginModule::ShutdownModule()
 {
 	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(TEXT("RPRViewport"));

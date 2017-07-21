@@ -61,11 +61,16 @@ bool	FRPRViewportClient::InputKey(FViewport *viewport, int32 controllerId, FKey 
 		if (e == IE_Pressed)
 		{
 			m_PrevMousePos = FIntPoint(m_Plugin->m_Viewport->GetMouseX(), m_Plugin->m_Viewport->GetMouseY());
+			m_Plugin->StartOrbitting(m_PrevMousePos);
 			m_StartOrbit = true;
 		}
 		else if (e == IE_Released)
 			m_StartOrbit = false;
 	}
+	else if (key == EKeys::MouseScrollUp)
+		m_Plugin->AddZoom(1);
+	else if (key == EKeys::MouseScrollDown)
+		m_Plugin->AddZoom(-1);
 	return false;
 }
 

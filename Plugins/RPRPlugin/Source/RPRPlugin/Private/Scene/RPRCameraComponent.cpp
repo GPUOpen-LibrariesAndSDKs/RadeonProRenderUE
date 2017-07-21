@@ -52,8 +52,6 @@ void	URPRCameraComponent::SetOrbit(bool orbit)
 		return;
 	m_Orbit = !m_Orbit;
 	m_Sync = !m_Orbit;
-	if (!m_Orbit)
-		return;
 
 	UWorld	*world = GetWorld();
 	check(world != NULL);
@@ -78,6 +76,29 @@ void	URPRCameraComponent::SetOrbit(bool orbit)
 		if (RebuildTransforms())
 			Scene->TriggerFrameRebuild();
 	}
+}
+
+void	URPRCameraComponent::StartOrbitting(const FIntPoint &mousePos)
+{
+	if (!m_Orbit)
+		return; // shouldn't be here
+
+	/*UWorld	*world = GetWorld();
+	check(world != NULL);
+
+	FVector4 ScreenPos = View->PixelToScreen(X, Y, 0);
+
+	const FMatrix InvViewMatrix = View->ViewMatrices.GetInvViewMatrix();
+	const FMatrix InvProjMatrix = View->ViewMatrices.GetInvProjectionMatrix();
+
+	const float ScreenX = ScreenPos.X;
+	const float ScreenY = ScreenPos.Y;
+
+	ViewportClient = InViewportClient;
+
+	Origin = View->ViewMatrices.GetViewOrigin();
+	Direction = InvViewMatrix.TransformVector(FVector(InvProjMatrix.TransformFVector4(FVector4(ScreenX * GNearClippingPlane, ScreenY * GNearClippingPlane, 0.0f, GNearClippingPlane)))).GetSafeNormal();
+	*/
 }
 
 FString	URPRCameraComponent::GetCameraName() const
@@ -168,6 +189,25 @@ void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FA
 
 	if (!m_Orbit)
 		return;
+	const int32			zoom = m_Plugin->Zoom();
+	static const float	kMinOrbitDist = 100.0f; // One meter
+	static const float	kMaxOrbitDist = 100000.0f; // One kilometer
+	static const float	kScrollSpeed = 10.0f;
+	if (zoom != 0)
+	{
+		FVector	dir = FVector(m_OrbitCenter - m_OrbitLocation).GetSafeNormal();
+		check(dir != FVector::ZeroVector);
+
+		FVector		newLocation = m_OrbitLocation + dir * zoom * kScrollSpeed;
+		const float distance = FVector(m_OrbitCenter - newLocation).Size();
+
+		if (distance < kMaxOrbitDist && distance > kMinOrbitDist)
+		{
+			m_OrbitLocation = newLocation;
+			if (RebuildTransforms())
+				Scene->TriggerFrameRebuild();
+		}
+	}
 	const FIntPoint	&orbitDelta = m_Plugin->OrbitDelta();
 	if (orbitDelta != FIntPoint::ZeroValue)
 	{

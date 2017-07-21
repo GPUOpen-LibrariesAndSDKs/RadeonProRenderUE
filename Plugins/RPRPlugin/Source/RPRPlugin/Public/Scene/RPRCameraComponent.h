@@ -16,6 +16,7 @@ public:
 
 	void			SetAsActiveCamera();
 	void			SetOrbit(bool orbit);
+	void			StartOrbitting(const FIntPoint &mousePos);
 	FString			GetCameraName() const;
 private:
 	virtual bool	Build() override;
