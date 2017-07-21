@@ -212,8 +212,12 @@ void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FA
 	const FIntPoint	panningDelta = m_Plugin->PanningDelta();
 	if (panningDelta != FIntPoint::ZeroValue)
 	{
-		const FVector	&rightVector = -SrcComponent->ComponentToWorld.GetRotation().GetRightVector() * panningDelta.X;
-		const FVector	&upVector = SrcComponent->ComponentToWorld.GetRotation().GetUpVector() * panningDelta.Y;
+		FVector			upVector(0.0f, 0.0f, 1.0f);
+		FVector			forwardVector = FVector(m_OrbitCenter - m_OrbitLocation).GetSafeNormal();
+		check(forwardVector != FVector::ZeroVector);
+
+		const FVector	&rightVector = (forwardVector ^ upVector) * panningDelta.X;
+		upVector *= panningDelta.Y;
 
 		m_OrbitLocation += rightVector + upVector;
 		m_OrbitCenter += rightVector + upVector;
