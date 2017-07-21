@@ -255,7 +255,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 			continue;
 		}
 
-		if (Scene->m_UMSControl.IsMaterialUMSEnabled(materialName))
+		if (Scene->m_UMSControl.IsMaterialUMSEnabled(materialName) ) //|| true)
 		{
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("UMS Enabled for %s"), UTF8_TO_TCHAR(materialName));
 
@@ -282,11 +282,18 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 	std::map<uint32_t, size_t> indexToMgIndexMap;
 	for(auto&& mat : matIndexToRPRMat)
 	{
-		UMaterialInterface const *matInterface = component->GetMaterial(mat.first);
-		mgs.emplace_back(new UE4InterchangeMaterialGraph(matInterface));
-		indexToMgIndexMap[mat.first] = mgs.size() - 1;
+		if (mat.second.type == 0xFFFF)
+		{
+			UMaterialInterface const *matInterface = component->GetMaterial(mat.first);
+			mgs.emplace_back(new UE4InterchangeMaterialGraph(matInterface));
+			indexToMgIndexMap[mat.first] = mgs.size() - 1;
+		}
 	}
 
+	if (mgs.empty())
+	{
+		return true;
+	}
 	static char const UE4ImporterString[] = "UE4 Importer";
 	rpri::generic::IMaterialGraph* first = mgs[0];
 	rpriImportProperty importProps[] = {
