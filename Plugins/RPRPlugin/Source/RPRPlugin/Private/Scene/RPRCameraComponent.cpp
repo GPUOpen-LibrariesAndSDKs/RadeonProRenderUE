@@ -190,11 +190,12 @@ void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FA
 	if (!m_Orbit)
 		return;
 	const int32			zoom = m_Plugin->Zoom();
-	static const float	kMinOrbitDist = 100.0f; // One meter
-	static const float	kMaxOrbitDist = 100000.0f; // One kilometer
-	static const float	kScrollSpeed = 10.0f;
 	if (zoom != 0)
 	{
+		static const float	kMinOrbitDist = 100.0f; // One meter
+		static const float	kMaxOrbitDist = 100000.0f; // One kilometer
+		static const float	kScrollSpeed = 10.0f;
+
 		FVector	dir = FVector(m_OrbitCenter - m_OrbitLocation).GetSafeNormal();
 		check(dir != FVector::ZeroVector);
 
@@ -208,11 +209,23 @@ void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FA
 				Scene->TriggerFrameRebuild();
 		}
 	}
-	const FIntPoint	&orbitDelta = m_Plugin->OrbitDelta();
+	const FIntPoint	panningDelta = m_Plugin->PanningDelta();
+	if (panningDelta != FIntPoint::ZeroValue)
+	{
+		const FVector	&rightVector = -SrcComponent->ComponentToWorld.GetRotation().GetRightVector() * panningDelta.X;
+		const FVector	&upVector = SrcComponent->ComponentToWorld.GetRotation().GetUpVector() * panningDelta.Y;
+
+		m_OrbitLocation += rightVector + upVector;
+		m_OrbitCenter += rightVector + upVector;
+
+		if (RebuildTransforms())
+			Scene->TriggerFrameRebuild();
+	}
+	const FIntPoint	orbitDelta = m_Plugin->OrbitDelta();
 	if (orbitDelta != FIntPoint::ZeroValue)
 	{
 		m_OrbitLocation -= m_OrbitCenter;
-		m_OrbitLocation = m_OrbitLocation.RotateAngleAxis(orbitDelta.Y, FVector(0.0f, -1.0f, 0.0f));
+		m_OrbitLocation = m_OrbitLocation.RotateAngleAxis(orbitDelta.Y, FVector(SrcComponent->ComponentToWorld.GetRotation().GetRightVector()));
 		m_OrbitLocation = m_OrbitLocation.RotateAngleAxis(orbitDelta.X, FVector(0.0f, 0.0f, 1.0f));
 		m_OrbitLocation += m_OrbitCenter;
 
