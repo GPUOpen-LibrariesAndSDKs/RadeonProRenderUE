@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<umscontrol>
+    <matchall value="false"/>
+    <enable material="rubber_dark_Inst"/>
+    <enable material="smooth_ax_chrome_sm300h"/>
+    <enable material="smooth_ax_darkgrey_plastic" value="true"/>
+    <enable material="smooth_am_badgechrome_na" value="false"/>
+    <enable material="BasicRed"/>
+</umscontrol>

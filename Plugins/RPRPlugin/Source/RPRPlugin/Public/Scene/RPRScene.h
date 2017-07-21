@@ -8,6 +8,7 @@
 #include "RPRSettings.h"
 #include "GameFramework/Actor.h"
 #include "MaterialLibrary.h"
+#include "UMSControl.h"
 #include "RPRScene.generated.h"
 
 /**
@@ -30,6 +31,7 @@ public:
 	rpr_scene		m_RprScene;
 
 	rpr::MaterialLibrary m_materialLibrary;
+	rpr::UMSControl m_UMSControl;
 	
 	class URPRSceneComponent	*m_ActiveCamera;
 
