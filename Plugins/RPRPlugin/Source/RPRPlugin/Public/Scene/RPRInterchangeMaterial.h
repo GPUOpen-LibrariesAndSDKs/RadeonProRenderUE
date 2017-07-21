@@ -208,8 +208,7 @@ private:
 class UE4InterchangeMaterialGraph : public rpri::generic::IMaterialGraph
 {
 public:
-	UE4InterchangeMaterialGraph(UMaterialInterface const * _ue4MatInterface,
-								UMaterial const * _ue4Mat);
+	UE4InterchangeMaterialGraph(UMaterialInterface const * _ue4MatInterface);
 
 	char const* GetId() const override;
 	char const* GetName() const override;

@@ -6,6 +6,7 @@
 #include "Components/SceneComponent.h"
 #include "Scene/RPRSceneComponent.h"
 #include "RprSupport.h"
+#include <RadeonProRenderInterchange.h>
 #include "RPRStaticMeshComponent.generated.h"
 
 struct	SRPRCachedMesh
@@ -42,6 +43,8 @@ public:
 private:
 	static TMap<UStaticMesh*, TArray<SRPRCachedMesh>>	Cache;
 	static void											CleanCache();
+	rpr_material_node CreateDefaultDummyShapeMaterial(uint32 iShape);
+	rpr_material_node CreateXMLShapeMaterial(uint32 iShape, class UMaterialInterface const * matInterface);
 
 	TArray<SRPRCachedMesh>	GetMeshInstances(UStaticMesh *mesh);
 	bool					BuildMaterials();
@@ -51,6 +54,7 @@ private:
 private:
 	rpr_material_system	m_RprMaterialSystem;
 	rprx_context		m_RprSupportCtx;
+	rpriContext			m_RpriContext;
 
 	TArray<SRPRShape>	m_Shapes;
 };
