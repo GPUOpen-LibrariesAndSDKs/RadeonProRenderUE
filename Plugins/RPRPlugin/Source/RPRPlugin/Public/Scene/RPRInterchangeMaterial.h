@@ -61,16 +61,19 @@ public:
 
 	static IMaterialNodeMuxPtr New(	UEInterchangeCollection & _collection,
 									std::string const & _id,
-									UMaterialExpression * _expression);
+									UMaterialExpression * _expression,
+									FName const _fname = "");
 private:
 	friend IMaterialNodeMuxPtr ConvertUMaterialExpression(
 									UEInterchangeCollection & _collection,
 									std::string const & _id,
-									UMaterialExpression * _expression);
+									UMaterialExpression * _expression,
+									FName const _fname);
 
 	void ConvertFExpressionInput(UEInterchangeCollection& _collection, 
 								FExpressionInput* _input,
-								char const *_name);
+								char const *_name,
+								FName const _fname = "");
 	void ConvertTextureSampleExpression(UEInterchangeCollection& _collection, UMaterialExpressionTextureSample* con);
 	UE4InterchangeMaterialNode(UEInterchangeCollection & _collection,
 								std::string const & _id,
@@ -264,8 +267,8 @@ public:
 	float GetComponent2DAsFloat(size_t _x, size_t _y, size_t _comp) const override;
 	uint8_t GetComponent2DAsUint8(size_t _x, size_t _y, size_t _comp) const override;
 
-	bool GetBulk2DAsFloats(float * _dest) const;
-	bool GetBulk2DAsUint8(uint8_t * _dest) const;
+	bool GetBulk2DAsFloats(float * _dest) const override;
+	bool GetBulk2DAsUint8(uint8_t * _dest) const override;
 
 
 	char const* GetMetadata() const override;
