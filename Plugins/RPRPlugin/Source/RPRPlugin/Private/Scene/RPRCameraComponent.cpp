@@ -92,22 +92,37 @@ void	URPRCameraComponent::StartOrbitting(const FIntPoint &mousePos)
 	if (!m_Orbit)
 		return; // shouldn't be here
 
-	/*UWorld	*world = GetWorld();
+	UWorld	*world = GetWorld();
 	check(world != NULL);
 
-	FVector4 ScreenPos = View->PixelToScreen(X, Y, 0);
-
-	const FMatrix InvViewMatrix = View->ViewMatrices.GetInvViewMatrix();
-	const FMatrix InvProjMatrix = View->ViewMatrices.GetInvProjectionMatrix();
-
-	const float ScreenX = ScreenPos.X;
-	const float ScreenY = ScreenPos.Y;
-
-	ViewportClient = InViewportClient;
-
-	Origin = View->ViewMatrices.GetViewOrigin();
-	Direction = InvViewMatrix.TransformVector(FVector(InvProjMatrix.TransformFVector4(FVector4(ScreenX * GNearClippingPlane, ScreenY * GNearClippingPlane, 0.0f, GNearClippingPlane)))).GetSafeNormal();
-	*/
+	static const float	kTraceDist = 10000000.0f;
+	FHitResult	hit;
+	const FVector	camDirection = (m_OrbitCenter - m_OrbitLocation).GetSafeNormal();
+	check(camDirection != FVector::ZeroVector);
+	m_OrbitCenter = FVector::ZeroVector;
+	if (world->LineTraceSingleByChannel(hit, m_OrbitLocation, camDirection * kTraceDist, ECC_Visibility) &&
+		hit.bBlockingHit)
+	{
+		if (hit.Actor != NULL)
+		{
+			FVector	origin;
+			FVector	extent;
+			// This doesn't get child actor components bounds
+			// If we really want to do this, we 'll need to recurse call this on all childs...
+			hit.Actor->GetActorBounds(false, origin, extent);
+			m_OrbitCenter = origin;
+		}
+		else if (hit.Component != NULL)
+		{
+			m_OrbitCenter = hit.Component->ComponentToWorld.GetLocation();
+		}
+	}
+	if (m_RprCamera != NULL)
+	{
+		// We are building, it will be called later
+		if (RebuildTransforms())
+			Scene->TriggerFrameRebuild();
+	}
 }
 
 FString	URPRCameraComponent::GetCameraName() const
