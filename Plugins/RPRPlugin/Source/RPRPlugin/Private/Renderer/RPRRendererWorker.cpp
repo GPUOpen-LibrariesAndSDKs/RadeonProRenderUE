@@ -180,7 +180,7 @@ void	FRPRRendererWorker::SetQualitySettings(ERPRQualitySettings qualitySettings)
 	{
 		case	ERPRQualitySettings::Interactive:
 		{
-			numRayBounces = 1;
+			numRayBounces = 3;
 			break;
 		}
 		case	ERPRQualitySettings::Low:
