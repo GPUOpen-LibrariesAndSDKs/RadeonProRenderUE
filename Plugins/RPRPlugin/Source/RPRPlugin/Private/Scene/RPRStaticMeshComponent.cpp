@@ -187,7 +187,7 @@ rpr_material_node URPRStaticMeshComponent::CreateXMLShapeMaterial(uint32 iShape,
 
 	return xmlMaterial;
 }
-
+#pragma optimize("",off)
 bool	URPRStaticMeshComponent::BuildMaterials()
 {
 	const UStaticMeshComponent	*component = Cast<UStaticMeshComponent>(SrcComponent);
@@ -280,13 +280,22 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 
 	std::vector<rpri::generic::IMaterialGraph*> mgs;
 	std::map<uint32_t, size_t> indexToMgIndexMap;
+	std::map<UMaterialInterface const *,size_t> uniqueUeMatInterfaces;
 	for(auto&& mat : matIndexToRPRMat)
 	{
 		if (mat.second.type == 0xFFFF)
 		{
 			UMaterialInterface const *matInterface = component->GetMaterial(mat.first);
-			mgs.emplace_back(new UE4InterchangeMaterialGraph(matInterface));
-			indexToMgIndexMap[mat.first] = mgs.size() - 1;
+			auto uniqIt = uniqueUeMatInterfaces.find(matInterface);
+			if (uniqIt == uniqueUeMatInterfaces.end())
+			{
+				mgs.emplace_back(new UE4InterchangeMaterialGraph(matInterface));
+				indexToMgIndexMap[mat.first] = mgs.size() - 1;
+				uniqueUeMatInterfaces[matInterface] = mgs.size() - 1;
+			} else
+			{
+				indexToMgIndexMap[mat.first] = uniqIt->second;
+			}
 		}
 	}
 
@@ -295,11 +304,10 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		return true;
 	}
 	static char const UE4ImporterString[] = "UE4 Importer";
-	rpri::generic::IMaterialGraph* first = mgs[0];
 	rpriImportProperty importProps[] = {
 		{ "Import", reinterpret_cast<uintptr_t>(UE4ImporterString) },
 		{ "Num Materials", mgs.size() },
-		{ "Material Import Array", reinterpret_cast<uintptr_t>(first) }
+		{ "Material Import Array", reinterpret_cast<uintptr_t>(mgs.data()) }
 	};
 	uint32_t const numImportProps = sizeof(importProps) / sizeof(importProps[0]);
 
@@ -335,6 +343,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 	{
 		rpr_shape shape = m_Shapes[iShape].m_RprShape;
 		auto indexIt = indexToMgIndexMap.find(m_Shapes[iShape].m_UEMaterialIndex);
+		if(indexIt == indexToMgIndexMap.end()) continue;
 
 		// DEAN - I assume that this case means it is not a UMS case and its ok to do nothing.
 		if (indexIt != indexToMgIndexMap.end()) {
@@ -369,6 +378,8 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 
 	return true;
 }
+
+#pragma optimize("",on)
 
 bool	URPRStaticMeshComponent::Build()
 {

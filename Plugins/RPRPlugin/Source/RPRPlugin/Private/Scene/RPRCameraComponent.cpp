@@ -57,19 +57,28 @@ void	URPRCameraComponent::SetOrbit(bool orbit)
 	check(world != NULL);
 
 	m_OrbitLocation = SrcComponent->ComponentToWorld.GetLocation();
+	m_OrbitCenter = FVector::ZeroVector;
 
 	static const float	kTraceDist = 10000000.0f;
 	FHitResult	hit;
 	const FVector	camDirection = SrcComponent->ComponentToWorld.GetRotation().GetForwardVector();
 	if (world->LineTraceSingleByChannel(hit, m_OrbitLocation, camDirection * kTraceDist, ECC_Visibility) &&
-		hit.bBlockingHit &&
-		hit.Component != NULL)
+		hit.bBlockingHit)
 	{
-		//m_OrbitCenter = hit.ImpactPoint;
-		m_OrbitCenter = hit.Component->ComponentToWorld.GetLocation();
+		if (hit.Actor != NULL)
+		{
+			FVector	origin;
+			FVector	extent;
+			// This doesn't get child actor components bounds
+			// If we really want to do this, we 'll need to recurse call this on all childs...
+			hit.Actor->GetActorBounds(false, origin, extent);
+			m_OrbitCenter = origin;
+		}
+		else if (hit.Component != NULL)
+		{
+			m_OrbitCenter = hit.Component->ComponentToWorld.GetLocation();
+		}
 	}
-	else
-		m_OrbitCenter = FVector::ZeroVector;
 	if (m_RprCamera != NULL)
 	{
 		// We are building, it will be called later

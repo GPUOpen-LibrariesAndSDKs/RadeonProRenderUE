@@ -1016,7 +1016,7 @@ std::string UE4InterchangeImage::GetOriginalPath() const
 	return txt;
 }
 
-void UE4InterchangeImage::GetBulk2DAsFloats(float * _dest) const
+bool UE4InterchangeImage::GetBulk2DAsFloats(float * _dest) const
 {	
 	FTextureSource & source = ueTexture->Source;
 	FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
@@ -1027,19 +1027,177 @@ void UE4InterchangeImage::GetBulk2DAsFloats(float * _dest) const
 		EPixelFormat const format = plat0->PixelFormat;
 		void const * rawData = mip.BulkData.LockReadOnly();
 
+		int elementCount = 0;
+		int remap[4] = { 0, 1, 2, 3 };
+
 		switch (format)
 		{
 		case PF_R32_FLOAT:
-		case PF_G32R32F:
 		case PF_A32B32G32R32F: {
 			// easy case just a memcpy
 			memcpy(_dest, rawData, mip.BulkData.GetBulkDataSize());
 			break; }
+		case PF_A8: 
+		case PF_L8:
+		case PF_G8:
+		case PF_R8_UINT:
+			elementCount = 1; 
+			remap[0] = 0; 
+			goto ByteToFloatCopyLabel;
+		case PF_R8G8:
+		case PF_V8U8:
+			elementCount = 2; 
+			remap[0] = 0; remap[1] = 1;
+			goto ByteToFloatCopyLabel;
+		case PF_R8G8B8A8: 
+			elementCount = 4; 
+			remap[0] = 0; remap[1] = 1; remap[2] = 2; remap[3] = 3;
+			goto ByteToFloatCopyLabel;
+		case PF_A8R8G8B8:
+			elementCount = 4;
+			remap[0] = 1; remap[1] = 2; remap[2] = 2; remap[3] = 0;
+			goto ByteToFloatCopyLabel;
+		case PF_B8G8R8A8:
+			elementCount = 4;
+			remap[0] = 2; remap[1] = 1; remap[2] = 0; remap[3] = 3;
+			goto ByteToFloatCopyLabel;
+
+		ByteToFloatCopyLabel: {
+			assert(mip.BulkData.GetElementSize() == elementCount);
+			for (int y = 0; y < mip.SizeY; ++y)
+			{
+				uint8_t const * src = (uint8_t*)rawData;
+				src = src + (y * mip.SizeX * elementCount);
+
+				for (int x = 0; x < mip.SizeX; ++x)
+				{
+					static const float oneOver255 = 1.0f / 255.0f;
+					switch(elementCount)
+					{
+					case 4: *_dest = float(*(src+remap[0])) * oneOver255; _dest++;
+					case 3: *_dest = float(*(src+remap[1])) * oneOver255; _dest++;
+					case 2: *_dest = float(*(src+remap[2])) * oneOver255; _dest++;
+					case 1: *_dest = float(*(src+remap[3])) * oneOver255; _dest++;
+						break;
+					default:;
+					}
+					src += elementCount;
+				}
+			}
+			break; }
+
+		default:
+			mip.BulkData.Unlock();
+			return false; // bulk can't handle it
 		}
-
 		mip.BulkData.Unlock();
-
+		return true;
 	}
+	return false; // bulk can't handle it
+}
+
+bool UE4InterchangeImage::GetBulk2DAsUint8(uint8_t * _dest) const
+{
+	FTextureSource & source = ueTexture->Source;
+	FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
+	if (plats != nullptr)
+	{
+		FTexturePlatformData * plat0 = plats[0];
+		FTexture2DMipMap const mip = plat0->Mips[0];
+		EPixelFormat const format = plat0->PixelFormat;
+		void const * rawData = mip.BulkData.LockReadOnly();
+
+		int elementCount = 0;
+		int remap[4] = { 0, 1, 2, 3 };
+
+		switch (format)
+		{
+		case PF_R32_FLOAT:
+			elementCount = 1;
+			remap[0] = 0;
+			goto FloatToByteCopyLabel;
+		case PF_A32B32G32R32F:
+			elementCount = 4;
+			remap[0] = 1; remap[1] = 2; remap[2] = 2; remap[3] = 0;
+			goto FloatToByteCopyLabel;
+		FloatToByteCopyLabel: {
+			assert(mip.BulkData.GetElementSize() == elementCount);
+			for (int y = 0; y < mip.SizeY; ++y)
+			{
+				float const * src = (float*)rawData;
+				src = src + (y * mip.SizeX * elementCount);
+
+				for (int x = 0; x < mip.SizeX; ++x)
+				{
+					switch (elementCount)
+					{
+					case 4: *_dest = uint8_t(*(src + remap[0])*255.0f); _dest++;
+					case 3: *_dest = uint8_t(*(src + remap[1])*255.0f); _dest++;
+					case 2: *_dest = uint8_t(*(src + remap[2])*255.0f); _dest++;
+					case 1: *_dest = uint8_t(*(src + remap[3])*255.0f); _dest++;
+						break;
+					default:;
+					}
+					src += elementCount;
+				}
+			}
+			break; }
+							 
+		case PF_L8:
+		case PF_G8:
+		case PF_R8_UINT:
+			elementCount = 1;
+			remap[0] = 0;
+			goto ByteToByteCopyLabel;
+		case PF_R8G8:
+		case PF_V8U8:
+			elementCount = 2;
+			remap[0] = 0; remap[1] = 1;
+			goto ByteToByteCopyLabel;
+		case PF_R8G8B8A8:
+			elementCount = 4;
+			remap[0] = 0; remap[1] = 1; remap[2] = 2; remap[3] = 3;
+			goto ByteToByteCopyLabel;
+		case PF_A8R8G8B8:
+			elementCount = 4;
+			remap[0] = 1; remap[1] = 2; remap[2] = 2; remap[3] = 0;
+			goto ByteToByteCopyLabel;
+		case PF_B8G8R8A8:
+			elementCount = 4;
+			remap[0] = 2; remap[1] = 1; remap[2] = 0; remap[3] = 3;
+			goto ByteToByteCopyLabel;
+
+		ByteToByteCopyLabel: {
+			assert(mip.BulkData.GetElementSize() == elementCount);
+			for (int y = 0; y < mip.SizeY; ++y)
+			{
+				uint8_t const * src = (uint8_t*)rawData;
+				src = src + (y * mip.SizeX * elementCount);
+
+				for (int x = 0; x < mip.SizeX; ++x)
+				{
+					switch (elementCount)
+					{
+					case 4: *_dest = *(src + remap[0]); _dest++;
+					case 3: *_dest = *(src + remap[1]); _dest++;
+					case 2: *_dest = *(src + remap[2]); _dest++;
+					case 1: *_dest = *(src + remap[3]); _dest++;
+						break;
+					default:;
+					}
+					src += elementCount;
+				}
+			}
+			break; }
+
+		default:
+			mip.BulkData.Unlock();
+			return false; // bulk can't handle it
+		}
+		mip.BulkData.Unlock();
+		return true;
+	}
+	return false; // bulk can't handle it
 }
 
 float UE4InterchangeImage::GetComponent2DAsFloat(size_t _x, size_t _y, size_t _comp) const
