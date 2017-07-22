@@ -208,8 +208,10 @@ bool	URPRLightComponent::RebuildTransforms()
 			break;
 		case RPR_LIGHT_TYPE_DIRECTIONAL:
 		case RPR_LIGHT_TYPE_SPOT:
-		case RPR_LIGHT_TYPE_ENVIRONMENT:
 			SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(-90.0f, 90.0f, 0.0f)));
+			break;
+		case RPR_LIGHT_TYPE_ENVIRONMENT:
+			SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 0.0f, 90.0f)));
 			break;
 		case RPR_LIGHT_TYPE_IES:
 			SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 90.0f, 0.0f)));
