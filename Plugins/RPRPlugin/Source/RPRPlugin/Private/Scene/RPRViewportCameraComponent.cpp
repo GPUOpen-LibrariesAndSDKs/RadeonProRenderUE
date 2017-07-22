@@ -11,6 +11,13 @@ URPRViewportCameraComponent::URPRViewportCameraComponent()
 :	m_RprCamera(NULL)
 ,	m_CachedCameraPos(FVector::ZeroVector)
 ,	m_CachedCameraLookAt(FVector::ZeroVector)
+,	m_CachedIsLocked(false)
+,	m_CachedProjectionMode(ECameraProjectionMode::Perspective)
+,	m_CachedFocalLength(0.0f)
+,	m_CachedFocusDistance(0.0f)
+,	m_CachedAperture(0.0f)
+,	m_CachedAspectRatio(0.0f)
+,	m_CachedSensorSize(0.0f, 0.0f)
 {
 	m_Sync = false;
 	PrimaryComponentTick.bCanEverTick = true;
@@ -79,16 +86,110 @@ bool	URPRViewportCameraComponent::RebuildCameraTransforms()
 		return false;
 	FLevelEditorViewportClient	*client = (FLevelEditorViewportClient*)GEditor->GetActiveViewport()->GetClient();
 
-	FVector	camPos = client->GetViewLocation() * 0.1f;
-	FVector	camLookAt = client->GetLookAtLocation() * 0.1f;
-	if (camPos.Equals(m_CachedCameraPos, 0.0001f) && camLookAt.Equals(m_CachedCameraLookAt, 0.0001f))
-		return false;
-	m_CachedCameraPos = camPos;
-	m_CachedCameraLookAt = camLookAt;
-	if (rprCameraLookAt(m_RprCamera, camPos.X, camPos.Z, camPos.Y, camLookAt.X, camLookAt.Z, camLookAt.Y, 0, 1, 0) != RPR_SUCCESS)
+	UCameraComponent		*cam = NULL;
+	UCineCameraComponent	*cineCam = NULL;
+	const bool	force = client->bLockedCameraView != m_CachedIsLocked;
+	m_CachedIsLocked = client->bLockedCameraView;
+	if (client->bLockedCameraView)
 	{
-		UE_LOG(LogRPRViewportCameraComponent, Warning, TEXT("Couldn't set RPR camera transforms"));
-		return false;
+		cam = client->GetCameraComponentForView();
+		cineCam = Cast<UCineCameraComponent>(cam);
+	}
+	if (cam != NULL)
+	{
+		if (force ||
+			cam->AspectRatio != m_CachedAspectRatio)
+		{
+			m_CachedAspectRatio = cam->AspectRatio;
+			Scene->TriggerResize();
+		}
+		bool	refresh = false;
+		if (force ||
+			cam->ProjectionMode != m_CachedProjectionMode)
+		{
+			const bool	orthoCam = cam->ProjectionMode == ECameraProjectionMode::Orthographic;
+			if (rprCameraSetMode(m_RprCamera, orthoCam ? RPR_CAMERA_MODE_ORTHOGRAPHIC : RPR_CAMERA_MODE_PERSPECTIVE) != RPR_SUCCESS)
+			{
+				UE_LOG(LogRPRViewportCameraComponent, Warning, TEXT("Couldn't set camera properties"));
+				return false;
+			}
+			m_CachedProjectionMode = cam->ProjectionMode;
+			refresh = true;
+		}
+		FVector	camPos = cam->ComponentToWorld.GetLocation() * 0.1f;
+		FVector	camLookAt = camPos + cam->ComponentToWorld.GetRotation().GetForwardVector();
+		if (force ||
+			!camPos.Equals(m_CachedCameraPos, 0.0001f) ||
+			!camLookAt.Equals(m_CachedCameraLookAt, 0.0001f))
+		{
+			if (rprCameraLookAt(m_RprCamera, camPos.X, camPos.Z, camPos.Y, camLookAt.X, camLookAt.Z, camLookAt.Y, 0.0f, 1.0f, 0.0f) != RPR_SUCCESS)
+			{
+				UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't rebuild RPR camera transforms"));
+				return false;
+			}
+			m_CachedCameraPos = camPos;
+			m_CachedCameraLookAt = camLookAt;
+			refresh = true;
+		}
+		if (cineCam == NULL)
+			return refresh;
+		if (force ||
+			cineCam->CurrentFocalLength != m_CachedFocalLength ||
+			cineCam->CurrentFocusDistance != m_CachedFocusDistance ||
+			cineCam->CurrentAperture != m_CachedAperture ||
+			cineCam->FilmbackSettings.SensorWidth != m_CachedSensorSize.X ||
+			cineCam->FilmbackSettings.SensorHeight != m_CachedSensorSize.Y)
+		{
+			// TODO: Ortho cams & overall camera properties checkup (DOF, ..)
+			if (rprCameraSetFocalLength(m_RprCamera, cineCam->CurrentFocalLength) != RPR_SUCCESS ||
+				rprCameraSetFocusDistance(m_RprCamera, cineCam->CurrentFocusDistance * 0.01f) != RPR_SUCCESS ||
+				rprCameraSetFStop(m_RprCamera, cineCam->CurrentAperture) != RPR_SUCCESS ||
+				rprCameraSetSensorSize(m_RprCamera, cineCam->FilmbackSettings.SensorWidth, cineCam->FilmbackSettings.SensorHeight) != RPR_SUCCESS)
+			{
+				UE_LOG(LogRPRViewportCameraComponent, Warning, TEXT("Couldn't set camera properties"));
+				return false;
+			}
+			m_CachedFocalLength = cineCam->CurrentFocalLength;
+			m_CachedFocusDistance = cineCam->CurrentFocusDistance;
+			m_CachedAperture = cineCam->CurrentAperture;
+			m_CachedSensorSize = FVector2D(cineCam->FilmbackSettings.SensorWidth, cineCam->FilmbackSettings.SensorHeight);
+			return true;
+		}
+		return refresh;
+	}
+	else
+	{
+		bool	refresh = false;
+		if (force)
+		{
+			// We switched from a locked camera to default viewport, change back all cinematic properties
+			// TODO: Viewport can lock to Front/Back/Perspective/Ortho modes, handle those
+			static const float		kDefaultFLength = 35.0f;
+			static const float		kDefaultFDistance = 100000.0f;
+			static const float		kDefaultFStop = 2.0f;
+			static const FVector2D	kDefaultSensorSize = FVector2D(36.0f, 20.25f); // TODO :GEt the correct default values
+			if (rprCameraSetMode(m_RprCamera, RPR_CAMERA_MODE_PERSPECTIVE) != RPR_SUCCESS ||
+				rprCameraSetFocalLength(m_RprCamera, kDefaultFLength) != RPR_SUCCESS ||
+				rprCameraSetFocusDistance(m_RprCamera, kDefaultFDistance) != RPR_SUCCESS ||
+				rprCameraSetFStop(m_RprCamera, kDefaultFStop) != RPR_SUCCESS ||
+				rprCameraSetSensorSize(m_RprCamera, kDefaultSensorSize.X, kDefaultSensorSize.Y) != RPR_SUCCESS)
+			{
+				UE_LOG(LogRPRViewportCameraComponent, Warning, TEXT("Couldn't set camera properties"));
+				return false;
+			}
+			refresh = true;
+		}
+		FVector	camPos = client->GetViewLocation() * 0.1f;
+		FVector	camLookAt = client->GetLookAtLocation() * 0.1f;
+		if (camPos.Equals(m_CachedCameraPos, 0.0001f) && camLookAt.Equals(m_CachedCameraLookAt, 0.0001f))
+			return refresh;
+		m_CachedCameraPos = camPos;
+		m_CachedCameraLookAt = camLookAt;
+		if (rprCameraLookAt(m_RprCamera, camPos.X, camPos.Z, camPos.Y, camLookAt.X, camLookAt.Z, camLookAt.Y, 0, 1, 0) != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRViewportCameraComponent, Warning, TEXT("Couldn't set RPR camera transforms"));
+			return false;
+		}
 	}
 	return true;
 }

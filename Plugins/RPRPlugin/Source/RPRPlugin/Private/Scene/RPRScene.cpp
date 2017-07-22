@@ -235,6 +235,12 @@ bool	ARPRScene::ResizeRenderTarget()
 			return false;
 		FLevelEditorViewportClient	*client = (FLevelEditorViewportClient*)GEditor->GetActiveViewport()->GetClient();
 		horizontalRatio = client->AspectRatio;
+		if (client->bLockedCameraView)
+		{
+			UCameraComponent	*cam = client->GetCameraComponentForView();
+			if (cam != NULL)
+				horizontalRatio = client->AspectRatio;
+		}
 	}
 	else
 	{

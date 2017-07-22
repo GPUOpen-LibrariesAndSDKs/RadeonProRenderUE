@@ -25,4 +25,12 @@ private:
 
 	FVector		m_CachedCameraPos;
 	FVector		m_CachedCameraLookAt;
+
+	bool						m_CachedIsLocked;
+	ECameraProjectionMode::Type	m_CachedProjectionMode;
+	float						m_CachedFocalLength;
+	float						m_CachedFocusDistance;
+	float						m_CachedAperture;
+	float						m_CachedAspectRatio;
+	FVector2D					m_CachedSensorSize;
 };
