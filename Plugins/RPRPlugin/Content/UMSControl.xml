@@ -1,10 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <umscontrol>
     <matchall value="false"/>
-    <enable material="rubber_dark_Inst" value="false"/>
+    <enable material="rubber_dark_Inst"/>
     <enable material="smooth_ax_chrome_sm300h" value="false"/>
-    <enable material="smooth_ax_darkgrey_plastic" value="true"/>
+    <enable material="smooth_ax_darkgrey_plastic"/>
+    <enable material="smooth_ax_darkgrey_na"/>
     <enable material="smooth_am_badgechrome_na" value="false"/>
     <enable material="BasicRed"/>
-    <enable material="smooth_ax_obsblack_na" value="false"/>
+    <enable material="smooth_ax_obsblack_na"/>
+    <enable material="smooth_ax_satinchrome_sm5077"/>
+    <enable material="smooth_ax_black_ja6"/>
+    <enable material="smooth_ax_saftetyred_ebd"/>
+    <enable material="cluster_red"/>
+    <enable material="BDG_MUST_IP_Black"/>
+    <enable material="smooth_ax_obsband_na"/>
+    <enable material="smooth_ax_blocker_na"/>
+    <enable material="mustang_reverse_light"/>
+    <enable material="glass_redrefract_na"/>
 </umscontrol>
