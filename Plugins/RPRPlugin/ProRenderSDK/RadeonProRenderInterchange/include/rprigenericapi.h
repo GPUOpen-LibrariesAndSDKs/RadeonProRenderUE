@@ -250,6 +250,11 @@ struct IImage
     virtual float GetComponent2DAsFloat(size_t _x, size_t _y, size_t _comp) const = 0;
     virtual uint8_t GetComponent2DAsUint8(size_t _x, size_t _y, size_t _comp) const = 0;
 
+
+	// optional 'bulk' texture conversion, false if not supported  
+	virtual bool GetBulk2DAsFloats(float * _dest) const { return false; }
+	virtual bool GetBulk2DAsUint8(uint8_t * _dest) const { return false; }
+
     static constexpr size_t GetComponentBitWidth(ComponentFormat _format)
     {
         return	(_format == ComponentFormat::Uint8) ? sizeof(uint8_t) * 8 : 

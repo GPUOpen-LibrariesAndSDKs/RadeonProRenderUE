@@ -15,7 +15,57 @@
 #include "RPRCrackers.h"
 #include <sstream>
 #include <cassert>
+#include "Materials/MaterialExpressionScalarParameter.h"
 
+namespace {
+template<int _elementCount, int _remap0 = 0, int _remap1 = 1, int _remap2 = 2, int _remap3 = 3>
+void FloatToByteCopy(size_t _width,
+	size_t _height,
+	float const * _src,
+	uint8_t * _dest)
+{
+	for (int y = 0; y < _height; ++y)
+	{
+		for (int x = 0; x < _width; ++x)
+		{
+			switch (_elementCount)
+			{
+			case 4: *_dest = uint8_t(*(_src + _remap0)*255.0f); _dest++;
+			case 3: *_dest = uint8_t(*(_src + _remap1)*255.0f); _dest++;
+			case 2: *_dest = uint8_t(*(_src + _remap2)*255.0f); _dest++;
+			case 1: *_dest = uint8_t(*(_src + _remap3)*255.0f); _dest++;
+				break;
+			default:;
+			}
+			_src += _elementCount;
+		}
+	}
+}
+
+template<int _elementCount, int _remap0 = 0, int _remap1 = 1, int _remap2 = 2, int _remap3 = 3>
+void ByteToByteCopy(size_t _width,
+	size_t _height,
+	uint8_t const * _src,
+	uint8_t * _dest)
+{
+	for (int y = 0; y < _height; ++y)
+	{
+		for (int x = 0; x < _width; ++x)
+		{
+			switch (_elementCount)
+			{
+			case 4: *_dest = *(_src + _remap0); _dest++;
+			case 3: *_dest = *(_src + _remap1); _dest++;
+			case 2: *_dest = *(_src + _remap2); _dest++;
+			case 1: *_dest = *(_src + _remap3); _dest++;
+				break;
+			default:;
+			}
+			_src += _elementCount;
+		}
+	}
+}
+} // end anonymous namespace 
 
 std::shared_ptr<rpri::generic::IMaterialNodeMux> 
 UEInterchangeCollection::FindMux(char const * _name)
@@ -66,12 +116,17 @@ bool ShouldBeConvertedToMaterialValue(UMaterialExpression * _expression)
 	{
 		return true;
 	}
+	if (_expression->IsA(UMaterialExpressionScalarParameter::StaticClass()))
+	{
+		return true;
+	}
 	return false;
 }
 IMaterialNodeMuxPtr ConvertUMaterialExpression(
 	UEInterchangeCollection & _collection,
 	std::string const & _id,
-	UMaterialExpression * _expression)
+	UMaterialExpression * _expression,
+	FName const _fname)
 {
 
 	// biggest split is node or value
@@ -110,6 +165,7 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 			fieldName = "Constant";
 			valueName = _id + fieldName;
 			auto con = static_cast<UMaterialExpressionConstant4Vector *>(_expression);
+
 			valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(),
 				con->Constant);
 		} else if(_expression->IsA(UMaterialExpressionVectorParameter::StaticClass()))
@@ -117,8 +173,30 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 			fieldName = "DefaultValue";
 			valueName = _id + fieldName;
 			auto con = static_cast<UMaterialExpressionVectorParameter *>(_expression);
-			valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(),
-				con->DefaultValue);
+
+			FLinearColor overCol = con->DefaultValue;
+			_collection.ue4MatInterface->GetVectorParameterValue(_fname, overCol);
+
+			valuePtr = UE4InterchangeMaterialValue::New(_collection, 
+														valueName.c_str(),
+														overCol);
+		} else if (_expression->IsA(UMaterialExpressionScalarParameter::StaticClass()))
+		{
+			auto con = static_cast<UMaterialExpressionScalarParameter *>(_expression);
+
+			float overF = con->DefaultValue;
+			bool okay = _collection.ue4MatInterface->GetScalarParameterValue(_fname, overF);
+			fieldName = "DefaultValue";
+
+			if(okay)
+			{
+				fieldName = _fname.GetPlainANSIString();				
+			}
+
+			valueName = _id + fieldName;
+			valuePtr = UE4InterchangeMaterialValue::New(_collection,
+				valueName.c_str(),
+				overF);
 		}
 		else
 		{
@@ -146,14 +224,16 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 
 void UE4InterchangeMaterialNode::ConvertFExpressionInput(UEInterchangeCollection& _collection, 
 														FExpressionInput* _input,
-														char const *_name)
+														char const *_name,
+														FName const _fname)
 {
 	if (_input->Expression != nullptr)
 	{
 		std::string ename = TCHAR_TO_ANSI(*_input->Expression->GetName());
 		auto childMux = UE4InterchangeMaterialNode::New(_collection,
 		                                                ename,
-		                                                _input->Expression);
+														_input->Expression,
+														_fname);
 		if (!childMux->IsEmpty())
 		{
 			muxes.emplace_back(childMux);
@@ -235,19 +315,11 @@ UE4InterchangeMaterialNode::UE4InterchangeMaterialNode(
 		{
 			auto fname = FName(*expression->GetInputName(i));
 			FExpressionInput* input = _expression->GetInput(i);
-			float overF = 0.0f;
-			FLinearColor overCol;
-			bool overriden = false;
-			if (!overriden)
-				overriden = _collection.ue4MatInterface->GetScalarParameterValue(fname, overF);
-			if(!overriden)
-				overriden = _collection.ue4MatInterface->GetVectorParameterValue(fname, overCol);
-
 			if (input == nullptr)
 				continue;
 
 			auto name = TCHAR_TO_ANSI(*expression->GetInputName(i));
-			ConvertFExpressionInput(_collection, input, name);
+			ConvertFExpressionInput(_collection, input, name, fname);
 		}
 	}
 }
@@ -256,7 +328,8 @@ UE4InterchangeMaterialNode::UE4InterchangeMaterialNode(
 IMaterialNodeMuxPtr
 UE4InterchangeMaterialNode::New(UEInterchangeCollection & _collection,
 								std::string const & _id,
-								UMaterialExpression * _expression)
+								UMaterialExpression * _expression,
+								FName const _fname)
 {
 	std::string id = _id;
 	if(_id.empty())
@@ -267,7 +340,7 @@ UE4InterchangeMaterialNode::New(UEInterchangeCollection & _collection,
 	auto it = _collection.nodeStorage.find(id);
 	if(it == _collection.nodeStorage.end())
 	{
-		return ConvertUMaterialExpression(_collection, id, _expression);
+		return ConvertUMaterialExpression(_collection, id, _expression, _fname);
 	}
 	else
 	{
@@ -1018,83 +1091,10 @@ std::string UE4InterchangeImage::GetOriginalPath() const
 
 bool UE4InterchangeImage::GetBulk2DAsFloats(float * _dest) const
 {	
-	FTextureSource & source = ueTexture->Source;
-	FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
-	if (plats != nullptr)
-	{
-		FTexturePlatformData * plat0 = plats[0];
-		FTexture2DMipMap const mip = plat0->Mips[0];
-		EPixelFormat const format = plat0->PixelFormat;
-		void const * rawData = mip.BulkData.LockReadOnly();
-
-		int elementCount = 0;
-		int remap[4] = { 0, 1, 2, 3 };
-
-		switch (format)
-		{
-		case PF_R32_FLOAT:
-		case PF_A32B32G32R32F: {
-			// easy case just a memcpy
-			memcpy(_dest, rawData, mip.BulkData.GetBulkDataSize());
-			break; }
-		case PF_A8: 
-		case PF_L8:
-		case PF_G8:
-		case PF_R8_UINT:
-			elementCount = 1; 
-			remap[0] = 0; 
-			goto ByteToFloatCopyLabel;
-		case PF_R8G8:
-		case PF_V8U8:
-			elementCount = 2; 
-			remap[0] = 0; remap[1] = 1;
-			goto ByteToFloatCopyLabel;
-		case PF_R8G8B8A8: 
-			elementCount = 4; 
-			remap[0] = 0; remap[1] = 1; remap[2] = 2; remap[3] = 3;
-			goto ByteToFloatCopyLabel;
-		case PF_A8R8G8B8:
-			elementCount = 4;
-			remap[0] = 1; remap[1] = 2; remap[2] = 2; remap[3] = 0;
-			goto ByteToFloatCopyLabel;
-		case PF_B8G8R8A8:
-			elementCount = 4;
-			remap[0] = 2; remap[1] = 1; remap[2] = 0; remap[3] = 3;
-			goto ByteToFloatCopyLabel;
-
-		ByteToFloatCopyLabel: {
-			assert(mip.BulkData.GetElementSize() == elementCount);
-			for (int y = 0; y < mip.SizeY; ++y)
-			{
-				uint8_t const * src = (uint8_t*)rawData;
-				src = src + (y * mip.SizeX * elementCount);
-
-				for (int x = 0; x < mip.SizeX; ++x)
-				{
-					static const float oneOver255 = 1.0f / 255.0f;
-					switch(elementCount)
-					{
-					case 4: *_dest = float(*(src+remap[0])) * oneOver255; _dest++;
-					case 3: *_dest = float(*(src+remap[1])) * oneOver255; _dest++;
-					case 2: *_dest = float(*(src+remap[2])) * oneOver255; _dest++;
-					case 1: *_dest = float(*(src+remap[3])) * oneOver255; _dest++;
-						break;
-					default:;
-					}
-					src += elementCount;
-				}
-			}
-			break; }
-
-		default:
-			mip.BulkData.Unlock();
-			return false; // bulk can't handle it
-		}
-		mip.BulkData.Unlock();
-		return true;
-	}
-	return false; // bulk can't handle it
+	return false; // TODO will fall back to slow general case
 }
+
+
 
 bool UE4InterchangeImage::GetBulk2DAsUint8(uint8_t * _dest) const
 {
@@ -1107,92 +1107,54 @@ bool UE4InterchangeImage::GetBulk2DAsUint8(uint8_t * _dest) const
 		EPixelFormat const format = plat0->PixelFormat;
 		void const * rawData = mip.BulkData.LockReadOnly();
 
-		int elementCount = 0;
-		int remap[4] = { 0, 1, 2, 3 };
-
 		switch (format)
 		{
 		case PF_R32_FLOAT:
-			elementCount = 1;
-			remap[0] = 0;
-			goto FloatToByteCopyLabel;
+			FloatToByteCopy<1>(mip.SizeX, mip.SizeY, (float*)rawData, _dest);
+			break;
 		case PF_A32B32G32R32F:
-			elementCount = 4;
-			remap[0] = 1; remap[1] = 2; remap[2] = 2; remap[3] = 0;
-			goto FloatToByteCopyLabel;
-		FloatToByteCopyLabel: {
-			assert(mip.BulkData.GetElementSize() == elementCount);
-			for (int y = 0; y < mip.SizeY; ++y)
-			{
-				float const * src = (float*)rawData;
-				src = src + (y * mip.SizeX * elementCount);
-
-				for (int x = 0; x < mip.SizeX; ++x)
-				{
-					switch (elementCount)
-					{
-					case 4: *_dest = uint8_t(*(src + remap[0])*255.0f); _dest++;
-					case 3: *_dest = uint8_t(*(src + remap[1])*255.0f); _dest++;
-					case 2: *_dest = uint8_t(*(src + remap[2])*255.0f); _dest++;
-					case 1: *_dest = uint8_t(*(src + remap[3])*255.0f); _dest++;
-						break;
-					default:;
-					}
-					src += elementCount;
-				}
-			}
-			break; }
-							 
+			FloatToByteCopy<4, 1, 2, 3, 0>(mip.SizeX, mip.SizeY, (float*)rawData, _dest);
+			break;						 
 		case PF_L8:
 		case PF_G8:
 		case PF_R8_UINT:
-			elementCount = 1;
-			remap[0] = 0;
-			goto ByteToByteCopyLabel;
+			ByteToByteCopy<1>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
+			break;
 		case PF_R8G8:
 		case PF_V8U8:
-			elementCount = 2;
-			remap[0] = 0; remap[1] = 1;
-			goto ByteToByteCopyLabel;
+			ByteToByteCopy<2>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
+			break;
 		case PF_R8G8B8A8:
-			elementCount = 4;
-			remap[0] = 0; remap[1] = 1; remap[2] = 2; remap[3] = 3;
-			goto ByteToByteCopyLabel;
+			ByteToByteCopy<4>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
+			break;
 		case PF_A8R8G8B8:
-			elementCount = 4;
-			remap[0] = 1; remap[1] = 2; remap[2] = 2; remap[3] = 0;
-			goto ByteToByteCopyLabel;
+			ByteToByteCopy<4, 1, 2, 3, 0>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
+			break;
 		case PF_B8G8R8A8:
-			elementCount = 4;
-			remap[0] = 2; remap[1] = 1; remap[2] = 0; remap[3] = 3;
-			goto ByteToByteCopyLabel;
-
-		ByteToByteCopyLabel: {
-			assert(mip.BulkData.GetElementSize() == elementCount);
-			for (int y = 0; y < mip.SizeY; ++y)
-			{
-				uint8_t const * src = (uint8_t*)rawData;
-				src = src + (y * mip.SizeX * elementCount);
-
-				for (int x = 0; x < mip.SizeX; ++x)
-				{
-					switch (elementCount)
-					{
-					case 4: *_dest = *(src + remap[0]); _dest++;
-					case 3: *_dest = *(src + remap[1]); _dest++;
-					case 2: *_dest = *(src + remap[2]); _dest++;
-					case 1: *_dest = *(src + remap[3]); _dest++;
-						break;
-					default:;
-					}
-					src += elementCount;
-				}
-			}
-			break; }
-
+			ByteToByteCopy<4, 2, 1, 0, 3>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
+			break;
 		default:
 			mip.BulkData.Unlock();
-			return false; // bulk can't handle it
+			{
+				// lets try source data
+				rawData = source.LockMip(0);
+				ETextureSourceFormat sformat = source.GetFormat();
+				uint8_t const * src = reinterpret_cast<uint8_t const*>(rawData);
+				switch (sformat)
+				{
+				case TSF_G8:
+					ByteToByteCopy<1>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
+					return true;
+				case TSF_BGRA8:
+					ByteToByteCopy<4, 2, 1, 0, 3>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
+					return true;
+				case TSF_RGBA8:
+					ByteToByteCopy<4>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
+					return true;
+				default: 
+					return false; // bulk can't handle it
+				}
+			}
 		}
 		mip.BulkData.Unlock();
 		return true;

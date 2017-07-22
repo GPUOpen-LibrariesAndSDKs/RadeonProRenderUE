@@ -343,32 +343,30 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 	{
 		rpr_shape shape = m_Shapes[iShape].m_RprShape;
 		auto indexIt = indexToMgIndexMap.find(m_Shapes[iShape].m_UEMaterialIndex);
-		if(indexIt == indexToMgIndexMap.end()) continue;
 
-		// DEAN - I assume that this case means it is not a UMS case and its ok to do nothing.
-		if (indexIt != indexToMgIndexMap.end()) {
-			rpriExportRprMaterialResult const & result = resultArray[indexIt->second];
-			if (result.type == 0)
+		// if indexIt will be valid for UMS materials, other types have already
+		// been set into RPR so we can just skip them here
+		if(indexIt == indexToMgIndexMap.end()) continue;
+		rpriExportRprMaterialResult const & result = resultArray[indexIt->second];
+		if (result.type == 0)
+		{
+			rpr_material_node rprMatNode = reinterpret_cast<rpr_material_node>(result.data);
+			rpr_int status = rprShapeSetMaterial(shape, rprMatNode);
+		}
+		else
+		{
+			rprx_material rprMatX = reinterpret_cast<rprx_material>(result.data);
+			rpr_int status = rprxShapeAttachMaterial(m_RprSupportCtx, shape, rprMatX);
+			if (status != RPR_SUCCESS)
 			{
-				rpr_material_node rprMatNode = reinterpret_cast<rpr_material_node>(result.data);
-				rpr_int status = rprShapeSetMaterial(shape, rprMatNode);
+				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR X material to the RPR shape"));
 			}
-			else
+			status = rprxMaterialCommit(m_RprSupportCtx, rprMatX);
+			if (status != RPR_SUCCESS)
 			{
-				rprx_material rprMatX = reinterpret_cast<rprx_material>(result.data);
-				rpr_int status = rprxShapeAttachMaterial(m_RprSupportCtx, shape, rprMatX);
-				if (status != RPR_SUCCESS)
-				{
-					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR X material to the RPR shape"));
-				}
-				status = rprxMaterialCommit(m_RprSupportCtx, rprMatX);
-				if (status != RPR_SUCCESS)
-				{
-					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't commit RPR X material"));
-				}
+				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't commit RPR X material"));
 			}
 		}
-
 	}
 #endif
 	for (auto&& mg : mgs)
