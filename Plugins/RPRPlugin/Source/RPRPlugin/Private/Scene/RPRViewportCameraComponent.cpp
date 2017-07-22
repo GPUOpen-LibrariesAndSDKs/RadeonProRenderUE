@@ -173,7 +173,7 @@ bool	URPRViewportCameraComponent::Build()
 		UE_LOG(LogRPRViewportCameraComponent, Warning, TEXT("Couldn't set RPR viewport camera properties"));
 		return false;
 	}
-	UE_LOG(LogRPRViewportCameraComponent, Log, TEXT("RPR viewport Camera created from '%s'"), *SrcComponent->GetName());
+	UE_LOG(LogRPRViewportCameraComponent, Log, TEXT("RPR viewport Camera created"));
 	return Super::Build();
 }
 
@@ -331,10 +331,12 @@ void	URPRViewportCameraComponent::TickComponent(float deltaTime, ELevelTick tick
 
 	if (!settings->bSync)
 		return;
+	if (Scene->m_ActiveCamera != this)
+		return;
+	bool	refresh = !m_Orbit;
 	if (m_Orbit)
 	{
 		// No properties to refresh expect from camera transforms
-		bool		refresh = false;
 		const int32	zoom = m_Plugin->Zoom();
 		if (zoom != 0)
 		{
@@ -372,17 +374,32 @@ void	URPRViewportCameraComponent::TickComponent(float deltaTime, ELevelTick tick
 		const FIntPoint	orbitDelta = m_Plugin->OrbitDelta();
 		if (orbitDelta != FIntPoint::ZeroValue)
 		{
-			m_OrbitLocation -= m_OrbitCenter;
-			m_OrbitLocation = m_OrbitLocation.RotateAngleAxis(orbitDelta.Y, FVector(SrcComponent->ComponentToWorld.GetRotation().GetRightVector()));
-			m_OrbitLocation = m_OrbitLocation.RotateAngleAxis(orbitDelta.X, FVector(0.0f, 0.0f, 1.0f));
-			m_OrbitLocation += m_OrbitCenter;
+			if (GEditor->GetActiveViewport() != NULL &&
+				GEditor->GetActiveViewport()->GetClient() != NULL)
+			{
+				FLevelEditorViewportClient	*client = (FLevelEditorViewportClient*)GEditor->GetActiveViewport()->GetClient();
 
-			refresh = true;
+				FVector	rightVector = FQuat(client->GetViewRotation()).GetRightVector();
+				if (client->bLockedCameraView)
+				{
+					UCameraComponent	*cam = client->GetCameraComponentForView();
+					if (cam != NULL)
+						rightVector = cam->ComponentToWorld.GetRotation().GetRightVector();
+				}
+
+				m_OrbitLocation -= m_OrbitCenter;
+				m_OrbitLocation = m_OrbitLocation.RotateAngleAxis(orbitDelta.Y, rightVector);
+				m_OrbitLocation = m_OrbitLocation.RotateAngleAxis(orbitDelta.X, FVector(0.0f, 0.0f, 1.0f));
+				m_OrbitLocation += m_OrbitCenter;
+
+				refresh = true;
+			}
 		}
-		if (refresh && RebuildCameraProperties(false))
-			Scene->TriggerFrameRebuild();
 	}
-	else if (RebuildCameraProperties(false))
+
+	if (!refresh)
+		return;
+	if (RebuildCameraProperties(false))
 		Scene->TriggerFrameRebuild();
 }
 
