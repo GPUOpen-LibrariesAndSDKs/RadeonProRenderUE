@@ -459,9 +459,12 @@ void	ARPRScene::SetOrbit(bool orbit)
 	if (m_ActiveCamera == NULL)
 		return;
 	if (m_ActiveCamera == ViewportCameraComponent)
-		return; // Not handled for now
-	URPRCameraComponent	*comp = Cast<URPRCameraComponent>(m_ActiveCamera);
-	comp->SetOrbit(orbit);
+		ViewportCameraComponent->SetOrbit(orbit);
+	else
+	{
+		URPRCameraComponent	*comp = Cast<URPRCameraComponent>(m_ActiveCamera);
+		comp->SetOrbit(orbit);
+	}
 }
 
 void	ARPRScene::StartOrbitting(const FIntPoint &mousePos)
@@ -469,9 +472,12 @@ void	ARPRScene::StartOrbitting(const FIntPoint &mousePos)
 	if (m_ActiveCamera == NULL)
 		return;
 	if (m_ActiveCamera == ViewportCameraComponent)
-		return; // Not handled for now
-	URPRCameraComponent	*comp = Cast<URPRCameraComponent>(m_ActiveCamera);
-	comp->StartOrbitting(mousePos);
+		ViewportCameraComponent->StartOrbitting(mousePos);
+	else
+	{
+		URPRCameraComponent	*comp = Cast<URPRCameraComponent>(m_ActiveCamera);
+		comp->StartOrbitting(mousePos);
+	}
 }
 
 void	ARPRScene::SetTrace(bool trace)

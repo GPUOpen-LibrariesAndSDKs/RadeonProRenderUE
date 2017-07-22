@@ -15,9 +15,12 @@ public:
 	URPRViewportCameraComponent();
 
 	void			SetAsActiveCamera();
+
+	void			SetOrbit(bool orbit);
+	void			StartOrbitting(const FIntPoint &mousePos);
 	virtual bool	Build() override;
 private:
-	virtual bool	RebuildCameraTransforms();
+	virtual bool	RebuildCameraProperties();
 	virtual void	TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
 	virtual void	BeginDestroy() override;
 private:
@@ -33,4 +36,8 @@ private:
 	float						m_CachedAperture;
 	float						m_CachedAspectRatio;
 	FVector2D					m_CachedSensorSize;
+
+	bool						m_Orbit;
+	FVector						m_OrbitLocation;
+	FVector						m_OrbitCenter;
 };
