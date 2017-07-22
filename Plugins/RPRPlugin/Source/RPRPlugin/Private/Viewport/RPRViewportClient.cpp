@@ -15,6 +15,7 @@ FRPRViewportClient::FRPRViewportClient(FRPRPluginModule *plugin)
 :	m_Plugin(plugin)
 ,	m_PrevMousePos(FIntPoint::ZeroValue)
 ,	m_StartOrbit(false)
+,	m_StartPanning(false)
 {
 }
 
@@ -26,6 +27,11 @@ void	FRPRViewportClient::Draw(FViewport *viewport, FCanvas *canvas)
 {
 	if (m_Plugin == NULL)
 		return;
+	if (!m_Plugin->IsOrbitting())
+	{
+		m_StartOrbit = false;
+		m_StartPanning = false;
+	}
 	if (canvas == NULL)
 		return;
 	canvas->Clear(FLinearColor(0.0f, 0.0f, 0.0f, 0.0f));
@@ -56,31 +62,52 @@ void	FRPRViewportClient::Draw(FViewport *viewport, FCanvas *canvas)
 
 bool	FRPRViewportClient::InputKey(FViewport *viewport, int32 controllerId, FKey key, EInputEvent e, float amountDepressed, bool gamepad)
 {
+	if (!m_Plugin->IsOrbitting())
+		return false;
 	if (key == EKeys::LeftMouseButton)
 	{
 		if (e == IE_Pressed)
 		{
 			m_PrevMousePos = FIntPoint(m_Plugin->m_Viewport->GetMouseX(), m_Plugin->m_Viewport->GetMouseY());
+			m_Plugin->StartOrbitting(m_PrevMousePos);
 			m_StartOrbit = true;
 		}
 		else if (e == IE_Released)
 			m_StartOrbit = false;
 	}
-	return false;
+	else if (key == EKeys::MiddleMouseButton)
+	{
+		if (e == IE_Pressed)
+		{
+			m_PrevMousePos = FIntPoint(m_Plugin->m_Viewport->GetMouseX(), m_Plugin->m_Viewport->GetMouseY());
+			m_StartPanning = true;
+		}
+		else if (e == IE_Released)
+			m_StartPanning = false;
+	}
+	else if (key == EKeys::MouseScrollUp)
+		m_Plugin->AddZoom(1);
+	else if (key == EKeys::MouseScrollDown)
+		m_Plugin->AddZoom(-1);
+	return true;
 }
 
 void	FRPRViewportClient::CapturedMouseMove(FViewport *inViewport, int32 inMouseX, int32 inMouseY)
 {
-	if (!m_StartOrbit)
+	if (!m_Plugin->IsOrbitting())
 		return;
-	m_Plugin->AddOrbitDelta(inMouseX - m_PrevMousePos.X, inMouseY - m_PrevMousePos.Y);
-	m_PrevMousePos.X = inMouseX;
-	m_PrevMousePos.Y = inMouseY;
-}
-
-bool	FRPRViewportClient::InputGesture(FViewport *viewport, EGestureEvent::Type gestureType, const FVector2D &gestureDelta, bool bIsDirectionInvertedFromDevice)
-{
-	return false;
+	if (m_StartOrbit)
+	{
+		m_Plugin->AddOrbitDelta(inMouseX - m_PrevMousePos.X, inMouseY - m_PrevMousePos.Y);
+		m_PrevMousePos.X = inMouseX;
+		m_PrevMousePos.Y = inMouseY;
+	}
+	else if (m_StartPanning)
+	{
+		m_Plugin->AddPanningDelta(inMouseX - m_PrevMousePos.X, inMouseY - m_PrevMousePos.Y);
+		m_PrevMousePos.X = inMouseX;
+		m_PrevMousePos.Y = inMouseY;
+	}
 }
 
 FVector2D	FRPRViewportClient::CalculateTextureDimensions(const UTexture2DDynamic *renderTexture, const FVector2D &viewportDimensions) const

@@ -24,6 +24,11 @@ public:
 	bool							IsOrbitting() const { return m_OrbitEnabled; }
 	FIntPoint						OrbitDelta();
 	void							AddOrbitDelta(int32 X, int32 Y);
+	void							AddPanningDelta(int32 X, int32 Y);
+	FIntPoint						PanningDelta();
+	int32							Zoom();
+	void							AddZoom(int32 zoom);
+	void							StartOrbitting(const FIntPoint &mousePos);
 
 	void							NotifyObjectBuilt();
 
@@ -57,7 +62,9 @@ private:
 
 	TSharedPtr<FExtender>	m_Extender;
 
+	int32					m_Zoom;
 	FIntPoint				m_OrbitDelta;
+	FIntPoint				m_PanningDelta;
 	bool					m_OrbitEnabled;
 
 	bool					m_Loaded;

@@ -32,6 +32,8 @@ FRPRPluginModule::FRPRPluginModule()
 ,	m_ObjectsToBuild()
 ,	m_RPRPaused(true)
 ,	m_OrbitDelta(FIntPoint::ZeroValue)
+,	m_PanningDelta(FIntPoint::ZeroValue)
+,	m_Zoom(0)
 ,	m_OrbitEnabled(false)
 ,	m_Loaded(false)
 {
@@ -236,6 +238,38 @@ void	FRPRPluginModule::AddOrbitDelta(int32 X, int32 Y)
 {
 	m_OrbitDelta.X += X;
 	m_OrbitDelta.Y += Y;
+}
+
+void	FRPRPluginModule::AddPanningDelta(int32 X, int32 Y)
+{
+	m_PanningDelta.X += X;
+	m_PanningDelta.Y += Y;
+}
+
+FIntPoint	FRPRPluginModule::PanningDelta()
+{
+	FIntPoint	delta = m_PanningDelta;
+	m_PanningDelta = FIntPoint::ZeroValue;
+	return delta;
+}
+
+int32	FRPRPluginModule::Zoom()
+{
+	const int32	zoom = m_Zoom;
+	m_Zoom = 0;
+	return zoom;
+}
+
+void	FRPRPluginModule::AddZoom(int32 zoom)
+{
+	m_Zoom += zoom;
+}
+
+void	FRPRPluginModule::StartOrbitting(const FIntPoint &mousePos)
+{
+	ARPRScene	*scene = GetCurrentScene();
+	if (scene != NULL)
+		scene->StartOrbitting(mousePos);
 }
 
 void	FRPRPluginModule::ShutdownModule()
