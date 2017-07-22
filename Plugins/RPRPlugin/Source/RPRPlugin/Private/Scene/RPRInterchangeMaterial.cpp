@@ -16,6 +16,10 @@
 #include <sstream>
 #include <cassert>
 #include "Materials/MaterialExpressionScalarParameter.h"
+#include "Materials/Material.h"
+#include "Materials/MaterialExpressionTextureSampleParameter2D.h"
+
+#define TRY_PLATFORM_DATA_FOR_IMAGES false
 
 namespace {
 template<int _elementCount, int _remap0 = 0, int _remap1 = 1, int _remap2 = 2, int _remap3 = 3>
@@ -122,6 +126,7 @@ bool ShouldBeConvertedToMaterialValue(UMaterialExpression * _expression)
 	}
 	return false;
 }
+#pragma optimize("",off)
 IMaterialNodeMuxPtr ConvertUMaterialExpression(
 	UEInterchangeCollection & _collection,
 	std::string const & _id,
@@ -170,12 +175,19 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 				con->Constant);
 		} else if(_expression->IsA(UMaterialExpressionVectorParameter::StaticClass()))
 		{
-			fieldName = "DefaultValue";
 			valueName = _id + fieldName;
 			auto con = static_cast<UMaterialExpressionVectorParameter *>(_expression);
 
 			FLinearColor overCol = con->DefaultValue;
-			_collection.ue4MatInterface->GetVectorParameterValue(_fname, overCol);
+			bool okay = _collection.ue4MatInterface->GetVectorParameterValue(con->ParameterName, overCol);
+			if (okay)
+			{
+				fieldName = con->ParameterName.GetPlainANSIString();
+			}
+			else
+			{
+				fieldName = "DefaultValue";
+			}
 
 			valuePtr = UE4InterchangeMaterialValue::New(_collection, 
 														valueName.c_str(),
@@ -183,14 +195,14 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 		} else if (_expression->IsA(UMaterialExpressionScalarParameter::StaticClass()))
 		{
 			auto con = static_cast<UMaterialExpressionScalarParameter *>(_expression);
-
 			float overF = con->DefaultValue;
-			bool okay = _collection.ue4MatInterface->GetScalarParameterValue(_fname, overF);
-			fieldName = "DefaultValue";
-
+			bool okay = _collection.ue4MatInterface->GetScalarParameterValue(con->ParameterName, overF);
 			if(okay)
 			{
-				fieldName = _fname.GetPlainANSIString();				
+				fieldName = con->ParameterName.GetPlainANSIString();
+			} else
+			{
+				fieldName = "DefaultValue";
 			}
 
 			valueName = _id + fieldName;
@@ -219,8 +231,6 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 	}
 
 }
-#pragma optimize("",off)
-
 
 void UE4InterchangeMaterialNode::ConvertFExpressionInput(UEInterchangeCollection& _collection, 
 														FExpressionInput* _input,
@@ -251,6 +261,38 @@ void UE4InterchangeMaterialNode::ConvertFExpressionInput(UEInterchangeCollection
 		}
 	}
 }
+
+void UE4InterchangeMaterialNode::ConvertTexture(
+	UEInterchangeCollection& _collection,
+	std::string const & _name,
+	UTexture * _texture)
+{
+	auto texIt = _collection.textureStorage.find(_name);
+	if (texIt == _collection.textureStorage.end())
+	{
+		auto image = std::make_shared<UE4InterchangeImage>(_texture);
+		auto sampler = std::make_shared<UE4InterchangeSampler>(_texture);
+		auto tex = std::make_shared<UE4InterchangeTexture>(sampler.get(), image.get());
+		_collection.imageStorage[image->GetId()] = image;
+		_collection.samplerStorage[sampler->GetId()] = sampler;
+		_collection.textureStorage[tex->GetId()] = tex;
+		texture = tex.get();
+	}
+	else
+	{
+		texture = texIt->second.get();
+	}
+	auto texValue = UE4InterchangeMaterialValue::New(_collection,
+													(_name + "Mux").c_str(),
+													_name.c_str());
+
+	muxes.emplace_back(_collection.FindMux(texValue->GetId()));
+	inputNames.emplace_back("Tex");
+	values.push_back(texValue.get());
+	_collection.valueStorage[texValue->GetId()] = texValue;
+
+}
+
 void UE4InterchangeMaterialNode::ConvertTextureSampleExpression(
 									UEInterchangeCollection& _collection, 
 									UMaterialExpressionTextureSample* con)
@@ -260,29 +302,34 @@ void UE4InterchangeMaterialNode::ConvertTextureSampleExpression(
 		std::string texName = std::string(TCHAR_TO_ANSI(*con->Texture->GetName())) +
 								"Texture";
 
-		auto texIt = _collection.textureStorage.find(texName);
-		if(texIt == _collection.textureStorage.end())
-		{
-			auto image = std::make_shared<UE4InterchangeImage>(con->Texture);
-			auto sampler = std::make_shared<UE4InterchangeSampler>(con->Texture);
-			auto tex = std::make_shared<UE4InterchangeTexture>(sampler.get(), image.get());
-			_collection.imageStorage[image->GetId()] = image;
-			_collection.samplerStorage[sampler->GetId()] = sampler;
-			_collection.textureStorage[tex->GetId()] = tex;
-			texture = tex.get();
-		} else
-		{
-			texture = texIt->second.get();
-		}
-		auto texValue = UE4InterchangeMaterialValue::New(_collection, 
-													(texName + "Mux").c_str(), 
-													texName.c_str());
-
-		muxes.emplace_back(_collection.FindMux(texValue->GetId()));
-		inputNames.emplace_back("Tex");
-		values.push_back(texValue.get());
-		_collection.valueStorage[texValue->GetId()] = texValue;
+		ConvertTexture(_collection, texName, con->Texture);
 	} else
+	{
+		// look up TextureObject?
+	}
+	ConvertFExpressionInput(_collection, &con->Coordinates, "UV");
+}
+void UE4InterchangeMaterialNode::ConvertTextureSampleExpression(
+	UEInterchangeCollection& _collection,
+	UMaterialExpressionTextureSampleParameter2D* con)
+{
+	if (con->Texture != nullptr)
+	{
+		std::string texName;
+
+		UTexture* tex = con->Texture;
+		bool okay = _collection.ue4MatInterface->GetTextureParameterValue(con->ParameterName, tex);
+		if (okay)
+		{
+			texName = std::string(con->ParameterName.GetPlainANSIString()) + "Texture";
+		}
+		else
+		{
+			texName = std::string(TCHAR_TO_ANSI(*con->Texture->GetName())) + "Texture";
+		}
+		ConvertTexture(_collection, texName, con->Texture);
+	}
+	else
 	{
 		// look up TextureObject?
 	}
@@ -306,6 +353,11 @@ UE4InterchangeMaterialNode::UE4InterchangeMaterialNode(
 	if (_expression->IsA(UMaterialExpressionTextureSample::StaticClass()))
 	{	
 		auto con = static_cast<UMaterialExpressionTextureSample*>(_expression);
+		ConvertTextureSampleExpression(_collection, con);
+	}
+	if (_expression->IsA(UMaterialExpressionTextureSampleParameter2D::StaticClass()))
+	{
+		auto con = static_cast<UMaterialExpressionTextureSampleParameter2D*>(_expression);
 		ConvertTextureSampleExpression(_collection, con);
 	}
 	else
@@ -366,6 +418,33 @@ UE4InterchangePBRNode::New(UEInterchangeCollection & _collection,
 	}
 }
 
+#define PBR_DEFAULT_BLACK FColor(0,0,0,255)
+#define PBR_DEFAULT_YELLOW FColor(255,255,0,255)
+
+#define HOOKUP_PBR_EXPRESSION(_name, _index, _type, _default) \
+	if ((ue4Mat->_name.UseConstant) || (ue4Mat->_name.Expression == nullptr)) \
+	{ \
+		std::string name = id + #_name ; \
+		_type v = _default; \
+		if (ue4Mat->_name.UseConstant) { v = ue4Mat->_name.Constant; } \
+		auto val = UE4InterchangeMaterialValue::New(_collection, \
+			name.c_str(), \
+			v); \
+		auto muxPtr = _collection.FindMux(name.c_str()); \
+		assert(muxPtr); \
+		muxes[_index] = muxPtr; \
+	} \
+	else if (ue4Mat->_name.Expression != nullptr) \
+	{ \
+		auto ue4Name = ue4Mat->_name.Expression->GetName(); \
+		auto cName = TCHAR_TO_ANSI(*ue4Name); \
+		auto mux = UE4InterchangeMaterialNode::New(_collection, \
+			cName, \
+			ue4Mat->_name.Expression); \
+		muxes[_index] = mux; \
+	}
+
+
 UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collection, 
 												std::string const & _id,
 												UE4InterchangeMaterialGraph * _mg)
@@ -374,64 +453,23 @@ UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collect
 
 	id = _id;
 
-	if ((ue4Mat->BaseColor.UseConstant) || 
-		(ue4Mat->BaseColor.Expression == nullptr))
-	{
-		std::string name = id + "BaseColor";
-		// give up assign a horrible color (maybe should match unreal
-		// default colour in release for minimal visible impact...)
-		FColor col = FColor(255, 255, 0, 255);
-		if(ue4Mat->BaseColor.UseConstant)
-		{
-			col = ue4Mat->BaseColor.Constant;
-		}
-
-		auto val = UE4InterchangeMaterialValue::New(_collection,
-													name.c_str(),
-													col);
-		auto muxPtr = _collection.FindMux(name.c_str());
-		assert(muxPtr);
-		muxes[0] = muxPtr;
-	}
-	else if (ue4Mat->BaseColor.Expression != nullptr)
-	{
-		auto ue4Name = ue4Mat->BaseColor.Expression->GetName();
-		auto cName = TCHAR_TO_ANSI(*ue4Name);
-
-		auto mux = UE4InterchangeMaterialNode::New(_collection,
-			cName,
-			ue4Mat->BaseColor.Expression);
-		muxes[0] = mux;
-	}
-
-	if ((ue4Mat->Metallic.UseConstant) ||
-		(ue4Mat->Metallic.Expression == nullptr))
-	{
-		std::string name = id + "Metallic";
-		float metal = 0.5f;
-		if (ue4Mat->Metallic.UseConstant)
-		{
-			metal = ue4Mat->Metallic.Constant;
-		}
-
-		auto val = UE4InterchangeMaterialValue::New(_collection,
-			name.c_str(),
-			metal);
-		auto muxPtr = _collection.FindMux(name.c_str());
-		assert(muxPtr);
-		muxes[1] = muxPtr;
-	}
-	else if (ue4Mat->Metallic.Expression != nullptr)
-	{
-		auto ue4Name = ue4Mat->Metallic.Expression->GetName();
-		auto cName = TCHAR_TO_ANSI(*ue4Name);
-
-		auto mux = UE4InterchangeMaterialNode::New(_collection,
-			cName,
-			ue4Mat->Metallic.Expression);
-		muxes[1] = mux;
-	}
+	HOOKUP_PBR_EXPRESSION(BaseColor, 0, FColor, PBR_DEFAULT_YELLOW);
+	HOOKUP_PBR_EXPRESSION(Metallic, 1, float, 0.5f);
+//	HOOKUP_PBR_EXPRESSION(Roughness, 2, float, 0.5f);
+//	HOOKUP_PBR_EXPRESSION(Specular, 3, float, 0.5f);
+	// normal goes here
+//	HOOKUP_PBR_EXPRESSION(EmissiveColor, 5, FColor, PBR_DEFAULT_BLACK);
+//	HOOKUP_PBR_EXPRESSION(Opacity, 6, float, 1.0f);
+	// clear coat here
+	// clear coat roughness
+	// refraction
+		
 }
+#undef HOOKUP_PBR_EXPRESSION
+#undef PBR_DEFAULT_YELLOW
+#undef PBR_DEFAULT_BLACK
+
+
 IMaterialValuePtr UE4InterchangeMaterialValue::New(
 	UEInterchangeCollection & _collection, char const * _id, float _a)
 {
@@ -953,33 +991,35 @@ char const* UE4InterchangeImage::GetId() const
 size_t UE4InterchangeImage::GetWidth() const
 {
 	FTextureSource & source = ueTexture->Source;
-	FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
-	if(plats != nullptr)
+	bool tryPlatformData = TRY_PLATFORM_DATA_FOR_IMAGES;
+	if (tryPlatformData)
 	{
-		FTexturePlatformData * plat0 = plats[0];
-		auto mip = plat0->Mips[0];
-		return mip.SizeX;
+		FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
+		if (plats != nullptr)
+		{
+			FTexturePlatformData * plat0 = plats[0];
+			auto mip = plat0->Mips[0];
+			return mip.SizeX;
+		}
 	}
-	else
-	{
-		return source.GetSizeX();
-	}
+	return source.GetSizeX();
 }
 
 size_t UE4InterchangeImage::GetHeight() const
 {
 	FTextureSource & source = ueTexture->Source;
-	FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
-	if (plats != nullptr)
+	bool tryPlatformData = TRY_PLATFORM_DATA_FOR_IMAGES;
+	if (tryPlatformData)
 	{
-		FTexturePlatformData * plat0 = plats[0];
-		auto mip = plat0->Mips[0];
-		return mip.SizeY;
+		FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
+		if (plats != nullptr)
+		{
+			FTexturePlatformData * plat0 = plats[0];
+			auto mip = plat0->Mips[0];
+			return mip.SizeY;
+		}
 	}
-	else
-	{
-		return source.GetSizeY();
-	}
+	return source.GetSizeY();
 }
 
 size_t UE4InterchangeImage::GetDepth() const
@@ -996,17 +1036,21 @@ size_t UE4InterchangeImage::GetSlices() const
 size_t UE4InterchangeImage::GetNumberofComponents() const
 {
 	FTextureSource & source = ueTexture->Source;
-	FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
-	if (plats != nullptr)
+	bool tryPlatformData = TRY_PLATFORM_DATA_FOR_IMAGES;
+	if (tryPlatformData)
 	{
-		FTexturePlatformData * plat0 = plats[0];
-		auto mip = plat0->Mips[0];
-		EPixelFormat format = plat0->PixelFormat;
-		size_t compCount = CrackNumofComponents(format);
-		if (compCount > 0) 
+		FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
+		if (plats != nullptr)
 		{
-			assert(mip.BulkData.GetElementCount() == compCount);
-			return compCount;
+			FTexturePlatformData * plat0 = plats[0];
+			auto mip = plat0->Mips[0];
+			EPixelFormat format = plat0->PixelFormat;
+			size_t compCount = CrackNumofComponents(format);
+			if (compCount > 0)
+			{
+				assert(mip.BulkData.GetElementCount() == compCount);
+				return compCount;
+			}
 		}
 	}
 
@@ -1017,14 +1061,18 @@ size_t UE4InterchangeImage::GetNumberofComponents() const
 rpri::generic::IImage::ComponentFormat UE4InterchangeImage::GetComponentFormat(size_t _index) const
 {
 	FTextureSource & source = ueTexture->Source;
-	FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
-	if (plats != nullptr)
+	bool tryPlatformData = TRY_PLATFORM_DATA_FOR_IMAGES;
+	if (tryPlatformData)
 	{
-		FTexturePlatformData * plat0 = plats[0];
-		auto mip = plat0->Mips[0];
-		EPixelFormat format = plat0->PixelFormat;
-		ComponentFormat cformat = CrackComponentFormat(format);
-		if (cformat != ComponentFormat::Unknown) return cformat;
+		FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
+		if (plats != nullptr)
+		{
+			FTexturePlatformData * plat0 = plats[0];
+			auto mip = plat0->Mips[0];
+			EPixelFormat format = plat0->PixelFormat;
+			ComponentFormat cformat = CrackComponentFormat(format);
+			if (cformat != ComponentFormat::Unknown) return cformat;
+		}
 	}
 	ETextureSourceFormat sformat = source.GetFormat();
 	ComponentFormat cformat = CrackComponentFormat(sformat);
@@ -1040,19 +1088,25 @@ rpri::generic::IImage::ColourSpace UE4InterchangeImage::GetColourSpace() const
 size_t UE4InterchangeImage::GetPixelSizeInBits() const
 {
 	FTextureSource & source = ueTexture->Source;
-	FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
-	if (plats != nullptr)
+	
+	bool tryPlatformData = TRY_PLATFORM_DATA_FOR_IMAGES;
+	if (tryPlatformData)
 	{
-		FTexturePlatformData * plat0 = plats[0];
-		auto mip = plat0->Mips[0];
-		EPixelFormat format = plat0->PixelFormat;
-		size_t bitSize = CrackPixelSizeInBits(format);
-		if (bitSize > 0)
+		FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
+		if (plats != nullptr)
 		{
-			assert(mip.BulkData.GetElementSize() * 8 == bitSize);
-			return bitSize;
+			FTexturePlatformData * plat0 = plats[0];
+			auto mip = plat0->Mips[0];
+			EPixelFormat format = plat0->PixelFormat;
+			size_t bitSize = CrackPixelSizeInBits(format);
+			if (bitSize > 0)
+			{
+				assert(mip.BulkData.GetElementSize() * 8 == bitSize);
+				return bitSize;
+			}
 		}
 	}
+
 	ETextureSourceFormat sformat = source.GetFormat();
 	size_t bitSize = CrackPixelSizeInBits(sformat);
 	return bitSize;
@@ -1061,12 +1115,16 @@ size_t UE4InterchangeImage::GetPixelSizeInBits() const
 size_t UE4InterchangeImage::GetRowStrideInBits() const
 {	
 	FTextureSource & source = ueTexture->Source;
-	FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
-	if (plats != nullptr)
+	bool tryPlatformData = TRY_PLATFORM_DATA_FOR_IMAGES;
+	if (tryPlatformData)
 	{
-		FTexturePlatformData * plat0 = plats[0];
-		FTexture2DMipMap const mip = plat0->Mips[0];
-		return mip.BulkData.GetElementSize() * mip.SizeX * 8;
+		FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
+		if (plats != nullptr)
+		{
+			FTexturePlatformData * plat0 = plats[0];
+			FTexture2DMipMap const mip = plat0->Mips[0];
+			return mip.BulkData.GetElementSize() * mip.SizeX * 8;
+		}
 	}
 	return source.GetBytesPerPixel() * source.GetSizeX() * 8;
 }
@@ -1094,246 +1152,258 @@ bool UE4InterchangeImage::GetBulk2DAsFloats(float * _dest) const
 	return false; // TODO will fall back to slow general case
 }
 
-
-
 bool UE4InterchangeImage::GetBulk2DAsUint8(uint8_t * _dest) const
 {
 	FTextureSource & source = ueTexture->Source;
-	FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
-	if (plats != nullptr)
-	{
-		FTexturePlatformData * plat0 = plats[0];
-		FTexture2DMipMap const mip = plat0->Mips[0];
-		EPixelFormat const format = plat0->PixelFormat;
-		void const * rawData = mip.BulkData.LockReadOnly();
 
-		switch (format)
+	bool tryPlatformData = TRY_PLATFORM_DATA_FOR_IMAGES;
+	if (tryPlatformData)
+	{
+		FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
+		if (plats != nullptr)
 		{
-		case PF_R32_FLOAT:
-			FloatToByteCopy<1>(mip.SizeX, mip.SizeY, (float*)rawData, _dest);
-			break;
-		case PF_A32B32G32R32F:
-			FloatToByteCopy<4, 1, 2, 3, 0>(mip.SizeX, mip.SizeY, (float*)rawData, _dest);
-			break;						 
-		case PF_L8:
-		case PF_G8:
-		case PF_R8_UINT:
-			ByteToByteCopy<1>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
-			break;
-		case PF_R8G8:
-		case PF_V8U8:
-			ByteToByteCopy<2>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
-			break;
-		case PF_R8G8B8A8:
-			ByteToByteCopy<4>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
-			break;
-		case PF_A8R8G8B8:
-			ByteToByteCopy<4, 1, 2, 3, 0>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
-			break;
-		case PF_B8G8R8A8:
-			ByteToByteCopy<4, 2, 1, 0, 3>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
-			break;
-		default:
-			mip.BulkData.Unlock();
+			bool okay = true; // assume this will work
+			FTexturePlatformData * plat0 = plats[0];
+			FTexture2DMipMap const mip = plat0->Mips[0];
+			EPixelFormat const format = plat0->PixelFormat;
+
+			void const * rawData = mip.BulkData.LockReadOnly();
+			switch (format)
 			{
-				// lets try source data
-				rawData = source.LockMip(0);
-				ETextureSourceFormat sformat = source.GetFormat();
-				uint8_t const * src = reinterpret_cast<uint8_t const*>(rawData);
-				switch (sformat)
-				{
-				case TSF_G8:
-					ByteToByteCopy<1>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
-					return true;
-				case TSF_BGRA8:
-					ByteToByteCopy<4, 2, 1, 0, 3>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
-					return true;
-				case TSF_RGBA8:
-					ByteToByteCopy<4>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
-					return true;
-				default: 
-					return false; // bulk can't handle it
-				}
+			case PF_R32_FLOAT:
+				FloatToByteCopy<1>(mip.SizeX, mip.SizeY, (float*)rawData, _dest);
+				break;
+			case PF_A32B32G32R32F:
+				FloatToByteCopy<4, 1, 2, 3, 0>(mip.SizeX, mip.SizeY, (float*)rawData, _dest);
+				break;
+			case PF_L8:
+			case PF_G8:
+			case PF_R8_UINT:
+				ByteToByteCopy<1>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
+				break;
+			case PF_R8G8:
+			case PF_V8U8:
+				ByteToByteCopy<2>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
+				break;
+			case PF_R8G8B8A8:
+				ByteToByteCopy<4>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
+				break;
+			case PF_A8R8G8B8:
+				ByteToByteCopy<4, 1, 2, 3, 0>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
+				break;
+			case PF_B8G8R8A8:
+				ByteToByteCopy<4, 2, 1, 0, 3>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
+				break;
+			default: 
+				okay = false; // platform data is a bust
+			}
+			mip.BulkData.Unlock();
+			if(okay == true)
+			{
+				// if we okay we are done
+				return true;
 			}
 		}
-		mip.BulkData.Unlock();
-		return true;
 	}
+
+	// lets try source data
+	void const * rawData = source.LockMip(0);
+	ETextureSourceFormat sformat = source.GetFormat();
+	uint8_t const * src = reinterpret_cast<uint8_t const*>(rawData);
+	switch (sformat)
+	{
+	case TSF_G8:
+		ByteToByteCopy<1>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
+		return true;
+	case TSF_BGRA8:
+		ByteToByteCopy<4, 2, 1, 0, 3>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
+		return true;
+	case TSF_RGBA8:
+		ByteToByteCopy<4>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
+		return true;
+	default:;
+	}
+
 	return false; // bulk can't handle it
 }
 
 float UE4InterchangeImage::GetComponent2DAsFloat(size_t _x, size_t _y, size_t _comp) const
 {
 	FTextureSource & source = ueTexture->Source;
-	FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
-	if (plats != nullptr)
+	bool tryPlatformData = TRY_PLATFORM_DATA_FOR_IMAGES;
+	if (tryPlatformData)
 	{
-		FTexturePlatformData * plat0 = plats[0];
-		FTexture2DMipMap const mip = plat0->Mips[0];
-		EPixelFormat const format = plat0->PixelFormat;
-		void const * rawData = mip.BulkData.LockReadOnly();
-		if (_comp >= GetNumberofComponents()) return float();
+		FTexturePlatformData ** plats = ueTexture->GetRunningPlatformData();
+		if (plats != nullptr)
+		{
+			FTexturePlatformData * plat0 = plats[0];
+			FTexture2DMipMap const mip = plat0->Mips[0];
+			EPixelFormat const format = plat0->PixelFormat;
+			void const * rawData = mip.BulkData.LockReadOnly();
+			if (_comp >= GetNumberofComponents()) return float();
 
-		uint8_t const * src = reinterpret_cast<uint8_t const*>(rawData);
+			uint8_t const * src = reinterpret_cast<uint8_t const*>(rawData);
 
-		src = src + (_y * mip.BulkData.GetElementSize() * mip.SizeX) +
-			(_x * mip.BulkData.GetElementSize());
-		// We swizzle for the RGBA vs BGRA etc. but no other reason
-		// TODO need to match the GPU HW swizzle which might occur
-		// on some formats..
-		switch (format)
-		{
-		case PF_G32R32F:
-		case PF_R32_FLOAT:
-		case PF_A32B32G32R32F: {
-			float const * srcData = reinterpret_cast<float const*>(src);
-			float r = srcData[_comp];
-			mip.BulkData.Unlock();
-			return r;
-		}
-
-		case PF_A8:
-		case PF_L8:
-		case PF_G8:
-		case PF_R8G8:
-		case PF_V8U8:
-		case PF_R8_UINT:
-		case PF_R8G8B8A8:
-		{
-			uint8_t const * srcData = reinterpret_cast<uint8_t const *>(src);
-			float r = float(srcData[_comp]) / 255.0f;
-			mip.BulkData.Unlock();
-			return r;
-		}
-		case PF_A8R8G8B8:
-		{
-			uint8_t const * srcData = reinterpret_cast<uint8_t const *>(src);
-			float r = 0;
-			switch (_comp)
-			{
-			case 0: r = float(srcData[3]); break;
-			case 1: r = float(srcData[0]); break;
-			case 2: r = float(srcData[1]); break;
-			case 3: r = float(srcData[2]); break;
-			default:;
-			}
-			r = r / 255.0f;
-			mip.BulkData.Unlock();
-			return r;
-		}
-		case PF_B8G8R8A8:
-		{
-			uint8_t const * srcData = reinterpret_cast<uint8_t const *>(src);
-			float r = 0;
-			switch (_comp)
-			{
-			case 0: r = float(srcData[2]); break;
-			case 1: r = float(srcData[1]); break;
-			case 2: r = float(srcData[0]); break;
-			case 3: r = float(srcData[3]); break;
-			default:;
-			}
-			r = r / 255.0f;
-			mip.BulkData.Unlock();
-			return r;
-		}
-		case PF_G16:
-		case PF_G16R16:
-		case PF_R16_UINT:
-		case PF_R16G16_UINT:
-		case PF_R16G16B16A16_UINT:
-		case PF_A16B16G16R16:
-		{
-			// todo check if non UINT type are normalized and UINT aren't
-			// this may be wrong for UINT
-			uint16_t const * srcData = reinterpret_cast<uint16_t const *>(src);
-			float r = float(srcData[_comp]) / 65536.0f;
-			mip.BulkData.Unlock();
-			return r;
-
-		}
-		case PF_R16_SINT:
-		case PF_R16G16B16A16_SINT:
-		{
-			// todo check if non SINT type are normalized and SINT aren't
-			// this may be wrong for SINT
-			int16_t const * srcData = reinterpret_cast<int16_t const *>(src);
-			float r = float(srcData[_comp]) / (65536.0f / 2.0f);
-			mip.BulkData.Unlock();
-			return r;
-		}
-		case PF_R32_UINT:
-		case PF_R32G32B32A32_UINT:
-		{
-			// this is lossy, we lose 9 bits (or 8 or 10 would have to check)
-			uint32_t const * srcData = reinterpret_cast<uint32_t const *>(src);
-			float r = float(srcData[_comp]);
-			mip.BulkData.Unlock();
-			return r;
-		}
-		case PF_R32_SINT:
-		{
-			// this is lossy, we lose 9 bits
-			int32_t const * srcData = reinterpret_cast<int32_t const *>(src);
-			float r = float(srcData[_comp]);
-			mip.BulkData.Unlock();
-			return r;
-		}
-
-		case PF_A1:
-		{
 			src = src + (_y * mip.BulkData.GetElementSize() * mip.SizeX) +
-				(_x * (mip.BulkData.GetElementSize() / 8));
-			uint8_t const * srcData = reinterpret_cast<uint8_t const *>(src);
-			uint8_t bit = srcData[_comp] & (1 << (_x & 0x7));
-			mip.BulkData.Unlock();
-			return bit ? float(1) : float(0);
-		}
+				(_x * mip.BulkData.GetElementSize());
+			// We swizzle for the RGBA vs BGRA etc. but no other reason
+			// TODO need to match the GPU HW swizzle which might occur
+			// on some formats..
+			switch (format)
+			{
+			case PF_G32R32F:
+			case PF_R32_FLOAT:
+			case PF_A32B32G32R32F: {
+				float const * srcData = reinterpret_cast<float const*>(src);
+				float r = srcData[_comp];
+				mip.BulkData.Unlock();
+				return r;
+			}
 
-		// todo FP16
-		case PF_R16F:
-		case PF_G16R16F:
-		case PF_R16F_FILTER:
-		case PF_G16R16F_FILTER:
-		case PF_FloatRGB:
-		case PF_FloatRGBA:
-			break;
+			case PF_A8:
+			case PF_L8:
+			case PF_G8:
+			case PF_R8G8:
+			case PF_V8U8:
+			case PF_R8_UINT:
+			case PF_R8G8B8A8:
+			{
+				uint8_t const * srcData = reinterpret_cast<uint8_t const *>(src);
+				float r = float(srcData[_comp]) / 255.0f;
+				mip.BulkData.Unlock();
+				return r;
+			}
+			case PF_A8R8G8B8:
+			{
+				uint8_t const * srcData = reinterpret_cast<uint8_t const *>(src);
+				float r = 0;
+				switch (_comp)
+				{
+				case 0: r = float(srcData[3]); break;
+				case 1: r = float(srcData[0]); break;
+				case 2: r = float(srcData[1]); break;
+				case 3: r = float(srcData[2]); break;
+				default:;
+				}
+				r = r / 255.0f;
+				mip.BulkData.Unlock();
+				return r;
+			}
+			case PF_B8G8R8A8:
+			{
+				uint8_t const * srcData = reinterpret_cast<uint8_t const *>(src);
+				float r = 0;
+				switch (_comp)
+				{
+				case 0: r = float(srcData[2]); break;
+				case 1: r = float(srcData[1]); break;
+				case 2: r = float(srcData[0]); break;
+				case 3: r = float(srcData[3]); break;
+				default:;
+				}
+				r = r / 255.0f;
+				mip.BulkData.Unlock();
+				return r;
+			}
+			case PF_G16:
+			case PF_G16R16:
+			case PF_R16_UINT:
+			case PF_R16G16_UINT:
+			case PF_R16G16B16A16_UINT:
+			case PF_A16B16G16R16:
+			{
+				// todo check if non UINT type are normalized and UINT aren't
+				// this may be wrong for UINT
+				uint16_t const * srcData = reinterpret_cast<uint16_t const *>(src);
+				float r = float(srcData[_comp]) / 65536.0f;
+				mip.BulkData.Unlock();
+				return r;
 
-		case PF_FloatR11G11B10:
-		case PF_R5G6B5_UNORM:
-		case PF_BC5:
-		case PF_BC4:
-		case PF_DepthStencil:
-		case PF_ShadowDepth:
-		case PF_A2B10G10R10:
-		case PF_D24:
-		case PF_DXT1:
-		case PF_DXT3:
-		case PF_DXT5:
-		case PF_UYVY:
-		case PF_PVRTC2:
-		case PF_PVRTC4:
-		case PF_ATC_RGB:
-		case PF_ATC_RGBA_E:
-		case PF_ATC_RGBA_I:
-		case PF_X24_G8:
-		case PF_ETC1:
-		case PF_ETC2_RGB:
-		case PF_ETC2_RGBA:
-		case PF_ASTC_4x4:
-		case PF_ASTC_6x6:
-		case PF_ASTC_8x8:
-		case PF_ASTC_10x10:
-		case PF_ASTC_12x12:
-		case PF_BC6H:
-		case PF_BC7:
-		case PF_Unknown:
-		case PF_MAX:
-		default: 
-			mip.BulkData.Unlock();
-			break;
+			}
+			case PF_R16_SINT:
+			case PF_R16G16B16A16_SINT:
+			{
+				// todo check if non SINT type are normalized and SINT aren't
+				// this may be wrong for SINT
+				int16_t const * srcData = reinterpret_cast<int16_t const *>(src);
+				float r = float(srcData[_comp]) / (65536.0f / 2.0f);
+				mip.BulkData.Unlock();
+				return r;
+			}
+			case PF_R32_UINT:
+			case PF_R32G32B32A32_UINT:
+			{
+				// this is lossy, we lose 9 bits (or 8 or 10 would have to check)
+				uint32_t const * srcData = reinterpret_cast<uint32_t const *>(src);
+				float r = float(srcData[_comp]);
+				mip.BulkData.Unlock();
+				return r;
+			}
+			case PF_R32_SINT:
+			{
+				// this is lossy, we lose 9 bits
+				int32_t const * srcData = reinterpret_cast<int32_t const *>(src);
+				float r = float(srcData[_comp]);
+				mip.BulkData.Unlock();
+				return r;
+			}
+
+			case PF_A1:
+			{
+				src = src + (_y * mip.BulkData.GetElementSize() * mip.SizeX) +
+					(_x * (mip.BulkData.GetElementSize() / 8));
+				uint8_t const * srcData = reinterpret_cast<uint8_t const *>(src);
+				uint8_t bit = srcData[_comp] & (1 << (_x & 0x7));
+				mip.BulkData.Unlock();
+				return bit ? float(1) : float(0);
+			}
+
+			// todo FP16
+			case PF_R16F:
+			case PF_G16R16F:
+			case PF_R16F_FILTER:
+			case PF_G16R16F_FILTER:
+			case PF_FloatRGB:
+			case PF_FloatRGBA:
+				break;
+
+			case PF_FloatR11G11B10:
+			case PF_R5G6B5_UNORM:
+			case PF_BC5:
+			case PF_BC4:
+			case PF_DepthStencil:
+			case PF_ShadowDepth:
+			case PF_A2B10G10R10:
+			case PF_D24:
+			case PF_DXT1:
+			case PF_DXT3:
+			case PF_DXT5:
+			case PF_UYVY:
+			case PF_PVRTC2:
+			case PF_PVRTC4:
+			case PF_ATC_RGB:
+			case PF_ATC_RGBA_E:
+			case PF_ATC_RGBA_I:
+			case PF_X24_G8:
+			case PF_ETC1:
+			case PF_ETC2_RGB:
+			case PF_ETC2_RGBA:
+			case PF_ASTC_4x4:
+			case PF_ASTC_6x6:
+			case PF_ASTC_8x8:
+			case PF_ASTC_10x10:
+			case PF_ASTC_12x12:
+			case PF_BC6H:
+			case PF_BC7:
+			case PF_Unknown:
+			case PF_MAX:
+			default:
+				mip.BulkData.Unlock();
+				break;
+			}
 		}
 	}
+
 	void const * rawData = source.LockMip(0);
 	if (_comp >= GetNumberofComponents()) return float();
 
@@ -1429,7 +1499,6 @@ float UE4InterchangeImage::GetComponent2DAsFloat(size_t _x, size_t _y, size_t _c
 
 uint8_t UE4InterchangeImage::GetComponent2DAsUint8(size_t _x, size_t _y, size_t _comp) const
 {
-
 	float r = GetComponent2DAsFloat(_x, _y, _comp);
 	return uint8_t(r * 255.0f);
 }

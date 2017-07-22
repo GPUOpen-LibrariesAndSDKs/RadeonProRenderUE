@@ -121,8 +121,7 @@ rpr_material_node URPRStaticMeshComponent::CreateXMLShapeMaterial(uint32 iShape,
 		for (auto& param : matInstance->VectorParameterValues)
 		{
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\tName=%s, Value=%f,%f,%f,%f"), *param.ParameterName.GetPlainNameString(),
-				param.ParameterValue.R, param.ParameterValue.G, param.ParameterValue.B, param.ParameterValue.A)
-			;
+				param.ParameterValue.R, param.ParameterValue.G, param.ParameterValue.B, param.ParameterValue.A);
 		}
 
 		UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\n\t[TEXTURES]:"));

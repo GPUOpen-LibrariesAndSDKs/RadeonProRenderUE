@@ -11,6 +11,7 @@
 #include <set>
 #include "MaterialExpressionIO.h"
 #include "Materials/MaterialExpressionTextureSample.h"
+#include "Materials/MaterialExpressionTextureSampleParameter2D.h"
 
 struct FColor;
 struct FLinearColor;
@@ -74,7 +75,14 @@ private:
 								FExpressionInput* _input,
 								char const *_name,
 								FName const _fname = "");
-	void ConvertTextureSampleExpression(UEInterchangeCollection& _collection, UMaterialExpressionTextureSample* con);
+	void ConvertTextureSampleExpression(UEInterchangeCollection& _collection, 
+										UMaterialExpressionTextureSample* con);
+	void ConvertTextureSampleExpression(UEInterchangeCollection& _collection, 
+							UMaterialExpressionTextureSampleParameter2D* con);
+	void ConvertTexture(UEInterchangeCollection& _collection,
+										std::string const & _name,
+										UTexture * _texture);
+
 	UE4InterchangeMaterialNode(UEInterchangeCollection & _collection,
 								std::string const & _id,
 								UMaterialExpression * _expression);
