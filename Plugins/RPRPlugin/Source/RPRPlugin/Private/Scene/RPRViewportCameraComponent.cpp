@@ -62,7 +62,7 @@ bool	URPRViewportCameraComponent::Build()
 		if (rprCameraLookAt(m_RprCamera,
 			m_CachedCameraPos.X, m_CachedCameraPos.Z, m_CachedCameraPos.Y,
 			m_CachedCameraLookAt.X, m_CachedCameraLookAt.Z, m_CachedCameraLookAt.Y,
-			0, 1, 0) != RPR_SUCCESS)
+			0.0f, 1.0f, 0.0f) != RPR_SUCCESS)
 		{
 			UE_LOG(LogRPRViewportCameraComponent, Warning, TEXT("Couldn't set RPR camera transforms"));
 			return false;
@@ -160,13 +160,19 @@ bool	URPRViewportCameraComponent::RebuildCameraTransforms()
 	else
 	{
 		bool	refresh = false;
-		if (force)
+		if (force ||
+			client->AspectRatio != m_CachedAspectRatio)
+		{
+			m_CachedAspectRatio = client->AspectRatio;
+			Scene->TriggerResize();
+		}
+		if (false)//force)
 		{
 			// We switched from a locked camera to default viewport, change back all cinematic properties
 			// TODO: Viewport can lock to Front/Back/Perspective/Ortho modes, handle those
 			static const float		kDefaultFLength = 35.0f;
-			static const float		kDefaultFDistance = 100000.0f;
-			static const float		kDefaultFStop = 2.0f;
+			static const float		kDefaultFDistance = 1000.0f;
+			static const float		kDefaultFStop = 2.8f;
 			static const FVector2D	kDefaultSensorSize = FVector2D(36.0f, 20.25f); // TODO :GEt the correct default values
 			if (rprCameraSetMode(m_RprCamera, RPR_CAMERA_MODE_PERSPECTIVE) != RPR_SUCCESS ||
 				rprCameraSetFocalLength(m_RprCamera, kDefaultFLength) != RPR_SUCCESS ||
