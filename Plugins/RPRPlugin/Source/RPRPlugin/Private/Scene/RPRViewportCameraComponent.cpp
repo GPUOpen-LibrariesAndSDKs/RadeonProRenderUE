@@ -41,7 +41,7 @@ void	URPRViewportCameraComponent::SetAsActiveCamera()
 	{
 		UE_LOG(LogRPRViewportCameraComponent, Log, TEXT("RPR Active camera changed to active viewport camera"));
 	}
-	RebuildCameraProperties();
+	RebuildCameraProperties(false);
 	Scene->TriggerFrameRebuild();
 }
 
@@ -54,49 +54,51 @@ void	URPRViewportCameraComponent::SetOrbit(bool orbit)
 		return;
 	m_Orbit = !m_Orbit;
 	m_Sync = !m_Orbit;
-
-	UWorld	*world = GetWorld();
-	check(world != NULL);
-
-	FLevelEditorViewportClient	*client = (FLevelEditorViewportClient*)GEditor->GetActiveViewport()->GetClient();
-
-	m_OrbitCenter = FVector::ZeroVector;
-	m_OrbitLocation = client->GetViewLocation();
-	FVector	camDirection = FQuat(client->GetViewRotation()).GetForwardVector();
-
-	if (client->bLockedCameraView)
+	if (m_Orbit)
 	{
-		UCameraComponent	*cam = client->GetCameraComponentForView();
-		if (cam != NULL)
-		{
-			m_OrbitLocation = cam->ComponentToWorld.GetLocation();
-			camDirection = cam->ComponentToWorld.GetRotation().GetForwardVector();
-		}
-	}
+		UWorld	*world = GetWorld();
+		check(world != NULL);
 
-	static const float	kTraceDist = 10000000.0f;
-	FHitResult	hit;
-	if (world->LineTraceSingleByChannel(hit, m_OrbitLocation, camDirection * kTraceDist, ECC_Visibility) &&
-		hit.bBlockingHit)
-	{
-		if (hit.Actor != NULL)
+		FLevelEditorViewportClient	*client = (FLevelEditorViewportClient*)GEditor->GetActiveViewport()->GetClient();
+
+		m_OrbitCenter = FVector::ZeroVector;
+		m_OrbitLocation = client->GetViewLocation();
+		FVector	camDirection = FQuat(client->GetViewRotation()).GetForwardVector();
+
+		if (client->bLockedCameraView)
 		{
-			FVector	origin;
-			FVector	extent;
-			// This doesn't get child actor components bounds
-			// If we really want to do this, we 'll need to recurse call this on all childs...
-			hit.Actor->GetActorBounds(false, origin, extent);
-			m_OrbitCenter = origin;
+			UCameraComponent	*cam = client->GetCameraComponentForView();
+			if (cam != NULL)
+			{
+				m_OrbitLocation = cam->ComponentToWorld.GetLocation();
+				camDirection = cam->ComponentToWorld.GetRotation().GetForwardVector();
+			}
 		}
-		else if (hit.Component != NULL)
+
+		static const float	kTraceDist = 10000000.0f;
+		FHitResult	hit;
+		if (world->LineTraceSingleByChannel(hit, m_OrbitLocation, camDirection * kTraceDist, ECC_Visibility) &&
+			hit.bBlockingHit)
 		{
-			m_OrbitCenter = hit.Component->ComponentToWorld.GetLocation();
+			if (hit.Actor != NULL)
+			{
+				FVector	origin;
+				FVector	extent;
+				// This doesn't get child actor components bounds
+				// If we really want to do this, we 'll need to recurse call this on all childs...
+				hit.Actor->GetActorBounds(false, origin, extent);
+				m_OrbitCenter = origin;
+			}
+			else if (hit.Component != NULL)
+			{
+				m_OrbitCenter = hit.Component->ComponentToWorld.GetLocation();
+			}
 		}
 	}
 	if (m_RprCamera != NULL)
 	{
 		// We are building, it will be called later
-		if (RebuildCameraProperties())
+		if (RebuildCameraProperties(true))
 			Scene->TriggerFrameRebuild();
 	}
 }
@@ -134,7 +136,7 @@ void	URPRViewportCameraComponent::StartOrbitting(const FIntPoint &mousePos)
 	if (m_RprCamera != NULL)
 	{
 		// We are building, it will be called later
-		if (RebuildCameraProperties())
+		if (RebuildCameraProperties(false))
 			Scene->TriggerFrameRebuild();
 	}
 }
@@ -175,7 +177,7 @@ bool	URPRViewportCameraComponent::Build()
 	return Super::Build();
 }
 
-bool	URPRViewportCameraComponent::RebuildCameraProperties()
+bool	URPRViewportCameraComponent::RebuildCameraProperties(bool force)
 {
 	if (Scene->m_ActiveCamera != this ||
 		GEditor->GetActiveViewport() == NULL ||
@@ -199,7 +201,7 @@ bool	URPRViewportCameraComponent::RebuildCameraProperties()
 
 		UCameraComponent		*cam = NULL;
 		UCineCameraComponent	*cineCam = NULL;
-		const bool	force = client->bLockedCameraView != m_CachedIsLocked;
+		force |= client->bLockedCameraView != m_CachedIsLocked;
 		m_CachedIsLocked = client->bLockedCameraView;
 		if (client->bLockedCameraView)
 		{
@@ -298,15 +300,20 @@ bool	URPRViewportCameraComponent::RebuildCameraProperties()
 			}
 			FVector	camPos = client->GetViewLocation() * 0.1f;
 			FVector	camLookAt = client->GetLookAtLocation() * 0.1f;
-			if (camPos.Equals(m_CachedCameraPos, 0.0001f) && camLookAt.Equals(m_CachedCameraLookAt, 0.0001f))
-				return refresh;
-			m_CachedCameraPos = camPos;
-			m_CachedCameraLookAt = camLookAt;
-			if (rprCameraLookAt(m_RprCamera, camPos.X, camPos.Z, camPos.Y, camLookAt.X, camLookAt.Z, camLookAt.Y, 0, 1, 0) != RPR_SUCCESS)
+			if (force ||
+				!camPos.Equals(m_CachedCameraPos, 0.0001f) ||
+				!camLookAt.Equals(m_CachedCameraLookAt, 0.0001f))
 			{
-				UE_LOG(LogRPRViewportCameraComponent, Warning, TEXT("Couldn't set RPR camera transforms"));
-				return false;
+				if (rprCameraLookAt(m_RprCamera, camPos.X, camPos.Z, camPos.Y, camLookAt.X, camLookAt.Z, camLookAt.Y, 0, 1, 0) != RPR_SUCCESS)
+				{
+					UE_LOG(LogRPRViewportCameraComponent, Warning, TEXT("Couldn't set RPR camera transforms"));
+					return false;
+				}
+				refresh = true;
+				m_CachedCameraPos = camPos;
+				m_CachedCameraLookAt = camLookAt;
 			}
+			return refresh;
 		}
 	}
 	return true;
@@ -372,10 +379,10 @@ void	URPRViewportCameraComponent::TickComponent(float deltaTime, ELevelTick tick
 
 			refresh = true;
 		}
-		if (refresh && RebuildCameraProperties())
+		if (refresh && RebuildCameraProperties(false))
 			Scene->TriggerFrameRebuild();
 	}
-	else if (RebuildCameraProperties())
+	else if (RebuildCameraProperties(false))
 		Scene->TriggerFrameRebuild();
 }
 

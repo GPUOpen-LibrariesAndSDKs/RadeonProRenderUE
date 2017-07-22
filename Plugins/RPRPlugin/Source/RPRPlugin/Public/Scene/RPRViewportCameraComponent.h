@@ -20,7 +20,7 @@ public:
 	void			StartOrbitting(const FIntPoint &mousePos);
 	virtual bool	Build() override;
 private:
-	virtual bool	RebuildCameraProperties();
+	virtual bool	RebuildCameraProperties(bool force);
 	virtual void	TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
 	virtual void	BeginDestroy() override;
 private:
