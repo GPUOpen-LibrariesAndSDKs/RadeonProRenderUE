@@ -166,7 +166,7 @@ bool	URPRViewportCameraComponent::RebuildCameraTransforms()
 			m_CachedAspectRatio = client->AspectRatio;
 			Scene->TriggerResize();
 		}
-		if (false)//force)
+		if (force)
 		{
 			// We switched from a locked camera to default viewport, change back all cinematic properties
 			// TODO: Viewport can lock to Front/Back/Perspective/Ortho modes, handle those
