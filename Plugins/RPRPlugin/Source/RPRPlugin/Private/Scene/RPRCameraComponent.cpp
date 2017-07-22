@@ -218,12 +218,12 @@ void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FA
 	{
 		static const float	kMinOrbitDist = 100.0f; // One meter
 		static const float	kMaxOrbitDist = 100000.0f; // One kilometer
-		static const float	kScrollSpeed = 10.0f;
 
 		FVector	dir = FVector(m_OrbitCenter - m_OrbitLocation).GetSafeNormal();
 		check(dir != FVector::ZeroVector);
 
-		FVector		newLocation = m_OrbitLocation + dir * zoom * kScrollSpeed;
+		const float	currentDistance = (m_OrbitCenter - m_OrbitLocation).Size();
+		FVector		newLocation = m_OrbitLocation + dir * zoom * FGenericPlatformMath::Min(FGenericPlatformMath::Pow(currentDistance / 100.0f, 2.0f) * 0.5f, 100.0f);
 		const float distance = FVector(m_OrbitCenter - newLocation).Size();
 
 		if (distance < kMaxOrbitDist && distance > kMinOrbitDist)
