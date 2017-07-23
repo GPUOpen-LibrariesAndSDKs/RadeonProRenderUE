@@ -414,15 +414,21 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		SetTrace(settings->bTrace);
 		UE_LOG(LogRPRScene, Log, TEXT("ProRender scene created"));
 
-        // Initialize material library for UE material to RPR replacement.     
-        m_materialLibrary.AddDirectory(TCHAR_TO_ANSI(*(FPaths::GameDir() + "/Plugins/RPRPlugin/Content/Materials")));
+        // Set the master material mappings file.
+        m_materialLibrary.LoadMasterMappingFile(TCHAR_TO_ANSI(*(FPaths::GameDir() + "/Plugins/RPRPlugin/Content/MaterialMappings.xml")));
 
-		// Initialize the UMSControl
-		m_UMSControl.LoadControlData(TCHAR_TO_ANSI(*(FPaths::GameDir() + "/Plugins/RPRPlugin/Content/UMSControl.xml")));
+        // Add material search paths to material library.
+        m_materialLibrary.AddMaterialSearchPaths(TCHAR_TO_ANSI(*settings->MaterialsSearchPaths));
 
         // Add image search paths to material library.
         m_materialLibrary.AddImageSearchPaths(TCHAR_TO_ANSI(*settings->ImageSearchPaths));
 		
+        // Initialize material library for UE material to RPR replacement.     
+        m_materialLibrary.AddDirectory(TCHAR_TO_ANSI(*(FPaths::GameDir() + "/Plugins/RPRPlugin/Content/Materials")));
+
+        // Initialize the UMSControl
+        m_UMSControl.LoadControlData(TCHAR_TO_ANSI(*(FPaths::GameDir() + "/Plugins/RPRPlugin/Content/UMSControl.xml")));
+
         outObjectToBuildCount = BuildScene();
 
 		// IF in editor

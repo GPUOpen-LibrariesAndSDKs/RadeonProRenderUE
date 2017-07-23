@@ -18,10 +18,14 @@ namespace rpr
         ~MaterialLibrary();
 
         void Clear();
+        
+        void LoadMasterMappingFile(const std::string& filename);
 
-        void AddDirectory(const std::string& path); 
+        void AddMaterialSearchPaths(const std::string& paths);
 
         void AddImageSearchPaths(const std::string& paths);
+
+        void AddDirectory(const std::string& path);
 
         bool HasMaterialName(const std::string& name);
         
@@ -31,6 +35,22 @@ namespace rpr
         void LoadMaterialXML(const std::string& filename);
 
         std::string FindAbsoluteImagePath(const std::string& materialDirectory, const std::string& filename);
+
+        struct ParameterMapping
+        {
+            std::string rprNode; // Name of the RPR material node to target.
+            std::string rprNodeParameter; // Name of the parameter in the RPR node to map the Unreal Engine value to.
+        };
+
+        struct MaterialMapping
+        {
+            std::string name; // Name of the RPR material.
+            std::unordered_map<std::string, ParameterMapping> parameterMappings; // List of UE parameter to RPR parameter mappings keyed by UE material property name.
+        };
+
+        std::unordered_map<std::string, MaterialMapping> m_masterFileMappings;
+        
+        std::vector<std::string> m_imageSearchPaths;
 
         struct Param
         {
@@ -56,8 +76,7 @@ namespace rpr
             std::vector<Node> nodes;
             std::unordered_set<std::string> taggedParams;
         };
-
-        std::vector<std::string> m_imageSearchPaths;
+        
         std::unordered_map<std::string, Material> m_materialDescriptions;
     };
 }

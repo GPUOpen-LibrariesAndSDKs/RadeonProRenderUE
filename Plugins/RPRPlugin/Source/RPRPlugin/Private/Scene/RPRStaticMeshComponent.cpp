@@ -368,6 +368,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		}
 	}
 #endif
+
 	for (auto&& mg : mgs)
 	{
 		if (mg) delete mg;

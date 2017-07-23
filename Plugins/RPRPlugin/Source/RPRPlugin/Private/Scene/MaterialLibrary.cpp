@@ -59,8 +59,103 @@ namespace rpr
         m_materialDescriptions.clear();
     }
 
+    void MaterialLibrary::LoadMasterMappingFile(const std::string& filename)
+    {
+        // Open the xml configuration file.
+        tinyxml2::XMLDocument doc;
+        if (doc.LoadFile(filename.c_str()) != tinyxml2::XML_SUCCESS)
+        {
+            // TODO: Handle error.
+            return;
+        }
+
+        // Get the root node.
+        auto elem = doc.FirstChildElement("mappings");
+        if (elem)
+        {
+            // Iterate over each material listed.
+            elem = elem->FirstChildElement("material");
+            while (elem)
+            {
+                // Get the UE material name and target RPR material name.
+                std::string ueName = elem->Attribute("name");
+                std::string rprName = elem->Attribute("shader");
+                
+                // Create a new MaterialMapping instance.
+                MaterialMapping mm;
+
+                // Enumerate all parameter mappings in the XML tree.
+                auto childElem = elem->FirstChildElement("parameter");
+                while (childElem)
+                {
+                    // Get the parameter mapping info.
+                    ParameterMapping pm = { childElem->Attribute("rprNode"), childElem->Attribute("rprParameter") };
+                    mm.parameterMappings.emplace(childElem->Attribute("name"), std::move(pm));
+
+                    // Move to next node.
+                    childElem = childElem->NextSiblingElement();
+                }
+
+                // Save to map.
+                m_masterFileMappings.emplace(ueName, std::move(mm));
+                UE_LOG(LogMaterialLibrary, Log, TEXT("Found material mapping %s -> %s"), UTF8_TO_TCHAR(ueName.c_str()), UTF8_TO_TCHAR(rprName.c_str()));
+
+                // Move to next node.
+                elem = elem->NextSiblingElement();
+            }
+        }
+    }
+
+    void MaterialLibrary::AddMaterialSearchPaths(const std::string& paths)
+    {
+        // Paths can be multiple directory strings delimeted by ';'.
+        std::string temp = paths;
+        size_t pos = temp.find_first_of(';');
+        do
+        {
+            // Add the next path found before the first ';'.
+            std::string path = temp.substr(0, pos);
+            AddDirectory(path);
+            temp = temp.substr(pos + 1);
+            pos = temp.find_first_of(';');
+
+            // Add the last path.
+            if (pos == std::string::npos)
+                AddDirectory(temp);
+        } while (pos != std::string::npos);
+    }   
+
+    void MaterialLibrary::AddImageSearchPaths(const std::string& paths)
+    {
+
+        // Paths can be multiple directory strings delimeted by ';'.
+        std::string temp = paths;
+        size_t pos = temp.find_first_of(';');
+        do
+        {
+            // Add the next path found before the first ';'.
+            std::string path = temp.substr(0, pos);
+
+            // Make sure path exists.
+            if (fs::exists(path))
+                m_imageSearchPaths.push_back(path);
+
+            // Get the next entry in the string split.
+            temp = temp.substr(pos + 1);
+            pos = temp.find_first_of(';');
+
+            // Add the last path.
+            if (pos == std::string::npos && fs::exists(temp))
+                m_imageSearchPaths.push_back(temp);
+        } while (pos != std::string::npos);
+    }
+
     void MaterialLibrary::AddDirectory(const std::string& path)
     {
+        // Make sure path exists.
+        if (!fs::exists(path))
+            return;
+
         // Iterate over all files in the specific directory.
         for (auto& entry : fs::directory_iterator(path))
         {
@@ -73,35 +168,30 @@ namespace rpr
         }
     }
 
-    void MaterialLibrary::AddImageSearchPaths(const std::string& paths)
-    {
-        // Paths can be multiple directory strings delimeted by ';'.
-        std::string temp = paths;
-        size_t pos = temp.find_first_of(';');
-        do
-        {
-            // Add the next path found before the first ';'.
-            std::string path = temp.substr(0, pos);
-            m_imageSearchPaths.push_back(path);
-            temp = temp.substr(pos + 1);
-            pos = temp.find_first_of(';');
-
-            // Add the last path.
-            if (pos == std::string::npos)
-                m_imageSearchPaths.push_back(temp);
-        } while (pos != std::string::npos);
-    }
-
     bool MaterialLibrary::HasMaterialName(const std::string& name)
     {
-		UE_LOG(LogMaterialLibrary, Log, TEXT("Looking for material library material %s"), UTF8_TO_TCHAR(name.c_str()));
-        return (m_materialDescriptions.find(name) != m_materialDescriptions.end());
+		UE_LOG(LogMaterialLibrary, Log, TEXT("Looking for material library material %s"), UTF8_TO_TCHAR(name.c_str()));        
+        return (m_masterFileMappings.find(name) != m_masterFileMappings.end() || m_materialDescriptions.find(name) != m_materialDescriptions.end());
     }
 
 	rpr_material_node MaterialLibrary::CreateMaterial(const UMaterialInterface* ueMaterialInterfaceObject, rpr_context context, rpr_material_system materialSystem)
 	{
-		// Make sure material name exists in library.
-		std::string name = TCHAR_TO_ANSI(*ueMaterialInterfaceObject->GetName());
+        // Assume UE material maps to an RPR material with the same name but allow any entry in the master mappings file to override it.
+        std::string name = TCHAR_TO_ANSI(*ueMaterialInterfaceObject->GetName());
+        std::unordered_map<std::string, ParameterMapping> parameterMappings;
+        if (m_masterFileMappings.find(name) != m_masterFileMappings.end())
+        {
+            auto& materialMapping = m_masterFileMappings.at(name);
+            UE_LOG(LogMaterialLibrary, Log, TEXT("Master mappings file contains %s -> %s"), UTF8_TO_TCHAR(name.c_str()), UTF8_TO_TCHAR(materialMapping.name.c_str()));
+            
+            // Change the name of the RPR material the UE one maps to.
+            name = materialMapping.name;
+
+            // Copy parameter mappings to apply below.
+            parameterMappings = materialMapping.parameterMappings;
+        }
+
+		// For for name string in material descriptions map.
 		auto itr = m_materialDescriptions.find(name);
 		if (itr == m_materialDescriptions.end())
 		{
@@ -111,7 +201,7 @@ namespace rpr
 
 		// Create lookup tables for all of the UMaterialInstance's replacement parameters.
 		std::unordered_map<std::string, float> scalarReplacementParameters;
-		std::unordered_map<std::string, FLinearColor> vectorReplacementParams;
+		std::unordered_map<std::string, FLinearColor> vectorReplacementParameters;
 
 		// It is only valid to get the replacement parameters for a materialInstance (and not a UEMaterial) for now.
 		const UMaterialInstance *materialInstance = Cast<UMaterialInstance>(ueMaterialInterfaceObject);
@@ -120,7 +210,7 @@ namespace rpr
 				scalarReplacementParameters.emplace(std::string(TCHAR_TO_ANSI(*param.ParameterName.GetPlainNameString())), param.ParameterValue);
 
 			for (auto& param : materialInstance->VectorParameterValues)
-				vectorReplacementParams.emplace(std::string(TCHAR_TO_ANSI(*param.ParameterName.GetPlainNameString())), param.ParameterValue);
+				vectorReplacementParameters.emplace(std::string(TCHAR_TO_ANSI(*param.ParameterName.GetPlainNameString())), param.ParameterValue);
 		}
 
 		std::unordered_map<std::string, UTexture*> textureReplacements;
@@ -303,18 +393,54 @@ namespace rpr
 					rpr_float value[4] = { 0.0f };
 					int count = sscanf_s(param.value.c_str(), "%f, %f, %f, %f", &value[0], &value[1], &value[2], &value[3]);
 
-					// Check for parameter replacement form UE material.
-					if (scalarReplacementParameters.find(param.tag) != scalarReplacementParameters.end())
-						value[0] = scalarReplacementParameters.find(param.tag)->second;
-					else if (vectorReplacementParams.find(param.tag) != vectorReplacementParams.end())
-					{
-						auto& newValue = vectorReplacementParams.find(param.tag)->second;
-						value[0] = newValue.R;
-						value[1] = newValue.G;
-						value[2] = newValue.B;
-						value[3] = newValue.A;
-					}
+                    // Apply any material mappings if they exist.
+                    bool foundParameterMapping = false;
+                    for (auto itr : parameterMappings)
+                    {
+                        // Check to see if the current parameter mapping matches the current node and node param.
+                        if (itr.second.rprNode == node.name && itr.second.rprNodeParameter == param.name)
+                        {
+                            // Look up the matching UE parameter in either the scalar or vector lists.
+                            if (scalarReplacementParameters.find(itr.first) != scalarReplacementParameters.end())
+                            {
+                                // Replace value.
+                                value[0] = scalarReplacementParameters.find(itr.first)->second;
+                                foundParameterMapping = true;
+                            }
+                            else if (vectorReplacementParameters.find(itr.first) != vectorReplacementParameters.end())
+                            {
+                                // Replace value.
+                                auto& newValue = vectorReplacementParameters.find(param.tag)->second;
+                                value[0] = newValue.R;
+                                value[1] = newValue.G;
+                                value[2] = newValue.B;
+                                value[3] = newValue.A;
+                            }
+                        }
+                    }
 
+                    // If no parameter mapping was found in loaded master file, do mapping manually by matching name strings.
+                    if (!foundParameterMapping)
+                    {
+                        // Check for match in scalar parameters.
+                        if (scalarReplacementParameters.find(param.tag) != scalarReplacementParameters.end())
+                        {
+                            // Replace value.
+                            value[0] = scalarReplacementParameters.find(param.tag)->second;
+                        }
+                        // Check for match in vector parameters.
+                        else if (vectorReplacementParameters.find(param.tag) != vectorReplacementParameters.end())
+                        {
+                            // Replace value.
+                            auto& newValue = vectorReplacementParameters.find(param.tag)->second;
+                            value[0] = newValue.R;
+                            value[1] = newValue.G;
+                            value[2] = newValue.B;
+                            value[3] = newValue.A;
+                        }
+                    }
+
+                    // Set RPR material value.
 					rpr_int result = rprMaterialNodeSetInputF(handle, param.name.c_str(), value[0], value[1], value[2], value[3]);
                     if (result != RPR_SUCCESS)
                         UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputF failed (%d) param=%s value=%f,%f,%f,%f"), result, UTF8_TO_TCHAR(param.name.c_str()), value[0], value[1], value[2], value[3]);
