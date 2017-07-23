@@ -145,14 +145,14 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 		if (_expression->IsA(UMaterialExpressionConstant::StaticClass()))
 		{
 			fieldName = "R";
-			valueName = _id + fieldName;
+			valueName = _id + _fname.GetPlainANSIString() + fieldName;
 			auto con = static_cast<UMaterialExpressionConstant *>(_expression);
 			valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(), con->R);
 		}
 		else if (_expression->IsA(UMaterialExpressionConstant2Vector::StaticClass()))
 		{
 			fieldName = "RG";
-			valueName = _id + fieldName;
+			valueName = _id + _fname.GetPlainANSIString() + fieldName;
 			auto con = static_cast<UMaterialExpressionConstant2Vector *>(_expression);
 			valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(),
 				con->R, con->G);
@@ -160,7 +160,7 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 		else if (_expression->IsA(UMaterialExpressionConstant3Vector::StaticClass()))
 		{
 			fieldName = "Constant";
-			valueName = _id + fieldName;
+			valueName = _id + _fname.GetPlainANSIString() + fieldName;
 			auto con = static_cast<UMaterialExpressionConstant3Vector *>(_expression);
 			valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(),
 				con->Constant);
@@ -168,14 +168,13 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 		else if (_expression->IsA(UMaterialExpressionConstant4Vector::StaticClass()))
 		{
 			fieldName = "Constant";
-			valueName = _id + fieldName;
+			valueName = _id + _fname.GetPlainANSIString() + fieldName;
 			auto con = static_cast<UMaterialExpressionConstant4Vector *>(_expression);
 
 			valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(),
 				con->Constant);
 		} else if(_expression->IsA(UMaterialExpressionVectorParameter::StaticClass()))
 		{
-			valueName = _id + fieldName;
 			auto con = static_cast<UMaterialExpressionVectorParameter *>(_expression);
 
 			FLinearColor overCol = con->DefaultValue;
@@ -189,6 +188,7 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 				fieldName = "DefaultValue";
 			}
 
+			valueName = _id + _fname.GetPlainANSIString() + fieldName;
 			valuePtr = UE4InterchangeMaterialValue::New(_collection, 
 														valueName.c_str(),
 														overCol);
@@ -205,7 +205,7 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 				fieldName = "DefaultValue";
 			}
 
-			valueName = _id + fieldName;
+			valueName = _id + _fname.GetPlainANSIString() + fieldName;
 			valuePtr = UE4InterchangeMaterialValue::New(_collection,
 				valueName.c_str(),
 				overF);
@@ -223,10 +223,11 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 	{
 		// node
 		IMaterialValuePtr valuePtr;
+		std::string valueName = _id + _fname.GetPlainANSIString();
 
-		auto node = IMaterialNodePtr(new UE4InterchangeMaterialNode(_collection, _id, _expression));
-		_collection.nodeStorage[_id.c_str()] = node;
-		return _collection.FindMux(_id.c_str());
+		auto node = IMaterialNodePtr(new UE4InterchangeMaterialNode(_collection, valueName.c_str(), _expression));
+		_collection.nodeStorage[valueName.c_str()] = node;
+		return _collection.FindMux(valueName.c_str());
 
 	}
 
@@ -241,7 +242,7 @@ void UE4InterchangeMaterialNode::ConvertFExpressionInput(UEInterchangeCollection
 	{
 		std::string ename = TCHAR_TO_ANSI(*_input->Expression->GetName());
 		auto childMux = UE4InterchangeMaterialNode::New(_collection,
-		                                                ename,
+		                                                std::string(_name) + ename,
 														_input->Expression,
 														_fname);
 		if (!childMux->IsEmpty())
@@ -321,13 +322,11 @@ void UE4InterchangeMaterialNode::ConvertTextureSampleExpression(
 		bool okay = _collection.ue4MatInterface->GetTextureParameterValue(con->ParameterName, tex);
 		if (okay)
 		{
-			texName = std::string(con->ParameterName.GetPlainANSIString()) + "Texture";
+			texName = con->ParameterName.GetPlainANSIString();
 		}
-		else
-		{
-			texName = std::string(TCHAR_TO_ANSI(*con->Texture->GetName())) + "Texture";
-		}
-		ConvertTexture(_collection, texName, con->Texture);
+		texName += TCHAR_TO_ANSI(*tex->GetName());
+		texName += "Texture";
+		ConvertTexture(_collection, texName, tex);
 	}
 	else
 	{
@@ -370,8 +369,7 @@ UE4InterchangeMaterialNode::UE4InterchangeMaterialNode(
 			if (input == nullptr)
 				continue;
 
-			auto name = TCHAR_TO_ANSI(*expression->GetInputName(i));
-			ConvertFExpressionInput(_collection, input, name, fname);
+			ConvertFExpressionInput(_collection, input, name.c_str(), fname);
 		}
 	}
 }
@@ -422,27 +420,23 @@ UE4InterchangePBRNode::New(UEInterchangeCollection & _collection,
 #define PBR_DEFAULT_YELLOW FColor(255,255,0,255)
 
 #define HOOKUP_PBR_EXPRESSION(_name, _index, _type, _default) \
-	if ((ue4Mat->_name.UseConstant) || (ue4Mat->_name.Expression == nullptr)) \
-	{ \
-		std::string name = id + #_name ; \
-		_type v = _default; \
-		if (ue4Mat->_name.UseConstant) { v = ue4Mat->_name.Constant; } \
-		auto val = UE4InterchangeMaterialValue::New(_collection, \
-			name.c_str(), \
-			v); \
-		auto muxPtr = _collection.FindMux(name.c_str()); \
-		assert(muxPtr); \
-		muxes[_index] = muxPtr; \
-	} \
-	else if (ue4Mat->_name.Expression != nullptr) \
-	{ \
-		auto ue4Name = ue4Mat->_name.Expression->GetName(); \
-		auto cName = TCHAR_TO_ANSI(*ue4Name); \
-		auto mux = UE4InterchangeMaterialNode::New(_collection, \
-			cName, \
-			ue4Mat->_name.Expression); \
-		muxes[_index] = mux; \
-	}
+if ((ue4Mat->_name.UseConstant) || (ue4Mat->_name.Expression == nullptr)) \
+{ \
+	_type v = _default; \
+	if (ue4Mat->_name.UseConstant) { v = ue4Mat->_name.Constant; } \
+	auto val = UE4InterchangeMaterialValue::New(_collection, \
+		(id + #_name).c_str(), v); \
+	auto muxPtr = _collection.FindMux((id + #_name).c_str()); \
+	assert(muxPtr); \
+	muxes[_index] = muxPtr; \
+} \
+else if (ue4Mat->_name.Expression != nullptr) \
+{ \
+	auto mux = UE4InterchangeMaterialNode::New(_collection, \
+		(id + TCHAR_TO_ANSI(*ue4Mat->_name.Expression->GetName())).c_str(), \
+		ue4Mat->_name.Expression); \
+	muxes[_index] = mux; \
+}
 
 
 UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collection, 
@@ -454,15 +448,15 @@ UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collect
 	id = _id;
 
 	HOOKUP_PBR_EXPRESSION(BaseColor, 0, FColor, PBR_DEFAULT_YELLOW);
-	HOOKUP_PBR_EXPRESSION(Metallic, 1, float, 0.5f);
-//	HOOKUP_PBR_EXPRESSION(Roughness, 2, float, 0.5f);
+	HOOKUP_PBR_EXPRESSION(Roughness, 1, float, 0.5f);
+	HOOKUP_PBR_EXPRESSION(Metallic, 2, float, 0.5f);
 //	HOOKUP_PBR_EXPRESSION(Specular, 3, float, 0.5f);
 	// normal goes here
 //	HOOKUP_PBR_EXPRESSION(EmissiveColor, 5, FColor, PBR_DEFAULT_BLACK);
 //	HOOKUP_PBR_EXPRESSION(Opacity, 6, float, 1.0f);
-	// clear coat here
+// refraction
+// clear coat here
 	// clear coat roughness
-	// refraction
 		
 }
 #undef HOOKUP_PBR_EXPRESSION
