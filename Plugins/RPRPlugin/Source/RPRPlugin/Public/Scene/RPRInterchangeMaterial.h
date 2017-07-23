@@ -76,11 +76,14 @@ private:
 								char const *_name,
 								FName const _fname = "");
 	void ConvertTextureSampleExpression(UEInterchangeCollection& _collection, 
+										std::string const & _name,
 										UMaterialExpressionTextureSample* con);
 	void ConvertTextureSampleExpression(UEInterchangeCollection& _collection, 
-							UMaterialExpressionTextureSampleParameter2D* con);
-	void ConvertTexture(UEInterchangeCollection& _collection,
 										std::string const & _name,
+										UMaterialExpressionTextureSampleParameter2D* con);
+	void ConvertTexture(UEInterchangeCollection& _collection,
+										std::string const & _valname,
+										std::string const & _texname,
 										UTexture * _texture);
 
 	UE4InterchangeMaterialNode(UEInterchangeCollection & _collection,

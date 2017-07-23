@@ -265,15 +265,18 @@ void UE4InterchangeMaterialNode::ConvertFExpressionInput(UEInterchangeCollection
 
 void UE4InterchangeMaterialNode::ConvertTexture(
 	UEInterchangeCollection& _collection,
-	std::string const & _name,
+	std::string const & _valname,
+	std::string const & _texname,
 	UTexture * _texture)
 {
-	auto texIt = _collection.textureStorage.find(_name);
+	std::string const texName = _texname + "Texture";
+	auto texIt = _collection.textureStorage.find(texName);
 	if (texIt == _collection.textureStorage.end())
 	{
 		auto image = std::make_shared<UE4InterchangeImage>(_texture);
 		auto sampler = std::make_shared<UE4InterchangeSampler>(_texture);
 		auto tex = std::make_shared<UE4InterchangeTexture>(sampler.get(), image.get());
+		assert(texName == tex->GetId());
 		_collection.imageStorage[image->GetId()] = image;
 		_collection.samplerStorage[sampler->GetId()] = sampler;
 		_collection.textureStorage[tex->GetId()] = tex;
@@ -284,8 +287,8 @@ void UE4InterchangeMaterialNode::ConvertTexture(
 		texture = texIt->second.get();
 	}
 	auto texValue = UE4InterchangeMaterialValue::New(_collection,
-													(_name + "Mux").c_str(),
-													_name.c_str());
+													(_valname + "Mux").c_str(),
+													_valname.c_str());
 
 	muxes.emplace_back(_collection.FindMux(texValue->GetId()));
 	inputNames.emplace_back("Tex");
@@ -295,15 +298,15 @@ void UE4InterchangeMaterialNode::ConvertTexture(
 }
 
 void UE4InterchangeMaterialNode::ConvertTextureSampleExpression(
-									UEInterchangeCollection& _collection, 
-									UMaterialExpressionTextureSample* con)
+								UEInterchangeCollection& _collection, 
+								std::string const & _name,
+								UMaterialExpressionTextureSample* con)
 {
 	if (con->Texture != nullptr)
 	{
-		std::string texName = std::string(TCHAR_TO_ANSI(*con->Texture->GetName())) +
-								"Texture";
-
-		ConvertTexture(_collection, texName, con->Texture);
+		std::string texName = TCHAR_TO_ANSI(*con->Texture->GetName());
+		std::string valName = _name + texName + "Texture";
+		ConvertTexture(_collection, valName, texName, con->Texture);
 	} else
 	{
 		// look up TextureObject?
@@ -312,21 +315,22 @@ void UE4InterchangeMaterialNode::ConvertTextureSampleExpression(
 }
 void UE4InterchangeMaterialNode::ConvertTextureSampleExpression(
 	UEInterchangeCollection& _collection,
+	std::string const & _name,
 	UMaterialExpressionTextureSampleParameter2D* con)
 {
 	if (con->Texture != nullptr)
 	{
-		std::string texName;
+		std::string valName = _name;
 
 		UTexture* tex = con->Texture;
 		bool okay = _collection.ue4MatInterface->GetTextureParameterValue(con->ParameterName, tex);
 		if (okay)
 		{
-			texName = con->ParameterName.GetPlainANSIString();
+			valName += con->ParameterName.GetPlainANSIString();
 		}
-		texName += TCHAR_TO_ANSI(*tex->GetName());
-		texName += "Texture";
-		ConvertTexture(_collection, texName, tex);
+		std::string texName = TCHAR_TO_ANSI(*tex->GetName());
+		texName += texName + "Texture";
+		ConvertTexture(_collection, valName, texName, tex);
 	}
 	else
 	{
@@ -352,12 +356,12 @@ UE4InterchangeMaterialNode::UE4InterchangeMaterialNode(
 	if (_expression->IsA(UMaterialExpressionTextureSample::StaticClass()))
 	{	
 		auto con = static_cast<UMaterialExpressionTextureSample*>(_expression);
-		ConvertTextureSampleExpression(_collection, con);
+		ConvertTextureSampleExpression(_collection, name.c_str(), con);
 	}
 	if (_expression->IsA(UMaterialExpressionTextureSampleParameter2D::StaticClass()))
 	{
 		auto con = static_cast<UMaterialExpressionTextureSampleParameter2D*>(_expression);
-		ConvertTextureSampleExpression(_collection, con);
+		ConvertTextureSampleExpression(_collection, name.c_str(), con);
 	}
 	else
 	{
@@ -433,7 +437,7 @@ if ((ue4Mat->_name.UseConstant) || (ue4Mat->_name.Expression == nullptr)) \
 else if (ue4Mat->_name.Expression != nullptr) \
 { \
 	auto mux = UE4InterchangeMaterialNode::New(_collection, \
-		(id + TCHAR_TO_ANSI(*ue4Mat->_name.Expression->GetName())).c_str(), \
+		(id + #_name + TCHAR_TO_ANSI(*ue4Mat->_name.Expression->GetName())).c_str(), \
 		ue4Mat->_name.Expression); \
 	muxes[_index] = mux; \
 }
