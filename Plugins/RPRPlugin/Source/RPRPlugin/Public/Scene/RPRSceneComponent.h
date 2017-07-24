@@ -30,6 +30,8 @@ public:
 
 	/* Rebuild the RPR transforms */
 	virtual bool	RebuildTransforms() { return false; }
+
+	bool			IsSrcComponentValid() const;
 protected:
 	void			TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
 protected:

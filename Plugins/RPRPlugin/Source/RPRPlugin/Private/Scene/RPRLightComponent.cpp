@@ -235,7 +235,7 @@ void	URPRLightComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 
 	if (!m_Built)
 		return;
-	if (SrcComponent == NULL)
+	if (!IsSrcComponentValid())
 		return; // We are about to get destroyed
 
 	check(Scene != NULL);

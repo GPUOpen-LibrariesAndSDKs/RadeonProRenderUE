@@ -204,6 +204,7 @@ uint32	ARPRScene::BuildScene()
 	{
 		if (it->GetWorld() != world ||
 			it->HasAnyFlags(RF_Transient | RF_BeginDestroyed) ||
+			it->IsPendingKill() ||
 			!it->HasBeenCreated())
 			continue;
 		if (Cast<UStaticMeshComponent>(*it) != NULL)
@@ -279,6 +280,7 @@ void	ARPRScene::RefreshScene()
 	{
 		if (it->GetWorld() != world ||
 			it->HasAnyFlags(RF_Transient | RF_BeginDestroyed) ||
+			it->IsPendingKill() ||
 			!it->HasBeenCreated())
 			continue;
 		if (Cast<UStaticMeshComponent>(*it) != NULL)

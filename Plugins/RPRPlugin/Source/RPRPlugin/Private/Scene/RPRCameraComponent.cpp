@@ -48,7 +48,7 @@ void	URPRCameraComponent::SetOrbit(bool orbit)
 {
 	if (m_Orbit == orbit)
 		return;
-	if (SrcComponent == NULL)
+	if (!IsSrcComponentValid())
 		return;
 	m_Orbit = !m_Orbit;
 	m_Sync = !m_Orbit;
@@ -196,7 +196,7 @@ void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FA
 
 	if (!m_Built)
 		return;
-	if (SrcComponent == NULL)
+	if (!IsSrcComponentValid())
 		return; // We are about to get destroyed
 
 	check(m_Plugin != NULL);
