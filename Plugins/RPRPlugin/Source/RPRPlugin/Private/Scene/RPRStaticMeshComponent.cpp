@@ -53,7 +53,7 @@ TArray<SRPRCachedMesh>	URPRStaticMeshComponent::GetMeshInstances(UStaticMesh *me
 		{
 			for (int32 jShape = 0; jShape < instances.Num(); ++jShape)
 				rprObjectDelete(instances[jShape].m_RprShape);
-			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh instance from '%s'"), *SrcComponent->GetName());
+			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh instance from '%s'"), *mesh->GetName());
 			return TArray<SRPRCachedMesh>();
 		}
 		else
@@ -69,6 +69,7 @@ void	URPRStaticMeshComponent::CleanCache()
 {
 	// Obviously this is context dependent
 	// TODO : Put a safer cache system in place *or* ensure there can only be one context
+	// TODO: Everything needs to be removed from the scene and properly destroyed
 	Cache.Empty();
 }
 #define RPR_UMS_INTEGRATION 1
@@ -593,13 +594,31 @@ bool	URPRStaticMeshComponent::Build()
                 if (det >= 0) windingOrders.emplace(WindingOrder::CCW);
                 else windingOrders.emplace(WindingOrder::CW);
             }
-
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape created from '%s' section %d"), *staticMesh->GetName(), iSection);
 			SRPRCachedMesh	newShape(shape, section.MaterialIndex);
 			if (!Cache.Contains(staticMesh))
 				Cache.Add(staticMesh);
 			Cache[staticMesh].Add(newShape);
-			m_Shapes.Add(newShape);
+
+			// New shape in the cache ? Add it in the scene + make it invisible
+			if (rprShapeSetVisibility(shape, false) != RPR_SUCCESS ||
+				rprSceneAttachShape(Scene->m_RprScene, shape) != RPR_SUCCESS)
+			{
+				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't attach Cached RPR shape to the RPR scene"));
+				return false;
+			}
+
+			SRPRCachedMesh	newInstance(newShape.m_UEMaterialIndex);
+			if (rprContextCreateInstance(Scene->m_RprContext, shape, &newInstance.m_RprShape) != RPR_SUCCESS)
+			{
+				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh instance from '%s'"), *staticMesh->GetName());
+				return false;
+			}
+			else
+			{
+				UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape instance created from '%s' section %d"), *staticMesh->GetName(), iSection);
+			}
+			m_Shapes.Add(newInstance);
 		}
 
         if (windingOrders.size() > 1)
@@ -615,7 +634,7 @@ bool	URPRStaticMeshComponent::Build()
 	{
 		const uint32	shapeCount = shapes.Num();
 		for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
-			m_Shapes.Add(shapes[iShape]);
+			m_Shapes.Add(shapes[iShape]); // NOTE : here, material indices might be different from an instance to another, to fix
 	}
 
 	static const FName		kPrimaryOnly("RPR_NoBlock");
