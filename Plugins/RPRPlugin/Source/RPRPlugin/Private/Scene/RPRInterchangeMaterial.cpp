@@ -18,6 +18,7 @@
 #include "Materials/MaterialExpressionScalarParameter.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialExpressionTextureSampleParameter2D.h"
+#include "Materials/MaterialExpressionStaticSwitch.h"
 
 #define TRY_PLATFORM_DATA_FOR_IMAGES false
 
@@ -320,16 +321,15 @@ void UE4InterchangeMaterialNode::ConvertTextureSampleExpression(
 {
 	if (con->Texture != nullptr)
 	{
-		std::string valName = _name;
-
+		std::string paramName;
 		UTexture* tex = con->Texture;
 		bool okay = _collection.ue4MatInterface->GetTextureParameterValue(con->ParameterName, tex);
 		if (okay)
 		{
-			valName += con->ParameterName.GetPlainANSIString();
+			paramName = con->ParameterName.GetPlainANSIString();
 		}
 		std::string texName = TCHAR_TO_ANSI(*tex->GetName());
-		texName += texName + "Texture";
+		std::string valName = _name + paramName + texName + "Texture";
 		ConvertTexture(_collection, valName, texName, tex);
 	}
 	else
@@ -338,6 +338,54 @@ void UE4InterchangeMaterialNode::ConvertTextureSampleExpression(
 	}
 	ConvertFExpressionInput(_collection, &con->Coordinates, "UV");
 }
+
+FExpressionInput const & UE4InterchangeMaterialNode::ConvertStaticSwitchExpression(
+	UEInterchangeCollection& _collection,
+	std::string const & _name,
+	UMaterialExpressionStaticSwitch* con)
+{
+	std::string paramName;
+	bool which = con->DefaultValue;
+	if (con->Value.Expression != NULL)
+	{
+		auto childExp = con->Value.Expression;
+		if (childExp->IsA(UMaterialExpressionStaticBoolParameter::StaticClass()))
+		{
+			auto sbp = static_cast<UMaterialExpressionStaticBoolParameter*>(childExp);
+			which = sbp->DefaultValue;
+		}
+	}
+
+	if (which)
+	{
+		return con->A;
+	}
+	else
+	{
+		return con->B;
+	}
+}
+
+FExpressionInput const & UE4InterchangeMaterialNode::ConvertStaticSwitchParameterExpression(
+	UEInterchangeCollection& _collection,
+	std::string const & _name,
+	UMaterialExpressionStaticSwitchParameter* con)
+{
+	std::string paramName;
+	bool which = con->DefaultValue;
+
+	FGuid outGuid;
+	bool okay = _collection.ue4MatInterface->GetStaticSwitchParameterValue(con->ParameterName, which, outGuid);
+	if (which)
+	{
+		return con->A;
+	}
+	else
+	{
+		return con->B;
+	}
+}
+
 
 UE4InterchangeMaterialNode::UE4InterchangeMaterialNode(
 	UEInterchangeCollection & _collection,
@@ -357,11 +405,27 @@ UE4InterchangeMaterialNode::UE4InterchangeMaterialNode(
 	{	
 		auto con = static_cast<UMaterialExpressionTextureSample*>(_expression);
 		ConvertTextureSampleExpression(_collection, name.c_str(), con);
-	}
-	if (_expression->IsA(UMaterialExpressionTextureSampleParameter2D::StaticClass()))
+	} 
+	else if (_expression->IsA(UMaterialExpressionTextureSampleParameter2D::StaticClass()))
 	{
 		auto con = static_cast<UMaterialExpressionTextureSampleParameter2D*>(_expression);
 		ConvertTextureSampleExpression(_collection, name.c_str(), con);
+	}
+	else if (_expression->IsA(UMaterialExpressionStaticSwitch::StaticClass()))
+	{
+		auto con = static_cast<UMaterialExpressionStaticSwitch*>(_expression);
+		auto sel = ConvertStaticSwitchExpression(_collection, name.c_str(), con);
+		auto fname = FName(sel.ExpressionName);
+		type = "PassThrough";
+		ConvertFExpressionInput(_collection, &sel, name.c_str(), fname);
+	}
+	else if (_expression->IsA(UMaterialExpressionStaticSwitchParameter::StaticClass()))
+	{
+		auto con = static_cast<UMaterialExpressionStaticSwitchParameter*>(_expression);
+		auto sel = ConvertStaticSwitchParameterExpression(_collection, name.c_str(), con);
+		auto fname = FName(sel.ExpressionName);
+		type = "PassThrough";
+		ConvertFExpressionInput(_collection, &sel, name.c_str(), fname);
 	}
 	else
 	{
@@ -454,9 +518,9 @@ UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collect
 	HOOKUP_PBR_EXPRESSION(BaseColor, 0, FColor, PBR_DEFAULT_YELLOW);
 	HOOKUP_PBR_EXPRESSION(Roughness, 1, float, 0.5f);
 	HOOKUP_PBR_EXPRESSION(Metallic, 2, float, 0.5f);
-//	HOOKUP_PBR_EXPRESSION(Specular, 3, float, 0.5f);
+	HOOKUP_PBR_EXPRESSION(Specular, 3, float, 0.5f);
 	// normal goes here
-//	HOOKUP_PBR_EXPRESSION(EmissiveColor, 5, FColor, PBR_DEFAULT_BLACK);
+	HOOKUP_PBR_EXPRESSION(EmissiveColor, 5, FColor, PBR_DEFAULT_BLACK);
 //	HOOKUP_PBR_EXPRESSION(Opacity, 6, float, 1.0f);
 // refraction
 // clear coat here

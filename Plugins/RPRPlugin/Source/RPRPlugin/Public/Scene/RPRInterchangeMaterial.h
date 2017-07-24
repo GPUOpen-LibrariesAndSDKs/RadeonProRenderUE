@@ -12,6 +12,8 @@
 #include "MaterialExpressionIO.h"
 #include "Materials/MaterialExpressionTextureSample.h"
 #include "Materials/MaterialExpressionTextureSampleParameter2D.h"
+#include "Materials/MaterialExpressionStaticSwitch.h"
+#include "Materials/MaterialExpressionStaticSwitchParameter.h"
 
 struct FColor;
 struct FLinearColor;
@@ -81,6 +83,12 @@ private:
 	void ConvertTextureSampleExpression(UEInterchangeCollection& _collection, 
 										std::string const & _name,
 										UMaterialExpressionTextureSampleParameter2D* con);
+	FExpressionInput const & ConvertStaticSwitchExpression(UEInterchangeCollection& _collection,
+										std::string const & _name,
+										UMaterialExpressionStaticSwitch* con);
+	FExpressionInput const & ConvertStaticSwitchParameterExpression(UEInterchangeCollection& _collection,
+										std::string const & _name,
+										UMaterialExpressionStaticSwitchParameter* con);
 	void ConvertTexture(UEInterchangeCollection& _collection,
 										std::string const & _valname,
 										std::string const & _texname,
