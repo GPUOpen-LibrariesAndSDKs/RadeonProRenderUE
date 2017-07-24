@@ -634,7 +634,7 @@ bool	URPRStaticMeshComponent::Build()
 	{
 		const uint32	shapeCount = shapes.Num();
 		for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
-			m_Shapes.Add(shapes[iShape]); // NOTE : here, material indices might be different from an instance to another, to fix
+			m_Shapes.Add(shapes[iShape]);
 	}
 
 	static const FName		kPrimaryOnly("RPR_NoBlock");

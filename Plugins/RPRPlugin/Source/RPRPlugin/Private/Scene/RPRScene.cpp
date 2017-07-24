@@ -674,7 +674,7 @@ void	ARPRScene::RemoveSceneContent(bool clearScene)
 	}
 	Cameras.Empty();
 
-	if (clearScene)
+	if (clearScene && m_RprScene != NULL)
 		rprSceneClear(m_RprScene);
 }
 
