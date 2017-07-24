@@ -379,6 +379,8 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 
 #pragma optimize("",on)
 
+static bool const FLIP_SURFACE_NORMALS = true;
+
 bool	URPRStaticMeshComponent::Build()
 {
 	// Async load: SrcComponent can be null if it was deleted from the scene
@@ -477,8 +479,11 @@ bool	URPRStaticMeshComponent::Build()
 
 				FVector	pos = srcPositions.VertexPosition(index) * 0.1f;
 				FVector	normal = srcVertices.VertexTangentZ(index);
-
 				positions[remappedIndex] = FVector(pos.X, pos.Z, pos.Y);
+				if (FLIP_SURFACE_NORMALS)
+				{
+					normal = -normal;
+				}
 				normals[remappedIndex] = FVector(normal.X, normal.Z, normal.Y);
 				if (uvCount > 0)
 					uvs[remappedIndex] = srcVertices.GetVertexUV(index, 0); // Right now only copy uv 0
