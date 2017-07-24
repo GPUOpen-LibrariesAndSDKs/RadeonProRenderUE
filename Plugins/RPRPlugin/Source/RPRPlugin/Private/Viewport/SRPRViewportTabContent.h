@@ -22,6 +22,7 @@ private:
 	FReply					OnToggleOrbit();
 	FReply					OnToggleTrace();
 	FReply					OnToggleDisplayPostEffectProperties();
+	FReply					OnRebuild();
 
 	TSharedRef<SWidget>		OnGenerateCameraWidget(TSharedPtr<FString> inItem) const;
 	TSharedRef<SWidget>		OnGenerateQualitySettingsWidget(TSharedPtr<FString> inItem) const;

@@ -335,7 +335,7 @@ void	FRPRRendererWorker::ClearFramebuffer()
 		m_CurrentIteration = 0;
 		m_PreviousRenderedIteration = 0;
 		m_ClearFramebuffer = false;
-		UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully cleared"));
+		UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer cleared"));
 	}
 }
 
@@ -446,13 +446,18 @@ void	FRPRRendererWorker::ReleaseResources()
 {
 	if (m_RprFrameBuffer != NULL)
 	{
+		check(m_RprResolvedFrameBuffer != NULL);
+
+		rprFrameBufferClear(m_RprFrameBuffer);
+		rprFrameBufferClear(m_RprResolvedFrameBuffer);
+
 		rprObjectDelete(m_RprFrameBuffer);
-		m_RprFrameBuffer = NULL;
-	}
-	if (m_RprResolvedFrameBuffer != NULL)
-	{
 		rprObjectDelete(m_RprResolvedFrameBuffer);
+
+		m_RprFrameBuffer = NULL;
 		m_RprResolvedFrameBuffer = NULL;
+
+		rprContextSetAOV(m_RprContext, RPR_AOV_COLOR, NULL);
 	}
 	if (m_RprWhiteBalance != NULL)
 	{
@@ -460,6 +465,12 @@ void	FRPRRendererWorker::ReleaseResources()
 		check(m_RprSimpleTonemap != NULL);
 		check(m_RprPhotolinearTonemap != NULL);
 		check(m_RprNormalization != NULL);
+
+		rprContextDetachPostEffect(m_RprContext, m_RprNormalization);
+		rprContextDetachPostEffect(m_RprContext, m_RprSimpleTonemap);
+		rprContextDetachPostEffect(m_RprContext, m_RprPhotolinearTonemap);
+		rprContextDetachPostEffect(m_RprContext, m_RprWhiteBalance);
+		rprContextDetachPostEffect(m_RprContext, m_RprGammaCorrection);
 
 		rprObjectDelete(m_RprWhiteBalance);
 		rprObjectDelete(m_RprGammaCorrection);
