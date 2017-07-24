@@ -17,6 +17,7 @@ public:
 	static inline FRPRPluginModule	&Load() { return FModuleManager::LoadModuleChecked<FRPRPluginModule>("RPRPlugin"); }
 
 	bool							RenderPaused() const { return m_RPRPaused; }
+	void							Rebuild();
 
 	const FString					&ActiveCameraName() const { return m_ActiveCameraName; }
 

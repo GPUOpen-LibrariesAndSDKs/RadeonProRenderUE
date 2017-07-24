@@ -325,6 +325,11 @@ void	URPRCameraComponent::BeginDestroy()
 	if (m_RprCamera != NULL)
 	{
 		check(Scene != NULL);
+		if (Scene->m_ActiveCamera == this)
+		{
+			rprSceneSetCamera(Scene->m_RprScene, NULL);
+			Scene->m_ActiveCamera = NULL;
+		}
 		rprObjectDelete(m_RprCamera);
 		m_RprCamera = NULL;
 	}

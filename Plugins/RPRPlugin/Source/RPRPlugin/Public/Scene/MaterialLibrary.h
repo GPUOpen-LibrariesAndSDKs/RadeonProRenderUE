@@ -6,6 +6,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <RadeonProRender.h>
+#include <RprSupport.h>
 #include <Materials/MaterialInstance.h>
 
 namespace rpr
@@ -29,7 +30,7 @@ namespace rpr
 
         bool HasMaterialName(const std::string& name);
         
-		rpr_material_node CreateMaterial(const UMaterialInterface* ueMaterialInstance, rpr_context context, rpr_material_system materialSystem);
+		void* CreateMaterial(const UMaterialInterface* ueMaterialInstance, rpr_context context, rpr_material_system materialSystem, rprx_context uberMatContext, bool& isUberMaterial);
 
     private:
         void LoadMaterialXML(const std::string& filename);
@@ -72,7 +73,6 @@ namespace rpr
         {
             std::string directory;
             std::string name;
-            std::string version;
             std::vector<Node> nodes;
             std::unordered_set<std::string> taggedParams;
         };
