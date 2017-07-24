@@ -107,6 +107,7 @@ rpr_material_node URPRStaticMeshComponent::CreateXMLShapeMaterial(uint32 iShape,
 	const UMaterial				*parentMaterial = matInterface != NULL ? matInterface->GetMaterial() : NULL;
 	assert(parentMaterial != NULL);
 
+#if 0
 	// We can only query the matInstance properties if this is actually a mat instance.
 	const UMaterialInstance* matInstance = Cast<UMaterialInstance>(matInterface);
 	if (matInterface && matInstance)
@@ -130,9 +131,11 @@ rpr_material_node URPRStaticMeshComponent::CreateXMLShapeMaterial(uint32 iShape,
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\tName=%s"), *param.ParameterName.GetPlainNameString());
 		}
 	}
+#endif
 
 	// We have a match - go ahead and use the relevent material.
-	rpr_material_node xmlMaterial = Scene->m_materialLibrary.CreateMaterial(matInterface, Scene->m_RprContext, m_RprMaterialSystem);
+    bool isUberMaterial = false;
+    void* xmlMaterial = Scene->m_materialLibrary.CreateMaterial(matInterface, Scene->m_RprContext, m_RprMaterialSystem, m_RprSupportCtx, isUberMaterial);
 				
 	// If we failed to create the xmlMaterial, go ahead with red default one and just log the error
 	if (!xmlMaterial) {
@@ -147,17 +150,42 @@ rpr_material_node URPRStaticMeshComponent::CreateXMLShapeMaterial(uint32 iShape,
 
 	}
 
-	// save the material
-	m_Shapes[iShape].m_RprMaterial = xmlMaterial;
+    // We must differentiate between an uber material handle and an rpr material node handle.
+    if (isUberMaterial)
+    {
+        // Save the material.
+        rprx_material uberMaterial = reinterpret_cast<rprx_material>(xmlMaterial);
+        m_Shapes[iShape].m_RprxMaterial = uberMaterial;
 
-	// And use it!
-	if (rprShapeSetMaterial(shape, xmlMaterial) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign substituted XML RPR material to the RPR shape"));
-		return nullptr;
-	}
+        // Attach the material to the shape.
+        if (rprxShapeAttachMaterial(m_RprSupportCtx, shape, uberMaterial) != RPR_SUCCESS)
+        {
+            UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign substituted XML RPR material to the RPR shape"));
+            return nullptr;
+        }
 
+        // Commit the changes to the uber material.
+        rpr_int result = rprxMaterialCommit(m_RprSupportCtx, uberMaterial);
+        if (result != RPR_SUCCESS)
+        {
+            UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("rprxMaterialCommit failed error %d"), result);
+            return nullptr;
+        }
+    }
+    else
+    {
+        // save the material
+        m_Shapes[iShape].m_RprMaterial = xmlMaterial;
+        
+        // And use it!
+        if (rprShapeSetMaterial(shape, xmlMaterial) != RPR_SUCCESS)
+        {
+            UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign substituted XML RPR material to the RPR shape"));
+            return nullptr;
+        }
+    }
 
+#if 0
 	// More debug data
 	{
 		TArray<FName> names;
@@ -183,6 +211,7 @@ rpr_material_node URPRStaticMeshComponent::CreateXMLShapeMaterial(uint32 iShape,
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\tName=%s"), *texture->GetName());
 		}
 	}
+#endif
 
 	return xmlMaterial;
 }
@@ -447,6 +476,10 @@ bool	URPRStaticMeshComponent::Build()
 	if (lodRes.Sections.Num() == 0)
 		return false;
 
+    // DEBUG CODE for checking winding order.
+    enum class WindingOrder { CCW, CW };
+    std::set<WindingOrder> windingOrders;
+
 	TArray<SRPRCachedMesh>	shapes = GetMeshInstances(staticMesh);
 	if (shapes.Num() == 0) // No mesh in cache ?
 	{
@@ -524,7 +557,42 @@ bool	URPRStaticMeshComponent::Build()
 				return false;
 			}
 
+            // DEBUG CODE for checking winding orders.
+            for (auto i = 0U; i < section.NumTriangles * 3; i += 3)
+            {
+                // Get the indices for the current triangle.
+                auto i0 = indices[i];
+                auto i1 = indices[i + 1];
+                auto i2 = indices[i + 2];
 
+                // Get the vertices for the current triangle.
+                FVector v0 = positions.GetData()[i0];
+                FVector v1 = positions.GetData()[i1];
+                FVector v2 = positions.GetData()[i2];
+
+                // Get the normals oc the current triangle.
+                FVector n0 = normals.GetData()[i0];
+                FVector n1 = normals.GetData()[i1];
+                FVector n2 = normals.GetData()[i2];
+
+#define USE_GEOMETRIC_NORMAL 0
+#if USE_GEOMETRIC_NORMAL == 1
+                FVector n = FVector::CrossProduct(v1 - v0, v2 - v0).GetSafeNormal();
+#else
+                FVector n = (n0 + n1 + n2) * 0.3333f;
+#endif
+                // Project vertices onto a 2D plane offset some distance along the triangle's surface normal.
+                FVector planeNormal = n;
+                FVector planeBase = (v0 + v1 + v2) * 0.5f + planeNormal;
+                FVector p0 = FVector::PointPlaneProject(v0, planeBase, planeNormal);
+                FVector p1 = FVector::PointPlaneProject(v0, planeBase, planeNormal);
+                FVector p2 = FVector::PointPlaneProject(v0, planeBase, planeNormal);
+
+                // Calculate the 2D determinant of the projected vertices onto the plane.
+                float det = 0.5f * (p0.X * (p1.Y - p2.Y) + p1.X * (p2.Y - p0.Y) + p2.X * (p0.Y - p1.Y));
+                if (det >= 0) windingOrders.emplace(WindingOrder::CCW);
+                else windingOrders.emplace(WindingOrder::CW);
+            }
 
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape created from '%s' section %d"), *staticMesh->GetName(), iSection);
 			SRPRCachedMesh	newShape(shape, section.MaterialIndex);
@@ -533,6 +601,15 @@ bool	URPRStaticMeshComponent::Build()
 			Cache[staticMesh].Add(newShape);
 			m_Shapes.Add(newShape);
 		}
+
+        if (windingOrders.size() > 1)
+        {
+            UE_LOG(LogRPRStaticMeshComponent, Error, TEXT("\n\nMultiple winding orders found in shape!\n\n"));
+        }
+        else
+        {
+            UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\n\nSingle winding order %s!\n\n"), ((*windingOrders.begin() == WindingOrder::CCW) ? TEXT("CCW") : TEXT("CW")));
+        }
 	}
 	else
 	{
@@ -604,9 +681,19 @@ void	URPRStaticMeshComponent::BeginDestroy()
 			}
 			if (m_Shapes[iShape].m_RprMaterial != NULL)
 				rprObjectDelete(m_Shapes[iShape].m_RprMaterial);
+
+            if (m_Shapes[iShape].m_RprxMaterial != NULL)
+                rprObjectDelete(m_Shapes[iShape].m_RprxMaterial);
 		}
 		m_Shapes.Empty();
 	}
+
+    if (m_RprSupportCtx != NULL)
+    {
+        rprxDeleteContext(m_RprSupportCtx);
+        m_RprSupportCtx = NULL;
+    }
+
 	if (m_RprMaterialSystem != NULL)
 	{
 		check(Scene != NULL);

@@ -45,6 +45,39 @@ namespace rpr
         { "BUMP_MAP", RPR_MATERIAL_NODE_BUMP_MAP }
     };
 
+    static const std::unordered_map<std::string, rprx_parameter> stringToRprxParameter = {
+        { "diffuse.color", RPRX_UBER_MATERIAL_DIFFUSE_COLOR },
+        { "diffuse.weight", RPRX_UBER_MATERIAL_DIFFUSE_WEIGHT },
+        { "diffuse.roughness", RPRX_UBER_MATERIAL_DIFFUSE_ROUGHNESS },
+        { "reflection.color", RPRX_UBER_MATERIAL_REFLECTION_COLOR },
+        { "reflection.weight", RPRX_UBER_MATERIAL_REFLECTION_WEIGHT },
+        { "reflection.roughness", RPRX_UBER_MATERIAL_REFLECTION_ROUGHNESS },
+        { "reflection.anisotropy", RPRX_UBER_MATERIAL_REFLECTION_ANISOTROPY },
+        { "reflection.anistropyRotation",RPRX_UBER_MATERIAL_REFLECTION_ANISOTROPY_ROTATION },
+        { "reflection.mode", RPRX_UBER_MATERIAL_REFLECTION_MODE },
+        { "reflection.ior", RPRX_UBER_MATERIAL_REFLECTION_IOR },
+        { "reflection.metalness", RPRX_UBER_MATERIAL_REFLECTION_METALNESS },
+        { "refraction.color", RPRX_UBER_MATERIAL_REFRACTION_COLOR },
+        { "refraction.weight", RPRX_UBER_MATERIAL_REFRACTION_WEIGHT },
+        { "refraction.roughness", RPRX_UBER_MATERIAL_REFRACTION_ROUGHNESS },
+        { "refraction.ior", RPRX_UBER_MATERIAL_REFRACTION_IOR },
+        { "refraction.iorMode", RPRX_UBER_MATERIAL_REFRACTION_IOR_MODE },
+        { "refraction.thinSurface",RPRX_UBER_MATERIAL_REFRACTION_THIN_SURFACE },
+        { "coating.color", RPRX_UBER_MATERIAL_COATING_COLOR },
+        { "coating.weight", RPRX_UBER_MATERIAL_COATING_WEIGHT },
+        { "coating.roughness", RPRX_UBER_MATERIAL_COATING_ROUGHNESS },
+        { "coating.mode", RPRX_UBER_MATERIAL_COATING_MODE },
+        { "coating.ior", RPRX_UBER_MATERIAL_COATING_IOR },
+        { "coating.metalness", RPRX_UBER_MATERIAL_COATING_METALNESS },
+        { "emission.color", RPRX_UBER_MATERIAL_EMISSION_COLOR },
+        { "emission.weight", RPRX_UBER_MATERIAL_EMISSION_WEIGHT },
+        { "emission.mode", RPRX_UBER_MATERIAL_EMISSION_MODE },
+        { "transparency", RPRX_UBER_MATERIAL_TRANSPARENCY },
+        { "normal", RPRX_UBER_MATERIAL_NORMAL },
+        { "bump", RPRX_UBER_MATERIAL_BUMP },
+        { "displacement", RPRX_UBER_MATERIAL_DISPLACEMENT }
+    };
+
     MaterialLibrary::MaterialLibrary()
     {
     }
@@ -175,7 +208,7 @@ namespace rpr
         return (m_masterFileMappings.find(name) != m_masterFileMappings.end() || m_materialDescriptions.find(name) != m_materialDescriptions.end());
     }
 
-	rpr_material_node MaterialLibrary::CreateMaterial(const UMaterialInterface* ueMaterialInterfaceObject, rpr_context context, rpr_material_system materialSystem)
+	void* MaterialLibrary::CreateMaterial(const UMaterialInterface* ueMaterialInterfaceObject, rpr_context context, rpr_material_system materialSystem, rprx_context uberMatContext, bool& isUberMaterial)
 	{
         // Assume UE material maps to an RPR material with the same name but allow any entry in the master mappings file to override it.
         std::string name = TCHAR_TO_ANSI(*ueMaterialInterfaceObject->GetName());
@@ -294,13 +327,23 @@ namespace rpr
 			}
 			else
 			{
-				// Create the RPR handle.
-				rpr_int result = rprMaterialSystemCreateNode(materialSystem, typeStringsToRPRMap.at(node.type), &reinterpret_cast<rpr_material_node>(handle));
-				if (result != RPR_SUCCESS)
-				{
-					UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialSystemCreateNode failed (%d) for type %s"), result, UTF8_TO_TCHAR(node.type.c_str()));
-					return nullptr;
-				}
+                // Handle Uber materials separately from other node types.
+                if (node.type == "UBER")
+                {
+                    // Create the new uber material.
+                    rprx_material uberMaterial = reinterpret_cast<rprx_material>(handle);
+                    rpr_int result = rprxCreateMaterial(uberMatContext, RPRX_MATERIAL_UBER, &uberMaterial);
+                }
+                else
+                {
+                    // Create the RPR handle.
+                    rpr_int result = rprMaterialSystemCreateNode(materialSystem, typeStringsToRPRMap.at(node.type), &reinterpret_cast<rpr_material_node>(handle));
+                    if (result != RPR_SUCCESS)
+                    {
+                        UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialSystemCreateNode failed (%d) for type %s"), result, UTF8_TO_TCHAR(node.type.c_str()));
+                        return nullptr;
+                    }
+                }
 
 			}
 
@@ -312,8 +355,11 @@ namespace rpr
 			materialNodes.emplace(node.name, std::make_tuple(node.type, handle));
 
 			// The very first node is the root.
-			if (!rootMaterialNode)
-				rootMaterialNode = handle;
+            if (!rootMaterialNode)
+            {
+                rootMaterialNode = handle;
+                isUberMaterial = (node.type == "UBER");
+            }
 		}
 
 		// Second, set up material parameters.
@@ -367,18 +413,39 @@ namespace rpr
                                     else
                                     {
                                         // Last connect the IMAGE_TEXTURE to the existing material node's input parameter.
-                                        rpr_int result = rprMaterialNodeSetInputN(handle, param.name.c_str(), texture);
-                                        if (result != RPR_SUCCESS)
-                                            UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputN failed (%d) param=%s line %d"), result, UTF8_TO_TCHAR(param.name.c_str()), __LINE__);
+                                        if (node.type == "UBER")
+                                        {
+                                            rprx_material uberMaterial = reinterpret_cast<rprx_material>(handle);
+                                            rpr_int result = rprxMaterialSetParameterN(uberMatContext, uberMaterial, stringToRprxParameter.at(param.name), texture);
+                                            if (result != RPR_SUCCESS)
+                                                UE_LOG(LogMaterialLibrary, Error, TEXT("rprxMaterialSetParameterN failed (%d) param=%s line %d"), result, UTF8_TO_TCHAR(param.name.c_str()), __LINE__);
+                                        }
+                                        else
+                                        {
+                                            rpr_int result = rprMaterialNodeSetInputN(handle, param.name.c_str(), texture);
+                                            if (result != RPR_SUCCESS)
+                                                UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputN failed (%d) param=%s line %d"), result, UTF8_TO_TCHAR(param.name.c_str()), __LINE__);
+                                        }
                                     }
                                 }
                             }
                             else
                             {
                                 auto data = std::get<1>(tuple);
-                                rpr_int result = rprMaterialNodeSetInputN(handle, param.name.c_str(), reinterpret_cast<rpr_material_node>(data));
-                                if (result != RPR_SUCCESS)
-                                    UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputN failed (%d) param=%s value=%x"), result, UTF8_TO_TCHAR(param.name.c_str()), data);
+
+                                if (node.type == "UBER")
+                                {
+                                    rprx_material uberMaterial = reinterpret_cast<rprx_material>(handle);
+                                    rpr_int result = rprxMaterialSetParameterN(uberMatContext, uberMaterial, stringToRprxParameter.at(param.name), reinterpret_cast<rpr_material_node>(data));
+                                    if (result != RPR_SUCCESS)
+                                        UE_LOG(LogMaterialLibrary, Error, TEXT("rprxMaterialSetParameterN failed (%d) param=%s line %d"), result, UTF8_TO_TCHAR(param.name.c_str()), __LINE__);
+                                }
+                                else
+                                {
+                                    rpr_int result = rprMaterialNodeSetInputN(handle, param.name.c_str(), reinterpret_cast<rpr_material_node>(data));
+                                    if (result != RPR_SUCCESS)
+                                        UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputN failed (%d) param=%s value=%x"), result, UTF8_TO_TCHAR(param.name.c_str()), data);
+                                }
                             }
                         }
                     }
@@ -388,9 +455,20 @@ namespace rpr
 				{
 					rpr_uint value;
 					sscanf_s(param.value.c_str(), "%u", &value);
-					rpr_int result = rprMaterialNodeSetInputU(handle, param.name.c_str(), value);
-                    if (result != RPR_SUCCESS)
-                        UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputN failed (%d) param=%s value=%d"), result, UTF8_TO_TCHAR(param.name.c_str()), value);
+
+                    if (node.type == "UBER")
+                    {
+                        rprx_material uberMaterial = reinterpret_cast<rprx_material>(handle);
+                        rpr_int result = rprxMaterialSetParameterU(uberMatContext, uberMaterial, stringToRprxParameter.at(param.name), value);
+                        if (result != RPR_SUCCESS)
+                            UE_LOG(LogMaterialLibrary, Error, TEXT("rprxMaterialSetParameterU failed (%d) param=%s value=%d"), result, UTF8_TO_TCHAR(param.name.c_str()), value);
+                    }
+                    else
+                    {
+                        rpr_int result = rprMaterialNodeSetInputU(handle, param.name.c_str(), value);
+                        if (result != RPR_SUCCESS)
+                            UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputN failed (%d) param=%s value=%d"), result, UTF8_TO_TCHAR(param.name.c_str()), value);
+                    }
 				}
 				// Handle floating point scalar and vector values.
 				else if (param.type.find("float") != std::string::npos)
@@ -446,9 +524,19 @@ namespace rpr
                     }
 
                     // Set RPR material value.
-					rpr_int result = rprMaterialNodeSetInputF(handle, param.name.c_str(), value[0], value[1], value[2], value[3]);
-                    if (result != RPR_SUCCESS)
-                        UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputF failed (%d) param=%s value=%f,%f,%f,%f"), result, UTF8_TO_TCHAR(param.name.c_str()), value[0], value[1], value[2], value[3]);
+                    if (node.type == "UBER")
+                    {
+                        rprx_material uberMaterial = reinterpret_cast<rprx_material>(handle);
+                        rpr_int result = rprxMaterialSetParameterF(uberMatContext, uberMaterial, stringToRprxParameter.at(param.name), value[0], value[1], value[2], value[3]);
+                        if (result != RPR_SUCCESS)
+                            UE_LOG(LogMaterialLibrary, Error, TEXT("rprxMaterialSetParameterF failed (%d) param=%s value=%f,%f,%f,%f"), result, UTF8_TO_TCHAR(param.name.c_str()), value[0], value[1], value[2], value[3]);
+                    }
+                    else
+                    {
+                        rpr_int result = rprMaterialNodeSetInputF(handle, param.name.c_str(), value[0], value[1], value[2], value[3]);
+                        if (result != RPR_SUCCESS)
+                            UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputF failed (%d) param=%s value=%f,%f,%f,%f"), result, UTF8_TO_TCHAR(param.name.c_str()), value[0], value[1], value[2], value[3]);
+                    }
 				}
 			}
 		}
@@ -472,8 +560,7 @@ namespace rpr
 
         // Parse the material attributes.
         auto elem = doc.FirstChildElement("material");
-        material.name = elem->Attribute("name");
-        material.version = elem->Attribute("version");
+        material.name = elem->Attribute("name");        
 
         // Parse the material's node subgraph.
         elem = elem->FirstChildElement("node");
