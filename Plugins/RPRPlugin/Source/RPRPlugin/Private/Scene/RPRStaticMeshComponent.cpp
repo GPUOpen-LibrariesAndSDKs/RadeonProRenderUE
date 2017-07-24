@@ -276,7 +276,12 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Fallback for material %s due to disallowed parent %s"), UTF8_TO_TCHAR(materialName), UTF8_TO_TCHAR(parentMaterialName));
 			}
 			else {
-				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Fallback for material %s"), UTF8_TO_TCHAR(materialName));
+				if (matInstance) {
+					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Fallback for material %s INSTANCE OF %s"), UTF8_TO_TCHAR(materialName), UTF8_TO_TCHAR(parentMaterialName));
+				}
+				else {
+					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Fallback for material %s"), UTF8_TO_TCHAR(materialName));
+				}
 			}
 			if (rprMaterialSystemCreateNode(m_RprMaterialSystem, RPR_MATERIAL_NODE_DIFFUSE, &material) != RPR_SUCCESS)
 			{
@@ -395,7 +400,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 
 #pragma optimize("",on)
 
-static bool const FLIP_SURFACE_NORMALS = false;
+static bool const FLIP_SURFACE_NORMALS = true;
 
 bool	URPRStaticMeshComponent::Build()
 {
