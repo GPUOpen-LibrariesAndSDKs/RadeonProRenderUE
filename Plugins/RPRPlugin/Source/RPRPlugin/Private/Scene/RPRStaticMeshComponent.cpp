@@ -254,14 +254,30 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 			continue;
 		}
 
-		if (Scene->m_UMSControl.IsMaterialUMSEnabled(materialName) ) //|| true)
+		// We block instance materials if their parent is not UMS Enabled.
+		bool parentMaterialAllowed = true;
+		const UMaterialInstance* matInstance = Cast<UMaterialInstance>(matInterface);
+		const char* parentMaterialName = "";
+		if (matInstance) {
+			const UMaterialInterface *parentMatInstance = matInstance->Parent;
+			parentMaterialName = TCHAR_TO_ANSI(*parentMatInstance->GetName());
+			parentMaterialAllowed = Scene->m_UMSControl.IsMaterialUMSEnabled(parentMaterialName);
+		}
+
+		bool materialUMSEnabled = Scene->m_UMSControl.IsMaterialUMSEnabled(materialName);
+		if (parentMaterialAllowed &&  materialUMSEnabled)
 		{
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("UMS Enabled for %s"), UTF8_TO_TCHAR(materialName));
 
 			// use 0xFFFF as a marker. this ensure we never get here twice for the same material
 			matIndexToRPRMat[m_Shapes[iShape].m_UEMaterialIndex] = rpriExportRprMaterialResult{ 0xFFFF, nullptr };
 		} else {
-			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Fallback for material %s"), UTF8_TO_TCHAR(materialName));
+			if (materialUMSEnabled) {
+				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Fallback for material %s due to disallowed parent %s"), UTF8_TO_TCHAR(materialName), UTF8_TO_TCHAR(parentMaterialName));
+			}
+			else {
+				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Fallback for material %s"), UTF8_TO_TCHAR(materialName));
+			}
 			if (rprMaterialSystemCreateNode(m_RprMaterialSystem, RPR_MATERIAL_NODE_DIFFUSE, &material) != RPR_SUCCESS)
 			{
 				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR material node"));
