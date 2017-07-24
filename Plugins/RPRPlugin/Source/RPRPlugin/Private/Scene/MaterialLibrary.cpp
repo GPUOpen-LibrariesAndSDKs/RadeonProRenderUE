@@ -83,6 +83,7 @@ namespace rpr
                 
                 // Create a new MaterialMapping instance.
                 MaterialMapping mm;
+                mm.name = rprName;
 
                 // Enumerate all parameter mappings in the XML tree.
                 auto childElem = elem->FirstChildElement("parameter");
@@ -179,6 +180,8 @@ namespace rpr
         // Assume UE material maps to an RPR material with the same name but allow any entry in the master mappings file to override it.
         std::string name = TCHAR_TO_ANSI(*ueMaterialInterfaceObject->GetName());
         std::unordered_map<std::string, ParameterMapping> parameterMappings;
+        UE_LOG(LogMaterialLibrary, Log, TEXT("CreateMaterial --> %s"), UTF8_TO_TCHAR(name.c_str()));
+
         if (m_masterFileMappings.find(name) != m_masterFileMappings.end())
         {
             auto& materialMapping = m_masterFileMappings.at(name);
@@ -190,6 +193,8 @@ namespace rpr
             // Copy parameter mappings to apply below.
             parameterMappings = materialMapping.parameterMappings;
         }
+
+        UE_LOG(LogMaterialLibrary, Log, TEXT("CreateMaterial (name change) --> %s"), UTF8_TO_TCHAR(name.c_str()));
 
 		// For for name string in material descriptions map.
 		auto itr = m_materialDescriptions.find(name);
