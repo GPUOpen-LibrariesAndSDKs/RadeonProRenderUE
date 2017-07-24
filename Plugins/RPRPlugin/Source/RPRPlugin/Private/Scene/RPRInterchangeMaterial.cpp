@@ -258,7 +258,7 @@ void UE4InterchangeMaterialNode::ConvertFExpressionInput(UEInterchangeCollection
 				values.push_back(childMux->GetAsValue());
 			}
 
-			inputNames.emplace_back(_name);
+			inputNames.emplace_back(_fname.GetPlainANSIString());
 		}
 	}
 }
@@ -271,7 +271,7 @@ void UE4InterchangeMaterialNode::ConvertTexture(
 {
 	std::string const texName = _texname + "Texture";
 	auto texIt = _collection.textureStorage.find(texName);
-	if (texIt == _collection.textureStorage.end())
+	if (texIt == _collection.textureStorage.end()) 
 	{
 		auto image = std::make_shared<UE4InterchangeImage>(_texture);
 		auto sampler = std::make_shared<UE4InterchangeSampler>(_texture);
