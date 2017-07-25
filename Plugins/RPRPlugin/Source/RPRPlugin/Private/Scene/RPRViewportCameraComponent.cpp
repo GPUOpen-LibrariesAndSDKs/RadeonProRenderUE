@@ -57,7 +57,6 @@ void	URPRViewportCameraComponent::SetOrbit(bool orbit)
 		m_EditorViewportClient == NULL)
 		return;
 	m_Orbit = !m_Orbit;
-	m_Sync = !m_Orbit;
 	if (m_Orbit)
 	{
 		UWorld	*world = GetWorld();

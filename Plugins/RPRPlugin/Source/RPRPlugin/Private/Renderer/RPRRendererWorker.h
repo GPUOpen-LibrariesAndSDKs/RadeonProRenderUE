@@ -87,5 +87,6 @@ private:
 	bool						m_PauseRender;
 	TArray<class ARPRActor*>	m_BuildQueue;
 	TArray<class ARPRActor*>	m_BuiltObjects;
+	TArray<class ARPRActor*>	m_DiscardObjects;
 	TArray<class ARPRActor*>	m_KillQueue;
 };

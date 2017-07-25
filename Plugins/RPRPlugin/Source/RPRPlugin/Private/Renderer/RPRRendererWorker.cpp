@@ -161,6 +161,15 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 			}
 		}
 
+		// Just keep around objects that failed to build, but don't call their post build
+		const uint32	discardCount = m_DiscardObjects.Num();
+		for (uint32 iObject = 0; iObject < discardCount; ++iObject)
+		{
+			check(m_DiscardObjects[iObject] != NULL);
+
+			outBuiltObjects.Add(m_DiscardObjects[iObject]);
+		}
+		m_DiscardObjects.Empty();
 		m_BuiltObjects.Empty();
 		m_IsBuildingObjects = m_BuildQueue.Num() > 0;
 
@@ -275,8 +284,10 @@ void	FRPRRendererWorker::BuildQueuedObjects()
 
 		// Even if build fails, keep the component around to avoid having the async load
 		// adding each frame the previous components it failed to build before
-		component->Build();
-		m_BuiltObjects.Add(actor);
+		if (component->Build())
+			m_BuiltObjects.Add(actor);
+		else
+			m_DiscardObjects.Add(actor);
 	}
 	m_BuildQueue.Empty();
 }
@@ -417,7 +428,7 @@ bool	FRPRRendererWorker::PreRenderLoop()
 		ClearFramebuffer();
 	UpdatePostEffectSettings();
 
-	const bool	isPaused = m_PauseRender || m_BuiltObjects.Num() > 0;
+	const bool	isPaused = m_PauseRender || m_BuiltObjects.Num() > 0 || m_DiscardObjects.Num() > 0;
 
 	m_PreRenderLock.Unlock();
 
@@ -571,6 +582,15 @@ void	FRPRRendererWorker::ReleaseResources()
 		m_BuiltObjects[iObject]->Destroy();
 	}
 	m_BuiltObjects.Empty();
+	const uint32	discardCount = m_DiscardObjects.Num();
+	for (uint32 iObject = 0; iObject < discardCount; ++iObject)
+	{
+		if (m_DiscardObjects[iObject] == NULL)
+			continue;
+		m_DiscardObjects[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+		m_DiscardObjects[iObject]->Destroy();
+	}
+	m_DiscardObjects.Empty();
 	DestroyPendingKills();
 
 	m_PreRenderLock.Unlock();
