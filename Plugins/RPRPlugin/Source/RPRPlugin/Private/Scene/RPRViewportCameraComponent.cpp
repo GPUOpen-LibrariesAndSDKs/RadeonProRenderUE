@@ -7,6 +7,8 @@
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRViewportCameraComponent, Log, All);
 
+DEFINE_STAT(STAT_ProRender_UpdateViewportCamera);
+
 URPRViewportCameraComponent::URPRViewportCameraComponent()
 :	m_RprCamera(NULL)
 ,	m_CachedCameraPos(FVector::ZeroVector)
@@ -143,7 +145,7 @@ void	URPRViewportCameraComponent::StartOrbitting(const FIntPoint &mousePos)
 
 bool	URPRViewportCameraComponent::Build()
 {
-	if (Scene == NULL || SrcComponent == NULL)
+	if (Scene == NULL || !IsSrcComponentValid())
 		return false;
 	if (rprContextCreateCamera(Scene->m_RprContext, &m_RprCamera) != RPR_SUCCESS)
 	{
@@ -174,7 +176,7 @@ bool	URPRViewportCameraComponent::Build()
 		return false;
 	}
 	UE_LOG(LogRPRViewportCameraComponent, Log, TEXT("RPR viewport Camera created"));
-	return Super::Build();
+	return true;
 }
 
 bool	URPRViewportCameraComponent::RebuildCameraProperties(bool force)
@@ -321,6 +323,8 @@ bool	URPRViewportCameraComponent::RebuildCameraProperties(bool force)
 
 void	URPRViewportCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
 {
+	SCOPE_CYCLE_COUNTER(STAT_ProRender_UpdateViewportCamera);
+
 	Super::TickComponent(deltaTime, tickType, tickFunction);
 
 	if (!m_Built)

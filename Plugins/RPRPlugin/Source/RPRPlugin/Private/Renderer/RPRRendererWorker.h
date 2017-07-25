@@ -23,6 +23,7 @@ public:
 	bool			Flush() const;
 
 	void			SyncQueue(TArray<class ARPRActor*> &newBuildQueue, TArray<class ARPRActor*> &outBuiltObjects);
+	void			AddPendingKill(ARPRActor *toKill);
 
 	bool			IsBuildingObjects() const { return m_IsBuildingObjects; }
 	bool			ResizeFramebuffer(uint32 width, uint32 height);
@@ -47,6 +48,8 @@ private:
 	void		BuildQueuedObjects();
 	void		ResizeFramebuffer();
 	void		ClearFramebuffer();
+	void		DestroyPendingKills();
+	bool		PreRenderLoop();
 private:
 	FRunnableThread				*m_Thread;
 	FThreadSafeCounter			m_StopTaskCounter;
@@ -84,4 +87,5 @@ private:
 	bool						m_PauseRender;
 	TArray<class ARPRActor*>	m_BuildQueue;
 	TArray<class ARPRActor*>	m_BuiltObjects;
+	TArray<class ARPRActor*>	m_KillQueue;
 };

@@ -11,7 +11,7 @@ URPRSceneComponent::URPRSceneComponent()
 	bTickInEditor = true;
 }
 
-bool	URPRSceneComponent::Build()
+bool	URPRSceneComponent::PostBuild()
 {
 	m_Plugin = &FRPRPluginModule::Get();
 
@@ -21,6 +21,13 @@ bool	URPRSceneComponent::Build()
 	return true;
 }
 
+bool	URPRSceneComponent::IsSrcComponentValid() const
+{
+	return SrcComponent != NULL &&
+		SrcComponent->GetWorld() != NULL &&
+		!SrcComponent->IsPendingKill();
+}
+
 void	URPRSceneComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
 {
 	Super::TickComponent(deltaTime, tickType, tickFunction);
@@ -28,7 +35,7 @@ void	URPRSceneComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 	if (!m_Built)
 		return;
 	check(Scene != NULL);
-	if (SrcComponent == NULL)
+	if (!IsSrcComponentValid())
 	{
 		// Source object destroyed, remove ourselves
 		Scene->RemoveActor(Cast<ARPRActor>(GetOwner()));

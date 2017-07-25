@@ -26,9 +26,10 @@
 
 #define LOCTEXT_NAMESPACE "ARPRScene"
 
-DEFINE_STAT(STAT_ProRender_CopyFramebuffer);
-
 DEFINE_LOG_CATEGORY_STATIC(LogRPRScene, Log, All);
+
+DEFINE_STAT(STAT_ProRender_UpdateScene);
+DEFINE_STAT(STAT_ProRender_CopyFramebuffer);
 
 ARPRScene::ARPRScene()
 :	m_RprContext(NULL)
@@ -137,41 +138,29 @@ bool	ARPRScene::QueueBuildRPRActor(UWorld *world, USceneComponent *srcComponent,
 	newActor->Component = comp;
 	comp->RegisterComponent();
 
-	const bool	immediateBuild = Cast<USkyLightComponent>(srcComponent) != NULL; // Unwrapping cubemaps can't be done on another thread
-	if (immediateBuild)
-	{
-		// Profile that, if too much, do one "immediate build object" per frame ?
-		comp->Build();
-		if (comp->PostBuild())
-			SceneContent.Add(newActor);
-		else
-		{
-			newActor->GetRootComponent()->ConditionalBeginDestroy();
-			newActor->Destroy();
-		}
-		return false;
-	}
-	else
-	{
-		if (typeClass == URPRCameraComponent::StaticClass())
-			Cameras.Add(static_cast<URPRCameraComponent*>(comp));
-		BuildQueue.Add(newActor);
-	}
+	if (typeClass == URPRCameraComponent::StaticClass())
+		Cameras.Add(static_cast<URPRCameraComponent*>(comp));
+	BuildQueue.Add(newActor);
 	return true;
 }
 
 void	ARPRScene::RemoveActor(ARPRActor *actor)
 {
-	check(Cast<ARPRActor>(actor) != NULL);
 	check(actor->GetRootComponent() != NULL);
 
-	SceneContent.Remove(Cast<ARPRActor>(actor));
-	BuildQueue.Remove(Cast<ARPRActor>(actor));
-
-	actor->GetRootComponent()->ConditionalBeginDestroy();
-	actor->Destroy();
-
-	TriggerFrameRebuild();
+	if (BuildQueue.Contains(actor))
+	{
+		// Can be deleted now
+		BuildQueue.Remove(actor);
+		actor->GetRootComponent()->ConditionalBeginDestroy();
+		actor->Destroy();
+	}
+	else
+	{
+		check(m_RendererWorker.IsValid());
+		m_RendererWorker->AddPendingKill(actor);
+		SceneContent.Remove(actor);
+	}
 }
 
 bool	ARPRScene::BuildViewportCamera()
@@ -204,6 +193,7 @@ uint32	ARPRScene::BuildScene()
 	{
 		if (it->GetWorld() != world ||
 			it->HasAnyFlags(RF_Transient | RF_BeginDestroyed) ||
+			it->IsPendingKill() ||
 			!it->HasBeenCreated())
 			continue;
 		if (Cast<UStaticMeshComponent>(*it) != NULL)
@@ -279,6 +269,7 @@ void	ARPRScene::RefreshScene()
 	{
 		if (it->GetWorld() != world ||
 			it->HasAnyFlags(RF_Transient | RF_BeginDestroyed) ||
+			it->IsPendingKill() ||
 			!it->HasBeenCreated())
 			continue;
 		if (Cast<UStaticMeshComponent>(*it) != NULL)
@@ -590,6 +581,8 @@ void	ARPRScene::OnSave()
 
 void	ARPRScene::Tick(float deltaTime)
 {
+	SCOPE_CYCLE_COUNTER(STAT_ProRender_UpdateScene);
+
 	if (!m_RendererWorker.IsValid() ||
 		m_RenderTexture == NULL ||
 		m_RenderTexture->Resource == NULL ||
@@ -651,6 +644,7 @@ void	ARPRScene::Tick(float deltaTime)
 
 void	ARPRScene::RemoveSceneContent(bool clearScene)
 {
+	check(!m_RendererWorker.IsValid()); // RPR Thread HAS to be destroyed
 	for (int32 iObject = 0; iObject < SceneContent.Num(); ++iObject)
 	{
 		if (SceneContent[iObject] == NULL)
@@ -674,7 +668,7 @@ void	ARPRScene::RemoveSceneContent(bool clearScene)
 	}
 	Cameras.Empty();
 
-	if (clearScene)
+	if (clearScene && m_RprScene != NULL)
 		rprSceneClear(m_RprScene);
 }
 

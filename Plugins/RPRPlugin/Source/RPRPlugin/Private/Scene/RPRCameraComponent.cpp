@@ -8,6 +8,8 @@
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRCameraComponent, Log, All);
 
+DEFINE_STAT(STAT_ProRender_UpdateCameras);
+
 URPRCameraComponent::URPRCameraComponent()
 :	m_RprCamera(NULL)
 ,	m_CachedProjectionMode(ECameraProjectionMode::Perspective)
@@ -48,7 +50,7 @@ void	URPRCameraComponent::SetOrbit(bool orbit)
 {
 	if (m_Orbit == orbit)
 		return;
-	if (SrcComponent == NULL)
+	if (!IsSrcComponentValid())
 		return;
 	m_Orbit = !m_Orbit;
 	m_Sync = !m_Orbit;
@@ -155,7 +157,7 @@ bool	URPRCameraComponent::Build()
 	if (Scene->m_ActiveCamera == this)
 		SetAsActiveCamera();
 	UE_LOG(LogRPRCameraComponent, Log, TEXT("RPR Camera created from '%s'"), *SrcComponent->GetName());
-	return Super::Build();
+	return true;
 }
 
 bool	URPRCameraComponent::RebuildTransforms()
@@ -192,11 +194,13 @@ bool	URPRCameraComponent::RebuildTransforms()
 
 void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
 {
+	SCOPE_CYCLE_COUNTER(STAT_ProRender_UpdateCameras);
+
 	Super::TickComponent(deltaTime, tickType, tickFunction);
 
 	if (!m_Built)
 		return;
-	if (SrcComponent == NULL)
+	if (!IsSrcComponentValid())
 		return; // We are about to get destroyed
 
 	check(m_Plugin != NULL);

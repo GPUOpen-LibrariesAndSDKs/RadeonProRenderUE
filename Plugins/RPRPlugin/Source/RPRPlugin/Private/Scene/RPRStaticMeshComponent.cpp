@@ -17,6 +17,9 @@
 extern "C" void OutputDebugStringA(char const *);
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
+
+DEFINE_STAT(STAT_ProRender_UpdateMeshes);
+
 // chuck these up here for now. Move to own file asap
 namespace
 {
@@ -435,7 +438,7 @@ static bool const FLIP_SURFACE_NORMALS = false;
 bool	URPRStaticMeshComponent::Build()
 {
 	// Async load: SrcComponent can be null if it was deleted from the scene
-	if (Scene == NULL || SrcComponent == NULL)
+	if (Scene == NULL || !IsSrcComponentValid())
 		return false;
 
 	// TODO: Find a better way to cull unwanted geometry
@@ -639,7 +642,7 @@ bool	URPRStaticMeshComponent::Build()
 	{
 		const uint32	shapeCount = shapes.Num();
 		for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
-			m_Shapes.Add(shapes[iShape]); // NOTE : here, material indices might be different from an instance to another, to fix
+			m_Shapes.Add(shapes[iShape]);
 	}
 
 	static const FName		kPrimaryOnly("RPR_NoBlock");
@@ -659,18 +662,25 @@ bool	URPRStaticMeshComponent::Build()
 			return false;
 		}
 	}
-	return Super::Build();
+	return true;
 }
 
 bool	URPRStaticMeshComponent::PostBuild()
 {
-	if (!m_Built)
-		return true; // We keep it anyway
+	if (Scene == NULL || !IsSrcComponentValid())
+		return false;
 
 	if (!BuildMaterials())
 		return false;
 
 	return Super::PostBuild();
+}
+
+void	URPRStaticMeshComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
+{
+	SCOPE_CYCLE_COUNTER(STAT_ProRender_UpdateMeshes);
+
+	Super::TickComponent(deltaTime, tickType, tickFunction);
 }
 
 bool	URPRStaticMeshComponent::RebuildTransforms()
