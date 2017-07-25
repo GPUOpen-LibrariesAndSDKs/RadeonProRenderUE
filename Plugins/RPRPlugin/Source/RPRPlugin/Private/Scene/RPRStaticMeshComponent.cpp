@@ -433,7 +433,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 
 #pragma optimize("",on)
 
-static bool const FLIP_SURFACE_NORMALS = false;
+static bool const FLIP_SURFACE_NORMALS = true;
 
 bool	URPRStaticMeshComponent::Build()
 {
