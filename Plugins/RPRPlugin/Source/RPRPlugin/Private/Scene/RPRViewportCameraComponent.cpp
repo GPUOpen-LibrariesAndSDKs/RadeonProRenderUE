@@ -423,9 +423,28 @@ void	URPRViewportCameraComponent::TickComponent(float deltaTime, ELevelTick tick
 
 	if (!m_Built)
 		return;
-	if (m_EditorViewportClient == NULL &&
-		m_PlayerCameraManager == NULL)
-		return;
+
+	EWorldType::Type	worldType = GetWorld()->WorldType;
+	if (worldType == EWorldType::PIE || worldType == EWorldType::Game)
+	{
+		if (m_PlayerCameraManager == NULL)
+			return;
+	}
+	else if (worldType == EWorldType::Editor)
+	{
+		m_EditorViewportClient = NULL;
+
+		// We need to get that each frame, UE seem to de allocate from cinematic editor viewport client to editor viewport client
+		const FViewport	*viewport = GEditor->GetActiveViewport();
+		if (viewport != NULL)
+			m_EditorViewportClient = (FLevelEditorViewportClient*)viewport->GetClient();
+
+		if (m_EditorViewportClient == NULL)
+			return;
+	}
+	else
+		check(false); // Shouldn't be here
+
 	check(m_Plugin != NULL);
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
 	check(settings != NULL);
