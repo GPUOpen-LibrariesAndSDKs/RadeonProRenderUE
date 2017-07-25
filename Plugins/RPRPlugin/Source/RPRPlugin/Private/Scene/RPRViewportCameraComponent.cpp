@@ -53,8 +53,8 @@ void	URPRViewportCameraComponent::SetOrbit(bool orbit)
 {
 	if (m_Orbit == orbit)
 		return;
-	if (GEditor->GetActiveViewport() == NULL ||
-		GEditor->GetActiveViewport()->GetClient() == NULL)
+	if (m_PlayerCameraManager == NULL &&
+		m_EditorViewportClient == NULL)
 		return;
 	m_Orbit = !m_Orbit;
 	m_Sync = !m_Orbit;
@@ -63,21 +63,10 @@ void	URPRViewportCameraComponent::SetOrbit(bool orbit)
 		UWorld	*world = GetWorld();
 		check(world != NULL);
 
-		FLevelEditorViewportClient	*client = (FLevelEditorViewportClient*)GEditor->GetActiveViewport()->GetClient();
-
 		m_OrbitCenter = FVector::ZeroVector;
-		m_OrbitLocation = client->GetViewLocation();
-		FVector	camDirection = FQuat(client->GetViewRotation()).GetForwardVector();
+		m_OrbitLocation = GetViewLocation();
 
-		if (client->bLockedCameraView)
-		{
-			UCameraComponent	*cam = client->GetCameraComponentForView();
-			if (cam != NULL)
-			{
-				m_OrbitLocation = cam->ComponentToWorld.GetLocation();
-				camDirection = cam->ComponentToWorld.GetRotation().GetForwardVector();
-			}
-		}
+		const FVector	camDirection = (GetLookAtLocation() - m_OrbitLocation).GetSafeNormal();
 
 		static const float	kTraceDist = 10000000.0f;
 		FHitResult	hit;
@@ -170,9 +159,34 @@ FVector	URPRViewportCameraComponent::GetLookAtLocation() const
 	else if (m_EditorViewportClient != NULL)
 	{
 		check(m_PlayerCameraManager == NULL);
-		return m_EditorViewportClient->GetLookAtLocation() * 0.1f;
+		return m_EditorViewportClient->GetLookAtLocation();
 	}
 	return FVector::ZeroVector;
+}
+
+FVector	URPRViewportCameraComponent::GetViewRightVector() const
+{
+	FVector	rightVector = FVector::ZeroVector;
+
+	if (m_PlayerCameraManager != NULL)
+	{
+		check(m_EditorViewportClient == NULL);
+
+		rightVector = FQuat(m_PlayerCameraManager->GetCameraRotation()).GetRightVector();
+	}
+	else if (m_EditorViewportClient != NULL)
+	{
+		check(m_PlayerCameraManager == NULL);
+
+		rightVector = FQuat(m_EditorViewportClient->GetViewRotation()).GetRightVector();
+		if (m_EditorViewportClient->bLockedCameraView)
+		{
+			UCameraComponent	*cam = m_EditorViewportClient->GetCameraComponentForView();
+			if (cam != NULL)
+				rightVector = cam->ComponentToWorld.GetRotation().GetRightVector();
+		}
+	}
+	return rightVector;
 }
 
 float	URPRViewportCameraComponent::GetAspectRatio() const
@@ -461,26 +475,12 @@ void	URPRViewportCameraComponent::TickComponent(float deltaTime, ELevelTick tick
 		const FIntPoint	orbitDelta = m_Plugin->OrbitDelta();
 		if (orbitDelta != FIntPoint::ZeroValue)
 		{
-			if (GEditor->GetActiveViewport() != NULL &&
-				GEditor->GetActiveViewport()->GetClient() != NULL)
-			{
-				FLevelEditorViewportClient	*client = (FLevelEditorViewportClient*)GEditor->GetActiveViewport()->GetClient();
+			m_OrbitLocation -= m_OrbitCenter;
+			m_OrbitLocation = m_OrbitLocation.RotateAngleAxis(orbitDelta.Y, GetViewRightVector());
+			m_OrbitLocation = m_OrbitLocation.RotateAngleAxis(orbitDelta.X, FVector(0.0f, 0.0f, 1.0f));
+			m_OrbitLocation += m_OrbitCenter;
 
-				FVector	rightVector = FQuat(client->GetViewRotation()).GetRightVector();
-				if (client->bLockedCameraView)
-				{
-					UCameraComponent	*cam = client->GetCameraComponentForView();
-					if (cam != NULL)
-						rightVector = cam->ComponentToWorld.GetRotation().GetRightVector();
-				}
-
-				m_OrbitLocation -= m_OrbitCenter;
-				m_OrbitLocation = m_OrbitLocation.RotateAngleAxis(orbitDelta.Y, rightVector);
-				m_OrbitLocation = m_OrbitLocation.RotateAngleAxis(orbitDelta.X, FVector(0.0f, 0.0f, 1.0f));
-				m_OrbitLocation += m_OrbitCenter;
-
-				refresh = true;
-			}
+			refresh = true;
 		}
 	}
 

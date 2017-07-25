@@ -21,6 +21,7 @@ public:
 	virtual bool	Build() override;
 
 	FVector			GetViewLocation() const;
+	FVector			GetViewRightVector() const;
 	FVector			GetLookAtLocation() const;
 	float			GetAspectRatio() const;
 private:
