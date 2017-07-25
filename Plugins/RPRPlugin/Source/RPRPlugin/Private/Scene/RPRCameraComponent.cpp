@@ -8,6 +8,8 @@
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRCameraComponent, Log, All);
 
+DEFINE_STAT(STAT_ProRender_UpdateCameras);
+
 URPRCameraComponent::URPRCameraComponent()
 :	m_RprCamera(NULL)
 ,	m_CachedProjectionMode(ECameraProjectionMode::Perspective)
@@ -192,6 +194,8 @@ bool	URPRCameraComponent::RebuildTransforms()
 
 void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
 {
+	SCOPE_CYCLE_COUNTER(STAT_ProRender_UpdateCameras);
+
 	Super::TickComponent(deltaTime, tickType, tickFunction);
 
 	if (!m_Built)

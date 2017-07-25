@@ -17,6 +17,9 @@
 extern "C" void OutputDebugStringA(char const *);
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
+
+DEFINE_STAT(STAT_ProRender_UpdateMeshes);
+
 // chuck these up here for now. Move to own file asap
 namespace
 {
@@ -666,6 +669,13 @@ bool	URPRStaticMeshComponent::PostBuild()
 		return false;
 
 	return Super::PostBuild();
+}
+
+void	URPRStaticMeshComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
+{
+	SCOPE_CYCLE_COUNTER(STAT_ProRender_UpdateMeshes);
+
+	Super::TickComponent(deltaTime, tickType, tickFunction);
 }
 
 bool	URPRStaticMeshComponent::RebuildTransforms()

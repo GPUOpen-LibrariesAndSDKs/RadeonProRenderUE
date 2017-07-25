@@ -7,6 +7,8 @@
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRViewportCameraComponent, Log, All);
 
+DEFINE_STAT(STAT_ProRender_UpdateViewportCamera);
+
 URPRViewportCameraComponent::URPRViewportCameraComponent()
 :	m_RprCamera(NULL)
 ,	m_CachedCameraPos(FVector::ZeroVector)
@@ -321,6 +323,8 @@ bool	URPRViewportCameraComponent::RebuildCameraProperties(bool force)
 
 void	URPRViewportCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
 {
+	SCOPE_CYCLE_COUNTER(STAT_ProRender_UpdateViewportCamera);
+
 	Super::TickComponent(deltaTime, tickType, tickFunction);
 
 	if (!m_Built)

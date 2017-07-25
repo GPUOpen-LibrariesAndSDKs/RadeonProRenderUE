@@ -10,7 +10,9 @@
 
 #include "RPRStats.h"
 
+DEFINE_STAT(STAT_ProRender_PreRender);
 DEFINE_STAT(STAT_ProRender_Render);
+DEFINE_STAT(STAT_ProRender_Resolve);
 DEFINE_STAT(STAT_ProRender_Readback);
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRRenderer, Log, All);
@@ -401,6 +403,8 @@ void	FRPRRendererWorker::DestroyPendingKills()
 
 bool	FRPRRendererWorker::PreRenderLoop()
 {
+	SCOPE_CYCLE_COUNTER(STAT_ProRender_PreRender);
+
 	m_PreRenderLock.Lock();
 
 	if (m_IsBuildingObjects)
@@ -427,29 +431,36 @@ uint32	FRPRRendererWorker::Run()
 
 	while (m_StopTaskCounter.GetValue() == 0)
 	{
-		SCOPE_CYCLE_COUNTER(STAT_ProRender_Render);
-
 		const bool	isPaused = PreRenderLoop();
 		if (m_CurrentIteration < settings->MaximumRenderIterations && !isPaused && m_RenderLock.TryLock())
 		{
 			const uint32	sampleCount = FGenericPlatformMath::Min((m_CurrentIteration + 4) / 4, m_NumDevices);
 
 			{
+				SCOPE_CYCLE_COUNTER(STAT_ProRender_Render);
+
 				// Render + Resolve
 				if (rprContextSetParameter1u(m_RprContext, "aasamples", sampleCount) != RPR_SUCCESS ||
-					rprContextRender(m_RprContext) != RPR_SUCCESS ||
-					rprContextResolveFrameBuffer(m_RprContext, m_RprFrameBuffer, m_RprResolvedFrameBuffer) != RPR_SUCCESS) // TODO: Time resolve
+					rprContextRender(m_RprContext) != RPR_SUCCESS)
 				{
 					m_RenderLock.Unlock();
 					UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't render iteration %d, stopping.."), m_CurrentIteration);
 					break;
 				}
-				m_RenderLock.Unlock();
 			}
 			{
-				// Build framebuffer data
-				BuildFramebufferData();
+				SCOPE_CYCLE_COUNTER(STAT_ProRender_Resolve);
+				if (rprContextResolveFrameBuffer(m_RprContext, m_RprFrameBuffer, m_RprResolvedFrameBuffer) != RPR_SUCCESS)
+				{
+					m_RenderLock.Unlock();
+					UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't resolve framebuffer at iteration %d, stopping.."), m_CurrentIteration);
+				}
 			}
+			m_RenderLock.Unlock();
+
+			// Build framebuffer data
+			BuildFramebufferData();
+
 			m_CurrentIteration += sampleCount;
 		}
 		else

@@ -14,6 +14,8 @@
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRLightComponent, Log, All);
 
+DEFINE_STAT(STAT_ProRender_UpdateLights);
+
 URPRLightComponent::URPRLightComponent()
 :	m_RprLight(NULL)
 {
@@ -231,6 +233,8 @@ bool	URPRLightComponent::RebuildTransforms()
 
 void	URPRLightComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
 {
+	SCOPE_CYCLE_COUNTER(STAT_ProRender_UpdateLights);
+
 	Super::TickComponent(deltaTime, tickType, tickFunction);
 
 	if (!m_Built)

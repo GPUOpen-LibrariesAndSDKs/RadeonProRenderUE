@@ -26,9 +26,10 @@
 
 #define LOCTEXT_NAMESPACE "ARPRScene"
 
-DEFINE_STAT(STAT_ProRender_CopyFramebuffer);
-
 DEFINE_LOG_CATEGORY_STATIC(LogRPRScene, Log, All);
+
+DEFINE_STAT(STAT_ProRender_UpdateScene);
+DEFINE_STAT(STAT_ProRender_CopyFramebuffer);
 
 ARPRScene::ARPRScene()
 :	m_RprContext(NULL)
@@ -597,6 +598,8 @@ void	ARPRScene::OnSave()
 
 void	ARPRScene::Tick(float deltaTime)
 {
+	SCOPE_CYCLE_COUNTER(STAT_ProRender_UpdateScene);
+
 	if (!m_RendererWorker.IsValid() ||
 		m_RenderTexture == NULL ||
 		m_RenderTexture->Resource == NULL ||
