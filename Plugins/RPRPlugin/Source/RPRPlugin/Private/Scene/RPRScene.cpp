@@ -219,19 +219,7 @@ bool	ARPRScene::ResizeRenderTarget()
 	const float	megapixels = settings->MegaPixelCount;
 	float		horizontalRatio = 0.0f;
 	if (m_ActiveCamera == ViewportCameraComponent)
-	{
-		if (GEditor->GetActiveViewport() == NULL ||
-			GEditor->GetActiveViewport()->GetClient() == NULL)
-			return false;
-		FLevelEditorViewportClient	*client = (FLevelEditorViewportClient*)GEditor->GetActiveViewport()->GetClient();
-		horizontalRatio = client->AspectRatio;
-		if (client->bLockedCameraView)
-		{
-			UCameraComponent	*cam = client->GetCameraComponentForView();
-			if (cam != NULL)
-				horizontalRatio = client->AspectRatio;
-		}
-	}
+		horizontalRatio = ViewportCameraComponent->GetAspectRatio();
 	else
 	{
 		const UCameraComponent	*camera = Cast<UCameraComponent>(m_ActiveCamera->SrcComponent);
