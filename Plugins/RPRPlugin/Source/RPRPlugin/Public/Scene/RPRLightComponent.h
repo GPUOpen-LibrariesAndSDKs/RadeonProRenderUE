@@ -20,6 +20,7 @@ private:
 	virtual void	BeginDestroy() override;
 	virtual void	TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
 	virtual bool	RebuildTransforms() override;
+	virtual bool	PostBuild() override;
 
 	bool	BuildIESLight(const class UPointLightComponent *lightComponent);
 	bool	BuildPointLight(const class UPointLightComponent *pointLightComponent);

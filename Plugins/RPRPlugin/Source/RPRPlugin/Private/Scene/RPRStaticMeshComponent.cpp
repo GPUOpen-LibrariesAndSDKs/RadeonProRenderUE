@@ -433,7 +433,7 @@ static bool const FLIP_SURFACE_NORMALS = false;
 bool	URPRStaticMeshComponent::Build()
 {
 	// Async load: SrcComponent can be null if it was deleted from the scene
-	if (Scene == NULL || SrcComponent == NULL)
+	if (Scene == NULL || !IsSrcComponentValid())
 		return false;
 
 	// TODO: Find a better way to cull unwanted geometry
@@ -657,13 +657,13 @@ bool	URPRStaticMeshComponent::Build()
 			return false;
 		}
 	}
-	return Super::Build();
+	return true;
 }
 
 bool	URPRStaticMeshComponent::PostBuild()
 {
-	if (!m_Built)
-		return true; // We keep it anyway
+	if (Scene == NULL || !IsSrcComponentValid())
+		return false;
 
 	if (!BuildMaterials())
 		return false;

@@ -11,7 +11,7 @@ URPRSceneComponent::URPRSceneComponent()
 	bTickInEditor = true;
 }
 
-bool	URPRSceneComponent::Build()
+bool	URPRSceneComponent::PostBuild()
 {
 	m_Plugin = &FRPRPluginModule::Get();
 

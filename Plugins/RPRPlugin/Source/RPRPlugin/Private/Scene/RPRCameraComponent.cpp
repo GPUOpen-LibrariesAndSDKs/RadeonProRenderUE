@@ -157,7 +157,7 @@ bool	URPRCameraComponent::Build()
 	if (Scene->m_ActiveCamera == this)
 		SetAsActiveCamera();
 	UE_LOG(LogRPRCameraComponent, Log, TEXT("RPR Camera created from '%s'"), *SrcComponent->GetName());
-	return Super::Build();
+	return true;
 }
 
 bool	URPRCameraComponent::RebuildTransforms()

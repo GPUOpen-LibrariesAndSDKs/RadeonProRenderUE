@@ -158,7 +158,7 @@ bool	URPRLightComponent::BuildDirectionalLight(const UDirectionalLightComponent 
 bool	URPRLightComponent::Build()
 {
 	// Async load: SrcComponent can be null if it was deleted from the scene
-	if (Scene == NULL || SrcComponent == NULL)
+	if (Scene == NULL || !IsSrcComponentValid())
 		return false;
 
 	const FQuat	oldOrientation = SrcComponent->ComponentToWorld.GetRotation();
@@ -168,9 +168,11 @@ bool	URPRLightComponent::Build()
 	const USkyLightComponent			*skyLightComponent = Cast<USkyLightComponent>(SrcComponent);
 	const UDirectionalLightComponent	*dirLightComponent = Cast<UDirectionalLightComponent>(SrcComponent);
 
+	if (skyLightComponent != NULL)
+		return true;
+
 	if ((pointLightComponent != NULL && !BuildPointLight(pointLightComponent)) ||
 		(spotLightComponent != NULL && !BuildSpotLight(spotLightComponent)) ||
-		(skyLightComponent != NULL && !BuildSkyLight(skyLightComponent)) ||
 		(dirLightComponent != NULL && !BuildDirectionalLight(dirLightComponent)))
 	{
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create RPR light"));
@@ -189,7 +191,35 @@ bool	URPRLightComponent::Build()
 	}
 	SrcComponent->ComponentToWorld.SetRotation(oldOrientation);
 	UE_LOG(LogRPRLightComponent, Log, TEXT("RPR Light created from '%s'"), *SrcComponent->GetName());
-	return Super::Build();
+	return true;
+}
+
+bool	URPRLightComponent::PostBuild()
+{
+	if (Scene == NULL || !IsSrcComponentValid())
+		return false;
+
+	const USkyLightComponent	*skyLightComponent = Cast<USkyLightComponent>(SrcComponent);
+	if (skyLightComponent == NULL)
+		return true;
+	const FQuat	oldOrientation = SrcComponent->ComponentToWorld.GetRotation();
+
+	if (!BuildSkyLight(skyLightComponent) != NULL)
+		return false;
+
+	if (m_RprLight == NULL)
+		return false;
+	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->ComponentToWorld);
+	if (rprLightSetTransform(m_RprLight, RPR_TRUE, &matrix.m00) != RPR_SUCCESS ||
+		rprSceneAttachLight(Scene->m_RprScene, m_RprLight) != RPR_SUCCESS)
+	{
+		SrcComponent->ComponentToWorld.SetRotation(oldOrientation);
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't add RPR env light to the RPR scene"));
+		return false;
+	}
+	SrcComponent->ComponentToWorld.SetRotation(oldOrientation);
+	UE_LOG(LogRPRLightComponent, Log, TEXT("RPR Light created from '%s'"), *SrcComponent->GetName());
+	return Super::PostBuild();
 }
 
 bool	URPRLightComponent::RebuildTransforms()
