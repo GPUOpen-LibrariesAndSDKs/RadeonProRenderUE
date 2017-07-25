@@ -359,34 +359,26 @@ bool	URPRViewportCameraComponent::RebuildCameraProperties(bool force)
 		else
 		{
 			bool	refresh = false;
-			if (m_EditorViewportClient != NULL)
+			if (force)
 			{
-				check(m_PlayerCameraManager == NULL);
-				if (force)
-				{
-					// We switched from a locked camera to default viewport, change back all cinematic properties
-					// TODO: Viewport can lock to Front/Back/Perspective/Ortho modes, handle those
-					static const float		kDefaultFLength = 35.0f;
-					static const float		kDefaultFDistance = 1000.0f;
-					static const float		kDefaultFStop = 2.8f;
-					static const FVector2D	kDefaultSensorSize = FVector2D(36.0f, 20.25f); // TODO :GEt the correct default values
-					if (rprCameraSetMode(m_RprCamera, RPR_CAMERA_MODE_PERSPECTIVE) != RPR_SUCCESS ||
-						rprCameraSetFocalLength(m_RprCamera, kDefaultFLength) != RPR_SUCCESS ||
-						rprCameraSetFocusDistance(m_RprCamera, kDefaultFDistance) != RPR_SUCCESS ||
-						rprCameraSetFStop(m_RprCamera, kDefaultFStop) != RPR_SUCCESS ||
-						rprCameraSetSensorSize(m_RprCamera, kDefaultSensorSize.X, kDefaultSensorSize.Y) != RPR_SUCCESS)
-					{
-						UE_LOG(LogRPRViewportCameraComponent, Warning, TEXT("Couldn't set camera properties"));
-						return false;
-					}
-					refresh = true;
-				}
-			}
-			else if (m_PlayerCameraManager != NULL)
-			{
-				check(m_EditorViewportClient == NULL);
+				// We switched from a locked camera to default viewport, change back all cinematic properties
+				// OR we are rendering a game viewport
 
-				// TODO : Update camera properties
+				// TODO: Viewport can lock to Front/Back/Perspective/Ortho modes, handle those
+				static const float		kDefaultFLength = 35.0f;
+				static const float		kDefaultFDistance = 1000.0f;
+				static const float		kDefaultFStop = 2.8f;
+				static const FVector2D	kDefaultSensorSize = FVector2D(36.0f, 20.25f); // TODO :GEt the correct default values
+				if (rprCameraSetMode(m_RprCamera, RPR_CAMERA_MODE_PERSPECTIVE) != RPR_SUCCESS ||
+					rprCameraSetFocalLength(m_RprCamera, kDefaultFLength) != RPR_SUCCESS ||
+					rprCameraSetFocusDistance(m_RprCamera, kDefaultFDistance) != RPR_SUCCESS ||
+					rprCameraSetFStop(m_RprCamera, kDefaultFStop) != RPR_SUCCESS ||
+					rprCameraSetSensorSize(m_RprCamera, kDefaultSensorSize.X, kDefaultSensorSize.Y) != RPR_SUCCESS)
+				{
+					UE_LOG(LogRPRViewportCameraComponent, Warning, TEXT("Couldn't set camera properties"));
+					return false;
+				}
+				refresh = true;
 			}
 			FVector	camPos = GetViewLocation() * 0.1f;
 			FVector	camLookAt = GetLookAtLocation() * 0.1f;
