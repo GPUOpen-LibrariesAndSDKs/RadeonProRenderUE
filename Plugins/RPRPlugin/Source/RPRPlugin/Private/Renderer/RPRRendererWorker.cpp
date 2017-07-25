@@ -144,8 +144,7 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 			m_BuildQueue.Add(newBuildQueue[iObject]);
 
 		// PostBuild
-
-		// This is safe: RPR thread doesn't render if there are pending built objects
+		m_RenderLock.Lock();
 		const uint32	builtCount = m_BuiltObjects.Num();
 		for (uint32 iObject = 0; iObject < builtCount; ++iObject)
 		{
@@ -160,6 +159,7 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 				m_BuiltObjects[iObject]->Destroy();
 			}
 		}
+		m_RenderLock.Unlock();
 
 		m_BuiltObjects.Empty();
 		m_IsBuildingObjects = m_BuildQueue.Num() > 0;
@@ -417,7 +417,7 @@ bool	FRPRRendererWorker::PreRenderLoop()
 		ClearFramebuffer();
 	UpdatePostEffectSettings();
 
-	const bool	isPaused = m_PauseRender || m_BuiltObjects.Num() > 0;
+	const bool	isPaused = m_PauseRender;
 
 	m_PreRenderLock.Unlock();
 
@@ -432,14 +432,7 @@ uint32	FRPRRendererWorker::Run()
 	while (m_StopTaskCounter.GetValue() == 0)
 	{
 		const bool	isPaused = PreRenderLoop();
-
-		if (isPaused ||
-			m_CurrentIteration >= settings->MaximumRenderIterations)
-		{
-			FPlatformProcess::Sleep(0.1f);
-			continue;
-		}
-		if (m_RenderLock.TryLock())
+		if (m_CurrentIteration < settings->MaximumRenderIterations && !isPaused && m_RenderLock.TryLock())
 		{
 			const uint32	sampleCount = FGenericPlatformMath::Min((m_CurrentIteration + 4) / 4, m_NumDevices);
 
