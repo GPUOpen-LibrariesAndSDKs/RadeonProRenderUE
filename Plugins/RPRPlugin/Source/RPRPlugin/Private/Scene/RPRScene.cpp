@@ -79,19 +79,21 @@ void	ARPRScene::SetActiveCamera(const FString &cameraName)
 	{
 		if (ViewportCameraComponent != NULL)
 			ViewportCameraComponent->SetAsActiveCamera();
-		return;
 	}
-
-	const uint32	cameraCount = Cameras.Num();
-	for (uint32 iCamera = 0; iCamera < cameraCount; ++iCamera)
+	else
 	{
-		check(Cameras[iCamera] != NULL);
-		if (Cameras[iCamera]->GetCameraName() == cameraName)
+		const uint32	cameraCount = Cameras.Num();
+		for (uint32 iCamera = 0; iCamera < cameraCount; ++iCamera)
 		{
-			Cameras[iCamera]->SetAsActiveCamera();
-			break;
+			check(Cameras[iCamera] != NULL);
+			if (Cameras[iCamera]->GetCameraName() == cameraName)
+			{
+				Cameras[iCamera]->SetAsActiveCamera();
+				break;
+			}
 		}
 	}
+	SetOrbit(m_Plugin->IsOrbitting());
 }
 
 void	ARPRScene::SetQualitySettings(ERPRQualitySettings qualitySettings)
