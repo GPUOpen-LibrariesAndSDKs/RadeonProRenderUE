@@ -162,16 +162,21 @@ bool	ARPRScene::QueueBuildRPRActor(UWorld *world, USceneComponent *srcComponent,
 
 void	ARPRScene::RemoveActor(ARPRActor *actor)
 {
-	check(Cast<ARPRActor>(actor) != NULL);
 	check(actor->GetRootComponent() != NULL);
 
-	SceneContent.Remove(Cast<ARPRActor>(actor));
-	BuildQueue.Remove(Cast<ARPRActor>(actor));
-
-	actor->GetRootComponent()->ConditionalBeginDestroy();
-	actor->Destroy();
-
-	TriggerFrameRebuild();
+	if (BuildQueue.Contains(actor))
+	{
+		// Can be deleted now
+		BuildQueue.Remove(actor);
+		actor->GetRootComponent()->ConditionalBeginDestroy();
+		actor->Destroy();
+	}
+	else
+	{
+		check(m_RendererWorker.IsValid());
+		m_RendererWorker->AddPendingKill(actor);
+		SceneContent.Remove(actor);
+	}
 }
 
 bool	ARPRScene::BuildViewportCamera()
@@ -653,6 +658,7 @@ void	ARPRScene::Tick(float deltaTime)
 
 void	ARPRScene::RemoveSceneContent(bool clearScene)
 {
+	check(!m_RendererWorker.IsValid()); // RPR Thread HAS to be destroyed
 	for (int32 iObject = 0; iObject < SceneContent.Num(); ++iObject)
 	{
 		if (SceneContent[iObject] == NULL)
