@@ -48,7 +48,7 @@ private:
 	void					CreateMenuBarExtension(class FMenuBarBuilder &menubarBuilder);
 	TSharedRef<SDockTab>	SpawnRPRViewportTab(const class FSpawnTabArgs&);
 
-	void					OnWorldCreated(UWorld *inWorld);
+	void					OnWorldInitialized(UWorld *inWorld, const UWorld::InitializationValues IVS);
 	void					OnWorldDestroyed(UWorld *inWorld);
 
 	void					OpenURL(const TCHAR *url);

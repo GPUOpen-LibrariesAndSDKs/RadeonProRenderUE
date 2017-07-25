@@ -97,18 +97,6 @@ void	FRPRPluginModule::ToggleOrbit()
 
 TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &spawnArgs)
 {
-	if (ensure(GEngine != NULL))
-	{
-		GEngine->OnWorldAdded().RemoveAll(this);
-		GEngine->OnWorldAdded().RemoveAll(this);
-
-		GEngine->OnWorldAdded().AddRaw(this, &FRPRPluginModule::OnWorldCreated);
-		GEngine->OnWorldDestroyed().AddRaw(this, &FRPRPluginModule::OnWorldDestroyed);
-
-		for (const FWorldContext& Context : GEngine->GetWorldContexts())
-			OnWorldCreated(Context.World());
-	}
-
 	// Create tab
 	TSharedRef<SDockTab> RPRViewportTab = SNew(SDockTab)
 		.TabRole(ETabRole::NomadTab)
@@ -147,7 +135,7 @@ void	FRPRPluginModule::CreateMenuBarExtension(FMenuBarBuilder &menubarBuilder)
 		FNewMenuDelegate::CreateRaw(this, &FRPRPluginModule::FillRPRMenu));
 }
 
-void	FRPRPluginModule::OnWorldCreated(UWorld *inWorld)
+void	FRPRPluginModule::OnWorldInitialized(UWorld *inWorld, const UWorld::InitializationValues IVS)
 {
 	if (inWorld == NULL)
 		return;
@@ -178,17 +166,10 @@ void	FRPRPluginModule::OnWorldDestroyed(UWorld *inWorld)
 {
 	if (inWorld == NULL)
 		return;
-	if (inWorld->WorldType == EWorldType::Game ||
-		inWorld->WorldType == EWorldType::PIE)
-	{
-		check(m_GameWorld != NULL);
+	if (inWorld == m_GameWorld)
 		m_GameWorld = NULL;
-	}
-	else if (inWorld->WorldType == EWorldType::Editor)
-	{
-		check(m_EditorWorld != NULL);
+	else if (inWorld == m_EditorWorld)
 		m_EditorWorld = NULL;
-	}
 	else
 		return;
 	for (TActorIterator<ARPRScene> it(inWorld); it; ++it)
@@ -223,6 +204,9 @@ void	FRPRPluginModule::StartupModule()
 	m_Extender = MakeShareable(new FExtender);
 	m_Extender->AddMenuBarExtension(TEXT("Help"), EExtensionHook::After, NULL, FMenuBarExtensionDelegate::CreateRaw(this, &FRPRPluginModule::CreateMenuBarExtension));
 	levelEditorModule.GetMenuExtensibilityManager()->AddExtender(m_Extender);
+
+	FWorldDelegates::OnPostWorldInitialization.AddRaw(this, &FRPRPluginModule::OnWorldInitialized);
+	FWorldDelegates::OnPreWorldFinishDestroy.AddRaw(this, &FRPRPluginModule::OnWorldDestroyed);
 
 	// Create render texture
 	const FVector2D	renderResolution(10, 10); // First, create a small texture (resized later)
@@ -300,11 +284,8 @@ void	FRPRPluginModule::ShutdownModule()
 		if (settingsModule != NULL)
 			settingsModule->UnregisterSettings("Project", "Plugins", "RadeonProRenderSettings");
 	}
-	if (GEngine != NULL)
-	{
-		GEngine->OnWorldAdded().RemoveAll(this);
-		GEngine->OnWorldAdded().RemoveAll(this);
-	}
+	FWorldDelegates::OnPostWorldInitialization.RemoveAll(this);
+	FWorldDelegates::OnPreWorldFinishDestroy.RemoveAll(this);
 
 	// UE seem to automatically delete the resource
 	m_RenderTexture = NULL;
