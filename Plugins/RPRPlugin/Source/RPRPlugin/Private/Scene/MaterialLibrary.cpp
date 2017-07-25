@@ -424,7 +424,7 @@ namespace rpr
                                         {
                                             rpr_int result = rprMaterialNodeSetInputN(handle, param.name.c_str(), texture);
                                             if (result != RPR_SUCCESS)
-                                                UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputN failed (%d) param=%s line %d"), result, UTF8_TO_TCHAR(param.name.c_str()), __LINE__);
+                                                UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputN failed (%d) node=%s param=%s param=%s line %d"), result, UTF8_TO_TCHAR(name.c_str()), UTF8_TO_TCHAR(node.name.c_str()), UTF8_TO_TCHAR(param.name.c_str()), __LINE__);
                                         }
                                     }
                                 }
@@ -444,7 +444,7 @@ namespace rpr
                                 {
                                     rpr_int result = rprMaterialNodeSetInputN(handle, param.name.c_str(), reinterpret_cast<rpr_material_node>(data));
                                     if (result != RPR_SUCCESS)
-                                        UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputN failed (%d) param=%s value=%x"), result, UTF8_TO_TCHAR(param.name.c_str()), data);
+                                        UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputN failed (%d) mat=%s node=%s param=%s value=%x"), result, UTF8_TO_TCHAR(name.c_str()), UTF8_TO_TCHAR(node.name.c_str()), UTF8_TO_TCHAR(param.name.c_str()), data);
                                 }
                             }
                         }
@@ -467,7 +467,7 @@ namespace rpr
                     {
                         rpr_int result = rprMaterialNodeSetInputU(handle, param.name.c_str(), value);
                         if (result != RPR_SUCCESS)
-                            UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputN failed (%d) param=%s value=%d"), result, UTF8_TO_TCHAR(param.name.c_str()), value);
+                            UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputU failed (%d) param=%s value=%d"), result, UTF8_TO_TCHAR(param.name.c_str()), value);
                     }
 				}
 				// Handle floating point scalar and vector values.
@@ -583,12 +583,22 @@ namespace rpr
                 param.type = childElem->Attribute("type");
                 param.value = childElem->Attribute("value");
 
-                // Special case for older XML format where BUMP_MAP param "data" was changed to "color".
+                // Special case for older XML format where certain parameters have become deprecated.
+                bool addParamToNode = true;
                 if (node.type == "BUMP_MAP" && param.name == "data")
+                {
                     param.name = "color";
+                }
+                else if (node.type == "NORMAL_MAP")
+                {
+                    if (param.name == "data") param.name = "color";
+                    else if (param.name == "bumpscale") param.name = "bumpscale";
+                    else if (param.name == "uv") addParamToNode = false;
+                }
 
                 // Add param to node.
-                node.params.push_back(param);
+                if (addParamToNode)
+                    node.params.push_back(param);
 
                 // If parameter was tagged then add it to the material level list of tagged parameters.
                 if (param.tag.size() > 0)
