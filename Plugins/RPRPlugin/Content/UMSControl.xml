@@ -17,4 +17,7 @@
     <enable material="smooth_ax_blocker_na"/>
     <enable material="mustang_reverse_light"/>
     <enable material="glass_redrefract_na"/>
+    <enable material="Searock1"/>
+    <enable material="Rockmaster"/>
+    <enable material="Dome_valencia"/>
 </umscontrol>
