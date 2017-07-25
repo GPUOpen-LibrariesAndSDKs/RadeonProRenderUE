@@ -174,8 +174,8 @@ bool	ARPRScene::BuildViewportCamera()
 	ViewportCameraComponent->SrcComponent = GetRootComponent();
 	ViewportCameraComponent->RegisterComponent();
 
-	// Profile that, if too much, do one "immediate build object" per frame ?
-	if (!ViewportCameraComponent->Build())
+	if (!ViewportCameraComponent->Build() ||
+		!ViewportCameraComponent->PostBuild())
 	{
 		ViewportCameraComponent->ConditionalBeginDestroy();
 		return false;
@@ -582,7 +582,6 @@ void	ARPRScene::OnSave()
 void	ARPRScene::Tick(float deltaTime)
 {
 	SCOPE_CYCLE_COUNTER(STAT_ProRender_UpdateScene);
-
 	if (!m_RendererWorker.IsValid() ||
 		m_RenderTexture == NULL ||
 		m_RenderTexture->Resource == NULL ||
