@@ -486,7 +486,15 @@ UE4InterchangePBRNode::New(UEInterchangeCollection & _collection,
 
 #define PBR_DEFAULT_BLACK FColor(0,0,0,255)
 #define PBR_DEFAULT_YELLOW FColor(255,255,0,255)
-#define PBR_DEFAULT_UP FLinearColor(0,1,0)
+
+#define HOOKUP_PBR_EXPRESSION_NO_CONSTANT(_name, _index) \
+if (ue4Mat->_name.Expression != nullptr) \
+{ \
+	auto mux = UE4InterchangeMaterialNode::New(_collection, \
+		(id + #_name + TCHAR_TO_ANSI(*ue4Mat->_name.Expression->GetName())).c_str(), \
+		ue4Mat->_name.Expression); \
+	muxes[_index] = mux; \
+}
 
 #define HOOKUP_PBR_EXPRESSION(_name, _index, _type, _default) \
 if ((ue4Mat->_name.UseConstant) || (ue4Mat->_name.Expression == nullptr)) \
@@ -499,13 +507,8 @@ if ((ue4Mat->_name.UseConstant) || (ue4Mat->_name.Expression == nullptr)) \
 	assert(muxPtr); \
 	muxes[_index] = muxPtr; \
 } \
-else if (ue4Mat->_name.Expression != nullptr) \
-{ \
-	auto mux = UE4InterchangeMaterialNode::New(_collection, \
-		(id + #_name + TCHAR_TO_ANSI(*ue4Mat->_name.Expression->GetName())).c_str(), \
-		ue4Mat->_name.Expression); \
-	muxes[_index] = mux; \
-}
+else HOOKUP_PBR_EXPRESSION_NO_CONSTANT(_name, _index)
+
 
 
 UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collection, 
@@ -520,7 +523,7 @@ UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collect
 	HOOKUP_PBR_EXPRESSION(Roughness, 1, float, 0.5f);
 	HOOKUP_PBR_EXPRESSION(Metallic, 2, float, 0.5f);
 	HOOKUP_PBR_EXPRESSION(Specular, 3, float, 0.5f);
-	HOOKUP_PBR_EXPRESSION(Normal, 4, FLinearColor, PBR_DEFAULT_UP);
+	HOOKUP_PBR_EXPRESSION_NO_CONSTANT(Normal, 4);
 
 //	HOOKUP_PBR_EXPRESSION(EmissiveColor, 5, FColor, PBR_DEFAULT_BLACK);
 //	HOOKUP_PBR_EXPRESSION(Opacity, 6, float, 1.0f);

@@ -433,7 +433,8 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 
 #pragma optimize("",on)
 
-static bool const FLIP_SURFACE_NORMALS = true;
+static bool const FLIP_SURFACE_NORMALS = false;
+static bool const FLIP_UV_Y = true;
 
 bool	URPRStaticMeshComponent::Build()
 {
@@ -543,8 +544,16 @@ bool	URPRStaticMeshComponent::Build()
 					normal = -normal;
 				}
 				normals[remappedIndex] = FVector(normal.X, normal.Z, normal.Y);
+
 				if (uvCount > 0)
-					uvs[remappedIndex] = srcVertices.GetVertexUV(index, 0); // Right now only copy uv 0
+				{
+					FVector2D uv = srcVertices.GetVertexUV(index, 0); // Right now only copy uv 0
+					if(FLIP_UV_Y)
+					{
+						uv.Y = 1 - uv.Y;
+					}
+					uvs[remappedIndex] = uv;
+				}
 			}
 
 			for (uint32 iTriangle = 0; iTriangle < section.NumTriangles; ++iTriangle)
