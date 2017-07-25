@@ -201,7 +201,7 @@ bool	URPRLightComponent::PostBuild()
 
 	const USkyLightComponent	*skyLightComponent = Cast<USkyLightComponent>(SrcComponent);
 	if (skyLightComponent == NULL)
-		return true;
+		return Super::PostBuild();
 	const FQuat	oldOrientation = SrcComponent->ComponentToWorld.GetRotation();
 
 	if (!BuildSkyLight(skyLightComponent) != NULL)
