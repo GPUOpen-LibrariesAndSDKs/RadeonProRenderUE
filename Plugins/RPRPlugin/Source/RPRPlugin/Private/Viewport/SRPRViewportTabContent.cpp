@@ -78,6 +78,12 @@ FReply	SRPRViewportTabContent::OnSave()
 	return FReply::Handled();
 }
 
+FReply	SRPRViewportTabContent::OnRebuild()
+{
+	m_Plugin->Rebuild();
+	return FReply::Handled();
+}
+
 FReply	SRPRViewportTabContent::OnToggleTrace()
 {
 	m_Settings->bTrace = !m_Settings->bTrace;
@@ -409,6 +415,21 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 				[
 					SNew(SImage)
 					.Image(FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.Trace").GetIcon())
+				]
+			]
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(2.0f)
+			[
+				SNew(SButton)
+				.ButtonStyle(FEditorStyle::Get(), "FlatButton")
+				.Text(LOCTEXT("RebuildLabel", "Rebuild"))
+				.ToolTipText(LOCTEXT("RebuildTooltip", "Rebuilds everything."))
+				.OnClicked(this, &SRPRViewportTabContent::OnRebuild)
+				.Content()
+				[
+					SNew(SImage)
+					.Image(FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.Rebuild").GetIcon())
 				]
 			]
 			+SHorizontalBox::Slot()

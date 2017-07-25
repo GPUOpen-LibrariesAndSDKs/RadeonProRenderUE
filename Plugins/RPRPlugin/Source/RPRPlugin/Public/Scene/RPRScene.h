@@ -38,6 +38,7 @@ public:
 	void	OnRender(uint32 &outObjectToBuildCount);
 	void	OnPause();
 	void	OnSave();
+	void	Rebuild();
 	void	SetTrace(bool trace);
 
 	void	StartOrbitting(const FIntPoint &mousePos);
@@ -57,7 +58,7 @@ private:
 	virtual bool	ShouldTickIfViewportsOnly() const override { return true; }
 
 	bool	ResizeRenderTarget();
-	void	RemoveSceneContent();
+	void	RemoveSceneContent(bool clearScene);
 	bool	QueueBuildRPRActor(UWorld *world, USceneComponent *srcComponent, UClass *typeClass, bool checkIfContained);
 	void	RefreshScene();
 	uint32	BuildScene();
@@ -66,6 +67,8 @@ private:
 private:
 	bool	m_TriggerEndFrameResize;
 	bool	m_TriggerEndFrameRebuild;
+
+	uint32	m_NumDevices;
 
 	TSharedPtr<class FRPRRendererWorker>	m_RendererWorker;
 

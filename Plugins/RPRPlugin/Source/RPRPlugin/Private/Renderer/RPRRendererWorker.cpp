@@ -10,7 +10,9 @@
 
 #include "RPRStats.h"
 
+DEFINE_STAT(STAT_ProRender_PreRender);
 DEFINE_STAT(STAT_ProRender_Render);
+DEFINE_STAT(STAT_ProRender_Resolve);
 DEFINE_STAT(STAT_ProRender_Readback);
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRRenderer, Log, All);
@@ -142,7 +144,8 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 			m_BuildQueue.Add(newBuildQueue[iObject]);
 
 		// PostBuild
-		m_RenderLock.Lock();
+
+		// This is safe: RPR thread doesn't render if there are pending built objects
 		const uint32	builtCount = m_BuiltObjects.Num();
 		for (uint32 iObject = 0; iObject < builtCount; ++iObject)
 		{
@@ -157,7 +160,6 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 				m_BuiltObjects[iObject]->Destroy();
 			}
 		}
-		m_RenderLock.Unlock();
 
 		m_BuiltObjects.Empty();
 		m_IsBuildingObjects = m_BuildQueue.Num() > 0;
@@ -335,7 +337,7 @@ void	FRPRRendererWorker::ClearFramebuffer()
 		m_CurrentIteration = 0;
 		m_PreviousRenderedIteration = 0;
 		m_ClearFramebuffer = false;
-		UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully cleared"));
+		UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer cleared"));
 	}
 }
 
@@ -386,6 +388,42 @@ void	FRPRRendererWorker::UpdatePostEffectSettings()
 	}
 }
 
+void	FRPRRendererWorker::DestroyPendingKills()
+{
+	const uint32	objectCount = m_KillQueue.Num();
+	for (uint32 iObject = 0; iObject < objectCount; ++iObject)
+	{
+		check(m_KillQueue[iObject] != NULL);
+		m_KillQueue[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+		m_KillQueue[iObject]->Destroy();
+	}
+	m_ClearFramebuffer = true;
+	m_KillQueue.Empty();
+}
+
+bool	FRPRRendererWorker::PreRenderLoop()
+{
+	SCOPE_CYCLE_COUNTER(STAT_ProRender_PreRender);
+
+	m_PreRenderLock.Lock();
+
+	if (m_IsBuildingObjects)
+		BuildQueuedObjects();
+	if (m_KillQueue.Num() > 0)
+		DestroyPendingKills();
+	if (m_Resize)
+		ResizeFramebuffer();
+	if (m_ClearFramebuffer)
+		ClearFramebuffer();
+	UpdatePostEffectSettings();
+
+	const bool	isPaused = m_PauseRender || m_BuiltObjects.Num() > 0;
+
+	m_PreRenderLock.Unlock();
+
+	return isPaused;
+}
+
 uint32	FRPRRendererWorker::Run()
 {
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
@@ -393,30 +431,43 @@ uint32	FRPRRendererWorker::Run()
 
 	while (m_StopTaskCounter.GetValue() == 0)
 	{
-		SCOPE_CYCLE_COUNTER(STAT_ProRender_Render);
-		m_PreRenderLock.Lock();
-		if (m_IsBuildingObjects)
-			BuildQueuedObjects();
-		if (m_Resize)
-			ResizeFramebuffer();
-		if (m_ClearFramebuffer)
-			ClearFramebuffer();
-		UpdatePostEffectSettings();
-		const bool	isPaused = m_PauseRender;
-		m_PreRenderLock.Unlock();
-		if (m_CurrentIteration < settings->MaximumRenderIterations && !isPaused && m_RenderLock.TryLock())
+		const bool	isPaused = PreRenderLoop();
+
+		if (isPaused ||
+			m_CurrentIteration >= settings->MaximumRenderIterations)
+		{
+			FPlatformProcess::Sleep(0.1f);
+			continue;
+		}
+		if (m_RenderLock.TryLock())
 		{
 			const uint32	sampleCount = FGenericPlatformMath::Min((m_CurrentIteration + 4) / 4, m_NumDevices);
-			if (rprContextSetParameter1u(m_RprContext, "aasamples", sampleCount) != RPR_SUCCESS ||
-				rprContextRender(m_RprContext) != RPR_SUCCESS ||
-				rprContextResolveFrameBuffer(m_RprContext, m_RprFrameBuffer, m_RprResolvedFrameBuffer) != RPR_SUCCESS) // TODO: Time resolve
+
 			{
-				m_RenderLock.Unlock();
-				UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't render iteration %d"), m_CurrentIteration);
-				break;
+				SCOPE_CYCLE_COUNTER(STAT_ProRender_Render);
+
+				// Render + Resolve
+				if (rprContextSetParameter1u(m_RprContext, "aasamples", sampleCount) != RPR_SUCCESS ||
+					rprContextRender(m_RprContext) != RPR_SUCCESS)
+				{
+					m_RenderLock.Unlock();
+					UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't render iteration %d, stopping.."), m_CurrentIteration);
+					break;
+				}
+			}
+			{
+				SCOPE_CYCLE_COUNTER(STAT_ProRender_Resolve);
+				if (rprContextResolveFrameBuffer(m_RprContext, m_RprFrameBuffer, m_RprResolvedFrameBuffer) != RPR_SUCCESS)
+				{
+					m_RenderLock.Unlock();
+					UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't resolve framebuffer at iteration %d, stopping.."), m_CurrentIteration);
+				}
 			}
 			m_RenderLock.Unlock();
+
+			// Build framebuffer data
 			BuildFramebufferData();
+
 			m_CurrentIteration += sampleCount;
 		}
 		else
@@ -429,6 +480,15 @@ uint32	FRPRRendererWorker::Run()
 void	FRPRRendererWorker::Stop()
 {
 	m_StopTaskCounter.Increment();
+}
+
+void	FRPRRendererWorker::AddPendingKill(ARPRActor *actor)
+{
+	check(actor != NULL);
+
+	m_PreRenderLock.Lock();
+	m_KillQueue.AddUnique(actor);
+	m_PreRenderLock.Unlock();
 }
 
 void	FRPRRendererWorker::EnsureCompletion()
@@ -446,13 +506,18 @@ void	FRPRRendererWorker::ReleaseResources()
 {
 	if (m_RprFrameBuffer != NULL)
 	{
+		check(m_RprResolvedFrameBuffer != NULL);
+
+		rprFrameBufferClear(m_RprFrameBuffer);
+		rprFrameBufferClear(m_RprResolvedFrameBuffer);
+
 		rprObjectDelete(m_RprFrameBuffer);
-		m_RprFrameBuffer = NULL;
-	}
-	if (m_RprResolvedFrameBuffer != NULL)
-	{
 		rprObjectDelete(m_RprResolvedFrameBuffer);
+
+		m_RprFrameBuffer = NULL;
 		m_RprResolvedFrameBuffer = NULL;
+
+		rprContextSetAOV(m_RprContext, RPR_AOV_COLOR, NULL);
 	}
 	if (m_RprWhiteBalance != NULL)
 	{
@@ -460,6 +525,12 @@ void	FRPRRendererWorker::ReleaseResources()
 		check(m_RprSimpleTonemap != NULL);
 		check(m_RprPhotolinearTonemap != NULL);
 		check(m_RprNormalization != NULL);
+
+		rprContextDetachPostEffect(m_RprContext, m_RprNormalization);
+		rprContextDetachPostEffect(m_RprContext, m_RprSimpleTonemap);
+		rprContextDetachPostEffect(m_RprContext, m_RprPhotolinearTonemap);
+		rprContextDetachPostEffect(m_RprContext, m_RprWhiteBalance);
+		rprContextDetachPostEffect(m_RprContext, m_RprGammaCorrection);
 
 		rprObjectDelete(m_RprWhiteBalance);
 		rprObjectDelete(m_RprGammaCorrection);
@@ -500,6 +571,7 @@ void	FRPRRendererWorker::ReleaseResources()
 		m_BuiltObjects[iObject]->Destroy();
 	}
 	m_BuiltObjects.Empty();
+	DestroyPendingKills();
 
 	m_PreRenderLock.Unlock();
 	m_RprContext = NULL;

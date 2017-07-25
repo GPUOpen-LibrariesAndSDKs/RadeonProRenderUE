@@ -17,6 +17,9 @@
 extern "C" void OutputDebugStringA(char const *);
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
+
+DEFINE_STAT(STAT_ProRender_UpdateMeshes);
+
 // chuck these up here for now. Move to own file asap
 namespace
 {
@@ -53,7 +56,7 @@ TArray<SRPRCachedMesh>	URPRStaticMeshComponent::GetMeshInstances(UStaticMesh *me
 		{
 			for (int32 jShape = 0; jShape < instances.Num(); ++jShape)
 				rprObjectDelete(instances[jShape].m_RprShape);
-			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh instance from '%s'"), *SrcComponent->GetName());
+			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh instance from '%s'"), *mesh->GetName());
 			return TArray<SRPRCachedMesh>();
 		}
 		else
@@ -69,6 +72,7 @@ void	URPRStaticMeshComponent::CleanCache()
 {
 	// Obviously this is context dependent
 	// TODO : Put a safer cache system in place *or* ensure there can only be one context
+	// TODO: Everything needs to be removed from the scene and properly destroyed
 	Cache.Empty();
 }
 #define RPR_UMS_INTEGRATION 1
@@ -305,7 +309,12 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Fallback for material %s due to disallowed parent %s"), UTF8_TO_TCHAR(materialName), UTF8_TO_TCHAR(parentMaterialName));
 			}
 			else {
-				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Fallback for material %s"), UTF8_TO_TCHAR(materialName));
+				if (matInstance) {
+					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Fallback for material %s INSTANCE OF %s"), UTF8_TO_TCHAR(materialName), UTF8_TO_TCHAR(parentMaterialName));
+				}
+				else {
+					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Fallback for material %s"), UTF8_TO_TCHAR(materialName));
+				}
 			}
 			if (rprMaterialSystemCreateNode(m_RprMaterialSystem, RPR_MATERIAL_NODE_DIFFUSE, &material) != RPR_SUCCESS)
 			{
@@ -424,12 +433,12 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 
 #pragma optimize("",on)
 
-static bool const FLIP_SURFACE_NORMALS = false;
+static bool const FLIP_SURFACE_NORMALS = true;
 
 bool	URPRStaticMeshComponent::Build()
 {
 	// Async load: SrcComponent can be null if it was deleted from the scene
-	if (Scene == NULL || SrcComponent == NULL)
+	if (Scene == NULL || !IsSrcComponentValid())
 		return false;
 
 	// TODO: Find a better way to cull unwanted geometry
@@ -593,13 +602,31 @@ bool	URPRStaticMeshComponent::Build()
                 if (det >= 0) windingOrders.emplace(WindingOrder::CCW);
                 else windingOrders.emplace(WindingOrder::CW);
             }
-
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape created from '%s' section %d"), *staticMesh->GetName(), iSection);
 			SRPRCachedMesh	newShape(shape, section.MaterialIndex);
 			if (!Cache.Contains(staticMesh))
 				Cache.Add(staticMesh);
 			Cache[staticMesh].Add(newShape);
-			m_Shapes.Add(newShape);
+
+			// New shape in the cache ? Add it in the scene + make it invisible
+			if (rprShapeSetVisibility(shape, false) != RPR_SUCCESS ||
+				rprSceneAttachShape(Scene->m_RprScene, shape) != RPR_SUCCESS)
+			{
+				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't attach Cached RPR shape to the RPR scene"));
+				return false;
+			}
+
+			SRPRCachedMesh	newInstance(newShape.m_UEMaterialIndex);
+			if (rprContextCreateInstance(Scene->m_RprContext, shape, &newInstance.m_RprShape) != RPR_SUCCESS)
+			{
+				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh instance from '%s'"), *staticMesh->GetName());
+				return false;
+			}
+			else
+			{
+				UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape instance created from '%s' section %d"), *staticMesh->GetName(), iSection);
+			}
+			m_Shapes.Add(newInstance);
 		}
 
         if (windingOrders.size() > 1)
@@ -635,18 +662,25 @@ bool	URPRStaticMeshComponent::Build()
 			return false;
 		}
 	}
-	return Super::Build();
+	return true;
 }
 
 bool	URPRStaticMeshComponent::PostBuild()
 {
-	if (!m_Built)
-		return true; // We keep it anyway
+	if (Scene == NULL || !IsSrcComponentValid())
+		return false;
 
 	if (!BuildMaterials())
 		return false;
 
 	return Super::PostBuild();
+}
+
+void	URPRStaticMeshComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
+{
+	SCOPE_CYCLE_COUNTER(STAT_ProRender_UpdateMeshes);
+
+	Super::TickComponent(deltaTime, tickType, tickFunction);
 }
 
 bool	URPRStaticMeshComponent::RebuildTransforms()

@@ -54,6 +54,19 @@ ARPRScene	*FRPRPluginModule::GetCurrentScene() const
 	return NULL;
 }
 
+void	FRPRPluginModule::Rebuild()
+{
+	m_ObjectBeingBuilt = 0;
+
+	ARPRScene	*scene = GetCurrentScene();
+	if (scene != NULL)
+	{
+		scene->Rebuild();
+		if (!m_RPRPaused)
+			scene->OnRender(m_ObjectsToBuild);
+	}
+}
+
 void	FRPRPluginModule::OpenURL(const TCHAR *url)
 {
 	FPlatformProcess::LaunchURL(url, NULL, NULL);
@@ -212,7 +225,7 @@ void	FRPRPluginModule::StartupModule()
 	levelEditorModule.GetMenuExtensibilityManager()->AddExtender(m_Extender);
 
 	// Create render texture
-	const FVector2D	renderResolution(4096, 4096); // First, create a small texture (resized later)
+	const FVector2D	renderResolution(10, 10); // First, create a small texture (resized later)
 	m_RenderTexture = UTexture2DDynamic::Create(renderResolution.X, renderResolution.Y, PF_R8G8B8A8, true);
 	m_RenderTexture->CompressionSettings = TC_HDR;
 	m_RenderTexture->AddToRoot();

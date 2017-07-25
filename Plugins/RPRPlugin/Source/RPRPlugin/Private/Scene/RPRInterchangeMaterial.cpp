@@ -486,6 +486,7 @@ UE4InterchangePBRNode::New(UEInterchangeCollection & _collection,
 
 #define PBR_DEFAULT_BLACK FColor(0,0,0,255)
 #define PBR_DEFAULT_YELLOW FColor(255,255,0,255)
+#define PBR_DEFAULT_UP FLinearColor(0,1,0)
 
 #define HOOKUP_PBR_EXPRESSION(_name, _index, _type, _default) \
 if ((ue4Mat->_name.UseConstant) || (ue4Mat->_name.Expression == nullptr)) \
@@ -519,8 +520,9 @@ UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collect
 	HOOKUP_PBR_EXPRESSION(Roughness, 1, float, 0.5f);
 	HOOKUP_PBR_EXPRESSION(Metallic, 2, float, 0.5f);
 	HOOKUP_PBR_EXPRESSION(Specular, 3, float, 0.5f);
-	// normal goes here
-	HOOKUP_PBR_EXPRESSION(EmissiveColor, 5, FColor, PBR_DEFAULT_BLACK);
+	HOOKUP_PBR_EXPRESSION(Normal, 4, FLinearColor, PBR_DEFAULT_UP);
+
+//	HOOKUP_PBR_EXPRESSION(EmissiveColor, 5, FColor, PBR_DEFAULT_BLACK);
 //	HOOKUP_PBR_EXPRESSION(Opacity, 6, float, 1.0f);
 // refraction
 // clear coat here

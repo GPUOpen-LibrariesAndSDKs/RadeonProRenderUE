@@ -57,6 +57,9 @@ TSharedRef<FSlateStyleSet>	FRPREditorStyle::Create()
 	style.Set("RPRViewport.CameraOrbitOn", new IMAGE_BRUSH("Icons/icon_Camera_Reset_40px", Icon16x16));
 	style.Set("RPRViewport.CameraOrbitOn.Small", new IMAGE_BRUSH("Icons/icon_Camera_Reset_40px", Icon16x16));
 
+	style.Set("RPRViewport.Rebuild", new IMAGE_BRUSH("Icons/icon_Cascade_RestartSim_40x", Icon16x16));
+	style.Set("RPRViewport.Rebuild.Small", new IMAGE_BRUSH("Icons/icon_Cascade_RestartSim_40x", Icon16x16));
+
 	style.Set("RPRViewport.Save", new IMAGE_BRUSH("Icons/icon_file_save_40x", Icon20x20));
 	style.Set("RPRViewport.Save.Small", new IMAGE_BRUSH("Icons/icon_file_save_16x", Icon16x16));
 

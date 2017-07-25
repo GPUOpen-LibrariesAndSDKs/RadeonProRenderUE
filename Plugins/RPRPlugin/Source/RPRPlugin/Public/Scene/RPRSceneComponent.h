@@ -23,13 +23,15 @@ public:
 	URPRSceneComponent();
 
 	/* Build the RPR object based on the UE4 component */
-	virtual bool	Build();
+	virtual bool	Build() { return false; };
 
 	/* Called on the Game thread, after the object has been built */
-	virtual bool	PostBuild() { return true; }
+	virtual bool	PostBuild();
 
 	/* Rebuild the RPR transforms */
 	virtual bool	RebuildTransforms() { return false; }
+
+	bool			IsSrcComponentValid() const;
 protected:
 	void			TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
 protected:

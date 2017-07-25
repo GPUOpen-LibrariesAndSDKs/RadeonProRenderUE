@@ -17,6 +17,9 @@ struct	SRPRCachedMesh
 	SRPRCachedMesh(rpr_shape shape, int32 materialIndex)
 	:	m_RprShape(shape)
 	,	m_UEMaterialIndex(materialIndex) { }
+
+	SRPRCachedMesh(int32 materialIndex)
+	:	m_UEMaterialIndex(materialIndex) { }
 };
 
 struct	SRPRShape
@@ -51,6 +54,7 @@ private:
 	TArray<SRPRCachedMesh>	GetMeshInstances(UStaticMesh *mesh);
 	bool					BuildMaterials();
 
+	virtual void	TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
 	virtual void	BeginDestroy() override;
 	virtual bool	PostBuild() override;
 private:
