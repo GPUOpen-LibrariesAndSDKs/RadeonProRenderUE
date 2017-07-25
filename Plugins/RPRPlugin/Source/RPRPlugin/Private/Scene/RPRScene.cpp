@@ -57,8 +57,8 @@ void	ARPRScene::FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames)
 	for (TObjectIterator<UCameraComponent> it; it; ++it)
 	{
 		if (it->GetWorld() != world ||
-			it->HasAnyFlags(RF_Transient | RF_BeginDestroyed) ||
-			!it->HasBeenCreated())
+			!it->HasBeenCreated() ||
+			it->IsPendingKill())
 			continue;
 		AActor	*parent = Cast<AActor>(it->GetOwner());
 		if (parent == NULL)
@@ -192,7 +192,6 @@ uint32	ARPRScene::BuildScene()
 	for (TObjectIterator<USceneComponent> it; it; ++it)
 	{
 		if (it->GetWorld() != world ||
-			it->HasAnyFlags(RF_Transient | RF_BeginDestroyed) ||
 			it->IsPendingKill() ||
 			!it->HasBeenCreated())
 			continue;
@@ -268,7 +267,6 @@ void	ARPRScene::RefreshScene()
 	for (TObjectIterator<USceneComponent> it; it; ++it)
 	{
 		if (it->GetWorld() != world ||
-			it->HasAnyFlags(RF_Transient | RF_BeginDestroyed) ||
 			it->IsPendingKill() ||
 			!it->HasBeenCreated())
 			continue;
