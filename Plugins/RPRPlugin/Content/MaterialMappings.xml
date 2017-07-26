@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mappings>
-    <material name="ue_material" shader="rpr_material">
+    <material name="lampost" shader="MI_Glass">
         <parameter name="BaseMetallic" rprNode="someNodeName0" rprParameter="someParameterName0" />
-        <parameter name="ColourDesat" rprNode="someNodeName1" rprParameter="someParameterName1" />
     </material>
 </mappings>

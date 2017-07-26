@@ -4,10 +4,11 @@
     <enable material="Asphalt"/>
     <enable material="Asphalt_Inst" value="false"/>
     <enable material="rubber_dark_Inst"/>
-    <enable material="smooth_ax_chrome_sm300h" value="false"/>
+    <enable material="smooth_ax_chrome_sm300h" value="true"/>
+    <enable material="smooth_ax_satinchrome_sm5077"/>
     <enable material="smooth_ax_darkgrey_plastic"/>
     <enable material="smooth_ax_darkgrey_na"/>
-    <enable material="smooth_am_badgechrome_na" value="false"/>
+    <enable material="smooth_am_badgechrome_na" value="true"/>
     <enable material="BasicRed"/>
     <enable material="smooth_ax_obsblack_na"/>
     <enable material="smooth_ax_satinchrome_sm5077"/>
@@ -22,18 +23,21 @@
     <enable material="Searock1"/>
     <enable material="Rockmaster"/>
     <enable material="Dome_valencia"/>
-    <enable material="MasterAwning" value="false"/>
-    <enable material="Awning1"/>
-    <enable material="Awning2"/>
-    <enable material="Awning3"/>
+    <enable material="MasterAwning" value="true"/>
+    <enable material="Awning1" value="true"/>
+    <enable material="Awning2" value="true"/>
+    <enable material="Awning3" value="true"/>
     <enable material="Awning4"/>
 
     <enable material="plant"/>
-    <enable material="M_PalmTree" value="false"/>
+    <enable material="M_PalmTree" value="true"/>
     <enable material="M_PalmTree_Inst_01"/>
     <enable material="pipes"/>
     <enable material="Trunk"/>
     <enable material="PotTree"/>
+    <enable material="FramesMat"/>
+    <enable material="Building01_Mat"/>
+    <enable material="Building01_Mat_Inst"/>
 
     <enable material="Masterbalcony" value ="false" comment="enable this once UE4Desaturate is supported"/>
     <enable material="blacony"/>
@@ -42,4 +46,15 @@
     <enable material="bars"/>
     <enable material="ob81"/>
     <enable material="object84"/>
+
+    <enable material="white_plastic"/>
+    <enable material="carpet_back"/>
+    <enable material="headliner_ebony"/>
+    <enable material="BLACK_Plastic_Dashboard"/>
+    <enable material="black_leather"/>    
+    <enable material="ebony_perfseats"/>
+    <enable material="pannierstitch_na_black_na"/>
+    <enable material="smooth_ax_satinaluminum_ua2"/>
+
+
 </umscontrol>
