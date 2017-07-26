@@ -32,15 +32,15 @@ DEFINE_STAT(STAT_ProRender_UpdateScene);
 DEFINE_STAT(STAT_ProRender_CopyFramebuffer);
 
 ARPRScene::ARPRScene()
-:	m_RprContext(NULL)
-,	m_RprScene(NULL)
-,	m_ActiveCamera(NULL)
-,	m_TriggerEndFrameResize(false)
-,	m_TriggerEndFrameRebuild(false)
-,	m_RendererWorker(NULL)
-,	m_Plugin(NULL)
-,	m_RenderTexture(NULL)
-,	m_NumDevices(0)
+	: m_RprContext(NULL)
+	, m_RprScene(NULL)
+	, m_ActiveCamera(NULL)
+	, m_TriggerEndFrameResize(false)
+	, m_TriggerEndFrameRebuild(false)
+	, m_RendererWorker(NULL)
+	, m_Plugin(NULL)
+	, m_RenderTexture(NULL)
+	, m_NumDevices(0)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -174,8 +174,8 @@ bool	ARPRScene::BuildViewportCamera()
 	ViewportCameraComponent->SrcComponent = GetRootComponent();
 	ViewportCameraComponent->RegisterComponent();
 
-	// Profile that, if too much, do one "immediate build object" per frame ?
-	if (!ViewportCameraComponent->Build())
+	if (!ViewportCameraComponent->Build() ||
+		!ViewportCameraComponent->PostBuild())
 	{
 		ViewportCameraComponent->ConditionalBeginDestroy();
 		return false;
@@ -309,13 +309,13 @@ uint32	ARPRScene::GetContextCreationFlags(const FString &dllPath)
 
 	RPR_TOOLS_OS	os =
 #if PLATFORM_WINDOWS
-	RPRTOS_WINDOWS;
+		RPRTOS_WINDOWS;
 #elif PLATFORM_MAC
-	RPRTOS_MC;
+		RPRTOS_MC;
 #elif PLATFORM_LINUX
-	RPRTOS_LINUX;
+		RPRTOS_LINUX;
 #else
-	return 0; // incompatible
+		return 0; // incompatible
 #endif
 
 	rprAreDevicesCompatible(TCHAR_TO_ANSI(*dllPath), TCHAR_TO_ANSI(*settings->RenderCachePath), false, maxCreationFlags, &creationFlags, os);
@@ -455,12 +455,12 @@ void	ARPRScene::Rebuild()
 {
 	if (!m_RendererWorker.IsValid())
 		return; // Nothing to rebuild
-	// Here, the renderer worker will pause itself at the next iteration
-	// So, wait for it
+				// Here, the renderer worker will pause itself at the next iteration
+				// So, wait for it
 	m_RendererWorker->EnsureCompletion();
 	m_RendererWorker = NULL; // TODO MAKE SURE TSharedPtr correctly deletes the renderer
 
-	// Once the RPR thread is deleted, clean all scene resources
+							 // Once the RPR thread is deleted, clean all scene resources
 	RemoveSceneContent(false);
 
 	rprContextClearMemory(m_RprContext);
@@ -550,11 +550,11 @@ void	ARPRScene::OnSave()
 
 	static FString	kSaveDialogTitle = "Save Radeon ProRender Framebuffer";
 	static FString	kFileTypes = TEXT("Targa (*.TGA)|*.tga"
-									  "|Windows Bitmap (*.BMP)|*.bmp"
-									  "|PNG (*.PNG)|*.png"
-									  "|JPG (*.JPG)|*.jpg"
-									  "|FireRender Scene (*.FRS)|*.frs"
-									  "|All files (*TGA;*.BMP;*.PNG;*.JPG;*.FRS)|*tga;*.bmp;*.png;*.jpg;*.frs");
+		"|Windows Bitmap (*.BMP)|*.bmp"
+		"|PNG (*.PNG)|*.png"
+		"|JPG (*.JPG)|*.jpg"
+		"|FireRender Scene (*.FRS)|*.frs"
+		"|All files (*TGA;*.BMP;*.PNG;*.JPG;*.FRS)|*tga;*.bmp;*.png;*.jpg;*.frs");
 
 	TArray<FString>		saveFilenames;
 	const bool	save = desktopPlatform->SaveFileDialog(
@@ -582,7 +582,6 @@ void	ARPRScene::OnSave()
 void	ARPRScene::Tick(float deltaTime)
 {
 	SCOPE_CYCLE_COUNTER(STAT_ProRender_UpdateScene);
-
 	if (!m_RendererWorker.IsValid() ||
 		m_RenderTexture == NULL ||
 		m_RenderTexture->Resource == NULL ||
@@ -624,16 +623,16 @@ void	ARPRScene::Tick(float deltaTime)
 			const uint8*, textureData, textureData,
 			{
 				FUpdateTextureRegion2D	region;
-				region.SrcX = 0;
-				region.SrcY = 0;
-				region.DestX = 0;
-				region.DestY = 0;
-				region.Width = renderTexture->SizeX;
-				region.Height = renderTexture->SizeY;
+		region.SrcX = 0;
+		region.SrcY = 0;
+		region.DestX = 0;
+		region.DestY = 0;
+		region.Width = renderTexture->SizeX;
+		region.Height = renderTexture->SizeY;
 
-				const uint32	pitch = region.Width * sizeof(uint8) * 4;
-				FRHITexture2D	*resource = (FRHITexture2D*)renderTexture->Resource->TextureRHI.GetReference();
-				RHIUpdateTexture2D(resource, 0, region, pitch, textureData);
+		const uint32	pitch = region.Width * sizeof(uint8) * 4;
+		FRHITexture2D	*resource = (FRHITexture2D*)renderTexture->Resource->TextureRHI.GetReference();
+		RHIUpdateTexture2D(resource, 0, region, pitch, textureData);
 			});
 		FlushRenderingCommands();
 		m_RendererWorker->m_DataLock.Unlock();

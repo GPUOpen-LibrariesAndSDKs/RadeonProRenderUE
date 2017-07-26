@@ -18,24 +18,24 @@ DEFINE_STAT(STAT_ProRender_Readback);
 DEFINE_LOG_CATEGORY_STATIC(LogRPRRenderer, Log, All);
 
 FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene scene, uint32 width, uint32 height, uint32 numDevices)
-:	m_RprFrameBuffer(NULL)
-,	m_RprResolvedFrameBuffer(NULL)
-,	m_RprContext(context)
-,	m_RprScene(scene)
-,	m_RprWhiteBalance(NULL)
-,	m_RprGammaCorrection(NULL)
-,	m_RprSimpleTonemap(NULL)
-,	m_RprPhotolinearTonemap(NULL)
-,	m_RprNormalization(NULL)
-,	m_CurrentIteration(0)
-,	m_PreviousRenderedIteration(0)
-,	m_NumDevices(numDevices)
-,	m_Width(width)
-,	m_Height(height)
-,	m_Resize(true)
-,	m_IsBuildingObjects(false)
-,	m_ClearFramebuffer(false)
-,	m_PauseRender(true)
+	: m_RprFrameBuffer(NULL)
+	, m_RprResolvedFrameBuffer(NULL)
+	, m_RprContext(context)
+	, m_RprScene(scene)
+	, m_RprWhiteBalance(NULL)
+	, m_RprGammaCorrection(NULL)
+	, m_RprSimpleTonemap(NULL)
+	, m_RprPhotolinearTonemap(NULL)
+	, m_RprNormalization(NULL)
+	, m_CurrentIteration(0)
+	, m_PreviousRenderedIteration(0)
+	, m_NumDevices(numDevices)
+	, m_Width(width)
+	, m_Height(height)
+	, m_Resize(true)
+	, m_IsBuildingObjects(false)
+	, m_ClearFramebuffer(false)
+	, m_PauseRender(true)
 {
 	m_Plugin = &FRPRPluginModule::Get();
 	m_Thread = FRunnableThread::Create(this, TEXT("FRPRRendererWorker"));
@@ -76,8 +76,8 @@ void	FRPRRendererWorker::SaveToFile(const FString &filename)
 		// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
 		m_RenderLock.Lock();
 		const bool	saved = rprsExport(TCHAR_TO_ANSI(*filename), m_RprContext, m_RprScene,
-									   0, NULL, NULL,
-									   0, NULL, NULL) == RPR_SUCCESS;
+			0, NULL, NULL,
+			0, NULL, NULL) == RPR_SUCCESS;
 		m_RenderLock.Unlock();
 
 		if (saved)
@@ -144,7 +144,8 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 			m_BuildQueue.Add(newBuildQueue[iObject]);
 
 		// PostBuild
-		m_RenderLock.Lock();
+
+		// This is safe: RPR thread doesn't render if there are pending built objects
 		const uint32	builtCount = m_BuiltObjects.Num();
 		for (uint32 iObject = 0; iObject < builtCount; ++iObject)
 		{
@@ -159,7 +160,6 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 				m_BuiltObjects[iObject]->Destroy();
 			}
 		}
-		m_RenderLock.Unlock();
 
 		m_BuiltObjects.Empty();
 		m_IsBuildingObjects = m_BuildQueue.Num() > 0;
@@ -180,26 +180,26 @@ void	FRPRRendererWorker::SetQualitySettings(ERPRQualitySettings qualitySettings)
 	uint32	numRayBounces = 0;
 	switch (qualitySettings)
 	{
-		case	ERPRQualitySettings::Interactive:
-		{
-			numRayBounces = 3;
-			break;
-		}
-		case	ERPRQualitySettings::Low:
-		{
-			numRayBounces = 8;
-			break;
-		}
-		case	ERPRQualitySettings::Medium:
-		{
-			numRayBounces = 15;
-			break;
-		}
-		case	ERPRQualitySettings::High:
-		{
-			numRayBounces = 25;
-			break;
-		}
+	case	ERPRQualitySettings::Interactive:
+	{
+		numRayBounces = 3;
+		break;
+	}
+	case	ERPRQualitySettings::Low:
+	{
+		numRayBounces = 8;
+		break;
+	}
+	case	ERPRQualitySettings::Medium:
+	{
+		numRayBounces = 15;
+		break;
+	}
+	case	ERPRQualitySettings::High:
+	{
+		numRayBounces = 25;
+		break;
+	}
 	}
 	m_RenderLock.Lock();
 	if (rprContextSetParameter1u(m_RprContext, "maxRecursion", numRayBounces) != RPR_SUCCESS)
@@ -417,7 +417,7 @@ bool	FRPRRendererWorker::PreRenderLoop()
 		ClearFramebuffer();
 	UpdatePostEffectSettings();
 
-	const bool	isPaused = m_PauseRender;
+	const bool	isPaused = m_PauseRender || m_BuiltObjects.Num() > 0;
 
 	m_PreRenderLock.Unlock();
 
@@ -432,7 +432,14 @@ uint32	FRPRRendererWorker::Run()
 	while (m_StopTaskCounter.GetValue() == 0)
 	{
 		const bool	isPaused = PreRenderLoop();
-		if (m_CurrentIteration < settings->MaximumRenderIterations && !isPaused && m_RenderLock.TryLock())
+
+		if (isPaused ||
+			m_CurrentIteration >= settings->MaximumRenderIterations)
+		{
+			FPlatformProcess::Sleep(0.1f);
+			continue;
+		}
+		if (m_RenderLock.TryLock())
 		{
 			const uint32	sampleCount = FGenericPlatformMath::Min((m_CurrentIteration + 4) / 4, m_NumDevices);
 
