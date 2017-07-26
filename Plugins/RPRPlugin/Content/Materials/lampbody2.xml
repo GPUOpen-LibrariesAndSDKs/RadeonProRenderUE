@@ -13,7 +13,7 @@
 
     <param name="reflection.mode" type="uint" value="2" />
     <param name="reflection.ior" type="float4" value="0.1, 0.1, 0.1, 0" />
-    <param name="reflection.metalness" type="float4" value="0.3, 0.3, 0.3, 0" />
+    <param name="reflection.metalness" type="float4" value="0.1, 0.1, 0.1, 0" />
 
     <param name="refraction.color" type="float4" value="1, 1, 1, 1" />
     <param name="refraction.weight" type="float4" value="0, 0, 0, 0" />

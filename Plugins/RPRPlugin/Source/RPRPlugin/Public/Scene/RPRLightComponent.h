@@ -8,6 +8,15 @@
 #include "Scene/RPRSceneComponent.h"
 #include "RPRLightComponent.generated.h"
 
+enum	ERPRLightType
+{
+	Point,
+	Spot,
+	Directional,
+	IES,
+	Environment,
+};
+
 UCLASS(Transient)
 class URPRLightComponent : public URPRSceneComponent
 {
@@ -30,6 +39,8 @@ private:
 private:
 	rpr_image		m_RprImage;
 	rpr_light		m_RprLight;
+
+	ERPRLightType	m_LightType;
 
 	float			m_CachedShadowSharpness;
 	float			m_CachedIntensity;
