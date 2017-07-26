@@ -10,7 +10,7 @@
 class FRPRRendererWorker : public FRunnable
 {
 public:
-	FRPRRendererWorker(rpr_context context, rpr_scene scene, uint32 width, uint32 height, uint32 numDevices);
+	FRPRRendererWorker(rpr_context context, rpr_scene rprScene, uint32 width, uint32 height, uint32 numDevices, class ARPRScene *scene);
 	virtual ~FRPRRendererWorker();
 
 	// Begin FRunnable interface.
@@ -57,6 +57,7 @@ private:
 	FCriticalSection			m_PreRenderLock;
 
 	class FRPRPluginModule		*m_Plugin;
+	class ARPRScene				*m_Scene;
 
 	uint32						m_CurrentIteration;
 	uint32						m_PreviousRenderedIteration;

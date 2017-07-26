@@ -339,6 +339,24 @@ uint32	ARPRScene::GetContextCreationFlags(const FString &dllPath)
 	return creationFlags;
 }
 
+bool	ARPRScene::RPRThread_Rebuild()
+{
+	bool			restartRender = false;
+	const uint32	objectCount = SceneContent.Num();
+	for (uint32 iObject = 0; iObject < objectCount; ++iObject)
+	{
+		if (SceneContent[iObject] == NULL)
+			continue;
+		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(SceneContent[iObject]->GetRootComponent());
+		check(comp != NULL);
+
+		restartRender |= comp->RPRThread_Update();
+	}
+	if (ViewportCameraComponent != NULL)
+		restartRender |= ViewportCameraComponent->RPRThread_Update();
+	return restartRender;
+}
+
 void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 {
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
@@ -433,7 +451,7 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		SetOrbit(m_Plugin->IsOrbitting());
 		TriggerFrameRebuild();
 
-		m_RendererWorker = MakeShareable(new FRPRRendererWorker(m_RprContext, m_RprScene, m_RenderTexture->SizeX, m_RenderTexture->SizeY, m_NumDevices));
+		m_RendererWorker = MakeShareable(new FRPRRendererWorker(m_RprContext, m_RprScene, m_RenderTexture->SizeX, m_RenderTexture->SizeY, m_NumDevices, this));
 		m_RendererWorker->SetQualitySettings(settings->QualitySettings);
 	}
 	m_RendererWorker->SetPaused(false);

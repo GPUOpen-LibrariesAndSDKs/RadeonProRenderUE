@@ -6,36 +6,39 @@
 #include "HAL/RunnableThread.h"
 
 #include "Scene/RPRSceneComponent.h"
+#include "Scene/RPRScene.h"
 #include "Scene/RPRActor.h"
 
 #include "RPRStats.h"
 
 DEFINE_STAT(STAT_ProRender_PreRender);
+DEFINE_STAT(STAT_ProRender_RebuildScene);
 DEFINE_STAT(STAT_ProRender_Render);
 DEFINE_STAT(STAT_ProRender_Resolve);
 DEFINE_STAT(STAT_ProRender_Readback);
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRRenderer, Log, All);
 
-FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene scene, uint32 width, uint32 height, uint32 numDevices)
-	: m_RprFrameBuffer(NULL)
-	, m_RprResolvedFrameBuffer(NULL)
-	, m_RprContext(context)
-	, m_RprScene(scene)
-	, m_RprWhiteBalance(NULL)
-	, m_RprGammaCorrection(NULL)
-	, m_RprSimpleTonemap(NULL)
-	, m_RprPhotolinearTonemap(NULL)
-	, m_RprNormalization(NULL)
-	, m_CurrentIteration(0)
-	, m_PreviousRenderedIteration(0)
-	, m_NumDevices(numDevices)
-	, m_Width(width)
-	, m_Height(height)
-	, m_Resize(true)
-	, m_IsBuildingObjects(false)
-	, m_ClearFramebuffer(false)
-	, m_PauseRender(true)
+FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene rprScene, uint32 width, uint32 height, uint32 numDevices, ARPRScene *scene)
+:	m_RprFrameBuffer(NULL)
+,	m_RprResolvedFrameBuffer(NULL)
+,	m_RprContext(context)
+,	m_RprScene(rprScene)
+,	m_Scene(scene)
+,	m_RprWhiteBalance(NULL)
+,	m_RprGammaCorrection(NULL)
+,	m_RprSimpleTonemap(NULL)
+,	m_RprPhotolinearTonemap(NULL)
+,	m_RprNormalization(NULL)
+,	m_CurrentIteration(0)
+,	m_PreviousRenderedIteration(0)
+,	m_NumDevices(numDevices)
+,	m_Width(width)
+,	m_Height(height)
+,	m_Resize(true)
+,	m_IsBuildingObjects(false)
+,	m_ClearFramebuffer(false)
+,	m_PauseRender(true)
 {
 	m_Plugin = &FRPRPluginModule::Get();
 	m_Thread = FRunnableThread::Create(this, TEXT("FRPRRendererWorker"));
@@ -425,6 +428,10 @@ bool	FRPRRendererWorker::PreRenderLoop()
 		BuildQueuedObjects();
 	if (m_KillQueue.Num() > 0)
 		DestroyPendingKills();
+	{
+		SCOPE_CYCLE_COUNTER(STAT_ProRender_RebuildScene);
+		m_ClearFramebuffer |= m_Scene->RPRThread_Rebuild();
+	}
 	if (m_Resize)
 		ResizeFramebuffer();
 	if (m_ClearFramebuffer)
