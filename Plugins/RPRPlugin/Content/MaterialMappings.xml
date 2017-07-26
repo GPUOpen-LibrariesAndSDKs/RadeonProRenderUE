@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mappings>
+    <material name="lampbody2" shader="lampbody2">
+        <parameter constant="0.8, 0.8, 0.8, 0" rprNode="UberMaterial #0" rprParameter="reflection.metalness" />       
+    </material>
     <material name="lampost" shader="MI_Glass">
         <parameter name="BaseMetallic" rprNode="someNodeName0" rprParameter="someParameterName0" />
     </material>
