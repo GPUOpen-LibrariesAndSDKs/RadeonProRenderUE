@@ -705,6 +705,8 @@ void	URPRStaticMeshComponent::TickComponent(float deltaTime, ELevelTick tickType
 
 bool	URPRStaticMeshComponent::RebuildTransforms()
 {
+	check(!IsInGameThread());
+
 	RadeonProRender::matrix	matrix = BuildMatrixWithScale(SrcComponent->ComponentToWorld);
 
 	const uint32	shapeCount = m_Shapes.Num();

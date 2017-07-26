@@ -10,16 +10,6 @@ DEFINE_LOG_CATEGORY_STATIC(LogRPRCameraComponent, Log, All);
 
 DEFINE_STAT(STAT_ProRender_UpdateCameras);
 
-enum
-{
-	PROPERTY_REBUILD_PROJECTION_MODE	= 0x02,
-	PROPERTY_REBUILD_FOCAL_LENGTH		= 0x04,
-	PROPERTY_REBUILD_FOCUS_DISTANCE		= 0x08,
-	PROPERTY_REBUILD_APERTURE			= 0x10,
-	PROPERTY_REBUILD_SENSOR_SIZE		= 0x20,
-	PROPERTY_REBUILD_ACTIVE_CAMERA		= 0x40,
-};
-
 URPRCameraComponent::URPRCameraComponent()
 :	m_RprCamera(NULL)
 ,	m_CachedProjectionMode(ECameraProjectionMode::Perspective)
@@ -42,6 +32,11 @@ void	URPRCameraComponent::SetAsActiveCamera()
 
 	if (m_RprCamera == NULL)
 		return;
+
+	m_RefreshLock.Lock();
+	m_RebuildFlags |= PROPERTY_REBUILD_ACTIVE_CAMERA;
+	m_RefreshLock.Unlock();
+
 	RefreshProperties(false);
 	TriggerRebuildTransforms();
 }
@@ -55,13 +50,12 @@ void	URPRCameraComponent::SetOrbit(bool orbit)
 	m_Orbit = !m_Orbit;
 	m_Sync = !m_Orbit;
 
-	m_RefreshLock.Lock();
-
 	if (m_Orbit)
 	{
 		UWorld	*world = GetWorld();
 		check(world != NULL);
 
+		m_RefreshLock.Lock();
 		m_OrbitLocation = SrcComponent->ComponentToWorld.GetLocation();
 		m_OrbitCenter = FVector::ZeroVector;
 
@@ -85,14 +79,9 @@ void	URPRCameraComponent::SetOrbit(bool orbit)
 				m_OrbitCenter = hit.Component->ComponentToWorld.GetLocation();
 			}
 		}
+		m_RefreshLock.Unlock();
 	}
-	if (m_RprCamera != NULL)
-	{
-		// We are building, it will be called later
-		TriggerRebuildTransforms();
-	}
-
-	m_RefreshLock.Unlock();
+	RefreshProperties(false);
 }
 
 void	URPRCameraComponent::StartOrbitting(const FIntPoint &mousePos)
@@ -127,12 +116,8 @@ void	URPRCameraComponent::StartOrbitting(const FIntPoint &mousePos)
 			m_OrbitCenter = hit.Component->ComponentToWorld.GetLocation();
 		}
 	}
-	if (m_RprCamera != NULL)
-	{
-		// We are building, it will be called later
-		TriggerRebuildTransforms();
-	}
 	m_RefreshLock.Unlock();
+	RefreshProperties(false);
 }
 
 FString	URPRCameraComponent::GetCameraName() const
@@ -197,8 +182,6 @@ bool	URPRCameraComponent::RebuildTransforms()
 
 void	URPRCameraComponent::UpdateOrbitCamera()
 {
-	m_RefreshLock.Lock();
-
 	check(m_Plugin != NULL);
 	const int32	zoom = m_Plugin->Zoom();
 	if (zoom != 0)
@@ -215,7 +198,9 @@ void	URPRCameraComponent::UpdateOrbitCamera()
 
 		if (distance < kMaxOrbitDist && distance > kMinOrbitDist)
 		{
+			m_RefreshLock.Lock();
 			m_OrbitLocation = newLocation;
+			m_RefreshLock.Unlock();
 
 			TriggerRebuildTransforms();
 		}
@@ -230,23 +215,25 @@ void	URPRCameraComponent::UpdateOrbitCamera()
 		const FVector	&rightVector = (forwardVector ^ upVector) * panningDelta.X;
 		upVector *= panningDelta.Y;
 
+		m_RefreshLock.Lock();
 		m_OrbitLocation += rightVector + upVector;
 		m_OrbitCenter += rightVector + upVector;
+		m_RefreshLock.Unlock();
 
 		TriggerRebuildTransforms();
 	}
 	const FIntPoint	orbitDelta = m_Plugin->OrbitDelta();
 	if (orbitDelta != FIntPoint::ZeroValue)
 	{
+		m_RefreshLock.Lock();
 		m_OrbitLocation -= m_OrbitCenter;
 		m_OrbitLocation = m_OrbitLocation.RotateAngleAxis(orbitDelta.Y, FVector(SrcComponent->ComponentToWorld.GetRotation().GetRightVector()));
 		m_OrbitLocation = m_OrbitLocation.RotateAngleAxis(orbitDelta.X, FVector(0.0f, 0.0f, 1.0f));
 		m_OrbitLocation += m_OrbitCenter;
+		m_RefreshLock.Unlock();
 
 		TriggerRebuildTransforms();
 	}
-
-	m_RefreshLock.Unlock();
 }
 
 void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
@@ -268,12 +255,11 @@ void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FA
 	// If we are not the main camera, don't rebuild
 	if (Scene->m_ActiveCamera != this)
 		return;
-	// Check all cached properties (might be a better way)
-	// There is PostEditChangeProperty but this is editor only
-	RefreshProperties(false);
 
 	if (m_Orbit)
 		UpdateOrbitCamera();
+	else
+		RefreshProperties(false);
 }
 
 bool	URPRCameraComponent::RPRThread_Update()
@@ -318,14 +304,14 @@ void	URPRCameraComponent::RefreshProperties(bool force)
 	m_RefreshLock.Lock();
 
 	RPR_PROPERTY_CHECK(cam->ProjectionMode, m_CachedProjectionMode, PROPERTY_REBUILD_PROJECTION_MODE);
-	if (cineCam == NULL)
-		return;
-
-	RPR_PROPERTY_CHECK(cineCam->CurrentFocalLength, m_CachedFocalLength, PROPERTY_REBUILD_FOCAL_LENGTH);
-	RPR_PROPERTY_CHECK(cineCam->CurrentFocusDistance, m_CachedFocusDistance, PROPERTY_REBUILD_FOCUS_DISTANCE);
-	RPR_PROPERTY_CHECK(cineCam->CurrentAperture, m_CachedAperture, PROPERTY_REBUILD_APERTURE);
-	RPR_PROPERTY_CHECK(cineCam->FilmbackSettings.SensorWidth, m_CachedSensorSize.X, PROPERTY_REBUILD_SENSOR_SIZE);
-	RPR_PROPERTY_CHECK(cineCam->FilmbackSettings.SensorHeight, m_CachedSensorSize.Y, PROPERTY_REBUILD_SENSOR_SIZE);
+	if (cineCam != NULL)
+	{
+		RPR_PROPERTY_CHECK(cineCam->CurrentFocalLength, m_CachedFocalLength, PROPERTY_REBUILD_FOCAL_LENGTH);
+		RPR_PROPERTY_CHECK(cineCam->CurrentFocusDistance, m_CachedFocusDistance, PROPERTY_REBUILD_FOCUS_DISTANCE);
+		RPR_PROPERTY_CHECK(cineCam->CurrentAperture, m_CachedAperture, PROPERTY_REBUILD_APERTURE);
+		RPR_PROPERTY_CHECK(cineCam->FilmbackSettings.SensorWidth, m_CachedSensorSize.X, PROPERTY_REBUILD_SENSOR_SIZE);
+		RPR_PROPERTY_CHECK(cineCam->FilmbackSettings.SensorHeight, m_CachedSensorSize.Y, PROPERTY_REBUILD_SENSOR_SIZE);
+	}
 
 	m_RefreshLock.Unlock();
 }

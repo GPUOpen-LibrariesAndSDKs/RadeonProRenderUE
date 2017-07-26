@@ -7,6 +7,16 @@
 #include "Scene/RPRSceneComponent.h"
 #include "RPRCameraComponent.generated.h"
 
+enum
+{
+	PROPERTY_REBUILD_PROJECTION_MODE	= 0x02,
+	PROPERTY_REBUILD_FOCAL_LENGTH		= 0x04,
+	PROPERTY_REBUILD_FOCUS_DISTANCE		= 0x08,
+	PROPERTY_REBUILD_APERTURE			= 0x10,
+	PROPERTY_REBUILD_SENSOR_SIZE		= 0x20,
+	PROPERTY_REBUILD_ACTIVE_CAMERA		= 0x40,
+};
+
 UCLASS(Transient)
 class URPRCameraComponent : public URPRSceneComponent
 {
