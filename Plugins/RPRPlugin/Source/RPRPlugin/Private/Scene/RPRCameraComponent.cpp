@@ -37,7 +37,8 @@ void	URPRCameraComponent::SetAsActiveCamera()
 	m_RebuildFlags |= PROPERTY_REBUILD_ACTIVE_CAMERA;
 	m_RefreshLock.Unlock();
 
-	RefreshProperties(false);
+	if (!m_Orbit)
+		RefreshProperties(false);
 	TriggerRebuildTransforms();
 }
 
@@ -81,7 +82,9 @@ void	URPRCameraComponent::SetOrbit(bool orbit)
 		}
 		m_RefreshLock.Unlock();
 	}
-	RefreshProperties(false);
+	else
+		RefreshProperties(false);
+	TriggerRebuildTransforms();
 }
 
 void	URPRCameraComponent::StartOrbitting(const FIntPoint &mousePos)
@@ -117,7 +120,7 @@ void	URPRCameraComponent::StartOrbitting(const FIntPoint &mousePos)
 		}
 	}
 	m_RefreshLock.Unlock();
-	RefreshProperties(false);
+	TriggerRebuildTransforms();
 }
 
 FString	URPRCameraComponent::GetCameraName() const

@@ -43,7 +43,8 @@ void	URPRViewportCameraComponent::SetAsActiveCamera()
 	m_RebuildFlags |= PROPERTY_REBUILD_ACTIVE_CAMERA;
 	m_RefreshLock.Unlock();
 
-	RebuildCameraProperties(false);
+	if (!m_Orbit)
+		RebuildCameraProperties(false);
 	TriggerRebuildTransforms();
 }
 
@@ -87,7 +88,9 @@ void	URPRViewportCameraComponent::SetOrbit(bool orbit)
 		}
 		m_RefreshLock.Unlock();
 	}
-	RebuildCameraProperties(true);
+	else
+		RebuildCameraProperties(true);
+	TriggerRebuildTransforms();
 }
 
 void	URPRViewportCameraComponent::StartOrbitting(const FIntPoint &mousePos)
@@ -122,8 +125,7 @@ void	URPRViewportCameraComponent::StartOrbitting(const FIntPoint &mousePos)
 		}
 	}
 	m_RefreshLock.Unlock();
-
-	RebuildCameraProperties(false);
+	TriggerRebuildTransforms();
 }
 
 FVector	URPRViewportCameraComponent::GetViewLocation() const
@@ -324,9 +326,8 @@ bool	URPRViewportCameraComponent::RebuildTransforms()
 	}
 	else
 	{
-		FVector	camPos = SrcComponent->ComponentToWorld.GetLocation() * 0.1f;
-		FVector	forward = camPos + SrcComponent->ComponentToWorld.GetRotation().GetForwardVector();
-		if (rprCameraLookAt(m_RprCamera, camPos.X, camPos.Z, camPos.Y, forward.X, forward.Z, forward.Y, 0.0f, 1.0f, 0.0f))
+		FVector	forward = m_CachedCameraLookAt;
+		if (rprCameraLookAt(m_RprCamera, m_CachedCameraPos.X, m_CachedCameraPos.Z, m_CachedCameraPos.Y, m_CachedCameraLookAt.X, m_CachedCameraLookAt.Z, m_CachedCameraLookAt.Y, 0.0f, 1.0f, 0.0f))
 		{
 			UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't rebuild RPR camera transforms"));
 			return false;
@@ -380,7 +381,7 @@ void	URPRViewportCameraComponent::RebuildCameraProperties(bool force)
 			!camPos.Equals(m_CachedCameraPos, 0.0001f) ||
 			!camLookAt.Equals(m_CachedCameraLookAt, 0.0001f))
 		{
-			TriggerRebuildTransforms();
+			m_RebuildFlags |= PROPERTY_REBUILD_TRANSFORMS;
 			m_CachedCameraPos = camPos;
 			m_CachedCameraLookAt = camLookAt;
 		}
@@ -417,7 +418,7 @@ void	URPRViewportCameraComponent::RebuildCameraProperties(bool force)
 			!camPos.Equals(m_CachedCameraPos, 0.0001f) ||
 			!camLookAt.Equals(m_CachedCameraLookAt, 0.0001f))
 		{
-			TriggerRebuildTransforms();
+			m_RebuildFlags |= PROPERTY_REBUILD_TRANSFORMS;
 			m_CachedCameraPos = camPos;
 			m_CachedCameraLookAt = camLookAt;
 		}
