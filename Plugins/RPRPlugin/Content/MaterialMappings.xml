@@ -3,4 +3,10 @@
     <material name="lampost" shader="MI_Glass">
         <parameter name="BaseMetallic" rprNode="someNodeName0" rprParameter="someParameterName0" />
     </material>
+    <material name="smooth_ax_isofix_white" shader="master_material_diffuse">
+        <parameter constant="1,0,0,1" rprNode = "UberMaterial #0" rprParameter="diffuse.color"/>
+    </material>
+    <material name="shutters" shader="master_material_diffuse">
+        <parameter constant="0,1,0,1" rprNode = "UberMaterial #0" rprParameter="diffuse.color"/>
+    </material>
 </mappings>
