@@ -115,7 +115,7 @@ namespace rpr
                 std::string rprName = elem->Attribute("shader");
                 
                 // Create a new MaterialMapping instance.
-                MaterialMapping mm;
+                MaterialMapping mm;                
                 mm.name = rprName;
 
                 // Enumerate all parameter mappings in the XML tree.
@@ -124,16 +124,20 @@ namespace rpr
                 {
                     // Get the parameter mapping info.
                     ParameterMapping pm = { childElem->Attribute("rprNode"), childElem->Attribute("rprParameter") };
-                    mm.parameterMappings.emplace(childElem->Attribute("name"), std::move(pm));
 
+                    if (childElem->Attribute("name"))
+                        mm.parameterMappings.emplace(childElem->Attribute("name"), std::move(pm));
+                    else if (childElem->Attribute("constant"))
+                        mm.constantParameters.emplace(std::string(childElem->Attribute("rprNode")) + ":" + std::string(childElem->Attribute("rprParameter")), childElem->Attribute("constant"));
+                            
                     // Move to next node.
                     childElem = childElem->NextSiblingElement();
                 }
 
                 // Save to map.
-                m_masterFileMappings.emplace(ueName, std::move(mm));
                 UE_LOG(LogMaterialLibrary, Log, TEXT("Found material mapping %s -> %s"), UTF8_TO_TCHAR(ueName.c_str()), UTF8_TO_TCHAR(rprName.c_str()));
-
+                m_masterFileMappings.emplace(ueName, std::move(mm));
+                
                 // Move to next node.
                 elem = elem->NextSiblingElement();
             }
@@ -212,19 +216,17 @@ namespace rpr
 	{
         // Assume UE material maps to an RPR material with the same name but allow any entry in the master mappings file to override it.
         std::string name = TCHAR_TO_ANSI(*ueMaterialInterfaceObject->GetName());
-        std::unordered_map<std::string, ParameterMapping> parameterMappings;
+        MaterialMapping materialMapping = {};
         UE_LOG(LogMaterialLibrary, Log, TEXT("CreateMaterial --> %s"), UTF8_TO_TCHAR(name.c_str()));
 
         if (m_masterFileMappings.find(name) != m_masterFileMappings.end())
         {
-            auto& materialMapping = m_masterFileMappings.at(name);
+            // Make a copy of the material mapping object.
+            materialMapping = m_masterFileMappings.at(name);
             UE_LOG(LogMaterialLibrary, Log, TEXT("Master mappings file contains %s -> %s"), UTF8_TO_TCHAR(name.c_str()), UTF8_TO_TCHAR(materialMapping.name.c_str()));
             
             // Change the name of the RPR material the UE one maps to.
             name = materialMapping.name;
-
-            // Copy parameter mappings to apply below.
-            parameterMappings = materialMapping.parameterMappings;
         }
 
         UE_LOG(LogMaterialLibrary, Log, TEXT("CreateMaterial (name change) --> %s"), UTF8_TO_TCHAR(name.c_str()));
@@ -487,7 +489,7 @@ namespace rpr
 
                     // Apply any material mappings if they exist.
                     bool foundParameterMapping = false;
-                    for (auto itr : parameterMappings)
+                    for (auto itr : materialMapping.parameterMappings)
                     {
                         // Check to see if the current parameter mapping matches the current node and node param.
                         if (itr.second.rprNode == node.name && itr.second.rprNodeParameter == param.name)
@@ -509,6 +511,15 @@ namespace rpr
                                 value[3] = newValue.A;
                             }
                         }
+                    }
+                    
+                    // Check constant mappings.
+                    std::string lookUpKey = node.name + ":" + param.name;
+                    auto constantParam = materialMapping.constantParameters.find(lookUpKey);
+                    if (constantParam != materialMapping.constantParameters.end())
+                    {
+                        sscanf_s(constantParam->second.c_str(), "%f, %f, %f, %f", &value[0], &value[1], &value[2], &value[3]);
+                        foundParameterMapping = true;
                     }
 
                     // If no parameter mapping was found in loaded master file, do mapping manually by matching name strings.

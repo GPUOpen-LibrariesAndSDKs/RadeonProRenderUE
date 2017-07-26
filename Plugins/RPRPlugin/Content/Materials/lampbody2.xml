@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <material name="lampbody2">
   <node name="UberMaterial #0" type="UBER">
-    <param name="diffuse.color" type="float4" value="0, 0, 0, 1" />
-    <param name="diffuse.weight" type="float4" value="1, 1, 1, 1" />
+    <param name="diffuse.color" type="float4" value="0.01, 0.01, 0.01, 1" />
+    <param name="diffuse.weight" type="float4" value="0.01, 0.01, 0.01, 1" />
     <param name="diffuse.roughness" type="float4" value="1, 1, 1, 1" />
 
-    <param name="reflection.color" type="float4" value="0.75, 0.75, 0.75, 0.75" />
+    <param name="reflection.color" type="float4" value="1, 1, 1, 1" />
     <param name="reflection.weight" type="float4" value="1, 1, 1, 1" />
-    <param name="reflection.roughness" type="float4" value="0.5, 0.5, 0.5, 0.5" />
+    <param name="reflection.roughness" type="float4" value="0.01, 0.01, 0.01, 1" />
     <param name="reflection.anisotropy" type="float4" value="0, 0, 0, 0" />
     <param name="reflection.anistropyRotation" type="float4" value="0, 0, 0, 0" />
 
     <param name="reflection.mode" type="uint" value="2" />
-    <param name="reflection.ior" type="float4" value="1.5, 1.5, 1.5, 1.5" />
-    <param name="reflection.metalness" type="float4" value="0, 0, 0, 0" />
+    <param name="reflection.ior" type="float4" value="0.1, 0.1, 0.1, 0" />
+    <param name="reflection.metalness" type="float4" value="0.1, 0.1, 0.1, 0" />
 
     <param name="refraction.color" type="float4" value="1, 1, 1, 1" />
     <param name="refraction.weight" type="float4" value="0, 0, 0, 0" />
