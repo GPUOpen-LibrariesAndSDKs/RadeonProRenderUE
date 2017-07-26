@@ -29,6 +29,18 @@ bool	URPRSceneComponent::IsSrcComponentValid() const
 		!SrcComponent->IsPendingKill();
 }
 
+bool	URPRSceneComponent::RPRThread_Update()
+{
+	bool	rebuild = false;
+
+	m_RefreshLock.Lock();
+	if (m_RebuildTransforms)
+		rebuild = RebuildTransforms();
+	m_RefreshLock.Unlock();
+
+	return rebuild;
+}
+
 void	URPRSceneComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
 {
 	Super::TickComponent(deltaTime, tickType, tickFunction);
@@ -53,10 +65,11 @@ void	URPRSceneComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 	// Seem to be the only way..
 	// There is no runtime enabled callbacks
 	// UEngine::OnActorMoved() and UEngine::OnComponentTransformChanged() are editor only..
+	m_RefreshLock.Lock();
 	if (!m_CachedTransforms.Equals(SrcComponent->ComponentToWorld, 0.0001f))
 	{
-		if (RebuildTransforms())
-			Scene->TriggerFrameRebuild();
+		m_RebuildTransforms = true;
 		m_CachedTransforms = SrcComponent->ComponentToWorld;
 	}
+	m_RefreshLock.Unlock();
 }

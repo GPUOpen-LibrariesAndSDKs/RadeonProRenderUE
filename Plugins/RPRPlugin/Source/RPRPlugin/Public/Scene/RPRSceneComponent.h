@@ -30,6 +30,9 @@ public:
 	/* Rebuild the RPR transforms */
 	virtual bool	RebuildTransforms() { return false; }
 
+	/* Called on the RPR Thread, execute rpr calls to refresh object properties */
+	virtual bool	RPRThread_Update();
+
 	bool			IsSrcComponentValid() const;
 protected:
 	void			TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
@@ -37,6 +40,8 @@ protected:
 	bool					m_Built;
 	bool					m_Sync;
 	class FRPRPluginModule	*m_Plugin;
+
+	FCriticalSection		m_RefreshLock;
 private:
 	FTransform				m_CachedTransforms;
 };
