@@ -22,9 +22,10 @@ private:
 	virtual bool	Build() override;
 	virtual bool	RebuildTransforms() override;
 	virtual void	TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
+	virtual bool	RPRThread_Update() override;
 	virtual void	BeginDestroy() override;
 
-	bool			RefreshProperties(bool force);
+	void			RefreshProperties(bool force);
 private:
 	rpr_camera	m_RprCamera;
 

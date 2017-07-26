@@ -41,6 +41,8 @@ protected:
 	bool					m_Sync;
 	class FRPRPluginModule	*m_Plugin;
 
+	uint32					m_RebuildFlags;
+
 	FCriticalSection		m_RefreshLock;
 private:
 	FTransform				m_CachedTransforms;

@@ -6,6 +6,7 @@ URPRSceneComponent::URPRSceneComponent()
 :	Scene(NULL)
 ,	m_Built(false)
 ,	m_Sync(true)
+,	m_RebuildFlags(0)
 ,	m_Plugin(NULL)
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -29,13 +30,21 @@ bool	URPRSceneComponent::IsSrcComponentValid() const
 		!SrcComponent->IsPendingKill();
 }
 
+enum
+{
+	PROPERTY_REBUILD_TRANSFORMS	= 0x01,
+};
+
 bool	URPRSceneComponent::RPRThread_Update()
 {
 	bool	rebuild = false;
 
 	m_RefreshLock.Lock();
-	if (m_RebuildTransforms)
+
+	if (m_RebuildFlags & PROPERTY_REBUILD_TRANSFORMS)
 		rebuild = RebuildTransforms();
+	m_RebuildFlags = 0;
+
 	m_RefreshLock.Unlock();
 
 	return rebuild;
@@ -68,7 +77,7 @@ void	URPRSceneComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 	m_RefreshLock.Lock();
 	if (!m_CachedTransforms.Equals(SrcComponent->ComponentToWorld, 0.0001f))
 	{
-		m_RebuildTransforms = true;
+		m_RebuildFlags |= PROPERTY_REBUILD_TRANSFORMS;
 		m_CachedTransforms = SrcComponent->ComponentToWorld;
 	}
 	m_RefreshLock.Unlock();

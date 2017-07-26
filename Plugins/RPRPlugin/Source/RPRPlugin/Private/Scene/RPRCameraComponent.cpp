@@ -149,11 +149,7 @@ bool	URPRCameraComponent::Build()
 		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't create RPR camera"));
 		return false;
 	}
-	if (!RefreshProperties(true))
-	{
-		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't set RPR camera properties"));
-		return false;
-	}
+	RefreshProperties(true);
 	if (Scene->m_ActiveCamera == this)
 		SetAsActiveCamera();
 	UE_LOG(LogRPRCameraComponent, Log, TEXT("RPR Camera created from '%s'"), *SrcComponent->GetName());
@@ -162,6 +158,7 @@ bool	URPRCameraComponent::Build()
 
 bool	URPRCameraComponent::RebuildTransforms()
 {
+	check(!IsInGameThread());
 	check(m_RprCamera != NULL);
 	check(Scene != NULL);
 
@@ -215,8 +212,7 @@ void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FA
 		return;
 	// Check all cached properties (might be a better way)
 	// There is PostEditChangeProperty but this is editor only
-	if (RefreshProperties(false))
-		Scene->TriggerFrameRebuild();
+	RefreshProperties(false);
 
 	if (!m_Orbit)
 		return;
@@ -269,7 +265,57 @@ void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FA
 	}
 }
 
-bool	URPRCameraComponent::RefreshProperties(bool force)
+enum
+{
+	PROPERTY_REBUILD_PROJECTION_MODE	= 0x02,
+	PROPERTY_REBUILD_FOCAL_LENGTH		= 0x04,
+	PROPERTY_REBUILD_FOCUS_DISTANCE		= 0x08,
+	PROPERTY_REBUILD_APERTURE			= 0x10,
+	PROPERTY_REBUILD_SENSOR_SIZE		= 0x20,
+};
+
+#define	CAMERA_PROPERTY_REBUILD(flag, function, ... )												\
+	if (m_RebuildFlags & flag)																		\
+	{																								\
+		if (function(__VA_ARGS__) != RPR_SUCCESS)													\
+		{																							\
+			UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't rebuild RPR camera properties"));	\
+			m_RefreshLock.Unlock();																	\
+			return false;																			\
+		}																							\
+	}
+
+#define CAMERA_PROPERTY_CHECK(value, cachedValue, flag)			\
+	if (force || value != cachedValue)							\
+	{															\
+		cachedValue = value;									\
+		m_RebuildFlags |= flag;									\
+	}
+
+bool	URPRCameraComponent::RPRThread_Update()
+{
+	m_RefreshLock.Lock();
+
+	if (m_RebuildFlags == 0)
+	{
+		m_RefreshLock.Lock();
+		return Super::RPRThread_Update();
+	}
+
+	CAMERA_PROPERTY_REBUILD(PROPERTY_REBUILD_PROJECTION_MODE, rprCameraSetMode, m_RprCamera, m_CachedProjectionMode == ECameraProjectionMode::Orthographic ? RPR_CAMERA_MODE_ORTHOGRAPHIC : RPR_CAMERA_MODE_PERSPECTIVE);
+	CAMERA_PROPERTY_REBUILD(PROPERTY_REBUILD_FOCAL_LENGTH, rprCameraSetFocalLength, m_RprCamera, m_CachedFocalLength);
+	CAMERA_PROPERTY_REBUILD(PROPERTY_REBUILD_FOCUS_DISTANCE, rprCameraSetFocusDistance, m_RprCamera, m_CachedFocusDistance * 0.01f);
+	CAMERA_PROPERTY_REBUILD(PROPERTY_REBUILD_APERTURE, rprCameraSetFStop, m_RprCamera, m_CachedAperture);
+	CAMERA_PROPERTY_REBUILD(PROPERTY_REBUILD_SENSOR_SIZE, rprCameraSetSensorSize, m_RprCamera, m_CachedSensorSize.X, m_CachedSensorSize.Y);
+
+	m_RefreshLock.Unlock();
+
+	Super::RPRThread_Update();
+
+	return true;
+}
+
+void	URPRCameraComponent::RefreshProperties(bool force)
 {
 	UCameraComponent		*cam = Cast<UCameraComponent>(SrcComponent);
 	UCineCameraComponent	*cineCam = Cast<UCineCameraComponent>(SrcComponent);
@@ -283,44 +329,20 @@ bool	URPRCameraComponent::RefreshProperties(bool force)
 		m_CachedAspectRatio = cam->AspectRatio;
 		Scene->TriggerResize();
 	}
-	bool	refresh = false;
-	if (force ||
-		cam->ProjectionMode != m_CachedProjectionMode)
-	{
-		const bool	orthoCam = cam->ProjectionMode == ECameraProjectionMode::Orthographic;
-		if (rprCameraSetMode(m_RprCamera, orthoCam ? RPR_CAMERA_MODE_ORTHOGRAPHIC : RPR_CAMERA_MODE_PERSPECTIVE) != RPR_SUCCESS)
-		{
-			UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't set camera properties"));
-			return false;
-		}
-		m_CachedProjectionMode = cam->ProjectionMode;
-		refresh = true;
-	}
+
+	m_RefreshLock.Lock();
+
+	CAMERA_PROPERTY_CHECK(cam->ProjectionMode, m_CachedProjectionMode, PROPERTY_REBUILD_PROJECTION_MODE);
 	if (cineCam == NULL)
-		return refresh;
-	if (force ||
-		cineCam->CurrentFocalLength != m_CachedFocalLength ||
-		cineCam->CurrentFocusDistance != m_CachedFocusDistance ||
-		cineCam->CurrentAperture != m_CachedAperture ||
-		cineCam->FilmbackSettings.SensorWidth != m_CachedSensorSize.X ||
-		cineCam->FilmbackSettings.SensorHeight != m_CachedSensorSize.Y)
-	{
-		// TODO: Ortho cams & overall camera properties checkup (DOF, ..)
-		if (rprCameraSetFocalLength(m_RprCamera, cineCam->CurrentFocalLength) != RPR_SUCCESS ||
-			rprCameraSetFocusDistance(m_RprCamera, cineCam->CurrentFocusDistance * 0.01f) != RPR_SUCCESS ||
-			rprCameraSetFStop(m_RprCamera, cineCam->CurrentAperture) != RPR_SUCCESS ||
-			rprCameraSetSensorSize(m_RprCamera, cineCam->FilmbackSettings.SensorWidth, cineCam->FilmbackSettings.SensorHeight) != RPR_SUCCESS)
-		{
-			UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't set camera properties"));
-			return false;
-		}
-		m_CachedFocalLength = cineCam->CurrentFocalLength;
-		m_CachedFocusDistance = cineCam->CurrentFocusDistance;
-		m_CachedAperture = cineCam->CurrentAperture;
-		m_CachedSensorSize = FVector2D(cineCam->FilmbackSettings.SensorWidth, cineCam->FilmbackSettings.SensorHeight);
-		return true;
-	}
-	return refresh;
+		return;
+
+	CAMERA_PROPERTY_CHECK(cineCam->CurrentFocalLength, m_CachedFocalLength, PROPERTY_REBUILD_FOCAL_LENGTH);
+	CAMERA_PROPERTY_CHECK(cineCam->CurrentFocusDistance, m_CachedFocusDistance, PROPERTY_REBUILD_FOCUS_DISTANCE);
+	CAMERA_PROPERTY_CHECK(cineCam->CurrentAperture, m_CachedAperture, PROPERTY_REBUILD_APERTURE);
+	CAMERA_PROPERTY_CHECK(cineCam->FilmbackSettings.SensorWidth, m_CachedSensorSize.X, PROPERTY_REBUILD_SENSOR_SIZE);
+	CAMERA_PROPERTY_CHECK(cineCam->FilmbackSettings.SensorHeight, m_CachedSensorSize.Y, PROPERTY_REBUILD_SENSOR_SIZE);
+
+	m_RefreshLock.Unlock();
 }
 
 void	URPRCameraComponent::BeginDestroy()
