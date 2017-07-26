@@ -2,7 +2,7 @@
 <umscontrol>
     <matchall value="false"/>
     <enable material="Asphalt"/>
-    <enable material="Asphalt_Inst" enable="false"/>
+    <enable material="Asphalt_Inst" value="false"/>
     <enable material="rubber_dark_Inst"/>
     <enable material="smooth_ax_chrome_sm300h" value="false"/>
     <enable material="smooth_ax_darkgrey_plastic"/>
@@ -22,17 +22,19 @@
     <enable material="Searock1"/>
     <enable material="Rockmaster"/>
     <enable material="Dome_valencia"/>
-    <enable material="MasterAwning"/>
+    <enable material="MasterAwning" value="false"/>
     <enable material="Awning1"/>
     <enable material="Awning2"/>
     <enable material="Awning3"/>
     <enable material="Awning4"/>
+
     <enable material="plant"/>
-    <enable material="M_PalmTree"/>
+    <enable material="M_PalmTree" value="false"/>
     <enable material="M_PalmTree_Inst_01"/>
     <enable material="pipes"/>
     <enable material="Trunk"/>
     <enable material="PotTree"/>
+
     <enable material="Masterbalcony" value ="false" comment="enable this once UE4Desaturate is supported"/>
     <enable material="blacony"/>
     <enable material="object80"/>
