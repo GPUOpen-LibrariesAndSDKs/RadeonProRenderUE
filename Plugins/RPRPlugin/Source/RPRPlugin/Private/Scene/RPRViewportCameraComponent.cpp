@@ -143,7 +143,15 @@ FVector	URPRViewportCameraComponent::GetViewLocation() const
 	else if (m_EditorViewportClient != NULL)
 	{
 		check(m_PlayerCameraManager == NULL);
-		return m_EditorViewportClient->GetViewLocation();
+
+		FVector	viewLocation = m_EditorViewportClient->GetViewLocation();
+		if (m_EditorViewportClient->bLockedCameraView)
+		{
+			UCameraComponent	*cam = m_EditorViewportClient->GetCameraComponentForView();
+			if (cam != NULL)
+				viewLocation = cam->ComponentToWorld.GetLocation();
+		}
+		return viewLocation;
 	}
 	return FVector::ZeroVector;
 }
@@ -158,7 +166,15 @@ FVector	URPRViewportCameraComponent::GetLookAtLocation() const
 	else if (m_EditorViewportClient != NULL)
 	{
 		check(m_PlayerCameraManager == NULL);
-		return m_EditorViewportClient->GetLookAtLocation();
+
+		FVector	lookAtLocation = m_EditorViewportClient->GetLookAtLocation();
+		if (m_EditorViewportClient->bLockedCameraView)
+		{
+			UCameraComponent	*cam = m_EditorViewportClient->GetCameraComponentForView();
+			if (cam != NULL)
+				lookAtLocation = cam->ComponentToWorld.GetLocation() + cam->ComponentToWorld.GetRotation().GetForwardVector();
+		}
+		return lookAtLocation;
 	}
 	return FVector::ZeroVector;
 }
