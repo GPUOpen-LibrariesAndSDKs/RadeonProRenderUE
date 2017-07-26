@@ -6,6 +6,23 @@
 #include "Components/SceneComponent.h"
 #include "RPRSceneComponent.generated.h"
 
+#define	RPR_PROPERTY_REBUILD(LogClass, ErrorMessage, flag, function, ... )		\
+	if (m_RebuildFlags & flag)													\
+	{																			\
+		if (function(__VA_ARGS__) != RPR_SUCCESS)								\
+		{																		\
+			UE_LOG(LogClass, Warning, TEXT(ErrorMessage));						\
+		}																		\
+	}
+
+#define RPR_PROPERTY_CHECK(value, cachedValue, flag)			\
+	if (force || value != cachedValue)							\
+	{															\
+		cachedValue = value;									\
+		m_RebuildFlags |= flag;									\
+	}
+
+
 /**
 * Root of all RPR component, representation of an UE object
 */

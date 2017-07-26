@@ -20,25 +20,6 @@ enum
 	PROPERTY_REBUILD_ACTIVE_CAMERA		= 0x40,
 };
 
-#define	CAMERA_PROPERTY_REBUILD(flag, function, ... )												\
-	if (m_RebuildFlags & flag)																		\
-	{																								\
-		if (function(__VA_ARGS__) != RPR_SUCCESS)													\
-		{																							\
-			UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't rebuild RPR camera properties"));	\
-			m_RefreshLock.Unlock();																	\
-			return false;																			\
-		}																							\
-	}
-
-#define CAMERA_PROPERTY_CHECK(value, cachedValue, flag)			\
-	if (force || value != cachedValue)							\
-	{															\
-		cachedValue = value;									\
-		m_RebuildFlags |= flag;									\
-	}
-
-
 URPRCameraComponent::URPRCameraComponent()
 :	m_RprCamera(NULL)
 ,	m_CachedProjectionMode(ECameraProjectionMode::Perspective)
@@ -294,12 +275,12 @@ bool	URPRCameraComponent::RPRThread_Update()
 		return Super::RPRThread_Update();
 	}
 
-	CAMERA_PROPERTY_REBUILD(PROPERTY_REBUILD_PROJECTION_MODE, rprCameraSetMode, m_RprCamera, m_CachedProjectionMode == ECameraProjectionMode::Orthographic ? RPR_CAMERA_MODE_ORTHOGRAPHIC : RPR_CAMERA_MODE_PERSPECTIVE);
-	CAMERA_PROPERTY_REBUILD(PROPERTY_REBUILD_FOCAL_LENGTH, rprCameraSetFocalLength, m_RprCamera, m_CachedFocalLength);
-	CAMERA_PROPERTY_REBUILD(PROPERTY_REBUILD_FOCUS_DISTANCE, rprCameraSetFocusDistance, m_RprCamera, m_CachedFocusDistance * 0.01f);
-	CAMERA_PROPERTY_REBUILD(PROPERTY_REBUILD_APERTURE, rprCameraSetFStop, m_RprCamera, m_CachedAperture);
-	CAMERA_PROPERTY_REBUILD(PROPERTY_REBUILD_SENSOR_SIZE, rprCameraSetSensorSize, m_RprCamera, m_CachedSensorSize.X, m_CachedSensorSize.Y);
-	CAMERA_PROPERTY_REBUILD(PROPERTY_REBUILD_ACTIVE_CAMERA, rprSceneSetCamera, Scene->m_RprScene, m_RprCamera);
+	RPR_PROPERTY_REBUILD(LogRPRCameraComponent, "Couldn't refresh camera mode", PROPERTY_REBUILD_PROJECTION_MODE, rprCameraSetMode, m_RprCamera, m_CachedProjectionMode == ECameraProjectionMode::Orthographic ? RPR_CAMERA_MODE_ORTHOGRAPHIC : RPR_CAMERA_MODE_PERSPECTIVE);
+	RPR_PROPERTY_REBUILD(LogRPRCameraComponent, "Couldn't refresh camera focal length", PROPERTY_REBUILD_FOCAL_LENGTH, rprCameraSetFocalLength, m_RprCamera, m_CachedFocalLength);
+	RPR_PROPERTY_REBUILD(LogRPRCameraComponent, "Couldn't refresh camera focus distance", PROPERTY_REBUILD_FOCUS_DISTANCE, rprCameraSetFocusDistance, m_RprCamera, m_CachedFocusDistance * 0.01f);
+	RPR_PROPERTY_REBUILD(LogRPRCameraComponent, "Couldn't refresh camera FStop", PROPERTY_REBUILD_APERTURE, rprCameraSetFStop, m_RprCamera, m_CachedAperture);
+	RPR_PROPERTY_REBUILD(LogRPRCameraComponent, "Couldn't refresh camera Sensor size", PROPERTY_REBUILD_SENSOR_SIZE, rprCameraSetSensorSize, m_RprCamera, m_CachedSensorSize.X, m_CachedSensorSize.Y);
+	RPR_PROPERTY_REBUILD(LogRPRCameraComponent, "Couldn't set scene active camera", PROPERTY_REBUILD_ACTIVE_CAMERA, rprSceneSetCamera, Scene->m_RprScene, m_RprCamera);
 
 	m_RefreshLock.Unlock();
 
@@ -325,15 +306,15 @@ void	URPRCameraComponent::RefreshProperties(bool force)
 
 	m_RefreshLock.Lock();
 
-	CAMERA_PROPERTY_CHECK(cam->ProjectionMode, m_CachedProjectionMode, PROPERTY_REBUILD_PROJECTION_MODE);
+	RPR_PROPERTY_CHECK(cam->ProjectionMode, m_CachedProjectionMode, PROPERTY_REBUILD_PROJECTION_MODE);
 	if (cineCam == NULL)
 		return;
 
-	CAMERA_PROPERTY_CHECK(cineCam->CurrentFocalLength, m_CachedFocalLength, PROPERTY_REBUILD_FOCAL_LENGTH);
-	CAMERA_PROPERTY_CHECK(cineCam->CurrentFocusDistance, m_CachedFocusDistance, PROPERTY_REBUILD_FOCUS_DISTANCE);
-	CAMERA_PROPERTY_CHECK(cineCam->CurrentAperture, m_CachedAperture, PROPERTY_REBUILD_APERTURE);
-	CAMERA_PROPERTY_CHECK(cineCam->FilmbackSettings.SensorWidth, m_CachedSensorSize.X, PROPERTY_REBUILD_SENSOR_SIZE);
-	CAMERA_PROPERTY_CHECK(cineCam->FilmbackSettings.SensorHeight, m_CachedSensorSize.Y, PROPERTY_REBUILD_SENSOR_SIZE);
+	RPR_PROPERTY_CHECK(cineCam->CurrentFocalLength, m_CachedFocalLength, PROPERTY_REBUILD_FOCAL_LENGTH);
+	RPR_PROPERTY_CHECK(cineCam->CurrentFocusDistance, m_CachedFocusDistance, PROPERTY_REBUILD_FOCUS_DISTANCE);
+	RPR_PROPERTY_CHECK(cineCam->CurrentAperture, m_CachedAperture, PROPERTY_REBUILD_APERTURE);
+	RPR_PROPERTY_CHECK(cineCam->FilmbackSettings.SensorWidth, m_CachedSensorSize.X, PROPERTY_REBUILD_SENSOR_SIZE);
+	RPR_PROPERTY_CHECK(cineCam->FilmbackSettings.SensorHeight, m_CachedSensorSize.Y, PROPERTY_REBUILD_SENSOR_SIZE);
 
 	m_RefreshLock.Unlock();
 }
