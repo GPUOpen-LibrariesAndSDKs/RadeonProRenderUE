@@ -25,6 +25,7 @@ private:
 	virtual bool	RPRThread_Update() override;
 	virtual void	BeginDestroy() override;
 
+	void			UpdateOrbitCamera();
 	void			RefreshProperties(bool force);
 private:
 	rpr_camera	m_RprCamera;

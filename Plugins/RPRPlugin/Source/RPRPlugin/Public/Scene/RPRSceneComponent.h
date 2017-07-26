@@ -36,6 +36,8 @@ public:
 	bool			IsSrcComponentValid() const;
 protected:
 	void			TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
+
+	void			TriggerRebuildTransforms();
 protected:
 	bool					m_Built;
 	bool					m_Sync;

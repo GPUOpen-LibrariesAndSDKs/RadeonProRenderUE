@@ -50,6 +50,13 @@ bool	URPRSceneComponent::RPRThread_Update()
 	return rebuild;
 }
 
+void	URPRSceneComponent::TriggerRebuildTransforms()
+{
+	m_RefreshLock.Lock();
+	m_RebuildFlags |= PROPERTY_REBUILD_TRANSFORMS;
+	m_RefreshLock.Unlock();
+}
+
 void	URPRSceneComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
 {
 	Super::TickComponent(deltaTime, tickType, tickFunction);

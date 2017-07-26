@@ -10,6 +10,35 @@ DEFINE_LOG_CATEGORY_STATIC(LogRPRCameraComponent, Log, All);
 
 DEFINE_STAT(STAT_ProRender_UpdateCameras);
 
+enum
+{
+	PROPERTY_REBUILD_PROJECTION_MODE	= 0x02,
+	PROPERTY_REBUILD_FOCAL_LENGTH		= 0x04,
+	PROPERTY_REBUILD_FOCUS_DISTANCE		= 0x08,
+	PROPERTY_REBUILD_APERTURE			= 0x10,
+	PROPERTY_REBUILD_SENSOR_SIZE		= 0x20,
+	PROPERTY_REBUILD_ACTIVE_CAMERA		= 0x40,
+};
+
+#define	CAMERA_PROPERTY_REBUILD(flag, function, ... )												\
+	if (m_RebuildFlags & flag)																		\
+	{																								\
+		if (function(__VA_ARGS__) != RPR_SUCCESS)													\
+		{																							\
+			UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't rebuild RPR camera properties"));	\
+			m_RefreshLock.Unlock();																	\
+			return false;																			\
+		}																							\
+	}
+
+#define CAMERA_PROPERTY_CHECK(value, cachedValue, flag)			\
+	if (force || value != cachedValue)							\
+	{															\
+		cachedValue = value;									\
+		m_RebuildFlags |= flag;									\
+	}
+
+
 URPRCameraComponent::URPRCameraComponent()
 :	m_RprCamera(NULL)
 ,	m_CachedProjectionMode(ECameraProjectionMode::Perspective)
@@ -32,18 +61,8 @@ void	URPRCameraComponent::SetAsActiveCamera()
 
 	if (m_RprCamera == NULL)
 		return;
-	if (!RebuildTransforms())
-		return;
 	RefreshProperties(false);
-	if (rprSceneSetCamera(Scene->m_RprScene, m_RprCamera) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't set the active RPR camera"));
-	}
-	else
-	{
-		UE_LOG(LogRPRCameraComponent, Log, TEXT("RPR Active camera changed to '%s'"), *GetCameraName());
-	}
-	Scene->TriggerFrameRebuild();
+	TriggerRebuildTransforms();
 }
 
 void	URPRCameraComponent::SetOrbit(bool orbit)
@@ -87,8 +106,7 @@ void	URPRCameraComponent::SetOrbit(bool orbit)
 	if (m_RprCamera != NULL)
 	{
 		// We are building, it will be called later
-		if (RebuildTransforms())
-			Scene->TriggerFrameRebuild();
+		TriggerRebuildTransforms();
 	}
 }
 
@@ -125,8 +143,7 @@ void	URPRCameraComponent::StartOrbitting(const FIntPoint &mousePos)
 	if (m_RprCamera != NULL)
 	{
 		// We are building, it will be called later
-		if (RebuildTransforms())
-			Scene->TriggerFrameRebuild();
+		TriggerRebuildTransforms();
 	}
 }
 
@@ -159,6 +176,7 @@ bool	URPRCameraComponent::Build()
 bool	URPRCameraComponent::RebuildTransforms()
 {
 	check(!IsInGameThread());
+
 	check(m_RprCamera != NULL);
 	check(Scene != NULL);
 
@@ -189,34 +207,10 @@ bool	URPRCameraComponent::RebuildTransforms()
 	return true;
 }
 
-void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
+void	URPRCameraComponent::UpdateOrbitCamera()
 {
-	SCOPE_CYCLE_COUNTER(STAT_ProRender_UpdateCameras);
-
-	Super::TickComponent(deltaTime, tickType, tickFunction);
-
-	if (!m_Built)
-		return;
-	if (!IsSrcComponentValid())
-		return; // We are about to get destroyed
-
 	check(m_Plugin != NULL);
-
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
-
-	if (!settings->bSync)
-		return;
-	// If we are not the main camera, don't rebuild
-	if (Scene->m_ActiveCamera != this)
-		return;
-	// Check all cached properties (might be a better way)
-	// There is PostEditChangeProperty but this is editor only
-	RefreshProperties(false);
-
-	if (!m_Orbit)
-		return;
-	const int32			zoom = m_Plugin->Zoom();
+	const int32	zoom = m_Plugin->Zoom();
 	if (zoom != 0)
 	{
 		static const float	kMinOrbitDist = 100.0f; // One meter
@@ -232,8 +226,8 @@ void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FA
 		if (distance < kMaxOrbitDist && distance > kMinOrbitDist)
 		{
 			m_OrbitLocation = newLocation;
-			if (RebuildTransforms())
-				Scene->TriggerFrameRebuild();
+
+			TriggerRebuildTransforms();
 		}
 	}
 	const FIntPoint	panningDelta = m_Plugin->PanningDelta();
@@ -249,8 +243,7 @@ void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FA
 		m_OrbitLocation += rightVector + upVector;
 		m_OrbitCenter += rightVector + upVector;
 
-		if (RebuildTransforms())
-			Scene->TriggerFrameRebuild();
+		TriggerRebuildTransforms();
 	}
 	const FIntPoint	orbitDelta = m_Plugin->OrbitDelta();
 	if (orbitDelta != FIntPoint::ZeroValue)
@@ -260,37 +253,36 @@ void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FA
 		m_OrbitLocation = m_OrbitLocation.RotateAngleAxis(orbitDelta.X, FVector(0.0f, 0.0f, 1.0f));
 		m_OrbitLocation += m_OrbitCenter;
 
-		if (RebuildTransforms())
-			Scene->TriggerFrameRebuild();
+		TriggerRebuildTransforms();
 	}
 }
 
-enum
+void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
 {
-	PROPERTY_REBUILD_PROJECTION_MODE	= 0x02,
-	PROPERTY_REBUILD_FOCAL_LENGTH		= 0x04,
-	PROPERTY_REBUILD_FOCUS_DISTANCE		= 0x08,
-	PROPERTY_REBUILD_APERTURE			= 0x10,
-	PROPERTY_REBUILD_SENSOR_SIZE		= 0x20,
-};
+	SCOPE_CYCLE_COUNTER(STAT_ProRender_UpdateCameras);
 
-#define	CAMERA_PROPERTY_REBUILD(flag, function, ... )												\
-	if (m_RebuildFlags & flag)																		\
-	{																								\
-		if (function(__VA_ARGS__) != RPR_SUCCESS)													\
-		{																							\
-			UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't rebuild RPR camera properties"));	\
-			m_RefreshLock.Unlock();																	\
-			return false;																			\
-		}																							\
-	}
+	Super::TickComponent(deltaTime, tickType, tickFunction);
 
-#define CAMERA_PROPERTY_CHECK(value, cachedValue, flag)			\
-	if (force || value != cachedValue)							\
-	{															\
-		cachedValue = value;									\
-		m_RebuildFlags |= flag;									\
-	}
+	if (!m_Built)
+		return;
+	if (!IsSrcComponentValid())
+		return; // We are about to get destroyed
+
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
+
+	if (!settings->bSync)
+		return;
+	// If we are not the main camera, don't rebuild
+	if (Scene->m_ActiveCamera != this)
+		return;
+	// Check all cached properties (might be a better way)
+	// There is PostEditChangeProperty but this is editor only
+	RefreshProperties(false);
+
+	if (m_Orbit)
+		UpdateOrbitCamera();
+}
 
 bool	URPRCameraComponent::RPRThread_Update()
 {
@@ -307,6 +299,7 @@ bool	URPRCameraComponent::RPRThread_Update()
 	CAMERA_PROPERTY_REBUILD(PROPERTY_REBUILD_FOCUS_DISTANCE, rprCameraSetFocusDistance, m_RprCamera, m_CachedFocusDistance * 0.01f);
 	CAMERA_PROPERTY_REBUILD(PROPERTY_REBUILD_APERTURE, rprCameraSetFStop, m_RprCamera, m_CachedAperture);
 	CAMERA_PROPERTY_REBUILD(PROPERTY_REBUILD_SENSOR_SIZE, rprCameraSetSensorSize, m_RprCamera, m_CachedSensorSize.X, m_CachedSensorSize.Y);
+	CAMERA_PROPERTY_REBUILD(PROPERTY_REBUILD_ACTIVE_CAMERA, rprSceneSetCamera, Scene->m_RprScene, m_RprCamera);
 
 	m_RefreshLock.Unlock();
 
