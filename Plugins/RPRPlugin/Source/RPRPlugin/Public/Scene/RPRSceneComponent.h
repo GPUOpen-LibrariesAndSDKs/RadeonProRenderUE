@@ -6,6 +6,11 @@
 #include "Components/SceneComponent.h"
 #include "RPRSceneComponent.generated.h"
 
+enum
+{
+	PROPERTY_REBUILD_TRANSFORMS = 0x01,
+};
+
 #define	RPR_PROPERTY_REBUILD(LogClass, ErrorMessage, flag, function, ... )		\
 	if (m_RebuildFlags & flag)													\
 	{																			\
@@ -21,7 +26,6 @@
 		cachedValue = value;									\
 		m_RebuildFlags |= flag;									\
 	}
-
 
 /**
 * Root of all RPR component, representation of an UE object

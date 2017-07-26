@@ -30,11 +30,6 @@ bool	URPRSceneComponent::IsSrcComponentValid() const
 		!SrcComponent->IsPendingKill();
 }
 
-enum
-{
-	PROPERTY_REBUILD_TRANSFORMS	= 0x01,
-};
-
 bool	URPRSceneComponent::RPRThread_Update()
 {
 	bool	rebuild = false;

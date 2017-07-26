@@ -55,6 +55,8 @@ void	URPRCameraComponent::SetOrbit(bool orbit)
 	m_Orbit = !m_Orbit;
 	m_Sync = !m_Orbit;
 
+	m_RefreshLock.Lock();
+
 	if (m_Orbit)
 	{
 		UWorld	*world = GetWorld();
@@ -89,12 +91,16 @@ void	URPRCameraComponent::SetOrbit(bool orbit)
 		// We are building, it will be called later
 		TriggerRebuildTransforms();
 	}
+
+	m_RefreshLock.Unlock();
 }
 
 void	URPRCameraComponent::StartOrbitting(const FIntPoint &mousePos)
 {
 	if (!m_Orbit)
 		return; // shouldn't be here
+
+	m_RefreshLock.Lock();
 
 	UWorld	*world = GetWorld();
 	check(world != NULL);
@@ -126,6 +132,7 @@ void	URPRCameraComponent::StartOrbitting(const FIntPoint &mousePos)
 		// We are building, it will be called later
 		TriggerRebuildTransforms();
 	}
+	m_RefreshLock.Unlock();
 }
 
 FString	URPRCameraComponent::GetCameraName() const
@@ -190,6 +197,8 @@ bool	URPRCameraComponent::RebuildTransforms()
 
 void	URPRCameraComponent::UpdateOrbitCamera()
 {
+	m_RefreshLock.Lock();
+
 	check(m_Plugin != NULL);
 	const int32	zoom = m_Plugin->Zoom();
 	if (zoom != 0)
@@ -236,6 +245,8 @@ void	URPRCameraComponent::UpdateOrbitCamera()
 
 		TriggerRebuildTransforms();
 	}
+
+	m_RefreshLock.Unlock();
 }
 
 void	URPRCameraComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
@@ -272,8 +283,10 @@ bool	URPRCameraComponent::RPRThread_Update()
 	if (m_RebuildFlags == 0)
 	{
 		m_RefreshLock.Lock();
-		return Super::RPRThread_Update();
+		return false;
 	}
+
+	const bool	rebuild = m_RebuildFlags != PROPERTY_REBUILD_TRANSFORMS;
 
 	RPR_PROPERTY_REBUILD(LogRPRCameraComponent, "Couldn't refresh camera mode", PROPERTY_REBUILD_PROJECTION_MODE, rprCameraSetMode, m_RprCamera, m_CachedProjectionMode == ECameraProjectionMode::Orthographic ? RPR_CAMERA_MODE_ORTHOGRAPHIC : RPR_CAMERA_MODE_PERSPECTIVE);
 	RPR_PROPERTY_REBUILD(LogRPRCameraComponent, "Couldn't refresh camera focal length", PROPERTY_REBUILD_FOCAL_LENGTH, rprCameraSetFocalLength, m_RprCamera, m_CachedFocalLength);
@@ -284,9 +297,7 @@ bool	URPRCameraComponent::RPRThread_Update()
 
 	m_RefreshLock.Unlock();
 
-	Super::RPRThread_Update();
-
-	return true;
+	return rebuild | Super::RPRThread_Update();
 }
 
 void	URPRCameraComponent::RefreshProperties(bool force)
