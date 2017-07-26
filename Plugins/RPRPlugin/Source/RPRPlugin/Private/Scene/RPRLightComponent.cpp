@@ -63,6 +63,7 @@ bool	URPRLightComponent::BuildIESLight(const UPointLightComponent *lightComponen
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create IES light"));
 		return false;
 	}
+	m_LightType = ERPRLightType::IES;
 	m_CachedIntensity = lightComponent->Intensity;
 	m_CachedLightColor = lightComponent->LightColor;
 	SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 90.0f, 0.0f)));
@@ -83,6 +84,7 @@ bool	URPRLightComponent::BuildPointLight(const UPointLightComponent *pointLightC
 	}
 	m_CachedIntensity = pointLightComponent->Intensity;
 	m_CachedLightColor = pointLightComponent->LightColor;
+	m_LightType = ERPRLightType::Point;
 	return true;
 }
 
@@ -103,6 +105,7 @@ bool	URPRLightComponent::BuildSpotLight(const USpotLightComponent *spotLightComp
 	m_CachedLightColor = spotLightComponent->LightColor;
 	m_CachedConeAngles = FVector2D(spotLightComponent->InnerConeAngle, spotLightComponent->OuterConeAngle);
 	SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(-90.0f, 90.0f, 0.0f)));
+	m_LightType = ERPRLightType::Spot;
 	return true;
 }
 
@@ -133,6 +136,7 @@ bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightCompone
 	m_CachedCubemap = skyLightComponent->Cubemap;
 	m_CachedIntensity = skyLightComponent->Intensity;
 	SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 0.0f, 90.0f)));
+	m_LightType = ERPRLightType::Environment;
 	return true;
 }
 
@@ -152,6 +156,7 @@ bool	URPRLightComponent::BuildDirectionalLight(const UDirectionalLightComponent 
 	m_CachedIntensity = dirLightComponent->Intensity;
 	m_CachedLightColor = dirLightComponent->LightColor;
 	SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(-90.0f, 90.0f, 0.0f)));
+	m_LightType = ERPRLightType::Directional;
 	return true;
 }
 
@@ -228,24 +233,18 @@ bool	URPRLightComponent::RebuildTransforms()
 
 	const FQuat	oldOrientation = SrcComponent->ComponentToWorld.GetRotation();
 
-	rpr_light_type	lightType = 0;
-	if (rprLightGetInfo(m_RprLight, RPR_LIGHT_TYPE, sizeof(rpr_light_type), &lightType, NULL) != RPR_SUCCESS)
+	switch (m_LightType)
 	{
-		UE_LOG(LogRPRLightComponent, Warning, TEXT("Invalid RPR Light type"));
-		return false;
-	}
-	switch (lightType)
-	{
-		case RPR_LIGHT_TYPE_POINT:
+		case ERPRLightType::Point:
 			break;
-		case RPR_LIGHT_TYPE_DIRECTIONAL:
-		case RPR_LIGHT_TYPE_SPOT:
+		case ERPRLightType::Directional:
+		case ERPRLightType::Spot:
 			SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(-90.0f, 90.0f, 0.0f)));
 			break;
-		case RPR_LIGHT_TYPE_ENVIRONMENT:
+		case ERPRLightType::Environment:
 			SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 0.0f, 90.0f)));
 			break;
-		case RPR_LIGHT_TYPE_IES:
+		case ERPRLightType::IES:
 			SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 90.0f, 0.0f)));
 			break;
 		default:
@@ -284,20 +283,13 @@ void	URPRLightComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 	// Check all cached properties (might be a better way)
 	// There is PostEditChangeProperty but this is editor only
 
-	rpr_light_type	lightType = 0;
-	if (rprLightGetInfo(m_RprLight, RPR_LIGHT_TYPE, sizeof(rpr_light_type), &lightType, NULL) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRLightComponent, Warning, TEXT("Invalid RPR Light type"));
-		return;
-	}
-
 	ULightComponentBase	*lightComponent = Cast<ULightComponentBase>(SrcComponent);
 	check(lightComponent != NULL);
 	const bool			colorChanged = lightComponent->Intensity != m_CachedIntensity || lightComponent->LightColor != m_CachedLightColor;
 	bool				triggerRefresh = false;
-	if (colorChanged && lightType != RPR_LIGHT_TYPE_ENVIRONMENT)
+	if (colorChanged && m_LightType != ERPRLightType::Environment)
 	{
-		if (lightType == RPR_LIGHT_TYPE_DIRECTIONAL)
+		if (m_LightType == ERPRLightType::Directional)
 		{
 			const float		intensity = lightComponent->Intensity;
 			FLinearColor	lightColor(lightComponent->LightColor);
@@ -315,7 +307,7 @@ void	URPRLightComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 			check(pointLightComponent != NULL);
 			const FLinearColor			lightColor = BuildRPRLightColor(pointLightComponent, pointLightComponent->bUseInverseSquaredFalloff);
 
-			if (lightType == RPR_LIGHT_TYPE_POINT)
+			if (m_LightType == ERPRLightType::Point)
 			{
 				if (rprPointLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B) != RPR_SUCCESS)
 				{
@@ -323,7 +315,7 @@ void	URPRLightComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 					return;
 				}
 			}
-			else if (lightType == RPR_LIGHT_TYPE_SPOT)
+			else if (m_LightType == ERPRLightType::Spot)
 			{
 				if (rprSpotLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B) != RPR_SUCCESS)
 				{
@@ -331,7 +323,7 @@ void	URPRLightComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 					return;
 				}
 			}
-			else if (ensure(lightType == RPR_LIGHT_TYPE_IES))
+			else if (ensure(m_LightType == ERPRLightType::IES))
 			{
 				if (rprIESLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B) != RPR_SUCCESS)
 				{
@@ -344,11 +336,11 @@ void	URPRLightComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 		m_CachedIntensity = lightComponent->Intensity;
 		m_CachedLightColor = lightComponent->LightColor;
 	}
-	switch (lightType)
+	switch (m_LightType)
 	{
-		case RPR_LIGHT_TYPE_POINT:
+		case ERPRLightType::Point:
 			break; // Nothing to refresh except color
-		case RPR_LIGHT_TYPE_DIRECTIONAL:
+		case ERPRLightType::Directional:
 		{
 			const UDirectionalLightComponent	*dirLightComponent = Cast<UDirectionalLightComponent>(SrcComponent);
 			check(dirLightComponent != NULL);
@@ -365,7 +357,7 @@ void	URPRLightComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 			}
 			break;
 		}
-		case RPR_LIGHT_TYPE_SPOT:
+		case ERPRLightType::Spot:
 		{
 			const USpotLightComponent	*spotLightComponent = Cast<USpotLightComponent>(SrcComponent);
 			check(spotLightComponent != NULL);
@@ -383,7 +375,7 @@ void	URPRLightComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 			}
 			break;
 		}
-		case RPR_LIGHT_TYPE_ENVIRONMENT:
+		case ERPRLightType::Environment:
 		{
 			const USkyLightComponent	*skyLightComponent = Cast<USkyLightComponent>(SrcComponent);
 			check(skyLightComponent != NULL);
@@ -434,7 +426,7 @@ void	URPRLightComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 			}
 			break;
 		}
-		case RPR_LIGHT_TYPE_IES:
+		case ERPRLightType::IES:
 			break; // TODO: Reload from IES file if it changed
 		default:
 			return;
