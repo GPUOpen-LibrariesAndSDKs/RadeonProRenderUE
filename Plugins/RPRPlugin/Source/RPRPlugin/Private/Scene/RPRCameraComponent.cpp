@@ -268,7 +268,7 @@ bool	URPRCameraComponent::RPRThread_Update()
 
 	if (m_RebuildFlags == 0)
 	{
-		m_RefreshLock.Lock();
+		m_RefreshLock.Unlock();
 		return false;
 	}
 

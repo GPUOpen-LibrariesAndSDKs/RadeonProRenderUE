@@ -1,7 +1,7 @@
 // RPR COPYRIGHT
 
-#include "RPRCameraComponent.h"
 #include "RPRViewportCameraComponent.h"
+#include "RPRCameraComponent.h"
 #include "RPRScene.h"
 
 #include "LevelEditorViewport.h"
@@ -295,6 +295,8 @@ bool	URPRViewportCameraComponent::RPRThread_Update()
 	RPR_PROPERTY_REBUILD(LogRPRCameraComponent, "Couldn't refresh viewport camera FStop", PROPERTY_REBUILD_APERTURE, rprCameraSetFStop, m_RprCamera, m_CachedAperture);
 	RPR_PROPERTY_REBUILD(LogRPRCameraComponent, "Couldn't refresh viewport camera Sensor size", PROPERTY_REBUILD_SENSOR_SIZE, rprCameraSetSensorSize, m_RprCamera, m_CachedSensorSize.X, m_CachedSensorSize.Y);
 	RPR_PROPERTY_REBUILD(LogRPRCameraComponent, "Couldn't set viewport camera as scene active camera", PROPERTY_REBUILD_ACTIVE_CAMERA, rprSceneSetCamera, Scene->m_RprScene, m_RprCamera);
+
+	m_RefreshLock.Unlock();
 
 	return rebuild | Super::RPRThread_Update();
 }
