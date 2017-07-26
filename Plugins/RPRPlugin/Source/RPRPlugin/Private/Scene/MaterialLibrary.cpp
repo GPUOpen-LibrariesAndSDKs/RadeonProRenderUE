@@ -331,8 +331,16 @@ namespace rpr
                 if (node.type == "UBER")
                 {
                     // Create the new uber material.
-                    rprx_material uberMaterial = reinterpret_cast<rprx_material>(handle);
+                    rprx_material uberMaterial = NULL;
                     rpr_int result = rprxCreateMaterial(uberMatContext, RPRX_MATERIAL_UBER, &uberMaterial);
+					if (result != RPR_SUCCESS) 
+					{
+						UE_LOG(LogMaterialLibrary, Error, TEXT("rprxCreateMaterial failed (%d)"), result);
+						return nullptr;
+					}
+					else {
+						handle = (void *)uberMaterial;
+					}
                 }
                 else
                 {
@@ -343,13 +351,14 @@ namespace rpr
                         UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialSystemCreateNode failed (%d) for type %s"), result, UTF8_TO_TCHAR(node.type.c_str()));
                         return nullptr;
                     }
-                }
+
+					// Set a custom name for the node.
+					if (handle)
+						rprObjectSetName(handle, node.name.c_str());
+				}
 
 			}
 
-			// Set a custom name for the node.
-            if (handle)
-			    rprObjectSetName(handle, node.name.c_str());
 
 			// Store in node map.
 			materialNodes.emplace(node.name, std::make_tuple(node.type, handle));
