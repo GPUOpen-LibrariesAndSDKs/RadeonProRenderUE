@@ -57,8 +57,8 @@ void	ARPRScene::FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames)
 	for (TObjectIterator<UCameraComponent> it; it; ++it)
 	{
 		if (it->GetWorld() != world ||
-			it->HasAnyFlags(RF_Transient | RF_BeginDestroyed) ||
-			!it->HasBeenCreated())
+			!it->HasBeenCreated() ||
+			it->IsPendingKill())
 			continue;
 		AActor	*parent = Cast<AActor>(it->GetOwner());
 		if (parent == NULL)
@@ -79,19 +79,21 @@ void	ARPRScene::SetActiveCamera(const FString &cameraName)
 	{
 		if (ViewportCameraComponent != NULL)
 			ViewportCameraComponent->SetAsActiveCamera();
-		return;
 	}
-
-	const uint32	cameraCount = Cameras.Num();
-	for (uint32 iCamera = 0; iCamera < cameraCount; ++iCamera)
+	else
 	{
-		check(Cameras[iCamera] != NULL);
-		if (Cameras[iCamera]->GetCameraName() == cameraName)
+		const uint32	cameraCount = Cameras.Num();
+		for (uint32 iCamera = 0; iCamera < cameraCount; ++iCamera)
 		{
-			Cameras[iCamera]->SetAsActiveCamera();
-			break;
+			check(Cameras[iCamera] != NULL);
+			if (Cameras[iCamera]->GetCameraName() == cameraName)
+			{
+				Cameras[iCamera]->SetAsActiveCamera();
+				break;
+			}
 		}
 	}
+	SetOrbit(m_Plugin->IsOrbitting());
 }
 
 void	ARPRScene::SetQualitySettings(ERPRQualitySettings qualitySettings)
@@ -192,7 +194,6 @@ uint32	ARPRScene::BuildScene()
 	for (TObjectIterator<USceneComponent> it; it; ++it)
 	{
 		if (it->GetWorld() != world ||
-			it->HasAnyFlags(RF_Transient | RF_BeginDestroyed) ||
 			it->IsPendingKill() ||
 			!it->HasBeenCreated())
 			continue;
@@ -220,19 +221,7 @@ bool	ARPRScene::ResizeRenderTarget()
 	const float	megapixels = settings->MegaPixelCount;
 	float		horizontalRatio = 0.0f;
 	if (m_ActiveCamera == ViewportCameraComponent)
-	{
-		if (GEditor->GetActiveViewport() == NULL ||
-			GEditor->GetActiveViewport()->GetClient() == NULL)
-			return false;
-		FLevelEditorViewportClient	*client = (FLevelEditorViewportClient*)GEditor->GetActiveViewport()->GetClient();
-		horizontalRatio = client->AspectRatio;
-		if (client->bLockedCameraView)
-		{
-			UCameraComponent	*cam = client->GetCameraComponentForView();
-			if (cam != NULL)
-				horizontalRatio = client->AspectRatio;
-		}
-	}
+		horizontalRatio = ViewportCameraComponent->GetAspectRatio();
 	else
 	{
 		const UCameraComponent	*camera = Cast<UCameraComponent>(m_ActiveCamera->SrcComponent);
@@ -268,7 +257,6 @@ void	ARPRScene::RefreshScene()
 	for (TObjectIterator<USceneComponent> it; it; ++it)
 	{
 		if (it->GetWorld() != world ||
-			it->HasAnyFlags(RF_Transient | RF_BeginDestroyed) ||
 			it->IsPendingKill() ||
 			!it->HasBeenCreated())
 			continue;
@@ -460,8 +448,8 @@ void	ARPRScene::Rebuild()
 	m_RendererWorker->EnsureCompletion();
 	m_RendererWorker = NULL; // TODO MAKE SURE TSharedPtr correctly deletes the renderer
 
-							 // Once the RPR thread is deleted, clean all scene resources
-	RemoveSceneContent(false);
+	// Once the RPR thread is deleted, clean all scene resources
+	RemoveSceneContent(false, false);
 
 	rprContextClearMemory(m_RprContext);
 	// NOTE: Right now, keeps mesh cache
@@ -641,7 +629,7 @@ void	ARPRScene::Tick(float deltaTime)
 	}
 }
 
-void	ARPRScene::RemoveSceneContent(bool clearScene)
+void	ARPRScene::RemoveSceneContent(bool clearScene, bool clearCache)
 {
 	check(!m_RendererWorker.IsValid()); // RPR Thread HAS to be destroyed
 	for (int32 iObject = 0; iObject < SceneContent.Num(); ++iObject)
@@ -667,8 +655,13 @@ void	ARPRScene::RemoveSceneContent(bool clearScene)
 	}
 	Cameras.Empty();
 
-	if (clearScene && m_RprScene != NULL)
-		rprSceneClear(m_RprScene);
+	if (m_RprScene != NULL)
+	{
+		if (clearCache)
+			URPRStaticMeshComponent::ClearCache(m_RprScene);
+		if (clearScene)
+			rprSceneClear(m_RprScene);
+	}
 }
 
 void	ARPRScene::BeginDestroy()
@@ -680,7 +673,7 @@ void	ARPRScene::BeginDestroy()
 		m_RendererWorker->EnsureCompletion();
 		m_RendererWorker = NULL; // TODO MAKE SURE TSharedPtr correctly deletes the renderer
 	}
-	RemoveSceneContent(true);
+	RemoveSceneContent(true, true);
 	if (m_RprScene != NULL)
 	{
 		rprObjectDelete(m_RprScene);

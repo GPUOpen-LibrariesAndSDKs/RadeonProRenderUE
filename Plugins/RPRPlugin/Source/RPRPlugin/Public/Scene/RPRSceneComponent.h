@@ -15,10 +15,9 @@ class URPRSceneComponent : public USceneComponent
 	GENERATED_BODY()
 public:
 	UPROPERTY(Transient)
-	class ARPRScene		*Scene;
-
-	UPROPERTY(Transient)
 	USceneComponent		*SrcComponent;
+
+	class ARPRScene		*Scene;
 public:
 	URPRSceneComponent();
 

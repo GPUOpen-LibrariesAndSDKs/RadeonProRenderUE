@@ -37,7 +37,7 @@ public:
 	const uint8		*GetFramebufferData()
 	{
 		m_PreviousRenderedIteration = m_CurrentIteration;
-		return m_DstFramebufferData.GetData();
+		return m_RenderData.GetData();
 	}
 public:
 	FCriticalSection	m_DataLock;
@@ -80,6 +80,7 @@ private:
 
 	TArray<float>				m_SrcFramebufferData;
 	TArray<uint8>				m_DstFramebufferData;
+	TArray<uint8>				m_RenderData;
 
 	bool						m_Resize;
 	bool						m_IsBuildingObjects;
@@ -87,5 +88,6 @@ private:
 	bool						m_PauseRender;
 	TArray<class ARPRActor*>	m_BuildQueue;
 	TArray<class ARPRActor*>	m_BuiltObjects;
+	TArray<class ARPRActor*>	m_DiscardObjects;
 	TArray<class ARPRActor*>	m_KillQueue;
 };

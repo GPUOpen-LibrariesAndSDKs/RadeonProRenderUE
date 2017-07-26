@@ -3,7 +3,8 @@
 #include "RPRSceneComponent.h"
 
 URPRSceneComponent::URPRSceneComponent()
-:	m_Built(false)
+:	Scene(NULL)
+,	m_Built(false)
 ,	m_Sync(true)
 ,	m_Plugin(NULL)
 {

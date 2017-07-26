@@ -161,6 +161,15 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 			}
 		}
 
+		// Just keep around objects that failed to build, but don't call their post build
+		const uint32	discardCount = m_DiscardObjects.Num();
+		for (uint32 iObject = 0; iObject < discardCount; ++iObject)
+		{
+			check(m_DiscardObjects[iObject] != NULL);
+
+			outBuiltObjects.Add(m_DiscardObjects[iObject]);
+		}
+		m_DiscardObjects.Empty();
 		m_BuiltObjects.Empty();
 		m_IsBuildingObjects = m_BuildQueue.Num() > 0;
 
@@ -232,7 +241,8 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 		return false;
 	}
 	if (m_SrcFramebufferData.Num() != totalByteCount / sizeof(float) ||
-		m_DstFramebufferData.Num() != totalByteCount)
+		m_DstFramebufferData.Num() != totalByteCount ||
+		m_RenderData.Num() != totalByteCount)
 	{
 		UE_LOG(LogRPRRenderer, Error, TEXT("Invalid framebuffer size"));
 		return false;
@@ -243,7 +253,6 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 		// No frame ready yet
 		return false;
 	}
-	m_DataLock.Lock();
 	uint8			*dstPixels = m_DstFramebufferData.GetData();
 	const float		*srcPixels = m_SrcFramebufferData.GetData();
 	const uint32	pixelCount = m_RprFrameBufferDesc.fb_width * m_RprFrameBufferDesc.fb_height;
@@ -256,6 +265,8 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 		*dstPixels++ = FMath::Clamp(*srcPixels++ * 255.0f, 0.0f, 255.0f);
 		*dstPixels++ = FMath::Clamp(*srcPixels++ * 255.0f, 0.0f, 255.0f);
 	}
+	m_DataLock.Lock();
+	FMemory::Memcpy(m_RenderData.GetData(), m_DstFramebufferData.GetData(), m_DstFramebufferData.Num());
 	m_DataLock.Unlock();
 	return true;
 }
@@ -275,8 +286,10 @@ void	FRPRRendererWorker::BuildQueuedObjects()
 
 		// Even if build fails, keep the component around to avoid having the async load
 		// adding each frame the previous components it failed to build before
-		component->Build();
-		m_BuiltObjects.Add(actor);
+		if (component->Build())
+			m_BuiltObjects.Add(actor);
+		else
+			m_DiscardObjects.Add(actor);
 	}
 	m_BuildQueue.Empty();
 }
@@ -305,6 +318,7 @@ void	FRPRRendererWorker::ResizeFramebuffer()
 
 	m_SrcFramebufferData.SetNum(m_Width * m_Height * 4);
 	m_DstFramebufferData.SetNum(m_Width * m_Height * 16);
+	m_RenderData.SetNum(m_DstFramebufferData.Num());
 
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
 	check(settings != NULL);
@@ -417,7 +431,7 @@ bool	FRPRRendererWorker::PreRenderLoop()
 		ClearFramebuffer();
 	UpdatePostEffectSettings();
 
-	const bool	isPaused = m_PauseRender || m_BuiltObjects.Num() > 0;
+	const bool	isPaused = m_PauseRender || m_BuiltObjects.Num() > 0 || m_DiscardObjects.Num() > 0;
 
 	m_PreRenderLock.Unlock();
 
@@ -571,6 +585,15 @@ void	FRPRRendererWorker::ReleaseResources()
 		m_BuiltObjects[iObject]->Destroy();
 	}
 	m_BuiltObjects.Empty();
+	const uint32	discardCount = m_DiscardObjects.Num();
+	for (uint32 iObject = 0; iObject < discardCount; ++iObject)
+	{
+		if (m_DiscardObjects[iObject] == NULL)
+			continue;
+		m_DiscardObjects[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+		m_DiscardObjects[iObject]->Destroy();
+	}
+	m_DiscardObjects.Empty();
 	DestroyPendingKills();
 
 	m_PreRenderLock.Unlock();

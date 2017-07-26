@@ -58,7 +58,7 @@ private:
 	virtual bool	ShouldTickIfViewportsOnly() const override { return true; }
 
 	bool	ResizeRenderTarget();
-	void	RemoveSceneContent(bool clearScene);
+	void	RemoveSceneContent(bool clearScene, bool clearCache);
 	bool	QueueBuildRPRActor(UWorld *world, USceneComponent *srcComponent, UClass *typeClass, bool checkIfContained);
 	void	RefreshScene();
 	uint32	BuildScene();

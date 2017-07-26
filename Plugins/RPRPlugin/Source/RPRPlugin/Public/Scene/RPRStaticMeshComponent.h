@@ -45,9 +45,10 @@ public:
 
 	virtual bool	Build() override;
 	virtual bool	RebuildTransforms() override;
+
+	static void		ClearCache(rpr_scene scene);
 private:
 	static TMap<UStaticMesh*, TArray<SRPRCachedMesh>>	Cache;
-	static void											CleanCache();
 	rpr_material_node CreateDefaultDummyShapeMaterial(uint32 iShape);
 	rpr_material_node CreateXMLShapeMaterial(uint32 iShape, class UMaterialInterface const * matInterface);
 

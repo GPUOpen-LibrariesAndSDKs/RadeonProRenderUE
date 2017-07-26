@@ -41,6 +41,7 @@ public:
 
 	FString								m_ActiveCameraName;
 	bool								m_RPRPaused;
+	bool								m_CleanViewport;
 
 	TSharedPtr<class FSceneViewport>	m_Viewport;
 private:
@@ -48,11 +49,13 @@ private:
 	void					CreateMenuBarExtension(class FMenuBarBuilder &menubarBuilder);
 	TSharedRef<SDockTab>	SpawnRPRViewportTab(const class FSpawnTabArgs&);
 
-	void					OnWorldCreated(UWorld *inWorld);
+	void					OnWorldInitialized(UWorld *inWorld, const UWorld::InitializationValues IVS);
 	void					OnWorldDestroyed(UWorld *inWorld);
 
 	void					OpenURL(const TCHAR *url);
 	void					OpenSettings();
+	void					CreateNewScene(UWorld *world);
+	void					Reset();
 private:
 	static FString			s_URLRadeonProRender;
 
