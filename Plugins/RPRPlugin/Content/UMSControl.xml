@@ -20,4 +20,17 @@
     <enable material="Searock1"/>
     <enable material="Rockmaster"/>
     <enable material="Dome_valencia"/>
+    <enable material="MasterAwning"/>
+    <enable material="Awning1"/>
+    <enable material="Awning2"/>
+    <enable material="Awning3"/>
+    <enable material="Awning4"/>
+    <enable material="plant"/>
+    <enable material="M_PalmTree"/>
+    <enable material="M_PalmTree_Inst_01"/>
+    <enable material="Asphalt"/>
+    <enable material="Asphalt_Inst"/>
+    <enable material="pipes"/>
+    <enable material="Trunk"/>
+    <enable material="PotTree"/>
 </umscontrol>
