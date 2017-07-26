@@ -241,7 +241,8 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 		return false;
 	}
 	if (m_SrcFramebufferData.Num() != totalByteCount / sizeof(float) ||
-		m_DstFramebufferData.Num() != totalByteCount)
+		m_DstFramebufferData.Num() != totalByteCount ||
+		m_RenderData.Num() != totalByteCount)
 	{
 		UE_LOG(LogRPRRenderer, Error, TEXT("Invalid framebuffer size"));
 		return false;
@@ -252,7 +253,6 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 		// No frame ready yet
 		return false;
 	}
-	m_DataLock.Lock();
 	uint8			*dstPixels = m_DstFramebufferData.GetData();
 	const float		*srcPixels = m_SrcFramebufferData.GetData();
 	const uint32	pixelCount = m_RprFrameBufferDesc.fb_width * m_RprFrameBufferDesc.fb_height;
@@ -265,6 +265,8 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 		*dstPixels++ = FMath::Clamp(*srcPixels++ * 255.0f, 0.0f, 255.0f);
 		*dstPixels++ = FMath::Clamp(*srcPixels++ * 255.0f, 0.0f, 255.0f);
 	}
+	m_DataLock.Lock();
+	FMemory::Memcpy(m_RenderData.GetData(), m_DstFramebufferData.GetData(), m_DstFramebufferData.Num());
 	m_DataLock.Unlock();
 	return true;
 }
@@ -316,6 +318,7 @@ void	FRPRRendererWorker::ResizeFramebuffer()
 
 	m_SrcFramebufferData.SetNum(m_Width * m_Height * 4);
 	m_DstFramebufferData.SetNum(m_Width * m_Height * 16);
+	m_RenderData.SetNum(m_DstFramebufferData.Num());
 
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
 	check(settings != NULL);
