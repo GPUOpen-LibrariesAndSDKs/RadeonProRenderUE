@@ -19,6 +19,7 @@
 #include "Materials/Material.h"
 #include "Materials/MaterialExpressionTextureSampleParameter2D.h"
 #include "Materials/MaterialExpressionStaticSwitch.h"
+#include "Materials/MaterialExpressionMakeMaterialAttributes.h"
 
 #define TRY_PLATFORM_DATA_FOR_IMAGES false
 
@@ -469,13 +470,13 @@ UE4InterchangeMaterialNode::New(UEInterchangeCollection & _collection,
 IMaterialNodePtr
 UE4InterchangePBRNode::New(UEInterchangeCollection & _collection,
 							std::string const & _id,
-							UE4InterchangeMaterialGraph * _mg)
+							FMaterialAttributesInput const & _ue4MatAttr)
 {
 	auto it = _collection.nodeStorage.find(_id);
 	if (it == _collection.nodeStorage.end())
 	{
 
-		auto node = IMaterialNodePtr(new UE4InterchangePBRNode(_collection, _id, _mg));
+		auto node = IMaterialNodePtr(new UE4InterchangePBRNode(_collection, _id, _ue4MatAttr));
 		_collection.nodeStorage[_id] = node;
 		return node;
 	} else
@@ -483,47 +484,60 @@ UE4InterchangePBRNode::New(UEInterchangeCollection & _collection,
 		return it->second;
 	}
 }
+IMaterialNodePtr
+UE4InterchangePBRNode::New(UEInterchangeCollection & _collection,
+	std::string const & _id,
+	UMaterial const * _ue4Mat)
+{
+	auto it = _collection.nodeStorage.find(_id);
+	if (it == _collection.nodeStorage.end())
+	{
 
+		auto node = IMaterialNodePtr(new UE4InterchangePBRNode(_collection, _id, _ue4Mat));
+		_collection.nodeStorage[_id] = node;
+		return node;
+	}
+	else
+	{
+		return it->second;
+	}
+}
 #define PBR_DEFAULT_BLACK FColor(0,0,0,255)
 #define PBR_DEFAULT_YELLOW FColor(255,255,0,255)
 
-#define HOOKUP_PBR_EXPRESSION_NO_CONSTANT(_name, _index) \
-if (ue4Mat->_name.Expression != nullptr) \
+#define HOOKUP_PBR_EXPRESSION_NO_CONSTANT(_base, _name, _index) \
+if (_base->_name.Expression != nullptr) \
 { \
 	auto mux = UE4InterchangeMaterialNode::New(_collection, \
-		(id + #_name + TCHAR_TO_ANSI(*ue4Mat->_name.Expression->GetName())).c_str(), \
-		ue4Mat->_name.Expression); \
+		(id + #_name + TCHAR_TO_ANSI(*_base->_name.Expression->GetName())).c_str(), \
+		_base->_name.Expression); \
 	muxes[_index] = mux; \
 }
 
-#define HOOKUP_PBR_EXPRESSION(_name, _index, _type, _default) \
-if ((ue4Mat->_name.UseConstant) || (ue4Mat->_name.Expression == nullptr)) \
+#define HOOKUP_PBR_EXPRESSION(_base, _name, _index, _type, _default) \
+if ((_base->_name.UseConstant) || (_base->_name.Expression == nullptr)) \
 { \
 	_type v = _default; \
-	if (ue4Mat->_name.UseConstant) { v = ue4Mat->_name.Constant; } \
+	if (_base->_name.UseConstant) { v = _base->_name.Constant; } \
 	auto val = UE4InterchangeMaterialValue::New(_collection, \
 		(id + #_name).c_str(), v); \
 	auto muxPtr = _collection.FindMux((id + #_name).c_str()); \
 	assert(muxPtr); \
 	muxes[_index] = muxPtr; \
 } \
-else HOOKUP_PBR_EXPRESSION_NO_CONSTANT(_name, _index)
-
-
+else HOOKUP_PBR_EXPRESSION_NO_CONSTANT(_base, _name, _index)
 
 UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collection, 
 												std::string const & _id,
-												UE4InterchangeMaterialGraph * _mg)
+												UMaterial const * _ue4Mat)
 {
-	const UMaterial* ue4Mat = _mg->ue4Mat;
-
 	id = _id;
 
-	HOOKUP_PBR_EXPRESSION(BaseColor, 0, FColor, PBR_DEFAULT_YELLOW);
-	HOOKUP_PBR_EXPRESSION(Roughness, 1, float, 0.5f);
-	HOOKUP_PBR_EXPRESSION(Metallic, 2, float, 0.5f);
-	HOOKUP_PBR_EXPRESSION(Specular, 3, float, 0.5f);
-	HOOKUP_PBR_EXPRESSION_NO_CONSTANT(Normal, 4);
+	HOOKUP_PBR_EXPRESSION(_ue4Mat, BaseColor, 0, FColor, PBR_DEFAULT_YELLOW);
+	HOOKUP_PBR_EXPRESSION(_ue4Mat, Roughness, 1, float, 0.5f);
+	HOOKUP_PBR_EXPRESSION(_ue4Mat, Metallic, 2, float, 0.5f);
+	HOOKUP_PBR_EXPRESSION(_ue4Mat, Specular, 3, float, 0.5f);
+	HOOKUP_PBR_EXPRESSION_NO_CONSTANT(_ue4Mat, Normal, 4);
 
 //	HOOKUP_PBR_EXPRESSION(EmissiveColor, 5, FColor, PBR_DEFAULT_BLACK);
 //	HOOKUP_PBR_EXPRESSION(Opacity, 6, float, 1.0f);
@@ -532,6 +546,32 @@ UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collect
 	// clear coat roughness
 		
 }
+UE4InterchangePBRNode::UE4InterchangePBRNode(UEInterchangeCollection & _collection,
+	std::string const & _id,
+	FMaterialAttributesInput const & _ue4MatAttr)
+{
+	id = _id;
+
+	FMaterialAttributesInput const * _ue4Mat = &_ue4MatAttr;
+	auto ma = static_cast<UMaterialExpressionMakeMaterialAttributes const*>(_ue4MatAttr.Expression);
+	if (ma != nullptr)
+	{
+		HOOKUP_PBR_EXPRESSION_NO_CONSTANT(ma, BaseColor, 0);
+		HOOKUP_PBR_EXPRESSION_NO_CONSTANT(ma, Roughness, 1);
+		HOOKUP_PBR_EXPRESSION_NO_CONSTANT(ma, Metallic, 2);
+		HOOKUP_PBR_EXPRESSION_NO_CONSTANT(ma, Specular, 3);
+		HOOKUP_PBR_EXPRESSION_NO_CONSTANT(ma, Normal, 4);
+	}
+
+	//	HOOKUP_PBR_EXPRESSION(EmissiveColor, 5, FColor, PBR_DEFAULT_BLACK);
+	//	HOOKUP_PBR_EXPRESSION(Opacity, 6, float, 1.0f);
+	// refraction
+	// clear coat here
+	// clear coat roughness
+
+}
+
+#undef HOOKUP_PBR_EXPRESSION_NO_CONSTANT
 #undef HOOKUP_PBR_EXPRESSION
 #undef PBR_DEFAULT_YELLOW
 #undef PBR_DEFAULT_BLACK
@@ -966,7 +1006,13 @@ UE4InterchangeMaterialGraph::UE4InterchangeMaterialGraph(
 	std::string name = TCHAR_TO_ANSI(*ue4Mat->GetName());
 
 	// Interchange treats the destination PBR object as a node
-	rootNode = UE4InterchangePBRNode::New(collection, name + "PBRMaterial", this);
+	if(ue4Mat->MaterialAttributes.Expression != NULL)
+	{
+		rootNode = UE4InterchangePBRNode::New(collection, name + "PBRMaterial", ue4Mat->MaterialAttributes);
+	}
+	{
+		rootNode = UE4InterchangePBRNode::New(collection, name + "PBRMaterial", ue4Mat);
+	}
 
 	for(auto && value : collection.valueStorage)
 	{

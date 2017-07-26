@@ -15,6 +15,7 @@
 #include "Materials/MaterialExpressionStaticSwitch.h"
 #include "Materials/MaterialExpressionStaticSwitchParameter.h"
 
+class UMaterialExpressionMakeMaterialAttributes;
 struct FColor;
 struct FLinearColor;
 class UMaterialExpression;
@@ -214,14 +215,19 @@ public:
 	char const* GetMetadata() const override;
 
 
-	static IMaterialNodePtr New(	UEInterchangeCollection & _collection,
-									std::string const & _id,
-									class UE4InterchangeMaterialGraph * _mg);
-
+	static IMaterialNodePtr New(UEInterchangeCollection & _collection,
+								std::string const & _id,
+								UMaterial const * _ue4Mat);
+	static IMaterialNodePtr New(UEInterchangeCollection & _collection,
+								std::string const & _id,
+								FMaterialAttributesInput const & _ue4MatAttr);
 private:
 	UE4InterchangePBRNode(	UEInterchangeCollection & _collection, 
 							std::string const & _id,
-							class UE4InterchangeMaterialGraph *);
+							UMaterial const * _ue4Mat);
+	UE4InterchangePBRNode(	UEInterchangeCollection & _collection,
+							std::string const & _id,
+							FMaterialAttributesInput const & _ue4MatAttr);
 	std::string id;
 	std::shared_ptr<rpri::generic::IMaterialNodeMux> muxes[10];
 };
