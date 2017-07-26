@@ -448,8 +448,8 @@ void	ARPRScene::Rebuild()
 	m_RendererWorker->EnsureCompletion();
 	m_RendererWorker = NULL; // TODO MAKE SURE TSharedPtr correctly deletes the renderer
 
-							 // Once the RPR thread is deleted, clean all scene resources
-	RemoveSceneContent(false);
+	// Once the RPR thread is deleted, clean all scene resources
+	RemoveSceneContent(false, false);
 
 	rprContextClearMemory(m_RprContext);
 	// NOTE: Right now, keeps mesh cache
@@ -629,7 +629,7 @@ void	ARPRScene::Tick(float deltaTime)
 	}
 }
 
-void	ARPRScene::RemoveSceneContent(bool clearScene)
+void	ARPRScene::RemoveSceneContent(bool clearScene, bool clearCache)
 {
 	check(!m_RendererWorker.IsValid()); // RPR Thread HAS to be destroyed
 	for (int32 iObject = 0; iObject < SceneContent.Num(); ++iObject)
@@ -655,8 +655,13 @@ void	ARPRScene::RemoveSceneContent(bool clearScene)
 	}
 	Cameras.Empty();
 
-	if (clearScene && m_RprScene != NULL)
-		rprSceneClear(m_RprScene);
+	if (m_RprScene != NULL)
+	{
+		if (clearCache)
+			URPRStaticMeshComponent::ClearCache(m_RprScene);
+		if (clearScene)
+			rprSceneClear(m_RprScene);
+	}
 }
 
 void	ARPRScene::BeginDestroy()
@@ -668,7 +673,7 @@ void	ARPRScene::BeginDestroy()
 		m_RendererWorker->EnsureCompletion();
 		m_RendererWorker = NULL; // TODO MAKE SURE TSharedPtr correctly deletes the renderer
 	}
-	RemoveSceneContent(true);
+	RemoveSceneContent(true, true);
 	if (m_RprScene != NULL)
 	{
 		rprObjectDelete(m_RprScene);

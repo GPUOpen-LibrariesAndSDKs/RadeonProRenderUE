@@ -5,6 +5,7 @@
 
 #include "Viewport/RPREditorStyle.h"
 #include "Viewport/SRPRViewportTabContent.h"
+#include "Slate/SceneViewport.h"
 
 #include "LevelEditor.h"
 #include "WorkspaceMenuStructure.h"
@@ -35,6 +36,7 @@ FRPRPluginModule::FRPRPluginModule()
 ,	m_PanningDelta(FIntPoint::ZeroValue)
 ,	m_Zoom(0)
 ,	m_OrbitEnabled(false)
+,	m_CleanViewport(false)
 ,	m_Loaded(false)
 {
 
@@ -135,6 +137,35 @@ void	FRPRPluginModule::CreateMenuBarExtension(FMenuBarBuilder &menubarBuilder)
 		FNewMenuDelegate::CreateRaw(this, &FRPRPluginModule::FillRPRMenu));
 }
 
+void	FRPRPluginModule::CreateNewScene(UWorld *world)
+{
+	if (world == NULL)
+		return;
+	FActorSpawnParameters	params;
+	params.ObjectFlags = RF_Public | RF_Transactional;
+
+	check(world->SpawnActor<ARPRScene>(ARPRScene::StaticClass(), params) != NULL);
+}
+
+void	FRPRPluginModule::Reset()
+{
+	// Reset properties
+	m_RPRPaused = true;
+	m_OrbitEnabled = false;
+	m_ObjectBeingBuilt = 0;
+	m_ObjectsToBuild = 0;
+	m_OrbitDelta = FIntPoint::ZeroValue;
+	m_PanningDelta = FIntPoint::ZeroValue;
+	m_Zoom = 0;
+
+	// Clean viewport
+	if (m_Viewport.IsValid())
+	{
+		m_CleanViewport = true;
+		m_Viewport->Draw();
+	}
+}
+
 void	FRPRPluginModule::OnWorldInitialized(UWorld *inWorld, const UWorld::InitializationValues IVS)
 {
 	if (inWorld == NULL)
@@ -142,6 +173,9 @@ void	FRPRPluginModule::OnWorldInitialized(UWorld *inWorld, const UWorld::Initial
 	if (inWorld == m_EditorWorld ||
 		inWorld == m_GameWorld)
 		return;
+	ARPRScene	*existingScene = GetCurrentScene();
+	UWorld		*world = m_GameWorld != NULL ? m_GameWorld : m_EditorWorld;
+
 	if (inWorld->WorldType == EWorldType::Game ||
 		inWorld->WorldType == EWorldType::PIE)
 	{
@@ -155,25 +189,43 @@ void	FRPRPluginModule::OnWorldInitialized(UWorld *inWorld, const UWorld::Initial
 	}
 	else
 		return;
-	// We should have at maximum two RPRScene
-	FActorSpawnParameters	params;
-	params.ObjectFlags = RF_Public | RF_Transactional;
 
-	check(inWorld->SpawnActor<ARPRScene>(ARPRScene::StaticClass(), params) != NULL);
+	if (existingScene != NULL)
+	{
+		// Delete the old one
+		check(world != NULL);
+		world->DestroyActor(existingScene);
+	}
+
+	Reset();
+
+	CreateNewScene(inWorld);
 }
 
 void	FRPRPluginModule::OnWorldDestroyed(UWorld *inWorld)
 {
 	if (inWorld == NULL)
 		return;
+
 	if (inWorld == m_GameWorld)
 		m_GameWorld = NULL;
 	else if (inWorld == m_EditorWorld)
 		m_EditorWorld = NULL;
 	else
 		return;
+
+	// Logic below can't have a game world with no editor world
+	check(m_GameWorld == NULL ||
+		  m_EditorWorld == NULL);
+
+	// Delete all scenes from the world being destroyed
 	for (TActorIterator<ARPRScene> it(inWorld); it; ++it)
 		inWorld->DestroyActor(*it);
+
+	Reset();
+
+	// Create a new one in the remaining one (if any)
+	CreateNewScene(m_GameWorld != NULL ? m_GameWorld : m_EditorWorld);
 }
 
 void	FRPRPluginModule::StartupModule()

@@ -34,6 +34,7 @@ void	SRPRViewportTabContent::OnRefreshCameraList()
 FReply	SRPRViewportTabContent::OnToggleRender()
 {
 	m_Plugin->m_RPRPaused = !m_Plugin->m_RPRPaused;
+	m_Plugin->m_CleanViewport = false;
 	ARPRScene	*scene = m_Plugin->GetCurrentScene();
 	if (scene != NULL)
 	{

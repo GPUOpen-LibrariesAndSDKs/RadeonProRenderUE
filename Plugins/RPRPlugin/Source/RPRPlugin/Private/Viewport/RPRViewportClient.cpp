@@ -36,6 +36,9 @@ void	FRPRViewportClient::Draw(FViewport *viewport, FCanvas *canvas)
 		return;
 	canvas->Clear(FLinearColor(0.0f, 0.0f, 0.0f, 0.0f));
 
+	if (m_Plugin->m_CleanViewport)
+		return;
+
 	UTexture2DDynamic	*renderTexture = m_Plugin->GetRenderTexture();
 	if (renderTexture == NULL)
 		return;

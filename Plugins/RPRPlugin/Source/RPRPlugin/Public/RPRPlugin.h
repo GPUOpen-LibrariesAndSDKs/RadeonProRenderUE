@@ -41,6 +41,7 @@ public:
 
 	FString								m_ActiveCameraName;
 	bool								m_RPRPaused;
+	bool								m_CleanViewport;
 
 	TSharedPtr<class FSceneViewport>	m_Viewport;
 private:
@@ -53,6 +54,8 @@ private:
 
 	void					OpenURL(const TCHAR *url);
 	void					OpenSettings();
+	void					CreateNewScene(UWorld *world);
+	void					Reset();
 private:
 	static FString			s_URLRadeonProRender;
 

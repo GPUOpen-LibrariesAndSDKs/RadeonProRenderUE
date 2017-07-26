@@ -68,11 +68,22 @@ TArray<SRPRCachedMesh>	URPRStaticMeshComponent::GetMeshInstances(UStaticMesh *me
 	return instances;
 }
 
-void	URPRStaticMeshComponent::CleanCache()
+void	URPRStaticMeshComponent::ClearCache(rpr_scene scene)
 {
-	// Obviously this is context dependent
-	// TODO : Put a safer cache system in place *or* ensure there can only be one context
-	// TODO: Everything needs to be removed from the scene and properly destroyed
+	check(scene != NULL);
+
+	for (auto it = Cache.CreateIterator(); it; ++it)
+	{
+		TArray<SRPRCachedMesh>	&shapes = it->Value;
+
+		const uint32 shapeCount = shapes.Num();
+		for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
+		{
+			check(shapes[iShape].m_RprShape != NULL);
+			rprSceneDetachShape(scene, shapes[iShape].m_RprShape);
+			rprObjectDelete(shapes[iShape].m_RprShape);
+		}
+	}
 	Cache.Empty();
 }
 #define RPR_UMS_INTEGRATION 1
