@@ -527,9 +527,11 @@ void	FRPRRendererWorker::AddPendingKill(ARPRActor *actor)
 	m_PreRenderLock.Unlock();
 }
 
-void	FRPRRendererWorker::SafeRelease_Immediate(ARPRActor *actor)
+void	FRPRRendererWorker::SafeRelease_Immediate(URPRSceneComponent *component)
 {
-	check(actor != NULL);
+	check(component != NULL);
+
+	ARPRActor	*actor = Cast<ARPRActor>(component->GetOwner());
 
 	// Hard lock
 	m_PreRenderLock.Lock();
@@ -540,10 +542,7 @@ void	FRPRRendererWorker::SafeRelease_Immediate(ARPRActor *actor)
 	m_BuiltObjects.Remove(actor);
 	m_DiscardObjects.Remove(actor);
 
-	URPRSceneComponent	*comp = Cast<URPRSceneComponent>(actor->GetRootComponent());
-	check(comp != NULL);
-
-	comp->ReleaseResources();
+	component->ReleaseResources();
 
 	m_DataLock.Unlock();
 	m_RenderLock.Unlock();

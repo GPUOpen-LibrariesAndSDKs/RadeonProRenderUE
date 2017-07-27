@@ -98,6 +98,6 @@ void	URPRSceneComponent::BeginDestroy()
 	{
 		// Object deleted before the scene has been destroyed
 		check(Scene != NULL);
-		Scene->ImmediateRelease(Cast<ARPRActor>(GetOwner()));
+		Scene->ImmediateRelease(this);
 	}
 }

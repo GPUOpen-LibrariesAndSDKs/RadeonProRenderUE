@@ -24,7 +24,7 @@ public:
 
 	void			SyncQueue(TArray<class ARPRActor*> &newBuildQueue, TArray<class ARPRActor*> &outBuiltObjects);
 	void			AddPendingKill(ARPRActor *toKill);
-	void			SafeRelease_Immediate(ARPRActor *toKill);
+	void			SafeRelease_Immediate(class URPRSceneComponent *toKill);
 
 	bool			IsBuildingObjects() const { return m_IsBuildingObjects; }
 	bool			ResizeFramebuffer(uint32 width, uint32 height);

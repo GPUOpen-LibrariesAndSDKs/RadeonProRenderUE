@@ -642,16 +642,16 @@ void	ARPRScene::Tick(float deltaTime)
 			const uint8*, textureData, textureData,
 			{
 				FUpdateTextureRegion2D	region;
-		region.SrcX = 0;
-		region.SrcY = 0;
-		region.DestX = 0;
-		region.DestY = 0;
-		region.Width = renderTexture->SizeX;
-		region.Height = renderTexture->SizeY;
+				region.SrcX = 0;
+				region.SrcY = 0;
+				region.DestX = 0;
+				region.DestY = 0;
+				region.Width = renderTexture->SizeX;
+				region.Height = renderTexture->SizeY;
 
-		const uint32	pitch = region.Width * sizeof(uint8) * 4;
-		FRHITexture2D	*resource = (FRHITexture2D*)renderTexture->Resource->TextureRHI.GetReference();
-		RHIUpdateTexture2D(resource, 0, region, pitch, textureData);
+				const uint32	pitch = region.Width * sizeof(uint8) * 4;
+				FRHITexture2D	*resource = (FRHITexture2D*)renderTexture->Resource->TextureRHI.GetReference();
+				RHIUpdateTexture2D(resource, 0, region, pitch, textureData);
 			});
 		FlushRenderingCommands();
 		m_RendererWorker->m_DataLock.Unlock();
@@ -705,32 +705,26 @@ void	ARPRScene::RemoveSceneContent(bool clearScene, bool clearCache)
 	}
 }
 
-void	ARPRScene::ImmediateRelease(ARPRActor *actor)
+void	ARPRScene::ImmediateRelease(URPRSceneComponent *component)
 {
-	check(actor != NULL);
-	check(actor->GetRootComponent() != NULL);
+	ARPRActor	*actor = Cast<ARPRActor>(component->GetOwner());
 
+	check(component != NULL);
 	if (BuildQueue.Contains(actor))
 	{
 		// Can be deleted now
 		BuildQueue.Remove(actor);
 
-		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(actor->GetRootComponent());
-		check(comp != NULL);
-
-		comp->ReleaseResources();
+		component->ReleaseResources();
 	}
 	else
 	{
 		SceneContent.Remove(actor);
 
-		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(actor->GetRootComponent());
-		check(comp != NULL);
-
 		if (m_RendererWorker.IsValid())
-			m_RendererWorker->SafeRelease_Immediate(actor);
+			m_RendererWorker->SafeRelease_Immediate(component);
 		else
-			comp->ReleaseResources();
+			component->ReleaseResources();
 
 		m_TriggerEndFrameRebuild = true;
 	}
