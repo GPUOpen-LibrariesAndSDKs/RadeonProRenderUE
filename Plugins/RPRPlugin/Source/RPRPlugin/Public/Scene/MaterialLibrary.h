@@ -48,7 +48,8 @@ namespace rpr
             std::string name; // Name of the RPR material.
             std::unordered_map<std::string, ParameterMapping> parameterMappings; // List of UE parameter to RPR parameter mappings keyed by UE material property name.
             std::unordered_map<std::string, std::string> constantParameters;
-        };
+			std::unordered_map<std::string, std::string> textureParameters;
+		};
 
         std::unordered_map<std::string, MaterialMapping> m_masterFileMappings;
         

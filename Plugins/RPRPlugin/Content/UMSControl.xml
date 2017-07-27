@@ -1,10 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <umscontrol>
     <matchall value="false"/>
- 
+    <enable material="FacadeBC"/>
+    <enable material="FacadeBC_Inst"/>
+  <disallowed>
+    <enable material="plant"/>
+    <enable material="plant_Inst"/>
+    <enable material="Curtainbackdrop" comment="Check out the subsurface color and emissive"/>
+    <enable material="Curtainbackdrop_Inst"/>
+    <enable material="Curtainbackdrop_Inst2"/>
+    <enable material="Curtainbackdrop_Inst4"/>
+    <enable material="nosubsurface"/>
+    <enable material="Curtainbackdrop_Inst3"/>
+    <enable material="salon2mat"/>
+    <enable material="hall1mat"/>
+    <enable material="Masterbalcony" value ="true" comment="enable this once UE4Desaturate is supported"/>
+    <enable material="blacony"/>
+    <enable material="object80"/>
+    <enable material="HP024"/>
+    <enable material="bars"/>
+    <enable material="ob81"/>
+    <enable material="object84"/>
 
-<disallowed>
-    <enable material="postandpots"/>
+    <enable material="postandpots" value="false"/>
     <enable material="Asphalt"/>
     <enable material="Asphalt_Inst" value="true"/>
     <enable material="rubber_dark_Inst"/>
@@ -33,7 +51,6 @@
     <enable material="Awning3" value="true"/>
     <enable material="Awning4"/>
 
-    <enable material="plant"/>
     <enable material="M_PalmTree" value="true"/>
     <enable material="M_PalmTree_Inst_01"/>
     <enable material="pipes"/>
@@ -42,14 +59,9 @@
     <enable material="FramesMat"/>
     <enable material="Building01_Mat"/>
     <enable material="Building01_Mat_Inst"/>
+    <enable material="office"/>
+    <enable material="Curtainbackdrop2withnormal" comment="Check out the subsurface color"/>
 
-    <enable material="Masterbalcony" value ="true" comment="enable this once UE4Desaturate is supported"/>
-    <enable material="blacony"/>
-    <enable material="object80"/>
-    <enable material="HP024"/>
-    <enable material="bars"/>
-    <enable material="ob81"/>
-    <enable material="object84"/>
 
     <enable material="white_plastic"/>
     <enable material="carpet_back"/>
@@ -58,6 +70,12 @@
     <enable material="black_leather"/>    
     <enable material="ebony_perfseats"/>
     <enable material="pannierstitch_na_black_na"/>
-    <enable material="smooth_ax_satinaluminum_ua2"/></disallowed>
+    <enable material="smooth_ax_satinaluminum_ua2"/>
+
+</disallowed>
+<disallowed>
+    <enable material="NewMaterial"/>
+    <enable material="NewMaterial_Inst"/>
+</disallowed>
 
 </umscontrol>

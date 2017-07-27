@@ -129,6 +129,8 @@ namespace rpr
                         mm.parameterMappings.emplace(childElem->Attribute("name"), std::move(pm));
                     else if (childElem->Attribute("constant"))
                         mm.constantParameters.emplace(std::string(childElem->Attribute("rprNode")) + ":" + std::string(childElem->Attribute("rprParameter")), childElem->Attribute("constant"));
+					if (childElem->Attribute("texture"))
+						mm.textureParameters.emplace(std::string(childElem->Attribute("rprNode")) + ":" + std::string(childElem->Attribute("rprParameter")), childElem->Attribute("texture"));
                             
                     // Move to next node.
                     childElem = childElem->NextSiblingElement();
@@ -262,6 +264,14 @@ namespace rpr
 			textureReplacements.emplace(std::string(TCHAR_TO_ANSI(*texture->GetName())), texture);
 		}
 
+		// It might be that the used textures are not in the parent but rather the instance
+		if (materialInstance) {
+			materialInstance->GetUsedTextures(textures, EMaterialQualityLevel::Num, true, ERHIFeatureLevel::Num, true);
+			for (auto& texture : textures)
+			{
+				textureReplacements.emplace(std::string(TCHAR_TO_ANSI(*texture->GetName())), texture);
+			}
+		}
 		// First create all rpr_material_node objects.
 		rpr_material_node rootMaterialNode = nullptr;
 		std::unordered_map<std::string, std::tuple<std::string, void*>> materialNodes; // NOTE: Also contains rpr_image handles.
@@ -272,6 +282,8 @@ namespace rpr
 			void* handle = nullptr;
 			if (node.type == "INPUT_TEXTURE")
 			{
+				// The texture name (tag in the INPUT_TEXTURE node) may have been overriden in the master material file
+
 				// Texture MUST be replaced by one from UE.
 				auto itr = textureReplacements.find(node.tag);
 				if (itr != textureReplacements.end())

@@ -1,15 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mappings>
     <material name="lampbody2" shader="lampbody2">
-        <parameter constant="0.8, 0.8, 0.8, 0" rprNode="UberMaterial #0" rprParameter="reflection.metalness" />       
+        <parameter constant="0.15, 0.15, 0.15, 0" rprNode="UberMaterial #0" rprParameter="reflection.metalness" />       
     </material>
     <material name="lampost" shader="MI_Glass">
         <parameter name="BaseMetallic" rprNode="someNodeName0" rprParameter="someParameterName0" />
     </material>
     <material name="smooth_ax_isofix_white" shader="master_material_diffuse">
-        <parameter constant="1,0,0,1" rprNode = "UberMaterial #0" rprParameter="diffuse.color"/>
+        <parameter constant="1,1,1,1" rprNode = "UberMaterial #0" rprParameter="diffuse.color"/>
     </material>
     <material name="shutters" shader="master_material_diffuse">
-        <parameter constant="0,1,0,1" rprNode = "UberMaterial #0" rprParameter="diffuse.color"/>
+        <parameter constant="0.49, 0.49, 0.49, 1" rprNode = "UberMaterial #0" rprParameter="diffuse.color"/>
     </material>
+  <material name="suitblack" shader="Master_material_textured">
+    <parameter name="suit" rprNode="diffuse_texture_input" rprParameter="Base_Colour_texture" />
+  </material>
+  <material name="tie" shader="Master_material_textured">
+  </material>
+  <material name="tie_2" shader="Master_material_textured">
+  </material>
+  <material name="tie_3" shader="Master_material_textured">
+  </material>
 </mappings>
