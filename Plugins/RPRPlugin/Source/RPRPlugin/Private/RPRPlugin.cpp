@@ -99,6 +99,13 @@ void	FRPRPluginModule::ToggleOrbit()
 
 TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &spawnArgs)
 {
+	if (ensure(GEngine != NULL))
+	{
+		GEngine->OnWorldAdded().RemoveAll(this);
+
+		// This one for level change
+		GEngine->OnWorldAdded().AddRaw(this, &FRPRPluginModule::OnWorldAdded);
+	}
 	// Create tab
 	TSharedRef<SDockTab> RPRViewportTab = SNew(SDockTab)
 		.TabRole(ETabRole::NomadTab)
@@ -166,7 +173,7 @@ void	FRPRPluginModule::Reset()
 	}
 }
 
-void	FRPRPluginModule::OnWorldInitialized(UWorld *inWorld, const UWorld::InitializationValues IVS)
+void	FRPRPluginModule::OnWorldAdded(UWorld *inWorld)
 {
 	if (inWorld == NULL)
 		return;
@@ -200,6 +207,11 @@ void	FRPRPluginModule::OnWorldInitialized(UWorld *inWorld, const UWorld::Initial
 	Reset();
 
 	CreateNewScene(inWorld);
+}
+
+void	FRPRPluginModule::OnWorldInitialized(UWorld *inWorld, const UWorld::InitializationValues IVS)
+{
+	OnWorldAdded(inWorld);
 }
 
 void	FRPRPluginModule::OnWorldDestroyed(UWorld *inWorld)
@@ -257,6 +269,7 @@ void	FRPRPluginModule::StartupModule()
 	m_Extender->AddMenuBarExtension(TEXT("Help"), EExtensionHook::After, NULL, FMenuBarExtensionDelegate::CreateRaw(this, &FRPRPluginModule::CreateMenuBarExtension));
 	levelEditorModule.GetMenuExtensibilityManager()->AddExtender(m_Extender);
 
+	// This one for PIE world creation
 	FWorldDelegates::OnPostWorldInitialization.AddRaw(this, &FRPRPluginModule::OnWorldInitialized);
 	FWorldDelegates::OnPreWorldFinishDestroy.AddRaw(this, &FRPRPluginModule::OnWorldDestroyed);
 
