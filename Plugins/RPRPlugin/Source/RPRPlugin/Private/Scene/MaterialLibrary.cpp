@@ -130,7 +130,7 @@ namespace rpr
                     else if (childElem->Attribute("constant"))
                         mm.constantParameters.emplace(std::string(childElem->Attribute("rprNode")) + ":" + std::string(childElem->Attribute("rprParameter")), childElem->Attribute("constant"));
 					if (childElem->Attribute("texture"))
-						mm.textureParameters.emplace(std::string(childElem->Attribute("rprNode")) + ":" + std::string(childElem->Attribute("rprParameter")), childElem->Attribute("texture"));
+						mm.textureParameters.emplace(std::string(childElem->Attribute("rprNode")), childElem->Attribute("texture"));
                             
                     // Move to next node.
                     childElem = childElem->NextSiblingElement();
@@ -283,9 +283,14 @@ namespace rpr
 			if (node.type == "INPUT_TEXTURE")
 			{
 				// The texture name (tag in the INPUT_TEXTURE node) may have been overriden in the master material file
-
+				auto texture_tag = node.tag;
+				auto texture_tag_itr = materialMapping.textureParameters.find(node.name);
+				if (texture_tag_itr != materialMapping.textureParameters.end()) {
+					texture_tag = texture_tag_itr->second;
+				}
+				// textureParameters
 				// Texture MUST be replaced by one from UE.
-				auto itr = textureReplacements.find(node.tag);
+				auto itr = textureReplacements.find(texture_tag);
 				if (itr != textureReplacements.end())
 				{
 					UTexture* texture = itr->second;
