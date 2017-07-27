@@ -18,8 +18,10 @@ public:
 
 	bool							RenderPaused() const { return m_RPRPaused; }
 	void							Rebuild();
+	void							Reset();
 
 	const FString					&ActiveCameraName() const { return m_ActiveCameraName; }
+	void							RefreshCameraList();
 
 	void							ToggleOrbit();
 	bool							IsOrbitting() const { return m_OrbitEnabled; }
@@ -43,19 +45,20 @@ public:
 	bool								m_RPRPaused;
 	bool								m_CleanViewport;
 
+	TArray<TSharedPtr<FString>>			m_AvailableCameraNames;
 	TSharedPtr<class FSceneViewport>	m_Viewport;
 private:
 	void					FillRPRMenu(class FMenuBuilder &menuBuilder);
 	void					CreateMenuBarExtension(class FMenuBarBuilder &menubarBuilder);
 	TSharedRef<SDockTab>	SpawnRPRViewportTab(const class FSpawnTabArgs&);
 
+	void					OnWorldAdded(UWorld *inWorld);
 	void					OnWorldInitialized(UWorld *inWorld, const UWorld::InitializationValues IVS);
 	void					OnWorldDestroyed(UWorld *inWorld);
 
 	void					OpenURL(const TCHAR *url);
 	void					OpenSettings();
 	void					CreateNewScene(UWorld *world);
-	void					Reset();
 private:
 	static FString			s_URLRadeonProRender;
 

@@ -10,7 +10,7 @@
 class FRPRRendererWorker : public FRunnable
 {
 public:
-	FRPRRendererWorker(rpr_context context, rpr_scene scene, uint32 width, uint32 height, uint32 numDevices);
+	FRPRRendererWorker(rpr_context context, rpr_scene rprScene, uint32 width, uint32 height, uint32 numDevices, class ARPRScene *scene);
 	virtual ~FRPRRendererWorker();
 
 	// Begin FRunnable interface.
@@ -24,6 +24,7 @@ public:
 
 	void			SyncQueue(TArray<class ARPRActor*> &newBuildQueue, TArray<class ARPRActor*> &outBuiltObjects);
 	void			AddPendingKill(ARPRActor *toKill);
+	void			SafeRelease_Immediate(class URPRSceneComponent *toKill);
 
 	bool			IsBuildingObjects() const { return m_IsBuildingObjects; }
 	bool			ResizeFramebuffer(uint32 width, uint32 height);
@@ -57,6 +58,7 @@ private:
 	FCriticalSection			m_PreRenderLock;
 
 	class FRPRPluginModule		*m_Plugin;
+	class ARPRScene				*m_Scene;
 
 	uint32						m_CurrentIteration;
 	uint32						m_PreviousRenderedIteration;
@@ -86,6 +88,11 @@ private:
 	bool						m_IsBuildingObjects;
 	bool						m_ClearFramebuffer;
 	bool						m_PauseRender;
+
+	bool						m_Trace;
+	bool						m_UpdateTrace;
+	FString						m_TracePath;
+
 	TArray<class ARPRActor*>	m_BuildQueue;
 	TArray<class ARPRActor*>	m_BuiltObjects;
 	TArray<class ARPRActor*>	m_DiscardObjects;

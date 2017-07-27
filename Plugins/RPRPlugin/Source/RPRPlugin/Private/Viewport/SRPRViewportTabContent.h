@@ -67,7 +67,6 @@ private:
 	TSharedPtr<class SViewport>				m_ViewportWidget;
 
 	TArray<TSharedPtr<FString>>				m_AvailableMegaPixel;
-	TArray<TSharedPtr<FString>>				m_AvailableCameraNames;
 	TArray<TSharedPtr<FString>>				m_QualitySettingsList;
 
 	class FRPRPluginModule					*m_Plugin;

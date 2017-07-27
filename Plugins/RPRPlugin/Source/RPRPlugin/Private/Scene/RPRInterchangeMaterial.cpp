@@ -1327,14 +1327,19 @@ bool UE4InterchangeImage::GetBulk2DAsUint8(uint8_t * _dest) const
 	{
 	case TSF_G8:
 		ByteToByteCopy<1>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
+		source.UnlockMip(0);
 		return true;
 	case TSF_BGRA8:
 		ByteToByteCopy<4, 2, 1, 0, 3>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
+		source.UnlockMip(0);
 		return true;
 	case TSF_RGBA8:
 		ByteToByteCopy<4>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
+		source.UnlockMip(0);
 		return true;
-	default:;
+	default:
+		source.UnlockMip(0);
+		break;
 	}
 
 	return false; // bulk can't handle it
@@ -1478,6 +1483,7 @@ float UE4InterchangeImage::GetComponent2DAsFloat(size_t _x, size_t _y, size_t _c
 			case PF_G16R16F_FILTER:
 			case PF_FloatRGB:
 			case PF_FloatRGBA:
+				mip.BulkData.Unlock();
 				break;
 
 			case PF_FloatR11G11B10:
@@ -1542,6 +1548,8 @@ float UE4InterchangeImage::GetComponent2DAsFloat(size_t _x, size_t _y, size_t _c
 		case 3: r = float(srcData[3]); break;
 		}
 		r = r / 255.0f;
+
+		source.UnlockMip(0);
 		return r;
 	}
 	case TSF_BGRE8:
@@ -1557,6 +1565,8 @@ float UE4InterchangeImage::GetComponent2DAsFloat(size_t _x, size_t _y, size_t _c
 		case 3: r = float(1); break;
 		}
 		r = r / 255.0f;
+
+		source.UnlockMip(0);
 		return r;
 	}
 	case TSF_RGBA8:
@@ -1571,6 +1581,8 @@ float UE4InterchangeImage::GetComponent2DAsFloat(size_t _x, size_t _y, size_t _c
 		case 3: r = float(srcData[3]); break;
 		}
 		r = r / 255.0f;
+
+		source.UnlockMip(0);
 		return r;
 	}
 	case TSF_RGBE8:
@@ -1586,6 +1598,8 @@ float UE4InterchangeImage::GetComponent2DAsFloat(size_t _x, size_t _y, size_t _c
 		case 3: r = float(1); break;
 		}
 		r = r / 255.0f;
+
+		source.UnlockMip(0);
 		return r;
 	}
 
@@ -1597,6 +1611,7 @@ float UE4InterchangeImage::GetComponent2DAsFloat(size_t _x, size_t _y, size_t _c
 	case TSF_MAX:
 	default: break;
 	}
+	source.UnlockMip(0);
 
 	// return green error texture (assuming RGB format)
 	if (_comp == 1 || _comp == 3)

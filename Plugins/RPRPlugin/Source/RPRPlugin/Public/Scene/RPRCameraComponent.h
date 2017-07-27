@@ -7,6 +7,16 @@
 #include "Scene/RPRSceneComponent.h"
 #include "RPRCameraComponent.generated.h"
 
+enum
+{
+	PROPERTY_REBUILD_PROJECTION_MODE	= 0x02,
+	PROPERTY_REBUILD_FOCAL_LENGTH		= 0x04,
+	PROPERTY_REBUILD_FOCUS_DISTANCE		= 0x08,
+	PROPERTY_REBUILD_APERTURE			= 0x10,
+	PROPERTY_REBUILD_SENSOR_SIZE		= 0x20,
+	PROPERTY_REBUILD_ACTIVE_CAMERA		= 0x40,
+};
+
 UCLASS(Transient)
 class URPRCameraComponent : public URPRSceneComponent
 {
@@ -22,9 +32,11 @@ private:
 	virtual bool	Build() override;
 	virtual bool	RebuildTransforms() override;
 	virtual void	TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
-	virtual void	BeginDestroy() override;
+	virtual bool	RPRThread_Update() override;
+	virtual void	ReleaseResources() override;
 
-	bool			RefreshProperties(bool force);
+	void			UpdateOrbitCamera();
+	void			RefreshProperties(bool force);
 private:
 	rpr_camera	m_RprCamera;
 

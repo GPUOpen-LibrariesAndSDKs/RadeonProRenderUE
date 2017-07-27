@@ -25,10 +25,7 @@ FText	SRPRViewportTabContent::GetImportStatus() const
 
 void	SRPRViewportTabContent::OnRefreshCameraList()
 {
-	m_AvailableCameraNames.Empty();
-	ARPRScene	*scene = m_Plugin->GetCurrentScene();
-	if (scene != NULL)
-		scene->FillCameraNames(m_AvailableCameraNames);
+	m_Plugin->RefreshCameraList();
 }
 
 FReply	SRPRViewportTabContent::OnToggleRender()
@@ -321,19 +318,18 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 
 	m_QualitySettingsList.Empty();
 	m_AvailableMegaPixel.Empty();
-	OnRefreshCameraList();
-	if (m_AvailableCameraNames.Num() > 0)
-		m_Plugin->m_ActiveCameraName = *m_AvailableCameraNames[0].Get();
+
 	m_QualitySettingsList.Add(MakeShared<FString>("Interactive"));
 	m_QualitySettingsList.Add(MakeShared<FString>("Low"));
 	m_QualitySettingsList.Add(MakeShared<FString>("Medium"));
 	m_QualitySettingsList.Add(MakeShared<FString>("High"));
+
 	m_AvailableMegaPixel.Add(MakeShared<FString>("0.25"));
 	m_AvailableMegaPixel.Add(MakeShared<FString>("0.5"));
 	m_AvailableMegaPixel.Add(MakeShared<FString>("1.0"));
 	m_AvailableMegaPixel.Add(MakeShared<FString>("2.0"));
-	m_AvailableMegaPixel.Add(MakeShared<FString>("4.0"));
-	m_AvailableMegaPixel.Add(MakeShared<FString>("8.0"));
+	//m_AvailableMegaPixel.Add(MakeShared<FString>("4.0"));
+	//m_AvailableMegaPixel.Add(MakeShared<FString>("8.0"));
 
 	ChildSlot
 	[
@@ -438,7 +434,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 			.Padding(2.0f)
 			[
 				SNew(SComboBox<TSharedPtr<FString>>)
-				.OptionsSource(&m_AvailableCameraNames)
+				.OptionsSource(&m_Plugin->m_AvailableCameraNames)
 				.OnComboBoxOpening(this, &SRPRViewportTabContent::OnRefreshCameraList)
 				.OnGenerateWidget(this, &SRPRViewportTabContent::OnGenerateCameraWidget)
 				.OnSelectionChanged(this, &SRPRViewportTabContent::OnCameraChanged)
