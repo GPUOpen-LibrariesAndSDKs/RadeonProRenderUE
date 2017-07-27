@@ -14,6 +14,6 @@
         <param name="color" type="float4" value="1, 1, 1, 0"/>
     </node>
     <node name="Map #176" type="FRESNEL">
-        <param name="ior" tag="ior_fresnel" type="float4" value="1.52, 1.52, 1.52, 0"/>
+        <param name="ior" tag="ior_fresnel" type="float4" value="1.32, 1.32, 1.32, 0"/>
     </node>
 </material>

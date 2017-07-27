@@ -4,7 +4,6 @@
     <enable material="FacadeBC"/>
     <enable material="FacadeBC_Inst"/>
 
-  <disallowed>
     <enable material="plant"/>
     <enable material="plant_Inst"/>
     <enable material="Curtainbackdrop" comment="Check out the subsurface color and emissive"/>
@@ -15,13 +14,20 @@
     <enable material="Curtainbackdrop_Inst3"/>
     <enable material="salon2mat"/>
     <enable material="hall1mat"/>
-    <enable material="Masterbalcony" value ="true" comment="enable this once UE4Desaturate is supported"/>
+    <enable material="Masterbalcony" value ="false" comment="enable this once UE4Desaturate is supported"/>
     <enable material="blacony"/>
     <enable material="object80"/>
     <enable material="HP024"/>
     <enable material="bars"/>
     <enable material="ob81"/>
     <enable material="object84"/>
+
+    <enable material="GrayLargePavingAMD"/>
+    <enable material="GrayLargePavingAMD_Inst1"/>
+  
+    <enable material="FramesMat"/>
+    
+  <disallowed>
 
     <enable material="postandpots" value="false"/>
     <enable material="Asphalt"/>
@@ -43,7 +49,7 @@
     <enable material="smooth_ax_blocker_na"/>
     <enable material="mustang_reverse_light"/>
     <enable material="glass_redrefract_na"/>
-    <enable material="Searock1"/>
+    <enable material="Searock1" value="false"  comment="turn back on when we have more memory"/>
     <enable material="Rockmaster"/>
     <enable material="Dome_valencia"/>
     <enable material="MasterAwning" value="true"/>
@@ -57,7 +63,6 @@
     <enable material="pipes"/>
     <enable material="Trunk"/>
     <enable material="PotTree"/>
-    <enable material="FramesMat"/>
     <enable material="Building01_Mat"/>
     <enable material="Building01_Mat_Inst"/>
     <enable material="office"/>
@@ -73,7 +78,7 @@
     <enable material="pannierstitch_na_black_na"/>
     <enable material="smooth_ax_satinaluminum_ua2"/>
 
-    
+
   </disallowed>
 <disallowed>
     <enable material="NewMaterial"/>
