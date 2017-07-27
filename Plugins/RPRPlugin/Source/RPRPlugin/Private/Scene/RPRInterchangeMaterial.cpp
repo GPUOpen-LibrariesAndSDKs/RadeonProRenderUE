@@ -3,23 +3,25 @@
 #include "RPRInterchangeMaterial.h"
 #include "Components/SceneComponent.h"
 #include "StaticMeshResources.h"
+#include "RPRCrackers.h"
+
+#include "Materials/Material.h"
 #include "Materials/MaterialExpressionConstant.h"
 #include "Materials/MaterialExpressionConstant2Vector.h"
 #include "Materials/MaterialExpressionConstant3Vector.h"
 #include "Materials/MaterialExpressionConstant4Vector.h"
-#include <set>
-#include "Materials/MaterialExpressionLinearInterpolate.h"
-#include <regex>
+#include "Materials/MaterialExpressionDesaturation.h"
 #include "Materials/MaterialExpressionVectorParameter.h"
 #include "Materials/MaterialExpressionTextureSample.h"
-#include "RPRCrackers.h"
-#include <sstream>
-#include <cassert>
 #include "Materials/MaterialExpressionScalarParameter.h"
-#include "Materials/Material.h"
 #include "Materials/MaterialExpressionTextureSampleParameter2D.h"
 #include "Materials/MaterialExpressionStaticSwitch.h"
 #include "Materials/MaterialExpressionMakeMaterialAttributes.h"
+
+#include <set>
+#include <regex>
+#include <sstream>
+#include <cassert>
 
 #define TRY_PLATFORM_DATA_FOR_IMAGES false
 
@@ -428,6 +430,19 @@ UE4InterchangeMaterialNode::UE4InterchangeMaterialNode(
 		type = "PassThrough";
 		ConvertFExpressionInput(_collection, &sel, name.c_str(), fname);
 	}
+/*	else if (_expression->IsA(UMaterialExpressionDesaturation::StaticClass()))
+	{
+		auto con = static_cast<UMaterialExpressionDesaturation*>(_expression);
+		ConvertFExpressionInput(_collection, &con->Input, "Input");
+		ConvertFExpressionInput(_collection, &con->Fraction, "Fraction");
+		std::string const valueName = (_id + "LuminanceFactors");
+		auto valuePtr = UE4InterchangeMaterialValue::New(_collection,
+										valueName.c_str(),
+										con->LuminanceFactors);
+		_collection.valueStorage[valueName.c_str()] = valuePtr;
+		muxes.emplace_back(_collection.FindMux(valuePtr->GetId()));
+		inputNames.emplace_back("LuminanceFactors");
+	}*/
 	else
 	{
 		// do the inputs 
@@ -1003,7 +1018,7 @@ UE4InterchangeMaterialGraph::UE4InterchangeMaterialGraph(
 	UEInterchangeCollection collection;
 	collection.ue4MatInterface = ue4MatInterface;
 
-	std::string name = TCHAR_TO_ANSI(*ue4Mat->GetName());
+	std::string name = TCHAR_TO_ANSI(*ue4MatInterface->GetName());
 
 	// Interchange treats the destination PBR object as a node
 	if(ue4Mat->MaterialAttributes.Expression != NULL)
@@ -1054,7 +1069,7 @@ UMaterial const* UE4InterchangeMaterialGraph::GetUE4Material() const
 
 char const* UE4InterchangeMaterialGraph::GetName() const
 {
-	name = TCHAR_TO_ANSI(*ue4Mat->GetName());
+	name = TCHAR_TO_ANSI(*ue4MatInterface->GetName());
 	return name.c_str();
 }
 
