@@ -308,9 +308,10 @@ void UE4InterchangeMaterialNode::ConvertTextureSampleExpression(
 {
 	if (con->Texture != nullptr)
 	{
-		std::string texName = TCHAR_TO_ANSI(*con->Texture->GetName());
+		UTexture* tex = con->Texture;
+		std::string texName = TCHAR_TO_ANSI(*tex->GetName());
 		std::string valName = _name + texName + "Texture";
-		ConvertTexture(_collection, valName, texName, con->Texture);
+		ConvertTexture(_collection, valName, texName, tex);
 	} else
 	{
 		// look up TextureObject?
@@ -404,12 +405,8 @@ UE4InterchangeMaterialNode::UE4InterchangeMaterialNode(
 
 	// some classes don't expose inputs via the generic methods 
 	// so handle each one we care about with custom handler
-	if (_expression->IsA(UMaterialExpressionTextureSample::StaticClass()))
-	{	
-		auto con = static_cast<UMaterialExpressionTextureSample*>(_expression);
-		ConvertTextureSampleExpression(_collection, name.c_str(), con);
-	} 
-	else if (_expression->IsA(UMaterialExpressionTextureSampleParameter2D::StaticClass()))
+	// switch go first!
+	if (_expression->IsA(UMaterialExpressionTextureSampleParameter2D::StaticClass()))
 	{
 		auto con = static_cast<UMaterialExpressionTextureSampleParameter2D*>(_expression);
 		ConvertTextureSampleExpression(_collection, name.c_str(), con);
@@ -422,15 +419,21 @@ UE4InterchangeMaterialNode::UE4InterchangeMaterialNode(
 		type = "PassThrough";
 		ConvertFExpressionInput(_collection, &sel, name.c_str(), fname);
 	}
+
 	else if (_expression->IsA(UMaterialExpressionStaticSwitchParameter::StaticClass()))
 	{
 		auto con = static_cast<UMaterialExpressionStaticSwitchParameter*>(_expression);
 		auto sel = ConvertStaticSwitchParameterExpression(_collection, name.c_str(), con);
-		auto fname = FName(sel.ExpressionName);
+		auto fname = FName("color");
 		type = "PassThrough";
 		ConvertFExpressionInput(_collection, &sel, name.c_str(), fname);
 	}
-/*	else if (_expression->IsA(UMaterialExpressionDesaturation::StaticClass()))
+	else if (_expression->IsA(UMaterialExpressionTextureSample::StaticClass()))
+	{
+		auto con = static_cast<UMaterialExpressionTextureSample*>(_expression);
+		ConvertTextureSampleExpression(_collection, name.c_str(), con);
+	}
+	/*	else if (_expression->IsA(UMaterialExpressionDesaturation::StaticClass()))
 	{
 		auto con = static_cast<UMaterialExpressionDesaturation*>(_expression);
 		ConvertFExpressionInput(_collection, &con->Input, "Input");
