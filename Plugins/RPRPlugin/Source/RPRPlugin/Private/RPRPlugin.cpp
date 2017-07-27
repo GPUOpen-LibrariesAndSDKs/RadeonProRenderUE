@@ -102,20 +102,22 @@ void	FRPRPluginModule::RefreshCameraList()
 	m_AvailableCameraNames.Empty();
 	ARPRScene	*scene = GetCurrentScene();
 	if (scene != NULL)
+	{
 		scene->FillCameraNames(m_AvailableCameraNames);
 
-	check(m_AvailableCameraNames.Num() > 0);
-	if (m_ActiveCameraName.IsEmpty())
-		m_ActiveCameraName = *m_AvailableCameraNames[0].Get();
-	else
-	{
-		const uint32	camCount = m_AvailableCameraNames.Num();
-		for (uint32 iCam = 0; iCam < camCount; ++iCam)
+		check(m_AvailableCameraNames.Num() > 0);
+		if (m_ActiveCameraName.IsEmpty())
+			m_ActiveCameraName = *m_AvailableCameraNames[0].Get();
+		else
 		{
-			if (*m_AvailableCameraNames[iCam].Get() == m_ActiveCameraName)
-				return;
+			const uint32	camCount = m_AvailableCameraNames.Num();
+			for (uint32 iCam = 0; iCam < camCount; ++iCam)
+			{
+				if (*m_AvailableCameraNames[iCam].Get() == m_ActiveCameraName)
+					return;
+			}
+			m_ActiveCameraName = *m_AvailableCameraNames[0].Get();
 		}
-		m_ActiveCameraName = *m_AvailableCameraNames[0].Get();
 	}
 }
 
