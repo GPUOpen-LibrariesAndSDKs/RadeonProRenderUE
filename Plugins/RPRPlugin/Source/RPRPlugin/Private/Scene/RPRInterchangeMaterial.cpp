@@ -22,6 +22,7 @@
 #include <regex>
 #include <sstream>
 #include <cassert>
+#include "Materials/MaterialExpressionTextureCoordinate.h"
 
 #define TRY_PLATFORM_DATA_FOR_IMAGES false
 
@@ -433,7 +434,15 @@ UE4InterchangeMaterialNode::UE4InterchangeMaterialNode(
 		auto con = static_cast<UMaterialExpressionTextureSample*>(_expression);
 		ConvertTextureSampleExpression(_collection, name.c_str(), con);
 	}
-	/*	else if (_expression->IsA(UMaterialExpressionDesaturation::StaticClass()))
+/*	TODO pick up UV tilling and mirror setting
+ 	else if (_expression->IsA(UMaterialExpressionTextureCoordinate::StaticClass()))
+	{
+		auto con = static_cast<UMaterialExpressionTextureCoordinate*>(_expression);
+		ConvertTextureSampleExpression(_collection, name.c_str(), con);
+	}
+	*/
+/* TODO need UE4 MinimalAPI support for UMaterialExpressionDesaturation
+	else if (_expression->IsA(UMaterialExpressionDesaturation::StaticClass()))
 	{
 		auto con = static_cast<UMaterialExpressionDesaturation*>(_expression);
 		ConvertFExpressionInput(_collection, &con->Input, "Input");
