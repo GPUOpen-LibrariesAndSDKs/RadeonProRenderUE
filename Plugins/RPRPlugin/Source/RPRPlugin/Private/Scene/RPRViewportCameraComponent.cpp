@@ -105,7 +105,6 @@ void	URPRViewportCameraComponent::StartOrbitting(const FIntPoint &mousePos)
 	static const float	kTraceDist = 10000000.0f;
 	FHitResult	hit;
 	const FVector	camDirection = (m_OrbitCenter - m_OrbitLocation).GetSafeNormal();
-	check(camDirection != FVector::ZeroVector);
 	m_OrbitCenter = FVector::ZeroVector;
 	if (world->LineTraceSingleByChannel(hit, m_OrbitLocation, camDirection * kTraceDist, ECC_Visibility) &&
 		hit.bBlockingHit)

@@ -18,6 +18,7 @@ public:
 
 	bool							RenderPaused() const { return m_RPRPaused; }
 	void							Rebuild();
+	void							Reset();
 
 	const FString					&ActiveCameraName() const { return m_ActiveCameraName; }
 	void							RefreshCameraList();
@@ -58,7 +59,6 @@ private:
 	void					OpenURL(const TCHAR *url);
 	void					OpenSettings();
 	void					CreateNewScene(UWorld *world);
-	void					Reset();
 private:
 	static FString			s_URLRadeonProRender;
 

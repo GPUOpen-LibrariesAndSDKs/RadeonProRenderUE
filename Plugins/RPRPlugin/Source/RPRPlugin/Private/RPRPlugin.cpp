@@ -119,6 +119,15 @@ void	FRPRPluginModule::RefreshCameraList()
 	}
 }
 
+void	OnCloseViewport(TSharedRef<SDockTab> closedTab)
+{
+	FRPRPluginModule	&plugin = FRPRPluginModule::Get();
+
+	// Clean
+	plugin.Reset();
+	plugin.Rebuild();
+}
+
 TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &spawnArgs)
 {
 	if (ensure(GEngine != NULL))
@@ -134,6 +143,7 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 	// Create tab
 	TSharedRef<SDockTab> RPRViewportTab = SNew(SDockTab)
 		.TabRole(ETabRole::NomadTab)
+		.OnTabClosed(SDockTab::FOnTabClosedCallback::CreateStatic(&OnCloseViewport))
 	[
 		SNew(SRPRViewportTabContent)
 	];
