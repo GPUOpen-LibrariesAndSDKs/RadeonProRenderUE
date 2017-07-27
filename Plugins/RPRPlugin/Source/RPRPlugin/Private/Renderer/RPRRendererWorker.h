@@ -88,6 +88,11 @@ private:
 	bool						m_IsBuildingObjects;
 	bool						m_ClearFramebuffer;
 	bool						m_PauseRender;
+
+	bool						m_Trace;
+	bool						m_UpdateTrace;
+	FString						m_TracePath;
+
 	TArray<class ARPRActor*>	m_BuildQueue;
 	TArray<class ARPRActor*>	m_BuiltObjects;
 	TArray<class ARPRActor*>	m_DiscardObjects;

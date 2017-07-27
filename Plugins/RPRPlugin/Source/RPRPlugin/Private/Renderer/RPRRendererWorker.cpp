@@ -39,6 +39,9 @@ FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene rprScene, 
 ,	m_IsBuildingObjects(false)
 ,	m_ClearFramebuffer(false)
 ,	m_PauseRender(true)
+,	m_Trace(false)
+,	m_TracePath("")
+,	m_UpdateTrace(false)
 {
 	m_Plugin = &FRPRPluginModule::Get();
 	m_Thread = FRunnableThread::Create(this, TEXT("FRPRRendererWorker"));
@@ -54,20 +57,11 @@ FRPRRendererWorker::~FRPRRendererWorker()
 
 void	FRPRRendererWorker::SetTrace(bool trace, const FString &tracePath)
 {
-	if (rprContextSetParameterString(NULL, "tracingfolder", TCHAR_TO_ANSI(*tracePath)) != RPR_SUCCESS ||
-		rprContextSetParameter1u(NULL, "tracing", trace) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRRenderer, Warning, TEXT("Couldn't enable RPR trace."));
-		return;
-	}
-	if (trace)
-	{
-		UE_LOG(LogRPRRenderer, Log, TEXT("RPR Tracing enabled"));
-	}
-	else
-	{
-		UE_LOG(LogRPRRenderer, Log, TEXT("RPR Tracing disabled"));
-	}
+	m_PreRenderLock.Lock();
+	m_Trace = trace;
+	m_TracePath = tracePath;
+	m_UpdateTrace = true;
+	m_PreRenderLock.Unlock();
 }
 
 void	FRPRRendererWorker::SaveToFile(const FString &filename)
@@ -439,6 +433,26 @@ bool	FRPRRendererWorker::PreRenderLoop()
 
 	m_PreRenderLock.Lock();
 
+	if (m_UpdateTrace)
+	{
+		if (rprContextSetParameterString(NULL, "tracingfolder", TCHAR_TO_ANSI(*m_TracePath)) != RPR_SUCCESS ||
+			rprContextSetParameter1u(NULL, "tracing", m_Trace) != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRRenderer, Warning, TEXT("Couldn't enable RPR trace."));
+		}
+		else
+		{
+			if (m_Trace)
+			{
+				UE_LOG(LogRPRRenderer, Log, TEXT("RPR Tracing enabled"));
+			}
+			else
+			{
+				UE_LOG(LogRPRRenderer, Log, TEXT("RPR Tracing disabled"));
+			}
+		}
+		m_UpdateTrace = false;
+	}
 	if (m_IsBuildingObjects)
 		BuildQueuedObjects();
 	if (m_KillQueue.Num() > 0)
