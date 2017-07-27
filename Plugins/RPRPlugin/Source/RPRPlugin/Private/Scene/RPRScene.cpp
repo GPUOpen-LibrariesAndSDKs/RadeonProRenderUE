@@ -82,10 +82,13 @@ void	ARPRScene::SetActiveCamera(const FString &cameraName)
 	}
 	else
 	{
-		const uint32	cameraCount = Cameras.Num();
-		for (uint32 iCamera = 0; iCamera < cameraCount; ++iCamera)
+		for (int32 iCamera = 0; iCamera < Cameras.Num(); ++iCamera)
 		{
-			check(Cameras[iCamera] != NULL);
+			if (Cameras[iCamera] == NULL)
+			{
+				Cameras.RemoveAt(iCamera--);
+				continue;
+			}
 			if (Cameras[iCamera]->GetCameraName() == cameraName)
 			{
 				Cameras[iCamera]->SetAsActiveCamera();
@@ -114,12 +117,13 @@ bool	ARPRScene::QueueBuildRPRActor(UWorld *world, USceneComponent *srcComponent,
 {
 	if (checkIfContained)
 	{
-		// TODO: Profile this
-		const uint32	objectCount = SceneContent.Num();
-		for (uint32 iObject = 0; iObject < objectCount; ++iObject)
+		for (int32 iObject = 0; iObject < SceneContent.Num(); ++iObject)
 		{
-			if (!ensure(SceneContent[iObject] != NULL))
+			if (SceneContent[iObject] == NULL)
+			{
+				SceneContent.RemoveAt(iObject--);
 				continue;
+			}
 			if (SceneContent[iObject]->SrcComponent == srcComponent)
 				return false;
 		}
@@ -349,11 +353,13 @@ uint32	ARPRScene::GetContextCreationFlags(const FString &dllPath)
 bool	ARPRScene::RPRThread_Rebuild()
 {
 	bool			restartRender = false;
-	const uint32	objectCount = SceneContent.Num();
-	for (uint32 iObject = 0; iObject < objectCount; ++iObject)
+	for (int32 iObject = 0; iObject < SceneContent.Num(); ++iObject)
 	{
 		if (SceneContent[iObject] == NULL)
+		{
+			SceneContent.RemoveAt(iObject--);
 			continue;
+		}
 		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(SceneContent[iObject]->GetRootComponent());
 		check(comp != NULL);
 
@@ -725,6 +731,8 @@ void	ARPRScene::ImmediateRelease(ARPRActor *actor)
 			m_RendererWorker->SafeRelease_Immediate(actor);
 		else
 			comp->ReleaseResources();
+
+		m_TriggerEndFrameRebuild = true;
 	}
 }
 

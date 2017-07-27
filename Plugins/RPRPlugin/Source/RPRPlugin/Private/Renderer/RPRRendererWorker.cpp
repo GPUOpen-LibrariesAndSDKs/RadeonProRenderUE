@@ -149,10 +149,13 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 		// PostBuild
 
 		// This is safe: RPR thread doesn't render if there are pending built objects
-		const uint32	builtCount = m_BuiltObjects.Num();
-		for (uint32 iObject = 0; iObject < builtCount; ++iObject)
+		for (int32 iObject = 0; iObject < m_BuiltObjects.Num(); ++iObject)
 		{
-			check(m_BuiltObjects[iObject] != NULL);
+			if (m_BuiltObjects[iObject] == NULL)
+			{
+				m_BuiltObjects.RemoveAt(iObject--);
+				continue;
+			}
 			URPRSceneComponent	*comp = Cast<URPRSceneComponent>(m_BuiltObjects[iObject]->GetRootComponent());
 			check(comp != NULL);
 			if (comp->PostBuild())
@@ -172,7 +175,8 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 		const uint32	discardCount = m_DiscardObjects.Num();
 		for (uint32 iObject = 0; iObject < discardCount; ++iObject)
 		{
-			check(m_DiscardObjects[iObject] != NULL);
+			if (m_DiscardObjects[iObject] == NULL)
+				continue;
 
 			outBuiltObjects.Add(m_DiscardObjects[iObject]);
 		}
@@ -286,7 +290,8 @@ void	FRPRRendererWorker::BuildQueuedObjects()
 		m_Plugin->NotifyObjectBuilt();
 
 		ARPRActor	*actor = m_BuildQueue[iObject];
-		check(actor != NULL);
+		if (actor == NULL)
+			continue;
 
 		URPRSceneComponent	*component = Cast<URPRSceneComponent>(actor->GetRootComponent());
 		check(component != NULL);
@@ -414,7 +419,8 @@ void	FRPRRendererWorker::DestroyPendingKills()
 	const uint32	objectCount = m_KillQueue.Num();
 	for (uint32 iObject = 0; iObject < objectCount; ++iObject)
 	{
-		check(m_KillQueue[iObject] != NULL);
+		if (m_KillQueue[iObject] == NULL)
+			continue;
 
 		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(m_KillQueue[iObject]->GetRootComponent());
 		check(comp != NULL);
