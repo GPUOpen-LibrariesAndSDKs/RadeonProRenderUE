@@ -4,6 +4,7 @@
     <enable material="FacadeBC"/>
     <enable material="FacadeBC_Inst"/>
 	<enable material="M_OceanWater_Simple"/>
+	<enable material="M_Sky_Simple"/>
 
   <disallowed>
     <enable material="plant"/>
