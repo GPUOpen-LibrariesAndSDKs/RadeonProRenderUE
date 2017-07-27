@@ -3,6 +3,7 @@
     <matchall value="false"/>
     <enable material="FacadeBC"/>
     <enable material="FacadeBC_Inst"/>
+	<enable material="M_OceanWater_Simple"/>
 
   <disallowed>
     <enable material="plant"/>
