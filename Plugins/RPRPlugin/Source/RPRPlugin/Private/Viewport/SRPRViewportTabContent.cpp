@@ -482,7 +482,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 				SNew(SButton)
 				.ButtonStyle(FEditorStyle::Get(), "FlatButton")
 				.Text(LOCTEXT("DisplayPostEffectPropsLabel", "Toggle post effect properties display"))
-				.ToolTipText(LOCTEXT("SyncTooltip", "Toggles post effect properties display."))
+				.ToolTipText(LOCTEXT("TogglePostEffectsTooltip", "Toggles post effect properties display."))
 				.OnClicked(this, &SRPRViewportTabContent::OnToggleDisplayPostEffectProperties)
 				.Content()
 				[

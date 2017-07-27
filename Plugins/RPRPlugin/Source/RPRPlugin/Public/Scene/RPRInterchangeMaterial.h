@@ -287,13 +287,14 @@ public:
 	size_t GetRawSizeInBytes() const override;
 
 	uint8_t const * GetRawByteData() const override;
+	float const * GetRawFloatData() const override;
 	std::string GetOriginalPath() const override;
 
 	float GetComponent2DAsFloat(size_t _x, size_t _y, size_t _comp) const override;
 	uint8_t GetComponent2DAsUint8(size_t _x, size_t _y, size_t _comp) const override;
 
 	bool GetBulk2DAsFloats(float * _dest) const override;
-	bool GetBulk2DAsUint8(uint8_t * _dest) const override;
+	bool GetBulk2DAsUint8s(uint8_t * _dest) const override;
 
 
 	char const* GetMetadata() const override;

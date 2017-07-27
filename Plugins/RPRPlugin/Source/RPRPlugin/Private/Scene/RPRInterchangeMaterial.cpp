@@ -558,7 +558,13 @@ UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collect
 	HOOKUP_PBR_EXPRESSION_NO_CONSTANT(_ue4Mat, Normal, 4);
 
 //	HOOKUP_PBR_EXPRESSION(EmissiveColor, 5, FColor, PBR_DEFAULT_BLACK);
-//	HOOKUP_PBR_EXPRESSION(Opacity, 6, float, 1.0f);
+	if (_ue4Mat->Opacity.Expression != NULL)
+	{
+		HOOKUP_PBR_EXPRESSION(_ue4Mat, Opacity, 6, float, 1.0f);
+	} else
+	{
+		HOOKUP_PBR_EXPRESSION(_ue4Mat, OpacityMask, 6, float, 1.0f);
+	}
 // refraction
 // clear coat here
 	// clear coat roughness
@@ -579,13 +585,20 @@ UE4InterchangePBRNode::UE4InterchangePBRNode(UEInterchangeCollection & _collecti
 		HOOKUP_PBR_EXPRESSION_NO_CONSTANT(ma, Metallic, 2);
 		HOOKUP_PBR_EXPRESSION_NO_CONSTANT(ma, Specular, 3);
 		HOOKUP_PBR_EXPRESSION_NO_CONSTANT(ma, Normal, 4);
+		//	HOOKUP_PBR_EXPRESSION(EmissiveColor, 5, FColor, PBR_DEFAULT_BLACK);
+		if( ma->Opacity.Expression != NULL)
+		{
+			HOOKUP_PBR_EXPRESSION_NO_CONSTANT(ma, Opacity, 6);
+		}
+		else
+		{
+			HOOKUP_PBR_EXPRESSION_NO_CONSTANT(ma, OpacityMask, 6);
+		}
+		// refraction
+		// clear coat here
+		// clear coat roughness
 	}
 
-	//	HOOKUP_PBR_EXPRESSION(EmissiveColor, 5, FColor, PBR_DEFAULT_BLACK);
-	//	HOOKUP_PBR_EXPRESSION(Opacity, 6, float, 1.0f);
-	// refraction
-	// clear coat here
-	// clear coat roughness
 
 }
 
@@ -1270,6 +1283,12 @@ uint8_t const * UE4InterchangeImage::GetRawByteData() const
 	return nullptr;
 }
 
+float const * UE4InterchangeImage::GetRawFloatData() const
+{
+	// we don't support this access method (too complicated)
+	return nullptr;
+}
+
 std::string UE4InterchangeImage::GetOriginalPath() const
 {
 	// don't think this is right but should be okay
@@ -1283,7 +1302,7 @@ bool UE4InterchangeImage::GetBulk2DAsFloats(float * _dest) const
 	return false; // TODO will fall back to slow general case
 }
 
-bool UE4InterchangeImage::GetBulk2DAsUint8(uint8_t * _dest) const
+bool UE4InterchangeImage::GetBulk2DAsUint8s(uint8_t * _dest) const
 {
 	FTextureSource & source = ueTexture->Source;
 
