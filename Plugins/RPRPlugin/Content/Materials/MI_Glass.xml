@@ -8,12 +8,12 @@
     </node>
     <node name="Material #30" type="REFRACTION">
         <param name="color" type="float4" value="1, 1, 1, 0"/>
-        <param name="ior" type="float4" value="1.52, 1.52, 1.52, 0"/>
+        <param name="ior" tag="ior_reflection" type="float4" value="1.52, 1.52, 1.52, 0"/>
     </node>
     <node name="Material #31" type="REFLECTION">
         <param name="color" type="float4" value="1, 1, 1, 0"/>
     </node>
     <node name="Map #176" type="FRESNEL">
-        <param name="ior" type="float4" value="1.52, 1.52, 1.52, 0"/>
+        <param name="ior" tag="ior_fresnel" type="float4" value="1.52, 1.52, 1.52, 0"/>
     </node>
 </material>

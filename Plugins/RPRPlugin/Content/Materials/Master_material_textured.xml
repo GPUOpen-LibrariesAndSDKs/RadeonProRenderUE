@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<material name="Master_material_textured">
+  <node name="UberMaterial #0" type="UBER">
+    <param name="diffuse.color" type="connection" value="diffuse_texture_input" />
+    <param name="diffuse.weight" type="float4" value="1, 1, 1, 1" />
+    <param name="diffuse.roughness" type="value" value="0,0,0,0" />
+    <param name="reflection.color" type="float4" value="1, 1, 1, 1" />
+    <param name="reflection.weight" type="float4" value="0, 0, 0, 1" />
+    <param name="reflection.roughness" type="float4" value="0.5, 0.5, 0.5, 0.5" />
+    <param name="reflection.anisotropy" type="float4" value="0, 0, 0, 0" />
+    <param name="reflection.anistropyRotation" type="float4" value="0, 0, 0, 0" />
+    <param name="reflection.mode" type="uint" value="1" />
+    <param name="reflection.ior" type="float4" value="1.5, 1.5, 1.5, 1.5" />
+    <param name="reflection.metalness" type="float4" value="0, 0, 0, 0" />
+    <param name="refraction.color" type="float4" value="1, 1, 1, 1" />
+    <param name="refraction.weight" type="float4" value="0, 0, 0, 0" />
+    <param name="refraction.roughness" type="float4" value="0.5, 0.5, 0.5, 0.5" />
+    <param name="refraction.ior" type="float4" value="1.5, 1.5, 1.5, 1.5" />
+    <param name="refraction.iorMode" type="uint" value="1" />
+    <param name="refraction.thinSurface" type="bool" value="true" />
+    <param name="coating.color" type="float4" value="1, 1, 1, 1" />
+    <param name="coating.weight" type="float4" value="0, 0, 0, 0" />
+    <param name="coating.roughness" type="float4" value="0.5, 0.5, 0.5, 0.5" />
+    <param name="coating.mode" type="uint" value="1" />
+    <param name="coating.ior" type="float4" value="1.5, 1.5, 1.5, 1.5" />
+    <param name="emission.color" type="float4" value="1, 1, 1, 1" />
+    <param name="emission.weight" type="float4" value="0, 0, 0, 0" />
+    <param name="emission.mode" type="uint" value="1" />
+    <param name="transparency" type="float4" value="0, 0, 0, 0" />
+  </node>
+  <node name="diffuse_texture_input" type="INPUT_TEXTURE"  tag="Base_Colour_texture">
+    <param name="path" type="file_path" value="RadeonProRMaps/roughness_map.png"/>
+  </node>
+</material>
