@@ -721,9 +721,8 @@ bool	URPRStaticMeshComponent::RebuildTransforms()
 	return true;
 }
 
-void	URPRStaticMeshComponent::BeginDestroy()
+void	URPRStaticMeshComponent::ReleaseResources()
 {
-	Super::BeginDestroy();
 	if (m_Shapes.Num() > 0)
 	{
 		check(Scene != NULL);
@@ -763,4 +762,5 @@ void	URPRStaticMeshComponent::BeginDestroy()
 		m_RpriContext = NULL;
 	}
 
+	Super::ReleaseResources();
 }

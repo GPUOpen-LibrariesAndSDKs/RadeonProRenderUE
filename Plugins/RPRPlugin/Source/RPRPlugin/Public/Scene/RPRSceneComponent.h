@@ -54,11 +54,15 @@ public:
 	/* Called on the RPR Thread, execute rpr calls to refresh object properties */
 	virtual bool	RPRThread_Update();
 
+	/** Safe call to release resources */
+	virtual void	ReleaseResources();
+
 	bool			IsSrcComponentValid() const;
 protected:
 	void			TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
-
 	void			TriggerRebuildTransforms();
+
+	virtual void	BeginDestroy() override;
 protected:
 	bool					m_Built;
 	bool					m_Sync;

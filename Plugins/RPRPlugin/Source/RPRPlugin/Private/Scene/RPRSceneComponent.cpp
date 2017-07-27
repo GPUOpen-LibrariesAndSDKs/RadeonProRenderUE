@@ -84,3 +84,20 @@ void	URPRSceneComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 	}
 	m_RefreshLock.Unlock();
 }
+
+void	URPRSceneComponent::ReleaseResources()
+{
+	m_Built = false;
+}
+
+void	URPRSceneComponent::BeginDestroy()
+{
+	Super::BeginDestroy();
+
+	if (m_Built)
+	{
+		// Object deleted before the scene has been destroyed
+		check(Scene != NULL);
+		Scene->ImmediateRelease(Cast<ARPRActor>(GetOwner()));
+	}
+}

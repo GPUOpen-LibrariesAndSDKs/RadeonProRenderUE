@@ -414,9 +414,8 @@ void	URPRLightComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 	m_RefreshLock.Unlock();
 }
 
-void	URPRLightComponent::BeginDestroy()
+void	URPRLightComponent::ReleaseResources()
 {
-	Super::BeginDestroy();
 	if (m_RprLight != NULL)
 	{
 		check(Scene != NULL);
@@ -430,4 +429,11 @@ void	URPRLightComponent::BeginDestroy()
 		rprObjectDelete(m_RprImage);
 		m_RprImage = NULL;
 	}
+	if (m_PendingDelete != NULL)
+	{
+		check(Scene != NULL);
+		rprObjectDelete(m_PendingDelete);
+		m_PendingDelete = NULL;
+	}
+	Super::ReleaseResources();
 }

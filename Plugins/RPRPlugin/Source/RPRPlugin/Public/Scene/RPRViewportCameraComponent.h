@@ -18,8 +18,10 @@ public:
 
 	void			SetOrbit(bool orbit);
 	void			StartOrbitting(const FIntPoint &mousePos);
+
 	virtual bool	RPRThread_Update() override;
 	virtual bool	Build() override;
+	virtual void	ReleaseResources() override;
 
 	FVector			GetViewLocation() const;
 	FVector			GetViewRightVector() const;
@@ -28,7 +30,6 @@ public:
 private:
 	virtual void	RebuildCameraProperties(bool force);
 	virtual void	TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
-	virtual void	BeginDestroy() override;
 	virtual bool	RebuildTransforms() override;
 
 	void			UpdateOrbitCamera();

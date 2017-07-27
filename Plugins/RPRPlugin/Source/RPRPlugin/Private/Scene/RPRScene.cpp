@@ -154,6 +154,11 @@ void	ARPRScene::RemoveActor(ARPRActor *actor)
 	{
 		// Can be deleted now
 		BuildQueue.Remove(actor);
+
+		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(actor->GetRootComponent());
+		check(comp != NULL);
+
+		comp->ReleaseResources();
 		actor->GetRootComponent()->ConditionalBeginDestroy();
 		actor->Destroy();
 	}
@@ -179,7 +184,9 @@ bool	ARPRScene::BuildViewportCamera()
 	if (!ViewportCameraComponent->Build() ||
 		!ViewportCameraComponent->PostBuild())
 	{
+		ViewportCameraComponent->ReleaseResources();
 		ViewportCameraComponent->ConditionalBeginDestroy();
+		ViewportCameraComponent = NULL;
 		return false;
 	}
 	return true;
@@ -654,7 +661,12 @@ void	ARPRScene::RemoveSceneContent(bool clearScene, bool clearCache)
 	{
 		if (SceneContent[iObject] == NULL)
 			continue;
-		SceneContent[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(SceneContent[iObject]->GetRootComponent());
+		check(comp != NULL);
+
+		comp->ReleaseResources();
+		comp->ConditionalBeginDestroy();
+
 		SceneContent[iObject]->Destroy();
 	}
 	SceneContent.Empty();
@@ -662,12 +674,17 @@ void	ARPRScene::RemoveSceneContent(bool clearScene, bool clearCache)
 	{
 		if (BuildQueue[iObject] == NULL)
 			continue;
-		BuildQueue[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(BuildQueue[iObject]->GetRootComponent());
+		check(comp != NULL);
+
+		comp->ReleaseResources();
+		comp->ConditionalBeginDestroy();
 		BuildQueue[iObject]->Destroy();
 	}
 	BuildQueue.Empty();
 	if (ViewportCameraComponent != NULL)
 	{
+		ViewportCameraComponent->ReleaseResources();
 		ViewportCameraComponent->ConditionalBeginDestroy();
 		ViewportCameraComponent = NULL;
 	}
@@ -679,6 +696,35 @@ void	ARPRScene::RemoveSceneContent(bool clearScene, bool clearCache)
 			URPRStaticMeshComponent::ClearCache(m_RprScene);
 		if (clearScene)
 			rprSceneClear(m_RprScene);
+	}
+}
+
+void	ARPRScene::ImmediateRelease(ARPRActor *actor)
+{
+	check(actor != NULL);
+	check(actor->GetRootComponent() != NULL);
+
+	if (BuildQueue.Contains(actor))
+	{
+		// Can be deleted now
+		BuildQueue.Remove(actor);
+
+		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(actor->GetRootComponent());
+		check(comp != NULL);
+
+		comp->ReleaseResources();
+	}
+	else
+	{
+		SceneContent.Remove(actor);
+
+		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(actor->GetRootComponent());
+		check(comp != NULL);
+
+		if (m_RendererWorker.IsValid())
+			m_RendererWorker->SafeRelease_Immediate(actor);
+		else
+			comp->ReleaseResources();
 	}
 }
 

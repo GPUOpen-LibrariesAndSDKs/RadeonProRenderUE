@@ -27,7 +27,7 @@ public:
 
 	virtual bool	Build() override;
 private:
-	virtual void	BeginDestroy() override;
+	virtual void	ReleaseResources() override;
 	virtual void	TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
 	virtual bool	RebuildTransforms() override;
 	virtual bool	PostBuild() override;

@@ -319,9 +319,8 @@ void	URPRCameraComponent::RefreshProperties(bool force)
 	m_RefreshLock.Unlock();
 }
 
-void	URPRCameraComponent::BeginDestroy()
+void	URPRCameraComponent::ReleaseResources()
 {
-	Super::BeginDestroy();
 	if (m_RprCamera != NULL)
 	{
 		check(Scene != NULL);
@@ -333,4 +332,5 @@ void	URPRCameraComponent::BeginDestroy()
 		rprObjectDelete(m_RprCamera);
 		m_RprCamera = NULL;
 	}
+	Super::ReleaseResources();
 }

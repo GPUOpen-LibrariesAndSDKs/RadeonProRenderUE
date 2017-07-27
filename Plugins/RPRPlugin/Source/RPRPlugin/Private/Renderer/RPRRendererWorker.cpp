@@ -159,7 +159,11 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 				outBuiltObjects.Add(m_BuiltObjects[iObject]);
 			else
 			{
-				m_BuiltObjects[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+				URPRSceneComponent	*comp = Cast<URPRSceneComponent>(m_BuiltObjects[iObject]->GetRootComponent());
+				check(comp != NULL);
+
+				comp->ReleaseResources();
+				comp->ConditionalBeginDestroy();
 				m_BuiltObjects[iObject]->Destroy();
 			}
 		}
@@ -411,7 +415,12 @@ void	FRPRRendererWorker::DestroyPendingKills()
 	for (uint32 iObject = 0; iObject < objectCount; ++iObject)
 	{
 		check(m_KillQueue[iObject] != NULL);
-		m_KillQueue[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+
+		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(m_KillQueue[iObject]->GetRootComponent());
+		check(comp != NULL);
+
+		comp->ReleaseResources();
+		comp->ConditionalBeginDestroy();
 		m_KillQueue[iObject]->Destroy();
 	}
 	m_ClearFramebuffer = true;
@@ -512,6 +521,29 @@ void	FRPRRendererWorker::AddPendingKill(ARPRActor *actor)
 	m_PreRenderLock.Unlock();
 }
 
+void	FRPRRendererWorker::SafeRelease_Immediate(ARPRActor *actor)
+{
+	check(actor != NULL);
+
+	// Hard lock
+	m_PreRenderLock.Lock();
+	m_RenderLock.Lock();
+	m_DataLock.Lock();
+
+	m_BuildQueue.Remove(actor);
+	m_BuiltObjects.Remove(actor);
+	m_DiscardObjects.Remove(actor);
+
+	URPRSceneComponent	*comp = Cast<URPRSceneComponent>(actor->GetRootComponent());
+	check(comp != NULL);
+
+	comp->ReleaseResources();
+
+	m_DataLock.Unlock();
+	m_RenderLock.Unlock();
+	m_PreRenderLock.Unlock();
+}
+
 void	FRPRRendererWorker::EnsureCompletion()
 {
 	Stop();
@@ -579,7 +611,11 @@ void	FRPRRendererWorker::ReleaseResources()
 	{
 		if (m_BuildQueue[iObject] == NULL)
 			continue;
-		m_BuildQueue[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(m_BuildQueue[iObject]->GetRootComponent());
+		check(comp != NULL);
+
+		comp->ReleaseResources();
+		comp->ConditionalBeginDestroy();
 		m_BuildQueue[iObject]->Destroy();
 	}
 	m_BuildQueue.Empty();
@@ -588,7 +624,11 @@ void	FRPRRendererWorker::ReleaseResources()
 	{
 		if (m_BuiltObjects[iObject] == NULL)
 			continue;
-		m_BuiltObjects[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(m_BuiltObjects[iObject]->GetRootComponent());
+		check(comp != NULL);
+
+		comp->ReleaseResources();
+		comp->ConditionalBeginDestroy();
 		m_BuiltObjects[iObject]->Destroy();
 	}
 	m_BuiltObjects.Empty();
@@ -597,7 +637,11 @@ void	FRPRRendererWorker::ReleaseResources()
 	{
 		if (m_DiscardObjects[iObject] == NULL)
 			continue;
-		m_DiscardObjects[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(m_DiscardObjects[iObject]->GetRootComponent());
+		check(comp != NULL);
+
+		comp->ReleaseResources();
+		comp->ConditionalBeginDestroy();
 		m_DiscardObjects[iObject]->Destroy();
 	}
 	m_DiscardObjects.Empty();

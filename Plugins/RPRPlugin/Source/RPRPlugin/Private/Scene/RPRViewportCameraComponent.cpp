@@ -527,9 +527,8 @@ void	URPRViewportCameraComponent::TickComponent(float deltaTime, ELevelTick tick
 		RebuildCameraProperties(false);
 }
 
-void	URPRViewportCameraComponent::BeginDestroy()
+void	URPRViewportCameraComponent::ReleaseResources()
 {
-	Super::BeginDestroy();
 	if (m_RprCamera != NULL)
 	{
 		check(Scene != NULL);
@@ -541,4 +540,5 @@ void	URPRViewportCameraComponent::BeginDestroy()
 		rprObjectDelete(m_RprCamera);
 		m_RprCamera = NULL;
 	}
+	Super::ReleaseResources();
 }
