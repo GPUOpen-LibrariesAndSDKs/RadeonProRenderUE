@@ -729,25 +729,32 @@ void	URPRStaticMeshComponent::ReleaseResources()
 		uint32	shapeCount = m_Shapes.Num();
 		for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 		{
+			if (m_Shapes[iShape].m_RprMaterial != NULL)
+				rprObjectDelete(m_Shapes[iShape].m_RprMaterial);
+
+			if (m_Shapes[iShape].m_RprxMaterial != NULL)
+			{
+				check(m_RprSupportCtx != NULL);
+				check(m_Shapes[iShape].m_RprShape != NULL);
+
+				rprxShapeDetachMaterial(m_RprSupportCtx, m_Shapes[iShape].m_RprShape, m_Shapes[iShape].m_RprxMaterial);
+				rprxMaterialDelete(m_RprSupportCtx, m_Shapes[iShape].m_RprxMaterial);
+			}
+
 			if (m_Shapes[iShape].m_RprShape != NULL)
 			{
 				rprSceneDetachShape(Scene->m_RprScene, m_Shapes[iShape].m_RprShape);
 				rprObjectDelete(m_Shapes[iShape].m_RprShape);
 			}
-			if (m_Shapes[iShape].m_RprMaterial != NULL)
-				rprObjectDelete(m_Shapes[iShape].m_RprMaterial);
-
-            if (m_Shapes[iShape].m_RprxMaterial != NULL)
-                rprObjectDelete(m_Shapes[iShape].m_RprxMaterial);
 		}
 		m_Shapes.Empty();
 	}
 
-    if (m_RprSupportCtx != NULL)
-    {
-        rprxDeleteContext(m_RprSupportCtx);
-        m_RprSupportCtx = NULL;
-    }
+	if (m_RprSupportCtx != NULL)
+	{
+		rprxDeleteContext(m_RprSupportCtx);
+		m_RprSupportCtx = NULL;
+	}
 
 	if (m_RprMaterialSystem != NULL)
 	{
@@ -756,7 +763,7 @@ void	URPRStaticMeshComponent::ReleaseResources()
 		m_RprMaterialSystem = NULL;
 	}
 
-	if (m_RpriContext != NULL) 
+	if (m_RpriContext != NULL)
 	{
 		rpriFreeContext(m_RpriContext);
 		m_RpriContext = NULL;
