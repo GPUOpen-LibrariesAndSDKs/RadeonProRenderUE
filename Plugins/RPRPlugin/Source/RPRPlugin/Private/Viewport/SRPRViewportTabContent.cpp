@@ -332,8 +332,8 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 	m_AvailableMegaPixel.Add(MakeShared<FString>("0.5"));
 	m_AvailableMegaPixel.Add(MakeShared<FString>("1.0"));
 	m_AvailableMegaPixel.Add(MakeShared<FString>("2.0"));
-	m_AvailableMegaPixel.Add(MakeShared<FString>("4.0"));
-	m_AvailableMegaPixel.Add(MakeShared<FString>("8.0"));
+	//m_AvailableMegaPixel.Add(MakeShared<FString>("4.0"));
+	//m_AvailableMegaPixel.Add(MakeShared<FString>("8.0"));
 
 	ChildSlot
 	[

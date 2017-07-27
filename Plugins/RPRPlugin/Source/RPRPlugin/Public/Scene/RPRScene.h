@@ -44,7 +44,10 @@ public:
 	void	StartOrbitting(const FIntPoint &mousePos);
 	void	SetOrbit(bool orbit);
 
+	bool	RPRThread_Rebuild();
+
 	void	RemoveActor(ARPRActor *actor);
+	void	ImmediateRelease(ARPRActor *actor);
 	void	FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames);
 	void	SetActiveCamera(const FString &cameraName);
 	void	SetQualitySettings(ERPRQualitySettings qualitySettings);

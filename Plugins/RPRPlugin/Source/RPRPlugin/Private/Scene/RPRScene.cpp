@@ -82,10 +82,13 @@ void	ARPRScene::SetActiveCamera(const FString &cameraName)
 	}
 	else
 	{
-		const uint32	cameraCount = Cameras.Num();
-		for (uint32 iCamera = 0; iCamera < cameraCount; ++iCamera)
+		for (int32 iCamera = 0; iCamera < Cameras.Num(); ++iCamera)
 		{
-			check(Cameras[iCamera] != NULL);
+			if (Cameras[iCamera] == NULL)
+			{
+				Cameras.RemoveAt(iCamera--);
+				continue;
+			}
 			if (Cameras[iCamera]->GetCameraName() == cameraName)
 			{
 				Cameras[iCamera]->SetAsActiveCamera();
@@ -114,12 +117,13 @@ bool	ARPRScene::QueueBuildRPRActor(UWorld *world, USceneComponent *srcComponent,
 {
 	if (checkIfContained)
 	{
-		// TODO: Profile this
-		const uint32	objectCount = SceneContent.Num();
-		for (uint32 iObject = 0; iObject < objectCount; ++iObject)
+		for (int32 iObject = 0; iObject < SceneContent.Num(); ++iObject)
 		{
-			if (!ensure(SceneContent[iObject] != NULL))
+			if (SceneContent[iObject] == NULL)
+			{
+				SceneContent.RemoveAt(iObject--);
 				continue;
+			}
 			if (SceneContent[iObject]->SrcComponent == srcComponent)
 				return false;
 		}
@@ -154,6 +158,11 @@ void	ARPRScene::RemoveActor(ARPRActor *actor)
 	{
 		// Can be deleted now
 		BuildQueue.Remove(actor);
+
+		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(actor->GetRootComponent());
+		check(comp != NULL);
+
+		comp->ReleaseResources();
 		actor->GetRootComponent()->ConditionalBeginDestroy();
 		actor->Destroy();
 	}
@@ -179,7 +188,9 @@ bool	ARPRScene::BuildViewportCamera()
 	if (!ViewportCameraComponent->Build() ||
 		!ViewportCameraComponent->PostBuild())
 	{
+		ViewportCameraComponent->ReleaseResources();
 		ViewportCameraComponent->ConditionalBeginDestroy();
+		ViewportCameraComponent = NULL;
 		return false;
 	}
 	return true;
@@ -339,6 +350,26 @@ uint32	ARPRScene::GetContextCreationFlags(const FString &dllPath)
 	return creationFlags;
 }
 
+bool	ARPRScene::RPRThread_Rebuild()
+{
+	bool			restartRender = false;
+	for (int32 iObject = 0; iObject < SceneContent.Num(); ++iObject)
+	{
+		if (SceneContent[iObject] == NULL)
+		{
+			SceneContent.RemoveAt(iObject--);
+			continue;
+		}
+		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(SceneContent[iObject]->GetRootComponent());
+		check(comp != NULL);
+
+		restartRender |= comp->RPRThread_Update();
+	}
+	if (ViewportCameraComponent != NULL)
+		restartRender |= ViewportCameraComponent->RPRThread_Update();
+	return restartRender;
+}
+
 void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 {
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
@@ -433,7 +464,7 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		SetOrbit(m_Plugin->IsOrbitting());
 		TriggerFrameRebuild();
 
-		m_RendererWorker = MakeShareable(new FRPRRendererWorker(m_RprContext, m_RprScene, m_RenderTexture->SizeX, m_RenderTexture->SizeY, m_NumDevices));
+		m_RendererWorker = MakeShareable(new FRPRRendererWorker(m_RprContext, m_RprScene, m_RenderTexture->SizeX, m_RenderTexture->SizeY, m_NumDevices, this));
 		m_RendererWorker->SetQualitySettings(settings->QualitySettings);
 	}
 	m_RendererWorker->SetPaused(false);
@@ -636,7 +667,12 @@ void	ARPRScene::RemoveSceneContent(bool clearScene, bool clearCache)
 	{
 		if (SceneContent[iObject] == NULL)
 			continue;
-		SceneContent[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(SceneContent[iObject]->GetRootComponent());
+		check(comp != NULL);
+
+		comp->ReleaseResources();
+		comp->ConditionalBeginDestroy();
+
 		SceneContent[iObject]->Destroy();
 	}
 	SceneContent.Empty();
@@ -644,12 +680,17 @@ void	ARPRScene::RemoveSceneContent(bool clearScene, bool clearCache)
 	{
 		if (BuildQueue[iObject] == NULL)
 			continue;
-		BuildQueue[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(BuildQueue[iObject]->GetRootComponent());
+		check(comp != NULL);
+
+		comp->ReleaseResources();
+		comp->ConditionalBeginDestroy();
 		BuildQueue[iObject]->Destroy();
 	}
 	BuildQueue.Empty();
 	if (ViewportCameraComponent != NULL)
 	{
+		ViewportCameraComponent->ReleaseResources();
 		ViewportCameraComponent->ConditionalBeginDestroy();
 		ViewportCameraComponent = NULL;
 	}
@@ -661,6 +702,37 @@ void	ARPRScene::RemoveSceneContent(bool clearScene, bool clearCache)
 			URPRStaticMeshComponent::ClearCache(m_RprScene);
 		if (clearScene)
 			rprSceneClear(m_RprScene);
+	}
+}
+
+void	ARPRScene::ImmediateRelease(ARPRActor *actor)
+{
+	check(actor != NULL);
+	check(actor->GetRootComponent() != NULL);
+
+	if (BuildQueue.Contains(actor))
+	{
+		// Can be deleted now
+		BuildQueue.Remove(actor);
+
+		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(actor->GetRootComponent());
+		check(comp != NULL);
+
+		comp->ReleaseResources();
+	}
+	else
+	{
+		SceneContent.Remove(actor);
+
+		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(actor->GetRootComponent());
+		check(comp != NULL);
+
+		if (m_RendererWorker.IsValid())
+			m_RendererWorker->SafeRelease_Immediate(actor);
+		else
+			comp->ReleaseResources();
+
+		m_TriggerEndFrameRebuild = true;
 	}
 }
 

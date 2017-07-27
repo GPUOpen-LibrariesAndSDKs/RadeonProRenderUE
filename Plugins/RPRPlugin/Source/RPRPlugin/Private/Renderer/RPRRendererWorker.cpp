@@ -6,36 +6,39 @@
 #include "HAL/RunnableThread.h"
 
 #include "Scene/RPRSceneComponent.h"
+#include "Scene/RPRScene.h"
 #include "Scene/RPRActor.h"
 
 #include "RPRStats.h"
 
 DEFINE_STAT(STAT_ProRender_PreRender);
+DEFINE_STAT(STAT_ProRender_RebuildScene);
 DEFINE_STAT(STAT_ProRender_Render);
 DEFINE_STAT(STAT_ProRender_Resolve);
 DEFINE_STAT(STAT_ProRender_Readback);
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRRenderer, Log, All);
 
-FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene scene, uint32 width, uint32 height, uint32 numDevices)
-	: m_RprFrameBuffer(NULL)
-	, m_RprResolvedFrameBuffer(NULL)
-	, m_RprContext(context)
-	, m_RprScene(scene)
-	, m_RprWhiteBalance(NULL)
-	, m_RprGammaCorrection(NULL)
-	, m_RprSimpleTonemap(NULL)
-	, m_RprPhotolinearTonemap(NULL)
-	, m_RprNormalization(NULL)
-	, m_CurrentIteration(0)
-	, m_PreviousRenderedIteration(0)
-	, m_NumDevices(numDevices)
-	, m_Width(width)
-	, m_Height(height)
-	, m_Resize(true)
-	, m_IsBuildingObjects(false)
-	, m_ClearFramebuffer(false)
-	, m_PauseRender(true)
+FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene rprScene, uint32 width, uint32 height, uint32 numDevices, ARPRScene *scene)
+:	m_RprFrameBuffer(NULL)
+,	m_RprResolvedFrameBuffer(NULL)
+,	m_RprContext(context)
+,	m_RprScene(rprScene)
+,	m_Scene(scene)
+,	m_RprWhiteBalance(NULL)
+,	m_RprGammaCorrection(NULL)
+,	m_RprSimpleTonemap(NULL)
+,	m_RprPhotolinearTonemap(NULL)
+,	m_RprNormalization(NULL)
+,	m_CurrentIteration(0)
+,	m_PreviousRenderedIteration(0)
+,	m_NumDevices(numDevices)
+,	m_Width(width)
+,	m_Height(height)
+,	m_Resize(true)
+,	m_IsBuildingObjects(false)
+,	m_ClearFramebuffer(false)
+,	m_PauseRender(true)
 {
 	m_Plugin = &FRPRPluginModule::Get();
 	m_Thread = FRunnableThread::Create(this, TEXT("FRPRRendererWorker"));
@@ -146,17 +149,24 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 		// PostBuild
 
 		// This is safe: RPR thread doesn't render if there are pending built objects
-		const uint32	builtCount = m_BuiltObjects.Num();
-		for (uint32 iObject = 0; iObject < builtCount; ++iObject)
+		for (int32 iObject = 0; iObject < m_BuiltObjects.Num(); ++iObject)
 		{
-			check(m_BuiltObjects[iObject] != NULL);
+			if (m_BuiltObjects[iObject] == NULL)
+			{
+				m_BuiltObjects.RemoveAt(iObject--);
+				continue;
+			}
 			URPRSceneComponent	*comp = Cast<URPRSceneComponent>(m_BuiltObjects[iObject]->GetRootComponent());
 			check(comp != NULL);
 			if (comp->PostBuild())
 				outBuiltObjects.Add(m_BuiltObjects[iObject]);
 			else
 			{
-				m_BuiltObjects[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+				URPRSceneComponent	*comp = Cast<URPRSceneComponent>(m_BuiltObjects[iObject]->GetRootComponent());
+				check(comp != NULL);
+
+				comp->ReleaseResources();
+				comp->ConditionalBeginDestroy();
 				m_BuiltObjects[iObject]->Destroy();
 			}
 		}
@@ -165,7 +175,8 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 		const uint32	discardCount = m_DiscardObjects.Num();
 		for (uint32 iObject = 0; iObject < discardCount; ++iObject)
 		{
-			check(m_DiscardObjects[iObject] != NULL);
+			if (m_DiscardObjects[iObject] == NULL)
+				continue;
 
 			outBuiltObjects.Add(m_DiscardObjects[iObject]);
 		}
@@ -279,7 +290,8 @@ void	FRPRRendererWorker::BuildQueuedObjects()
 		m_Plugin->NotifyObjectBuilt();
 
 		ARPRActor	*actor = m_BuildQueue[iObject];
-		check(actor != NULL);
+		if (actor == NULL)
+			continue;
 
 		URPRSceneComponent	*component = Cast<URPRSceneComponent>(actor->GetRootComponent());
 		check(component != NULL);
@@ -407,8 +419,14 @@ void	FRPRRendererWorker::DestroyPendingKills()
 	const uint32	objectCount = m_KillQueue.Num();
 	for (uint32 iObject = 0; iObject < objectCount; ++iObject)
 	{
-		check(m_KillQueue[iObject] != NULL);
-		m_KillQueue[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+		if (m_KillQueue[iObject] == NULL)
+			continue;
+
+		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(m_KillQueue[iObject]->GetRootComponent());
+		check(comp != NULL);
+
+		comp->ReleaseResources();
+		comp->ConditionalBeginDestroy();
 		m_KillQueue[iObject]->Destroy();
 	}
 	m_ClearFramebuffer = true;
@@ -425,6 +443,10 @@ bool	FRPRRendererWorker::PreRenderLoop()
 		BuildQueuedObjects();
 	if (m_KillQueue.Num() > 0)
 		DestroyPendingKills();
+	{
+		SCOPE_CYCLE_COUNTER(STAT_ProRender_RebuildScene);
+		m_ClearFramebuffer |= m_Scene->RPRThread_Rebuild();
+	}
 	if (m_Resize)
 		ResizeFramebuffer();
 	if (m_ClearFramebuffer)
@@ -505,6 +527,29 @@ void	FRPRRendererWorker::AddPendingKill(ARPRActor *actor)
 	m_PreRenderLock.Unlock();
 }
 
+void	FRPRRendererWorker::SafeRelease_Immediate(ARPRActor *actor)
+{
+	check(actor != NULL);
+
+	// Hard lock
+	m_PreRenderLock.Lock();
+	m_RenderLock.Lock();
+	m_DataLock.Lock();
+
+	m_BuildQueue.Remove(actor);
+	m_BuiltObjects.Remove(actor);
+	m_DiscardObjects.Remove(actor);
+
+	URPRSceneComponent	*comp = Cast<URPRSceneComponent>(actor->GetRootComponent());
+	check(comp != NULL);
+
+	comp->ReleaseResources();
+
+	m_DataLock.Unlock();
+	m_RenderLock.Unlock();
+	m_PreRenderLock.Unlock();
+}
+
 void	FRPRRendererWorker::EnsureCompletion()
 {
 	Stop();
@@ -572,7 +617,11 @@ void	FRPRRendererWorker::ReleaseResources()
 	{
 		if (m_BuildQueue[iObject] == NULL)
 			continue;
-		m_BuildQueue[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(m_BuildQueue[iObject]->GetRootComponent());
+		check(comp != NULL);
+
+		comp->ReleaseResources();
+		comp->ConditionalBeginDestroy();
 		m_BuildQueue[iObject]->Destroy();
 	}
 	m_BuildQueue.Empty();
@@ -581,7 +630,11 @@ void	FRPRRendererWorker::ReleaseResources()
 	{
 		if (m_BuiltObjects[iObject] == NULL)
 			continue;
-		m_BuiltObjects[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(m_BuiltObjects[iObject]->GetRootComponent());
+		check(comp != NULL);
+
+		comp->ReleaseResources();
+		comp->ConditionalBeginDestroy();
 		m_BuiltObjects[iObject]->Destroy();
 	}
 	m_BuiltObjects.Empty();
@@ -590,7 +643,11 @@ void	FRPRRendererWorker::ReleaseResources()
 	{
 		if (m_DiscardObjects[iObject] == NULL)
 			continue;
-		m_DiscardObjects[iObject]->GetRootComponent()->ConditionalBeginDestroy();
+		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(m_DiscardObjects[iObject]->GetRootComponent());
+		check(comp != NULL);
+
+		comp->ReleaseResources();
+		comp->ConditionalBeginDestroy();
 		m_DiscardObjects[iObject]->Destroy();
 	}
 	m_DiscardObjects.Empty();

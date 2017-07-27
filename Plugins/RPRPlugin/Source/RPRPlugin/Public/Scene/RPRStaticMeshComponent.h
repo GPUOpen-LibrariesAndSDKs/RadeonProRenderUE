@@ -56,7 +56,7 @@ private:
 	bool					BuildMaterials();
 
 	virtual void	TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
-	virtual void	BeginDestroy() override;
+	virtual void	ReleaseResources() override;
 	virtual bool	PostBuild() override;
 private:
 	rpr_material_system	m_RprMaterialSystem;

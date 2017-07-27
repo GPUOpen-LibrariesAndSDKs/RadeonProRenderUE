@@ -16,6 +16,7 @@ DECLARE_CYCLE_STAT_EXTERN(TEXT("Game Thread: Update scene"), STAT_ProRender_Upda
 DECLARE_CYCLE_STAT_EXTERN(TEXT("Game Thread: Viewport draw"), STAT_ProRender_DrawViewport, STATGROUP_ProRender, );
 
 DECLARE_CYCLE_STAT_EXTERN(TEXT("RPR Thread: Pre-render"), STAT_ProRender_PreRender, STATGROUP_ProRender, );
+DECLARE_CYCLE_STAT_EXTERN(TEXT("RPR Thread: Rebuild scene"), STAT_ProRender_RebuildScene, STATGROUP_ProRender, );
 DECLARE_CYCLE_STAT_EXTERN(TEXT("RPR Thread: Render"), STAT_ProRender_Render, STATGROUP_ProRender, );
 DECLARE_CYCLE_STAT_EXTERN(TEXT("RPR Thread: Resolve"), STAT_ProRender_Resolve, STATGROUP_ProRender, );
 DECLARE_CYCLE_STAT_EXTERN(TEXT("RPR Thread: Readback framebuffer"), STAT_ProRender_Readback, STATGROUP_ProRender, );

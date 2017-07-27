@@ -119,7 +119,8 @@ void	ConvertPixels(const void *textureData, TArray<uint8> &outData, EPixelFormat
 
 rpr_image	BuildCubeImage(UTextureCube *source, rpr_context context)
 {
-	check(source != NULL);
+	if (source == NULL)
+		return NULL;
 
 	// BuildCubeImage should (will be later) some kind of caching system (done before packaging ?)
 	// Avoid building several times the same image, and runtime data is compressed or not accessible
