@@ -327,6 +327,14 @@ namespace rpr
 					TArray<uint8> mipData;
 					texture->Source.GetMipData(mipData, 0);
 
+                    // Swizzle red and blue channels.
+                    if (texture->Source.GetFormat() == ETextureSourceFormat::TSF_BGRA8 || texture->Source.GetFormat() == ETextureSourceFormat::TSF_BGRE8)
+                    {
+                        uint8* pixels = mipData.GetData();
+                        for (auto i = 0U; i < desc.image_width * desc.image_height; ++i)
+                            std::swap(pixels[i * 4 + 0], pixels[i * 4 + 2]);
+                    }
+
 					rpr_int result = rprContextCreateImage(context, format, &desc, mipData.GetData(), &reinterpret_cast<rpr_image>(handle));
 					if (result != RPR_SUCCESS)
 						UE_LOG(LogMaterialLibrary, Error, TEXT("rprContextCreateImage failed (%d) for node tag %s"), result, UTF8_TO_TCHAR(node.tag.c_str()));
@@ -340,7 +348,13 @@ namespace rpr
                         // Load the RPR texture from disk.
                         rpr_int result = rprContextCreateImageFromFile(context, absoluteFilename.c_str(), &reinterpret_cast<rpr_image>(handle));
                         if (result != RPR_SUCCESS)
+                        {
                             UE_LOG(LogMaterialLibrary, Error, TEXT("rprContextCreateImageFromFile failed (%d) to load %s"), result, UTF8_TO_TCHAR(absoluteFilename.c_str()));
+                        }
+                        else
+                        {
+                            UE_LOG(LogMaterialLibrary, Log, TEXT("rprContextCreateImageFromFile success %s handl=%x"), UTF8_TO_TCHAR(absoluteFilename.c_str()), handle);
+                        }
                     }
 				}
 			}
@@ -433,26 +447,42 @@ namespace rpr
                                 {
                                     // Second feed the INPUT_TEXTURE as input to the new IMAGE_TEXTURE node.
                                     auto data = std::get<1>(tuple);
-                                    result = rprMaterialNodeSetInputImageData(texture, "data", reinterpret_cast<rpr_image>(data));
+                                    result = rprMaterialNodeSetInputImageData(texture, "data", reinterpret_cast<rpr_image>(data));                                    
                                     if (result != RPR_SUCCESS)
                                     {
                                         UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputImageData failed (%d) line %d"), result, __LINE__);
                                     }
                                     else
                                     {
+                                        //result = rprMaterialNodeSetInputU(texture, "uv", RPR_MATERIAL_NODE_LOOKUP_UV);
+                                        //if (result != RPR_SUCCESS)
+                                        //    UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialSetNotInputU(uv) failed %d"), result);
+
                                         // Last connect the IMAGE_TEXTURE to the existing material node's input parameter.
                                         if (node.type == "UBER")
                                         {
                                             rprx_material uberMaterial = reinterpret_cast<rprx_material>(handle);
                                             rpr_int result = rprxMaterialSetParameterN(uberMatContext, uberMaterial, stringToRprxParameter.at(param.name), texture);
                                             if (result != RPR_SUCCESS)
+                                            {
                                                 UE_LOG(LogMaterialLibrary, Error, TEXT("rprxMaterialSetParameterN failed (%d) param=%s line %d"), result, UTF8_TO_TCHAR(param.name.c_str()), __LINE__);
+                                            }
+                                            else
+                                            {
+                                                UE_LOG(LogMaterialLibrary, Log, TEXT("rprxMaterialSetParameterN success param=%s data=%x line %d"), UTF8_TO_TCHAR(param.name.c_str()), data, __LINE__);
+                                            }
                                         }
                                         else
                                         {
                                             rpr_int result = rprMaterialNodeSetInputN(handle, param.name.c_str(), texture);
                                             if (result != RPR_SUCCESS)
+                                            {
                                                 UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputN failed (%d) node=%s param=%s param=%s line %d"), result, UTF8_TO_TCHAR(name.c_str()), UTF8_TO_TCHAR(node.name.c_str()), UTF8_TO_TCHAR(param.name.c_str()), __LINE__);
+                                            }
+                                            else
+                                            {
+                                                UE_LOG(LogMaterialLibrary, Log, TEXT("rprMaterialNodeSetInputN success param=%s data=%x line %d"), UTF8_TO_TCHAR(param.name.c_str()), data, __LINE__);
+                                            }
                                         }
                                     }
                                 }
