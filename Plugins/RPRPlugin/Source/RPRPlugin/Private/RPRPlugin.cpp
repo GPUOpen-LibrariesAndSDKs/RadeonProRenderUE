@@ -97,6 +97,28 @@ void	FRPRPluginModule::ToggleOrbit()
 		scene->SetOrbit(m_OrbitEnabled);
 }
 
+void	FRPRPluginModule::RefreshCameraList()
+{
+	m_AvailableCameraNames.Empty();
+	ARPRScene	*scene = GetCurrentScene();
+	if (scene != NULL)
+		scene->FillCameraNames(m_AvailableCameraNames);
+
+	check(m_AvailableCameraNames.Num() > 0);
+	if (m_ActiveCameraName.IsEmpty())
+		m_ActiveCameraName = *m_AvailableCameraNames[0].Get();
+	else
+	{
+		const uint32	camCount = m_AvailableCameraNames.Num();
+		for (uint32 iCam = 0; iCam < camCount; ++iCam)
+		{
+			if (*m_AvailableCameraNames[iCam].Get() == m_ActiveCameraName)
+				return;
+		}
+		m_ActiveCameraName = *m_AvailableCameraNames[0].Get();
+	}
+}
+
 TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &spawnArgs)
 {
 	if (ensure(GEngine != NULL))
@@ -106,6 +128,9 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 		// This one for level change
 		GEngine->OnWorldAdded().AddRaw(this, &FRPRPluginModule::OnWorldAdded);
 	}
+
+	RefreshCameraList();
+
 	// Create tab
 	TSharedRef<SDockTab> RPRViewportTab = SNew(SDockTab)
 		.TabRole(ETabRole::NomadTab)
@@ -152,6 +177,8 @@ void	FRPRPluginModule::CreateNewScene(UWorld *world)
 	params.ObjectFlags = RF_Public | RF_Transactional;
 
 	check(world->SpawnActor<ARPRScene>(ARPRScene::StaticClass(), params) != NULL);
+
+	RefreshCameraList();
 }
 
 void	FRPRPluginModule::Reset()

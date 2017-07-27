@@ -20,6 +20,7 @@ public:
 	void							Rebuild();
 
 	const FString					&ActiveCameraName() const { return m_ActiveCameraName; }
+	void							RefreshCameraList();
 
 	void							ToggleOrbit();
 	bool							IsOrbitting() const { return m_OrbitEnabled; }
@@ -43,6 +44,7 @@ public:
 	bool								m_RPRPaused;
 	bool								m_CleanViewport;
 
+	TArray<TSharedPtr<FString>>			m_AvailableCameraNames;
 	TSharedPtr<class FSceneViewport>	m_Viewport;
 private:
 	void					FillRPRMenu(class FMenuBuilder &menuBuilder);

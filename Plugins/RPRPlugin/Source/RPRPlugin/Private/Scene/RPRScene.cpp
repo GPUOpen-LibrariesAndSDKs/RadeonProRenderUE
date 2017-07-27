@@ -65,7 +65,6 @@ void	ARPRScene::FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames)
 			continue;
 		outCameraNames.Add(MakeShared<FString>(parent->GetName()));
 	}
-	// IF in editor:
 	outCameraNames.Add(MakeShared<FString>(kViewportCameraName));
 }
 
@@ -74,7 +73,6 @@ void	ARPRScene::SetActiveCamera(const FString &cameraName)
 	if (m_RprContext == NULL)
 		return;
 
-	// IF in editor
 	if (cameraName == kViewportCameraName)
 	{
 		if (ViewportCameraComponent != NULL)
