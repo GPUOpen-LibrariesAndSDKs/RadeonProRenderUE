@@ -25,6 +25,15 @@
 #include "LevelEditorViewport.h"
 
 #define LOCTEXT_NAMESPACE "ARPRScene"
+namespace
+{
+	extern "C" void OutputDebugStringA(char const *);
+
+	void    rpriLogger(char const * _log)
+	{
+		OutputDebugStringA(_log);
+	}
+}
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRScene, Log, All);
 
@@ -34,6 +43,9 @@ DEFINE_STAT(STAT_ProRender_CopyFramebuffer);
 ARPRScene::ARPRScene()
 	: m_RprContext(NULL)
 	, m_RprScene(NULL)
+	, m_RpriContext(NULL)
+	, m_RprMaterialSystem(NULL)
+	, m_RprSupportCtx(NULL)
 	, m_ActiveCamera(NULL)
 	, m_TriggerEndFrameResize(false)
 	, m_TriggerEndFrameRebuild(false)
@@ -412,6 +424,8 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 
 
 		rpriAllocateContext(&m_RpriContext);
+		rpriErrorOptions(m_RpriContext, 5, false, false);
+		rpriSetLoggers(m_RpriContext, rpriLogger, rpriLogger, rpriLogger);
 
 		// Not sure if material systems should be created on a per mesh level or per section
 		if (rprContextCreateMaterialSystem(m_RprContext, 0, &m_RprMaterialSystem) != RPR_SUCCESS)
