@@ -410,6 +410,21 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		}
 		UE_LOG(LogRPRScene, Log, TEXT("ProRender context initialized"));
 
+
+		rpriAllocateContext(&m_RpriContext);
+
+		// Not sure if material systems should be created on a per mesh level or per section
+		if (rprContextCreateMaterialSystem(m_RprContext, 0, &m_RprMaterialSystem) != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRScene, Warning, TEXT("Couldn't create RPR material system"));
+			return;
+		}
+		if (rprxCreateContext(m_RprMaterialSystem, RPRX_FLAGS_ENABLE_LOGGING, &m_RprSupportCtx) != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRScene, Warning, TEXT("Couldn't create RPR material X system"));
+			return;
+		}
+
 		if (rprContextCreateScene(m_RprContext, &m_RprScene) != RPR_SUCCESS)
 		{
 			UE_LOG(LogRPRScene, Error, TEXT("RPR Scene creation failed"));
@@ -738,6 +753,24 @@ void	ARPRScene::BeginDestroy()
 		m_RendererWorker = NULL; // TODO MAKE SURE TSharedPtr correctly deletes the renderer
 	}
 	RemoveSceneContent(true, true);
+	if (m_RprSupportCtx != NULL)
+	{
+		rprxDeleteContext(m_RprSupportCtx);
+		m_RprSupportCtx = NULL;
+	}
+
+	if (m_RprMaterialSystem != NULL)
+	{
+		rprObjectDelete(m_RprMaterialSystem);
+		m_RprMaterialSystem = NULL;
+	}
+
+	if (m_RpriContext != NULL)
+	{
+		rpriFreeContext(m_RpriContext);
+		m_RpriContext = NULL;
+	}
+	
 	if (m_RprScene != NULL)
 	{
 		rprObjectDelete(m_RprScene);

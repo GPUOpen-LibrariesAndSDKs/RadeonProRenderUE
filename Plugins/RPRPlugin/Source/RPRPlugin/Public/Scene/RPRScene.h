@@ -9,6 +9,7 @@
 #include "GameFramework/Actor.h"
 #include "MaterialLibrary.h"
 #include "UMSControl.h"
+#include <RadeonProRenderInterchange.h>
 #include "RPRScene.generated.h"
 
 /**
@@ -29,6 +30,9 @@ public:
 public:
 	rpr_context		m_RprContext;
 	rpr_scene		m_RprScene;
+	rpr_material_system	m_RprMaterialSystem;
+	rprx_context		m_RprSupportCtx;
+	rpriContext			m_RpriContext;
 
 	rpr::MaterialLibrary m_materialLibrary;
 	rpr::UMSControl m_UMSControl;

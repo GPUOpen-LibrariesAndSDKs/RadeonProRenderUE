@@ -59,9 +59,6 @@ private:
 	virtual void	ReleaseResources() override;
 	virtual bool	PostBuild() override;
 private:
-	rpr_material_system	m_RprMaterialSystem;
-	rprx_context		m_RprSupportCtx;
-	rpriContext			m_RpriContext;
 
 	TArray<SRPRShape>	m_Shapes;
 };
