@@ -307,6 +307,7 @@ void UE4InterchangeMaterialNode::ConvertTextureSampleExpression(
 								std::string const & _name,
 								UMaterialExpressionTextureSample* con)
 {
+	ConvertFExpressionInput(_collection, &con->Coordinates, "UV", FName("UV"));
 	if (con->Texture != nullptr)
 	{
 		UTexture* tex = con->Texture;
@@ -324,6 +325,8 @@ void UE4InterchangeMaterialNode::ConvertTextureSampleExpression(
 	std::string const & _name,
 	UMaterialExpressionTextureSampleParameter2D* con)
 {
+	ConvertFExpressionInput(_collection, &con->Coordinates, "UV", FName("UV"));
+
 	if (con->Texture != nullptr)
 	{
 		std::string paramName;
@@ -341,7 +344,6 @@ void UE4InterchangeMaterialNode::ConvertTextureSampleExpression(
 	{
 		// look up TextureObject?
 	}
-	ConvertFExpressionInput(_collection, &con->Coordinates, "UV");
 }
 
 FExpressionInput const & UE4InterchangeMaterialNode::ConvertStaticSwitchExpression(
