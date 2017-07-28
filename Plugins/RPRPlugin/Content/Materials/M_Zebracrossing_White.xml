@@ -1,9 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <material name="M_Zebracrossing_White" version="0x10000223">
     <description></description>
-    <node name="M_Zebracrossing_White" type="DIFFUSE">
+  <node name="M_Zebracrossing_White" type="BLEND">
+    <param name="color1" type="connection" value="diffuse"/>
+    <param name="color0" type="connection" value="transparent"/>
+    <param name="weight" type="connection" value="arith"/>
+  </node>
+  <node name="diffuse" type="DIFFUSE">
         <param name="color" type="connection" value="Map #189"/>
     </node>
+  <node name="arith" type="ARITHMETIC">
+    <param name="color0" type="connection" value="Map #189"/>
+    <param name="op" type="uint" value="30"/>
+  </node>
+  <node name="transparent" type="TRANSPARENT">
+  </node>
+
     <node name="Map #189" type="IMAGE_TEXTURE">
         <param name="data" type="connection" value="box1"/>
     </node>
