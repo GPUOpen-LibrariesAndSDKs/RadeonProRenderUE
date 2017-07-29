@@ -74,6 +74,55 @@ void ByteToByteCopy(size_t _width,
 		}
 	}
 }
+template<int _elementCount, int _remap0 = 0, int _remap1 = 1, int _remap2 = 2, int _remap3 = 3>
+void sRGBByteToLinearByteCopy(size_t _width,
+	size_t _height,
+	uint8_t const * _src,
+	uint8_t * _dest)
+{
+	for (int y = 0; y < _height; ++y)
+	{
+		for (int x = 0; x < _width; ++x)
+		{
+			float f[4] = { 0,0,0,0 };
+
+			switch (_elementCount)
+			{
+			case 4: f[3] = *(_src + _remap0);
+			case 3: f[2] = *(_src + _remap1);
+			case 2: f[1] = *(_src + _remap2);
+			case 1: f[0] = *(_src + _remap3);
+				break;
+			default:;
+			}
+			_src += _elementCount;
+
+			// don't correct alpha (tho this is argueble re blinns,
+			// ghost in a snow storm article)
+			// sRGB to linear (not OPTIMISED!)
+			for (int i = _elementCount - 1; i > 0; --i)
+			{
+				static float const a = 0.055f;
+				static float const b = 0.04045f;
+				f[i] *= (1.f / 255.f);
+				if (f[i] <= b) { f[i] *= (1.0f / 12.92f); }
+				else
+				{
+					f[i] = (f[i] + a) / (1.f + a);
+					f[i] = powf(f[i], 2.4f);
+				}
+				f[i] = f[i] > 1.f ? 1 : f[i];
+				f[i] = f[i] < 0.f ? 0 : f[i];
+			}
+			*_dest = uint8_t(f[3] * 255.f); _dest++;
+			*_dest = uint8_t(f[2] * 255.f); _dest++;
+			*_dest = uint8_t(f[1] * 255.f); _dest++;
+			*_dest = uint8_t(f[0]); _dest++;
+
+		}
+	}
+}
+
 } // end anonymous namespace 
 
 std::shared_ptr<rpri::generic::IMaterialNodeMux> 
@@ -247,7 +296,7 @@ void UE4InterchangeMaterialNode::ConvertFExpressionInput(UEInterchangeCollection
 	{
 		std::string ename = TCHAR_TO_ANSI(*_input->Expression->GetName());
 		auto childMux = UE4InterchangeMaterialNode::New(_collection,
-		                                                std::string(_name) + ename,
+														std::string(_name) + ename,
 														_input->Expression,
 														_fname);
 		if (!childMux->IsEmpty())
@@ -437,7 +486,7 @@ UE4InterchangeMaterialNode::UE4InterchangeMaterialNode(
 		ConvertTextureSampleExpression(_collection, name.c_str(), con);
 	}
 /*	TODO pick up UV tilling and mirror setting
- 	else if (_expression->IsA(UMaterialExpressionTextureCoordinate::StaticClass()))
+	else if (_expression->IsA(UMaterialExpressionTextureCoordinate::StaticClass()))
 	{
 		auto con = static_cast<UMaterialExpressionTextureCoordinate*>(_expression);
 		ConvertTextureSampleExpression(_collection, name.c_str(), con);
@@ -532,7 +581,7 @@ UE4InterchangePBRNode::New(UEInterchangeCollection & _collection,
 	}
 }
 #define PBR_DEFAULT_BLACK FColor(0,0,0,255)
-#define PBR_DEFAULT_YELLOW FColor(255,255,0,255)
+#define PBR_DEFAULT_GREY FColor(128,128,128,255)
 
 #define HOOKUP_PBR_EXPRESSION_NO_CONSTANT(_base, _name, _index) \
 if (_base->_name.Expression != nullptr) \
@@ -562,10 +611,10 @@ UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collect
 {
 	id = _id;
 
-	HOOKUP_PBR_EXPRESSION(_ue4Mat, BaseColor, 0, FColor, PBR_DEFAULT_YELLOW);
-	HOOKUP_PBR_EXPRESSION(_ue4Mat, Roughness, 1, float, 0.5f);
+	HOOKUP_PBR_EXPRESSION(_ue4Mat, BaseColor, 0, FColor, PBR_DEFAULT_GREY);
+	HOOKUP_PBR_EXPRESSION(_ue4Mat, Roughness, 1, float, 0.0f);
 	HOOKUP_PBR_EXPRESSION(_ue4Mat, Metallic, 2, float, 0.5f);
-	HOOKUP_PBR_EXPRESSION(_ue4Mat, Specular, 3, float, 0.5f);
+	HOOKUP_PBR_EXPRESSION(_ue4Mat, Specular, 3, float, 0.0f);
 	HOOKUP_PBR_EXPRESSION_NO_CONSTANT(_ue4Mat, Normal, 4);
 
 //	HOOKUP_PBR_EXPRESSION(EmissiveColor, 5, FColor, PBR_DEFAULT_BLACK);
@@ -797,6 +846,7 @@ UE4InterchangeMaterialValue::UE4InterchangeMaterialValue(
 	char const * _id, float _a, float _b)
 {
 	id = _id;
+
 	values.push_back(_a);
 	values.push_back(_b);
 }
@@ -808,6 +858,7 @@ UE4InterchangeMaterialValue::UE4InterchangeMaterialValue(
 	values.push_back(_a);
 	values.push_back(_b);
 	values.push_back(_c);
+
 }
 
 UE4InterchangeMaterialValue::UE4InterchangeMaterialValue(
@@ -839,6 +890,20 @@ UE4InterchangeMaterialValue::UE4InterchangeMaterialValue(
 	values.push_back(lc.G);
 	values.push_back(lc.B);
 	values.push_back(lc.A);
+
+	for (int i = 0 - 1; i < 3; i++)
+	{
+		static float const a = 0.055f;
+		static float const b = 0.04045f;
+		if (values[i] <= b) { values[i] *= (1.0f / 12.92f); }
+		else
+		{
+			values[i] = (values[i] + a) / (1.f + a);
+			values[i] = powf(values[i], 2.4f);
+		}
+	}
+
+
 }
 UE4InterchangeMaterialValue::UE4InterchangeMaterialValue(
 	char const * _id, std::string const & _string)
@@ -1347,13 +1412,33 @@ bool UE4InterchangeImage::GetBulk2DAsUint8s(uint8_t * _dest) const
 				ByteToByteCopy<2>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
 				break;
 			case PF_R8G8B8A8:
-				ByteToByteCopy<4>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
+				if (GetColourSpace() == ColourSpace::Linear)
+				{
+					ByteToByteCopy<4>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
+				} else
+				{
+					sRGBByteToLinearByteCopy<4>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
+				}
 				break;
 			case PF_A8R8G8B8:
-				ByteToByteCopy<4, 1, 2, 3, 0>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
+				if (GetColourSpace() == ColourSpace::Linear)
+				{
+					ByteToByteCopy<4, 1, 2, 3, 0>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
+				}
+				else
+				{
+					sRGBByteToLinearByteCopy<4, 1, 2, 3, 0>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
+				}
 				break;
 			case PF_B8G8R8A8:
-				ByteToByteCopy<4, 2, 1, 0, 3>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
+				if (GetColourSpace() == ColourSpace::Linear)
+				{
+					ByteToByteCopy<4, 2, 1, 0, 3>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
+				}
+				else
+				{
+					sRGBByteToLinearByteCopy<4, 2, 1, 0, 3>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
+				}
 				break;
 			default: 
 				okay = false; // platform data is a bust
@@ -1378,11 +1463,23 @@ bool UE4InterchangeImage::GetBulk2DAsUint8s(uint8_t * _dest) const
 		source.UnlockMip(0);
 		return true;
 	case TSF_BGRA8:
-		ByteToByteCopy<4, 2, 1, 0, 3>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
+		if (GetColourSpace() == ColourSpace::Linear)
+		{
+			ByteToByteCopy<4, 2, 1, 0, 3>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
+		} else
+		{
+			sRGBByteToLinearByteCopy<4, 2, 1, 0, 3>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
+		}
 		source.UnlockMip(0);
 		return true;
 	case TSF_RGBA8:
-		ByteToByteCopy<4>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
+		if (GetColourSpace() == ColourSpace::Linear)
+		{
+			ByteToByteCopy<4>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
+		} else
+		{
+			sRGBByteToLinearByteCopy<4>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
+		}
 		source.UnlockMip(0);
 		return true;
 	default:
