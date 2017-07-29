@@ -14,8 +14,6 @@
 #include "RPRInterchangeMaterial.h"
 #include "RprSupport.h"
 
-extern "C" void OutputDebugStringA(char const *);
-
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
 
 DEFINE_STAT(STAT_ProRender_UpdateMeshes);
