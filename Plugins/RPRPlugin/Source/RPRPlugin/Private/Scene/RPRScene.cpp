@@ -778,7 +778,7 @@ void	ARPRScene::BeginDestroy()
 	}
 	if (m_RprContext != NULL)
 	{
-		rprContextClearMemory(m_RprContext);
+		//rprContextClearMemory(m_RprContext);
 		rprObjectDelete(m_RprContext);
 		m_RprContext = NULL;
 	}

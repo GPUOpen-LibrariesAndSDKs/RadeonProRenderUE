@@ -7,8 +7,13 @@
     <param name="weight" type="connection" value="arith"/>
   </node>
   <node name="diffuse" type="DIFFUSE">
-        <param name="color" type="connection" value="Map #189"/>
+        <param name="color" type="connection" value="color_change"/>
     </node>
+  <node name="color_change" type="ARITHMETIC">
+    <param name="op" type="uint" value="2"/>
+    <param name="color0" type="connection" value="Map #189"/>
+    <param name="color1" type="float4" value="0.315,0.190,0,1"/>
+  </node>
   <node name="arith" type="ARITHMETIC">
     <param name="color0" type="connection" value="Map #189"/>
     <param name="op" type="uint" value="30"/>

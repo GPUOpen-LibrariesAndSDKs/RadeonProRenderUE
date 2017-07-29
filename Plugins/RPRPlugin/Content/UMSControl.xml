@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <umscontrol>
     <matchall value="false"/>
+    <enable material="pipes"/>
+    <enable material="PotTree"/>
+<enable material="camperwall"/>
+<enable material="camperwall_Inst"/>
   <enable material="Asphalt"/>
   <enable material="Asphalt_Inst" value="true"/>
     <enable material="FacadeBC"/>
@@ -20,18 +24,29 @@
     <enable material="GrayLargePavingAMD"/>
     <enable material="GrayLargePavingAMD_Inst1"/>
   
-    <enable material="FramesMat"/>
   <enable material="MasterAwning" value="true"/>
   <enable material="Awning1" value="true"/>
   <enable material="Awning2" value="true"/>
   <enable material="Awning3" value="true"/>
   <enable material="Awning4"/>
+    <enable material="Masterbalcony" value ="false" comment="enable this once UE4Desaturate is supported"/>
+    <enable material="blacony"/>
+    <enable material="object80"/>
+    <enable material="HP024"/>
+    <enable material="bars"/>
+    <enable material="ob81"/>
+    <enable material="object84"/>
+    <enable material="postandpots" value="true"/>
+  <enable material="Curtainbackdrop2withnormal" comment="Check out the subsurface color"/>
+  <enable material="office"/>
+  <enable material="Trunk"/>
+
+  <disallowed>
+    <enable material="FramesMat"/>
   <enable material="Building01_Mat"/>
   <enable material="Building01_Mat_Inst"/>
   <enable material="office"/>
-  <enable material="Curtainbackdrop2withnormal" comment="Check out the subsurface color"/>
-  <disallowed>
-  <enable material="Trunk"/>
+
 
     <enable material="Tyreskid"/>
     <enable material="Tyreskid_Inst" value="true"/>
@@ -43,15 +58,7 @@
 
     <enable material="salon2mat"/>
     <enable material="hall1mat"/>
-    <enable material="Masterbalcony" value ="false" comment="enable this once UE4Desaturate is supported"/>
-    <enable material="blacony"/>
-    <enable material="object80"/>
-    <enable material="HP024"/>
-    <enable material="bars"/>
-    <enable material="ob81"/>
-    <enable material="object84"/>
 
-    <enable material="postandpots" value="false"/>
     <enable material="rubber_dark_Inst"/>
     <enable material="smooth_ax_chrome_sm300h" value="true"/>
     <enable material="smooth_ax_satinchrome_sm5077"/>
@@ -71,8 +78,7 @@
     <enable material="glass_redrefract_na"/>
     <enable material="Dome_valencia"/>
 
-    <enable material="pipes"/>
-    <enable material="PotTree"/>
+
 
 
     <enable material="white_plastic"/>
