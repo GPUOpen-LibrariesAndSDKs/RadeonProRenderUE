@@ -230,21 +230,46 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 	const uint32	shapeCount = m_Shapes.Num();
 	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 	{
+		rpr_shape shape = m_Shapes[iShape].m_RprShape;
+		rpr_int status = RPR_SUCCESS;
+
+		// If we have a wrong index, it ll just return NULL, and fallback to a dummy material
+		const UMaterialInterface	*matInterface = component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
+		const UMaterial				*parentMaterial = matInterface != NULL ? matInterface->GetMaterial() : NULL;
+		const char* materialName = TCHAR_TO_ANSI(*matInterface->GetName());
+
+		// check the caches to see if we have already converted this material
 		auto matCacheIt = matIndexToRPRMat.find(m_Shapes[iShape].m_UEMaterialIndex);
-		if ( matCacheIt != matIndexToRPRMat.end())
-		{
-			rpr_shape shape = m_Shapes[iShape].m_RprShape;
-			rpr_int status = RPR_SUCCESS;
-			
-			switch (matCacheIt->second.type)
+		auto cacheIt = Scene->m_MaterialCache.find(materialName);
+
+		if ( (matCacheIt != matIndexToRPRMat.end()) || 
+			 (cacheIt != Scene->m_MaterialCache.end()))
+		{		
+			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("Found %s in Cache"), UTF8_TO_TCHAR(materialName));
+
+			rpriExportRprMaterialResult cachedMaterial;
+			if(matCacheIt != matIndexToRPRMat.end())
+			{
+				cachedMaterial = matCacheIt->second;
+			} else
+			{
+				cachedMaterial = cacheIt->second;
+			}
+
+			switch (cachedMaterial.type)
 			{
 			case 0:
 				status = rprShapeSetMaterial(shape,
-						reinterpret_cast<rpr_material_node>(matCacheIt->second.data));
+						reinterpret_cast<rpr_material_node>(cachedMaterial.data));
 				break;
 			case 1:
 				status = rprxShapeAttachMaterial(Scene->m_RprSupportCtx, shape,
-							reinterpret_cast<rprx_material>(matCacheIt->second.data));
+							reinterpret_cast<rprx_material>(cachedMaterial.data));
+				if (status != RPR_SUCCESS)
+				{
+					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR material to the RPR shape"));
+				}
+				status = rprxMaterialCommit(Scene->m_RprSupportCtx, reinterpret_cast<rprx_material>(cachedMaterial.data));
 				break;
 			case 0xFFFF: // used to mark a second instance of a UMS material
 						 // avoids re-adding it/converting it again
@@ -260,28 +285,23 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 			continue;
 		}
 
-		// If we have a wrong index, it ll just return NULL, and fallback to a dummy material
-		const UMaterialInterface	*matInterface = component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
-		const UMaterial				*parentMaterial = matInterface != NULL ? matInterface->GetMaterial() : NULL;
-		rpr_shape					shape = m_Shapes[iShape].m_RprShape;
-
 		rpr_material_node	material = NULL;
 		if (parentMaterial == NULL)
 		{
 			rpr_material_node material = CreateDefaultDummyShapeMaterial(iShape);
 			matIndexToRPRMat[m_Shapes[iShape].m_UEMaterialIndex] = rpriExportRprMaterialResult{ 0, material };
 			continue;
-		}
-		
+		}	
+
 		// Attempt to map UE material to one in the Radeon ProRender material library loaded from disk.
-		const char* materialName = TCHAR_TO_ANSI(*matInterface->GetName());
 		if (Scene->m_materialLibrary.HasMaterialName(materialName))
 		{
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("Found %s"), UTF8_TO_TCHAR(materialName));
 			rpr_material_node material = CreateXMLShapeMaterial(iShape, matInterface);
-			matIndexToRPRMat[m_Shapes[iShape].m_UEMaterialIndex] = rpriExportRprMaterialResult{ 0, material };
+			Scene->m_MaterialCache[materialName] = rpriExportRprMaterialResult{ 0, material };
 			continue;
 		}
+
 
 		// We block instance materials if their parent is not UMS Enabled.
 		bool parentMaterialAllowed = true;
@@ -397,6 +417,11 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		// been set into RPR so we can just skip them here
 		if(indexIt == indexToMgIndexMap.end()) continue;
 		rpriExportRprMaterialResult const & result = resultArray[indexIt->second];
+
+		const UMaterialInterface	*matInterface = component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
+		const char* materialName = TCHAR_TO_ANSI(*matInterface->GetName());
+		Scene->m_MaterialCache[materialName] = result;
+
 		if (result.type == 0)
 		{
 			rpr_material_node rprMatNode = reinterpret_cast<rpr_material_node>(result.data);

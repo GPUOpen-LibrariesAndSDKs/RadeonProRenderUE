@@ -10,6 +10,7 @@
 #include "MaterialLibrary.h"
 #include "UMSControl.h"
 #include <RadeonProRenderInterchange.h>
+#include <map>
 #include "RPRScene.generated.h"
 
 /**
@@ -33,7 +34,7 @@ public:
 	rpr_material_system	m_RprMaterialSystem;
 	rprx_context		m_RprSupportCtx;
 	rpriContext			m_RpriContext;
-
+	std::map<std::string, rpriExportRprMaterialResult> m_MaterialCache;
 	rpr::MaterialLibrary m_materialLibrary;
 	rpr::UMSControl m_UMSControl;
 	

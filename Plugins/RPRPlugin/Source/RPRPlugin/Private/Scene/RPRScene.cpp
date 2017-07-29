@@ -509,6 +509,8 @@ void	ARPRScene::Rebuild()
 	// Once the RPR thread is deleted, clean all scene resources
 	RemoveSceneContent(false, false);
 
+	m_MaterialCache.clear();
+
 	rprContextClearMemory(m_RprContext);
 	// NOTE: Right now, keeps mesh cache
 }
