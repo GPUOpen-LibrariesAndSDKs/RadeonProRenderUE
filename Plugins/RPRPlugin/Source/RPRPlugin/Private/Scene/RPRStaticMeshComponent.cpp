@@ -99,7 +99,7 @@ rpr_material_node URPRStaticMeshComponent::CreateDefaultDummyShapeMaterial(uint3
 	return material;
 }
 
-rpr_material_node URPRStaticMeshComponent::CreateXMLShapeMaterial(uint32 iShape, UMaterialInterface const * matInterface) 
+rpriExportRprMaterialResult URPRStaticMeshComponent::CreateXMLShapeMaterial(uint32 iShape, UMaterialInterface const * matInterface)
 {
 	const char* materialName = TCHAR_TO_ANSI(*matInterface->GetName());
 	rpr_shape					shape = m_Shapes[iShape].m_RprShape;
@@ -134,15 +134,15 @@ rpr_material_node URPRStaticMeshComponent::CreateXMLShapeMaterial(uint32 iShape,
 #endif
 
 	// We have a match - go ahead and use the relevent material.
-    bool isUberMaterial = false;
-    void* xmlMaterial = Scene->m_materialLibrary.CreateMaterial(matInterface, Scene->m_RprContext, Scene->m_RprMaterialSystem, Scene->m_RprSupportCtx, isUberMaterial);
+	bool isUberMaterial = false;
+	void* xmlMaterial = Scene->m_materialLibrary.CreateMaterial(matInterface, Scene->m_RprContext, Scene->m_RprMaterialSystem, Scene->m_RprSupportCtx, isUberMaterial);
 				
 	// If we failed to create the xmlMaterial, go ahead with red default one and just log the error
 	if (!xmlMaterial) {
 		if (rprMaterialSystemCreateNode(Scene->m_RprMaterialSystem, RPR_MATERIAL_NODE_DIFFUSE, &xmlMaterial) != RPR_SUCCESS)
 		{
 			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create a default RPR material node"));
-			return nullptr;
+			return rpriExportRprMaterialResult{ 0, nullptr };
 		}
 					
 		// We choose to ignore errors below - it won't happen.
@@ -150,40 +150,42 @@ rpr_material_node URPRStaticMeshComponent::CreateXMLShapeMaterial(uint32 iShape,
 
 	}
 
-    // We must differentiate between an uber material handle and an rpr material node handle.
-    if (isUberMaterial)
-    {
-        // Save the material.
-        rprx_material uberMaterial = reinterpret_cast<rprx_material>(xmlMaterial);
-        m_Shapes[iShape].m_RprxMaterial = uberMaterial;
+	// We must differentiate between an uber material handle and an rpr material node handle.
+	if (isUberMaterial)
+	{
+		// Save the material.
+		rprx_material uberMaterial = reinterpret_cast<rprx_material>(xmlMaterial);
+		m_Shapes[iShape].m_RprxMaterial = uberMaterial;
 
-        // Attach the material to the shape.
-        if (rprxShapeAttachMaterial(Scene->m_RprSupportCtx, shape, uberMaterial) != RPR_SUCCESS)
-        {
-            UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign substituted XML RPR material to the RPR shape"));
-            return nullptr;
-        }
+		// Attach the material to the shape.
+		if (rprxShapeAttachMaterial(Scene->m_RprSupportCtx, shape, uberMaterial) != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign substituted XML RPR material to the RPR shape"));
+			return rpriExportRprMaterialResult{ 0, nullptr };
+		}
 
-        // Commit the changes to the uber material.
-        rpr_int result = rprxMaterialCommit(Scene->m_RprSupportCtx, uberMaterial);
-        if (result != RPR_SUCCESS)
-        {
-            UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("rprxMaterialCommit failed error %d"), result);
-            return nullptr;
-        }
-    }
-    else
-    {
-        // save the material
-        m_Shapes[iShape].m_RprMaterial = xmlMaterial;
-        
-        // And use it!
-        if (rprShapeSetMaterial(shape, xmlMaterial) != RPR_SUCCESS)
-        {
-            UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign substituted XML RPR material to the RPR shape"));
-            return nullptr;
-        }
-    }
+		// Commit the changes to the uber material.
+		rpr_int result = rprxMaterialCommit(Scene->m_RprSupportCtx, uberMaterial);
+		if (result != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("rprxMaterialCommit failed error %d"), result);
+			return rpriExportRprMaterialResult{ 0, nullptr };
+		}
+		return rpriExportRprMaterialResult{ 1, uberMaterial };
+
+	}
+	else
+	{
+		// save the material
+		m_Shapes[iShape].m_RprMaterial = xmlMaterial;
+		
+		// And use it!
+		if (rprShapeSetMaterial(shape, xmlMaterial) != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign substituted XML RPR material to the RPR shape"));
+			return rpriExportRprMaterialResult{ 0, nullptr };
+		}
+	}
 
 #if 0
 	// More debug data
@@ -212,8 +214,7 @@ rpr_material_node URPRStaticMeshComponent::CreateXMLShapeMaterial(uint32 iShape,
 		}
 	}
 #endif
-
-	return xmlMaterial;
+	return rpriExportRprMaterialResult{ 0, xmlMaterial };
 }
 #pragma optimize("",off)
 bool	URPRStaticMeshComponent::BuildMaterials()
@@ -221,9 +222,6 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 	const UStaticMeshComponent	*component = Cast<UStaticMeshComponent>(SrcComponent);
 	check(component != NULL);
 
-
-	// batch UMS material conversion for entire mesh
-	std::map<uint32, rpriExportRprMaterialResult> matIndexToRPRMat;
 
 	// Assign the materials on the instances: The cached geometry might be the same
 	// But materials can be overriden on a component basis
@@ -239,23 +237,13 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		const char* materialName = TCHAR_TO_ANSI(*matInterface->GetName());
 
 		// check the caches to see if we have already converted this material
-		auto matCacheIt = matIndexToRPRMat.find(m_Shapes[iShape].m_UEMaterialIndex);
 		auto cacheIt = Scene->m_MaterialCache.find(materialName);
 
-		if ( (matCacheIt != matIndexToRPRMat.end()) || 
-			 (cacheIt != Scene->m_MaterialCache.end()))
+		if ( (cacheIt != Scene->m_MaterialCache.end()))
 		{		
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("Found %s in Cache"), UTF8_TO_TCHAR(materialName));
 
-			rpriExportRprMaterialResult cachedMaterial;
-			if(matCacheIt != matIndexToRPRMat.end())
-			{
-				cachedMaterial = matCacheIt->second;
-			} else
-			{
-				cachedMaterial = cacheIt->second;
-			}
-
+			rpriExportRprMaterialResult cachedMaterial = cacheIt->second;
 			switch (cachedMaterial.type)
 			{
 			case 0:
@@ -270,9 +258,10 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR material to the RPR shape"));
 				}
 				status = rprxMaterialCommit(Scene->m_RprSupportCtx, reinterpret_cast<rprx_material>(cachedMaterial.data));
-				break;
-			case 0xFFFF: // used to mark a second instance of a UMS material
-						 // avoids re-adding it/converting it again
+				if (status != RPR_SUCCESS)
+				{
+					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't commit RPR X material"));
+				}
 				break;
 			default: assert(false);
 			}
@@ -289,7 +278,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		if (parentMaterial == NULL)
 		{
 			rpr_material_node material = CreateDefaultDummyShapeMaterial(iShape);
-			matIndexToRPRMat[m_Shapes[iShape].m_UEMaterialIndex] = rpriExportRprMaterialResult{ 0, material };
+			Scene->m_MaterialCache[materialName] = rpriExportRprMaterialResult{ 0, material };
 			continue;
 		}	
 
@@ -297,8 +286,19 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		if (Scene->m_materialLibrary.HasMaterialName(materialName))
 		{
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("Found %s"), UTF8_TO_TCHAR(materialName));
-			rpr_material_node material = CreateXMLShapeMaterial(iShape, matInterface);
-			Scene->m_MaterialCache[materialName] = rpriExportRprMaterialResult{ 0, material };
+			rpriExportRprMaterialResult res = CreateXMLShapeMaterial(iShape, matInterface);
+			if (res.data != nullptr) {
+				if(Scene->m_MaterialCache.find(materialName) != Scene->m_MaterialCache.end())
+				{
+					UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("!!%s Already in material cache!!"), UTF8_TO_TCHAR(materialName));
+				}
+				Scene->m_MaterialCache[materialName] = res;
+
+			} else
+			{
+				rpr_material_node material = CreateDefaultDummyShapeMaterial(iShape);
+				Scene->m_MaterialCache[materialName] = rpriExportRprMaterialResult{ 0, material };
+			}
 			continue;
 		}
 
@@ -318,8 +318,56 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		{
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("UMS Enabled for %s"), UTF8_TO_TCHAR(materialName));
 
-			// use 0xFFFF as a marker. this ensure we never get here twice for the same material
-			matIndexToRPRMat[m_Shapes[iShape].m_UEMaterialIndex] = rpriExportRprMaterialResult{ 0xFFFF, nullptr };
+			std::vector<rpri::generic::IMaterialGraph*> mgs;
+			mgs.emplace_back(new UE4InterchangeMaterialGraph(matInterface));
+
+			static char const UE4ImporterString[] = "UE4 Importer";
+			rpriImportProperty importProps[] = {
+				{ "Import", reinterpret_cast<uintptr_t>(UE4ImporterString) },
+				{ "Num Materials", mgs.size() },
+				{ "Material Import Array", reinterpret_cast<uintptr_t>(mgs.data()) }
+			};
+			uint32_t const numImportProps = sizeof(importProps) / sizeof(importProps[0]);
+
+			rpriImportFromMemory(Scene->m_RpriContext, "Generic", numImportProps, importProps);
+
+			std::vector<rpriExportRprMaterialResult> resultArray;
+			resultArray.resize(mgs.size());
+
+			rpriExportProperty exportProps[] = {
+				{ "RPR Context", reinterpret_cast<uintptr_t>(&Scene->m_RprContext) },
+				{ "RPR Material System", reinterpret_cast<uintptr_t>(&Scene->m_RprMaterialSystem) },
+				{ "RPRX Context", reinterpret_cast<uintptr_t>(&Scene->m_RprSupportCtx) },
+				{ "Num RPR Materials", static_cast<uintptr_t>(mgs.size()) },
+				{ "RPR Material Result Array", reinterpret_cast<uintptr_t>(resultArray.data()) },
+			};
+			uint32_t const numExportProps = sizeof(exportProps) / sizeof(exportProps[0]);
+
+			rpriExport(Scene->m_RpriContext, "RPR API Exporter", numExportProps, exportProps);
+
+			const UMaterialInterface	*matInterface = component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
+			const char* materialName = TCHAR_TO_ANSI(*matInterface->GetName());
+			Scene->m_MaterialCache[materialName] = resultArray[0];
+
+			if (resultArray[0].type == 0)
+			{
+				rpr_material_node rprMatNode = reinterpret_cast<rpr_material_node>(resultArray[0].data);
+				rpr_int status = rprShapeSetMaterial(shape, rprMatNode);
+			}
+			else
+			{
+				rprx_material rprMatX = reinterpret_cast<rprx_material>(resultArray[0].data);
+				rpr_int status = rprxShapeAttachMaterial(Scene->m_RprSupportCtx, shape, rprMatX);
+				if (status != RPR_SUCCESS)
+				{
+					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR X material to the RPR shape"));
+				}
+				status = rprxMaterialCommit(Scene->m_RprSupportCtx, rprMatX);
+				if (status != RPR_SUCCESS)
+				{
+					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't commit RPR X material"));
+				}
+			}
 		} else {
 			if (materialUMSEnabled) {
 				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Fallback for material %s due to disallowed parent %s"), UTF8_TO_TCHAR(materialName), UTF8_TO_TCHAR(parentMaterialName));
@@ -338,6 +386,8 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 				return false;
 			}
 			m_Shapes[iShape].m_RprMaterial = material;
+			Scene->m_MaterialCache[materialName] = { 0, material };
+
 			if (rprMaterialNodeSetInputF(material, "color", 0.5f, 0.5f, 0.5f, 1.0f) != RPR_SUCCESS ||
 				rprShapeSetMaterial(shape, material) != RPR_SUCCESS)
 			{
@@ -345,108 +395,6 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 				return false;
 			}
 		}
-	}
-
-	std::vector<rpri::generic::IMaterialGraph*> mgs;
-	std::map<uint32_t, size_t> indexToMgIndexMap;
-	std::map<UMaterialInterface const *,size_t> uniqueUeMatInterfaces;
-	for(auto&& mat : matIndexToRPRMat)
-	{
-		if (mat.second.type == 0xFFFF)
-		{
-			UMaterialInterface const *matInterface = component->GetMaterial(mat.first);
-			auto uniqIt = uniqueUeMatInterfaces.find(matInterface);
-			if (uniqIt == uniqueUeMatInterfaces.end())
-			{
-				mgs.emplace_back(new UE4InterchangeMaterialGraph(matInterface));
-				indexToMgIndexMap[mat.first] = mgs.size() - 1;
-				uniqueUeMatInterfaces[matInterface] = mgs.size() - 1;
-			} else
-			{
-				indexToMgIndexMap[mat.first] = uniqIt->second;
-			}
-		}
-	}
-
-	if (mgs.empty())
-	{
-		return true;
-	}
-	static char const UE4ImporterString[] = "UE4 Importer";
-	rpriImportProperty importProps[] = {
-		{ "Import", reinterpret_cast<uintptr_t>(UE4ImporterString) },
-		{ "Num Materials", mgs.size() },
-		{ "Material Import Array", reinterpret_cast<uintptr_t>(mgs.data()) }
-	};
-	uint32_t const numImportProps = sizeof(importProps) / sizeof(importProps[0]);
-
-	rpriImportFromMemory(Scene->m_RpriContext, "Generic", numImportProps, importProps);
-
-#if RPR_UMS_DUMP_RPIF == 1
-	static int testCounter = 0;
-	std::stringstream ss;
-	ss << testCounter++;
-	std::string sss = "C:/Users/AMD/Source/Repos/AMD/RadeonProRenderUE/test" + ss.str();
-	rpriExportProperty exportProps[] = {
-		{ "Export Path", reinterpret_cast<uintptr_t>(sss.c_str()) },
-	};
-	uint32_t const numExportProps = sizeof(exportProps) / sizeof(exportProps[0]);
-
-	rpriExport(ctx, "RPIF Exporter", numExportProps, exportProps);
-#else
-	std::vector<rpriExportRprMaterialResult> resultArray;
-	resultArray.resize(mgs.size());
-
-	rpriExportProperty exportProps[] = {
-		{ "RPR Context", reinterpret_cast<uintptr_t>(&Scene->m_RprContext) },
-		{ "RPR Material System", reinterpret_cast<uintptr_t>(&Scene->m_RprMaterialSystem) },
-		{ "RPRX Context", reinterpret_cast<uintptr_t>(&Scene->m_RprSupportCtx) },
-		{ "Num RPR Materials", static_cast<uintptr_t>(mgs.size()) },
-		{ "RPR Material Result Array", reinterpret_cast<uintptr_t>(resultArray.data()) },
-	};
-	uint32_t const numExportProps = sizeof(exportProps) / sizeof(exportProps[0]);
-
-	rpriExport(Scene->m_RpriContext, "RPR API Exporter", numExportProps, exportProps);
-
-	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
-	{
-		rpr_shape shape = m_Shapes[iShape].m_RprShape;
-		auto indexIt = indexToMgIndexMap.find(m_Shapes[iShape].m_UEMaterialIndex);
-
-		// if indexIt will be valid for UMS materials, other types have already
-		// been set into RPR so we can just skip them here
-		if(indexIt == indexToMgIndexMap.end()) continue;
-		rpriExportRprMaterialResult const & result = resultArray[indexIt->second];
-
-		const UMaterialInterface	*matInterface = component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
-		const char* materialName = TCHAR_TO_ANSI(*matInterface->GetName());
-		Scene->m_MaterialCache[materialName] = result;
-
-		if (result.type == 0)
-		{
-			rpr_material_node rprMatNode = reinterpret_cast<rpr_material_node>(result.data);
-			rpr_int status = rprShapeSetMaterial(shape, rprMatNode);
-		}
-		else
-		{
-			rprx_material rprMatX = reinterpret_cast<rprx_material>(result.data);
-			rpr_int status = rprxShapeAttachMaterial(Scene->m_RprSupportCtx, shape, rprMatX);
-			if (status != RPR_SUCCESS)
-			{
-				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR X material to the RPR shape"));
-			}
-			status = rprxMaterialCommit(Scene->m_RprSupportCtx, rprMatX);
-			if (status != RPR_SUCCESS)
-			{
-				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't commit RPR X material"));
-			}
-		}
-	}
-#endif
-
-	for (auto&& mg : mgs)
-	{
-		if (mg) delete mg;
 	}
 
 	return true;
@@ -496,9 +444,9 @@ bool	URPRStaticMeshComponent::Build()
 	if (lodRes.Sections.Num() == 0)
 		return false;
 
-    // DEBUG CODE for checking winding order.
-    enum class WindingOrder { CCW, CW };
-    std::set<WindingOrder> windingOrders;
+	// DEBUG CODE for checking winding order.
+	enum class WindingOrder { CCW, CW };
+	std::set<WindingOrder> windingOrders;
 
 	TArray<SRPRCachedMesh>	shapes = GetMeshInstances(staticMesh);
 	if (shapes.Num() == 0) // No mesh in cache ?
@@ -585,42 +533,42 @@ bool	URPRStaticMeshComponent::Build()
 				return false;
 			}
 
-            // DEBUG CODE for checking winding orders.
-            for (auto i = 0U; i < section.NumTriangles * 3; i += 3)
-            {
-                // Get the indices for the current triangle.
-                auto i0 = indices[i];
-                auto i1 = indices[i + 1];
-                auto i2 = indices[i + 2];
+			// DEBUG CODE for checking winding orders.
+			for (auto i = 0U; i < section.NumTriangles * 3; i += 3)
+			{
+				// Get the indices for the current triangle.
+				auto i0 = indices[i];
+				auto i1 = indices[i + 1];
+				auto i2 = indices[i + 2];
 
-                // Get the vertices for the current triangle.
-                FVector v0 = positions.GetData()[i0];
-                FVector v1 = positions.GetData()[i1];
-                FVector v2 = positions.GetData()[i2];
+				// Get the vertices for the current triangle.
+				FVector v0 = positions.GetData()[i0];
+				FVector v1 = positions.GetData()[i1];
+				FVector v2 = positions.GetData()[i2];
 
-                // Get the normals oc the current triangle.
-                FVector n0 = normals.GetData()[i0];
-                FVector n1 = normals.GetData()[i1];
-                FVector n2 = normals.GetData()[i2];
+				// Get the normals oc the current triangle.
+				FVector n0 = normals.GetData()[i0];
+				FVector n1 = normals.GetData()[i1];
+				FVector n2 = normals.GetData()[i2];
 
 #define USE_GEOMETRIC_NORMAL 0
 #if USE_GEOMETRIC_NORMAL == 1
-                FVector n = FVector::CrossProduct(v1 - v0, v2 - v0).GetSafeNormal();
+				FVector n = FVector::CrossProduct(v1 - v0, v2 - v0).GetSafeNormal();
 #else
-                FVector n = (n0 + n1 + n2) * 0.3333f;
+				FVector n = (n0 + n1 + n2) * 0.3333f;
 #endif
-                // Project vertices onto a 2D plane offset some distance along the triangle's surface normal.
-                FVector planeNormal = n;
-                FVector planeBase = (v0 + v1 + v2) * 0.5f + planeNormal;
-                FVector p0 = FVector::PointPlaneProject(v0, planeBase, planeNormal);
-                FVector p1 = FVector::PointPlaneProject(v0, planeBase, planeNormal);
-                FVector p2 = FVector::PointPlaneProject(v0, planeBase, planeNormal);
+				// Project vertices onto a 2D plane offset some distance along the triangle's surface normal.
+				FVector planeNormal = n;
+				FVector planeBase = (v0 + v1 + v2) * 0.5f + planeNormal;
+				FVector p0 = FVector::PointPlaneProject(v0, planeBase, planeNormal);
+				FVector p1 = FVector::PointPlaneProject(v0, planeBase, planeNormal);
+				FVector p2 = FVector::PointPlaneProject(v0, planeBase, planeNormal);
 
-                // Calculate the 2D determinant of the projected vertices onto the plane.
-                float det = 0.5f * (p0.X * (p1.Y - p2.Y) + p1.X * (p2.Y - p0.Y) + p2.X * (p0.Y - p1.Y));
-                if (det >= 0) windingOrders.emplace(WindingOrder::CCW);
-                else windingOrders.emplace(WindingOrder::CW);
-            }
+				// Calculate the 2D determinant of the projected vertices onto the plane.
+				float det = 0.5f * (p0.X * (p1.Y - p2.Y) + p1.X * (p2.Y - p0.Y) + p2.X * (p0.Y - p1.Y));
+				if (det >= 0) windingOrders.emplace(WindingOrder::CCW);
+				else windingOrders.emplace(WindingOrder::CW);
+			}
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape created from '%s' section %d"), *staticMesh->GetName(), iSection);
 			SRPRCachedMesh	newShape(shape, section.MaterialIndex);
 			if (!Cache.Contains(staticMesh))
@@ -648,14 +596,14 @@ bool	URPRStaticMeshComponent::Build()
 			m_Shapes.Add(newInstance);
 		}
 
-        if (windingOrders.size() > 1)
-        {
-            UE_LOG(LogRPRStaticMeshComponent, Error, TEXT("\n\nMultiple winding orders found in shape!\n\n"));
-        }
-        else
-        {
-            UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\n\nSingle winding order %s!\n\n"), ((*windingOrders.begin() == WindingOrder::CCW) ? TEXT("CCW") : TEXT("CW")));
-        }
+		if (windingOrders.size() > 1)
+		{
+			UE_LOG(LogRPRStaticMeshComponent, Error, TEXT("\n\nMultiple winding orders found in shape!\n\n"));
+		}
+		else
+		{
+			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\n\nSingle winding order %s!\n\n"), ((*windingOrders.begin() == WindingOrder::CCW) ? TEXT("CCW") : TEXT("CW")));
+		}
 	}
 	else
 	{
@@ -728,15 +676,10 @@ void	URPRStaticMeshComponent::ReleaseResources()
 		uint32	shapeCount = m_Shapes.Num();
 		for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 		{
-			if (m_Shapes[iShape].m_RprMaterial != NULL)
-				rprObjectDelete(m_Shapes[iShape].m_RprMaterial);
-
 			if (m_Shapes[iShape].m_RprxMaterial != NULL)
 			{
 				check(m_Shapes[iShape].m_RprShape != NULL);
-
 				rprxShapeDetachMaterial(Scene->m_RprSupportCtx, m_Shapes[iShape].m_RprShape, m_Shapes[iShape].m_RprxMaterial);
-				rprxMaterialDelete(Scene->m_RprSupportCtx, m_Shapes[iShape].m_RprxMaterial);
 			}
 
 			if (m_Shapes[iShape].m_RprShape != NULL)

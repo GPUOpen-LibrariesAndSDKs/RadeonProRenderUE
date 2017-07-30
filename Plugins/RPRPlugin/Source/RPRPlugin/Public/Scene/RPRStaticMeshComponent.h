@@ -50,7 +50,7 @@ public:
 private:
 	static TMap<UStaticMesh*, TArray<SRPRCachedMesh>>	Cache;
 	rpr_material_node CreateDefaultDummyShapeMaterial(uint32 iShape);
-	rpr_material_node CreateXMLShapeMaterial(uint32 iShape, class UMaterialInterface const * matInterface);
+	rpriExportRprMaterialResult CreateXMLShapeMaterial(uint32 iShape, class UMaterialInterface const * matInterface);
 
 	TArray<SRPRCachedMesh>	GetMeshInstances(UStaticMesh *mesh);
 	bool					BuildMaterials();
