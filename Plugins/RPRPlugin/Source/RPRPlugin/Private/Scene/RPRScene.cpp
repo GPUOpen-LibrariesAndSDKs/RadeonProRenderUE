@@ -742,7 +742,22 @@ void	ARPRScene::RemoveSceneContent(bool clearScene, bool clearCache)
 	if (m_RprScene != NULL)
 	{
 		if (clearCache)
+		{
 			URPRStaticMeshComponent::ClearCache(m_RprScene);
+			for (auto&& mat : m_MaterialCache)
+			{
+				if (mat.second.type == 0)
+				{
+					rprObjectDelete(mat.second.data);
+
+				}
+				else
+				{
+					rprxMaterialDelete(m_RprSupportCtx, reinterpret_cast<rprx_material>(mat.second.data));
+				}
+			}
+			m_MaterialCache.clear();
+		}
 		if (clearScene)
 			rprSceneClear(m_RprScene);
 	}

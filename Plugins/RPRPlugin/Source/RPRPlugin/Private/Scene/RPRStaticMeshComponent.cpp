@@ -676,15 +676,10 @@ void	URPRStaticMeshComponent::ReleaseResources()
 		uint32	shapeCount = m_Shapes.Num();
 		for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 		{
-			if (m_Shapes[iShape].m_RprMaterial != NULL)
-				rprObjectDelete(m_Shapes[iShape].m_RprMaterial);
-
 			if (m_Shapes[iShape].m_RprxMaterial != NULL)
 			{
 				check(m_Shapes[iShape].m_RprShape != NULL);
-
 				rprxShapeDetachMaterial(Scene->m_RprSupportCtx, m_Shapes[iShape].m_RprShape, m_Shapes[iShape].m_RprxMaterial);
-				rprxMaterialDelete(Scene->m_RprSupportCtx, m_Shapes[iShape].m_RprxMaterial);
 			}
 
 			if (m_Shapes[iShape].m_RprShape != NULL)
