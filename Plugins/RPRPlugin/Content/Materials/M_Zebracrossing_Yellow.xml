@@ -12,7 +12,7 @@
   <node name="color_change" type="ARITHMETIC">
     <param name="op" type="uint" value="2"/>
     <param name="color0" type="connection" value="Map #189"/>
-    <param name="color1" type="float4" value="0.315,0.190,0,1"/>
+    <param name="color1" type="float4" value="0.315,0.190,0,.5"/>
   </node>
   <node name="arith" type="ARITHMETIC">
     <param name="color0" type="connection" value="Map #189"/>

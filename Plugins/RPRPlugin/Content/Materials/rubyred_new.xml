@@ -24,7 +24,7 @@
     </node>
     <node name="Material #51" type="MICROFACET">
         <param name="color" type="connection" value="box13"/>
-        <param name="normal" type="connection" value="box3"/>
+        
         <param name="roughness" type="float4" value="0, 0, 0, 0"/>
     </node>
     <node name="box3" type="NORMAL_MAP">
@@ -50,9 +50,9 @@
         <param name="op" type="uint" value="2"/>
     </node>
     <node name="box6" type="BLEND_VALUE">
-        <param name="color0" type="float4" value="0.603922, 0.0705882, 0.0313726, 0"/>
+        <param name="color0" type="float4" value="0.603922, 0.0705882, 0.0713726, 0"/>
         <param name="color1" type="float4" value="0.027451, 0.0470588, 0.945098, 0"/>
-        <param name="weight" type="connection" value="box7"/>
+        <param name="weight" type="float4" value_old="box7" value="0,0,0,0"/>
     </node>
     <node name="box7" type="FRESNEL">
         <param name="ior" type="float4" value="1.3, 1.3, 1.3, 0"/>
@@ -69,7 +69,6 @@
     </node>
     <node name="Material #53" type="MICROFACET">
         <param name="color" type="float4" value="1, 1, 1, 0"/>
-        <param name="normal" type="connection" value="box10"/>
         <param name="roughness" type="connection" value="box12"/>
     </node>
     <node name="box10" type="NORMAL_MAP">
@@ -130,7 +129,7 @@
     <node name="box23" type="INPUT_TEXTURE">
         <param name="path" type="file_path" value="RadeonProRMaps/flakes2.png"/>
     </node>
-    <node name="box22" type="INPUT_TEXTURE">
+    <node name="box22" type="INPUT_TEXTURE" tag="carPaint_NormalMap">
         <param name="path" type="file_path" value="RadeonProRMaps/concrete-17_b010.jpg"/>
     </node>
 </material>

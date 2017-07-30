@@ -99,7 +99,7 @@ rpr_material_node URPRStaticMeshComponent::CreateDefaultDummyShapeMaterial(uint3
 	return material;
 }
 
-rpr_material_node URPRStaticMeshComponent::CreateXMLShapeMaterial(uint32 iShape, UMaterialInterface const * matInterface) 
+rpr_material_node URPRStaticMeshComponent::CreateXMLShapeMaterial(uint32 iShape, UMaterialInterface const * matInterface, bool& isUberMaterial)
 {
 	const char* materialName = TCHAR_TO_ANSI(*matInterface->GetName());
 	rpr_shape					shape = m_Shapes[iShape].m_RprShape;
@@ -134,7 +134,7 @@ rpr_material_node URPRStaticMeshComponent::CreateXMLShapeMaterial(uint32 iShape,
 #endif
 
 	// We have a match - go ahead and use the relevent material.
-    bool isUberMaterial = false;
+    isUberMaterial = false;
     void* xmlMaterial = Scene->m_materialLibrary.CreateMaterial(matInterface, Scene->m_RprContext, Scene->m_RprMaterialSystem, Scene->m_RprSupportCtx, isUberMaterial);
 				
 	// If we failed to create the xmlMaterial, go ahead with red default one and just log the error
@@ -241,9 +241,9 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		// check the caches to see if we have already converted this material
 		auto matCacheIt = matIndexToRPRMat.find(m_Shapes[iShape].m_UEMaterialIndex);
 		auto cacheIt = Scene->m_MaterialCache.find(materialName);
-
-		if ( (matCacheIt != matIndexToRPRMat.end()) || 
-			 (cacheIt != Scene->m_MaterialCache.end()))
+#define ENABLE_MATERIAL_CACHE true
+		if (ENABLE_MATERIAL_CACHE &&((matCacheIt != matIndexToRPRMat.end()) ||
+			 (cacheIt != Scene->m_MaterialCache.end())))
 		{		
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("Found %s in Cache"), UTF8_TO_TCHAR(materialName));
 
@@ -297,8 +297,9 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		if (Scene->m_materialLibrary.HasMaterialName(materialName))
 		{
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("Found %s"), UTF8_TO_TCHAR(materialName));
-			rpr_material_node material = CreateXMLShapeMaterial(iShape, matInterface);
-			Scene->m_MaterialCache[materialName] = rpriExportRprMaterialResult{ 0, material };
+			bool isUber = false;
+			rpr_material_node material = CreateXMLShapeMaterial(iShape, matInterface, isUber);
+			Scene->m_MaterialCache[materialName] = rpriExportRprMaterialResult{ (isUber ? (uint32_t)0x1 :0), material };
 			continue;
 		}
 

@@ -1,8 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <umscontrol>
     <matchall value="false"/>
-    <enable material="pipes"/>
-    <enable material="PotTree"/>
+
+  <enable material="Masterbalcony" value ="false" comment="enable this once UE4Desaturate is supported"/>
+    <enable material="blacony"/>
+    <enable material="object80" value="false"/>
+    <enable material="HP024"/>
+    <enable material="bars"/>
+    <enable material="ob81"/>
+    <enable material="object84"/>
+<enable material="PotTree"/>
+  <enable material="Trunk"/>
+  
+  <enable material="AMD1"/>
+  <enable material="AMD2"/>
+  <enable material="AMD3"/>
+  <enable material="AMD4"/>
+  <enable material="postandpots" value="true"/>
+
+      <enable material="pipes"/>
 <enable material="camperwall"/>
 <enable material="camperwall_Inst"/>
   <enable material="Asphalt"/>
@@ -11,8 +27,7 @@
     <enable material="FacadeBC_Inst"/>
 	<enable material="M_OceanWater_Simple"/>
 	<enable material="M_Sky_Simple"/>
-
-    <enable material="plant"/>
+   <enable material="plant"/>
     <enable material="plant_Inst"/>
     <enable material="Curtainbackdrop" comment="Check out the subsurface color and emissive"/>
     <enable material="Curtainbackdrop_Inst"/>
@@ -23,32 +38,30 @@
 
     <enable material="GrayLargePavingAMD"/>
     <enable material="GrayLargePavingAMD_Inst1"/>
-  
+
+
+ 
+      
   <enable material="MasterAwning" value="true"/>
   <enable material="Awning1" value="true"/>
   <enable material="Awning2" value="true"/>
-  <enable material="Awning3" value="true"/>
+<enable material="Awning3" value="false"/>
   <enable material="Awning4"/>
-    <enable material="Masterbalcony" value ="false" comment="enable this once UE4Desaturate is supported"/>
-    <enable material="blacony"/>
-    <enable material="object80"/>
-    <enable material="HP024"/>
-    <enable material="bars"/>
-    <enable material="ob81"/>
-    <enable material="object84"/>
-    <enable material="postandpots" value="true"/>
+  
+  
   <enable material="Curtainbackdrop2withnormal" comment="Check out the subsurface color"/>
   <enable material="office"/>
-  <enable material="Trunk"/>
   <enable material="FramesMat"/>
-  <enable material="Building01_Mat"/>
-  <enable material="Building01_Mat_Inst"/>
-  <enable material="office"/>
   <enable material="Master_Wall"/>
   <enable material="BackwallAMD"/>
   <enable material="WhiteWallAMD"/>
   <enable material="Master_WallNoNormal"/>
   <enable material="cONCRETEPILLARAMD"/>
+
+  <enable material="Building01_Mat"/>
+  <enable material="Building01_Mat_Inst"/>
+  <enable material="Building01_MatAMD"/>
+  <enable material="Building01_Mat_InstAMD"/>
 
 
   <enable material="Tyreskid"/>
@@ -62,6 +75,13 @@
   <enable material="salon2mat"/>
   <enable material="hall1mat"/>
 
+  <enable material="M_Reflector"/>
+  <enable material="MI_Reflector_Orange"/>
+  <enable material="MI_Reflector_red2"/>
+  <enable material="MI_Reflector_red3"/>
+  <enable material="magneticinnerwheel"/>
+  <enable material="smooth_ax_brakediscfacemetal_na"/>
+  <enable material="smooth_ax_brakediscmetal_na"/>
   <enable material="rubber_dark_Inst"/>
   <enable material="smooth_ax_chrome_sm300h" value="true"/>
   <enable material="smooth_ax_satinchrome_sm5077"/>
@@ -69,7 +89,9 @@
   <enable material="smooth_ax_darkgrey_na"/>
   <enable material="smooth_am_badgechrome_na" value="true"/>
   <enable material="BasicRed"/>
-  <enable material="smooth_ax_obsblack_na"/>
+
+  
+<enable material="smooth_ax_obsblack_na"/>
   <enable material="smooth_ax_satinchrome_sm5077"/>
   <enable material="smooth_ax_black_ja6"/>
   <enable material="smooth_ax_saftetyred_ebd"/>
@@ -93,9 +115,8 @@
   <enable material="pannierstitch_na_black_na"/>
   <enable material="smooth_ax_satinaluminum_ua2"/>
 
-
-
-  <disallowed>
+    <disallowed>
+  
   </disallowed>
 <disallowed>
     <enable material="NewMaterial"/>
