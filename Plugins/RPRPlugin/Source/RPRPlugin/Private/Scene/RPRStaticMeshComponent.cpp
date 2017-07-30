@@ -214,7 +214,7 @@ rpriExportRprMaterialResult URPRStaticMeshComponent::CreateXMLShapeMaterial(uint
 		}
 	}
 #endif
-	return rpriExportRprMaterialResult{ 1, xmlMaterial };
+	return rpriExportRprMaterialResult{ 0, xmlMaterial };
 }
 #pragma optimize("",off)
 bool	URPRStaticMeshComponent::BuildMaterials()
@@ -292,11 +292,8 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 				{
 					UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("!!%s Already in material cache!!"), UTF8_TO_TCHAR(materialName));
 				}
-				// TODO BUG WORKAROUND uber material is infinite looping if we set onto a second shape
-				if (res.type == 0)
-				{
-					Scene->m_MaterialCache[materialName] = res;
-				}
+				Scene->m_MaterialCache[materialName] = res;
+
 			} else
 			{
 				rpr_material_node material = CreateDefaultDummyShapeMaterial(iShape);
