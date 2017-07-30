@@ -89,7 +89,9 @@ namespace rpr
 
     void MaterialLibrary::Clear()
     {
+		m_masterFileMappings.clear();
         m_materialDescriptions.clear();
+		m_masterFileMappings.clear();
     }
 
     void MaterialLibrary::LoadMasterMappingFile(const std::string& filename)
@@ -420,6 +422,7 @@ namespace rpr
 				// For "connection" type, lookup the RPR handle.
                 if (param.type == "connection")
                 {
+					if (param.value.empty()) continue;
                     // Handle IMAGE_TEXTURE node type case.
                     auto tuple = materialNodes.at(param.value);
                     if (std::get<1>(tuple) != nullptr)
