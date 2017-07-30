@@ -37,6 +37,8 @@ namespace rpr
 
         std::string FindAbsoluteImagePath(const std::string& materialDirectory, const std::string& filename);
 
+		std::unordered_map<std::string, rpr_image> imageCache;
+
         struct ParameterMapping
         {
             std::string rprNode; // Name of the RPR material node to target.

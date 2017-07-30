@@ -258,9 +258,10 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR material to the RPR shape"));
 				}
 				status = rprxMaterialCommit(Scene->m_RprSupportCtx, reinterpret_cast<rprx_material>(cachedMaterial.data));
-				break;
-			case 0xFFFF: // used to mark a second instance of a UMS material
-						 // avoids re-adding it/converting it again
+				if (status != RPR_SUCCESS)
+				{
+					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't commit RPR X material"));
+				}
 				break;
 			default: assert(false);
 			}
@@ -287,7 +288,15 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("Found %s"), UTF8_TO_TCHAR(materialName));
 			rpriExportRprMaterialResult res = CreateXMLShapeMaterial(iShape, matInterface);
 			if (res.data != nullptr) {
-				Scene->m_MaterialCache[materialName] = res;
+				if(Scene->m_MaterialCache.find(materialName) != Scene->m_MaterialCache.end())
+				{
+					UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("!!%s Already in material cache!!"), UTF8_TO_TCHAR(materialName));
+				}
+				// TODO BUG WORKAROUND uber material is infinite looping if we set onto a second shape
+				if (res.type == 0)
+				{
+					Scene->m_MaterialCache[materialName] = res;
+				}
 			} else
 			{
 				rpr_material_node material = CreateDefaultDummyShapeMaterial(iShape);
@@ -380,6 +389,8 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 				return false;
 			}
 			m_Shapes[iShape].m_RprMaterial = material;
+			Scene->m_MaterialCache[materialName] = { 0, material };
+
 			if (rprMaterialNodeSetInputF(material, "color", 0.5f, 0.5f, 0.5f, 1.0f) != RPR_SUCCESS ||
 				rprShapeSetMaterial(shape, material) != RPR_SUCCESS)
 			{

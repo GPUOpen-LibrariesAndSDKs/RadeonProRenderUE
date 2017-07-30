@@ -290,6 +290,13 @@ namespace rpr
 				if (texture_tag_itr != materialMapping.textureParameters.end()) {
 					texture_tag = texture_tag_itr->second;
 				}
+				auto icacheIt = imageCache.find(texture_tag);
+				if(icacheIt != imageCache.end())
+				{
+					handle = icacheIt->second;
+					goto imageNodeProcessing;
+				}
+
 				// textureParameters
 				// Texture MUST be replaced by one from UE.
 				auto itr = textureReplacements.find(texture_tag);
@@ -338,8 +345,12 @@ namespace rpr
                     }
 
 					rpr_int result = rprContextCreateImage(context, format, &desc, mipData.GetData(), &reinterpret_cast<rpr_image>(handle));
-					if (result != RPR_SUCCESS)
+					if (result != RPR_SUCCESS) {
 						UE_LOG(LogMaterialLibrary, Error, TEXT("rprContextCreateImage failed (%d) for node tag %s"), result, UTF8_TO_TCHAR(node.tag.c_str()));
+					} else
+					{
+						imageCache[texture_tag] = reinterpret_cast<rpr_image>(handle);
+					}
 				}
 				else
 				{
@@ -356,6 +367,7 @@ namespace rpr
                         else
                         {
                             UE_LOG(LogMaterialLibrary, Log, TEXT("rprContextCreateImageFromFile success %s handl=%x"), UTF8_TO_TCHAR(absoluteFilename.c_str()), handle);
+							imageCache[texture_tag] = reinterpret_cast<rpr_image>(handle);
                         }
                     }
 				}
@@ -394,7 +406,7 @@ namespace rpr
 
 			}
 
-
+imageNodeProcessing:
 			// Store in node map.
 			materialNodes.emplace(node.name, std::make_tuple(node.type, handle));
 
