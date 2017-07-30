@@ -114,6 +114,7 @@
   <enable material="ebony_perfseats"/>
   <enable material="pannierstitch_na_black_na"/>
   <enable material="smooth_ax_satinaluminum_ua2"/>
+  <enable material="smokedglass"/>
 
     <disallowed>
   
