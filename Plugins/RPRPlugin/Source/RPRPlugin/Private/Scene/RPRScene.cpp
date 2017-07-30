@@ -410,7 +410,8 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 
 		if (rprCreateContext(RPR_API_VERSION, &tahoePluginId, 1, creationFlags, NULL, TCHAR_TO_ANSI(*settings->RenderCachePath), &m_RprContext) != RPR_SUCCESS ||
 			rprContextSetParameter1u(m_RprContext, "aasamples", m_NumDevices) != RPR_SUCCESS ||
-			rprContextSetParameter1u(m_RprContext, "preview", 1) != RPR_SUCCESS)
+			rprContextSetParameter1u(m_RprContext, "preview", 1) != RPR_SUCCESS ||
+			rprContextSetParameter1f(m_RprContext, "radianceclamp", (rpr_float)1.0f) != RPR_SUCCESS)
 		{
 			UE_LOG(LogRPRScene, Error, TEXT("RPR Context creation failed: check your OpenCL runtime and driver versions."));
 			return;
