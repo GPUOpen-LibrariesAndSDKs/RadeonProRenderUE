@@ -9,6 +9,7 @@
     <enable material="bars"/>
     <enable material="ob81"/>
     <enable material="object84"/>
+    <enable material="brass"/>
 <enable material="PotTree"/>
   <enable material="Trunk"/>
   
@@ -45,7 +46,7 @@
   <enable material="MasterAwning" value="true"/>
   <enable material="Awning1" value="true"/>
   <enable material="Awning2" value="true"/>
-<enable material="Awning3" value="false"/>
+<enable material="Awning3" value="true"/>
   <enable material="Awning4"/>
   
   
