@@ -2,9 +2,9 @@
 <umscontrol>
     <matchall value="false"/>
 
-  <enable material="Masterbalcony" value ="false" comment="enable this once UE4Desaturate is supported"/>
+  <enable material="Masterbalcony" value ="true" comment="enable this once UE4Desaturate is supported"/>
     <enable material="blacony"/>
-    <enable material="object80" value="false"/>
+    <enable material="object80" value="true"/>
     <enable material="HP024"/>
     <enable material="bars"/>
     <enable material="ob81"/>

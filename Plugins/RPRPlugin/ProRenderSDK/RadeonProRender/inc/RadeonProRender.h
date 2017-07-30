@@ -27,7 +27,7 @@ extern "C" {
 
 #include "cstddef"
 
-#define RPR_API_VERSION 0x010027200 
+#define RPR_API_VERSION 0x010027300 
 
 /* rpr_status */
 #define RPR_SUCCESS 0 
@@ -2050,7 +2050,7 @@ extern RPR_API_ENTRY rpr_int rprContextGetAttachedPostEffectCount(rpr_context co
 extern RPR_API_ENTRY rpr_int rprContextGetAttachedPostEffect(rpr_context context, rpr_uint i, rpr_post_effect * out_effect);
 extern RPR_API_ENTRY rpr_int rprPostEffectGetInfo(rpr_post_effect effect, rpr_post_effect_info info, size_t size,  void *  data, size_t *  size_ret);
 /***************compatibility part***************/
-#define FR_API_VERSION 0x010027200 
+#define FR_API_VERSION 0x010027300 
 #define FR_SUCCESS 0 
 #define FR_ERROR_COMPUTE_API_NOT_SUPPORTED -1 
 #define FR_ERROR_OUT_OF_SYSTEM_MEMORY -2 
