@@ -380,6 +380,32 @@ bool	ARPRScene::RPRThread_Rebuild()
 	return restartRender;
 }
 
+void ARPRScene::LoadMappings()
+{
+	m_materialLibrary.Clear();
+	m_UMSControl.Clear();
+
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != NULL);
+
+	// Set the master material mappings file.
+	m_materialLibrary.LoadMasterMappingFile(TCHAR_TO_ANSI(*(FPaths::GameDir() + "/Plugins/RPRPlugin/Content/MaterialMappings.xml")));
+
+	// Add material search paths to material library.
+	m_materialLibrary.AddMaterialSearchPaths(TCHAR_TO_ANSI(*settings->MaterialsSearchPaths));
+
+	// Add image search paths to material library.
+	m_materialLibrary.AddImageSearchPaths(TCHAR_TO_ANSI(*settings->ImageSearchPaths));
+
+	// Initialize material library for UE material to RPR replacement.	 
+	m_materialLibrary.AddDirectory(TCHAR_TO_ANSI(*(FPaths::GameDir() + "/Plugins/RPRPlugin/Content/Materials")));
+
+	// Initialize the UMSControl
+	m_UMSControl.LoadControlData(TCHAR_TO_ANSI(*(FPaths::GameDir() + "/Plugins/RPRPlugin/Content/UMSControl.xml")));
+	UE_LOG(LogRPRScene, Log, TEXT("ProRender scene created"));
+
+}
+
 void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 {
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
@@ -453,21 +479,7 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 
 		m_RenderTexture = m_Plugin->GetRenderTexture();
 
-		// Set the master material mappings file.
-		m_materialLibrary.LoadMasterMappingFile(TCHAR_TO_ANSI(*(FPaths::GameDir() + "/Plugins/RPRPlugin/Content/MaterialMappings.xml")));
-
-		// Add material search paths to material library.
-		m_materialLibrary.AddMaterialSearchPaths(TCHAR_TO_ANSI(*settings->MaterialsSearchPaths));
-
-		// Add image search paths to material library.
-		m_materialLibrary.AddImageSearchPaths(TCHAR_TO_ANSI(*settings->ImageSearchPaths));
-
-		// Initialize material library for UE material to RPR replacement.	 
-		m_materialLibrary.AddDirectory(TCHAR_TO_ANSI(*(FPaths::GameDir() + "/Plugins/RPRPlugin/Content/Materials")));
-
-		// Initialize the UMSControl
-		m_UMSControl.LoadControlData(TCHAR_TO_ANSI(*(FPaths::GameDir() + "/Plugins/RPRPlugin/Content/UMSControl.xml")));
-		UE_LOG(LogRPRScene, Log, TEXT("ProRender scene created"));
+		LoadMappings();
 	}
 
 	if (!m_RendererWorker.IsValid())
@@ -509,6 +521,8 @@ void	ARPRScene::Rebuild()
 
 	// Once the RPR thread is deleted, clean all scene resources
 	RemoveSceneContent(false, false);
+
+	LoadMappings();
 
 	m_MaterialCache.clear();
 
@@ -729,7 +743,22 @@ void	ARPRScene::RemoveSceneContent(bool clearScene, bool clearCache)
 	if (m_RprScene != NULL)
 	{
 		if (clearCache)
+		{
 			URPRStaticMeshComponent::ClearCache(m_RprScene);
+			for (auto&& mat : m_MaterialCache)
+			{
+				if (mat.second.type == 0)
+				{
+					rprObjectDelete(mat.second.data);
+
+				}
+				else
+				{
+					rprxMaterialDelete(m_RprSupportCtx, reinterpret_cast<rprx_material>(mat.second.data));
+				}
+			}
+			m_MaterialCache.clear();
+		}
 		if (clearScene)
 			rprSceneClear(m_RprScene);
 	}

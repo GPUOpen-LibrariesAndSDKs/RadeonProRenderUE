@@ -72,6 +72,8 @@ private:
 	uint32	BuildScene();
 	bool	BuildViewportCamera();
 	uint32	GetContextCreationFlags(const FString &dllPath);
+	void	LoadMappings();
+
 private:
 	bool	m_TriggerEndFrameResize;
 	bool	m_TriggerEndFrameRebuild;
