@@ -24,18 +24,20 @@
 #include <cassert>
 #include "Materials/MaterialExpressionTextureCoordinate.h"
 
+// all texture dimesion greater than this will be reduced by 2
+#define DIMENSION_LIMIT 8192
 #define TRY_PLATFORM_DATA_FOR_IMAGES false
 
 namespace {
-template<int _elementCount, int _remap0 = 0, int _remap1 = 1, int _remap2 = 2, int _remap3 = 3>
+template<int _elementCount, int _xinc = 1, int _yinc = 1, int _remap0 = 0, int _remap1 = 1, int _remap2 = 2, int _remap3 = 3>
 void FloatToByteCopy(size_t _width,
 	size_t _height,
 	float const * _src,
 	uint8_t * _dest)
 {
-	for (int y = 0; y < _height; ++y)
+	for (int y = 0; y < _height; y+= _yinc)
 	{
-		for (int x = 0; x < _width; ++x)
+		for (int x = 0; x < _width; x+= _xinc)
 		{
 			switch (_elementCount)
 			{
@@ -48,18 +50,22 @@ void FloatToByteCopy(size_t _width,
 			}
 			_src += _elementCount;
 		}
+		if (_yinc > 1)
+		{
+			_src += _elementCount * _width *(_yinc - 1);
+		}
 	}
 }
 
-template<int _elementCount, int _remap0 = 0, int _remap1 = 1, int _remap2 = 2, int _remap3 = 3>
+template<int _elementCount, int _xinc = 1, int _yinc = 1, int _remap0 = 0, int _remap1 = 1, int _remap2 = 2, int _remap3 = 3>
 void ByteToByteCopy(size_t _width,
 	size_t _height,
 	uint8_t const * _src,
 	uint8_t * _dest)
 {
-	for (int y = 0; y < _height; ++y)
+	for (int y = 0; y < _height; y+=_yinc)
 	{
-		for (int x = 0; x < _width; ++x)
+		for (int x = 0; x < _width; x+=_xinc)
 		{
 			switch (_elementCount)
 			{
@@ -72,17 +78,21 @@ void ByteToByteCopy(size_t _width,
 			}
 			_src += _elementCount;
 		}
+		if (_yinc > 1)
+		{
+			_src += _elementCount * _width *(_yinc - 1);
+		}
 	}
 }
-template<int _elementCount, int _remap0 = 0, int _remap1 = 1, int _remap2 = 2, int _remap3 = 3>
+template<int _elementCount, int _xinc = 1, int _yinc = 1, int _remap0 = 0, int _remap1 = 1, int _remap2 = 2, int _remap3 = 3>
 void sRGBByteToLinearByteCopy(size_t _width,
 	size_t _height,
 	uint8_t const * _src,
 	uint8_t * _dest)
 {
-	for (int y = 0; y < _height; ++y)
+	for (int y = 0; y < _height; y+= _yinc)
 	{
-		for (int x = 0; x < _width; ++x)
+		for (int x = 0; x < _width; x+= _xinc)
 		{
 			float f[4] = { 0,0,0,0 };
 
@@ -95,7 +105,7 @@ void sRGBByteToLinearByteCopy(size_t _width,
 				break;
 			default:;
 			}
-			_src += _elementCount;
+			_src += _elementCount * _xinc;
 
 			// don't correct alpha (tho this is argueble re blinns,
 			// ghost in a snow storm article)
@@ -118,7 +128,10 @@ void sRGBByteToLinearByteCopy(size_t _width,
 			*_dest = uint8_t(f[2] * 255.f); _dest++;
 			*_dest = uint8_t(f[1] * 255.f); _dest++;
 			*_dest = uint8_t(f[0]); _dest++;
-
+		}
+		if(_yinc > 1)
+		{
+			_src += _elementCount * _width *(_yinc-1);
 		}
 	}
 }
@@ -1222,7 +1235,7 @@ size_t UE4InterchangeImage::GetWidth() const
 			return mip.SizeX;
 		}
 	}
-	return source.GetSizeX();
+	return (source.GetSizeX() > DIMENSION_LIMIT) ? (source.GetSizeX()/2) : source.GetSizeX();
 }
 
 size_t UE4InterchangeImage::GetHeight() const
@@ -1239,7 +1252,7 @@ size_t UE4InterchangeImage::GetHeight() const
 			return mip.SizeY;
 		}
 	}
-	return source.GetSizeY();
+	return (source.GetSizeY() > DIMENSION_LIMIT) ? (source.GetSizeY()/2) : source.GetSizeY();
 }
 
 size_t UE4InterchangeImage::GetDepth() const
@@ -1456,29 +1469,104 @@ bool UE4InterchangeImage::GetBulk2DAsUint8s(uint8_t * _dest) const
 	void const * rawData = source.LockMip(0);
 	ETextureSourceFormat sformat = source.GetFormat();
 	uint8_t const * src = reinterpret_cast<uint8_t const*>(rawData);
+
+
 	switch (sformat)
 	{
 	case TSF_G8:
-		ByteToByteCopy<1>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
+		if(source.GetSizeX() > DIMENSION_LIMIT && source.GetSizeY() > DIMENSION_LIMIT)
+		{
+			ByteToByteCopy<1,2,2>(source.GetSizeX(), source.GetSizeY(), src, _dest);
+		}
+		else if (source.GetSizeX() > DIMENSION_LIMIT && source.GetSizeY() <= DIMENSION_LIMIT)
+		{
+			ByteToByteCopy<1, 2, 1>(source.GetSizeX(), source.GetSizeY(), src, _dest);
+		}
+		else if (source.GetSizeX() <= DIMENSION_LIMIT && source.GetSizeY() > DIMENSION_LIMIT)
+		{
+			ByteToByteCopy<1, 1, 2>(source.GetSizeX(), source.GetSizeY(), src, _dest);
+		}
+		else
+		{
+			ByteToByteCopy<1,1,1>(source.GetSizeX(), source.GetSizeY(), src, _dest);
+		}
 		source.UnlockMip(0);
 		return true;
 	case TSF_BGRA8:
 		if (GetColourSpace() == ColourSpace::Linear)
 		{
-			ByteToByteCopy<4, 2, 1, 0, 3>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
+			if (source.GetSizeX() > DIMENSION_LIMIT && source.GetSizeY() > DIMENSION_LIMIT)
+			{
+				ByteToByteCopy<4, 2, 2, 2, 1, 0, 3>(source.GetSizeX(), source.GetSizeY(), src, _dest);
+			}
+			else if (source.GetSizeX() > DIMENSION_LIMIT && source.GetSizeY() <= DIMENSION_LIMIT)
+			{
+				ByteToByteCopy<4, 2, 1, 2, 1, 0, 3>(source.GetSizeX(), source.GetSizeY(), src, _dest);
+			}
+			else if (source.GetSizeX() <= DIMENSION_LIMIT && source.GetSizeY() > DIMENSION_LIMIT)
+			{
+				ByteToByteCopy<4, 1, 2, 2, 1, 0, 3>(source.GetSizeX(), source.GetSizeY(), src, _dest);
+			}
+			else
+			{
+				ByteToByteCopy<4, 1, 1, 2, 1, 0, 3>(source.GetSizeX(), source.GetSizeY(), src, _dest);
+			}
 		} else
 		{
-			sRGBByteToLinearByteCopy<4, 2, 1, 0, 3>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
+			if (source.GetSizeX() > DIMENSION_LIMIT && source.GetSizeY() > DIMENSION_LIMIT)
+			{
+				sRGBByteToLinearByteCopy<4, 2, 2, 2, 1, 0, 3>(source.GetSizeX(), source.GetSizeY(), src, _dest);
+			}
+			else if (source.GetSizeX() > DIMENSION_LIMIT && source.GetSizeY() <= DIMENSION_LIMIT)
+			{
+				sRGBByteToLinearByteCopy<4, 2, 1, 2, 1, 0, 3>(source.GetSizeX(), source.GetSizeY(), src, _dest);
+			}
+			else if (source.GetSizeX() <= DIMENSION_LIMIT && source.GetSizeY() > DIMENSION_LIMIT)
+			{
+				sRGBByteToLinearByteCopy<4, 1, 2, 2, 1, 0, 3>(source.GetSizeX(), source.GetSizeY(), src, _dest);
+			}
+			else
+			{
+				sRGBByteToLinearByteCopy<4, 1, 1, 2, 1, 0, 3>(source.GetSizeX(), source.GetSizeY(), src, _dest);
+			}
 		}
 		source.UnlockMip(0);
 		return true;
 	case TSF_RGBA8:
 		if (GetColourSpace() == ColourSpace::Linear)
 		{
-			ByteToByteCopy<4>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
+			if (source.GetSizeX() > DIMENSION_LIMIT && source.GetSizeY() > DIMENSION_LIMIT)
+			{
+				ByteToByteCopy<4,2,2>(source.GetSizeX(), source.GetSizeY(), src, _dest);
+			}
+			else if (source.GetSizeX() > DIMENSION_LIMIT && source.GetSizeY() <= DIMENSION_LIMIT)
+			{
+				ByteToByteCopy<4, 2, 1>(source.GetSizeX(), source.GetSizeY(), src, _dest);
+			} else if(source.GetSizeX() <= DIMENSION_LIMIT && source.GetSizeY() > DIMENSION_LIMIT)
+			{
+				ByteToByteCopy<4, 1, 2>(source.GetSizeX(), source.GetSizeY(), src, _dest);
+			} else
+			{
+				ByteToByteCopy<4,1,1>(source.GetSizeX(), source.GetSizeY(), src, _dest);
+			}
 		} else
 		{
-			sRGBByteToLinearByteCopy<4>(source.GetSizeX(), source.GetSizeY(), (uint8_t*)rawData, _dest);
+			if (source.GetSizeX() > DIMENSION_LIMIT && source.GetSizeY() > DIMENSION_LIMIT)
+			{
+				sRGBByteToLinearByteCopy<4, 2, 2>(source.GetSizeX(), source.GetSizeY(), src, _dest);
+			}
+			else if (source.GetSizeX() > DIMENSION_LIMIT && source.GetSizeY() <= DIMENSION_LIMIT)
+			{
+				sRGBByteToLinearByteCopy<4, 2, 1>(source.GetSizeX(), source.GetSizeY(), src, _dest);
+			}
+			else if (source.GetSizeX() <= DIMENSION_LIMIT && source.GetSizeY() > DIMENSION_LIMIT)
+			{
+				sRGBByteToLinearByteCopy<4, 1, 2>(source.GetSizeX(), source.GetSizeY(), src, _dest);
+			}
+			else
+			{
+				sRGBByteToLinearByteCopy<4,1,1>(source.GetSizeX(), source.GetSizeY(), src, _dest);
+			}
 		}
 		source.UnlockMip(0);
 		return true;
