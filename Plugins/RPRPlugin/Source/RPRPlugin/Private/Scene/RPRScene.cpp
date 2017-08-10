@@ -402,8 +402,6 @@ void ARPRScene::LoadMappings()
 
 	// Initialize the UMSControl
 	m_UMSControl.LoadControlData(TCHAR_TO_ANSI(*(FPaths::GameDir() + "/Plugins/RPRPlugin/Content/UMSControl.xml")));
-	UE_LOG(LogRPRScene, Log, TEXT("ProRender scene created"));
-
 }
 
 void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
@@ -447,8 +445,9 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 			UE_LOG(LogRPRScene, Error, TEXT("RPR Context setup failed: Couldn't set tahoe plugin."));
 			return;
 		}
+#ifdef RPR_VERBOSE
 		UE_LOG(LogRPRScene, Log, TEXT("ProRender context initialized"));
-
+#endif
 
 		rpriAllocateContext(&m_RpriContext);
 		rpriErrorOptions(m_RpriContext, 5, false, false);
@@ -480,6 +479,10 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		m_RenderTexture = m_Plugin->GetRenderTexture();
 
 		LoadMappings();
+
+#ifdef RPR_VERBOSE
+		UE_LOG(LogRPRScene, Log, TEXT("ProRender scene created"));
+#endif
 	}
 
 	if (!m_RendererWorker.IsValid())

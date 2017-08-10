@@ -274,7 +274,9 @@ bool	URPRViewportCameraComponent::Build()
 		UE_LOG(LogRPRViewportCameraComponent, Warning, TEXT("Couldn't set RPR viewport camera properties"));
 		return false;
 	}
+#ifdef RPR_VERBOSE
 	UE_LOG(LogRPRViewportCameraComponent, Log, TEXT("RPR viewport Camera created"));
+#endif
 	return true;
 }
 

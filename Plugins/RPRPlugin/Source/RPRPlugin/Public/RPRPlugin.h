@@ -2,6 +2,9 @@
 
 #pragma once
 
+// Uncomment this to enable detailed RPR logs
+//#define RPR_VERBOSE
+
 #include "CoreMinimal.h"
 #include "ModuleManager.h"
 

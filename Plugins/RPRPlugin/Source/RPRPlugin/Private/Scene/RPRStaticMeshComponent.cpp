@@ -46,7 +46,9 @@ TArray<SRPRCachedMesh>	URPRStaticMeshComponent::GetMeshInstances(UStaticMesh *me
 		}
 		else
 		{
+#ifdef RPR_VERBOSE
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape instance created from '%s' section %d"), *mesh->GetName(), iShape);
+#endif
 		}
 		instances.Add(SRPRCachedMesh(newShape, srcShapes[iShape].m_UEMaterialIndex));
 	}
@@ -241,7 +243,9 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 
 		if ( (cacheIt != Scene->m_MaterialCache.end()))
 		{		
+#ifdef RPR_VERBOSE
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("Found %s in Cache"), UTF8_TO_TCHAR(materialName));
+#endif
 
 			rpriExportRprMaterialResult cachedMaterial = cacheIt->second;
 			switch (cachedMaterial.type)
@@ -285,12 +289,16 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		// Attempt to map UE material to one in the Radeon ProRender material library loaded from disk.
 		if (Scene->m_materialLibrary.HasMaterialName(materialName))
 		{
+#ifdef RPR_VERBOSE
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("Found %s"), UTF8_TO_TCHAR(materialName));
+#endif
 			rpriExportRprMaterialResult res = CreateXMLShapeMaterial(iShape, matInterface);
 			if (res.data != nullptr) {
 				if(Scene->m_MaterialCache.find(materialName) != Scene->m_MaterialCache.end())
 				{
+#ifdef RPR_VERBOSE
 					UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("!!%s Already in material cache!!"), UTF8_TO_TCHAR(materialName));
+#endif
 				}
 				Scene->m_MaterialCache[materialName] = res;
 
@@ -316,7 +324,9 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		bool materialUMSEnabled = Scene->m_UMSControl.IsMaterialUMSEnabled(materialName);
 		if (parentMaterialAllowed &&  materialUMSEnabled)
 		{
+#ifdef RPR_VERBOSE
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("UMS Enabled for %s"), UTF8_TO_TCHAR(materialName));
+#endif
 
 			std::vector<rpri::generic::IMaterialGraph*> mgs;
 			mgs.emplace_back(new UE4InterchangeMaterialGraph(matInterface));
@@ -569,7 +579,9 @@ bool	URPRStaticMeshComponent::Build()
 				if (det >= 0) windingOrders.emplace(WindingOrder::CCW);
 				else windingOrders.emplace(WindingOrder::CW);
 			}
+#ifdef RPR_VERBOSE
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape created from '%s' section %d"), *staticMesh->GetName(), iSection);
+#endif
 			SRPRCachedMesh	newShape(shape, section.MaterialIndex);
 			if (!Cache.Contains(staticMesh))
 				Cache.Add(staticMesh);
@@ -591,7 +603,9 @@ bool	URPRStaticMeshComponent::Build()
 			}
 			else
 			{
+#ifdef RPR_VERBOSE
 				UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape instance created from '%s' section %d"), *staticMesh->GetName(), iSection);
+#endif
 			}
 			m_Shapes.Add(newInstance);
 		}
@@ -602,7 +616,9 @@ bool	URPRStaticMeshComponent::Build()
 		}
 		else
 		{
+#ifdef RPR_VERBOSE
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\n\nSingle winding order %s!\n\n"), ((*windingOrders.begin() == WindingOrder::CCW) ? TEXT("CCW") : TEXT("CW")));
+#endif
 		}
 	}
 	else

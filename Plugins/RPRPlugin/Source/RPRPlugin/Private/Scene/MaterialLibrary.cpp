@@ -139,7 +139,9 @@ namespace rpr
                 }
 
                 // Save to map.
-                UE_LOG(LogMaterialLibrary, Log, TEXT("Found material mapping %s -> %s"), UTF8_TO_TCHAR(ueName.c_str()), UTF8_TO_TCHAR(rprName.c_str()));
+#ifdef RPR_VERBOSE
+				UE_LOG(LogMaterialLibrary, Log, TEXT("Found material mapping %s -> %s"), UTF8_TO_TCHAR(ueName.c_str()), UTF8_TO_TCHAR(rprName.c_str()));
+#endif
                 m_masterFileMappings.emplace(ueName, std::move(mm));
                 
                 // Move to next node.
@@ -204,7 +206,9 @@ namespace rpr
             // Assume all XML files found are material files (for now).
             if (entry.path().extension() == ".xml")
             {
-                UE_LOG(LogMaterialLibrary, Log, TEXT("Loading XML File -> %s"), entry.path().generic_wstring().c_str());
+#ifdef RPR_VERBOSE
+				UE_LOG(LogMaterialLibrary, Log, TEXT("Loading XML File -> %s"), entry.path().generic_wstring().c_str());
+#endif
                 LoadMaterialXML(entry.path().generic_string());
             }
         }
@@ -212,7 +216,9 @@ namespace rpr
 
     bool MaterialLibrary::HasMaterialName(const std::string& name)
     {
-		UE_LOG(LogMaterialLibrary, Log, TEXT("Looking for material library material %s"), UTF8_TO_TCHAR(name.c_str()));        
+#ifdef RPR_VERBOSE
+		UE_LOG(LogMaterialLibrary, Log, TEXT("Looking for material library material %s"), UTF8_TO_TCHAR(name.c_str()));
+#endif
         return (m_masterFileMappings.find(name) != m_masterFileMappings.end() || m_materialDescriptions.find(name) != m_materialDescriptions.end());
     }
 
@@ -221,25 +227,33 @@ namespace rpr
         // Assume UE material maps to an RPR material with the same name but allow any entry in the master mappings file to override it.
         std::string name = TCHAR_TO_ANSI(*ueMaterialInterfaceObject->GetName());
         MaterialMapping materialMapping = {};
-        UE_LOG(LogMaterialLibrary, Log, TEXT("CreateMaterial --> %s"), UTF8_TO_TCHAR(name.c_str()));
+#ifdef RPR_VERBOSE
+		UE_LOG(LogMaterialLibrary, Log, TEXT("CreateMaterial --> %s"), UTF8_TO_TCHAR(name.c_str()));
+#endif
 
         if (m_masterFileMappings.find(name) != m_masterFileMappings.end())
         {
             // Make a copy of the material mapping object.
             materialMapping = m_masterFileMappings.at(name);
-            UE_LOG(LogMaterialLibrary, Log, TEXT("Master mappings file contains %s -> %s"), UTF8_TO_TCHAR(name.c_str()), UTF8_TO_TCHAR(materialMapping.name.c_str()));
+#ifdef RPR_VERBOSE
+			UE_LOG(LogMaterialLibrary, Log, TEXT("Master mappings file contains %s -> %s"), UTF8_TO_TCHAR(name.c_str()), UTF8_TO_TCHAR(materialMapping.name.c_str()));
+#endif
             
             // Change the name of the RPR material the UE one maps to.
             name = materialMapping.name;
         }
 
-        UE_LOG(LogMaterialLibrary, Log, TEXT("CreateMaterial (name change) --> %s"), UTF8_TO_TCHAR(name.c_str()));
+#ifdef RPR_VERBOSE
+		UE_LOG(LogMaterialLibrary, Log, TEXT("CreateMaterial (name change) --> %s"), UTF8_TO_TCHAR(name.c_str()));
+#endif
 
 		// For for name string in material descriptions map.
 		auto itr = m_materialDescriptions.find(name);
 		if (itr == m_materialDescriptions.end())
 		{
-			UE_LOG(LogMaterialLibrary, Log, TEXT("Material name %s not found in library"), UTF8_TO_TCHAR(name.c_str()));
+#ifdef RPR_VERBOSE
+			UE_LOG(LogMaterialLibrary, Warning, TEXT("Material name %s not found in library"), UTF8_TO_TCHAR(name.c_str()));
+#endif
 			return nullptr;
 		}
 
@@ -366,7 +380,9 @@ namespace rpr
                         }
                         else
                         {
-                            UE_LOG(LogMaterialLibrary, Log, TEXT("rprContextCreateImageFromFile success %s handl=%x"), UTF8_TO_TCHAR(absoluteFilename.c_str()), handle);
+#ifdef RPR_VERBOSE
+							UE_LOG(LogMaterialLibrary, Log, TEXT("rprContextCreateImageFromFile success %s handl=%x"), UTF8_TO_TCHAR(absoluteFilename.c_str()), handle);
+#endif
 							imageCache[texture_tag] = reinterpret_cast<rpr_image>(handle);
                         }
                     }
@@ -484,7 +500,9 @@ imageNodeProcessing:
                                             }
                                             else
                                             {
-                                                UE_LOG(LogMaterialLibrary, Log, TEXT("rprxMaterialSetParameterN success param=%s data=%x line %d"), UTF8_TO_TCHAR(param.name.c_str()), data, __LINE__);
+#ifdef RPR_VERBOSE
+												UE_LOG(LogMaterialLibrary, Log, TEXT("rprxMaterialSetParameterN success param=%s data=%x line %d"), UTF8_TO_TCHAR(param.name.c_str()), data, __LINE__);
+#endif
                                             }
                                         }
                                         else
@@ -496,7 +514,9 @@ imageNodeProcessing:
                                             }
                                             else
                                             {
-                                                UE_LOG(LogMaterialLibrary, Log, TEXT("rprMaterialNodeSetInputN success param=%s data=%x line %d"), UTF8_TO_TCHAR(param.name.c_str()), data, __LINE__);
+#ifdef RPR_VERBOSE
+												UE_LOG(LogMaterialLibrary, Log, TEXT("rprMaterialNodeSetInputN success param=%s data=%x line %d"), UTF8_TO_TCHAR(param.name.c_str()), data, __LINE__);
+#endif
                                             }
                                         }
                                     }
@@ -698,7 +718,9 @@ imageNodeProcessing:
         }
 
         // Add material to map.
-        UE_LOG(LogMaterialLibrary, Log, TEXT("Loading XML File -> %s"), UTF8_TO_TCHAR(material.name.c_str()));
+#ifdef RPR_VERBOSE
+		UE_LOG(LogMaterialLibrary, Log, TEXT("Loading XML File -> %s"), UTF8_TO_TCHAR(material.name.c_str()));
+#endif
         m_materialDescriptions.emplace(std::make_pair(material.name, std::move(material)));
     }
 

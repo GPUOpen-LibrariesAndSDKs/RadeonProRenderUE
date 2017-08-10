@@ -357,7 +357,9 @@ void	FRPRRendererWorker::ClearFramebuffer()
 		m_CurrentIteration = 0;
 		m_PreviousRenderedIteration = 0;
 		m_ClearFramebuffer = false;
+#ifdef RPR_VERBOSE
 		UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer cleared"));
+#endif
 	}
 }
 

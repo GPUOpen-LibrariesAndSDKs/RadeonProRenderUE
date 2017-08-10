@@ -38,7 +38,9 @@ namespace rpr
 		tinyxml2::XMLDocument doc;
 		if (doc.LoadFile(filename.c_str())== tinyxml2::XML_SUCCESS)
 		{
+#ifdef RPR_VERBOSE
 			UE_LOG(LogUMSControl, Log, TEXT("Loading UMS Control File %s"), UTF8_TO_TCHAR(filename.c_str()));
+#endif
 
 			// First, check for UMSControl
 			auto elem = doc.FirstChildElement("umscontrol");
@@ -53,7 +55,9 @@ namespace rpr
 					else {
 						this->matchAll = false;
 					}
+#ifdef RPR_VERBOSE
 					UE_LOG(LogUMSControl, Log, TEXT("MatchAll <= %s"), UTF8_TO_TCHAR(matchAll?"true":"false"));
+#endif
 				}
 
 				// Finally - look for enables (no value => true)
@@ -67,7 +71,9 @@ namespace rpr
 							isEnabled = true;
 						}
 						materialEnables.emplace(std::make_pair(enableMaterial, isEnabled));
+#ifdef RPR_VERBOSE
 						UE_LOG(LogUMSControl, Log, TEXT("%s UMS for %s"), UTF8_TO_TCHAR(isEnabled ? " ENABLED" : "DISABLED"), UTF8_TO_TCHAR(enableMaterial));
+#endif
 					}
 					enableNode = enableNode->NextSiblingElement();
 				}

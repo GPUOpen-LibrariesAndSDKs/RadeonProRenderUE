@@ -204,7 +204,9 @@ bool	URPRLightComponent::Build()
 		return false;
 	}
 	SrcComponent->ComponentToWorld.SetRotation(oldOrientation);
+#ifdef RPR_VERBOSE
 	UE_LOG(LogRPRLightComponent, Log, TEXT("RPR Light created from '%s'"), *SrcComponent->GetName());
+#endif
 	return true;
 }
 
@@ -232,7 +234,6 @@ bool	URPRLightComponent::PostBuild()
 		return false;
 	}
 	SrcComponent->ComponentToWorld.SetRotation(oldOrientation);
-	UE_LOG(LogRPRLightComponent, Log, TEXT("RPR Light created from '%s'"), *SrcComponent->GetName());
 	return Super::PostBuild();
 }
 

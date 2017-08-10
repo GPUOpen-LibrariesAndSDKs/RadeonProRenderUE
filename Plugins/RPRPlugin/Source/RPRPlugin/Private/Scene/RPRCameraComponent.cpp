@@ -144,7 +144,9 @@ bool	URPRCameraComponent::Build()
 	RefreshProperties(true);
 	if (Scene->m_ActiveCamera == this)
 		SetAsActiveCamera();
+#ifdef RPR_VERBOSE
 	UE_LOG(LogRPRCameraComponent, Log, TEXT("RPR Camera created from '%s'"), *SrcComponent->GetName());
+#endif
 	return true;
 }
 
