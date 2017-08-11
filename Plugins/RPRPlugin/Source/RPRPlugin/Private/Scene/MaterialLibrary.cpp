@@ -313,11 +313,12 @@ namespace rpr
 
 				// textureParameters
 				// Texture MUST be replaced by one from UE.
-				auto itr = textureReplacements.find(texture_tag);
-				if (itr != textureReplacements.end())
+				auto it = textureReplacements.find(texture_tag);
+				if (it != textureReplacements.end())
 				{
-					UTexture* texture = itr->second;
+					UTexture* texture = it->second;
 
+#if WITH_EDITOR // Invalid in runtime builds
 					rpr_image_format format = {};
 					switch (texture->Source.GetFormat())
 					{
@@ -357,7 +358,6 @@ namespace rpr
                         for (auto i = 0U; i < desc.image_width * desc.image_height; ++i)
                             std::swap(pixels[i * 4 + 0], pixels[i * 4 + 2]);
                     }
-
 					rpr_int result = rprContextCreateImage(context, format, &desc, mipData.GetData(), &reinterpret_cast<rpr_image>(handle));
 					if (result != RPR_SUCCESS) {
 						UE_LOG(LogMaterialLibrary, Error, TEXT("rprContextCreateImage failed (%d) for node tag %s"), result, UTF8_TO_TCHAR(node.tag.c_str()));
@@ -365,6 +365,7 @@ namespace rpr
 					{
 						imageCache[texture_tag] = reinterpret_cast<rpr_image>(handle);
 					}
+#endif
 				}
 				else
 				{
@@ -493,8 +494,8 @@ imageNodeProcessing:
                                         if (node.type == "UBER")
                                         {
                                             rprx_material uberMaterial = reinterpret_cast<rprx_material>(handle);
-                                            rpr_int result = rprxMaterialSetParameterN(uberMatContext, uberMaterial, stringToRprxParameter.at(param.name), texture);
-                                            if (result != RPR_SUCCESS)
+                                            rpr_int r = rprxMaterialSetParameterN(uberMatContext, uberMaterial, stringToRprxParameter.at(param.name), texture);
+                                            if (r != RPR_SUCCESS)
                                             {
                                                 UE_LOG(LogMaterialLibrary, Error, TEXT("rprxMaterialSetParameterN failed (%d) param=%s line %d"), result, UTF8_TO_TCHAR(param.name.c_str()), __LINE__);
                                             }
@@ -507,8 +508,8 @@ imageNodeProcessing:
                                         }
                                         else
                                         {
-                                            rpr_int result = rprMaterialNodeSetInputN(handle, param.name.c_str(), texture);
-                                            if (result != RPR_SUCCESS)
+                                            rpr_int r = rprMaterialNodeSetInputN(handle, param.name.c_str(), texture);
+                                            if (r != RPR_SUCCESS)
                                             {
                                                 UE_LOG(LogMaterialLibrary, Error, TEXT("rprMaterialNodeSetInputN failed (%d) node=%s param=%s param=%s line %d"), result, UTF8_TO_TCHAR(name.c_str()), UTF8_TO_TCHAR(node.name.c_str()), UTF8_TO_TCHAR(param.name.c_str()), __LINE__);
                                             }
@@ -571,19 +572,19 @@ imageNodeProcessing:
 
                     // Apply any material mappings if they exist.
                     bool foundParameterMapping = false;
-                    for (auto itr : materialMapping.parameterMappings)
+                    for (auto it : materialMapping.parameterMappings)
                     {
                         // Check to see if the current parameter mapping matches the current node and node param.
-                        if (itr.second.rprNode == node.name && itr.second.rprNodeParameter == param.name)
+                        if (it.second.rprNode == node.name && it.second.rprNodeParameter == param.name)
                         {
                             // Look up the matching UE parameter in either the scalar or vector lists.
-                            if (scalarReplacementParameters.find(itr.first) != scalarReplacementParameters.end())
+                            if (scalarReplacementParameters.find(it.first) != scalarReplacementParameters.end())
                             {
                                 // Replace value.
-                                value[0] = scalarReplacementParameters.find(itr.first)->second;
+                                value[0] = scalarReplacementParameters.find(it.first)->second;
                                 foundParameterMapping = true;
                             }
-                            else if (vectorReplacementParameters.find(itr.first) != vectorReplacementParameters.end())
+                            else if (vectorReplacementParameters.find(it.first) != vectorReplacementParameters.end())
                             {
                                 // Replace value.
                                 auto& newValue = vectorReplacementParameters.find(param.tag)->second;

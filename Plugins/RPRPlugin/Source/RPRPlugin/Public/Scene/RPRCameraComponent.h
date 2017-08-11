@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
 #include "Scene/RPRSceneComponent.h"
+#include "Camera/CameraTypes.h"
 #include "RPRCameraComponent.generated.h"
 
 enum

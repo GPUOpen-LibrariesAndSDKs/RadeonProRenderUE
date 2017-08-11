@@ -1,6 +1,12 @@
 // RPR COPYRIGHT
 
-#include "RPRSceneComponent.h"
+#include "Scene/RPRSceneComponent.h"
+
+#include "RPRPlugin.h"
+#include "RPRSettings.h"
+
+#include "Scene/RPRActor.h"
+#include "Scene/RPRScene.h"
 
 URPRSceneComponent::URPRSceneComponent()
 :	Scene(NULL)

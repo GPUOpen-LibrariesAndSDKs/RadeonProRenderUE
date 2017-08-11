@@ -4,12 +4,15 @@
 #include "RPRScene.h"
 #include "RPRHelpers.h"
 
+#include "Engine/TextureLightProfile.h"
 #include "Engine/TextureCube.h"
 #include "EditorFramework/AssetImportData.h"
 
 #include "Components/PointLightComponent.h"
 #include "Components/SpotLightComponent.h"
 #include "Components/DirectionalLightComponent.h"
+
+#include "RPRStats.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRLightComponent, Log, All);
 
@@ -43,6 +46,7 @@ FLinearColor	BuildRPRLightColor(const ULightComponentBase *lightComponent, bool 
 
 bool	URPRLightComponent::BuildIESLight(const UPointLightComponent *lightComponent)
 {
+#if WITH_EDITOR
 	check(lightComponent->IESTexture != NULL);
 
 	// We want to get the original .ies file (UE4 bakes into its own format in a texture, would be painful to generate back)
@@ -75,6 +79,9 @@ bool	URPRLightComponent::BuildIESLight(const UPointLightComponent *lightComponen
 	m_CachedLightColor = lightComponent->LightColor;
 	SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 90.0f, 0.0f)));
 	return true;
+#else
+	return false; // AssetUserData not available in runtime builds
+#endif
 }
 
 bool	URPRLightComponent::BuildPointLight(const UPointLightComponent *pointLightComponent)

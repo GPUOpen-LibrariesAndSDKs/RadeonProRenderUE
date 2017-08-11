@@ -2,6 +2,8 @@
 
 #pragma once
 
+#if WITH_EDITOR
+
 #include "EditorStyleSet.h"
 
 class FRPREditorStyle : public FEditorStyle
@@ -22,3 +24,5 @@ private:
 private:
 	FRPREditorStyle() {}
 };
+
+#endif // WITH_EDITOR

@@ -1,10 +1,19 @@
 // RPR COPYRIGHT
 
 #include "RPRViewportCameraComponent.h"
+#include "RadeonProRender.h"
 #include "RPRCameraComponent.h"
 #include "RPRScene.h"
 
-#include "LevelEditorViewport.h"
+#include "Kismet/GameplayStatics.h"
+
+#include "CineCameraComponent.h"
+#include "Camera/PlayerCameraManager.h"
+#include "RPRStats.h"
+
+#if WITH_EDITOR
+#	include "LevelEditorViewport.h"
+#endif
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRViewportCameraComponent, Log, All);
 
@@ -25,7 +34,9 @@ URPRViewportCameraComponent::URPRViewportCameraComponent()
 ,	m_OrbitLocation(FVector::ZeroVector)
 ,	m_OrbitCenter(FVector::ZeroVector)
 ,	m_PlayerCameraManager(NULL)
+#if WITH_EDITOR
 ,	m_EditorViewportClient(NULL)
+#endif
 {
 	m_Sync = false;
 	PrimaryComponentTick.bCanEverTick = true;
@@ -52,8 +63,11 @@ void	URPRViewportCameraComponent::SetOrbit(bool orbit)
 {
 	if (m_Orbit == orbit)
 		return;
-	if (m_PlayerCameraManager == NULL &&
-		m_EditorViewportClient == NULL)
+	if (m_PlayerCameraManager == NULL
+#if WITH_EDITOR
+		&& m_EditorViewportClient == NULL
+#endif
+		)
 		return;
 	m_Orbit = !m_Orbit;
 	if (m_Orbit)
@@ -131,9 +145,12 @@ FVector	URPRViewportCameraComponent::GetViewLocation() const
 {
 	if (m_PlayerCameraManager != NULL)
 	{
+#if WITH_EDITOR
 		check(m_EditorViewportClient == NULL);
+#endif
 		return m_PlayerCameraManager->GetCameraLocation();
 	}
+#if WITH_EDITOR
 	else if (m_EditorViewportClient != NULL)
 	{
 		check(m_PlayerCameraManager == NULL);
@@ -147,6 +164,7 @@ FVector	URPRViewportCameraComponent::GetViewLocation() const
 		}
 		return viewLocation;
 	}
+#endif
 	return FVector::ZeroVector;
 }
 
@@ -154,9 +172,12 @@ FVector	URPRViewportCameraComponent::GetLookAtLocation() const
 {
 	if (m_PlayerCameraManager != NULL)
 	{
+#if WITH_EDITOR
 		check(m_EditorViewportClient == NULL);
+#endif
 		return m_PlayerCameraManager->GetCameraLocation() + FQuat(m_PlayerCameraManager->GetCameraRotation()).GetForwardVector();
 	}
+#if WITH_EDITOR
 	else if (m_EditorViewportClient != NULL)
 	{
 		check(m_PlayerCameraManager == NULL);
@@ -170,6 +191,7 @@ FVector	URPRViewportCameraComponent::GetLookAtLocation() const
 		}
 		return lookAtLocation;
 	}
+#endif
 	return FVector::ZeroVector;
 }
 
@@ -179,10 +201,13 @@ FVector	URPRViewportCameraComponent::GetViewRightVector() const
 
 	if (m_PlayerCameraManager != NULL)
 	{
+#if WITH_EDITOR
 		check(m_EditorViewportClient == NULL);
+#endif
 
 		rightVector = FQuat(m_PlayerCameraManager->GetCameraRotation()).GetRightVector();
 	}
+#if WITH_EDITOR
 	else if (m_EditorViewportClient != NULL)
 	{
 		check(m_PlayerCameraManager == NULL);
@@ -195,6 +220,7 @@ FVector	URPRViewportCameraComponent::GetViewRightVector() const
 				rightVector = cam->ComponentToWorld.GetRotation().GetRightVector();
 		}
 	}
+#endif
 	return rightVector;
 }
 
@@ -202,9 +228,12 @@ float	URPRViewportCameraComponent::GetAspectRatio() const
 {
 	if (m_PlayerCameraManager != NULL)
 	{
+#if WITH_EDITOR
 		check(m_EditorViewportClient == NULL);
+#endif
 		return m_PlayerCameraManager->DefaultAspectRatio; // Not sure about this one
 	}
+#if WITH_EDITOR
 	else if (m_EditorViewportClient != NULL)
 	{
 		check(m_PlayerCameraManager == NULL);
@@ -218,6 +247,7 @@ float	URPRViewportCameraComponent::GetAspectRatio() const
 		}
 		return horizontalRatio;
 	}
+#endif
 	return 0;
 }
 
@@ -236,6 +266,7 @@ bool	URPRViewportCameraComponent::Build()
 		if (controller != NULL)
 			m_PlayerCameraManager = controller->PlayerCameraManager;
 	}
+#if WITH_EDITOR
 	else if (worldType == EWorldType::Editor)
 	{
 		// Get camera infos from the editor viewport client
@@ -244,6 +275,7 @@ bool	URPRViewportCameraComponent::Build()
 		if (viewport != NULL)
 			m_EditorViewportClient = (FLevelEditorViewportClient*)viewport->GetClient();
 	}
+#endif
 	else
 		return false;
 
@@ -257,7 +289,11 @@ bool	URPRViewportCameraComponent::Build()
 	}
 	const float	exposure = 1.0f; // Get this from settings ?
 
-	if (m_PlayerCameraManager != NULL || m_EditorViewportClient != NULL)
+	if (m_PlayerCameraManager != NULL
+#if WITH_EDITOR
+		|| m_EditorViewportClient != NULL
+#endif
+		)
 	{
 		if (rprCameraLookAt(m_RprCamera,
 			m_CachedCameraPos.X, m_CachedCameraPos.Z, m_CachedCameraPos.Y,
@@ -292,12 +328,12 @@ bool	URPRViewportCameraComponent::RPRThread_Update()
 
 	const bool	rebuild = m_RebuildFlags != PROPERTY_REBUILD_TRANSFORMS;
 
-	RPR_PROPERTY_REBUILD(LogRPRCameraComponent, "Couldn't refresh viewport camera mode", PROPERTY_REBUILD_PROJECTION_MODE, rprCameraSetMode, m_RprCamera, m_CachedProjectionMode == ECameraProjectionMode::Orthographic ? RPR_CAMERA_MODE_ORTHOGRAPHIC : RPR_CAMERA_MODE_PERSPECTIVE);
-	RPR_PROPERTY_REBUILD(LogRPRCameraComponent, "Couldn't refresh viewport camera focal length", PROPERTY_REBUILD_FOCAL_LENGTH, rprCameraSetFocalLength, m_RprCamera, m_CachedFocalLength);
-	RPR_PROPERTY_REBUILD(LogRPRCameraComponent, "Couldn't refresh viewport camera focus distance", PROPERTY_REBUILD_FOCUS_DISTANCE, rprCameraSetFocusDistance, m_RprCamera, m_CachedFocusDistance * 0.01f);
-	RPR_PROPERTY_REBUILD(LogRPRCameraComponent, "Couldn't refresh viewport camera FStop", PROPERTY_REBUILD_APERTURE, rprCameraSetFStop, m_RprCamera, m_CachedAperture);
-	RPR_PROPERTY_REBUILD(LogRPRCameraComponent, "Couldn't refresh viewport camera Sensor size", PROPERTY_REBUILD_SENSOR_SIZE, rprCameraSetSensorSize, m_RprCamera, m_CachedSensorSize.X, m_CachedSensorSize.Y);
-	RPR_PROPERTY_REBUILD(LogRPRCameraComponent, "Couldn't set viewport camera as scene active camera", PROPERTY_REBUILD_ACTIVE_CAMERA, rprSceneSetCamera, Scene->m_RprScene, m_RprCamera);
+	RPR_PROPERTY_REBUILD(LogRPRViewportCameraComponent, "Couldn't refresh viewport camera mode", PROPERTY_REBUILD_PROJECTION_MODE, rprCameraSetMode, m_RprCamera, m_CachedProjectionMode == ECameraProjectionMode::Orthographic ? RPR_CAMERA_MODE_ORTHOGRAPHIC : RPR_CAMERA_MODE_PERSPECTIVE);
+	RPR_PROPERTY_REBUILD(LogRPRViewportCameraComponent, "Couldn't refresh viewport camera focal length", PROPERTY_REBUILD_FOCAL_LENGTH, rprCameraSetFocalLength, m_RprCamera, m_CachedFocalLength);
+	RPR_PROPERTY_REBUILD(LogRPRViewportCameraComponent, "Couldn't refresh viewport camera focus distance", PROPERTY_REBUILD_FOCUS_DISTANCE, rprCameraSetFocusDistance, m_RprCamera, m_CachedFocusDistance * 0.01f);
+	RPR_PROPERTY_REBUILD(LogRPRViewportCameraComponent, "Couldn't refresh viewport camera FStop", PROPERTY_REBUILD_APERTURE, rprCameraSetFStop, m_RprCamera, m_CachedAperture);
+	RPR_PROPERTY_REBUILD(LogRPRViewportCameraComponent, "Couldn't refresh viewport camera Sensor size", PROPERTY_REBUILD_SENSOR_SIZE, rprCameraSetSensorSize, m_RprCamera, m_CachedSensorSize.X, m_CachedSensorSize.Y);
+	RPR_PROPERTY_REBUILD(LogRPRViewportCameraComponent, "Couldn't set viewport camera as scene active camera", PROPERTY_REBUILD_ACTIVE_CAMERA, rprSceneSetCamera, Scene->m_RprScene, m_RprCamera);
 
 	m_RefreshLock.Unlock();
 
@@ -321,7 +357,7 @@ bool	URPRViewportCameraComponent::RebuildTransforms()
 		FVector	camLookAt = m_OrbitCenter * 0.1f;
 		if (rprCameraLookAt(m_RprCamera, camPos.X, camPos.Z, camPos.Y, camLookAt.X, camLookAt.Z, camLookAt.Y, 0.0f, 1.0f, 0.0f))
 		{
-			UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't rebuild RPR camera transforms"));
+			UE_LOG(LogRPRViewportCameraComponent, Warning, TEXT("Couldn't rebuild RPR camera transforms"));
 			return false;
 		}
 	}
@@ -330,7 +366,7 @@ bool	URPRViewportCameraComponent::RebuildTransforms()
 		FVector	forward = m_CachedCameraLookAt;
 		if (rprCameraLookAt(m_RprCamera, m_CachedCameraPos.X, m_CachedCameraPos.Z, m_CachedCameraPos.Y, m_CachedCameraLookAt.X, m_CachedCameraLookAt.Z, m_CachedCameraLookAt.Y, 0.0f, 1.0f, 0.0f))
 		{
-			UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't rebuild RPR camera transforms"));
+			UE_LOG(LogRPRViewportCameraComponent, Warning, TEXT("Couldn't rebuild RPR camera transforms"));
 			return false;
 		}
 	}
@@ -342,13 +378,17 @@ void	URPRViewportCameraComponent::RebuildCameraProperties(bool force)
 	if (Scene->m_ActiveCamera != this)
 		return;
 
-	if (m_EditorViewportClient == NULL &&
-		m_PlayerCameraManager == NULL)
+	if (m_PlayerCameraManager == NULL
+#if WITH_EDITOR
+		&& m_EditorViewportClient == NULL
+#endif
+		)
 		return;
 
 	UCameraComponent		*cam = NULL;
 	UCineCameraComponent	*cineCam = NULL;
 
+#if WITH_EDITOR
 	if (m_PlayerCameraManager == NULL)
 	{
 		force |= m_EditorViewportClient->bLockedCameraView != m_CachedIsLocked;
@@ -360,6 +400,7 @@ void	URPRViewportCameraComponent::RebuildCameraProperties(bool force)
 			cineCam = Cast<UCineCameraComponent>(cam);
 		}
 	}
+#endif
 
 	const float	aspectRatio = GetAspectRatio();
 	if (force ||
@@ -499,6 +540,7 @@ void	URPRViewportCameraComponent::TickComponent(float deltaTime, ELevelTick tick
 		if (m_PlayerCameraManager == NULL)
 			return;
 	}
+#if WITH_EDITOR
 	else if (worldType == EWorldType::Editor)
 	{
 		m_EditorViewportClient = NULL;
@@ -511,6 +553,7 @@ void	URPRViewportCameraComponent::TickComponent(float deltaTime, ELevelTick tick
 		if (m_EditorViewportClient == NULL)
 			return;
 	}
+#endif
 	else
 		check(false); // Shouldn't be here
 

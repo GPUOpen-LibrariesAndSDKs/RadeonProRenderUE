@@ -1,10 +1,14 @@
 // RPR COPYRIGHT
 
 #include "RPRCameraComponent.h"
+#include "RadeonProRender.h"
 #include "RPRScene.h"
 
+#include "Components/PrimitiveComponent.h"
 #include "Camera/CameraComponent.h"
 #include "CineCameraComponent.h"
+
+#include "RPRStats.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRCameraComponent, Log, All);
 

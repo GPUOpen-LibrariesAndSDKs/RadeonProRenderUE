@@ -17,6 +17,7 @@ public class RPRPlugin : ModuleRules
 			}
 			);
 
+		//bFasterWithoutUnity = true;
 
 		string pluginRoot = ModuleDirectory + "/../..";
 		pluginRoot = Path.GetFullPath(pluginRoot);
@@ -53,18 +54,26 @@ public class RPRPlugin : ModuleRules
 				"RenderCore",
 				"CinematicCamera",
 				"RHI",
-				"Settings",
 
-				// Editor only stuff
-				"UnrealEd",
-				"InputCore",
-				"DesktopPlatform",
-				"WorkspaceMenuStructure",
-				"EditorStyle",
-				"Slate",
-				"LevelEditor",
 				// ... add private dependencies that you statically link with here ...	
 			});
+
+		if (UEBuildConfiguration.bBuildEditor == true)
+		{
+			//Definitions.Add("MY_WITH_EDITOR=1");
+			PrivateDependencyModuleNames.AddRange(
+				new string[]
+				{
+					"UnrealEd",
+					"InputCore",
+					"DesktopPlatform",
+					"WorkspaceMenuStructure",
+					"EditorStyle",
+					"Slate",
+					"LevelEditor",
+					"Settings",
+				});
+		}
 
 		bool forceRelease = false;
 		string libSuffix = ".lib";

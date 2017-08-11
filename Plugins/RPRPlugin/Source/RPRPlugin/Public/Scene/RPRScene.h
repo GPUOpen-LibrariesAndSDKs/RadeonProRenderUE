@@ -51,7 +51,7 @@ public:
 
 	bool	RPRThread_Rebuild();
 
-	void	RemoveActor(ARPRActor *actor);
+	void	RemoveActor(class ARPRActor *actor);
 	void	ImmediateRelease(URPRSceneComponent *component);
 	void	FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames);
 	void	SetActiveCamera(const FString &cameraName);
@@ -83,7 +83,7 @@ private:
 	TSharedPtr<class FRPRRendererWorker>	m_RendererWorker;
 
 	class FRPRPluginModule					*m_Plugin;
-	UTexture2DDynamic						*m_RenderTexture;
+	class UTexture2DDynamic					*m_RenderTexture;
 
 	UPROPERTY(Transient)
 	TArray<class ARPRActor*>				SceneContent;

@@ -1,18 +1,26 @@
 // RPR COPYRIGHT
 
 #include "RPRStaticMeshComponent.h"
+
+#include <map>
+#include <set>
+#include <memory>
+#include <sstream>
+
+#include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshActor.h"
 #include "Camera/CameraActor.h"
-#include "RPRHelpers.h"
 #include "PositionVertexBuffer.h"
 #include "StaticMeshResources.h"
-#include "rprigenericapi.h"
-#include <map>
-#include <memory>
+
+#include "RPRHelpers.h"
+
 #include "RadeonProRenderInterchange.h"
-#include <sstream>
 #include "RPRInterchangeMaterial.h"
 #include "RprSupport.h"
+
+#include "RPRStats.h"
+#include "Scene/RPRScene.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
 
@@ -281,7 +289,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		rpr_material_node	material = NULL;
 		if (parentMaterial == NULL)
 		{
-			rpr_material_node material = CreateDefaultDummyShapeMaterial(iShape);
+			material = CreateDefaultDummyShapeMaterial(iShape);
 			Scene->m_MaterialCache[materialName] = rpriExportRprMaterialResult{ 0, material };
 			continue;
 		}	
@@ -304,7 +312,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 
 			} else
 			{
-				rpr_material_node material = CreateDefaultDummyShapeMaterial(iShape);
+				material = CreateDefaultDummyShapeMaterial(iShape);
 				Scene->m_MaterialCache[materialName] = rpriExportRprMaterialResult{ 0, material };
 			}
 			continue;
@@ -321,6 +329,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 			parentMaterialAllowed = Scene->m_UMSControl.IsMaterialUMSEnabled(parentMaterialName);
 		}
 
+#if WITH_EDITOR
 		bool materialUMSEnabled = Scene->m_UMSControl.IsMaterialUMSEnabled(materialName);
 		if (parentMaterialAllowed &&  materialUMSEnabled)
 		{
@@ -355,25 +364,21 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 
 			rpriExport(Scene->m_RpriContext, "RPR API Exporter", numExportProps, exportProps);
 
-			const UMaterialInterface	*matInterface = component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
-			const char* materialName = TCHAR_TO_ANSI(*matInterface->GetName());
 			Scene->m_MaterialCache[materialName] = resultArray[0];
 
 			if (resultArray[0].type == 0)
 			{
 				rpr_material_node rprMatNode = reinterpret_cast<rpr_material_node>(resultArray[0].data);
-				rpr_int status = rprShapeSetMaterial(shape, rprMatNode);
+				rprShapeSetMaterial(shape, rprMatNode);
 			}
 			else
 			{
 				rprx_material rprMatX = reinterpret_cast<rprx_material>(resultArray[0].data);
-				rpr_int status = rprxShapeAttachMaterial(Scene->m_RprSupportCtx, shape, rprMatX);
-				if (status != RPR_SUCCESS)
+				if (rprxShapeAttachMaterial(Scene->m_RprSupportCtx, shape, rprMatX) != RPR_SUCCESS)
 				{
 					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR X material to the RPR shape"));
 				}
-				status = rprxMaterialCommit(Scene->m_RprSupportCtx, rprMatX);
-				if (status != RPR_SUCCESS)
+				if (rprxMaterialCommit(Scene->m_RprSupportCtx, rprMatX) != RPR_SUCCESS)
 				{
 					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't commit RPR X material"));
 				}
@@ -405,6 +410,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 				return false;
 			}
 		}
+#endif // WITH_EDITOR
 	}
 
 	return true;

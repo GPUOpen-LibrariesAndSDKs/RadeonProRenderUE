@@ -3,24 +3,31 @@
 #include "RPRPlugin.h"
 #include "RPRSettings.h"
 
-#include "Viewport/RPREditorStyle.h"
-#include "Viewport/SRPRViewportTabContent.h"
-#include "Slate/SceneViewport.h"
+#if WITH_EDITOR
+#	include "Viewport/SRPRViewportTabContent.h"
+#	include "Viewport/RPREditorStyle.h"
+#	include "Slate/SceneViewport.h"
 
-#include "LevelEditor.h"
-#include "WorkspaceMenuStructure.h"
-#include "WorkspaceMenuStructureModule.h"
+#	include "LevelEditor.h"
+#	include "WorkspaceMenuStructure.h"
+#	include "WorkspaceMenuStructureModule.h"
+
+#	include "ISettingsModule.h"
+#endif
+
+#include "Slate/SceneViewport.h"
 
 #include "Engine/World.h"
 #include "Engine/Texture2DDynamic.h"
-#include "ISettingsModule.h"
 
 #include "Scene/RPRScene.h"
 #include "EngineUtils.h"
 
 #define LOCTEXT_NAMESPACE "FRPRPluginModule"
 
+#if WITH_EDITOR
 FString	FRPRPluginModule::s_URLRadeonProRender = "https://pro.radeon.com/en-us/software/prorender/";
+#endif
 
 FRPRPluginModule::FRPRPluginModule()
 :	m_ActiveCameraName("")
@@ -28,7 +35,9 @@ FRPRPluginModule::FRPRPluginModule()
 ,	m_RenderTexture(NULL)
 ,	m_GameWorld(NULL)
 ,	m_EditorWorld(NULL)
+#if WITH_EDITOR
 ,	m_Extender(NULL)
+#endif
 ,	m_ObjectBeingBuilt(0)
 ,	m_ObjectsToBuild()
 ,	m_RPRPaused(true)
@@ -38,6 +47,11 @@ FRPRPluginModule::FRPRPluginModule()
 ,	m_OrbitEnabled(false)
 ,	m_CleanViewport(false)
 ,	m_Loaded(false)
+{
+
+}
+
+FRPRPluginModule::~FRPRPluginModule()
 {
 
 }
@@ -67,16 +81,6 @@ void	FRPRPluginModule::Rebuild()
 		if (!m_RPRPaused)
 			scene->OnRender(m_ObjectsToBuild);
 	}
-}
-
-void	FRPRPluginModule::OpenURL(const TCHAR *url)
-{
-	FPlatformProcess::LaunchURL(url, NULL, NULL);
-}
-
-void	FRPRPluginModule::OpenSettings()
-{
-	FModuleManager::LoadModuleChecked<ISettingsModule>("Settings").ShowViewer("Project", "Plugins", "RadeonProRenderSettings");
 }
 
 void	FRPRPluginModule::NotifyObjectBuilt()
@@ -119,6 +123,18 @@ void	FRPRPluginModule::RefreshCameraList()
 			m_ActiveCameraName = *m_AvailableCameraNames[0].Get();
 		}
 	}
+}
+
+#if WITH_EDITOR
+
+void	FRPRPluginModule::OpenURL(const TCHAR *url)
+{
+	FPlatformProcess::LaunchURL(url, NULL, NULL);
+}
+
+void	FRPRPluginModule::OpenSettings()
+{
+	FModuleManager::LoadModuleChecked<ISettingsModule>("Settings").ShowViewer("Project", "Plugins", "RadeonProRenderSettings");
 }
 
 void	OnCloseViewport(TSharedRef<SDockTab> closedTab)
@@ -180,6 +196,8 @@ void	FRPRPluginModule::CreateMenuBarExtension(FMenuBarBuilder &menubarBuilder)
 		LOCTEXT("MenuBarTooltip", "Open the Radeon ProRender menu"),
 		FNewMenuDelegate::CreateRaw(this, &FRPRPluginModule::FillRPRMenu));
 }
+
+#endif // WITH_EDITOR
 
 void	FRPRPluginModule::CreateNewScene(UWorld *world)
 {
@@ -279,55 +297,6 @@ void	FRPRPluginModule::OnWorldDestroyed(UWorld *inWorld)
 	CreateNewScene(m_GameWorld != NULL ? m_GameWorld : m_EditorWorld);
 }
 
-void	FRPRPluginModule::StartupModule()
-{
-	if (m_Loaded)
-		return;
-
-	if (!FModuleManager::Get().IsModuleLoaded("LevelEditor") ||
-		!FModuleManager::Get().IsModuleLoaded("Settings") ||
-		!FModuleManager::Get().IsModuleLoaded("AssetTools"))
-		return;
-
-	FRPREditorStyle::Initialize();
-
-	ISettingsModule		*settingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
-	if (settingsModule == NULL)
-		return;
-
-	TSharedPtr<ISettingsSection>	runtimeSection = settingsModule->RegisterSettings(
-		"Project", "Plugins", "RadeonProRenderSettings",
-		LOCTEXT("RPRSetingsName", "Radeon ProRender"),
-		LOCTEXT("RPRSettingsDescription", "Configure the Radeon ProRender plugin settings."),
-		GetMutableDefault<URPRSettings>());
-
-	m_Loaded = true;
-	FLevelEditorModule		&levelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
-
-	m_Extender = MakeShareable(new FExtender);
-	m_Extender->AddMenuBarExtension(TEXT("Help"), EExtensionHook::After, NULL, FMenuBarExtensionDelegate::CreateRaw(this, &FRPRPluginModule::CreateMenuBarExtension));
-	levelEditorModule.GetMenuExtensibilityManager()->AddExtender(m_Extender);
-
-	// This one for PIE world creation
-	FWorldDelegates::OnPostWorldInitialization.AddRaw(this, &FRPRPluginModule::OnWorldInitialized);
-	FWorldDelegates::OnPreWorldFinishDestroy.AddRaw(this, &FRPRPluginModule::OnWorldDestroyed);
-
-	// Create render texture
-	const FVector2D	renderResolution(10, 10); // First, create a small texture (resized later)
-	m_RenderTexture = UTexture2DDynamic::Create(renderResolution.X, renderResolution.Y, PF_R8G8B8A8, true);
-	m_RenderTexture->CompressionSettings = TC_HDR;
-	m_RenderTexture->AddToRoot();
-
-	// Custom viewport
-	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(
-		TEXT("RPRViewport"),
-		FOnSpawnTab::CreateRaw(this, &FRPRPluginModule::SpawnRPRViewportTab))
-		.SetGroup(WorkspaceMenu::GetMenuStructure().GetLevelEditorViewportsCategory())
-		.SetDisplayName(LOCTEXT("TabTitle", "ProRender Viewport"))
-		.SetTooltipText(LOCTEXT("TooltipText", "Opens a Radeon ProRender viewport."))
-		.SetIcon(FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.Tabs.Viewports"));
-}
-
 FIntPoint	FRPRPluginModule::OrbitDelta()
 {
 	FIntPoint	delta = m_OrbitDelta;
@@ -373,8 +342,61 @@ void	FRPRPluginModule::StartOrbitting(const FIntPoint &mousePos)
 		scene->StartOrbitting(mousePos);
 }
 
+void	FRPRPluginModule::StartupModule()
+{
+	if (m_Loaded)
+		return;
+
+	m_Loaded = true;
+
+	// This one for PIE world creation
+	FWorldDelegates::OnPostWorldInitialization.AddRaw(this, &FRPRPluginModule::OnWorldInitialized);
+	FWorldDelegates::OnPreWorldFinishDestroy.AddRaw(this, &FRPRPluginModule::OnWorldDestroyed);
+
+	// Create render texture
+	const FVector2D	renderResolution(10, 10); // First, create a small texture (resized later)
+	m_RenderTexture = UTexture2DDynamic::Create(renderResolution.X, renderResolution.Y, PF_R8G8B8A8, true);
+	m_RenderTexture->CompressionSettings = TC_HDR;
+	m_RenderTexture->AddToRoot();
+
+#if WITH_EDITOR
+	if (!FModuleManager::Get().IsModuleLoaded("LevelEditor") ||
+		!FModuleManager::Get().IsModuleLoaded("Settings") ||
+		!FModuleManager::Get().IsModuleLoaded("AssetTools"))
+		return;
+
+	FRPREditorStyle::Initialize();
+
+	ISettingsModule		*settingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
+	if (settingsModule == NULL)
+		return;
+
+	TSharedPtr<ISettingsSection>	runtimeSection = settingsModule->RegisterSettings(
+		"Project", "Plugins", "RadeonProRenderSettings",
+		LOCTEXT("RPRSetingsName", "Radeon ProRender"),
+		LOCTEXT("RPRSettingsDescription", "Configure the Radeon ProRender plugin settings."),
+		GetMutableDefault<URPRSettings>());
+
+	FLevelEditorModule	&levelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
+
+	m_Extender = MakeShareable(new FExtender);
+	m_Extender->AddMenuBarExtension(TEXT("Help"), EExtensionHook::After, NULL, FMenuBarExtensionDelegate::CreateRaw(this, &FRPRPluginModule::CreateMenuBarExtension));
+	levelEditorModule.GetMenuExtensibilityManager()->AddExtender(m_Extender);
+
+	// Custom viewport
+	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(
+		TEXT("RPRViewport"),
+		FOnSpawnTab::CreateRaw(this, &FRPRPluginModule::SpawnRPRViewportTab))
+		.SetGroup(WorkspaceMenu::GetMenuStructure().GetLevelEditorViewportsCategory())
+		.SetDisplayName(LOCTEXT("TabTitle", "ProRender Viewport"))
+		.SetTooltipText(LOCTEXT("TooltipText", "Opens a Radeon ProRender viewport."))
+		.SetIcon(FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.Tabs.Viewports"));
+#endif
+}
+
 void	FRPRPluginModule::ShutdownModule()
 {
+#if WITH_EDITOR
 	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(TEXT("RPRViewport"));
 
 	if (FModuleManager::Get().IsModuleLoaded("LevelEditor"))
@@ -388,13 +410,15 @@ void	FRPRPluginModule::ShutdownModule()
 		if (settingsModule != NULL)
 			settingsModule->UnregisterSettings("Project", "Plugins", "RadeonProRenderSettings");
 	}
+
+	FRPREditorStyle::Shutdown();
+#endif // WITH_EDITOR
+
 	FWorldDelegates::OnPostWorldInitialization.RemoveAll(this);
 	FWorldDelegates::OnPreWorldFinishDestroy.RemoveAll(this);
 
 	// UE seem to automatically delete the resource
 	m_RenderTexture = NULL;
-
-	FRPREditorStyle::Shutdown();
 }
 
 #undef LOCTEXT_NAMESPACE

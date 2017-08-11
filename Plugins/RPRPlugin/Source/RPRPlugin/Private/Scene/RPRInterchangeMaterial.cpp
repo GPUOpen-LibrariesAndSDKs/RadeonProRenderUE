@@ -1,11 +1,14 @@
 // RPR COPYRIGHT
 
+#if WITH_EDITOR
+
 #include "RPRInterchangeMaterial.h"
 #include "Components/SceneComponent.h"
 #include "StaticMeshResources.h"
 #include "RPRCrackers.h"
 
 #include "Materials/Material.h"
+#include "Materials/MaterialExpression.h"
 #include "Materials/MaterialExpressionConstant.h"
 #include "Materials/MaterialExpressionConstant2Vector.h"
 #include "Materials/MaterialExpressionConstant3Vector.h"
@@ -1981,3 +1984,5 @@ char const* UE4InterchangeTexture::GetMetadata() const
 {
 	return "";
 }
+
+#endif // WITH_EDITOR

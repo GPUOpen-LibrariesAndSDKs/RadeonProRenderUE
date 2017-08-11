@@ -2,13 +2,15 @@
 
 #pragma once
 
-#include "rprigenericapi.h"
-#include "RadeonProRenderInterchange.h"
+#if WITH_EDITOR
+
 #include <string>
 #include <map>
 #include <memory>
 #include <vector>
 #include <set>
+#include "rprigenericapi.h"
+#include "RadeonProRenderInterchange.h"
 #include "MaterialExpressionIO.h"
 #include "Materials/MaterialExpressionTextureSample.h"
 #include "Materials/MaterialExpressionTextureSampleParameter2D.h"
@@ -348,3 +350,5 @@ protected:
 	UE4InterchangeSampler *sampler;
 	UE4InterchangeImage * image;
 };
+
+#endif // WITH_EDITOR

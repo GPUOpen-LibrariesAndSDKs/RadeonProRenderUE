@@ -1,5 +1,7 @@
 // RPR COPYRIGHT
 
+#if WITH_EDITOR
+
 #include "RPREditorStyle.h"
 
 #include "SlateStyle.h"
@@ -68,3 +70,5 @@ TSharedRef<FSlateStyleSet>	FRPREditorStyle::Create()
 
 	return styleRef;
 }
+
+#endif

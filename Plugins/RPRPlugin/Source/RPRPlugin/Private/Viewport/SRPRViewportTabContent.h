@@ -2,6 +2,8 @@
 
 #pragma once
 
+#if WITH_EDITOR
+
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 
@@ -75,3 +77,4 @@ private:
 	bool									m_DisplayPostEffects;
 };
 
+#endif // WITH_EDITOR

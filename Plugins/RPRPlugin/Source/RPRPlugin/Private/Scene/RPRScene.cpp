@@ -4,8 +4,10 @@
 
 #include "_SDK/RprTools.h"
 
+#include "Scene/RPRActor.h"
 #include "Scene/RPRLightComponent.h"
 #include "Scene/RPRStaticMeshComponent.h"
+#include "Scene/RPRCameraComponent.h"
 #include "Scene/RPRViewportCameraComponent.h"
 #include "Renderer/RPRRendererWorker.h"
 
@@ -13,7 +15,12 @@
 #include "Slate/SceneViewport.h"
 
 #include "RPRPlugin.h"
+
+#include "UObject/UObjectIterator.h"
+
+#if WITH_EDITOR
 #include "DesktopPlatformModule.h"
+#endif
 
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraActor.h"
@@ -21,8 +28,6 @@
 #include "TextureResource.h"
 
 #include "RPRStats.h"
-
-#include "LevelEditorViewport.h"
 
 #define LOCTEXT_NAMESPACE "ARPRScene"
 namespace
@@ -608,6 +613,7 @@ void	ARPRScene::SetTrace(bool trace)
 
 void	ARPRScene::OnSave()
 {
+#if WITH_EDITOR
 	if (!m_RendererWorker.IsValid())
 		return; // Nothing to save
 	IDesktopPlatform	*desktopPlatform = FDesktopPlatformModule::Get();
@@ -642,7 +648,14 @@ void	ARPRScene::OnSave()
 	LastSavedExportPath = saveFilename;
 	LastSavedFilename = FPaths::GetCleanFilename(saveFilename);
 	if (save)
+#else
+		const FString	saveFilename = "C:/ProRender-Export.png"; // fix that or use default export path in settings
+#endif
+	{
 		m_RendererWorker->SaveToFile(saveFilename); // UE4 already prompts the user to override existing files
+	}
+}
+
 }
 
 void	ARPRScene::Tick(float deltaTime)

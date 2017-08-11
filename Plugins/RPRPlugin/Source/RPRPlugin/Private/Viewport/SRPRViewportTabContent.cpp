@@ -1,7 +1,20 @@
 // RPR COPYRIGHT
 
+#if WITH_EDITOR
+
 #include "SRPRViewportTabContent.h"
 
+#include "RPRSettings.h"
+#include "RPRPlugin.h"
+#include "Scene/RPRScene.h"
+
+#include "Slate/SceneViewport.h"
+
+#include "Viewport/RPRViewportClient.h"
+#include "Viewport/RPREditorStyle.h"
+
+#include "Widgets/SViewport.h"
+#include "Widgets/Input/SComboBox.h"
 #include "Widgets/Input/SNumericEntryBox.h"
 
 #define LOCTEXT_NAMESPACE "SRPRViewportTabContent"
@@ -762,3 +775,5 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 }
 
 #undef LOCTEXT_NAMESPACE
+
+#endif // WITH_EDITOR

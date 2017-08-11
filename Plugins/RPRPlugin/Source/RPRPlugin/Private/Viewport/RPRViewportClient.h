@@ -10,7 +10,7 @@
 class FRPRViewportClient : public FViewportClient
 {
 public:
-	FRPRViewportClient(FRPRPluginModule *plugin);
+	FRPRViewportClient(class FRPRPluginModule *plugin);
 	~FRPRViewportClient();
 
 	/** FViewportClient interface */
@@ -21,9 +21,9 @@ public:
 
 	FVector2D			CalculateTextureDimensions(const class UTexture2DDynamic *renderTexture, const FVector2D &viewportDimensions) const;
 private:
-	FRPRPluginModule	*m_Plugin;
+	class FRPRPluginModule	*m_Plugin;
 
-	FIntPoint			m_PrevMousePos;
-	bool				m_StartOrbit;
-	bool				m_StartPanning;
+	FIntPoint				m_PrevMousePos;
+	bool					m_StartOrbit;
+	bool					m_StartPanning;
 };

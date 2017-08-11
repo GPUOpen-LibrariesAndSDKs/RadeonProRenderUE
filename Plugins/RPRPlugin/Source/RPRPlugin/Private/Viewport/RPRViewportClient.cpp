@@ -2,9 +2,14 @@
 
 #include "RPRViewportClient.h"
 
+#include "RPRPlugin.h"
+
 #include "CanvasTypes.h"
 #include "CanvasItem.h"
-#include "Texture2DPreview.h"
+
+#if WITH_EDITOR
+#	include "Texture2DPreview.h"
+#endif
 
 #include "Slate/SceneViewport.h"
 #include "Engine/Texture2DDynamic.h"
@@ -40,7 +45,8 @@ void	FRPRViewportClient::Draw(FViewport *viewport, FCanvas *canvas)
 		return;
 
 	UTexture2DDynamic	*renderTexture = m_Plugin->GetRenderTexture();
-	if (renderTexture == NULL)
+	if (renderTexture == NULL ||
+		renderTexture->Resource == NULL)
 		return;
 
 	const FVector2D	viewportDimensions = m_Plugin->m_Viewport->GetSizeXY();
@@ -50,17 +56,16 @@ void	FRPRViewportClient::Draw(FViewport *viewport, FCanvas *canvas)
 		(ratio.X > 1.0f) ? ((viewportDimensions.X - (viewportDimensions.X / ratio.X)) * 0.5f) : 0,
 		(ratio.Y > 1.0f) ? ((viewportDimensions.Y - (viewportDimensions.Y / ratio.Y)) * 0.5f) : 0);
 
+#if WITH_EDITOR
 	TRefCountPtr<FBatchedElementParameters>	batchedElementParameters = new FBatchedElementTexture2DPreviewParameters(0, false, false);
 
-	if (renderTexture->Resource != nullptr)
-	{
-		static const FLinearColor	kImageTint(1.0f, 1.0f, 1.0f);
-		FCanvasTileItem		tileItem(renderOffset, renderTexture->Resource, textureDimensions, kImageTint);
+	static const FLinearColor	kImageTint(1.0f, 1.0f, 1.0f);
+	FCanvasTileItem		tileItem(renderOffset, renderTexture->Resource, textureDimensions, kImageTint);
 
-		tileItem.BlendMode = SE_BLEND_Opaque;
-		tileItem.BatchedElementParameters = batchedElementParameters;
-		canvas->DrawItem(tileItem);
-	}
+	tileItem.BlendMode = SE_BLEND_Opaque;
+	tileItem.BatchedElementParameters = batchedElementParameters;
+	canvas->DrawItem(tileItem);
+#endif
 }
 
 bool	FRPRViewportClient::InputKey(FViewport *viewport, int32 controllerId, FKey key, EInputEvent e, float amountDepressed, bool gamepad)

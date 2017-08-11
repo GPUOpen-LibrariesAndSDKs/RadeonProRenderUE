@@ -5,6 +5,8 @@
 #include "RPRSettings.h"
 #include "HAL/RunnableThread.h"
 
+#include "Misc/Paths.h"
+
 #include "Scene/RPRSceneComponent.h"
 #include "Scene/RPRScene.h"
 #include "Scene/RPRActor.h"
@@ -156,9 +158,6 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 				outBuiltObjects.Add(m_BuiltObjects[iObject]);
 			else
 			{
-				URPRSceneComponent	*comp = Cast<URPRSceneComponent>(m_BuiltObjects[iObject]->GetRootComponent());
-				check(comp != NULL);
-
 				comp->ReleaseResources();
 				comp->ConditionalBeginDestroy();
 				m_BuiltObjects[iObject]->Destroy();
