@@ -656,8 +656,6 @@ void	ARPRScene::OnSave()
 	}
 }
 
-}
-
 void	ARPRScene::Tick(float deltaTime)
 {
 	SCOPE_CYCLE_COUNTER(STAT_ProRender_UpdateScene);
