@@ -61,12 +61,12 @@ void	URPRCameraComponent::SetOrbit(bool orbit)
 		check(world != NULL);
 
 		m_RefreshLock.Lock();
-		m_OrbitLocation = SrcComponent->ComponentToWorld.GetLocation();
+		m_OrbitLocation = SrcComponent->GetComponentTransform().GetLocation();
 		m_OrbitCenter = FVector::ZeroVector;
 
 		static const float	kTraceDist = 10000000.0f;
 		FHitResult	hit;
-		const FVector	camDirection = SrcComponent->ComponentToWorld.GetRotation().GetForwardVector();
+		const FVector	camDirection = SrcComponent->GetComponentTransform().GetRotation().GetForwardVector();
 		if (world->LineTraceSingleByChannel(hit, m_OrbitLocation, camDirection * kTraceDist, ECC_Visibility) &&
 			hit.bBlockingHit)
 		{
@@ -81,7 +81,7 @@ void	URPRCameraComponent::SetOrbit(bool orbit)
 			}
 			else if (hit.Component != NULL)
 			{
-				m_OrbitCenter = hit.Component->ComponentToWorld.GetLocation();
+				m_OrbitCenter = hit.Component->GetComponentTransform().GetLocation();
 			}
 		}
 		m_RefreshLock.Unlock();
@@ -119,7 +119,7 @@ void	URPRCameraComponent::StartOrbitting(const FIntPoint &mousePos)
 		}
 		else if (hit.Component != NULL)
 		{
-			m_OrbitCenter = hit.Component->ComponentToWorld.GetLocation();
+			m_OrbitCenter = hit.Component->GetComponentTransform().GetLocation();
 		}
 	}
 	m_RefreshLock.Unlock();
@@ -177,8 +177,8 @@ bool	URPRCameraComponent::RebuildTransforms()
 	}
 	else
 	{
-		FVector	camPos = SrcComponent->ComponentToWorld.GetLocation() * 0.1f;
-		FVector	forward = camPos + SrcComponent->ComponentToWorld.GetRotation().GetForwardVector();
+		FVector	camPos = SrcComponent->GetComponentToWorld().GetLocation() * 0.1f;
+		FVector	forward = camPos + SrcComponent->GetComponentToWorld().GetRotation().GetForwardVector();
 		if (rprCameraLookAt(m_RprCamera, camPos.X, camPos.Z, camPos.Y, forward.X, forward.Z, forward.Y, 0.0f, 1.0f, 0.0f))
 		{
 			UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't rebuild RPR camera transforms"));
@@ -235,7 +235,7 @@ void	URPRCameraComponent::UpdateOrbitCamera()
 	{
 		m_RefreshLock.Lock();
 		m_OrbitLocation -= m_OrbitCenter;
-		m_OrbitLocation = m_OrbitLocation.RotateAngleAxis(orbitDelta.Y, FVector(SrcComponent->ComponentToWorld.GetRotation().GetRightVector()));
+		m_OrbitLocation = m_OrbitLocation.RotateAngleAxis(orbitDelta.Y, FVector(SrcComponent->GetComponentToWorld().GetRotation().GetRightVector()));
 		m_OrbitLocation = m_OrbitLocation.RotateAngleAxis(orbitDelta.X, FVector(0.0f, 0.0f, 1.0f));
 		m_OrbitLocation += m_OrbitCenter;
 		m_RefreshLock.Unlock();

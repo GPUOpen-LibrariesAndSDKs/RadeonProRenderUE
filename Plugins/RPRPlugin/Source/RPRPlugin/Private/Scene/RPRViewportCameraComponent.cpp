@@ -12,6 +12,7 @@
 #include "RPRStats.h"
 
 #if WITH_EDITOR
+#   include "Editor.h"
 #	include "LevelEditorViewport.h"
 #endif
 
@@ -97,7 +98,7 @@ void	URPRViewportCameraComponent::SetOrbit(bool orbit)
 			}
 			else if (hit.Component != NULL)
 			{
-				m_OrbitCenter = hit.Component->ComponentToWorld.GetLocation();
+				m_OrbitCenter = hit.Component->GetComponentToWorld().GetLocation();
 			}
 		}
 		m_RefreshLock.Unlock();
@@ -134,7 +135,7 @@ void	URPRViewportCameraComponent::StartOrbitting(const FIntPoint &mousePos)
 		}
 		else if (hit.Component != NULL)
 		{
-			m_OrbitCenter = hit.Component->ComponentToWorld.GetLocation();
+			m_OrbitCenter = hit.Component->GetComponentToWorld().GetLocation();
 		}
 	}
 	m_RefreshLock.Unlock();
@@ -160,7 +161,7 @@ FVector	URPRViewportCameraComponent::GetViewLocation() const
 		{
 			UCameraComponent	*cam = m_EditorViewportClient->GetCameraComponentForView();
 			if (cam != NULL)
-				viewLocation = cam->ComponentToWorld.GetLocation();
+				viewLocation = cam->GetComponentToWorld().GetLocation();
 		}
 		return viewLocation;
 	}
@@ -187,7 +188,7 @@ FVector	URPRViewportCameraComponent::GetLookAtLocation() const
 		{
 			UCameraComponent	*cam = m_EditorViewportClient->GetCameraComponentForView();
 			if (cam != NULL)
-				lookAtLocation = cam->ComponentToWorld.GetLocation() + cam->ComponentToWorld.GetRotation().GetForwardVector();
+				lookAtLocation = cam->GetComponentToWorld().GetLocation() + cam->GetComponentToWorld().GetRotation().GetForwardVector();
 		}
 		return lookAtLocation;
 	}
@@ -217,7 +218,7 @@ FVector	URPRViewportCameraComponent::GetViewRightVector() const
 		{
 			UCameraComponent	*cam = m_EditorViewportClient->GetCameraComponentForView();
 			if (cam != NULL)
-				rightVector = cam->ComponentToWorld.GetRotation().GetRightVector();
+				rightVector = cam->GetComponentToWorld().GetRotation().GetRightVector();
 		}
 	}
 #endif
@@ -416,8 +417,8 @@ void	URPRViewportCameraComponent::RebuildCameraProperties(bool force)
 	{
 		RPR_PROPERTY_CHECK(cam->ProjectionMode, m_CachedProjectionMode, PROPERTY_REBUILD_PROJECTION_MODE);
 
-		FVector	camPos = cam->ComponentToWorld.GetLocation() * 0.1f;
-		FVector	camLookAt = camPos + cam->ComponentToWorld.GetRotation().GetForwardVector();
+		FVector	camPos = cam->GetComponentToWorld().GetLocation() * 0.1f;
+		FVector	camLookAt = camPos + cam->GetComponentToWorld().GetRotation().GetForwardVector();
 
 		if (force ||
 			!camPos.Equals(m_CachedCameraPos, 0.0001f) ||

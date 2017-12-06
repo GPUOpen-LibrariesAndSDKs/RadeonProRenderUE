@@ -6,6 +6,7 @@
 //#define RPR_VERBOSE
 
 #include "Engine/World.h"
+#include "MultiBox/MultiBoxExtender.h"
 #include "CoreMinimal.h"
 #include "ModuleManager.h"
 

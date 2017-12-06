@@ -6,6 +6,7 @@
 #include "Components/SceneComponent.h"
 #include "Scene/RPRSceneComponent.h"
 #include "Camera/CameraTypes.h"
+#include "RadeonProRender.h"
 #include "RPRCameraComponent.generated.h"
 
 enum

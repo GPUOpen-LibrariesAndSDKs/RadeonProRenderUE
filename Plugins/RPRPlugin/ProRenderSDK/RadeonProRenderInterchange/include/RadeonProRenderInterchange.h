@@ -1,7 +1,7 @@
 #pragma once
 #ifndef RPRI_INTERCHANGE_API_H
 #define RPRI_INTERCHANGE_API_H 1
-
+#include <string>
 #include <stdint.h>
 
 #define RPRI_FALSE (rpriBoolean) 0

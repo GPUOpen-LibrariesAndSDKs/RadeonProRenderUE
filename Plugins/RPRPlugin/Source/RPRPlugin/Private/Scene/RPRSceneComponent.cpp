@@ -24,7 +24,7 @@ bool	URPRSceneComponent::PostBuild()
 	m_Plugin = &FRPRPluginModule::Get();
 
 	check(SrcComponent != NULL);
-	m_CachedTransforms = SrcComponent->ComponentToWorld;
+	m_CachedTransforms = SrcComponent->GetComponentToWorld();
 	m_Built = true;
 	return true;
 }
@@ -83,10 +83,10 @@ void	URPRSceneComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 	// There is no runtime enabled callbacks
 	// UEngine::OnActorMoved() and UEngine::OnComponentTransformChanged() are editor only..
 	m_RefreshLock.Lock();
-	if (!m_CachedTransforms.Equals(SrcComponent->ComponentToWorld, 0.0001f))
+	if (!m_CachedTransforms.Equals(SrcComponent->GetComponentToWorld(), 0.0001f))
 	{
 		m_RebuildFlags |= PROPERTY_REBUILD_TRANSFORMS;
-		m_CachedTransforms = SrcComponent->ComponentToWorld;
+		m_CachedTransforms = SrcComponent->GetComponentToWorld();
 	}
 	m_RefreshLock.Unlock();
 }

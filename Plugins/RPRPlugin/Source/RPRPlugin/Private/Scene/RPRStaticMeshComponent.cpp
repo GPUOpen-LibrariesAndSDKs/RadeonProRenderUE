@@ -637,7 +637,7 @@ bool	URPRStaticMeshComponent::Build()
 	static const FName		kPrimaryOnly("RPR_NoBlock");
 	const bool				primaryOnly = staticMeshComponent->ComponentHasTag(kPrimaryOnly) || actor->ActorHasTag(kPrimaryOnly);
 	const uint32			shapeCount = m_Shapes.Num();
-	RadeonProRender::matrix	matrix = BuildMatrixWithScale(SrcComponent->ComponentToWorld);
+	RadeonProRender::matrix	matrix = BuildMatrixWithScale(SrcComponent->GetComponentToWorld());
 	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 	{
 		rpr_shape	shape = m_Shapes[iShape].m_RprShape;
@@ -676,7 +676,7 @@ bool	URPRStaticMeshComponent::RebuildTransforms()
 {
 	check(!IsInGameThread());
 
-	RadeonProRender::matrix	matrix = BuildMatrixWithScale(SrcComponent->ComponentToWorld);
+	RadeonProRender::matrix	matrix = BuildMatrixWithScale(SrcComponent->GetComponentToWorld());
 
 	const uint32	shapeCount = m_Shapes.Num();
 	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)

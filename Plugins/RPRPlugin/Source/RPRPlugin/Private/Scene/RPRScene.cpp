@@ -12,6 +12,7 @@
 #include "Renderer/RPRRendererWorker.h"
 
 #include "HAL/PlatformFileManager.h"
+#include "Application/SlateApplication.h"
 #include "Slate/SceneViewport.h"
 
 #include "RPRPlugin.h"
@@ -24,6 +25,7 @@
 
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraActor.h"
+#include "Camera/CameraComponent.h"
 #include "Engine/Texture2DDynamic.h"
 #include "TextureResource.h"
 
@@ -394,7 +396,7 @@ void ARPRScene::LoadMappings()
 	check(settings != NULL);
 
 	// Set the master material mappings file.
-	m_materialLibrary.LoadMasterMappingFile(TCHAR_TO_ANSI(*(FPaths::GameDir() + "/Plugins/RPRPlugin/Content/MaterialMappings.xml")));
+	m_materialLibrary.LoadMasterMappingFile(TCHAR_TO_ANSI(*(FPaths::ProjectDir() + "/Plugins/RPRPlugin/Content/MaterialMappings.xml")));
 
 	// Add material search paths to material library.
 	m_materialLibrary.AddMaterialSearchPaths(TCHAR_TO_ANSI(*settings->MaterialsSearchPaths));
@@ -403,10 +405,10 @@ void ARPRScene::LoadMappings()
 	m_materialLibrary.AddImageSearchPaths(TCHAR_TO_ANSI(*settings->ImageSearchPaths));
 
 	// Initialize material library for UE material to RPR replacement.	 
-	m_materialLibrary.AddDirectory(TCHAR_TO_ANSI(*(FPaths::GameDir() + "/Plugins/RPRPlugin/Content/Materials")));
+	m_materialLibrary.AddDirectory(TCHAR_TO_ANSI(*(FPaths::ProjectDir() + "/Plugins/RPRPlugin/Content/Materials")));
 
 	// Initialize the UMSControl
-	m_UMSControl.LoadControlData(TCHAR_TO_ANSI(*(FPaths::GameDir() + "/Plugins/RPRPlugin/Content/UMSControl.xml")));
+	m_UMSControl.LoadControlData(TCHAR_TO_ANSI(*(FPaths::ProjectDir() + "/Plugins/RPRPlugin/Content/UMSControl.xml")));
 }
 
 void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
@@ -419,7 +421,7 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		if (!ensure(m_Plugin->GetRenderTexture() != NULL))
 			return;
 
-		const FString	dllPath = FPaths::GameDir() + "/Binaries/Win64/Tahoe64.dll"; // To get from settings ?
+		const FString	dllPath = FPaths::ProjectDir() + "/Binaries/Win64/Tahoe64.dll"; // To get from settings ?
 		rpr_int			tahoePluginId = rprRegisterPlugin(TCHAR_TO_ANSI(*dllPath)); // Seems to be mandatory
 		if (tahoePluginId == -1)
 		{

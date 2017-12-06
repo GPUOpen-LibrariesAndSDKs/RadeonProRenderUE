@@ -77,7 +77,11 @@ bool	URPRLightComponent::BuildIESLight(const UPointLightComponent *lightComponen
 	m_LightType = ERPRLightType::IES;
 	m_CachedIntensity = lightComponent->Intensity;
 	m_CachedLightColor = lightComponent->LightColor;
-	SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 90.0f, 0.0f)));
+
+	FTransform newComponentTransform = FTransform(SrcComponent->GetComponentTransform());
+	newComponentTransform.SetRotation(newComponentTransform.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 90.0f, 0.0f)));
+	SrcComponent->SetComponentToWorld(newComponentTransform);
+													
 	return true;
 #else
 	return false; // AssetUserData not available in runtime builds
@@ -118,7 +122,10 @@ bool	URPRLightComponent::BuildSpotLight(const USpotLightComponent *spotLightComp
 	m_CachedIntensity = spotLightComponent->Intensity;
 	m_CachedLightColor = spotLightComponent->LightColor;
 	m_CachedConeAngles = FVector2D(spotLightComponent->InnerConeAngle, spotLightComponent->OuterConeAngle);
-	SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(-90.0f, 90.0f, 0.0f)));
+
+	FTransform newComponentTransform = FTransform(SrcComponent->GetComponentTransform());
+	newComponentTransform.SetRotation(newComponentTransform.GetRotation() * FQuat::MakeFromEuler(FVector(-90.0f, 90.0f, 0.0f)));
+	SrcComponent->SetComponentToWorld(newComponentTransform);
 	m_LightType = ERPRLightType::Spot;
 	return true;
 }
@@ -151,7 +158,11 @@ bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightCompone
 	}
 	m_CachedSourceType = skyLightComponent->SourceType;
 	m_CachedIntensity = skyLightComponent->Intensity;
-	SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 0.0f, 90.0f)));
+
+	FTransform newComponentTransform = FTransform(SrcComponent->GetComponentTransform());
+	newComponentTransform.SetRotation(newComponentTransform.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 0.0f, 90.0f)));
+	SrcComponent->SetComponentToWorld(newComponentTransform);
+
 	m_LightType = ERPRLightType::Environment;
 	return true;
 }
@@ -171,7 +182,11 @@ bool	URPRLightComponent::BuildDirectionalLight(const UDirectionalLightComponent 
 	}
 	m_CachedIntensity = dirLightComponent->Intensity;
 	m_CachedLightColor = dirLightComponent->LightColor;
-	SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(-90.0f, 90.0f, 0.0f)));
+
+	FTransform newComponentTransform = FTransform(SrcComponent->GetComponentTransform());
+	newComponentTransform.SetRotation(newComponentTransform.GetRotation() * FQuat::MakeFromEuler(FVector(-90.0f, 90.0f, 0.0f)));
+	SrcComponent->SetComponentToWorld(newComponentTransform);
+
 	m_LightType = ERPRLightType::Directional;
 	return true;
 }
@@ -182,7 +197,7 @@ bool	URPRLightComponent::Build()
 	if (Scene == NULL || !IsSrcComponentValid())
 		return false;
 
-	const FQuat	oldOrientation = SrcComponent->ComponentToWorld.GetRotation();
+	const FTransform oldComponentTransform = FTransform(SrcComponent->GetComponentTransform());
 
 	const UPointLightComponent			*pointLightComponent = Cast<UPointLightComponent>(SrcComponent);
 	const USpotLightComponent			*spotLightComponent = Cast<USpotLightComponent>(SrcComponent);
@@ -202,15 +217,15 @@ bool	URPRLightComponent::Build()
 	if (m_RprLight == NULL)
 		return false;
 
-	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->ComponentToWorld);
+	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->GetComponentTransform());
 	if (rprLightSetTransform(m_RprLight, RPR_TRUE, &matrix.m00) != RPR_SUCCESS ||
 		rprSceneAttachLight(Scene->m_RprScene, m_RprLight) != RPR_SUCCESS)
 	{
-		SrcComponent->ComponentToWorld.SetRotation(oldOrientation);
+		SrcComponent->SetComponentToWorld(oldComponentTransform);
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't add RPR light to the RPR scene"));
 		return false;
 	}
-	SrcComponent->ComponentToWorld.SetRotation(oldOrientation);
+	SrcComponent->SetComponentToWorld(oldComponentTransform);
 #ifdef RPR_VERBOSE
 	UE_LOG(LogRPRLightComponent, Log, TEXT("RPR Light created from '%s'"), *SrcComponent->GetName());
 #endif
@@ -225,22 +240,22 @@ bool	URPRLightComponent::PostBuild()
 	const USkyLightComponent	*skyLightComponent = Cast<USkyLightComponent>(SrcComponent);
 	if (skyLightComponent == NULL)
 		return Super::PostBuild();
-	const FQuat	oldOrientation = SrcComponent->ComponentToWorld.GetRotation();
+	const FTransform oldComponentTransform = FTransform(SrcComponent->GetComponentTransform());
 
 	if (!BuildSkyLight(skyLightComponent) != NULL)
 		return false;
 
 	if (m_RprLight == NULL)
 		return false;
-	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->ComponentToWorld);
+	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->GetComponentTransform());
 	if (rprLightSetTransform(m_RprLight, RPR_TRUE, &matrix.m00) != RPR_SUCCESS ||
 		rprSceneAttachLight(Scene->m_RprScene, m_RprLight) != RPR_SUCCESS)
 	{
-		SrcComponent->ComponentToWorld.SetRotation(oldOrientation);
+		SrcComponent->SetComponentToWorld(oldComponentTransform);
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't add RPR env light to the RPR scene"));
 		return false;
 	}
-	SrcComponent->ComponentToWorld.SetRotation(oldOrientation);
+	SrcComponent->SetComponentToWorld(oldComponentTransform);
 	return Super::PostBuild();
 }
 
@@ -248,7 +263,9 @@ bool	URPRLightComponent::RebuildTransforms()
 {
 	check(m_RprLight != NULL);
 
-	const FQuat	oldOrientation = SrcComponent->ComponentToWorld.GetRotation();
+	const FQuat	oldOrientation = SrcComponent->GetComponentTransform().GetRotation();
+	const FTransform oldComponentTransform = FTransform(SrcComponent->GetComponentTransform());
+	FTransform newComponentTransform = FTransform(oldComponentTransform);
 
 	switch (m_LightType)
 	{
@@ -256,24 +273,27 @@ bool	URPRLightComponent::RebuildTransforms()
 			break;
 		case ERPRLightType::Directional:
 		case ERPRLightType::Spot:
-			SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(-90.0f, 90.0f, 0.0f)));
+			newComponentTransform.SetRotation(oldComponentTransform.GetRotation() * FQuat::MakeFromEuler(FVector(-90.0f, 90.0f, 0.0f)));
+			SrcComponent->SetComponentToWorld(newComponentTransform);
 			break;
 		case ERPRLightType::Environment:
-			SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 0.0f, 90.0f)));
+			newComponentTransform.SetRotation(oldComponentTransform.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 0.0f, 90.0f)));
+			SrcComponent->SetComponentToWorld(newComponentTransform);
 			break;
 		case ERPRLightType::IES:
-			SrcComponent->ComponentToWorld.SetRotation(SrcComponent->ComponentToWorld.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 90.0f, 0.0f)));
+			newComponentTransform.SetRotation(oldComponentTransform.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 90.0f, 0.0f)));
+			SrcComponent->SetComponentToWorld(newComponentTransform);
 			break;
 		default:
 			return false; // We shouldn't be here, really
 	}
-	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->ComponentToWorld);
+	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->GetComponentTransform());
 	if (rprLightSetTransform(m_RprLight, RPR_TRUE, &matrix.m00) != RPR_SUCCESS)
 	{
-		SrcComponent->ComponentToWorld.SetRotation(oldOrientation);
+		SrcComponent->SetComponentToWorld(oldComponentTransform);
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't refresh RPR light transforms"));
 	}
-	SrcComponent->ComponentToWorld.SetRotation(oldOrientation);
+	SrcComponent->SetComponentToWorld(oldComponentTransform);
 	return true;
 }
 

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "RadeonProRender.h"
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
 #include "Scene/RPRSceneComponent.h"
