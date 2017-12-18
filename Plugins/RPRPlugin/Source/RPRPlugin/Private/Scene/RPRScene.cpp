@@ -20,7 +20,7 @@
 #include "UObject/UObjectIterator.h"
 
 #if WITH_EDITOR
-#include "DesktopPlatformModule.h"
+#	include "DesktopPlatformModule.h"
 #endif
 
 #include "Kismet/GameplayStatics.h"
@@ -188,6 +188,7 @@ void	ARPRScene::RemoveActor(ARPRActor *actor)
 		check(m_RendererWorker.IsValid());
 		m_RendererWorker->AddPendingKill(actor);
 		SceneContent.Remove(actor);
+		PendingKillQueue.AddUnique(actor);
 	}
 }
 
@@ -658,6 +659,28 @@ void	ARPRScene::OnSave()
 	}
 }
 
+void	ARPRScene::CheckPendingKills()
+{
+	const bool	canSafelyKill = !m_RendererWorker.IsValid();
+	for (int32 iKill = 0; iKill < PendingKillQueue.Num(); ++iKill)
+	{
+		AActor	*actor = PendingKillQueue[iKill];
+		if (actor == NULL)
+		{
+			PendingKillQueue.RemoveAt(iKill);
+			break;
+		}
+		if (canSafelyKill ||
+			m_RendererWorker->CanSafelyKill(PendingKillQueue[iKill]))
+		{
+			check(Cast<URPRSceneComponent>(actor->GetRootComponent()) != NULL);
+			actor->GetRootComponent()->ConditionalBeginDestroy();
+			actor->Destroy();
+			PendingKillQueue.RemoveAt(iKill);
+		}
+	}
+}
+
 void	ARPRScene::Tick(float deltaTime)
 {
 	SCOPE_CYCLE_COUNTER(STAT_ProRender_UpdateScene);
@@ -669,6 +692,8 @@ void	ARPRScene::Tick(float deltaTime)
 
 	if (m_Plugin->RenderPaused())
 		return;
+
+	CheckPendingKills();
 
 	// First, launch build of queued actors on the RPR thread
 	const uint32	actorCount = SceneContent.Num();
@@ -755,6 +780,9 @@ void	ARPRScene::RemoveSceneContent(bool clearScene, bool clearCache)
 		ViewportCameraComponent = NULL;
 	}
 	Cameras.Empty();
+
+	CheckPendingKills();
+	check(PendingKillQueue.Num() == 0);
 
 	if (m_RprScene != NULL)
 	{

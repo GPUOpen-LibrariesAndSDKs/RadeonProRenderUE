@@ -26,6 +26,7 @@ public:
 	void			AddPendingKill(ARPRActor *toKill);
 	void			SafeRelease_Immediate(class URPRSceneComponent *toKill);
 
+	bool			CanSafelyKill(AActor *actor) const;
 	bool			IsBuildingObjects() const { return m_IsBuildingObjects; }
 	bool			ResizeFramebuffer(uint32 width, uint32 height);
 	bool			RestartRender();

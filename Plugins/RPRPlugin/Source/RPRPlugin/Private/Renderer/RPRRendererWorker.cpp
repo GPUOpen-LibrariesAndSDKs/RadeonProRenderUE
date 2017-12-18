@@ -421,8 +421,6 @@ void	FRPRRendererWorker::DestroyPendingKills()
 		check(comp != NULL);
 
 		comp->ReleaseResources();
-		comp->ConditionalBeginDestroy();
-		m_KillQueue[iObject]->Destroy();
 	}
 	m_ClearFramebuffer = true;
 	m_KillQueue.Empty();
@@ -562,6 +560,11 @@ void	FRPRRendererWorker::SafeRelease_Immediate(URPRSceneComponent *component)
 	m_DataLock.Unlock();
 	m_RenderLock.Unlock();
 	m_PreRenderLock.Unlock();
+}
+
+bool	FRPRRendererWorker::CanSafelyKill(AActor *actor) const
+{
+	return !m_KillQueue.Contains(actor);
 }
 
 void	FRPRRendererWorker::EnsureCompletion()

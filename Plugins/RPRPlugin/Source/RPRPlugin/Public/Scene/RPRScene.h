@@ -65,6 +65,7 @@ private:
 	virtual void	Tick(float deltaTime) override;
 	virtual bool	ShouldTickIfViewportsOnly() const override { return true; }
 
+	void	CheckPendingKills();
 	bool	ResizeRenderTarget();
 	void	RemoveSceneContent(bool clearScene, bool clearCache);
 	bool	QueueBuildRPRActor(UWorld *world, USceneComponent *srcComponent, UClass *typeClass, bool checkIfContained);
@@ -87,6 +88,9 @@ private:
 
 	UPROPERTY(Transient)
 	TArray<class ARPRActor*>				SceneContent;
+
+	UPROPERTY(Transient)
+	TArray<class ARPRActor*>				PendingKillQueue;
 
 	UPROPERTY(Transient)
 	TArray<class ARPRActor*>				BuildQueue;
