@@ -15,12 +15,8 @@
 	],
 	"Plugins": [
 		{
-			"Name": "DatasmithCADImporter",
-			"Enabled": true
-		},
-		{
 			"Name": "DatasmithImporter",
-			"Enabled": true,
+			"Enabled": false,
 			"SupportedTargetPlatforms": [
 				"Win64"
 			]

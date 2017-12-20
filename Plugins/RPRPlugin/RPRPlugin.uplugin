@@ -18,6 +18,10 @@
 			"Name": "RPRPlugin",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "RPRPluginEditor",
+			"Type": "Editor"
 		}
 	]
 }
