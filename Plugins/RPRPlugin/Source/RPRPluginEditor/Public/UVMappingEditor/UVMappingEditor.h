@@ -11,11 +11,10 @@ public:
 
 private:
 
-	void	OnAssetEditorOpened(UObject* AssetOpened);
-	bool	IsAssetAStaticMesh(UObject* Asset) const;
+	TSharedRef<SDockTab> SpawnTab_UVMappingEditor(const FSpawnTabArgs& Args);
 
 private:
 
-	TArray<class FUVMappingEditorInstance>	staticMeshEditorInstances;
+	static const FName		UVMappingEditorTabId;
 
 };

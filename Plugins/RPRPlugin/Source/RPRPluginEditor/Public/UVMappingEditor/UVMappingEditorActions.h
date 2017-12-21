@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Commands.h"
+#include "EditorStyle.h"
+
 class FUVMappingEditorActions : public TCommands<FUVMappingEditorActions>
 {
 public:
