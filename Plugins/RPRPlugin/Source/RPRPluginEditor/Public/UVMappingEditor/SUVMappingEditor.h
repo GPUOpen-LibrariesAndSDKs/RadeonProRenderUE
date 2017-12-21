@@ -3,25 +3,24 @@
 #include "DeclarativeSyntaxSupport.h"
 #include "SCompoundWidget.h"
 #include "STableRow.h"
+#include "SDockTab.h"
 #include "SUVProjectionTypeEntry.h"
 
 class SUVMappingEditor : public SCompoundWidget
 {
 public:
 
-	SLATE_BEGIN_ARGS(SUVMappingEditor)
-	{}
-
+	SLATE_BEGIN_ARGS(SUVMappingEditor) {}
 	SLATE_END_ARGS()
 
-	SUVMappingEditor();
-
-	void Construct(const FArguments& InArgs);
-
+	void	Construct(const FArguments& InArgs);
 	void	SelectProjectionEntry(SUVProjectionTypeEntryPtr InProjectionEntry);
 
 private:
 
+	void	OnAssetEditorOpened(UObject* AssetOpened);
+	void	OnActiveTabChanged(TSharedPtr<SDockTab> OldTab, TSharedPtr<SDockTab> NewTab);
+	bool	IsTabContainedInStaticMeshEditor(TSharedPtr<SDockTab> Tab);
 	void	AddUVProjectionListEntry(EUVProjectionType ProjectionType, const FText& ProjectionName, const FSlateBrush* SlateBrush);
 
 	TSharedRef<ITableRow>	OnGenerateWidgetForUVProjectionTypeEntry(SUVProjectionTypeEntryPtr InItem,
@@ -42,5 +41,6 @@ private:
 	TSharedPtr<SBorder>			UVProjectionContainer;
 
 	SUVProjectionTypeEntryPtr	SelectedProjectionEntry;
+	TSharedPtr<SWindow>			LastStaticMeshWindowSelected;
 
 };
