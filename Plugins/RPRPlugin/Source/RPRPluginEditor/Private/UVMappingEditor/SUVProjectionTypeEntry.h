@@ -5,6 +5,7 @@
 #include "UVProjectionType.h"
 #include "SCompoundWidget.h"
 #include "DeclarativeSyntaxSupport.h"
+#include "IUVProjection.h"
 #include "SWidget.h"
 
 class SUVProjectionTypeEntry : public SCompoundWidget
@@ -26,10 +27,12 @@ public:
 	void Construct(const FArguments& InArgs);
 	
 	EUVProjectionType	GetProjectionType() const;
+	IUVProjectionPtr	GetUVProjectionWidget() const;
 
 private:
 
 	EUVProjectionType	ProjectionType;
+	IUVProjectionPtr	ProjectionWidget;
 
 };
 

@@ -18,6 +18,8 @@ public:
 
 	void Construct(const FArguments& InArgs);
 
+	void	SelectProjectionEntry(SUVProjectionTypeEntryPtr InProjectionEntry);
+
 private:
 
 	void	AddUVProjectionListEntry(EUVProjectionType ProjectionType, const FText& ProjectionName, const FSlateBrush* SlateBrush);
@@ -25,9 +27,20 @@ private:
 	TSharedRef<ITableRow>	OnGenerateWidgetForUVProjectionTypeEntry(SUVProjectionTypeEntryPtr InItem,
 															const TSharedRef<STableViewBase>& OwnerTable);
 
+	void		OnUVProjectionTypeSelectionChanged(SUVProjectionTypeEntryPtr InItemSelected, ESelectInfo::Type SelectInfo);
+	bool		HasUVProjectionTypeSelected() const;
+	EVisibility	GetUVProjectionControlsVisibility() const;
+
+	void	InjectUVProjectionWidget(SUVProjectionTypeEntryPtr UVProjectionTypeEntry);
+
+
 private:
 
 	TArray<SUVProjectionTypeEntryPtr>					UVProjectionTypeList;
 	TSharedPtr<SListView<SUVProjectionTypeEntryPtr>>	UVProjectionTypeListWidget;
+
+	TSharedPtr<SBorder>			UVProjectionContainer;
+
+	SUVProjectionTypeEntryPtr	SelectedProjectionEntry;
 
 };

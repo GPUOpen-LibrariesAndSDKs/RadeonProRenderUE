@@ -4,6 +4,7 @@
 #include "SListView.h"
 #include "SBoxPanel.h"
 #include "STextBlock.h"
+#include "SBox.h"
 
 #define LOCTEXT_NAMESPACE "SUVMappingEditor"
 
@@ -36,11 +37,24 @@ void SUVMappingEditor::Construct(const SUVMappingEditor::FArguments& InArgs)
 				SNew(SBorder)
 				[
 					SAssignNew(UVProjectionTypeListWidget, SListView<SUVProjectionTypeEntryPtr>)
+					.SelectionMode(ESelectionMode::Single)
 					.ListItemsSource(&UVProjectionTypeList)
 					.OnGenerateRow(this, &SUVMappingEditor::OnGenerateWidgetForUVProjectionTypeEntry)
+					.OnSelectionChanged(this, &SUVMappingEditor::OnUVProjectionTypeSelectionChanged)
 				]
 			]
+			+SVerticalBox::Slot()
+			[
+				SAssignNew(UVProjectionContainer, SBorder)
+				.Visibility(this, &SUVMappingEditor::GetUVProjectionControlsVisibility)
+			]
 		];
+}
+
+void SUVMappingEditor::SelectProjectionEntry(SUVProjectionTypeEntryPtr ProjectionEntry)
+{
+	SelectedProjectionEntry = ProjectionEntry;
+	InjectUVProjectionWidget(SelectedProjectionEntry);
 }
 
 void SUVMappingEditor::AddUVProjectionListEntry(EUVProjectionType ProjectionType, const FText& ProjectionName, const FSlateBrush* SlateBrush)
@@ -61,6 +75,27 @@ TSharedRef<ITableRow> SUVMappingEditor::OnGenerateWidgetForUVProjectionTypeEntry
 		[
 			InItem.ToSharedRef()
 		];
+}
+
+void SUVMappingEditor::OnUVProjectionTypeSelectionChanged(SUVProjectionTypeEntryPtr InItemSelected, ESelectInfo::Type SelectInfo)
+{
+	SelectProjectionEntry(InItemSelected);
+}
+
+bool SUVMappingEditor::HasUVProjectionTypeSelected() const
+{
+	return (SelectedProjectionEntry.IsValid());
+}
+
+EVisibility SUVMappingEditor::GetUVProjectionControlsVisibility() const
+{
+	return (HasUVProjectionTypeSelected() ? EVisibility::Visible : EVisibility::Collapsed);
+}
+
+void SUVMappingEditor::InjectUVProjectionWidget(SUVProjectionTypeEntryPtr UVProjectionTypeEntry)
+{
+	IUVProjectionPtr UVrojectionWidget = UVProjectionTypeEntry->GetUVProjectionWidget();
+	UVProjectionContainer->SetContent(UVrojectionWidget.IsValid() ? UVrojectionWidget->TakeWidget() : SNew(SBox));
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -1,4 +1,5 @@
 #include "SUVProjectionTypeEntry.h"
+#include "UVProjectionFactory.h"
 #include "SBox.h"
 #include "STextBlock.h"
 #include "SBoxPanel.h"
@@ -7,6 +8,7 @@
 void SUVProjectionTypeEntry::Construct(const FArguments& InArgs)
 {
 	ProjectionType = InArgs._ProjectionType;
+	ProjectionWidget = FUVProjectionFactory::CreateUVProjectionByType(ProjectionType);
 
 	ChildSlot
 		.HAlign(EHorizontalAlignment::HAlign_Left)
@@ -36,4 +38,9 @@ void SUVProjectionTypeEntry::Construct(const FArguments& InArgs)
 EUVProjectionType SUVProjectionTypeEntry::GetProjectionType() const
 {
 	return (ProjectionType);
+}
+
+IUVProjectionPtr SUVProjectionTypeEntry::GetUVProjectionWidget() const
+{
+	return (ProjectionWidget);
 }
