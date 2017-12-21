@@ -56,7 +56,8 @@ public class RPRPluginEditor : ModuleRules
                 "LevelEditor",
                 "Settings",
                 "StaticMeshEditor",
-                "PropertyEditor"
+                "PropertyEditor",
+                "AdvancedPreviewScene"
 				// ... add private dependencies that you statically link with here ...	
 			}
         );
