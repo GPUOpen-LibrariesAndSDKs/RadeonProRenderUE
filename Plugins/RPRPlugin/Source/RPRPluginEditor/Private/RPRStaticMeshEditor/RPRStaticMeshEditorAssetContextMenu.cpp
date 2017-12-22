@@ -2,6 +2,7 @@
 #include "RPRPluginEditorModule.h"
 #include "MultiBoxExtender.h"
 #include "MultiBoxBuilder.h"
+#include "RPRStaticMeshEditor.h"
 #include "Engine/StaticMesh.h"
 
 #define LOCTEXT_NAMESPACE "RPRStaticMeshEditorAssetContextMenu"
@@ -23,7 +24,11 @@ void FRPRStaticMeshEditorAssetContextMenu::ShowRPRStaticMeshEditor(TArray<FAsset
 	{
 		if (SelectedAsset[i].GetClass()->IsChildOf(UStaticMesh::StaticClass()))
 		{
-			RPRPluginEditor.CreateRPRStaticMeshEditor(Cast<UStaticMesh>(SelectedAsset[i].GetAsset()));
+			UStaticMesh* staticMesh = Cast<UStaticMesh>(SelectedAsset[i].GetAsset());
+			if (staticMesh != nullptr)
+			{
+				FRPRStaticMeshEditor::CreateRPRStaticMeshEditor(staticMesh);
+			}
 		}
 	}
 }

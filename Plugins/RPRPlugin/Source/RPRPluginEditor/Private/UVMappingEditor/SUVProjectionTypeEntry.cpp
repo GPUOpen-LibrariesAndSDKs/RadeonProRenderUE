@@ -8,7 +8,8 @@
 void SUVProjectionTypeEntry::Construct(const FArguments& InArgs)
 {
 	ProjectionType = InArgs._ProjectionType;
-	ProjectionWidget = FUVProjectionFactory::CreateUVProjectionByType(ProjectionType);
+	StaticMesh = InArgs._StaticMesh;
+	ProjectionWidget = FUVProjectionFactory::CreateUVProjectionByType(StaticMesh, ProjectionType);
 
 	ChildSlot
 		.HAlign(EHorizontalAlignment::HAlign_Left)

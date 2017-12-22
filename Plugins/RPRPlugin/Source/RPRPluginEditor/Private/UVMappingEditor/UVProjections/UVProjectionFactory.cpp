@@ -1,29 +1,33 @@
 #include "UVProjectionFactory.h"
 #include "DeclarativeSyntaxSupport.h"
+#include "Engine/StaticMesh.h"
 #include "SUVProjectionPlanar.h"
 
-TMap<EUVProjectionType, FUVProjectionFactory::IUVProjectionInstantiator> FUVProjectionFactory::FactoryAssociation;
-
-IUVProjectionPtr FUVProjectionFactory::CreateUVProjectionByType(EUVProjectionType Type)
+IUVProjectionPtr FUVProjectionFactory::CreateUVProjectionByType(UStaticMesh* StaticMesh, EUVProjectionType Type)
 {
-	Initialize();
-	if (FUVProjectionFactory::IUVProjectionInstantiator* instantiator = FactoryAssociation.Find(Type))
+	IUVProjectionPtr projectionPtr;
+
+	switch (Type)
 	{
-		return (CreateInstance(*instantiator));
-	}
-	return (nullptr);
-}
+	case Planar:
+		projectionPtr = SNew(SUVProjectionPlanar);
+		break;
 
-void FUVProjectionFactory::Initialize()
-{
-	if (FactoryAssociation.Num() == 0)
+	case Cubic:
+		break;
+	case Spherical:
+		break;
+	case Cylindrical:
+		break;
+
+	default:
+		break;
+	}
+
+	if (projectionPtr.IsValid())
 	{
-		FactoryAssociation.Add(EUVProjectionType::Planar, []() { return (SNew(SUVProjectionPlanar)); });
+		projectionPtr->SetStaticMesh(StaticMesh);
+		projectionPtr->FinalizeCreation();
 	}
+	return (projectionPtr);
 }
-
-IUVProjectionPtr FUVProjectionFactory::CreateInstance(IUVProjectionInstantiator Instantiator)
-{
-	return (Instantiator());
-}
-

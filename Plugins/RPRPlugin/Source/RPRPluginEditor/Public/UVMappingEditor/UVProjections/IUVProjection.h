@@ -6,7 +6,10 @@
 class IUVProjection
 {
 public:
-	virtual TSharedRef<SWidget>	TakeWidget() = 0;
+	virtual void					FinalizeCreation() = 0;
+	virtual void					SetStaticMesh(class UStaticMesh* StaticMesh) = 0;
+	virtual class UStaticMesh*		GetStaticMesh() const = 0;
+	virtual TSharedRef<SWidget>		TakeWidget() = 0;
 };
 
 typedef TSharedPtr<IUVProjection>	IUVProjectionPtr;

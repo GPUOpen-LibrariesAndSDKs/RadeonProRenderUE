@@ -5,19 +5,19 @@
 #include "SListView.h"
 #include "SBoxPanel.h"
 #include "STextBlock.h"
+#include "Engine/StaticMesh.h"
 #include "SBox.h"
 
 #define LOCTEXT_NAMESPACE "SUVMappingEditor"
 
 void SUVMappingEditor::Construct(const SUVMappingEditor::FArguments& InArgs)
 {
-	FAssetEditorManager::Get().OnAssetEditorOpened().AddSP(this, &SUVMappingEditor::OnAssetEditorOpened);
-	FGlobalTabmanager::Get()->OnActiveTabChanged_Subscribe(FOnActiveTabChanged::FDelegate::CreateSP(this, &SUVMappingEditor::OnActiveTabChanged));
+	UStaticMesh* StaticMesh = InArgs._StaticMesh;
 
-	AddUVProjectionListEntry(EUVProjectionType::Planar,			LOCTEXT("ProjectionType_Planar", "Planar"),			FEditorStyle::GetBrush("ClassThumbnail.Plane"));
-	AddUVProjectionListEntry(EUVProjectionType::Cubic,			LOCTEXT("ProjectionType_Cubic", "Cubic"),			FEditorStyle::GetBrush("ClassThumbnail.Cube"));
-	AddUVProjectionListEntry(EUVProjectionType::Spherical,		LOCTEXT("ProjectionType_Spherical", "Spherical"),	FEditorStyle::GetBrush("ClassThumbnail.Sphere"));
-	AddUVProjectionListEntry(EUVProjectionType::Cylindrical,	LOCTEXT("ProjectionType_Cylinder", "Cylinder"),		FEditorStyle::GetBrush("ClassThumbnail.Cylinder"));
+	AddUVProjectionListEntry(EUVProjectionType::Planar,			LOCTEXT("ProjectionType_Planar", "Planar"),			FEditorStyle::GetBrush("ClassThumbnail.Plane"), StaticMesh);
+	AddUVProjectionListEntry(EUVProjectionType::Cubic,			LOCTEXT("ProjectionType_Cubic", "Cubic"),			FEditorStyle::GetBrush("ClassThumbnail.Cube"), StaticMesh);
+	AddUVProjectionListEntry(EUVProjectionType::Spherical,		LOCTEXT("ProjectionType_Spherical", "Spherical"),	FEditorStyle::GetBrush("ClassThumbnail.Sphere"), StaticMesh);
+	AddUVProjectionListEntry(EUVProjectionType::Cylindrical,	LOCTEXT("ProjectionType_Cylinder", "Cylinder"),		FEditorStyle::GetBrush("ClassThumbnail.Cylinder"), StaticMesh);
 
 	this->ChildSlot
 		[
@@ -56,35 +56,14 @@ void SUVMappingEditor::SelectProjectionEntry(SUVProjectionTypeEntryPtr Projectio
 	InjectUVProjectionWidget(SelectedProjectionEntry);
 }
 
-void SUVMappingEditor::OnAssetEditorOpened(UObject* AssetOpened)
-{
-	/*if (AssetOpened->GetClass()->IsA<UStaticMesh>())
-	{
-		IAssetEditorInstance* assetEditorInstance = FAssetEditorManager::FindEditorForAsset(AssetOpened, false);
-		LastStaticMeshTabSelected = assetEditorInstance->GetAssociatedTabManager()->GetOwnerTab();
-	}*/
-}
-
-void SUVMappingEditor::OnActiveTabChanged(TSharedPtr<SDockTab> OldTab, TSharedPtr<SDockTab> NewTab)
-{
-	/*if (IsTabContainedInStaticMeshEditor(NewTab))
-	{
-		LastStaticMeshTabSelected = NewTab;
-	}*/
-}
-
-bool SUVMappingEditor::IsTabContainedInStaticMeshEditor(TSharedPtr<SDockTab> Tab)
-{
-	//return (Tab->GetParentWindow()->GetTitle().CompareToCaseIgnored(LOCTEXT("StaticMeshEditorWindowTitle", "Static Mesh Editor")));
-	return (false);
-}
-
-void SUVMappingEditor::AddUVProjectionListEntry(EUVProjectionType ProjectionType, const FText& ProjectionName, const FSlateBrush* SlateBrush)
+void SUVMappingEditor::AddUVProjectionListEntry(EUVProjectionType ProjectionType, const FText& ProjectionName, 
+												const FSlateBrush* SlateBrush, UStaticMesh* StaticMesh)
 {
 	SUVProjectionTypeEntryPtr uvProjectionTypeEntryWidget = 
 		SNew(SUVProjectionTypeEntry)
 		.ProjectionType(ProjectionType)
 		.ProjectionName(ProjectionName)
+		.StaticMesh(StaticMesh)
 		.Icon(SlateBrush);
 
 	UVProjectionTypeList.Add(uvProjectionTypeEntryWidget);

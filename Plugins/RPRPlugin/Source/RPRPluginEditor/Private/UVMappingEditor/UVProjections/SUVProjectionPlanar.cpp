@@ -1,16 +1,45 @@
 #include "SUVProjectionPlanar.h"
-#include "STextBlock.h"
+#include "Engine/StaticMesh.h"
+#include "SBoxPanel.h"
+#include "SButton.h"
+
+#define LOCTEXT_NAMESPACE "SUVProjectionPlanar"
 
 void SUVProjectionPlanar::Construct(const FArguments& InArgs)
 {
+	ConstructBase();
+	
 	ChildSlot
 		[
-			SNew(STextBlock)
-			.Text(NSLOCTEXT("haha", "haha", "LOL"))
+			SNew(SVerticalBox)
+			+SVerticalBox::Slot()
+			.AutoHeight()
+			.VAlign(EVerticalAlignment::VAlign_Top)
+			[
+				SNew(SButton)
+				.Text(LOCTEXT("ApplyButton", "Apply"))
+				.OnClicked(this, &SUVProjectionPlanar::Apply)
+			]
 		];
 }
 
-TSharedRef<SWidget> SUVProjectionPlanar::TakeWidget()
+FReply SUVProjectionPlanar::Apply()
 {
-	return (this->AsShared());
+	StartAlgorithm();
+	return (FReply::Handled());
 }
+
+void SUVProjectionPlanar::FinalizeCreation()
+{
+	InitializeAlgorithm(EUVProjectionType::Planar);
+}
+
+void SUVProjectionPlanar::OnAlgorithmCompleted(IUVProjectionAlgorithm* Algorithm, bool bIsSuccess)
+{
+	if (bIsSuccess)
+	{
+		FinalizeAlgorithm();
+	}
+}
+
+#undef LOCTEXT_NAMESPACE

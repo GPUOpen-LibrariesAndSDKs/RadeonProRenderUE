@@ -12,6 +12,8 @@ class FRPRStaticMeshEditor : public FAssetEditorToolkit, public FGCObject
 
 public:
 
+	static TSharedPtr<FRPRStaticMeshEditor>	CreateRPRStaticMeshEditor(UStaticMesh* StaticMesh);
+
 	void	InitRPRStaticMeshEditor(UStaticMesh* InStaticMesh);
 
 	virtual void RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
@@ -29,16 +31,20 @@ private:
 
 	TSharedPtr<FTabManager::FLayout>	GenerateDefaultLayout();
 	void								BindCommands();
+	void								InitializeWidgets();
 	void								InitializeViewport();
+	void								InitializeUVMappingEditor();
 	TSharedRef<SDockTab>				SpawnTab_Viewport(const FSpawnTabArgs& Args);
+	TSharedRef<SDockTab>				SpawnTab_UVMappingEditor(const FSpawnTabArgs& Args);
 
 private:
 
-	TSharedPtr<class SWidget>	Viewport;
+	TSharedPtr<class SRPRStaticMeshEditorViewport>	Viewport;
+	TSharedPtr<class SUVMappingEditor>				UVMappingEditor;
 	UStaticMesh*				StaticMesh;
 
 	static const FName ViewportTabId;
-
+	static const FName UVMappingEditorTabId;
 };
 
 typedef TSharedPtr<FRPRStaticMeshEditor> FRPRStaticMeshEditorPtr;

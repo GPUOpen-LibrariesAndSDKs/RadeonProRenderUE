@@ -4,13 +4,18 @@
 #include "SCompoundWidget.h"
 #include "STableRow.h"
 #include "SDockTab.h"
-#include "SUVProjectionTypeEntry.h"
+#include "UVMappingEditor/SUVProjectionTypeEntry.h"
 
 class SUVMappingEditor : public SCompoundWidget
 {
 public:
 
-	SLATE_BEGIN_ARGS(SUVMappingEditor) {}
+	SLATE_BEGIN_ARGS(SUVMappingEditor)
+		: _StaticMesh()
+	{}
+
+		SLATE_ARGUMENT(class UStaticMesh*, StaticMesh)
+
 	SLATE_END_ARGS()
 
 	void	Construct(const FArguments& InArgs);
@@ -18,10 +23,8 @@ public:
 
 private:
 
-	void	OnAssetEditorOpened(UObject* AssetOpened);
-	void	OnActiveTabChanged(TSharedPtr<SDockTab> OldTab, TSharedPtr<SDockTab> NewTab);
-	bool	IsTabContainedInStaticMeshEditor(TSharedPtr<SDockTab> Tab);
-	void	AddUVProjectionListEntry(EUVProjectionType ProjectionType, const FText& ProjectionName, const FSlateBrush* SlateBrush);
+	void	AddUVProjectionListEntry(EUVProjectionType ProjectionType, const FText& ProjectionName, 
+										const FSlateBrush* SlateBrush, class UStaticMesh* StaticMesh);
 
 	TSharedRef<ITableRow>	OnGenerateWidgetForUVProjectionTypeEntry(SUVProjectionTypeEntryPtr InItem,
 															const TSharedRef<STableViewBase>& OwnerTable);
@@ -30,8 +33,7 @@ private:
 	bool		HasUVProjectionTypeSelected() const;
 	EVisibility	GetUVProjectionControlsVisibility() const;
 
-	void	InjectUVProjectionWidget(SUVProjectionTypeEntryPtr UVProjectionTypeEntry);
-
+	void			InjectUVProjectionWidget(SUVProjectionTypeEntryPtr UVProjectionTypeEntry);
 
 private:
 

@@ -1,13 +1,23 @@
 #include "RPRStaticMeshEditor.h"
 #include "RPRStaticMeshEditorActions.h"
 #include "SDockTab.h"
+#include "SUVMappingEditor.h"
 #include "SRPRStaticMeshEditorViewport.h"
 #include "EditorStyle.h"
 
 #define LOCTEXT_NAMESPACE "RPRStaticMeshEditor"
 
 const FName RPRStaticMeshEditorAppIdentifier = TEXT("RPRStaticMeshEditorApp");
+
 const FName FRPRStaticMeshEditor::ViewportTabId(TEXT("RPRStaticMeshEditor_Viewport"));
+const FName FRPRStaticMeshEditor::UVMappingEditorTabId(TEXT("RPRStaticMeshEditor_UVMappingEditor"));
+
+TSharedPtr<FRPRStaticMeshEditor> FRPRStaticMeshEditor::CreateRPRStaticMeshEditor(UStaticMesh* StaticMesh)
+{
+	TSharedPtr<FRPRStaticMeshEditor> RPRStaticMeshEditor = MakeShareable(new FRPRStaticMeshEditor);
+	RPRStaticMeshEditor->InitRPRStaticMeshEditor(StaticMesh);
+	return (RPRStaticMeshEditor);
+}
 
 void FRPRStaticMeshEditor::InitRPRStaticMeshEditor(UStaticMesh* InStaticMesh)
 {
@@ -16,7 +26,7 @@ void FRPRStaticMeshEditor::InitRPRStaticMeshEditor(UStaticMesh* InStaticMesh)
 	FRPRStaticMeshEditorActions::Register();
 
 	BindCommands();
-	InitializeViewport();
+	InitializeWidgets();
 
 	const bool bCreateDefaultStandaloneMenu = true;
 	const bool bCreateDefaultToolbar = true;
@@ -37,16 +47,27 @@ void FRPRStaticMeshEditor::BindCommands()
 
 }
 
+void FRPRStaticMeshEditor::InitializeWidgets()
+{
+	InitializeViewport();
+	InitializeUVMappingEditor();
+}
+
 void FRPRStaticMeshEditor::InitializeViewport()
 {
 	Viewport = SNew(SRPRStaticMeshEditorViewport)
 		.StaticMeshEditor(SharedThis(this));
 }
 
+void FRPRStaticMeshEditor::InitializeUVMappingEditor()
+{
+	UVMappingEditor = SNew(SUVMappingEditor)
+		.StaticMesh(StaticMesh);
+}
+
 TSharedPtr<FTabManager::FLayout>	FRPRStaticMeshEditor::GenerateDefaultLayout()
 {
-	return (
-		FTabManager::NewLayout("Standalone_RPRStaticMeshEditor_Layout_v1")
+	return FTabManager::NewLayout("Standalone_RPRStaticMeshEditor_Layout_v1")
 		->AddArea
 		(
 			FTabManager::NewPrimaryArea()->SetOrientation(Orient_Vertical)
@@ -57,22 +78,26 @@ TSharedPtr<FTabManager::FLayout>	FRPRStaticMeshEditor::GenerateDefaultLayout()
 				->SetHideTabWell(true)
 				->AddTab(GetToolbarTabId(), ETabState::OpenedTab)
 			)
-			FTabManager::NewSplitter()->SetOrientation(Orient_Horizontal)
-			->SetSizeCoefficient(0.9f)
 			->Split
 			(
-				FTabManager::NewStack()
-				->SetSizeCoefficient(0.6f)
-				->SetHideTabWell(true)
-				->AddTab(ViewportTabId(, ETabState::OpenedTab))
+				FTabManager::NewSplitter()->SetOrientation(Orient_Horizontal)
+				->SetSizeCoefficient(0.9f)
+				->Split
+				(
+					FTabManager::NewStack()
+					->SetSizeCoefficient(0.7f)
+					->SetHideTabWell(true)
+					->AddTab(ViewportTabId, ETabState::OpenedTab)
+				)
+				->Split
+				(
+					FTabManager::NewStack()
+					->SetSizeCoefficient(0.3f)
+					->AddTab(UVMappingEditorTabId, ETabState::OpenedTab)
+					// Coming soon...
+					// -> AddTab(MaterialLibraryTabId, ETabState::OpenedTab)
+				)
 			)
-			/*->Split
-			(
-				FTabManager::NewStack()
-				->SetSizeCoefficient(0.7f)
-				->AddTab()
-			)*/
-		)
 		);
 }
 
@@ -87,6 +112,10 @@ void FRPRStaticMeshEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& In
 		.SetDisplayName(LOCTEXT("ViewportTab", "Viewport"))
 		.SetGroup(WorkspaceMenuCategoryRef)
 		.SetIcon(FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.Tabs.Viewports"));
+
+	InTabManager->RegisterTabSpawner(UVMappingEditorTabId, FOnSpawnTab::CreateSP(this, &FRPRStaticMeshEditor::SpawnTab_UVMappingEditor))
+		.SetDisplayName(LOCTEXT("UVMappingEditor", "UV Mapping Editor"))
+		.SetGroup(WorkspaceMenuCategoryRef);
 }
 
 FName FRPRStaticMeshEditor::GetToolkitFName() const
@@ -121,14 +150,24 @@ TSharedRef<SDockTab> FRPRStaticMeshEditor::SpawnTab_Viewport(const FSpawnTabArgs
 {
 	check(Args.GetTabId() == ViewportTabId);
 
-	TSharedRef<SDockTab> SpawnedTab =
+	return
 		SNew(SDockTab)
 		.Label(LOCTEXT("RPRStaticMeshEditorViewport_TabTitle", "Viewport"))
 		[
 			Viewport.ToSharedRef()
 		];
+}
 
-	return (SpawnedTab);
+TSharedRef<SDockTab> FRPRStaticMeshEditor::SpawnTab_UVMappingEditor(const FSpawnTabArgs& Args)
+{
+	check(Args.GetTabId() == UVMappingEditorTabId);
+
+	return
+		SNew(SDockTab)
+		.Label(LOCTEXT("RPRStaticMeshEditorUVMappingEditor_TabTitle", "UV Mapping Editor"))
+		[
+			UVMappingEditor.ToSharedRef()
+		];
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -1,5 +1,4 @@
 #include "RPRPluginEditorModule.h"
-#include "Engine/StaticMesh.h"
 
 DEFINE_LOG_CATEGORY(RPREditorLog)
 
@@ -8,20 +7,11 @@ DEFINE_LOG_CATEGORY(RPREditorLog)
 void FRPRPluginEditorModule::StartupModule()
 {
 	RPRStaticMeshEditorAssetContextMenu.Startup();
-	UVMappingEditor.Initialize();
 }
 
 void FRPRPluginEditorModule::ShutdownModule()
 {
-	UVMappingEditor.Shutdown();	
 	RPRStaticMeshEditorAssetContextMenu.Shutdown();
-}
-
-TSharedPtr<FRPRStaticMeshEditor> FRPRPluginEditorModule::CreateRPRStaticMeshEditor(UStaticMesh* StaticMesh)
-{
-	TSharedPtr<FRPRStaticMeshEditor> RPRStaticMeshEditor = MakeShareable(new FRPRStaticMeshEditor);
-	RPRStaticMeshEditor->InitRPRStaticMeshEditor(StaticMesh);
-	return (RPRStaticMeshEditor);
 }
 
 #undef LOCTEXT_NAMESPACE

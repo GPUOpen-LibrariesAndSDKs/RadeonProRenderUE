@@ -3,16 +3,25 @@
 #include "DeclarativeSyntaxSupport.h"
 #include "IUVProjection.h"
 #include "SharedPointer.h"
-#include "SCompoundWidget.h"
+#include "IUVProjectionAlgorithm.h"
+#include "SUVProjectionBase.h"
 
-class SUVProjectionPlanar : public SCompoundWidget, public IUVProjection
+class SUVProjectionPlanar : public SUVProjectionBase
 {
 public:
+
 	SLATE_BEGIN_ARGS(SUVProjectionPlanar) {}
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
 
-	virtual TSharedRef<SWidget>	TakeWidget();
+	virtual void	FinalizeCreation() override;
+
+	FReply	Apply();
+	
+
+protected:
+
+	virtual void OnAlgorithmCompleted(IUVProjectionAlgorithm* Algorithm, bool bIsSuccess) override;
 
 };

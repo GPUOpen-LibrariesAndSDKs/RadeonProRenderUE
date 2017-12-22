@@ -25,6 +25,9 @@ public class RPRPluginEditor : ModuleRules
         PrivateIncludePaths.AddRange(
             new string[] {
                 "RPRPluginEditor/Private",
+                "RPRPluginEditor/Private/Tools",
+                "RPRPluginEditor/Private/Tools/Math/TransformablePlane",
+                "RPRPluginEditor/Private/Tools/Math/UVUtility",
                 "RPRPlugin/Private"
 				// ... add other private include paths required here ...
 			}
