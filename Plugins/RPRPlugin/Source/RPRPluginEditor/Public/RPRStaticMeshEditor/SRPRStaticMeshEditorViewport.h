@@ -23,6 +23,8 @@ public:
 
 	void Construct(const FArguments& InArgs);
 
+	void SetFloorToStaticMeshBottom();
+
 	void SetPreviewMesh(UStaticMesh* InStaticMesh);
 
 	/* FGCObject Implementation */
@@ -37,7 +39,8 @@ public:
 
 protected:
 
-	virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override;
+	virtual TSharedRef<FEditorViewportClient>	MakeEditorViewportClient() override;
+	virtual TSharedPtr<SWidget>					MakeViewportToolbar() override;
 
 private:
 

@@ -18,6 +18,14 @@ void SRPRStaticMeshEditorViewport::Construct(const FArguments& InArgs)
 
 	PreviewMeshComponent = NewObject<UStaticMeshComponent>((UObject*)GetTransientPackage(), FName(), RF_Transient);
 	SetPreviewMesh(StaticMesh);
+
+	SetFloorToStaticMeshBottom();
+}
+
+void SRPRStaticMeshEditorViewport::SetFloorToStaticMeshBottom()
+{
+
+	PreviewScene->SetFloorOffset(-StaticMesh->ExtendedBounds.Origin.Z + StaticMesh->ExtendedBounds.BoxExtent.Z);
 }
 
 void SRPRStaticMeshEditorViewport::SetPreviewMesh(UStaticMesh* InStaticMesh)
@@ -70,4 +78,9 @@ TSharedRef<FEditorViewportClient> SRPRStaticMeshEditorViewport::MakeEditorViewpo
 	EditorViewportClient->VisibilityDelegate.BindSP(this, &SRPRStaticMeshEditorViewport::IsVisible);
 
 	return (EditorViewportClient.ToSharedRef());
+}
+
+TSharedPtr<SWidget> SRPRStaticMeshEditorViewport::MakeViewportToolbar()
+{
+	return (SNew(SCommonEditorViewportToolbarBase, SharedThis(this)));
 }

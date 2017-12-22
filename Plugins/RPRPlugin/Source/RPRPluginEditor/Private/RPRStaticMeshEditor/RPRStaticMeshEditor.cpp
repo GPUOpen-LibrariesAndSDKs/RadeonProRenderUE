@@ -32,6 +32,50 @@ void FRPRStaticMeshEditor::InitRPRStaticMeshEditor(UStaticMesh* InStaticMesh)
 	);
 }
 
+void FRPRStaticMeshEditor::BindCommands()
+{
+
+}
+
+void FRPRStaticMeshEditor::InitializeViewport()
+{
+	Viewport = SNew(SRPRStaticMeshEditorViewport)
+		.StaticMeshEditor(SharedThis(this));
+}
+
+TSharedPtr<FTabManager::FLayout>	FRPRStaticMeshEditor::GenerateDefaultLayout()
+{
+	return (
+		FTabManager::NewLayout("Standalone_RPRStaticMeshEditor_Layout_v1")
+		->AddArea
+		(
+			FTabManager::NewPrimaryArea()->SetOrientation(Orient_Vertical)
+			->Split
+			(
+				FTabManager::NewStack()
+				->SetSizeCoefficient(0.1f)
+				->SetHideTabWell(true)
+				->AddTab(GetToolbarTabId(), ETabState::OpenedTab)
+			)
+			FTabManager::NewSplitter()->SetOrientation(Orient_Horizontal)
+			->SetSizeCoefficient(0.9f)
+			->Split
+			(
+				FTabManager::NewStack()
+				->SetSizeCoefficient(0.6f)
+				->SetHideTabWell(true)
+				->AddTab(ViewportTabId(, ETabState::OpenedTab))
+			)
+			/*->Split
+			(
+				FTabManager::NewStack()
+				->SetSizeCoefficient(0.7f)
+				->AddTab()
+			)*/
+		)
+		);
+}
+
 void FRPRStaticMeshEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
 {
 	WorkspaceMenuCategory = InTabManager->AddLocalWorkspaceMenuCategory(LOCTEXT("WorkspaceMenu_RPRStaticMeshEditor", "RPR Static Mesh Editor"));
@@ -73,36 +117,6 @@ UStaticMesh* FRPRStaticMeshEditor::GetStaticMesh() const
 {
 	return (StaticMesh);
 }
-
-TSharedPtr<FTabManager::FLayout>	FRPRStaticMeshEditor::GenerateDefaultLayout()
-{
-	return (
-		FTabManager::NewLayout("Standalone_RPRStaticMeshEditor_Layout_v1")
-		->AddArea
-		(
-			FTabManager::NewPrimaryArea()->SetOrientation(Orient_Vertical)
-			->Split
-			(
-				FTabManager::NewStack()
-				->SetSizeCoefficient(0.1f)
-				->SetHideTabWell(true)
-				->AddTab(GetToolbarTabId(), ETabState::OpenedTab)
-			)
-		)
-	);
-}
-
-void FRPRStaticMeshEditor::BindCommands()
-{
-
-}
-
-void FRPRStaticMeshEditor::InitializeViewport()
-{
-	Viewport = SNew(SRPRStaticMeshEditorViewport)
-		.StaticMeshEditor(SharedThis(this));
-}
-
 TSharedRef<SDockTab> FRPRStaticMeshEditor::SpawnTab_Viewport(const FSpawnTabArgs& Args)
 {
 	check(Args.GetTabId() == ViewportTabId);
