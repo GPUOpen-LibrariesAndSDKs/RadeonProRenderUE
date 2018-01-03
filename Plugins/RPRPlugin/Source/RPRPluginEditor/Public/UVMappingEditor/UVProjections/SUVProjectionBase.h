@@ -5,7 +5,8 @@
 #include "UVProjectionType.h"
 #include "IUVProjectionAlgorithm.h"
 #include "SCompoundWidget.h"
-#include "GCObject.h"
+#include "ShapePreviewBase.h"
+#include "RPRStaticMeshEditor.h"
 
 /*
  * Abstract class for UV Projection widgets
@@ -19,6 +20,7 @@ public:
 	void	Construct(const FArguments& InArgs);
 
 	virtual void				SetStaticMesh(class UStaticMesh* InStaticMesh) override;
+	virtual void				SetRPRStaticMeshEditor(FRPRStaticMeshEditorWeakPtr InRPRStaticMeshEditor) override;
 	virtual UStaticMesh*		GetStaticMesh() const override;
 	virtual TSharedRef<SWidget> TakeWidget() override;
 
@@ -26,19 +28,36 @@ protected:
 	
 	void	ConstructBase();
 
+	void	AddComponentToViewport(UActorComponent* InActorComponent, bool bSelectShape = true);
+
 	void	InitializeAlgorithm(EUVProjectionType ProjectionType);
 	void	StartAlgorithm();
 	void	FinalizeAlgorithm();
 
-	virtual void	OnAlgorithmCompleted(IUVProjectionAlgorithm* Algorithm, bool bIsSuccess) = 0;
+	virtual void				InitializePostSetRPRStaticMeshEditor();
+
+	virtual void				OnAlgorithmCompleted(IUVProjectionAlgorithm* Algorithm, bool bIsSuccess) = 0;
+	virtual UShapePreviewBase*	GetShapePreview() = 0;
+
+	template<typename AlgorithmType>
+	TSharedPtr<AlgorithmType>	GetAlgorithm() const;
 
 private:
 
+	void	AddShapePreviewToViewport();
 	void	SubscribeToAlgorithmCompletion();
 
 private:
 
-	IUVProjectionAlgorithmPtr	algorithm;
-	UStaticMesh*				staticMesh;
+	IUVProjectionAlgorithmPtr	Algorithm;
+	UStaticMesh*				StaticMesh;
+	FRPRStaticMeshEditorWeakPtr	RPRStaticMeshEditor;
 
 };
+
+
+template<typename AlgorithmType>
+TSharedPtr<AlgorithmType> SUVProjectionBase::GetAlgorithm() const
+{
+	return (StaticCastSharedPtr<AlgorithmType>(Algorithm));
+}

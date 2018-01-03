@@ -10,7 +10,7 @@ public:
 	FTransformablePlane();
 	FTransformablePlane(const FPlane& InPlane, const FVector& InOrigin, const FVector& InPlaneUp);
 
-	FVector2D	ProjectToLocalCoordinates(const FVector& Position);
+	FVector2D		ProjectToLocalCoordinates(const FVector& Position);
 
 private:
 

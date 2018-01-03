@@ -12,9 +12,11 @@ public:
 
 	SLATE_BEGIN_ARGS(SUVMappingEditor)
 		: _StaticMesh()
+		, _RPRStaticMeshEditor()
 	{}
 
 		SLATE_ARGUMENT(class UStaticMesh*, StaticMesh)
+		SLATE_ARGUMENT(TSharedPtr<class FRPRStaticMeshEditor>, RPRStaticMeshEditor)
 
 	SLATE_END_ARGS()
 
@@ -29,11 +31,14 @@ private:
 	TSharedRef<ITableRow>	OnGenerateWidgetForUVProjectionTypeEntry(SUVProjectionTypeEntryPtr InItem,
 															const TSharedRef<STableViewBase>& OwnerTable);
 
-	void		OnUVProjectionTypeSelectionChanged(SUVProjectionTypeEntryPtr InItemSelected, ESelectInfo::Type SelectInfo);
-	bool		HasUVProjectionTypeSelected() const;
-	EVisibility	GetUVProjectionControlsVisibility() const;
+	void			OnUVProjectionTypeSelectionChanged(SUVProjectionTypeEntryPtr InItemSelected, ESelectInfo::Type SelectInfo);
+	bool			HasUVProjectionTypeSelected() const;
+	EVisibility		GetUVProjectionControlsVisibility() const;
 
-	void			InjectUVProjectionWidget(SUVProjectionTypeEntryPtr UVProjectionTypeEntry);
+	void			InitializeUVProjectionWidget(IUVProjectionPtr UVProjectionWidget);
+	void			InjectUVProjectionWidget(IUVProjectionPtr UVProjectionWidget);
+	void			ReleaseSelectedUVProjectionWidget();
+	void			ReleaseUVProjectionWidget(IUVProjectionPtr UVProjectionWidget);
 
 private:
 
@@ -44,5 +49,7 @@ private:
 
 	SUVProjectionTypeEntryPtr	SelectedProjectionEntry;
 	TSharedPtr<SWindow>			LastStaticMeshWindowSelected;
+
+	TSharedPtr<class FRPRStaticMeshEditor>		RPRStaticMeshEditorPtr;
 
 };

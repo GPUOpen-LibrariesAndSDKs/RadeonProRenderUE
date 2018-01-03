@@ -1,4 +1,5 @@
 #include "SUVMappingEditor.h"
+#include "RPRStaticMeshEditor.h"
 #include "AssetEditorManager.h"
 #include "EditorStyle.h"
 #include "SUVProjectionTypeEntry.h"
@@ -13,6 +14,7 @@
 void SUVMappingEditor::Construct(const SUVMappingEditor::FArguments& InArgs)
 {
 	UStaticMesh* StaticMesh = InArgs._StaticMesh;
+	RPRStaticMeshEditorPtr = InArgs._RPRStaticMeshEditor;
 
 	AddUVProjectionListEntry(EUVProjectionType::Planar,			LOCTEXT("ProjectionType_Planar", "Planar"),			FEditorStyle::GetBrush("ClassThumbnail.Plane"), StaticMesh);
 	AddUVProjectionListEntry(EUVProjectionType::Cubic,			LOCTEXT("ProjectionType_Cubic", "Cubic"),			FEditorStyle::GetBrush("ClassThumbnail.Cube"), StaticMesh);
@@ -21,17 +23,14 @@ void SUVMappingEditor::Construct(const SUVMappingEditor::FArguments& InArgs)
 
 	this->ChildSlot
 		[
-			SNew(SVerticalBox)
-			+SVerticalBox::Slot()
-			.VAlign(EVerticalAlignment::VAlign_Top)
-			.AutoHeight()
+			SNew(SScrollBox)
+			.Orientation(EOrientation::Orient_Vertical)
+			+SScrollBox::Slot()
 			[
 				SNew(STextBlock)
 				.Text(LOCTEXT("Label_UVProjection", "UV Projection"))
 			]
-			+SVerticalBox::Slot()
-			.VAlign(EVerticalAlignment::VAlign_Top)
-			.AutoHeight()
+			+SScrollBox::Slot()
 			[
 				SNew(SBorder)
 				[
@@ -42,7 +41,7 @@ void SUVMappingEditor::Construct(const SUVMappingEditor::FArguments& InArgs)
 					.OnSelectionChanged(this, &SUVMappingEditor::OnUVProjectionTypeSelectionChanged)
 				]
 			]
-			+SVerticalBox::Slot()
+			+SScrollBox::Slot()
 			[
 				SAssignNew(UVProjectionContainer, SBorder)
 				.Visibility(this, &SUVMappingEditor::GetUVProjectionControlsVisibility)
@@ -52,8 +51,15 @@ void SUVMappingEditor::Construct(const SUVMappingEditor::FArguments& InArgs)
 
 void SUVMappingEditor::SelectProjectionEntry(SUVProjectionTypeEntryPtr ProjectionEntry)
 {
-	SelectedProjectionEntry = ProjectionEntry;
-	InjectUVProjectionWidget(SelectedProjectionEntry);
+	if (SelectedProjectionEntry != ProjectionEntry)
+	{
+		ReleaseSelectedUVProjectionWidget();
+		SelectedProjectionEntry = ProjectionEntry;
+
+		IUVProjectionPtr projectionPtr = ProjectionEntry->GetUVProjectionWidget();
+		InitializeUVProjectionWidget(projectionPtr);
+		InjectUVProjectionWidget(projectionPtr);
+	}
 }
 
 void SUVMappingEditor::AddUVProjectionListEntry(EUVProjectionType ProjectionType, const FText& ProjectionName, 
@@ -93,10 +99,33 @@ EVisibility SUVMappingEditor::GetUVProjectionControlsVisibility() const
 	return (HasUVProjectionTypeSelected() ? EVisibility::Visible : EVisibility::Collapsed);
 }
 
-void SUVMappingEditor::InjectUVProjectionWidget(SUVProjectionTypeEntryPtr UVProjectionTypeEntry)
+void SUVMappingEditor::InitializeUVProjectionWidget(IUVProjectionPtr UVProjectionWidget)
 {
-	IUVProjectionPtr UVrojectionWidget = UVProjectionTypeEntry->GetUVProjectionWidget();
-	UVProjectionContainer->SetContent(UVrojectionWidget.IsValid() ? UVrojectionWidget->TakeWidget() : SNew(SBox));
+	if (UVProjectionWidget.IsValid())
+	{
+		UVProjectionWidget->SetRPRStaticMeshEditor(RPRStaticMeshEditorPtr);
+	}
+}
+
+void SUVMappingEditor::InjectUVProjectionWidget(IUVProjectionPtr UVProjectionWidget)
+{
+	UVProjectionContainer->SetContent(UVProjectionWidget.IsValid() ? UVProjectionWidget->TakeWidget() : SNew(SBox));
+}
+
+void SUVMappingEditor::ReleaseSelectedUVProjectionWidget()
+{
+	if (SelectedProjectionEntry.IsValid())
+	{
+		ReleaseUVProjectionWidget(SelectedProjectionEntry->GetUVProjectionWidget());
+	}
+}
+
+void SUVMappingEditor::ReleaseUVProjectionWidget(IUVProjectionPtr UVProjectionWidget)
+{
+	if (UVProjectionWidget.IsValid())
+	{
+		UVProjectionWidget->Release();
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

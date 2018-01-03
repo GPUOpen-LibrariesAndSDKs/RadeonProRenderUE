@@ -1,5 +1,6 @@
 #include "SRPRStaticMeshEditorViewport.h"
 #include "ComponentReregisterContext.h"
+#include "Editor.h"
 #include "UObjectGlobals.h"
 #include "PreviewScene.h"
 
@@ -24,7 +25,6 @@ void SRPRStaticMeshEditorViewport::Construct(const FArguments& InArgs)
 
 void SRPRStaticMeshEditorViewport::SetFloorToStaticMeshBottom()
 {
-
 	PreviewScene->SetFloorOffset(-StaticMesh->ExtendedBounds.Origin.Z + StaticMesh->ExtendedBounds.BoxExtent.Z);
 }
 
@@ -33,10 +33,15 @@ void SRPRStaticMeshEditorViewport::SetPreviewMesh(UStaticMesh* InStaticMesh)
 	FComponentReregisterContext ReregisterContext(PreviewMeshComponent);
 	PreviewMeshComponent->SetStaticMesh(InStaticMesh);
 
-	FTransform Transform = FTransform::Identity;
-	PreviewScene->AddComponent(PreviewMeshComponent, Transform);
+	AddComponent(PreviewMeshComponent);
 
 	EditorViewportClient->SetPreviewMesh(InStaticMesh, PreviewMeshComponent);
+}
+
+void SRPRStaticMeshEditorViewport::AddComponent(UActorComponent* InComponent)
+{
+	FTransform transform = FTransform::Identity;
+	PreviewScene->AddComponent(InComponent, transform);
 }
 
 void SRPRStaticMeshEditorViewport::AddReferencedObjects(FReferenceCollector& Collector)

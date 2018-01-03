@@ -7,7 +7,7 @@ class FUVProjectionPlanarAlgo : public FUVProjectionAlgorithmBase
 {
 public:
 
-	virtual ~FUVProjectionPlanarAlgo() {}
+	FUVProjectionPlanarAlgo();
 
 	void	SetPlane(const class FTransformablePlane& InPlane);
 

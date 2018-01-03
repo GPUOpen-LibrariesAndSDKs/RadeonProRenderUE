@@ -1,9 +1,9 @@
 #pragma once
 
 #include "SharedPointer.h"
-#include "EditorViewportClient.h"
+#include "RPRViewportEditorClient.h"
 
-class FRPRStaticMeshEditorViewportClient : public FEditorViewportClient
+class FRPRStaticMeshEditorViewportClient : public FRPRViewportEditorClient
 {
 public:
 	FRPRStaticMeshEditorViewportClient(TWeakPtr<class FRPRStaticMeshEditor> InStaticMeshEditor,
@@ -11,16 +11,31 @@ public:
 		const TSharedRef<class FAdvancedPreviewScene>& InPreviewScene,
 		class UStaticMesh* InPreviewStaticMesh, class UStaticMeshComponent* InPreviewStaticMeshComponent);
 
-	~FRPRStaticMeshEditorViewportClient();
+	virtual ~FRPRStaticMeshEditorViewportClient();
+
+	virtual bool InputWidgetDelta(FViewport* InViewport, EAxisList::Type CurrentAxis, FVector& Drag, FRotator& Rot, FVector& Scale) override;
+	virtual void TrackingStarted(const struct FInputEventState& InInputState, bool bIsDraggingWidget, bool bNudge) override;
+	virtual void TrackingStopped() override;
+
+	virtual void SetWidgetMode(FWidget::EWidgetMode NewMode) override;
+	virtual FWidget::EWidgetMode	GetWidgetMode() const override;
+	virtual bool CanSetWidgetMode(FWidget::EWidgetMode NewMode) const override;
+	virtual bool CanCycleWidgetMode() const override;
+	virtual FVector GetWidgetLocation() const override;
+	virtual FMatrix GetWidgetCoordSystem() const override;
+	virtual ECoordSystem GetWidgetCoordSystemSpace() const override { return COORD_Local; }
 
 	virtual void Tick(float DeltaSeconds) override;
+	virtual void ProcessClick(class FSceneView& InView, class HHitProxy* HitProxy, FKey Key, EInputEvent Event, uint32 HitX, uint32 HitY) override;
 
 	void	SetPreviewMesh(UStaticMesh* InStaticMesh, UStaticMeshComponent* InPreviewComponent, bool bResetCamera = true);
 
 private:
 
-	void	OnAssetViewerSettingsChanged(const FName& InPropertyName);
-	void	SetAdvancedShowFlagsForScene(const bool bAdvancedShowFlags);
+	UProperty*	FindSelectionFieldAndNotifyPreEditChange(USceneComponent* SceneComponent, FName FieldName);
+	void		OnAssetViewerSettingsChanged(const FName& InPropertyName);
+	void		SetAdvancedShowFlagsForScene(const bool bAdvancedShowFlags);
+	bool		IsWidgetModeSupportedBySelection(FWidget::EWidgetMode Mode) const;
 
 private:
 
@@ -28,6 +43,8 @@ private:
 	TWeakPtr<class FRPRStaticMeshEditor>			StaticMeshEditorPtr;
 	TWeakPtr<class SRPRStaticMeshEditorViewport>	StaticMeshEditorViewportPtr;
 
+	FWidget::EWidgetMode WidgetMode;
+	bool bIsManipulating;
 };
 
 typedef TSharedPtr<FRPRStaticMeshEditorViewportClient> FRPRStaticMeshEditorViewportClientPtr;

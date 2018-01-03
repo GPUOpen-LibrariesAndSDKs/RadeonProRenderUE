@@ -3,6 +3,7 @@
 #include "AssetEditorToolkit.h"
 #include "GCObject.h"
 #include "SharedPointer.h"
+#include "RPRStaticMeshEditorSelection.h"
 #include "Engine/StaticMesh.h"
 
 extern const FName RPRStaticMeshEditorAppIdentifier;
@@ -23,9 +24,12 @@ public:
 	virtual FString GetWorldCentricTabPrefix() const override;
 	virtual FLinearColor GetWorldCentricTabColorScale() const override;
 	
-	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
+	virtual void	AddReferencedObjects(FReferenceCollector& Collector) override;
 
 	UStaticMesh*	GetStaticMesh() const;
+	FRPRStaticMeshEditorSelection&	GetSelectionSystem();
+
+	void		AddComponentToViewport(UActorComponent* InComponent, bool bSelectComponent = true);
 
 private:
 
@@ -41,10 +45,12 @@ private:
 
 	TSharedPtr<class SRPRStaticMeshEditorViewport>	Viewport;
 	TSharedPtr<class SUVMappingEditor>				UVMappingEditor;
-	UStaticMesh*				StaticMesh;
-
+	UStaticMesh*									StaticMesh;
+	FRPRStaticMeshEditorSelection					SelectionSystem;
+	
 	static const FName ViewportTabId;
 	static const FName UVMappingEditorTabId;
 };
 
 typedef TSharedPtr<FRPRStaticMeshEditor> FRPRStaticMeshEditorPtr;
+typedef TWeakPtr<FRPRStaticMeshEditor> FRPRStaticMeshEditorWeakPtr;

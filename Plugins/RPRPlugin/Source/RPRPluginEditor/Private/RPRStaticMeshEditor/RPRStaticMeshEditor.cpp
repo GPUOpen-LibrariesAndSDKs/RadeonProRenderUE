@@ -62,7 +62,8 @@ void FRPRStaticMeshEditor::InitializeViewport()
 void FRPRStaticMeshEditor::InitializeUVMappingEditor()
 {
 	UVMappingEditor = SNew(SUVMappingEditor)
-		.StaticMesh(StaticMesh);
+		.StaticMesh(StaticMesh)
+		.RPRStaticMeshEditor(SharedThis(this));
 }
 
 TSharedPtr<FTabManager::FLayout>	FRPRStaticMeshEditor::GenerateDefaultLayout()
@@ -146,6 +147,26 @@ UStaticMesh* FRPRStaticMeshEditor::GetStaticMesh() const
 {
 	return (StaticMesh);
 }
+
+FRPRStaticMeshEditorSelection& FRPRStaticMeshEditor::GetSelectionSystem()
+{
+	return (SelectionSystem);
+}
+
+void FRPRStaticMeshEditor::AddComponentToViewport(UActorComponent* ActorComponent, bool bSelectComponent /*= true*/)
+{
+	Viewport->AddComponent(ActorComponent);
+
+	if (bSelectComponent)
+	{
+		USceneComponent* sceneComponent = Cast<USceneComponent>(ActorComponent);
+		if (sceneComponent != nullptr)
+		{
+			GetSelectionSystem().SelectComponent(sceneComponent);
+		}
+	}
+}
+
 TSharedRef<SDockTab> FRPRStaticMeshEditor::SpawnTab_Viewport(const FSpawnTabArgs& Args)
 {
 	check(Args.GetTabId() == ViewportTabId);

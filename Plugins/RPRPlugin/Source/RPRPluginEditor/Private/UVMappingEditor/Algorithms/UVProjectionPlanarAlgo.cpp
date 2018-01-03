@@ -5,11 +5,13 @@
 #include "StaticMeshVertexBuffer.h"
 #include "TransformablePlane.h"
 
+FUVProjectionPlanarAlgo::FUVProjectionPlanarAlgo()
+	: Plane(FPlane(FVector::ZeroVector, FVector::RightVector), FVector::ZeroVector, FVector::UpVector)
+{}
+
 void FUVProjectionPlanarAlgo::StartAlgorithm()
 {
 	FUVProjectionAlgorithmBase::StartAlgorithm();
-
-	Plane = FTransformablePlane(FPlane(FVector::ZeroVector, FVector::RightVector), FVector::ZeroVector, FVector::UpVector);
 
 	const FPositionVertexBuffer* vertexBuffer = GetStaticMeshPositionVertexBuffer();
 	if (vertexBuffer == nullptr)
@@ -56,7 +58,7 @@ void FUVProjectionPlanarAlgo::ProjectVertexOnPlane(const FPositionVertexBuffer& 
 	{
 		const FVector& vertexPosition = PositionVertexBuffer.VertexPosition(vertexIndex);
 		newUV = Plane.ProjectToLocalCoordinates(vertexPosition);
-		Inverse(newUV);
+		InverseVertically(newUV);
 		NewUVs.Add(newUV);
 	}
 }

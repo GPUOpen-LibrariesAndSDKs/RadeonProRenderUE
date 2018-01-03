@@ -4,12 +4,17 @@
 
 void SUVProjectionBase::Construct(const FArguments& InArgs)
 {
-
 }
 
 void SUVProjectionBase::SetStaticMesh(UStaticMesh* InStaticMesh)
 {
-	staticMesh = InStaticMesh;
+	StaticMesh = InStaticMesh;
+}
+
+void SUVProjectionBase::SetRPRStaticMeshEditor(FRPRStaticMeshEditorWeakPtr InRPRStaticMeshEditor)
+{
+	RPRStaticMeshEditor = InRPRStaticMeshEditor;
+	InitializePostSetRPRStaticMeshEditor();
 }
 
 TSharedRef<SWidget> SUVProjectionBase::TakeWidget()
@@ -19,7 +24,7 @@ TSharedRef<SWidget> SUVProjectionBase::TakeWidget()
 
 UStaticMesh* SUVProjectionBase::GetStaticMesh() const
 {
-	return (staticMesh);
+	return (StaticMesh);
 }
 
 void SUVProjectionBase::ConstructBase()
@@ -27,29 +32,48 @@ void SUVProjectionBase::ConstructBase()
 	Construct(FArguments());
 }
 
+void SUVProjectionBase::AddShapePreviewToViewport()
+{
+	AddComponentToViewport(GetShapePreview());
+}
+
+void SUVProjectionBase::AddComponentToViewport(UActorComponent* InActorComponent, bool bSelectShape /*= true*/)
+{
+	FRPRStaticMeshEditorPtr rprStaticMeshEditor = RPRStaticMeshEditor.Pin();
+	if (rprStaticMeshEditor.IsValid())
+	{
+		rprStaticMeshEditor->AddComponentToViewport(InActorComponent, bSelectShape);
+	}
+}
+
 void SUVProjectionBase::InitializeAlgorithm(EUVProjectionType ProjectionType)
 {
-	algorithm = FAlgorithmFactory::CreateAlgorithm(staticMesh, ProjectionType);
+	Algorithm = FAlgorithmFactory::CreateAlgorithm(StaticMesh, ProjectionType);
 	SubscribeToAlgorithmCompletion();
 }
 
 void SUVProjectionBase::SubscribeToAlgorithmCompletion()
 {
-	algorithm->OnAlgorithmCompleted().AddRaw(this, &SUVProjectionBase::OnAlgorithmCompleted);
+	Algorithm->OnAlgorithmCompleted().AddRaw(this, &SUVProjectionBase::OnAlgorithmCompleted);
 }
 
 void SUVProjectionBase::StartAlgorithm()
 {
-	if (algorithm.IsValid())
+	if (Algorithm.IsValid())
 	{
-		algorithm->StartAlgorithm();
+		Algorithm->StartAlgorithm();
 	}
 }
 
 void SUVProjectionBase::FinalizeAlgorithm()
 {
-	if (algorithm.IsValid())
+	if (Algorithm.IsValid())
 	{
-		algorithm->Finalize();
+		Algorithm->Finalize();
 	}
+}
+
+void SUVProjectionBase::InitializePostSetRPRStaticMeshEditor()
+{
+	AddShapePreviewToViewport();
 }

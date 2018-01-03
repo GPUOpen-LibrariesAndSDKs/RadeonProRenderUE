@@ -28,6 +28,8 @@ public class RPRPluginEditor : ModuleRules
                 "RPRPluginEditor/Private/Tools",
                 "RPRPluginEditor/Private/Tools/Math/TransformablePlane",
                 "RPRPluginEditor/Private/Tools/Math/UVUtility",
+                "RPRPluginEditor/Private/ShapePreviews",
+                "RPRPluginEditor/Private/RPRViewport",
                 "RPRPlugin/Private"
 				// ... add other private include paths required here ...
 			}

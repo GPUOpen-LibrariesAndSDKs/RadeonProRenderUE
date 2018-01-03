@@ -26,6 +26,7 @@ public:
 	void SetFloorToStaticMeshBottom();
 
 	void SetPreviewMesh(UStaticMesh* InStaticMesh);
+	void AddComponent(UActorComponent* InComponent);
 
 	/* FGCObject Implementation */
 	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;

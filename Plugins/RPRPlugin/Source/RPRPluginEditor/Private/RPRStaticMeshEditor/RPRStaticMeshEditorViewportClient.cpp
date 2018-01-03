@@ -5,8 +5,13 @@
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
 #include "AssetViewerSettings.h"
+#include "Editor.h"
 #include "Editor/EditorPerProjectUserSettings.h"
 #include "ThumbnailRendering/SceneThumbnailInfo.h"
+#include "ShapePreviewProxy.h"
+#include "Matrix.h"
+
+#define LOCTEXT_NAMESPACE "RPRStaticMeshEditorViewportClient"
 
 namespace {
 	static const float LightRotSpeed = 0.22f;
@@ -23,7 +28,7 @@ FRPRStaticMeshEditorViewportClient::FRPRStaticMeshEditorViewportClient(TWeakPtr<
 	const TSharedRef<SRPRStaticMeshEditorViewport>& InStaticMeshEditorViewport, 
 	const TSharedRef<FAdvancedPreviewScene>& InPreviewScene, 
 	UStaticMesh* InPreviewStaticMesh, UStaticMeshComponent* InPreviewStaticMeshComponent)
-	: FEditorViewportClient(nullptr, &InPreviewScene.Get(), InStaticMeshEditorViewport)
+	: FRPRViewportEditorClient(nullptr, &InPreviewScene.Get(), InStaticMeshEditorViewport)
 	, StaticMeshEditorPtr(InStaticMeshEditor)
 	, StaticMeshEditorViewportPtr(InStaticMeshEditorViewport)
 {
@@ -62,6 +67,151 @@ FRPRStaticMeshEditorViewportClient::~FRPRStaticMeshEditorViewportClient()
 	UAssetViewerSettings::Get()->OnAssetViewerSettingsChanged().RemoveAll(this);
 }
 
+bool FRPRStaticMeshEditorViewportClient::InputWidgetDelta(FViewport* InViewport, EAxisList::Type CurrentAxis, FVector& Drag, FRotator& Rot, FVector& Scale)
+{
+	if (CurrentAxis != EAxisList::None)
+	{
+		FRPRStaticMeshEditorSelection& selectionSystem = StaticMeshEditorPtr.Pin()->GetSelectionSystem();
+		if (selectionSystem.HasSelection())
+		{
+			UProperty* ChangedProperty = nullptr;
+
+			USceneComponent* selectedComponent = selectionSystem.GetSelectedComponent();
+			const FWidget::EWidgetMode moveMode = GetWidgetMode();
+			if (selectionSystem.CanSelectionBeTranslated() && moveMode == FWidget::WM_Translate)
+			{
+				ChangedProperty = FindSelectionFieldAndNotifyPreEditChange(selectedComponent, "RelativeLocation");
+			}
+			else if (selectionSystem.CanSelectionBeRotated() && moveMode == FWidget::WM_Rotate)
+			{
+				ChangedProperty = FindSelectionFieldAndNotifyPreEditChange(selectedComponent, "RelativeRotation");
+			}
+			else if (selectionSystem.CanSelectionBeScaled() && moveMode == FWidget::WM_Scale)
+			{
+				ChangedProperty = FindSelectionFieldAndNotifyPreEditChange(selectedComponent, "RelativeScale3D");
+			}
+
+			GEditor->ApplyDeltaToComponent(selectedComponent, true, &Drag, &Rot, &Scale, selectedComponent->GetComponentLocation());
+
+			if (ChangedProperty != nullptr)
+			{
+				FPropertyChangedEvent propertyChangedEvent(ChangedProperty);
+				selectedComponent->PostEditChangeProperty(propertyChangedEvent);
+			}
+
+			Invalidate();
+			return (true);
+		}
+	}
+
+	return (false);
+}
+
+void FRPRStaticMeshEditorViewportClient::TrackingStarted(const struct FInputEventState& InInputState, bool bIsDraggingWidget, bool bNudge)
+{
+	FRPRStaticMeshEditorSelection& selectionSystem = StaticMeshEditorPtr.Pin()->GetSelectionSystem();
+	if (selectionSystem.HasSelection())
+	{
+		FText transText;
+		const FWidget::EWidgetMode widgetMode = GetWidgetMode();
+		switch (widgetMode)
+		{
+		case FWidget::WM_Translate:
+		{
+			transText = LOCTEXT("RPRStaticMeshEditorViewportClient_TranslateSelection", "Translate selection");
+		}
+		break;
+
+		case FWidget::WM_Rotate:
+		{
+			transText = LOCTEXT("RPRStaticMeshEditorViewportClient_RotateSelection", "Rotate selection");
+		}
+		break;
+
+		case FWidget::WM_Scale:
+		{
+			transText = LOCTEXT("RPRStaticMeshEditorViewportClient_ScaleSelection", "Scale selection");
+		}
+		break;
+
+		default:
+			break;
+		}
+
+		if (!transText.IsEmpty())
+		{
+			GEditor->BeginTransaction(transText);
+			selectionSystem.GetSelectedComponent()->Modify();
+			bIsManipulating = true;
+		}
+	}
+}
+
+void FRPRStaticMeshEditorViewportClient::TrackingStopped()
+{
+	if (bIsManipulating)
+	{
+		GEditor->EndTransaction();
+		bIsManipulating = false;
+	}
+}
+
+void FRPRStaticMeshEditorViewportClient::SetWidgetMode(FWidget::EWidgetMode NewMode)
+{
+	WidgetMode = NewMode;
+	Invalidate();
+}
+
+FWidget::EWidgetMode FRPRStaticMeshEditorViewportClient::GetWidgetMode() const
+{
+	FRPRStaticMeshEditorSelection& selectionSystem = StaticMeshEditorPtr.Pin()->GetSelectionSystem();
+	if (selectionSystem.HasSelection())
+	{
+		return (WidgetMode);
+	}
+
+	return (FWidget::EWidgetMode::WM_None);
+}
+
+bool FRPRStaticMeshEditorViewportClient::CanSetWidgetMode(FWidget::EWidgetMode NewMode) const
+{
+	if (!Widget->IsDragging())
+	{
+		FRPRStaticMeshEditorSelection& selectionSystem = StaticMeshEditorPtr.Pin()->GetSelectionSystem();
+		return (selectionSystem.HasSelection() && IsWidgetModeSupportedBySelection(NewMode));
+	}
+
+	return (false);
+}
+
+bool FRPRStaticMeshEditorViewportClient::CanCycleWidgetMode() const
+{
+	return (false);
+}
+
+FVector FRPRStaticMeshEditorViewportClient::GetWidgetLocation() const
+{
+	FRPRStaticMeshEditorSelection& selectionSystem = StaticMeshEditorPtr.Pin()->GetSelectionSystem();
+	if (selectionSystem.HasSelection())
+	{
+		return (selectionSystem.GetSelectedComponent()->GetComponentLocation());
+	}
+
+	return (FVector::ZeroVector);
+}
+
+
+FMatrix FRPRStaticMeshEditorViewportClient::GetWidgetCoordSystem() const
+{
+	FRPRStaticMeshEditorSelection& selectionSystem = StaticMeshEditorPtr.Pin()->GetSelectionSystem();
+	if (selectionSystem.HasSelection())
+	{
+		return (FRotationMatrix(selectionSystem.GetSelectedComponent()->GetComponentRotation()));
+	}
+
+	return (FMatrix::Identity);
+}
+
 void FRPRStaticMeshEditorViewportClient::Tick(float DeltaSeconds)
 {
 	FEditorViewportClient::Tick(DeltaSeconds);
@@ -70,6 +220,19 @@ void FRPRStaticMeshEditorViewportClient::Tick(float DeltaSeconds)
 	if (!GIntraFrameDebuggingGameThread)
 	{
 		PreviewScene->GetWorld()->Tick(LEVELTICK_All, DeltaSeconds);
+	}
+}
+
+void FRPRStaticMeshEditorViewportClient::ProcessClick(class FSceneView& InView, class HHitProxy* HitProxy, FKey Key, EInputEvent Event, uint32 HitX, uint32 HitY)
+{
+	FEditorViewportClient::ProcessClick(InView, HitProxy, Key, Event, HitX, HitY);
+
+	if (HitProxy != nullptr)
+	{
+		if (HitProxy->IsA(HShapePreviewProxy::StaticGetType()))
+		{
+			// Select projection gizmo
+		}
 	}
 }
 
@@ -135,6 +298,33 @@ void FRPRStaticMeshEditorViewportClient::SetAdvancedShowFlagsForScene(const bool
 	}
 }
 
+bool FRPRStaticMeshEditorViewportClient::IsWidgetModeSupportedBySelection(FWidget::EWidgetMode Mode) const
+{
+	FRPRStaticMeshEditorSelection& selectionSystem = StaticMeshEditorPtr.Pin()->GetSelectionSystem();
+
+	switch (Mode)
+	{
+	case FWidget::WM_Translate:
+		return (selectionSystem.CanSelectionBeTranslated());
+	case FWidget::WM_Rotate:
+		return (selectionSystem.CanSelectionBeRotated());
+	case FWidget::WM_Scale:
+		return (selectionSystem.CanSelectionBeScaled());
+
+	default:
+		break;
+	}
+
+	return (false);
+}
+
+UProperty* FRPRStaticMeshEditorViewportClient::FindSelectionFieldAndNotifyPreEditChange(USceneComponent* SceneComponent, FName FieldName)
+{
+	UProperty* changedProperty = FindField<UProperty>(SceneComponent->GetClass(), FieldName);
+	SceneComponent->PreEditChange(changedProperty);
+	return (changedProperty);
+}
+
 void FRPRStaticMeshEditorViewportClient::OnAssetViewerSettingsChanged(const FName& InPropertyName)
 {
 	if (InPropertyName == GET_MEMBER_NAME_CHECKED(FPreviewSceneProfile, bPostProcessingEnabled) || InPropertyName == NAME_None)
@@ -147,3 +337,5 @@ void FRPRStaticMeshEditorViewportClient::OnAssetViewerSettingsChanged(const FNam
 		}
 	}
 }
+
+#undef LOCTEXT_NAMESPACE

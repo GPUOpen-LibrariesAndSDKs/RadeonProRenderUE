@@ -8,11 +8,12 @@ void FUVUtility::ShrinkUVsToBounds(TArray<FVector2D>& UVs)
 	FVector2D min, max;
 	GetUVsBounds(UVs, min, max);
 	FVector2D scale = max - min;
+	float heighestScale = FMath::Max(scale.X, scale.Y);
 
 	for (int32 i = 0 ; i < UVs.Num(); ++i)
 	{
-		UVs[i].X = (UVs[i].X - min.X) / scale.X;
-		UVs[i].Y = (UVs[i].Y - min.Y) / scale.Y;
+		UVs[i].X = (UVs[i].X - min.X) / heighestScale;
+		UVs[i].Y = (UVs[i].Y - min.Y) / heighestScale;
 	}
 }
 
