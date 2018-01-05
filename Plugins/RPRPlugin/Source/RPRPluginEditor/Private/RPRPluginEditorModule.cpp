@@ -1,6 +1,6 @@
 #include "RPRPluginEditorModule.h"
 
-DEFINE_LOG_CATEGORY(RPREditorLog)
+DEFINE_LOG_CATEGORY(LogRPRPluginEditor)
 
 #define LOCTEXT_NAMESPACE "FRPRPluginEditorModule"
 

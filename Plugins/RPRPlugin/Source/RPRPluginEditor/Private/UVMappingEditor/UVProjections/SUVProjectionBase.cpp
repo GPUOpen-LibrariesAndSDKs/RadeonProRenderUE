@@ -1,6 +1,11 @@
 #include "SUVProjectionBase.h"
 #include "Engine/StaticMesh.h"
 #include "AlgorithmFactory.h"
+#include "PropertyEditorModule.h"
+#include "IDetailsView.h"
+#include "SButton.h"
+
+#define LOCTEXT_NAMESPACE "SUVProjectionBase"
 
 void SUVProjectionBase::Construct(const FArguments& InArgs)
 {
@@ -14,7 +19,6 @@ void SUVProjectionBase::SetStaticMesh(UStaticMesh* InStaticMesh)
 void SUVProjectionBase::SetRPRStaticMeshEditor(FRPRStaticMeshEditorWeakPtr InRPRStaticMeshEditor)
 {
 	RPRStaticMeshEditor = InRPRStaticMeshEditor;
-	InitializePostSetRPRStaticMeshEditor();
 }
 
 TSharedRef<SWidget> SUVProjectionBase::TakeWidget()
@@ -25,6 +29,11 @@ TSharedRef<SWidget> SUVProjectionBase::TakeWidget()
 UStaticMesh* SUVProjectionBase::GetStaticMesh() const
 {
 	return (StaticMesh);
+}
+
+FRPRStaticMeshEditorPtr SUVProjectionBase::GetRPRStaticMeshEditor() const
+{
+	return (RPRStaticMeshEditor.Pin());
 }
 
 void SUVProjectionBase::ConstructBase()
@@ -73,7 +82,29 @@ void SUVProjectionBase::FinalizeAlgorithm()
 	}
 }
 
-void SUVProjectionBase::InitializePostSetRPRStaticMeshEditor()
+TSharedPtr<IDetailsView> SUVProjectionBase::CreateShapePreviewDetailView(FName ViewIdentifier)
 {
-	AddShapePreviewToViewport();
+	FPropertyEditorModule& propertyEditorModule = FModuleManager::Get().GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+
+	FDetailsViewArgs detailsViewArgs(
+		/*bUpdateFromSelection=*/ false,
+		/*bLockable=*/ false,
+		/*bAllowSearch=*/ false,
+		FDetailsViewArgs::HideNameArea,
+		/*bHideSelectionTip=*/ true,
+		/*InNotifyHook=*/ nullptr,
+		/*InSearchInitialKeyFocus=*/ false,
+		/*InViewIdentifier=*/ ViewIdentifier);
+	
+	return (propertyEditorModule.CreateDetailView(detailsViewArgs));
 }
+TSharedRef<class SWidget> SUVProjectionBase::CreateApplyButton(FOnClicked OnClicked) const
+{
+	return
+		SNew(SButton)
+		.HAlign(EHorizontalAlignment::HAlign_Center)
+		.Text(LOCTEXT("ApplyButton", "Apply"))
+		.OnClicked(OnClicked);
+}
+
+#undef LOCTEXT_NAMESPACE

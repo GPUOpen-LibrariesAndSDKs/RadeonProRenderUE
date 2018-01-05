@@ -28,6 +28,8 @@ public:
 	void SetPreviewMesh(UStaticMesh* InStaticMesh);
 	void AddComponent(UActorComponent* InComponent);
 
+	void PaintStaticMeshPreview(const TArray<struct FColor>& Colors);
+
 	/* FGCObject Implementation */
 	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
 

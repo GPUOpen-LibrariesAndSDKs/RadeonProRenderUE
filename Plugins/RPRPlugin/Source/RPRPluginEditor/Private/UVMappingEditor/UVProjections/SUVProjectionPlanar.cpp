@@ -1,11 +1,11 @@
 #include "SUVProjectionPlanar.h"
-#include "Engine/StaticMesh.h"
-#include "SBoxPanel.h"
 #include "UVProjectionPlanarAlgo.h"
+#include "SBoxPanel.h"
 #include "SButton.h"
 #include "PropertyEditorModule.h"
 #include "SScrollBox.h"
-#include "IDetailsView.h"
+#include "IDetailsViewHelper.h"
+#include "SSpacer.h"
 
 #define LOCTEXT_NAMESPACE "SUVProjectionPlanar"
 
@@ -13,7 +13,7 @@ void SUVProjectionPlanar::Construct(const FArguments& InArgs)
 {
 	ConstructBase();
 
-	CreateShapePreviewDetailView();
+	ShapePreviewDetailView = CreateShapePreviewDetailView("SUVProjectionPlanarDetailsView");
 
 	ChildSlot
 		[
@@ -37,24 +37,21 @@ void SUVProjectionPlanar::Construct(const FArguments& InArgs)
 			.AutoHeight()
 			.VAlign(EVerticalAlignment::VAlign_Top)
 			[
-				SNew(SButton)
-				.HAlign(EHorizontalAlignment::HAlign_Center)
-				.Text(LOCTEXT("ApplyButton", "Apply"))
-				.OnClicked(this, &SUVProjectionPlanar::Apply)
+				CreateApplyButton(FOnClicked::CreateSP(this, &SUVProjectionPlanar::OnApplyButtonClicked))->AsShared()
 			]
 		];
 }
 
-void SUVProjectionPlanar::Release()
+FReply SUVProjectionPlanar::OnApplyButtonClicked()
 {
-	FShapePreviewPlane::ReleaseShape();
+	ApplyAlgorithm();
+	return (FReply::Handled());
 }
 
-FReply SUVProjectionPlanar::Apply()
+void SUVProjectionPlanar::ApplyAlgorithm()
 {
 	UpdateAlgorithmSettings();
 	StartAlgorithm();
-	return (FReply::Handled());
 }
 
 void SUVProjectionPlanar::FinalizeCreation()
@@ -62,13 +59,32 @@ void SUVProjectionPlanar::FinalizeCreation()
 	InitializeAlgorithm(EUVProjectionType::Planar);
 }
 
-void SUVProjectionPlanar::InitializePostSetRPRStaticMeshEditor()
+void SUVProjectionPlanar::OnUVProjectionDisplayed()
 {
-	SUVProjectionBase::InitializePostSetRPRStaticMeshEditor();
-
-	UShapePreviewBase* previewShape = GetShapePreview();
-	ShapePreviewDetailView->SetObject(previewShape);
+	ShapePreviewDetailView->SetObject(GetShapePreview());
+	AddComponentToViewport(GetShapePreview());
 }
+
+void SUVProjectionPlanar::OnUVProjectionHidden()
+{
+	FShapePreviewPlane::ReleaseShape();
+	IDetailsViewHelper::ClearSelection(ShapePreviewDetailView);
+}
+
+void SUVProjectionPlanar::UpdateAlgorithmSettings()
+{
+	TSharedPtr<FUVProjectionPlanarAlgo> planarAlgo = GetProjectionPlanarAlgo();
+	const FTransform& shapeTransform = GetShapePreview()->GetComponentTransform();
+	const FQuat& shapeRotation = shapeTransform.GetRotation();
+
+	FUVProjectionPlanarAlgo::FSettings settings;
+	{
+		FPlane plane(FVector::ZeroVector, shapeRotation.GetForwardVector());
+		settings.Plane = FTransformablePlane(plane, shapeTransform.GetLocation(), shapeRotation.GetUpVector());
+	}
+	planarAlgo->SetSettings(settings);
+}
+
 
 void SUVProjectionPlanar::OnAlgorithmCompleted(IUVProjectionAlgorithm* InAlgorithm, bool bIsSuccess)
 {
@@ -83,36 +99,9 @@ UShapePreviewBase* SUVProjectionPlanar::GetShapePreview()
 	return (FShapePreviewPlane::GetShape());
 }
 
-void SUVProjectionPlanar::UpdateAlgorithmSettings()
-{
-	TSharedPtr<FUVProjectionPlanarAlgo> planarAlgo = GetProjectionPlanarAlgo();
-	const FTransform& shapeTransform = GetShapePreview()->GetComponentTransform();
-
-	FPlane plane(FVector::ZeroVector, shapeTransform.GetRotation().GetForwardVector());
-	planarAlgo->SetPlane(FTransformablePlane(plane, shapeTransform.GetLocation(), shapeTransform.GetRotation().GetUpVector()));
-}
-
 TSharedPtr<FUVProjectionPlanarAlgo> SUVProjectionPlanar::GetProjectionPlanarAlgo() const
 {
 	return (GetAlgorithm<FUVProjectionPlanarAlgo>());
-}
-
-void SUVProjectionPlanar::CreateShapePreviewDetailView()
-{
-	FPropertyEditorModule& propertyEditorModule = FModuleManager::Get().GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
-
-	FDetailsViewArgs detailsViewArgs(
-		/*bUpdateFromSelection=*/ false,
-		/*bLockable=*/ false,
-		/*bAllowSearch=*/ false,
-		FDetailsViewArgs::HideNameArea,
-		/*bHideSelectionTip=*/ true,
-		/*InNotifyHook=*/ nullptr,
-		/*InSearchInitialKeyFocus=*/ false,
-		/*InViewIdentifier=*/ NAME_None);
-
-	ShapePreviewDetailView = propertyEditorModule.CreateDetailView(detailsViewArgs);
-	ShapePreviewDetailView->SetObject(GetShapePreview());
 }
 
 #undef LOCTEXT_NAMESPACE

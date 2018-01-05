@@ -8,8 +8,9 @@
 class FAlgorithmFactory
 {
 public:
+	
 	static IUVProjectionAlgorithmPtr	CreateAlgorithm(UStaticMesh* InStaticMesh, EUVProjectionType ProjectionType);
-
+	
 private:
 
 	template<class T>

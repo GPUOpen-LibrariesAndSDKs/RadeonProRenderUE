@@ -26,8 +26,11 @@ public class RPRPluginEditor : ModuleRules
             new string[] {
                 "RPRPluginEditor/Private",
                 "RPRPluginEditor/Private/Tools",
+                "RPRPluginEditor/Private/Tools/RPRMeshVertexPainter",
+                "RPRPluginEditor/Private/Tools/Math/RPRVectorTools",
                 "RPRPluginEditor/Private/Tools/Math/TransformablePlane",
                 "RPRPluginEditor/Private/Tools/Math/UVUtility",
+                "RPRPluginEditor/Private/Tools/IDetailsViewHelper",
                 "RPRPluginEditor/Private/ShapePreviews",
                 "RPRPluginEditor/Private/RPRViewport",
                 "RPRPlugin/Private"
@@ -62,7 +65,8 @@ public class RPRPluginEditor : ModuleRules
                 "Settings",
                 "StaticMeshEditor",
                 "PropertyEditor",
-                "AdvancedPreviewScene"
+                "AdvancedPreviewScene",
+                "RenderCore"
 				// ... add private dependencies that you statically link with here ...	
 			}
         );

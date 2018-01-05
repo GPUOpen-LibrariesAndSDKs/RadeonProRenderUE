@@ -6,8 +6,13 @@
 class IUVProjection
 {
 public:
-	virtual void					FinalizeCreation() = 0;
-	virtual void					Release() = 0;
+	/* Called when the creation is done */
+	virtual void	FinalizeCreation() = 0;
+	/* Called when the widget is displayed */
+	virtual void	OnUVProjectionDisplayed() = 0;
+	/*  Called when the widget is hidden */
+	virtual void	OnUVProjectionHidden() = 0;
+
 	virtual void					SetRPRStaticMeshEditor(TWeakPtr<class FRPRStaticMeshEditor> RPRStaticMeshEditor) = 0;
 	virtual void					SetStaticMesh(class UStaticMesh* StaticMesh) = 0;
 	virtual class UStaticMesh*		GetStaticMesh() const = 0;

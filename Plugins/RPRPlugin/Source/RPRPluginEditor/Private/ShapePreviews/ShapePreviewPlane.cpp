@@ -29,14 +29,14 @@ void UShapePreviewPlane::DrawShapePreview()
 {
 	const FTransform& componentTransform = GetComponentTransform();
 	const FVector boxSize(Thickness, PlaneScale, PlaneScale);
-
+	
 	// Use DrawDebugSolidBox instead of DrawDebugSolidPlane because the transform is managed correctly
 	DrawDebugSolidBox(
 		GetWorld(),
 		componentTransform.GetLocation(),
 		boxSize,
 		componentTransform.GetRotation(),
-		FColor::Yellow
+		GetShapeColor()
 	);
 
 	const FVector arrowOrigin = componentTransform.GetLocation() + componentTransform.GetRotation().GetForwardVector() * Thickness;

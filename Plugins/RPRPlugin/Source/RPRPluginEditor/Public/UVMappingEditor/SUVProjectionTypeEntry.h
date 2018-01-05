@@ -8,6 +8,7 @@
 #include "IUVProjection.h"
 #include "GCObject.h"
 #include "Engine/StaticMesh.h"
+#include "RPRStaticMeshEditor.h"
 #include "SWidget.h"
 
 class SUVProjectionTypeEntry : public SCompoundWidget
@@ -16,12 +17,14 @@ public:
 
 	SLATE_BEGIN_ARGS(SUVProjectionTypeEntry)
 		: _ProjectionType(EUVProjectionType::Planar)
+		, _RPRStaticMeshEditor()
 		, _ProjectionName()
 		, _StaticMesh()
 		, _Icon(nullptr)
 	{}
 
 	SLATE_ARGUMENT(EUVProjectionType, ProjectionType)
+	SLATE_ARGUMENT(FRPRStaticMeshEditorPtr, RPRStaticMeshEditor)
 	SLATE_ARGUMENT(FText, ProjectionName)
 	SLATE_ARGUMENT(UStaticMesh*, StaticMesh)
 	SLATE_ARGUMENT(const FSlateBrush*, Icon)

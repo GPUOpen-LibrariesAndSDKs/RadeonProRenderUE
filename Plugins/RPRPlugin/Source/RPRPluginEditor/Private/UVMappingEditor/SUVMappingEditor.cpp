@@ -53,12 +53,9 @@ void SUVMappingEditor::SelectProjectionEntry(SUVProjectionTypeEntryPtr Projectio
 {
 	if (SelectedProjectionEntry != ProjectionEntry)
 	{
-		ReleaseSelectedUVProjectionWidget();
+		HideSelectedUVProjectionWidget();
 		SelectedProjectionEntry = ProjectionEntry;
-
-		IUVProjectionPtr projectionPtr = ProjectionEntry->GetUVProjectionWidget();
-		InitializeUVProjectionWidget(projectionPtr);
-		InjectUVProjectionWidget(projectionPtr);
+		ShowSelectedUVProjectionWidget();
 	}
 }
 
@@ -67,6 +64,7 @@ void SUVMappingEditor::AddUVProjectionListEntry(EUVProjectionType ProjectionType
 {
 	SUVProjectionTypeEntryPtr uvProjectionTypeEntryWidget = 
 		SNew(SUVProjectionTypeEntry)
+		.RPRStaticMeshEditor(RPRStaticMeshEditorPtr)
 		.ProjectionType(ProjectionType)
 		.ProjectionName(ProjectionName)
 		.StaticMesh(StaticMesh)
@@ -99,33 +97,54 @@ EVisibility SUVMappingEditor::GetUVProjectionControlsVisibility() const
 	return (HasUVProjectionTypeSelected() ? EVisibility::Visible : EVisibility::Collapsed);
 }
 
-void SUVMappingEditor::InitializeUVProjectionWidget(IUVProjectionPtr UVProjectionWidget)
+void SUVMappingEditor::HideSelectedUVProjectionWidget()
+{
+	if (SelectedProjectionEntry.IsValid())
+	{
+		HideUVProjectionWidget(SelectedProjectionEntry->GetUVProjectionWidget());
+	}
+}
+
+void SUVMappingEditor::HideUVProjectionWidget(IUVProjectionPtr UVProjectionWidget)
 {
 	if (UVProjectionWidget.IsValid())
 	{
-		UVProjectionWidget->SetRPRStaticMeshEditor(RPRStaticMeshEditorPtr);
+		UVProjectionWidget->OnUVProjectionHidden();
+	}
+}
+
+void SUVMappingEditor::ShowSelectedUVProjectionWidget()
+{
+	if (SelectedProjectionEntry.IsValid())
+	{
+		ShowUVProjectionWidget(SelectedProjectionEntry->GetUVProjectionWidget());
+	}
+}
+
+void SUVMappingEditor::ShowUVProjectionWidget(IUVProjectionPtr UVProjectionWidget)
+{
+	if (UVProjectionWidget.IsValid())
+	{
+		InjectUVProjectionWidget(UVProjectionWidget);
+		UVProjectionWidget->OnUVProjectionDisplayed();
 	}
 }
 
 void SUVMappingEditor::InjectUVProjectionWidget(IUVProjectionPtr UVProjectionWidget)
 {
-	UVProjectionContainer->SetContent(UVProjectionWidget.IsValid() ? UVProjectionWidget->TakeWidget() : SNew(SBox));
-}
-
-void SUVMappingEditor::ReleaseSelectedUVProjectionWidget()
-{
-	if (SelectedProjectionEntry.IsValid())
-	{
-		ReleaseUVProjectionWidget(SelectedProjectionEntry->GetUVProjectionWidget());
-	}
-}
-
-void SUVMappingEditor::ReleaseUVProjectionWidget(IUVProjectionPtr UVProjectionWidget)
-{
 	if (UVProjectionWidget.IsValid())
 	{
-		UVProjectionWidget->Release();
+		UVProjectionContainer->SetContent(UVProjectionWidget->TakeWidget());
 	}
+	else
+	{
+		ClearUVProjectionWidgetContainer();
+	}
+}
+
+void SUVMappingEditor::ClearUVProjectionWidgetContainer()
+{
+	UVProjectionContainer->SetContent(SNew(SBox));
 }
 
 #undef LOCTEXT_NAMESPACE

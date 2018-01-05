@@ -8,6 +8,9 @@
 #include "ShapePreviewable.h"
 #include "ShapePreviewPlane.h"
 
+/*
+ * Widget displayed when the Planar projection is selected
+ */
 class SUVProjectionPlanar : public SUVProjectionBase, public FShapePreviewable<UShapePreviewPlane>
 {
 private:
@@ -18,26 +21,25 @@ public:
 	SLATE_BEGIN_ARGS(SUVProjectionPlanar) {}
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs);
-	virtual void	Release() override;
-	
-	virtual void	FinalizeCreation() override;
+	void			Construct(const FArguments& InArgs);
 
-	FReply	Apply();
-		
+	virtual void	FinalizeCreation();
+	virtual void	OnUVProjectionDisplayed() override;
+	virtual void	OnUVProjectionHidden() override;
+
+	void			ApplyAlgorithm();		
+
+
 protected:
 
-	virtual void InitializePostSetRPRStaticMeshEditor() override;
-
-	virtual void OnAlgorithmCompleted(IUVProjectionAlgorithm* InAlgorithm, bool bIsSuccess) override;
+	virtual void				OnAlgorithmCompleted(IUVProjectionAlgorithm* InAlgorithm, bool bIsSuccess) override;
 	virtual UShapePreviewBase*	GetShapePreview() override;
 
 private:
 
-	void	UpdateAlgorithmSettings();
+	FReply										OnApplyButtonClicked();
+	void										UpdateAlgorithmSettings();
 	TSharedPtr<class FUVProjectionPlanarAlgo>	GetProjectionPlanarAlgo() const;
-
-	void	CreateShapePreviewDetailView();
 
 private:
 

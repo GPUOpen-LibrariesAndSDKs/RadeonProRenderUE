@@ -6,6 +6,7 @@
 #include "IUVProjectionAlgorithm.h"
 #include "SCompoundWidget.h"
 #include "ShapePreviewBase.h"
+#include "SlateDelegates.h"
 #include "RPRStaticMeshEditor.h"
 
 /*
@@ -19,28 +20,36 @@ public:
 
 	void	Construct(const FArguments& InArgs);
 
-	virtual void				SetStaticMesh(class UStaticMesh* InStaticMesh) override;
-	virtual void				SetRPRStaticMeshEditor(FRPRStaticMeshEditorWeakPtr InRPRStaticMeshEditor) override;
-	virtual UStaticMesh*		GetStaticMesh() const override;
-	virtual TSharedRef<SWidget> TakeWidget() override;
+	virtual void	SetStaticMesh(class UStaticMesh* InStaticMesh) override;
+	virtual void	SetRPRStaticMeshEditor(FRPRStaticMeshEditorWeakPtr InRPRStaticMeshEditor) override;
+
+	virtual UStaticMesh*			GetStaticMesh() const override;
+	virtual FRPRStaticMeshEditorPtr GetRPRStaticMeshEditor() const;
+
+	virtual TSharedRef<SWidget>		TakeWidget() override;
 
 protected:
 	
 	void	ConstructBase();
 
+	/* Utility functions for child classes */
+	/* Add component to the RPR Static Mesh Editor viewport */
 	void	AddComponentToViewport(UActorComponent* InActorComponent, bool bSelectShape = true);
+	/* Create a detail view widget for the shape preview */
+	TSharedPtr<class IDetailsView>	CreateShapePreviewDetailView(FName ViewIdentifier);
+	TSharedRef<class SWidget>		CreateApplyButton(FOnClicked OnClicked) const;
+
+	/* Provide quick access to the algorithm for the UV mapping projection with the expected type */
+	template<typename AlgorithmType>
+	TSharedPtr<AlgorithmType>	GetAlgorithm() const;
+	/**************************************/
 
 	void	InitializeAlgorithm(EUVProjectionType ProjectionType);
 	void	StartAlgorithm();
 	void	FinalizeAlgorithm();
 
-	virtual void				InitializePostSetRPRStaticMeshEditor();
-
-	virtual void				OnAlgorithmCompleted(IUVProjectionAlgorithm* Algorithm, bool bIsSuccess) = 0;
+	virtual void				OnAlgorithmCompleted(IUVProjectionAlgorithm* InAlgorithm, bool bIsSuccess) = 0;
 	virtual UShapePreviewBase*	GetShapePreview() = 0;
-
-	template<typename AlgorithmType>
-	TSharedPtr<AlgorithmType>	GetAlgorithm() const;
 
 private:
 

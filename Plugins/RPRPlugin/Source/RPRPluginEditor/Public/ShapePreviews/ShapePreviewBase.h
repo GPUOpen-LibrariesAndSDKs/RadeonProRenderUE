@@ -13,6 +13,8 @@ public:
 	
 	UShapePreviewBase();
 
+	const FColor&	GetShapeColor() const;
+
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 	virtual void Draw();
 
@@ -28,5 +30,10 @@ private:
 	
 	void	BeginProxy(FPrimitiveDrawInterface* PDI);
 	void	EndProxy(FPrimitiveDrawInterface* PDI);
+
+private:
+
+	UPROPERTY(EditAnywhere, Category = Preview)
+	FColor	ShapeColor;
 
 };

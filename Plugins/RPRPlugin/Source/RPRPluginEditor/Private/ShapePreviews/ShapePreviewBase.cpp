@@ -2,8 +2,14 @@
 #include "ShapePreviewProxy.h"
 
 UShapePreviewBase::UShapePreviewBase()
+	: ShapeColor(FColor::Yellow)
 {
 	PrimaryComponentTick.bCanEverTick = true;
+}
+
+const FColor& UShapePreviewBase::GetShapeColor() const
+{
+	return (ShapeColor);
 }
 
 void UShapePreviewBase::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)

@@ -1,9 +1,12 @@
 #include "UVProjectionFactory.h"
 #include "DeclarativeSyntaxSupport.h"
 #include "Engine/StaticMesh.h"
-#include "SUVProjectionPlanar.h"
 
-IUVProjectionPtr FUVProjectionFactory::CreateUVProjectionByType(UStaticMesh* StaticMesh, EUVProjectionType Type)
+#include "SUVProjectionPlanar.h"
+#include "SUVProjectionCubic.h"
+
+IUVProjectionPtr FUVProjectionFactory::CreateUVProjectionByType(TSharedPtr<FRPRStaticMeshEditor> StaticMeshEditorPtr, 
+																	UStaticMesh* StaticMesh, EUVProjectionType Type)
 {
 	IUVProjectionPtr projectionPtr;
 
@@ -14,7 +17,9 @@ IUVProjectionPtr FUVProjectionFactory::CreateUVProjectionByType(UStaticMesh* Sta
 		break;
 
 	case Cubic:
+		projectionPtr = SNew(SUVProjectionCubic);
 		break;
+
 	case Spherical:
 		break;
 	case Cylindrical:
@@ -26,6 +31,7 @@ IUVProjectionPtr FUVProjectionFactory::CreateUVProjectionByType(UStaticMesh* Sta
 
 	if (projectionPtr.IsValid())
 	{
+		projectionPtr->SetRPRStaticMeshEditor(StaticMeshEditorPtr);
 		projectionPtr->SetStaticMesh(StaticMesh);
 		projectionPtr->FinalizeCreation();
 	}

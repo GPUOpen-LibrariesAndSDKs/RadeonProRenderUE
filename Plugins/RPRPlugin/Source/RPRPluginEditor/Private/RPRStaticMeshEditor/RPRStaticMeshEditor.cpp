@@ -1,4 +1,5 @@
 #include "RPRStaticMeshEditor.h"
+#include "Editor.h"
 #include "RPRStaticMeshEditorActions.h"
 #include "SDockTab.h"
 #include "SUVMappingEditor.h"
@@ -119,6 +120,14 @@ void FRPRStaticMeshEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& In
 		.SetGroup(WorkspaceMenuCategoryRef);
 }
 
+void FRPRStaticMeshEditor::UnregisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
+{
+	FAssetEditorToolkit::UnregisterTabSpawners(InTabManager);
+
+	InTabManager->UnregisterTabSpawner(ViewportTabId);
+	InTabManager->UnregisterTabSpawner(UVMappingEditorTabId);
+}
+
 FName FRPRStaticMeshEditor::GetToolkitFName() const
 {
 	return ("RPRStaticMeshEditor");
@@ -136,6 +145,11 @@ FString FRPRStaticMeshEditor::GetWorldCentricTabPrefix() const
 FLinearColor FRPRStaticMeshEditor::GetWorldCentricTabColorScale() const
 {
 	return FLinearColor(0.3f, 0.2f, 0.5f, 0.5f);
+}
+
+bool FRPRStaticMeshEditor::IsPrimaryEditor() const
+{
+	return (false);
 }
 
 void FRPRStaticMeshEditor::AddReferencedObjects(FReferenceCollector& Collector)
@@ -167,6 +181,14 @@ void FRPRStaticMeshEditor::AddComponentToViewport(UActorComponent* ActorComponen
 	}
 }
 
+void FRPRStaticMeshEditor::PaintStaticMeshPreview(const TArray<FColor>& Colors)
+{
+	if (Viewport.IsValid())
+	{
+		Viewport->PaintStaticMeshPreview(Colors);
+	}
+}
+
 TSharedRef<SDockTab> FRPRStaticMeshEditor::SpawnTab_Viewport(const FSpawnTabArgs& Args)
 {
 	check(Args.GetTabId() == ViewportTabId);
@@ -189,6 +211,12 @@ TSharedRef<SDockTab> FRPRStaticMeshEditor::SpawnTab_UVMappingEditor(const FSpawn
 		[
 			UVMappingEditor.ToSharedRef()
 		];
+}
+
+bool FRPRStaticMeshEditor::OnRequestClose()
+{
+	FAssetEditorManager::Get().NotifyAssetClosed(StaticMesh, this);
+	return (true);
 }
 
 #undef LOCTEXT_NAMESPACE

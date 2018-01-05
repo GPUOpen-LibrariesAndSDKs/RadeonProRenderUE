@@ -6,23 +6,27 @@
 class FUVProjectionPlanarAlgo : public FUVProjectionAlgorithmBase
 {
 public:
+	struct FSettings : public FUVProjectionAlgorithmBase::FUVProjectionGlobalSettings
+	{
+		FSettings();
 
-	FUVProjectionPlanarAlgo();
+		FTransformablePlane Plane;
+	};
 
-	void	SetPlane(const class FTransformablePlane& InPlane);
+public:
+
+	void	SetSettings(const FSettings& InSettings);
 
 	virtual void StartAlgorithm() override;
 	virtual void Finalize() override;
 
 private:
 
-	void	PrepareUVs(int32 UVBufferSize);
 	void	ProjectVertexOnPlane(const class FPositionVertexBuffer& VertexBuffer);
-	void	InverseVertically(FVector2D& UV);
 
 private:
 
 	TArray<FVector2D>	NewUVs;
-	FTransformablePlane	Plane;
+	FSettings			Settings;
 
 };

@@ -2,6 +2,7 @@
 #include "ComponentReregisterContext.h"
 #include "Editor.h"
 #include "UObjectGlobals.h"
+#include "RPRMeshVertexPainter.h"
 #include "PreviewScene.h"
 
 SRPRStaticMeshEditorViewport::SRPRStaticMeshEditorViewport()
@@ -19,6 +20,9 @@ void SRPRStaticMeshEditorViewport::Construct(const FArguments& InArgs)
 
 	PreviewMeshComponent = NewObject<UStaticMeshComponent>((UObject*)GetTransientPackage(), FName(), RF_Transient);
 	SetPreviewMesh(StaticMesh);
+
+	PreviewMeshComponent->bDisplayVertexColors = true;
+	PreviewMeshComponent->MarkRenderStateDirty();
 
 	SetFloorToStaticMeshBottom();
 }
@@ -42,6 +46,14 @@ void SRPRStaticMeshEditorViewport::AddComponent(UActorComponent* InComponent)
 {
 	FTransform transform = FTransform::Identity;
 	PreviewScene->AddComponent(InComponent, transform);
+}
+
+void SRPRStaticMeshEditorViewport::PaintStaticMeshPreview(const TArray<FColor>& Colors)
+{
+	if (PreviewMeshComponent != nullptr)
+	{
+		FRPRMeshVertexPainter::PaintMesh(PreviewMeshComponent, Colors);
+	}
 }
 
 void SRPRStaticMeshEditorViewport::AddReferencedObjects(FReferenceCollector& Collector)

@@ -35,10 +35,13 @@ private:
 	bool			HasUVProjectionTypeSelected() const;
 	EVisibility		GetUVProjectionControlsVisibility() const;
 
-	void			InitializeUVProjectionWidget(IUVProjectionPtr UVProjectionWidget);
 	void			InjectUVProjectionWidget(IUVProjectionPtr UVProjectionWidget);
-	void			ReleaseSelectedUVProjectionWidget();
-	void			ReleaseUVProjectionWidget(IUVProjectionPtr UVProjectionWidget);
+	void			ClearUVProjectionWidgetContainer();
+
+	void			HideSelectedUVProjectionWidget();
+	void			HideUVProjectionWidget(IUVProjectionPtr UVProjectionWidget);
+	void			ShowSelectedUVProjectionWidget();
+	void			ShowUVProjectionWidget(IUVProjectionPtr UVProjectionWidget);
 
 private:
 

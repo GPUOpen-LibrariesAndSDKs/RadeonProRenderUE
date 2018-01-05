@@ -3,11 +3,19 @@
 #include "Engine/StaticMesh.h"
 #include "PositionVertexBuffer.h"
 #include "StaticMeshVertexBuffer.h"
+#include "RPRVectorTools.h"
 #include "TransformablePlane.h"
 
-FUVProjectionPlanarAlgo::FUVProjectionPlanarAlgo()
+FUVProjectionPlanarAlgo::FSettings::FSettings()
 	: Plane(FPlane(FVector::ZeroVector, FVector::RightVector), FVector::ZeroVector, FVector::UpVector)
-{}
+{
+
+}
+
+void FUVProjectionPlanarAlgo::SetSettings(const FSettings& InSettings)
+{
+	Settings = InSettings;
+}
 
 void FUVProjectionPlanarAlgo::StartAlgorithm()
 {
@@ -20,7 +28,7 @@ void FUVProjectionPlanarAlgo::StartAlgorithm()
 		return;
 	}
 
-	PrepareUVs(vertexBuffer->GetNumVertices());
+	PrepareUVs(NewUVs, vertexBuffer->GetNumVertices());
 	ProjectVertexOnPlane(*vertexBuffer);
 	FUVUtility::ShrinkUVsToBounds(NewUVs);
 
@@ -29,24 +37,7 @@ void FUVProjectionPlanarAlgo::StartAlgorithm()
 
 void FUVProjectionPlanarAlgo::Finalize()
 {
-	// Apply the calculated UVs to the StaticMesh
-	FStaticMeshVertexBuffer* vertexBuffer = GetStaticMeshVertexBuffer();
-	if (vertexBuffer != nullptr)
-	{
-		const int32 UVChannelIdx = 0;
-
-		for (int32 vertexIndex = 0; vertexIndex < NewUVs.Num(); ++vertexIndex)
-		{
-			vertexBuffer->SetVertexUV(vertexIndex, UVChannelIdx, NewUVs[vertexIndex]);
-		}
-
-		StaticMesh->MarkPackageDirty();
-	}
-}
-
-void FUVProjectionPlanarAlgo::PrepareUVs(int32 UVBufferSize)
-{
-	NewUVs.Empty(UVBufferSize);
+	SetUVsOnMesh(NewUVs);
 }
 
 void FUVProjectionPlanarAlgo::ProjectVertexOnPlane(const FPositionVertexBuffer& PositionVertexBuffer)
@@ -57,18 +48,8 @@ void FUVProjectionPlanarAlgo::ProjectVertexOnPlane(const FPositionVertexBuffer& 
 	for (uint32 vertexIndex = 0; vertexIndex < PositionVertexBuffer.GetNumVertices(); ++vertexIndex)
 	{
 		const FVector& vertexPosition = PositionVertexBuffer.VertexPosition(vertexIndex);
-		newUV = Plane.ProjectToLocalCoordinates(vertexPosition);
-		InverseVertically(newUV);
+		newUV = Settings.Plane.ProjectToLocalCoordinates(vertexPosition);
+		FRPRVectorTools::InverseY(newUV);
 		NewUVs.Add(newUV);
 	}
-}
-
-void FUVProjectionPlanarAlgo::InverseVertically(FVector2D& UV)
-{
-	UV.Y *= -1;
-}
-
-void FUVProjectionPlanarAlgo::SetPlane(const class FTransformablePlane& InPlane)
-{
-	Plane = InPlane;
 }
