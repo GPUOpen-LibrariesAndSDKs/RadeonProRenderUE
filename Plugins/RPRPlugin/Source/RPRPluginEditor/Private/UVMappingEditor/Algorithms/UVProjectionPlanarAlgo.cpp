@@ -4,6 +4,7 @@
 #include "PositionVertexBuffer.h"
 #include "StaticMeshVertexBuffer.h"
 #include "RPRVectorTools.h"
+#include "StaticMeshHelper.h"
 #include "TransformablePlane.h"
 
 FUVProjectionPlanarAlgo::FSettings::FSettings()
@@ -21,15 +22,11 @@ void FUVProjectionPlanarAlgo::StartAlgorithm()
 {
 	FUVProjectionAlgorithmBase::StartAlgorithm();
 
-	const FPositionVertexBuffer* vertexBuffer = GetStaticMeshPositionVertexBuffer();
-	if (vertexBuffer == nullptr)
-	{
-		StopAlgorithmAndRaiseCompletion(false);
-		return;
-	}
+	const TArray<FVector>& vertexPositions = RawMesh.VertexPositions;
+	const TArray<uint32>& wedgeIndices = RawMesh.WedgeIndices;
 
-	PrepareUVs(NewUVs, vertexBuffer->GetNumVertices());
-	ProjectVertexOnPlane(*vertexBuffer);
+	PrepareUVs(NewUVs, vertexPositions.Num());
+	ProjectVertexOnPlane(Settings, vertexPositions, wedgeIndices, NewUVs);
 	FUVUtility::ShrinkUVsToBounds(NewUVs);
 
 	StopAlgorithmAndRaiseCompletion(true);
@@ -38,18 +35,20 @@ void FUVProjectionPlanarAlgo::StartAlgorithm()
 void FUVProjectionPlanarAlgo::Finalize()
 {
 	SetUVsOnMesh(NewUVs);
+	SaveRawMesh();
 }
 
-void FUVProjectionPlanarAlgo::ProjectVertexOnPlane(const FPositionVertexBuffer& PositionVertexBuffer)
+void FUVProjectionPlanarAlgo::ProjectVertexOnPlane(const FSettings& InSettings, const TArray<FVector>& VertexPositions, const TArray<uint32>& WedgeIndices, TArray<FVector2D>& OutUVs)
 {
 	const int32 UVChannelIdx = 0;
 	FVector2D newUV;
 
-	for (uint32 vertexIndex = 0; vertexIndex < PositionVertexBuffer.GetNumVertices(); ++vertexIndex)
+	for (int32 indiceIdx = 0; indiceIdx < WedgeIndices.Num(); ++indiceIdx)
 	{
-		const FVector& vertexPosition = PositionVertexBuffer.VertexPosition(vertexIndex);
-		newUV = Settings.Plane.ProjectToLocalCoordinates(vertexPosition);
+		const uint32 vertexIndex = WedgeIndices[indiceIdx];
+		const FVector& vertexPosition = VertexPositions[vertexIndex];
+		newUV = InSettings.Plane.ProjectToLocalCoordinates(vertexPosition);
 		FRPRVectorTools::InverseY(newUV);
-		NewUVs.Add(newUV);
+		OutUVs.Add(newUV);
 	}
 }

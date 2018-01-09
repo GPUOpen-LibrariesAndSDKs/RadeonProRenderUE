@@ -1,4 +1,5 @@
 #include "UVProjectionAlgorithmBase.h"
+#include "StaticMeshHelper.h"
 #include "Engine/StaticMesh.h"
 
 void FUVProjectionAlgorithmBase::SetStaticMesh(UStaticMesh* InStaticMesh)
@@ -14,6 +15,7 @@ IUVProjectionAlgorithm::FOnAlgorithmCompleted& FUVProjectionAlgorithmBase::OnAlg
 void FUVProjectionAlgorithmBase::StartAlgorithm()
 {
 	bIsAlgorithmRunning = true;
+	FStaticMeshHelper::LoadRawMeshFromStaticMesh(StaticMesh, RawMesh);
 }
 
 void FUVProjectionAlgorithmBase::AbortAlgorithm()
@@ -59,29 +61,14 @@ bool FUVProjectionAlgorithmBase::AreStaticMeshRenderDatasValid(UStaticMesh* InSt
 void FUVProjectionAlgorithmBase::SetUVsOnMesh(const TArray<FVector2D>& UVs)
 {
 	// Apply the calculated UVs to the StaticMesh
-	FStaticMeshVertexBuffer* vertexBuffer = GetStaticMeshVertexBuffer();
-	if (vertexBuffer != nullptr)
-	{
-		const int32 UVChannelIdx = 0;
+	const int32 UVChannelIdx = 0;
+	RawMesh.WedgeTexCoords[UVChannelIdx] = UVs;		
+}
 
-		for (int32 vertexIndex = 0; vertexIndex < UVs.Num(); ++vertexIndex)
-		{
-			vertexBuffer->SetVertexUV(vertexIndex, UVChannelIdx, UVs[vertexIndex]);
-		}
-
-		StaticMesh->UpdateUVChannelData(true);
-		//StaticMesh->Build();
-
-		//for (TObjectIterator<UStaticMeshComponent> It; It; ++It)
-		//{
-		//	if (It->GetStaticMesh() == StaticMesh)
-		//	{
-		//		It->PostEditChange();
-		//	}
-		//}
-
-		StaticMesh->MarkPackageDirty();
-	}
+void FUVProjectionAlgorithmBase::SaveRawMesh()
+{
+	FStaticMeshHelper::SaveRawMeshToStaticMesh(RawMesh, StaticMesh);
+	StaticMesh->MarkPackageDirty();
 }
 
 FPositionVertexBuffer* FUVProjectionAlgorithmBase::GetStaticMeshPositionVertexBuffer(UStaticMesh* InStaticMesh)

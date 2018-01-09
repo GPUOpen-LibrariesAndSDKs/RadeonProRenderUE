@@ -6,6 +6,7 @@
 #include "ColorVertexBuffer.h"
 #include "GCObject.h"
 #include "SharedPointer.h"
+#include "RawMesh.h"
 
 /*
  * Abstraction class for UV projection algorithms
@@ -46,6 +47,7 @@ protected:
 	void	StopAlgorithmAndRaiseCompletion(bool bIsSuccess);
 	bool	AreStaticMeshRenderDatasValid() const;
 	void	SetUVsOnMesh(const TArray<FVector2D>& UVs);
+	void	SaveRawMesh();
 
 	FPositionVertexBuffer*		GetStaticMeshPositionVertexBuffer() const;
 	FStaticMeshVertexBuffer*	GetStaticMeshVertexBuffer() const;
@@ -53,11 +55,12 @@ protected:
 
 protected:
 
-	class UStaticMesh*			StaticMesh;
-	FOnAlgorithmCompleted		OnAlgorithmCompletedEvent;
+	class UStaticMesh*		StaticMesh;
+	FOnAlgorithmCompleted	OnAlgorithmCompletedEvent;
+	FRawMesh				RawMesh;
 
 private:
 
-	bool	bIsAlgorithmRunning;
+	bool		bIsAlgorithmRunning;
 
 };

@@ -20,9 +20,8 @@ public:
 	virtual void StartAlgorithm() override;
 	virtual void Finalize() override;
 
-private:
-
-	void	ProjectVertexOnPlane(const class FPositionVertexBuffer& VertexBuffer);
+	static void	ProjectVertexOnPlane(const FSettings& InSettings, const TArray<FVector>& VertexPositions, const TArray<uint32>& WedgeIndices, TArray<FVector2D>& OutUVs);
+	
 
 private:
 
