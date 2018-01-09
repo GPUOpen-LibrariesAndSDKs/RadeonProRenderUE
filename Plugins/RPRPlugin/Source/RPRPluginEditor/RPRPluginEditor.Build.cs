@@ -27,10 +27,14 @@ public class RPRPluginEditor : ModuleRules
                 "RPRPluginEditor/Private",
                 "RPRPluginEditor/Private/Tools",
                 "RPRPluginEditor/Private/Tools/RPRMeshVertexPainter",
+                "RPRPluginEditor/Private/Tools/Math/PackVertexUV",
                 "RPRPluginEditor/Private/Tools/Math/RPRVectorTools",
                 "RPRPluginEditor/Private/Tools/Math/TransformablePlane",
                 "RPRPluginEditor/Private/Tools/Math/UVUtility",
                 "RPRPluginEditor/Private/Tools/IDetailsViewHelper",
+                "RPRPluginEditor/Private/Tools/Algorithms/Utilities",
+                "RPRPluginEditor/Private/Tools/StaticMeshHelper",
+                "RPRPluginEditor/Private/UVMappingEditor/Algorithms/Utilities/CubeProjectionFace",
                 "RPRPluginEditor/Private/ShapePreviews",
                 "RPRPluginEditor/Private/RPRViewport",
                 "RPRPlugin/Private"
@@ -66,7 +70,8 @@ public class RPRPluginEditor : ModuleRules
                 "StaticMeshEditor",
                 "PropertyEditor",
                 "AdvancedPreviewScene",
-                "RenderCore"
+                "RenderCore",
+                "RawMesh"
 				// ... add private dependencies that you statically link with here ...	
 			}
         );

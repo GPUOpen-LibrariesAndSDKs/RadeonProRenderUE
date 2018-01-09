@@ -1,5 +1,10 @@
 #include "UVProjectionCubicAlgo.h"
+#include "RPRPluginEditorModule.h"
 #include "RPRStaticMeshEditor.h"
+#include "UVUtility.h"
+#include "IUVCubeLayout.h"
+#include "UVCubeLayout_CubemapRight.h"
+#include "CubeProjectionFace.h"
 
 void FUVProjectionCubicAlgo::StartAlgorithm()
 {
@@ -24,12 +29,23 @@ void FUVProjectionCubicAlgo::Finalize()
 
 void FUVProjectionCubicAlgo::StartCubicProjection(UStaticMesh* InStaticMesh, const FSettings& InSettings, TArray<FVector2D>& OutNewUVs)
 {
-	TArray<FVector> reflectedVectors;
-	CalculateReflectedVectors(InStaticMesh, InSettings, reflectedVectors);
-	CalculateNewUVsFromReflectedVectors(reflectedVectors, OutNewUVs);
+	TArray<FVector> normals;
+	CalculateNormalVectors(InStaticMesh, InSettings, normals);
+
+	OutNewUVs.Empty(normals.Num());
+
+	TArray<FCubeProjectionFace> cubeProjectionFaces;
+	PutVertexIntoCubeProjectionFaceByNormals(InSettings, InStaticMesh, normals, cubeProjectionFaces);
+
+	ProjectCubeFaceToUVs(InStaticMesh, cubeProjectionFaces, OutNewUVs);
+
+	FUVCubeLayout_CubemapRight cubemapLayout;
+	cubemapLayout.ArrangeUVs(cubeProjectionFaces, OutNewUVs);
+
+	FUVUtility::CenterUVs(OutNewUVs);
 }
 
-void FUVProjectionCubicAlgo::CalculateReflectedVectors(UStaticMesh* InStaticMesh, const FSettings& InSettings, TArray<FVector>& OutReflectedVectors)
+void FUVProjectionCubicAlgo::CalculateNormalVectors(UStaticMesh* InStaticMesh, const FSettings& InSettings, TArray<FVector>& OutNormals)
 {
 	const FPositionVertexBuffer* positionVertexBuffer = GetStaticMeshPositionVertexBuffer(InStaticMesh);
 	const FStaticMeshVertexBuffer* staticMeshVertexBuffer = GetStaticMeshVertexBuffer(InStaticMesh);
@@ -38,7 +54,7 @@ void FUVProjectionCubicAlgo::CalculateReflectedVectors(UStaticMesh* InStaticMesh
 	const FVector& cubeProjectionCenter = InSettings.CubeTransform.GetLocation();
 	const FQuat& cubeProjectionRotation = InSettings.CubeTransform.GetRotation();
 
-	OutReflectedVectors.Empty(positionVertexBuffer->GetNumVertices());
+	OutNormals.Empty(positionVertexBuffer->GetNumVertices());
 
 	TArray<FColor> colors;
 	colors.Reserve(positionVertexBuffer->GetNumVertices());
@@ -50,67 +66,59 @@ void FUVProjectionCubicAlgo::CalculateReflectedVectors(UStaticMesh* InStaticMesh
 		
 		const FVector localVertexPosition = vertexPosition; //cubeProjectionRotation.UnrotateVector(vertexPosition - cubeProjectionCenter);
 		const FVector localVertexNormal = vertexNormal; //cubeProjectionRotation.UnrotateVector(vertexNormal);
-		FVector reflectedVector = 2 * FVector::DotProduct(localVertexNormal, localVertexPosition) * localVertexNormal - localVertexPosition;
-		reflectedVector.Normalize();
+		const FVector normal = vertexNormal.GetSafeNormal();
 
-		OutReflectedVectors.Add(reflectedVector);
-		colors.Add(FLinearColor(reflectedVector.X, reflectedVector.Y, reflectedVector.Z).ToFColor(true));
+		OutNormals.Add(normal);
+		colors.Add(FLinearColor(normal).ToFColor(true));
 	}
 
 	InSettings.RPRStaticMeshEditor->PaintStaticMeshPreview(colors);
 }
 
-void FUVProjectionCubicAlgo::CalculateNewUVsFromReflectedVectors(const TArray<FVector>& ReflectedVectors, TArray<FVector2D>& OutNewUVs)
+void FUVProjectionCubicAlgo::PutVertexIntoCubeProjectionFaceByNormals(const FSettings& InSettings, UStaticMesh* InStaticMesh, const TArray<FVector>& Normals, TArray<FCubeProjectionFace>& OutProjectionFaces)
 {
 	FVector2D uv;
 	float max = 0;
-	bool bIsSet = false;
+	FColor color;
 
-	OutNewUVs.Empty(ReflectedVectors.Num());
-	for (int32 idx = 0; idx < ReflectedVectors.Num(); ++idx)
+	const FPositionVertexBuffer* positionVertexBuffer = GetStaticMeshPositionVertexBuffer(InStaticMesh);
+
+	OutProjectionFaces.Empty();
+	OutProjectionFaces.Emplace(EUVProjectionFaceSide::PositiveX);
+	OutProjectionFaces.Emplace(EUVProjectionFaceSide::NegativeX);
+	OutProjectionFaces.Emplace(EUVProjectionFaceSide::PositiveY);
+	OutProjectionFaces.Emplace(EUVProjectionFaceSide::NegativeY);
+	OutProjectionFaces.Emplace(EUVProjectionFaceSide::PositiveZ);
+	OutProjectionFaces.Emplace(EUVProjectionFaceSide::NegativeZ);
+
+	TArray<FColor> colors;
+	colors.Reserve(Normals.Num());
+
+	for (int32 idx = 0; idx < Normals.Num(); ++idx)
 	{
-		const FVector& reflectedVector = ReflectedVectors[idx];
-
-		if (IsOnFace_PlusX(reflectedVector))
+		color = FColor::Black;
+		for (int32 cubeProjectionFaceIdx = 0; cubeProjectionFaceIdx < OutProjectionFaces.Num(); ++cubeProjectionFaceIdx)
 		{
-			uv.Set(-reflectedVector.Z, -reflectedVector.Y);
-			max = FMath::Abs(reflectedVector.X);
-			bIsSet = true;
-		}
-		else if (IsOnFace_MinusX(reflectedVector))
-		{
-			uv.Set(reflectedVector.Z, -reflectedVector.Y);
-			max = FMath::Abs(reflectedVector.X);
-		}
-		else if (IsOnFace_PlusY(reflectedVector))
-		{
-			uv.Set(reflectedVector.X, reflectedVector.Z);
-			max = FMath::Abs(reflectedVector.Y);
-		}
-		else if (IsOnFace_MinusY(reflectedVector))
-		{
-			uv.Set(reflectedVector.X, -reflectedVector.Z);
-			max = FMath::Abs(reflectedVector.Y);
-		}
-		else if (IsOnFace_PlusZ(reflectedVector))
-		{
-			uv.Set(reflectedVector.X, -reflectedVector.Y);
-			max = FMath::Abs(reflectedVector.Z);
-		}
-		else // if (IsOnFace_MinusZ(reflectedVector))
-		{
-			uv.Set(-reflectedVector.X, -reflectedVector.Y);
-			max = FMath::Abs(reflectedVector.Z);
+			FCubeProjectionFace& cubeProjectionFace = OutProjectionFaces[cubeProjectionFaceIdx];
+			if (cubeProjectionFace.AddVertexIndexIfOnFace(Normals[idx], idx))
+			{
+				UE_LOG(LogRPRPluginEditor, Log, TEXT("Add vertex %d [position:%s] [normal:%s] on face %s"), idx, *positionVertexBuffer->VertexPosition(idx).ToString(), *Normals[idx].ToString(), *cubeProjectionFace.GetProjectionFaceSideName());
+				color += cubeProjectionFace.GetFaceColor();
+			}
 		}
 
-		if (bIsSet)
-		{
-			OutNewUVs.Emplace((((uv.X ) + 1) / 2), (((uv.Y ) + 1) / 2));
-		}
-		else
-		{
-			OutNewUVs.Emplace(FVector2D::ZeroVector);
-		}
+		colors.Add(color);
+	}
+
+	InSettings.RPRStaticMeshEditor->PaintStaticMeshPreview(colors);
+}
+
+void FUVProjectionCubicAlgo::ProjectCubeFaceToUVs(UStaticMesh* InStaticMesh, const TArray<FCubeProjectionFace>& CubeProjectionFaces, TArray<FVector2D>& OutUVs)
+{
+	const FPositionVertexBuffer* positionVertexBuffer = GetStaticMeshPositionVertexBuffer(InStaticMesh);
+	for (int32 i = 0; i < CubeProjectionFaces.Num(); ++i)
+	{
+		CubeProjectionFaces[i].GetFaceProjectedUVs(*positionVertexBuffer, OutUVs);
 	}
 }
 

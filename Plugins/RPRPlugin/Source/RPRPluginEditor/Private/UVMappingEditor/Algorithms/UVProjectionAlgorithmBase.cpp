@@ -69,6 +69,17 @@ void FUVProjectionAlgorithmBase::SetUVsOnMesh(const TArray<FVector2D>& UVs)
 			vertexBuffer->SetVertexUV(vertexIndex, UVChannelIdx, UVs[vertexIndex]);
 		}
 
+		StaticMesh->UpdateUVChannelData(true);
+		//StaticMesh->Build();
+
+		//for (TObjectIterator<UStaticMeshComponent> It; It; ++It)
+		//{
+		//	if (It->GetStaticMesh() == StaticMesh)
+		//	{
+		//		It->PostEditChange();
+		//	}
+		//}
+
 		StaticMesh->MarkPackageDirty();
 	}
 }

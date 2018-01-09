@@ -11,9 +11,10 @@ public:
 
 	int32						GetVertexIndex() const;
 	const TArray<FVector2D>&	GetUVs() const;
+	int32						GetNumUVs() const;
 
 	void	AddUV(const FVector2D& UV);
-
+	void	AddUV(float U, float V);
 
 private:
 

@@ -1,7 +1,7 @@
 #pragma once
 
+#include "PackVertexUV.h"
 #include "UVProjectionAlgorithmBase.h"
-
 
 class FUVProjectionCubicAlgo : public FUVProjectionAlgorithmBase
 {
@@ -22,17 +22,11 @@ public:
 
 private:
 
-	void CalculateReflectedVectors(UStaticMesh* InStaticMesh, const FUVProjectionCubicAlgo::FSettings& InSettings, TArray<FVector>& OutReflectedVectors);
-	void CalculateNewUVsFromReflectedVectors(const TArray<FVector>& ReflectedVectors, TArray<FVector2D>& OutNewUVs);
+	static void CalculateNormalVectors(UStaticMesh* InStaticMesh, const FUVProjectionCubicAlgo::FSettings& InSettings, TArray<FVector>& OutNormals);
+	static void PutVertexIntoCubeProjectionFaceByNormals(const FSettings& InSettings, UStaticMesh* InStaticMesh, const TArray<FVector>& Normals, TArray<class FCubeProjectionFace>& OutProjectionFaces);
+	static void ProjectCubeFaceToUVs(UStaticMesh* InStaticMesh, const TArray<FCubeProjectionFace>& CubeProjectionFaces, TArray<FVector2D>& OutUVs);
 
-	static inline bool IsOnFace_PlusX(const FVector& ReflectedVector)	{ return (ReflectedVector.X >= ReflectedVector.Y && ReflectedVector.X >= ReflectedVector.Z); }
-	static inline bool IsOnFace_MinusX(const FVector& ReflectedVector)	{ return (ReflectedVector.X <= ReflectedVector.Y && ReflectedVector.X <= ReflectedVector.Z); }
-
-	static inline bool IsOnFace_PlusY(const FVector& ReflectedVector)	{ return (ReflectedVector.Y >= ReflectedVector.Z && ReflectedVector.Y >= ReflectedVector.X); }
-	static inline bool IsOnFace_MinusY(const FVector& ReflectedVector)	{ return (ReflectedVector.Y <= ReflectedVector.Z && ReflectedVector.Y <= ReflectedVector.X); }
-
-	static inline bool IsOnFace_PlusZ(const FVector& ReflectedVector)	{ return (ReflectedVector.Z >= ReflectedVector.Y && ReflectedVector.Z >= ReflectedVector.X); }
-	static inline bool IsOnFace_MinusZ(const FVector& ReflectedVector)	{ return (ReflectedVector.Z <= ReflectedVector.Y && ReflectedVector.Z <= ReflectedVector.X); }
+	static inline float ClampTextureCoordinateToBounds(float TextureCoordinate, float Max) { return (((TextureCoordinate / Max) + 1) / 2); }
 
 private:
 

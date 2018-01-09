@@ -14,7 +14,7 @@ FTransformablePlane::FTransformablePlane()
 	, Origin(FVector::ZeroVector)
 {}
 
-FVector2D FTransformablePlane::ProjectToLocalCoordinates(const FVector& Position)
+FVector2D FTransformablePlane::ProjectToLocalCoordinates(const FVector& Position) const
 {
 	FVector right = FVector::CrossProduct(Up, Plane.GetSafeNormal());
 	FVector localPosition = Position - Origin;

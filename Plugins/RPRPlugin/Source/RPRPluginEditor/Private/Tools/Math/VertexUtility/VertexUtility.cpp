@@ -5,4 +5,3 @@ void FVertexUtility::RemoveRedundantVertices(UStaticMesh* StaticMesh, int32 LODI
 {
 	unimplemented();
 }
-
