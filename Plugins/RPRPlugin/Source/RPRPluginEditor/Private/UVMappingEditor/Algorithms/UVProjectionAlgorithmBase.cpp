@@ -77,6 +77,18 @@ void FUVProjectionAlgorithmBase::SaveRawMesh()
 	}
 }
 
+void FUVProjectionAlgorithmBase::RebuildIndexBuffer()
+{
+	RawMesh.WedgeIndices.Empty(RawMesh.VertexPositions.Num() * 3);
+	TArray<uint32>& indices = RawMesh.WedgeIndices;
+
+	for (int32 i = 0; i < RawMesh.VertexPositions; ++i)
+	{
+		
+	}
+
+}
+
 FPositionVertexBuffer* FUVProjectionAlgorithmBase::GetStaticMeshPositionVertexBuffer(UStaticMesh* InStaticMesh)
 {
 	if (AreStaticMeshRenderDatasValid(InStaticMesh))

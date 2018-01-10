@@ -40,7 +40,6 @@ void FUVProjectionPlanarAlgo::Finalize()
 
 void FUVProjectionPlanarAlgo::ProjectVertexOnPlane(const FSettings& InSettings, const TArray<FVector>& VertexPositions, const TArray<uint32>& WedgeIndices, TArray<FVector2D>& OutUVs)
 {
-	const int32 UVChannelIdx = 0;
 	FVector2D newUV;
 
 	for (int32 indiceIdx = 0; indiceIdx < WedgeIndices.Num(); ++indiceIdx)

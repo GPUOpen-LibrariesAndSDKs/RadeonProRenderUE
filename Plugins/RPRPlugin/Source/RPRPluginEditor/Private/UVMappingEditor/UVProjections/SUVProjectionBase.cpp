@@ -1,8 +1,6 @@
 #include "SUVProjectionBase.h"
-#include "Engine/StaticMesh.h"
 #include "AlgorithmFactory.h"
 #include "PropertyEditorModule.h"
-#include "IDetailsView.h"
 #include "SButton.h"
 
 #define LOCTEXT_NAMESPACE "SUVProjectionBase"

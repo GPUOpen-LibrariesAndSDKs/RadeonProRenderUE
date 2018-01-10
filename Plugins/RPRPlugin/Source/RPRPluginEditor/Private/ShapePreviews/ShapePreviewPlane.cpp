@@ -6,7 +6,7 @@ UShapePreviewPlane::UShapePreviewPlane()
 	: InitialPlane(FVector(1, 0, 0), 0)
 	, Thickness(0.1f)
 	, PlaneScale(100)
-	, ArrowSize(200.0f)
+	, ArrowHeadSize(200.0f)
 	, ArrowThickness(1.0f)
 {}
 
@@ -50,7 +50,7 @@ void UShapePreviewPlane::DrawShapePreview()
 		GetWorld(),
 		arrowOrigin,
 		arrowOrigin + componentTransform.GetUnitAxis(EAxis::X) * arrowLength,
-		ArrowSize,
+		ArrowHeadSize,
 		FColor::Red,
 		bPersistantLines,
 		lifetime,
@@ -63,7 +63,7 @@ void UShapePreviewPlane::DrawShapePreview()
 		GetWorld(),
 		arrowOrigin,
 		arrowOrigin + componentTransform.GetUnitAxis(EAxis::Y) * arrowLength,
-		ArrowSize,
+		ArrowHeadSize,
 		FColor::Green,
 		bPersistantLines,
 		lifetime,
@@ -76,7 +76,7 @@ void UShapePreviewPlane::DrawShapePreview()
 		GetWorld(),
 		arrowOrigin,
 		arrowOrigin + componentTransform.GetUnitAxis(EAxis::Z) * arrowLength,
-		ArrowSize,
+		ArrowHeadSize,
 		FColor::Blue,
 		bPersistantLines,
 		lifetime,

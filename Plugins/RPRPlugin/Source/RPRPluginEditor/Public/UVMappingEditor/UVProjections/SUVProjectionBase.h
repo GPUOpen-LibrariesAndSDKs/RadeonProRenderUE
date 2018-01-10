@@ -1,12 +1,15 @@
 #pragma once
 
 #include "IUVProjection.h"
+#include "Engine/StaticMesh.h"
 #include "DeclarativeSyntaxSupport.h"
 #include "UVProjectionType.h"
 #include "IUVProjectionAlgorithm.h"
+#include "SWidget.h"
 #include "SCompoundWidget.h"
 #include "ShapePreviewBase.h"
 #include "SlateDelegates.h"
+#include "IDetailsView.h"
 #include "RPRStaticMeshEditor.h"
 
 /*
@@ -20,7 +23,7 @@ public:
 
 	void	Construct(const FArguments& InArgs);
 
-	virtual void	SetStaticMesh(class UStaticMesh* InStaticMesh) override;
+	virtual void	SetStaticMesh(UStaticMesh* InStaticMesh) override;
 	virtual void	SetRPRStaticMeshEditor(FRPRStaticMeshEditorWeakPtr InRPRStaticMeshEditor) override;
 
 	virtual UStaticMesh*			GetStaticMesh() const override;
@@ -36,8 +39,8 @@ protected:
 	/* Add component to the RPR Static Mesh Editor viewport */
 	void	AddComponentToViewport(UActorComponent* InActorComponent, bool bSelectShape = true);
 	/* Create a detail view widget for the shape preview */
-	TSharedPtr<class IDetailsView>	CreateShapePreviewDetailView(FName ViewIdentifier);
-	TSharedRef<class SWidget>		CreateApplyButton(FOnClicked OnClicked) const;
+	TSharedPtr<IDetailsView>	CreateShapePreviewDetailView(FName ViewIdentifier);
+	TSharedRef<SWidget>		CreateApplyButton(FOnClicked OnClicked) const;
 
 	/* Provide quick access to the algorithm for the UV mapping projection with the expected type */
 	template<typename AlgorithmType>

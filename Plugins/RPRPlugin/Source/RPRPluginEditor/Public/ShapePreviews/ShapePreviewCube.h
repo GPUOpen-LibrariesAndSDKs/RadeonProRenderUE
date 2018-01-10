@@ -27,7 +27,7 @@ public:
 	float FaceOffset;
 
 	UPROPERTY(EditAnywhere, Category = Preview)
-	float ArrowSize;
+	float ArrowHeadSize;
 
 	UPROPERTY(EditAnywhere, Category = Preview)
 	float ArrowExtentSize;

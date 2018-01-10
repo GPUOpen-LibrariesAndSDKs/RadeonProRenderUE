@@ -5,7 +5,7 @@ UShapePreviewCube::UShapePreviewCube()
 	: Thickness(1.0f)
 	, FaceScale(0.9f)
 	, FaceOffset(0.5f)
-	, ArrowSize(20.0f)
+	, ArrowHeadSize(20.0f)
 	, ArrowExtentSize(40.0f)
 {
 	CubeProjectionFaces = FCubeProjectionFace::CreateAllCubeProjectionFaces();
@@ -53,7 +53,7 @@ void UShapePreviewCube::DrawShapePreview()
 			GetWorld(),
 			arrowStart,
 			arrowStart + plane.GetPlaneNormal() * ArrowExtentSize,
-			ArrowSize,
+			ArrowHeadSize,
 			FColor::Red
 			);
 
@@ -63,7 +63,7 @@ void UShapePreviewCube::DrawShapePreview()
 			GetWorld(),
 			arrowStart,
 			arrowStart + plane.GetUp() * ArrowExtentSize,
-			ArrowSize,
+			ArrowHeadSize,
 			FColor::Blue
 		);
 
@@ -73,7 +73,7 @@ void UShapePreviewCube::DrawShapePreview()
 			GetWorld(),
 			arrowStart,
 			arrowStart + plane.GetRight() * ArrowExtentSize,
-			ArrowSize,
+			ArrowHeadSize,
 			FColor::Green
 		);
 	}

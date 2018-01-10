@@ -49,6 +49,8 @@ protected:
 	void	SetUVsOnMesh(const TArray<FVector2D>& UVs);
 	void	SaveRawMesh();
 
+	void	RebuildIndexBuffer();
+
 	FPositionVertexBuffer*		GetStaticMeshPositionVertexBuffer() const;
 	FStaticMeshVertexBuffer*	GetStaticMeshVertexBuffer() const;
 	FColorVertexBuffer*			GetStaticMeshColorVertexBuffer() const;
