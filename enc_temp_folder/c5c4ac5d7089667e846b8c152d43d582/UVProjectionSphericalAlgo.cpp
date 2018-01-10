@@ -45,9 +45,13 @@ void FUVProjectionSphericalAlgo::ProjectVerticesOnSphere(const FSettings& InSett
 void FUVProjectionSphericalAlgo::ProjectVertexOnSphere(const FSettings& InSettings, const FVector& Vertex, FVector2D& OutUV)
 {
 	const FVector localVertex = FRPRVectorTools::TransformToLocal(Vertex, InSettings.SphereCenter, InSettings.SphereRotation);
-	float radius, angle, azimuth;
+	/*float radius, angle, azimuth;
 	FRPRVectorTools::CartesianToPolar(localVertex, radius, angle, azimuth);
-	OutUV = FVector2D(angle, azimuth);
+	OutUV = FVector2D(angle, azimuth);*/
+	OutUV = FVector2D(
+		0.5f + FMath::Atan2(localVertex.Z, localVertex.X) / (2 * PI),
+		0.5f - FMath::Asin(localVertex.Y) / PI
+	);
 }
 
 void FUVProjectionSphericalAlgo::SetSettings(const FSettings& InSettings)

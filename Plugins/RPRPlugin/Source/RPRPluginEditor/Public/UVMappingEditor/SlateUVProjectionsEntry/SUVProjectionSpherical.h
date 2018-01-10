@@ -18,8 +18,9 @@ public:
 	SLATE_END_ARGS()
 
 	void	Construct(const FArguments& InArgs);
-
 	void	ApplyAlgorithm();
+
+	void	AdaptPreviewShapeToMesh();
 
 	virtual void FinalizeCreation() override;
 	virtual void OnUVProjectionDisplayed() override;

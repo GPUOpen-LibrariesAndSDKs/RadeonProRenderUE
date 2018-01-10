@@ -1,5 +1,6 @@
 #include "ShapePreviewBase.h"
 #include "ShapePreviewProxy.h"
+#include "DrawDebugHelpers.h"
 
 UShapePreviewBase::UShapePreviewBase()
 	: ShapeColor(FColor::Yellow)
@@ -48,4 +49,35 @@ void UShapePreviewBase::BeginProxy(FPrimitiveDrawInterface* PDI)
 void UShapePreviewBase::EndProxy(FPrimitiveDrawInterface* PDI)
 {
 	PDI->SetHitProxy(nullptr);
+}
+
+void UShapePreviewBase::DrawDebugAllAxis(const FTransform& InTransform, float AxisLength, 
+										float ArrowHeadSize, float ArrowThickness)
+{
+	DrawDebugAxis(InTransform, EAxis::X, FColor::Red, AxisLength, ArrowHeadSize, ArrowThickness);
+	DrawDebugAxis(InTransform, EAxis::Y, FColor::Green, AxisLength, ArrowHeadSize, ArrowThickness);
+	DrawDebugAxis(InTransform, EAxis::Z, FColor::Blue, AxisLength, ArrowHeadSize, ArrowThickness);
+}
+
+void UShapePreviewBase::DrawDebugAxis(const FTransform& InTransform, EAxis::Type InAxis, 
+										const FColor& InColor, float InAxisLength, 
+										float InArrowHeadSize, float InArrowThickness)
+{
+	const bool bPersistentLines = false;
+	const float lifetime = -1.0f;
+	const uint8 depthPriority = 0;
+
+	const FVector center = InTransform.GetLocation();
+
+	DrawDebugDirectionalArrow(
+		GetWorld(),
+		center,
+		center + InTransform.GetUnitAxis(InAxis) * InAxisLength,
+		InArrowHeadSize,
+		InColor,
+		bPersistentLines,
+		lifetime,
+		depthPriority,
+		InArrowThickness
+	);
 }

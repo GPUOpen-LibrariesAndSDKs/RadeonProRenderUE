@@ -72,6 +72,17 @@ void SUVProjectionSpherical::OnUVProjectionDisplayed()
 {
 	ShapePreviewDetailView->SetObject(GetShapePreview());
 	AddComponentToViewport(GetShapePreview());
+	AdaptPreviewShapeToMesh();
+}
+
+void SUVProjectionSpherical::AdaptPreviewShapeToMesh()
+{
+	FVector center, extents;
+	GetRPRStaticMeshEditor()->GetPreviewMeshBounds(center, extents);
+
+	UShapePreviewSphere* sphere = GetShape();
+	sphere->SetRelativeLocation(center);
+	sphere->Radius = extents.GetAbsMax();
 }
 
 void SUVProjectionSpherical::OnUVProjectionHidden()

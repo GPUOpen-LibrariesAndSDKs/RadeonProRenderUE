@@ -1,8 +1,10 @@
 #include "AlgorithmFactory.h"
 #include "RPRPluginEditorModule.h"
+
 #include "UVProjectionPlanarAlgo.h"
 #include "UVProjectionCubicAlgo.h"
 #include "UVProjectionSphericalAlgo.h"
+#include "UVProjectionCylinderAlgo.h"
 
 IUVProjectionAlgorithmPtr FAlgorithmFactory::CreateAlgorithm(UStaticMesh* StaticMesh, EUVProjectionType ProjectionType)
 {
@@ -16,6 +18,9 @@ IUVProjectionAlgorithmPtr FAlgorithmFactory::CreateAlgorithm(UStaticMesh* Static
 
 	case EUVProjectionType::Spherical:
 		return (InstantiateAlgo<FUVProjectionSphericalAlgo>(StaticMesh));
+
+	case EUVProjectionType::Cylindrical:
+		return (InstantiateAlgo<FUVProjectionCylinderAlgo>(StaticMesh));
 
 	default:
 		UE_LOG(LogRPRPluginEditor, Fatal, TEXT("No algorithm found!"));

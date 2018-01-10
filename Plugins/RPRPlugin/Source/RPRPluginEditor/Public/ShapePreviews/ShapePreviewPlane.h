@@ -20,6 +20,7 @@ public:
 protected:
 
 	virtual void DrawShapePreview() override;
+	void DrawPlaneAxis();
 
 private:
 

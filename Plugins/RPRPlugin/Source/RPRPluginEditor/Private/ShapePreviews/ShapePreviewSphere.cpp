@@ -32,39 +32,10 @@ void UShapePreviewSphere::DrawShapePreview()
 		Thickness
 	);
 
-	DrawDebugAllAxis();
+	DrawDebugAllAxis(sphereTransform, Radius * ArrowExtentFactor, ArrowHeadSize, ArrowThickness);
 }
 
 bool UShapePreviewSphere::CanBeScaled() const
 {
 	return (false);
-}
-
-void UShapePreviewSphere::DrawDebugAllAxis()
-{
-	DrawDebugAxis(EAxis::X, FColor::Red);
-	DrawDebugAxis(EAxis::Y, FColor::Green);
-	DrawDebugAxis(EAxis::Z, FColor::Blue);
-}
-
-void UShapePreviewSphere::DrawDebugAxis(EAxis::Type Axis, const FColor& Color)
-{
-	const bool bPersistentLines = false;
-	const float lifetime = -1.0f;
-	const uint8 depthPriority = 0;
-
-	const FTransform& sphereTransform = GetComponentTransform();
-	const FVector sphereCenter = sphereTransform.GetLocation();
-
-	DrawDebugDirectionalArrow(
-		GetWorld(),
-		sphereCenter,
-		sphereCenter + sphereTransform.GetUnitAxis(Axis) * Radius * ArrowExtentFactor,
-		ArrowHeadSize,
-		Color,
-		bPersistentLines,
-		lifetime,
-		depthPriority,
-		ArrowThickness
-	);
 }

@@ -5,6 +5,7 @@
 #include "SUVProjectionPlanar.h"
 #include "SUVProjectionCubic.h"
 #include "SUVProjectionSpherical.h"
+#include "SUVProjectionCylinder.h"
 
 IUVProjectionPtr FUVProjectionFactory::CreateUVProjectionByType(TSharedPtr<FRPRStaticMeshEditor> StaticMeshEditorPtr, 
 																	UStaticMesh* StaticMesh, EUVProjectionType Type)
@@ -26,6 +27,7 @@ IUVProjectionPtr FUVProjectionFactory::CreateUVProjectionByType(TSharedPtr<FRPRS
 		break;
 
 	case Cylindrical:
+		projectionPtr = SNew(SUVProjectionCylinder);
 		break;
 
 	default:

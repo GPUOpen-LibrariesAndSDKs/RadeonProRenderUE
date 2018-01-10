@@ -103,7 +103,7 @@ TSharedPtr<FUVProjectionCubicAlgo> SUVProjectionCubic::GetProjectionCubicAlgo() 
 void SUVProjectionCubic::SetPreviewShapeSameBoundsAsShape()
 {
 	FVector center, extents;
-	GetRPRStaticMeshEditor()->GetStaticMesh()->GetBoundingBox().GetCenterAndExtents(center, extents);
+	GetRPRStaticMeshEditor()->GetPreviewMeshBounds(center, extents);
 	extents = FRPRVectorTools::ApplyMaxComponentOnAllComponents(extents);
 
 	UShapePreviewCube* shape = GetShape();

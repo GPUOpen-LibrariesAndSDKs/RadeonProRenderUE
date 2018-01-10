@@ -26,6 +26,13 @@ protected:
 
 	virtual void	DrawShapePreview() {};
 
+	void DrawDebugAllAxis(const FTransform& InTransform, float AxisLength,
+						float ArrowHeadSize, float ArrowThickness);
+
+	void DrawDebugAxis(const FTransform& InTransform, EAxis::Type InAxis,
+						const FColor& InColor, float InAxisLength,
+						float InArrowHeadSize, float InArrowThickness);
+
 private:
 	
 	void	BeginProxy(FPrimitiveDrawInterface* PDI);

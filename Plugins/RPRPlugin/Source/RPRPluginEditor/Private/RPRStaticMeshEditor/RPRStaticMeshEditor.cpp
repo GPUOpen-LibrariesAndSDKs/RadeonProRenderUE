@@ -167,6 +167,11 @@ FRPRStaticMeshEditorSelection& FRPRStaticMeshEditor::GetSelectionSystem()
 	return (SelectionSystem);
 }
 
+void FRPRStaticMeshEditor::GetPreviewMeshBounds(FVector& OutCenter, FVector& OutExtents)
+{
+	GetStaticMesh()->GetBoundingBox().GetCenterAndExtents(OutCenter, OutExtents);
+}
+
 void FRPRStaticMeshEditor::AddComponentToViewport(UActorComponent* ActorComponent, bool bSelectComponent /*= true*/)
 {
 	Viewport->AddComponent(ActorComponent);

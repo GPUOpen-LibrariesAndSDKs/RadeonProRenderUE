@@ -10,21 +10,6 @@ UShapePreviewPlane::UShapePreviewPlane()
 	, ArrowThickness(1.0f)
 {}
 
-void UShapePreviewPlane::SetThickness(float InThickness)
-{
-	Thickness = InThickness;
-}
-
-void UShapePreviewPlane::SetInitialPlaneDatas(const FPlane& InPlane)
-{
-	InitialPlane = InPlane;
-}
-
-bool UShapePreviewPlane::CanBeScaled() const
-{
-	return (false);
-}
-
 void UShapePreviewPlane::DrawShapePreview()
 {
 	const FTransform& componentTransform = GetComponentTransform();
@@ -39,48 +24,34 @@ void UShapePreviewPlane::DrawShapePreview()
 		GetShapeColor()
 	);
 
+	DrawPlaneAxis();
+}
+
+
+void UShapePreviewPlane::DrawPlaneAxis()
+{
+	const FTransform& componentTransform = GetComponentTransform();
 	const FVector arrowOrigin = componentTransform.GetLocation() + componentTransform.GetRotation().GetForwardVector() * Thickness;
 	const float arrowLength = PlaneScale + PlaneScale * 0.1f;
-	const bool bPersistantLines = false;
-	const float lifetime = -1.0f;
-	const float depthPriority = 0;
 
-	// Draw the Forward of the plane
-	DrawDebugDirectionalArrow(
-		GetWorld(),
-		arrowOrigin,
-		arrowOrigin + componentTransform.GetUnitAxis(EAxis::X) * arrowLength,
-		ArrowHeadSize,
-		FColor::Red,
-		bPersistantLines,
-		lifetime,
-		depthPriority,
-		ArrowThickness
-	);
-	
-	// Draw the Right of the plane
-	DrawDebugDirectionalArrow(
-		GetWorld(),
-		arrowOrigin,
-		arrowOrigin + componentTransform.GetUnitAxis(EAxis::Y) * arrowLength,
-		ArrowHeadSize,
-		FColor::Green,
-		bPersistantLines,
-		lifetime,
-		depthPriority,
-		ArrowThickness
-	);
+	FTransform allAxisTransform;
+	allAxisTransform.SetLocation(arrowOrigin);
+	allAxisTransform.SetRotation(componentTransform.GetRotation());
 
-	// Draw the Up of the plane
-	DrawDebugDirectionalArrow(
-		GetWorld(),
-		arrowOrigin,
-		arrowOrigin + componentTransform.GetUnitAxis(EAxis::Z) * arrowLength,
-		ArrowHeadSize,
-		FColor::Blue,
-		bPersistantLines,
-		lifetime,
-		depthPriority,
-		ArrowThickness
-	);
+	DrawDebugAllAxis(allAxisTransform, arrowLength, ArrowHeadSize, ArrowThickness);
+}
+
+void UShapePreviewPlane::SetThickness(float InThickness)
+{
+	Thickness = InThickness;
+}
+
+void UShapePreviewPlane::SetInitialPlaneDatas(const FPlane& InPlane)
+{
+	InitialPlane = InPlane;
+}
+
+bool UShapePreviewPlane::CanBeScaled() const
+{
+	return (false);
 }

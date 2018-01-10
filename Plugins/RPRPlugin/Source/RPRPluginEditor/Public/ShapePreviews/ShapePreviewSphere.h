@@ -17,11 +17,6 @@ public:
 
 	virtual bool	CanBeScaled() const;
 
-private:
-
-	void	DrawDebugAllAxis();
-	void	DrawDebugAxis(EAxis::Type Axis, const FColor& Color);
-
 public:
 
 	UPROPERTY(EditAnywhere, Category = Preview)
