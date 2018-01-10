@@ -12,6 +12,8 @@ public:
 	static void CenterUVs(TArray<FVector2D>& UVs, int32 StartOffset = 0);
 	static void SetPackUVsOnMesh(class UStaticMesh* InStaticMesh, const TArray<class FPackVertexUV>& PackVertexUVs, int32 LODIndex = 0);
 
+	static void	InvertUV(FVector2D& InUV);
+
 private:
 
 	static int32	GetNumTexturesCoordinatesInPackVertexUVs(const TArray<FPackVertexUV>& PackVertexUVs);

@@ -9,12 +9,18 @@
 class FCubeProjectionFace
 {
 public:
+
+	static TArray<FCubeProjectionFace>	CreateAllCubeProjectionFaces();
+
+
 	FCubeProjectionFace(EUVProjectionFaceSide InProjectionFaceSide);
 
-	bool	AddVertexIndexIfOnFace(const FVector& VertexNormal, int32 VertexIndex);
-	void	GetFaceProjectedUVs(const FPositionVertexBuffer& PositionVertexBuffer, TArray<FVector2D>& OutUVs) const;
+	bool	AddUVIndexIfVertexIsOnFace(const FVector& VertexNormal, int32 UVIndex);
+	bool	IsVertexOnFace(const FVector& VertexNormal) const;
+	void	AddUVIndex(int32 UVIndex);
+	void	GetFaceProjectedUVs(const TArray<FVector>& Vertices, const TArray<uint32>& WedgeIndices, TArray<FVector2D>& OutUVs) const;
 
-	const TArray<int32>&		GetFaceVertexIndexes() const;
+	const TArray<int32>&		GetFaceVertexWedgeIndiceIndexes() const;
 	const FTransformablePlane&	GetPlaneProjection() const;
 	EUVProjectionFaceSide		GetProjectionFaceSide() const;
 
@@ -29,15 +35,17 @@ private:
 
 private:
 
-	bool	IsVertexOnFace(const FVector& VertexNormal) const;
-	void	AddVertexIndex(int32 VertexIndex);
 	void	CreateProjectionPlane();
 
 private:
 
 	const EUVProjectionFaceSide	ProjectionFaceSide;
-	TArray<int32>					VertexIndexes;
-	FTransformablePlane				ProjectionPlane;
+	FTransformablePlane	ProjectionPlane;
+
+	/* The *indexes* the UVs */
+	TArray<int32> UVIndexes;
 
 };
+
+typedef TArray<FCubeProjectionFace>	FCubeProjectionFaces;
 

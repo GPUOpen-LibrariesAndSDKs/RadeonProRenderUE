@@ -6,9 +6,9 @@
  * Arrange UVs to get this layout :
  * 
  * V
- * |        [ +Y ]
- * |  [ -X ][ +Z ][ +X ][ -Z ]
- * |        [ -Y ]
+ * |        [ +Z ]
+ * |  [ +Y ][ +X ][ -Y ][ -X ]
+ * |        [ -Z ]
  * |
  * ________ U
  *

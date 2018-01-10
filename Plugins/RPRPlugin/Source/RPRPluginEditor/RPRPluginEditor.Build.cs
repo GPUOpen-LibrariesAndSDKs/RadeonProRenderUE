@@ -31,6 +31,7 @@ public class RPRPluginEditor : ModuleRules
                 "RPRPluginEditor/Private/Tools/Math/RPRVectorTools",
                 "RPRPluginEditor/Private/Tools/Math/TransformablePlane",
                 "RPRPluginEditor/Private/Tools/Math/UVUtility",
+                "RPRPluginEditor/Private/Tools/Math/RPRMeshFace",
                 "RPRPluginEditor/Private/Tools/IDetailsViewHelper",
                 "RPRPluginEditor/Private/Tools/Algorithms/Utilities",
                 "RPRPluginEditor/Private/Tools/StaticMeshHelper",

@@ -25,7 +25,7 @@ void FUVProjectionPlanarAlgo::StartAlgorithm()
 	const TArray<FVector>& vertexPositions = RawMesh.VertexPositions;
 	const TArray<uint32>& wedgeIndices = RawMesh.WedgeIndices;
 
-	PrepareUVs(NewUVs, vertexPositions.Num());
+	PrepareUVs(NewUVs);
 	ProjectVertexOnPlane(Settings, vertexPositions, wedgeIndices, NewUVs);
 	FUVUtility::ShrinkUVsToBounds(NewUVs);
 
@@ -48,7 +48,7 @@ void FUVProjectionPlanarAlgo::ProjectVertexOnPlane(const FSettings& InSettings, 
 		const uint32 vertexIndex = WedgeIndices[indiceIdx];
 		const FVector& vertexPosition = VertexPositions[vertexIndex];
 		newUV = InSettings.Plane.ProjectToLocalCoordinates(vertexPosition);
-		FRPRVectorTools::InverseY(newUV);
+		FUVUtility::InvertUV(newUV);
 		OutUVs.Add(newUV);
 	}
 }

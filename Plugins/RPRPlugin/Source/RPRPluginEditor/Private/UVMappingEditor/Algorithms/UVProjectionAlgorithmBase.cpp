@@ -28,8 +28,11 @@ bool FUVProjectionAlgorithmBase::IsAlgorithimRunning()
 	return (bIsAlgorithmRunning);
 }
 
-void FUVProjectionAlgorithmBase::PrepareUVs(TArray<FVector2D>& UVs, int32 UVBufferSize)
+void FUVProjectionAlgorithmBase::PrepareUVs(TArray<FVector2D>& UVs)
 {
+	check(RawMesh.IsValid());
+
+	const int32 UVBufferSize = RawMesh.WedgeIndices.Num();
 	UVs.Empty(UVBufferSize);
 }
 
@@ -67,8 +70,11 @@ void FUVProjectionAlgorithmBase::SetUVsOnMesh(const TArray<FVector2D>& UVs)
 
 void FUVProjectionAlgorithmBase::SaveRawMesh()
 {
-	FStaticMeshHelper::SaveRawMeshToStaticMesh(RawMesh, StaticMesh);
-	StaticMesh->MarkPackageDirty();
+	if (RawMesh.IsValid())
+	{
+		FStaticMeshHelper::SaveRawMeshToStaticMesh(RawMesh, StaticMesh);
+		StaticMesh->MarkPackageDirty();
+	}
 }
 
 FPositionVertexBuffer* FUVProjectionAlgorithmBase::GetStaticMeshPositionVertexBuffer(UStaticMesh* InStaticMesh)

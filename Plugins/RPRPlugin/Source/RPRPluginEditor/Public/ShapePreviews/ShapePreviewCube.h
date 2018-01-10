@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ShapePreviewBase.h"
+#include "CubeProjectionFace.h"
 #include "ShapePreviewCube.generated.h"
 
 UCLASS()
@@ -18,5 +19,21 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Preview)
 	float Thickness;
+
+	UPROPERTY(EditAnywhere, Category = Preview)
+	float FaceScale;
+
+	UPROPERTY(EditAnywhere, Category = Preview)
+	float FaceOffset;
+
+	UPROPERTY(EditAnywhere, Category = Preview)
+	float ArrowSize;
+
+	UPROPERTY(EditAnywhere, Category = Preview)
+	float ArrowExtentSize;
+
+private:
+
+	FCubeProjectionFaces CubeProjectionFaces;
 
 };

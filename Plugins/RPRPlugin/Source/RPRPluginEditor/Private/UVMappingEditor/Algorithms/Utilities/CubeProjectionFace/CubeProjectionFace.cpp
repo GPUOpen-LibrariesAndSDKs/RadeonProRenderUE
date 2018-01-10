@@ -2,17 +2,31 @@
 #include "UVUtility.h"
 #include "Class.h"
 
+FCubeProjectionFaces FCubeProjectionFace::CreateAllCubeProjectionFaces()
+{
+	FCubeProjectionFaces faces;
+
+	faces.Emplace(EUVProjectionFaceSide::PositiveX);
+	faces.Emplace(EUVProjectionFaceSide::NegativeX);
+	faces.Emplace(EUVProjectionFaceSide::PositiveY);
+	faces.Emplace(EUVProjectionFaceSide::NegativeY);
+	faces.Emplace(EUVProjectionFaceSide::PositiveZ);
+	faces.Emplace(EUVProjectionFaceSide::NegativeZ);
+
+	return (faces);
+}
+
 FCubeProjectionFace::FCubeProjectionFace(EUVProjectionFaceSide InProjectionFaceSide)
 	: ProjectionFaceSide(InProjectionFaceSide)
 {
 	CreateProjectionPlane();
 }
 
-bool FCubeProjectionFace::AddVertexIndexIfOnFace(const FVector& VertexNormal, int32 VertexIndex)
+bool FCubeProjectionFace::AddUVIndexIfVertexIsOnFace(const FVector& VertexNormal, int32 UVIndex)
 {
 	if (IsVertexOnFace(VertexNormal))
 	{
-		AddVertexIndex(VertexIndex);
+		AddUVIndex(UVIndex);
 		return (true);
 	}
 	return (false);
@@ -60,15 +74,15 @@ FColor FCubeProjectionFace::GetFaceColor() const
 	switch (ProjectionFaceSide)
 	{
 	case PositiveX:
-		return (FColor::Red);
+		return (FColor(130, 0, 0));
 	case NegativeX:
 		return (FColor(100, 0, 0));
 	case PositiveY:
-		return (FColor::Green);
+		return (FColor(0, 130, 0));
 	case NegativeY:
 		return (FColor(0, 100, 0));
 	case PositiveZ:
-		return (FColor::Blue);
+		return (FColor(0, 0, 130));
 	case NegativeZ:
 		return (FColor(0, 0, 100));
 
@@ -77,23 +91,27 @@ FColor FCubeProjectionFace::GetFaceColor() const
 	}
 }
 
-void FCubeProjectionFace::GetFaceProjectedUVs(const FPositionVertexBuffer& PositionVertexBuffer, TArray<FVector2D>& OutUVs) const
+void FCubeProjectionFace::GetFaceProjectedUVs(const TArray<FVector>& Vertices, const TArray<uint32>& WedgeIndices, TArray<FVector2D>& OutUVs) const
 {
+	FVector2D uv;
 	int32 endOffset = OutUVs.Num();
 
-	for (int32 i = 0; i < VertexIndexes.Num(); ++i)
+	for (int32 i = 0; i < UVIndexes.Num(); ++i)
 	{
-		const int32& vertexIndex = VertexIndexes[i];
-		const FVector& positionVector = PositionVertexBuffer.VertexPosition(vertexIndex);
-		OutUVs.Add(ProjectionPlane.ProjectToLocalCoordinates(positionVector));
+		const int32 uvIndex = UVIndexes[i];
+		const int32 vertexIndice = WedgeIndices[uvIndex];
+		const FVector& positionVector = Vertices[vertexIndice];
+		uv = ProjectionPlane.ProjectToLocalCoordinates(positionVector);
+		FUVUtility::InvertUV(uv);
+		OutUVs.Add(uv);
 	}
 
 	FUVUtility::ShrinkUVsToBounds(OutUVs, endOffset);
 }
 
-const TArray<int32>& FCubeProjectionFace::GetFaceVertexIndexes() const
+const TArray<int32>& FCubeProjectionFace::GetFaceVertexWedgeIndiceIndexes() const
 {
-	return (VertexIndexes);
+	return (UVIndexes);
 }
 
 void FCubeProjectionFace::CreateProjectionPlane()
@@ -109,7 +127,7 @@ void FCubeProjectionFace::CreateProjectionPlane()
 		break;
 	case NegativeX:
 		planeNormal = -FVector::ForwardVector;
-		planeUp = -FVector::UpVector;
+		planeUp = FVector::UpVector;
 		break;
 	case PositiveY:
 		planeNormal = FVector::RightVector;
@@ -117,15 +135,15 @@ void FCubeProjectionFace::CreateProjectionPlane()
 		break;
 	case NegativeY:
 		planeNormal = -FVector::RightVector;
-		planeUp = -FVector::UpVector;
+		planeUp = FVector::UpVector;
 		break;
 	case PositiveZ:
 		planeNormal = FVector::UpVector;
-		planeUp = FVector::RightVector;
+		planeUp = -FVector::ForwardVector;
 		break;
 	case NegativeZ:
 		planeNormal = -FVector::UpVector;
-		planeUp = -FVector::RightVector;
+		planeUp = FVector::ForwardVector;
 		break;
 
 	default:
@@ -135,9 +153,9 @@ void FCubeProjectionFace::CreateProjectionPlane()
 	ProjectionPlane = FTransformablePlane(FPlane(planeNormal, 0), FVector::ZeroVector, planeUp);
 }
 
-void FCubeProjectionFace::AddVertexIndex(int32 VertexIndex)
+void FCubeProjectionFace::AddUVIndex(int32 UVIndex)
 {
-	VertexIndexes.Add(VertexIndex);
+	UVIndexes.Add(UVIndex);
 }
 
 EUVProjectionFaceSide FCubeProjectionFace::GetProjectionFaceSide() const
@@ -152,6 +170,6 @@ const FTransformablePlane& FCubeProjectionFace::GetPlaneProjection() const
 
 FString FCubeProjectionFace::GetProjectionFaceSideName() const
 {
-	const UEnum* pEnum = FindObject<UEnum>((UObject*)ANY_PACKAGE, TEXT("ECubeProjectionFaceSide"));
+	const UEnum* pEnum = FindObject<UEnum>((UObject*)ANY_PACKAGE, TEXT("EUVProjectionFaceSide"));
 	return (pEnum ? pEnum->GetNameStringByIndex(static_cast<int32>(ProjectionFaceSide)) : TEXT("unknown"));
 }

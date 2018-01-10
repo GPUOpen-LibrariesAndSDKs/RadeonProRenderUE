@@ -39,8 +39,8 @@ public:
 
 protected:
 
-	/* Clear the UV array and reserve space to fill it */
-	void	PrepareUVs(TArray<FVector2D>& UVs, int32 UVBufferSize);
+	/* Clear the UV array and reserve space to fill it, based on the number of RawMesh.WedgeIndices. */
+	void	PrepareUVs(TArray<FVector2D>& UVs);
 
 	void	StopAlgorithm();
 	void	RaiseAlgorithmCompletion(bool bIsSuccess);

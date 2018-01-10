@@ -6,6 +6,11 @@ FVector FRPRVectorTools::ApplyMaxComponentOnAllComponents(const FVector& InVecto
 	return (FVector(maxValue, maxValue, maxValue));
 }
 
+void FRPRVectorTools::InverseX(FVector2D& InVector2D)
+{
+	InVector2D.X *= -1;
+}
+
 void FRPRVectorTools::InverseY(FVector2D& InVector2D)
 {
 	InVector2D.Y *= -1;

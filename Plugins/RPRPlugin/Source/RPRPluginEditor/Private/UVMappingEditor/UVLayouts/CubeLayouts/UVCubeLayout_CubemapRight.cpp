@@ -16,35 +16,34 @@ void FUVCubeLayout_CubemapRight::ArrangeUVs(const TArray<FCubeProjectionFace>& C
 		switch (CubeProjectionFaces[i].GetProjectionFaceSide())
 		{
 		case PositiveX:
-			origin = GetCell(2, 1);
-			break;
-		case NegativeX:
-			origin = GetCell(0, 1);
-			break;
-		case PositiveY:
-			origin = GetCell(1, 0);
-			break;
-		case NegativeY:
-			origin = GetCell(1, 2);
-			break;
-		case PositiveZ:
 			origin = GetCell(1, 1);
 			break;
-		case NegativeZ:
+		case NegativeX:
 			origin = GetCell(3, 1);
+			break;
+		case PositiveY:
+			origin = GetCell(0, 1);
+			break;
+		case NegativeY:
+			origin = GetCell(2, 1);
+			break;
+		case PositiveZ:
+			origin = GetCell(1, 0);
+			break;
+		case NegativeZ:
+			origin = GetCell(1, 2);
 			break;
 		default:
 			checkNoEntry();
 			break;
 		}
 
-		const TArray<int32>& faceVertexIndexes = CubeProjectionFaces[i].GetFaceVertexIndexes();
+		const TArray<int32>& faceVertexWedgeIndiceIndexes = CubeProjectionFaces[i].GetFaceVertexWedgeIndiceIndexes();
 
-		for (int32 j = 0; j < faceVertexIndexes.Num(); ++j)
+		for (int32 j = 0; j < faceVertexWedgeIndiceIndexes.Num(); ++j)
 		{
-			const int32& faceVertexIndex = faceVertexIndexes[j];
-			InOutUVs[faceVertexIndex] = origin + InOutUVs[faceVertexIndex] * FaceUVBoxSize;
-
+			const int32 faceVertexWedgeIndiceIdx = faceVertexWedgeIndiceIndexes[j];
+			InOutUVs[faceVertexWedgeIndiceIdx] = origin + InOutUVs[faceVertexWedgeIndiceIdx] * FaceUVBoxSize;
 		}
 	}
 }

@@ -108,6 +108,11 @@ void FUVUtility::SetPackUVsOnMesh(UStaticMesh* InStaticMesh, const TArray<FPackV
 	}
 }
 
+void FUVUtility::InvertUV(FVector2D& InUV)
+{
+	InUV *= -1;
+}
+
 int32 FUVUtility::GetNumTexturesCoordinatesInPackVertexUVs(const TArray<FPackVertexUV>& PackVertexUVs)
 {
 	int32 sum = 0;

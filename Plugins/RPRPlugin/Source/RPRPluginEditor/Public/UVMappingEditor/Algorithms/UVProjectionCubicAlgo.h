@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PackVertexUV.h"
+#include "CubeProjectionFace.h"
 #include "UVProjectionAlgorithmBase.h"
 
 class FUVProjectionCubicAlgo : public FUVProjectionAlgorithmBase
@@ -18,13 +19,14 @@ public:
 	virtual void StartAlgorithm() override;
 	virtual void Finalize() override;
 
-	void	StartCubicProjection(UStaticMesh* InStaticMesh, const FUVProjectionCubicAlgo::FSettings& InSettings, TArray<FVector2D>& OutNewUVs);
+	void	StartCubicProjection(FRawMesh& InRawMesh, 
+							const FUVProjectionCubicAlgo::FSettings& InSettings,
+							TArray<FVector2D>& OutNewUVs);
 
 private:
 
-	static void CalculateNormalVectors(UStaticMesh* InStaticMesh, const FUVProjectionCubicAlgo::FSettings& InSettings, TArray<FVector>& OutNormals);
-	static void PutVertexIntoCubeProjectionFaceByNormals(const FSettings& InSettings, UStaticMesh* InStaticMesh, const TArray<FVector>& Normals, TArray<class FCubeProjectionFace>& OutProjectionFaces);
-	static void ProjectCubeFaceToUVs(UStaticMesh* InStaticMesh, const TArray<FCubeProjectionFace>& CubeProjectionFaces, TArray<FVector2D>& OutUVs);
+	static void PutVertexIntoCubeProjectionFaceByNormals(const FSettings& InSettings, const FRawMesh& InRawMesh, FCubeProjectionFaces& OutProjectionFaces);
+	static void ProjectCubeFaceToUVs(const FRawMesh& InRawMesh, const TArray<FCubeProjectionFace>& CubeProjectionFaces, TArray<FVector2D>& OutUVs);
 
 	static inline float ClampTextureCoordinateToBounds(float TextureCoordinate, float Max) { return (((TextureCoordinate / Max) + 1) / 2); }
 
