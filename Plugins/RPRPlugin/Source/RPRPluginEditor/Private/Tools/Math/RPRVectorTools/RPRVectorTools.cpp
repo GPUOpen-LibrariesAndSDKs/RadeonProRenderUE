@@ -21,8 +21,8 @@ void FRPRVectorTools::InverseY(FVector2D& InVector2D)
 void FRPRVectorTools::CartesianToPolar(const FVector& Point, float& OutRadius, float& OutAngle, float& OutAzimuth)
 {
 	OutRadius = Point.Size();
-	OutAngle = FMath::Acos(Point.Z / OutRadius);
-	OutAzimuth = FMath::Atan(Point.Y / Point.X);
+	OutAngle = FMath::Atan2(Point.Y, Point.X);
+	OutAzimuth = FMath::Acos(Point.Z / OutRadius);
 }
 
 void FRPRVectorTools::CartesianToCylinderCoordinates(const FVector& Point, float& OutRadialDistance, float& OutAzimuth, float& OutHeight)

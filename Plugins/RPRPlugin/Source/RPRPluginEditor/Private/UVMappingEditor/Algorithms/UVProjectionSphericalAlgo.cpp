@@ -1,5 +1,7 @@
 #include "UVProjectionSphericalAlgo.h"
 #include "UVUtility.h"
+#include "UVFixer.h"
+#include "RPRStaticMeshEditor.h"
 #include "RPRVectorTools.h"
 
 FUVProjectionSphericalAlgo::FSettings::FSettings()
@@ -11,12 +13,16 @@ void FUVProjectionSphericalAlgo::StartAlgorithm()
 {
 	FUVProjectionAlgorithmBase::StartAlgorithm();
 
-	const TArray<FVector>& vertexPositions = RawMesh.VertexPositions;
-	const TArray<uint32>& wedgeIndices = RawMesh.WedgeIndices;
+	TArray<FVector>& vertexPositions = RawMesh.VertexPositions;
+	TArray<uint32>& wedgeIndices = RawMesh.WedgeIndices;
 
 	PrepareUVs(NewUVs);
 	ProjectVerticesOnSphere(Settings, vertexPositions, wedgeIndices, NewUVs);
-	FUVUtility::ShrinkUVsToBounds(NewUVs);
+
+	TArray<FColor> colors;
+	FUVFixer::Fix(vertexPositions, wedgeIndices, NewUVs, colors);
+	//FUVUtility::ShrinkUVsToBounds(NewUVs);
+	RawMesh.WedgeColors = colors;
 
 	StopAlgorithmAndRaiseCompletion(true);
 }
@@ -44,10 +50,17 @@ void FUVProjectionSphericalAlgo::ProjectVerticesOnSphere(const FSettings& InSett
 
 void FUVProjectionSphericalAlgo::ProjectVertexOnSphere(const FSettings& InSettings, const FVector& Vertex, FVector2D& OutUV)
 {
-	const FVector localVertex = FRPRVectorTools::TransformToLocal(Vertex, InSettings.SphereCenter, InSettings.SphereRotation);
-	float radius, angle, azimuth;
-	FRPRVectorTools::CartesianToPolar(localVertex, radius, angle, azimuth);
-	OutUV = FVector2D(angle, azimuth);
+	const FVector localVertex = FRPRVectorTools::TransformToLocal(Vertex, InSettings.SphereCenter, InSettings.SphereRotation).GetSafeNormal();
+	// float radius, angle, azimuth;
+	//FRPRVectorTools::CartesianToPolar(localVertex, radius, angle, azimuth);
+
+	/*const float circleLength = PI * 2;
+	OutUV = FVector2D(angle / circleLength, azimuth / circleLength);*/
+
+	OutUV = FVector2D(
+		0.5f + FMath::Atan2(localVertex.X, -localVertex.Y) / (PI * 2),
+		0.5f - FMath::Asin(localVertex.Z) / PI
+	);
 }
 
 void FUVProjectionSphericalAlgo::SetSettings(const FSettings& InSettings)

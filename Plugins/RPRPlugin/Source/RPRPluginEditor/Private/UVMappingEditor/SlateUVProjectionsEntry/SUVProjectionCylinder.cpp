@@ -77,6 +77,7 @@ void SUVProjectionCylinder::UpdateAlgorithmSettings()
 
 	FUVProjectionCylinderAlgo::FSettings settings;
 	{
+		settings.RPRStaticMeshEditor = GetRPRStaticMeshEditor();
 		settings.Center = GetShape()->GetComponentLocation();
 		settings.Rotation = GetShape()->GetComponentRotation().Quaternion();
 		settings.Height = GetShape()->Height;

@@ -56,6 +56,7 @@ void SUVProjectionSpherical::UpdateAlgorithmSettings()
 
 	FUVProjectionSphericalAlgo::FSettings settings;
 	{
+		settings.RPRStaticMeshEditor = GetRPRStaticMeshEditor();
 		settings.SphereCenter = GetShape()->GetComponentLocation();
 		settings.SphereRotation = GetShape()->GetComponentRotation().Quaternion();
 	}

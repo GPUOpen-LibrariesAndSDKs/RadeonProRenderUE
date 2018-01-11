@@ -79,6 +79,7 @@ void SUVProjectionPlanar::UpdateAlgorithmSettings()
 
 	FUVProjectionPlanarAlgo::FSettings settings;
 	{
+		settings.RPRStaticMeshEditor = GetRPRStaticMeshEditor();
 		FPlane plane(FVector::ZeroVector, shapeRotation.GetForwardVector());
 		settings.Plane = FTransformablePlane(plane, shapeTransform.GetLocation(), shapeRotation.GetUpVector());
 	}
