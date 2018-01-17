@@ -22,6 +22,10 @@
 		{
 			"Name": "RPRPluginEditor",
 			"Type": "Editor"
+		},
+		{
+			"Name": "RPRMaterialEditor",
+			"Type": "Editor"
 		}
 	]
 }

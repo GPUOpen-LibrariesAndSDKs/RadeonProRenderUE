@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class RPRPluginEditor : ModuleRules
+public class RPRMaterialEditor : ModuleRules
 {
-	public RPRPluginEditor(ReadOnlyTargetRules Target) : base(Target)
+	public RPRMaterialEditor(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
@@ -15,7 +15,7 @@ public class RPRPluginEditor : ModuleRules
     {
         PublicIncludePaths.AddRange(
             new string[] {
-                "RPRPluginEditor/Public",
+                "RPRMaterialEditor/Public",
                 "RPRPlugin/Public"				
 				// ... add public include paths required here ...
 			}
@@ -24,31 +24,14 @@ public class RPRPluginEditor : ModuleRules
 
         PrivateIncludePaths.AddRange(
             new string[] {
-                "RPRPluginEditor/Private",
+                "RPRMaterialEditor/Private",
 
-                "RPRPluginEditor/Private/ShapePreviews",
-                "RPRPluginEditor/Private/RPRViewport",
+                "RPRMaterialEditor/Private/RPRMaterialInstanceTab",
 
-                "RPRPluginEditor/Private/Material/",
-                "RPRPluginEditor/Private/Material/NodeParamTypes",
+                "RPRMaterialEditor/Private/Xml",
+                "RPRMaterialEditor/Private/Xml/NodeParamTypes",
 
-                "RPRPluginEditor/Private/Tools",
-                "RPRPluginEditor/Private/Tools/RPRMeshVertexPainter",
-                "RPRPluginEditor/Private/Tools/IDetailsViewHelper",
-                "RPRPluginEditor/Private/Tools/UVFixer",
-                "RPRPluginEditor/Private/Tools/Algorithms/Utilities",
-                "RPRPluginEditor/Private/Tools/StaticMeshHelper",
-                
-                "RPRPluginEditor/Private/Tools/Math/PackVertexUV",
-                "RPRPluginEditor/Private/Tools/Math/RPRVectorTools",
-                "RPRPluginEditor/Private/Tools/Math/TransformablePlane",
-                "RPRPluginEditor/Private/Tools/Math/UVUtility",
-                "RPRPluginEditor/Private/Tools/Math/RPRMeshFace",
-                "RPRPluginEditor/Private/Tools/Math/RPRMeshFaces",
-
-                "RPRPluginEditor/Private/UVMappingEditor/Algorithms/Utilities/CubeProjectionFace",
-
-                "RPRPlugin/Private"
+                "RPRMaterialEditor/Private"
 				// ... add other private include paths required here ...
 			}
             );
@@ -78,11 +61,9 @@ public class RPRPluginEditor : ModuleRules
                 "Slate",
                 "LevelEditor",
                 "Settings",
-                "StaticMeshEditor",
                 "PropertyEditor",
-                "AdvancedPreviewScene",
-                "RenderCore",
-                "RawMesh",
+                "XmlParser",
+                "MaterialEditor"
 				// ... add private dependencies that you statically link with here ...	
 			}
         );

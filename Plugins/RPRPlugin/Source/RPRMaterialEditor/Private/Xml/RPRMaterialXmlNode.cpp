@@ -1,9 +1,8 @@
 #include "RPRMaterialXmlNode.h"
-#include "RPRPluginEditorModule.h"
+#include "RPRMaterialEditorModule.h"
 #include "RPRUberMaterialParameters.h"
 #include "RPRMaterialXmlNodeParameter.h"
 #include "AssetToolsModule.h"
-#include "ResourcesFinder.h"
 #include "RPRSettings.h"
 #include "XmlNode.h"
 
@@ -114,7 +113,7 @@ UTexture2D* FRPRMaterialXmlNode::ImportTexture(FRPRMaterialNodeSerializationCont
 
 	if (!FPaths::FileExists(absoluteTexturePath))
 	{
-		UE_LOG(LogRPRPluginEditor, Warning,
+		UE_LOG(LogRPRMaterialEditor, Warning,
 			TEXT("Cannot import input texture from node '%s'. Path '%s' is invalid. Full path is '%s'"),
 			*Name.ToString(),
 			*relativeTexturePath,
@@ -132,7 +131,7 @@ UTexture2D* FRPRMaterialXmlNode::ImportTexture(FRPRMaterialNodeSerializationCont
 	TArray<UObject*> importedAssets = AssetToolsModule.Get().ImportAssets(absoluteTexturePaths, destinationAssetPath);
 	if (importedAssets.Num() == 0)
 	{
-		UE_LOG(LogRPRPluginEditor, Warning, TEXT("Texture import cancelled"));
+		UE_LOG(LogRPRMaterialEditor, Warning, TEXT("Texture import cancelled"));
 		return (nullptr);
 	}
 
