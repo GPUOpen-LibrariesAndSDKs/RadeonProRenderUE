@@ -14,6 +14,8 @@ public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+
+	static const FString&	GetPluginName();
 	
 private:
 

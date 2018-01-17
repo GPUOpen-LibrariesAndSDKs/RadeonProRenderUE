@@ -1,6 +1,7 @@
 // RPR COPYRIGHT
 
 #include "RPRSettings.h"
+#include "Paths.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRSettings, Log, All);
 
@@ -30,6 +31,7 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 ,	PhotolinearTonemapExposure(0.01f)
 ,	PhotolinearTonemapFStop(2.0f)
 {
+	DefaultRootDirectoryForImportedTextures.Path = TEXT("/Game/Textures");
 }
 
 /*void	URPRSettings::PostEditChangeProperty(struct FPropertyChangedEvent &propertyChangedEvent)

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "Materials/MaterialInterface.h"
+#include "SoftObjectPtr.h"
 #include "RPRSettings.generated.h"
 
 UENUM()
@@ -106,4 +108,10 @@ public:
 
 	UPROPERTY(Config)
 	float		PhotolinearTonemapFStop;
+
+	UPROPERTY(Config, EditAnywhere, Category = Materials)
+ 	TSoftObjectPtr<UMaterialInterface>	UberMaterial;
+
+	UPROPERTY(Config, EditAnywhere, Category = Materials)
+	FDirectoryPath	DefaultRootDirectoryForImportedTextures;
 };

@@ -14,6 +14,12 @@ void FRPRPluginEditorModule::ShutdownModule()
 	RPRStaticMeshEditorAssetContextMenu.Shutdown();
 }
 
+const FString& FRPRPluginEditorModule::GetPluginName()
+{
+	static FString pluginName(TEXT("RPRPlugin"));
+	return (pluginName);
+}
+
 #undef LOCTEXT_NAMESPACE
 
 IMPLEMENT_MODULE(FRPRPluginEditorModule, RPRPluginEditor);
