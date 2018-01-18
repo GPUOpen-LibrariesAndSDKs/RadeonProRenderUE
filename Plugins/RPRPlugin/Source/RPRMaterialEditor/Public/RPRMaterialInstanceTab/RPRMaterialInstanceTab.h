@@ -20,6 +20,7 @@ private:
 	static void OnAssetOpenedInEditor(UObject* Object, IAssetEditorInstance* AssetEditorInstance);
 
 	static TSharedRef<SDockTab>	SpawnTab_RPRMaterialInstance(const FSpawnTabArgs& Args);
+	static TSharedRef<class IDetailCustomization>	MakeInstance();
 
 private:
 

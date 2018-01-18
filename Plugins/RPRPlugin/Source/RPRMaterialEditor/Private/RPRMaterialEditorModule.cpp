@@ -1,5 +1,7 @@
 #include "RPRMaterialEditorModule.h"
 #include "RPRMaterialInstanceTab.h"
+#include "RPRMaterialAssetTypeActions.h"
+#include "IAssetTools.h"
 
 DEFINE_LOG_CATEGORY(LogRPRMaterialEditor)
 
@@ -7,18 +9,48 @@ DEFINE_LOG_CATEGORY(LogRPRMaterialEditor)
 
 void RPRMaterialEditorModule::StartupModule()
 {
+	RegisterAssetTypeActions();
 	FRPRMaterialInstanceTab::Register();
 }
 
 void RPRMaterialEditorModule::ShutdownModule()
 {
 	FRPRMaterialInstanceTab::Unregister();
+	UnregisterAllAssetTypeActions();
 }
 
 const FString& RPRMaterialEditorModule::GetPluginName()
 {
 	static FString pluginName(TEXT("RPRPlugin"));
 	return (pluginName);
+}
+
+void RPRMaterialEditorModule::RegisterAssetTypeActions()
+{
+	IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
+
+	RegisteredAssetTypeActions.Add(MakeShareable(new FRPRMaterialAssetTypeActions));
+
+	for (int32 i = 0; i < RegisteredAssetTypeActions.Num(); ++i)
+	{
+		AssetTools.RegisterAssetTypeActions(RegisteredAssetTypeActions[i]);
+	}
+}
+
+void RPRMaterialEditorModule::UnregisterAllAssetTypeActions()
+{
+	if (FModuleManager::Get().IsModuleLoaded("AssetTools"))
+	{
+		FAssetToolsModule* AssetToolsModule = FModuleManager::LoadModulePtr<FAssetToolsModule>("AssetTools");
+		if (AssetToolsModule != nullptr)
+		{
+			IAssetTools& AssetTools = AssetToolsModule->Get();
+			for (int32 i = 0; i < RegisteredAssetTypeActions.Num(); ++i)
+			{
+				AssetTools.UnregisterAssetTypeActions(RegisteredAssetTypeActions[i]);
+			}
+		}
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

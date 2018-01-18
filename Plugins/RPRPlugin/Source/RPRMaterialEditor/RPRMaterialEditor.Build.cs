@@ -16,9 +16,11 @@ public class RPRMaterialEditor : ModuleRules
         PublicIncludePaths.AddRange(
             new string[] {
                 "RPRMaterialEditor/Public",
-                "RPRPlugin/Public"				
+                "RPRPlugin/Public",
 				// ... add public include paths required here ...
-			}
+                
+                "Runtime/Slate/Private"
+            }
             );
 
 
@@ -28,8 +30,11 @@ public class RPRMaterialEditor : ModuleRules
 
                 "RPRMaterialEditor/Private/RPRMaterialInstanceTab",
 
+                "RPRMaterialEditor/Private/RPRMaterialEditor",
+
                 "RPRMaterialEditor/Private/Xml",
                 "RPRMaterialEditor/Private/Xml/NodeParamTypes",
+
 
                 "RPRMaterialEditor/Private"
 				// ... add other private include paths required here ...
@@ -63,7 +68,8 @@ public class RPRMaterialEditor : ModuleRules
                 "Settings",
                 "PropertyEditor",
                 "XmlParser",
-                "MaterialEditor"
+                "MaterialEditor",
+                "AssetTools"
 				// ... add private dependencies that you statically link with here ...	
 			}
         );

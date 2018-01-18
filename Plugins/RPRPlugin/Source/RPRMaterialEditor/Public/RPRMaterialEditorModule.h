@@ -2,6 +2,7 @@
 
 #include "Engine.h"
 #include "ModuleManager.h"
+#include "IAssetTypeActions.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRPRMaterialEditor, All, All);
 
@@ -15,5 +16,14 @@ public:
 	virtual void ShutdownModule() override;
 
 	static const FString&	GetPluginName();
-	
+
+private:
+
+	void	RegisterAssetTypeActions();
+	void	UnregisterAllAssetTypeActions();
+
+private:
+
+	TArray<TSharedRef<IAssetTypeActions>>	RegisteredAssetTypeActions;
+
 };
