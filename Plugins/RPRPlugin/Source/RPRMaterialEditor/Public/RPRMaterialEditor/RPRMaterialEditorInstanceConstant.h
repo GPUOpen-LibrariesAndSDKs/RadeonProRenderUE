@@ -7,4 +7,13 @@ UCLASS(hideCategories=(Lightmass,MaterialEditorInstanceConstant))
 class URPRMaterialEditorInstanceConstant : public UMaterialEditorInstanceConstant
 {
 	GENERATED_BODY()
+
+public:
+
+	URPRMaterialEditorInstanceConstant();
+
+private:
+
+	void	InitializeParameters();
+
 };

@@ -28,9 +28,13 @@ public class RPRMaterialEditor : ModuleRules
             new string[] {
                 "RPRMaterialEditor/Private",
 
-                "RPRMaterialEditor/Private/RPRMaterialInstanceTab",
+                "RPRMaterialEditor/Tools/PropertyHelper",
 
                 "RPRMaterialEditor/Private/RPRMaterialEditor",
+                "RPRMaterialEditor/Private/RPRMaterialEditor/RPRUberMaterialParameterMarshalling",
+                "RPRMaterialEditor/Private/RPRMaterialEditor/Parameters",
+
+                "RPRMaterialEditor/Private/RPRMaterialInstanceTab",
 
                 "RPRMaterialEditor/Private/Xml",
                 "RPRMaterialEditor/Private/Xml/NodeParamTypes",

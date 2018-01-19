@@ -2,6 +2,7 @@
 #include "RPRMaterialEditorModule.h"
 #include "RPRUberMaterialParameters.h"
 #include "RPRMaterialXmlNodeParameter.h"
+#include "RPRMaterialConstants.h"
 #include "AssetToolsModule.h"
 #include "RPRSettings.h"
 #include "XmlNode.h"
@@ -9,8 +10,6 @@
 #define NODE_ATTRIBUTE_NAME TEXT("name")
 #define NODE_ATTRIBUTE_TYPE	TEXT("type")
 #define NODE_ATTRIBUTE_TAG	TEXT("tag")
-
-#define UPROPERTY_METADATA_XMLPARAMNAME	"XmlParamName"
 
 TMap<FString, ERPRMaterialNodeType> FRPRMaterialXmlNode::TypeStringToTypeEnumMap;
 
@@ -170,9 +169,9 @@ UProperty* FRPRMaterialXmlNode::FindPropertyByMetaDataXmlParamName(const UStruct
 	UProperty* propertyPtr = MaterialParameterStruct->PropertyLink;
 	while (propertyPtr != nullptr)
 	{
-		if (propertyPtr->HasMetaData(UPROPERTY_METADATA_XMLPARAMNAME))
+		if (propertyPtr->HasMetaData(FRPRMaterialConstants::PropertyMetaDataXmlParamName))
 		{
-			const FString& xmlParamName = propertyPtr->GetMetaData(UPROPERTY_METADATA_XMLPARAMNAME);
+			const FString& xmlParamName = propertyPtr->GetMetaData(FRPRMaterialConstants::PropertyMetaDataXmlParamName);
 			if (xmlParamName.Compare(parameterNameStr, ESearchCase::IgnoreCase) == 0)
 			{
 				return (propertyPtr);

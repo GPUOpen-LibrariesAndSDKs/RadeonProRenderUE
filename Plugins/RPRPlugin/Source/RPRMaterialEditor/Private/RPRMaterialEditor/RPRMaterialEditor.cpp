@@ -1,9 +1,13 @@
 #include "RPRMaterialEditor.h"
-#include "CoreGlobals.h"
-#include "Misc/ConfigCacheIni.h"
-#include "Framework/Docking/TabManager.h"
+#include "RPRUberMaterialToMaterialInstanceCopier.h"
+#include "Tools/PropertyHelper/PropertyHelper.h"
 #include "Materials/MaterialInstanceConstant.h"
+#include "Framework/Docking/TabManager.h"
+#include "RPRUberMaterialParameters.h"
 #include "PropertyEditorModule.h"
+#include "Misc/ConfigCacheIni.h"
+#include "RPRMaterial.h"
+#include "CoreGlobals.h"
 #include "SDockTab.h"
 #include "Editor.h"
 
@@ -12,14 +16,24 @@
 const FName FRPRMaterialEditor::RPRMaterialInstanceEditorAppIdentifier(TEXT("RPRMaterialInstanceEditorApp"));
 const FName FRPRMaterialEditor::PropertiesTabId(TEXT("RPRMaterialInstanceEditorTab_Properties"));
 
+TMap<FName, FRPRMaterialEditor::FSetMaterialParameter> FRPRMaterialEditor::PropertyNameToSetMaterialParameterFunctionMapping;
+
+FRPRMaterialEditor::FRPRMaterialEditor()
+{
+	if (PropertyNameToSetMaterialParameterFunctionMapping.Num() == 0)
+	{
+		PropertyNameToSetMaterialParameterFunctionMapping.Add(GET_MEMBER_NAME_CHECKED(FRPRUberMaterialParameters, Diffuse_Color));
+	}
+}
+
 void FRPRMaterialEditor::InitRPRMaterialEditor(const EToolkitMode::Type Mode, const TSharedPtr<class IToolkitHost>& InitToolkitHost, UObject* ObjectToEdit)
 {
 	check(ObjectToEdit);
 
-	UMaterialInstanceConstant* InstanceConstant = Cast<UMaterialInstanceConstant>(ObjectToEdit);
+	RPRMaterial = Cast<URPRMaterial>(ObjectToEdit);
 	
-	InitMaterialEditorInstance(InstanceConstant);
-	InitPropertyDetailsView(InstanceConstant);
+	InitMaterialEditorInstance(RPRMaterial);
+	InitPropertyDetailsView(RPRMaterial);
 
 	const bool bCreateDefaultStandaloneMenu = true;
 	const bool bCreateDefaultToolbar = true;
@@ -70,7 +84,15 @@ void FRPRMaterialEditor::InitPropertyDetailsView(UMaterialInstanceConstant* Inst
 
 void FRPRMaterialEditor::NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, UProperty* PropertyThatChanged)
 {
-
+	if (PropertyThatChanged)
+	{
+		if (FPropertyHelper::IsPropertyMemberOf(PropertyChangedEvent, GET_MEMBER_NAME_STRING_CHECKED(URPRMaterial, MaterialParameters)))
+		{
+			FRPRUberMaterialToMaterialInstanceCopier::CopyParameters(RPRMaterial->MaterialParameters, MaterialEditorInstance);
+			MaterialEditorInstance->CopyToSourceInstance();
+			RPRMaterial->PostEditChange();
+		}
+	}
 }
 
 void FRPRMaterialEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)

@@ -4,6 +4,7 @@
 #include "UnrealString.h"
 #include "RPRMaterialXmlNodeParameter.h"
 #include "RPRMaterialNodeSerializationContext.h"
+#include "Engine/Texture2D.h"
 #include "Containers/Map.h"
 
 enum class ERPRMaterialNodeType
@@ -12,6 +13,7 @@ enum class ERPRMaterialNodeType
 	Uber,
 	InputTexture
 };
+
 
 class FRPRMaterialXmlNode
 {
