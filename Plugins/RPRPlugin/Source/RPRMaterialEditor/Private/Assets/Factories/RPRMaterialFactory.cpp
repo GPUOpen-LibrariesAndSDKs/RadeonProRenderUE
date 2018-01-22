@@ -6,6 +6,7 @@
 #include "FeedbackContext.h"
 #include "RPRMaterialXmlGraph.h"
 #include "RPRPlugin/Public/Assets/RPRMaterial.h"
+#include "RPRUberMaterialToMaterialInstanceCopier.h"
 
 URPRMaterialFactory::URPRMaterialFactory(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -68,8 +69,6 @@ bool URPRMaterialFactory::LoadRPRMaterialFromXmlFile(URPRMaterial* RPRMaterial, 
 		return (false);
 	}
 
-	RPRMaterial->SetMaterialFilePath(Filename);
-
 	// Get root node
 	const FXmlNode* materialNode = xmlFile.GetRootNode();
 	if (materialNode)
@@ -82,6 +81,7 @@ bool URPRMaterialFactory::LoadRPRMaterialFromXmlFile(URPRMaterial* RPRMaterial, 
 		}
 
 		LoadRPRMaterialParameter(RPRMaterial, materialXmlGraph, Filename);
+		CopyRPRMaterialParameterToMaterialInstance(RPRMaterial);
 	}
 
 	return (true);
@@ -102,6 +102,22 @@ void URPRMaterialFactory::LoadRPRMaterialParameter(URPRMaterial* RPRMaterial, FR
 
 		materialXmlNode->Serialize(serializationContext);
 	}
+}
 
-	RPRMaterial->ReloadMaterialParametersToMaterial();
+void URPRMaterialFactory::CopyRPRMaterialParameterToMaterialInstance(class URPRMaterial* RPRMaterial)
+{
+	// Create a temporary material editor instance constant so we can set the variable correctly as if we were changing the value in the editor
+	URPRMaterialEditorInstanceConstant* MaterialEditorInstance = CreateMaterialEditorInstanceConstantFrom(RPRMaterial);
+	FRPRUberMaterialToMaterialInstanceCopier::CopyParameters(RPRMaterial->MaterialParameters, MaterialEditorInstance);
+	MaterialEditorInstance->CopyToSourceInstance();
+	RPRMaterial->PostEditChange();
+}
+
+URPRMaterialEditorInstanceConstant* URPRMaterialFactory::CreateMaterialEditorInstanceConstantFrom(class URPRMaterial* RPRMaterial)
+{
+	URPRMaterialEditorInstanceConstant* MaterialEditorInstance = 
+		NewObject<URPRMaterialEditorInstanceConstant>(GetTransientPackage(), NAME_None, RF_Transactional);
+
+	MaterialEditorInstance->SetSourceInstance(RPRMaterial);
+	return (MaterialEditorInstance);
 }

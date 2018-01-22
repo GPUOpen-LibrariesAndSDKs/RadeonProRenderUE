@@ -20,5 +20,7 @@ public:
 private:
 
 	static void			LoadRPRMaterialParameter(class URPRMaterial* RPRMaterial, class FRPRMaterialXmlGraph& MaterialGraph, const FString& Filename);
+	static void			CopyRPRMaterialParameterToMaterialInstance(class URPRMaterial* RPRMaterial);
 
+	static class URPRMaterialEditorInstanceConstant*	CreateMaterialEditorInstanceConstantFrom(class URPRMaterial* RPRMaterial);
 };

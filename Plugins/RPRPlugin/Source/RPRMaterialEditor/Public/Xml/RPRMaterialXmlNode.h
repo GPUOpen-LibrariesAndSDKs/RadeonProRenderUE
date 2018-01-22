@@ -43,6 +43,7 @@ private:
 	void	SerializeInputTexture(FRPRMaterialNodeSerializationContext& SerializationContext, UProperty* Property);
 
 	UTexture2D*	ImportTexture(FRPRMaterialNodeSerializationContext& SerializationContext);
+	UTexture2D*	TryLoadingTextureIfAvailable(const FString& FilePath);
 
 private:
 

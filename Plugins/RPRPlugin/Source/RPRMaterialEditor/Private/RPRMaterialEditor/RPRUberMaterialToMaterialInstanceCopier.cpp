@@ -9,23 +9,26 @@ FName FRPRUberMaterialToMaterialInstanceCopier::TextureParameterGroupName(TEXT("
 FName FRPRUberMaterialToMaterialInstanceCopier::StaticSwitchParameterGroupName(TEXT("Static Switch Parameter Values"));
 
 void FRPRUberMaterialToMaterialInstanceCopier::CopyParameters(const FRPRUberMaterialParameters& RPRUberMaterialParameters, 
-																URPRMaterialEditorInstanceConstant* RPRMaterialEditorInstance)
+																UMaterialEditorInstanceConstant* RPRMaterialEditorInstance)
 {
 	CopyRPRMaterialMap(RPRUberMaterialParameters, RPRMaterialEditorInstance, RPRUberMaterialParameters.Diffuse_Color, "Diffuse_Color");
 }
 
 void FRPRUberMaterialToMaterialInstanceCopier::CopyRPRMaterialMap(const FRPRUberMaterialParameters& RPRUberMaterialParameters, 
-																	URPRMaterialEditorInstanceConstant* RPRMaterialEditorInstance, 
+																	UMaterialEditorInstanceConstant* RPRMaterialEditorInstance, 
 																	const FRPRMaterialMap& MaterialMap, 
 																	const FName& MaterialMapPropertyName)
 {
 	CopyRPRMaterialMapBase(RPRUberMaterialParameters, RPRMaterialEditorInstance, MaterialMap, MaterialMapPropertyName);
 
 	const FString constantParamName = GetPropertyXmlParamName(MaterialMapPropertyName, FRPRMaterialConstants::MaterialPropertyConstantSection);
+
 	SetParameterValueIfAvailable<UDEditorVectorParameterValue>(RPRMaterialEditorInstance, FParameterNameEqualsComparator(constantParamName), MaterialMap.Constant);
 }
 
-void FRPRUberMaterialToMaterialInstanceCopier::CopyRPRMaterialMapBase(const FRPRUberMaterialParameters& RPRUberMaterialParameters, URPRMaterialEditorInstanceConstant* RPRMaterialEditorInstance, const FRPRMaterialBaseMap& MaterialMap, const FName& MaterialMapPropertyName)
+void FRPRUberMaterialToMaterialInstanceCopier::CopyRPRMaterialMapBase(const FRPRUberMaterialParameters& RPRUberMaterialParameters, 
+																		UMaterialEditorInstanceConstant* RPRMaterialEditorInstance, 
+																		const FRPRMaterialBaseMap& MaterialMap, const FName& MaterialMapPropertyName)
 {
 	const FString mapParamName = GetPropertyXmlParamName(MaterialMapPropertyName, FRPRMaterialConstants::MaterialPropertyMapSection);
 	const FString useMapParamName = GetPropertyXmlParamName(MaterialMapPropertyName, FRPRMaterialConstants::MaterialPropertyUseMapSection);

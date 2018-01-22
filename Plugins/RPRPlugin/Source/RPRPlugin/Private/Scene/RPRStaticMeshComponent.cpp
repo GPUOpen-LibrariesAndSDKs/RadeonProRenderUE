@@ -292,7 +292,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 			material = CreateDefaultDummyShapeMaterial(iShape);
 			Scene->m_MaterialCache[materialName] = rpriExportRprMaterialResult{ 0, material };
 			continue;
-		}	
+		}
 
 		// Attempt to map UE material to one in the Radeon ProRender material library loaded from disk.
 		if (Scene->m_materialLibrary.HasMaterialName(materialName))

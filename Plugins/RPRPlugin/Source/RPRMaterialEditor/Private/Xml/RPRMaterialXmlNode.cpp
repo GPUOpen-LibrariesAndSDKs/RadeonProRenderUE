@@ -126,6 +126,12 @@ UTexture2D* FRPRMaterialXmlNode::ImportTexture(FRPRMaterialNodeSerializationCont
 	URPRSettings* settings = GetMutableDefault<URPRSettings>();
 	FString destinationAssetPath = FPaths::Combine(settings->DefaultRootDirectoryForImportedTextures.Path, FPaths::GetPath(relativeTexturePath));
 
+	FString availableTexturePath = FPaths::Combine(destinationAssetPath, FPaths::GetBaseFilename(relativeTexturePath));
+	if (UTexture2D* existingTexture = TryLoadingTextureIfAvailable(availableTexturePath))
+	{
+		return (existingTexture);
+	}
+
 	FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
 	TArray<UObject*> importedAssets = AssetToolsModule.Get().ImportAssets(absoluteTexturePaths, destinationAssetPath);
 	if (importedAssets.Num() == 0)
@@ -135,6 +141,22 @@ UTexture2D* FRPRMaterialXmlNode::ImportTexture(FRPRMaterialNodeSerializationCont
 	}
 
 	return (Cast<UTexture2D>(importedAssets[0]));
+}
+
+UTexture2D* FRPRMaterialXmlNode::TryLoadingTextureIfAvailable(const FString& FilePath)
+{	
+	// The file may have already been imported...
+	if (FPaths::FileExists(FilePath))
+	{
+		// ..., in that case, just load it
+		UTexture2D* existingTexture = LoadObject<UTexture2D>(nullptr, *FilePath);
+		if (existingTexture != nullptr)
+		{
+			return (existingTexture);
+		}
+	}
+
+	return (nullptr);
 }
 
 ERPRMaterialNodeType FRPRMaterialXmlNode::ParseType(const FString& TypeValue)

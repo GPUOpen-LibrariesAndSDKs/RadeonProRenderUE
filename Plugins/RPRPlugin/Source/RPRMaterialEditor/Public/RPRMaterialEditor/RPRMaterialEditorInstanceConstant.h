@@ -8,12 +8,4 @@ class URPRMaterialEditorInstanceConstant : public UMaterialEditorInstanceConstan
 {
 	GENERATED_BODY()
 
-public:
-
-	URPRMaterialEditorInstanceConstant();
-
-private:
-
-	void	InitializeParameters();
-
 };

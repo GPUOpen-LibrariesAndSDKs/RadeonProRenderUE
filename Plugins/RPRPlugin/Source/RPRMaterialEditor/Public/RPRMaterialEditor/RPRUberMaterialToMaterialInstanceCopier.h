@@ -34,15 +34,18 @@ private:
 
 public:
 
-	static void	CopyParameters(const FRPRUberMaterialParameters& RPRUberMaterialParameters, URPRMaterialEditorInstanceConstant* RPRMaterialEditorInstance);
+	// Copy parameters from RPRUberMaterialParameters to the RPR Material Editor Instance. 
+	// RPRMaterialEditorInstance need to have its parameters generated. 
+	// See UMaterialEditorInstanceConstant::RegenerateArrays.
+	static void	CopyParameters(const FRPRUberMaterialParameters& RPRUberMaterialParameters, UMaterialEditorInstanceConstant* RPRMaterialEditorInstance);
 
 private:
 
 	static void	CopyRPRMaterialMap(const FRPRUberMaterialParameters& RPRUberMaterialParameters,
-		URPRMaterialEditorInstanceConstant* RPRMaterialEditorInstance, const FRPRMaterialMap& MaterialMap, const FName& MaterialMapPropertyName);
+		UMaterialEditorInstanceConstant* RPRMaterialEditorInstance, const FRPRMaterialMap& MaterialMap, const FName& MaterialMapPropertyName);
 
 	static void	CopyRPRMaterialMapBase(const FRPRUberMaterialParameters& RPRUberMaterialParameters,
-		URPRMaterialEditorInstanceConstant* RPRMaterialEditorInstance, const FRPRMaterialBaseMap& MaterialMap, const FName& MaterialMapPropertyName);
+		UMaterialEditorInstanceConstant* RPRMaterialEditorInstance, const FRPRMaterialBaseMap& MaterialMap, const FName& MaterialMapPropertyName);
 
 	static FString	GetPropertyXmlParamName(const FName& MaterialMapPropertyName, const FName& SectionName);
 
@@ -51,7 +54,7 @@ private:
 	static FString	CombinePropertyNameSectionInternal(const FString* SectionsArray, int32 NumSections);
 
 	template<typename TDEditorParameterValue, typename TValue>
-	static void	SetParameterValueIfAvailable(URPRMaterialEditorInstanceConstant* RPRMaterialEditorInstance, 
+	static void	SetParameterValueIfAvailable(UMaterialEditorInstanceConstant* RPRMaterialEditorInstance, 
 												const IParameterNameComparator& ParameterNameCompator, 
 												TValue InValue);
 
@@ -100,11 +103,13 @@ FString FRPRUberMaterialToMaterialInstanceCopier::CombinePropertyNameSection(TSe
 }
 
 template<typename TDEditorParameterValue, typename TValue>
-void FRPRUberMaterialToMaterialInstanceCopier::SetParameterValueIfAvailable(URPRMaterialEditorInstanceConstant* RPRMaterialEditorInstance, const IParameterNameComparator& ParameterNameCompator, TValue InValue)
+void FRPRUberMaterialToMaterialInstanceCopier::SetParameterValueIfAvailable(UMaterialEditorInstanceConstant* RPRMaterialEditorInstance, 
+																			const IParameterNameComparator& ParameterNameCompator, TValue InValue)
 {
 	static_assert(std::is_base_of<UDEditorParameterValue, TDEditorParameterValue>::value, "TDEditorParameterValue can only inherit of UDEditorParameterValue.");
 
-	FEditorParameterGroup& parameterGroup = RPRMaterialEditorInstance->GetParameterGroup(GetParameterGroupName<TDEditorParameterValue>());
+	FName noneGroupName = TEXT("None");
+	FEditorParameterGroup& parameterGroup = RPRMaterialEditorInstance->GetParameterGroup(noneGroupName);
 	TArray<UDEditorParameterValue*>& editorParameterValues = parameterGroup.Parameters;
 	for (int32 i = 0; i < editorParameterValues.Num(); ++i)
 	{

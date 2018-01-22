@@ -68,9 +68,6 @@ TSharedRef<FTabManager::FLayout> FRPRMaterialEditor::GenerateDefaultLayout() con
 void FRPRMaterialEditor::InitMaterialEditorInstance(UMaterialInstanceConstant* InstanceConstant)
 {
 	MaterialEditorInstance = NewObject<URPRMaterialEditorInstanceConstant>(GetTransientPackage(), NAME_None, RF_Transactional);
-	bool bTempUseOldStyleMICEditorGroups = true;
-	GConfig->GetBool(TEXT("/Script/UnrealEd.EditorEngine"), TEXT("UseOldStyleMICEditorGroups"), bTempUseOldStyleMICEditorGroups, GEngineIni);
-	MaterialEditorInstance->bUseOldStyleMICEditorGroups = bTempUseOldStyleMICEditorGroups;
 	MaterialEditorInstance->SetSourceInstance(InstanceConstant);
 }
 
