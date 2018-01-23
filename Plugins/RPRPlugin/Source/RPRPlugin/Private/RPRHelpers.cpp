@@ -230,3 +230,18 @@ rpr_image	BuildImage(UTexture2D *source, rpr_context context)
 	}
 	return image;
 }
+
+bool RPR::IsResultSuccess(rpr_int Result)
+{
+	return (Result == RPR_SUCCESS);
+}
+
+bool RPR::IsResultFailed(rpr_int Result)
+{
+	return (!IsResultSuccess(Result));
+}
+
+void RPR::DeleteObject(void* Object)
+{
+	rprObjectDelete(Object);
+}

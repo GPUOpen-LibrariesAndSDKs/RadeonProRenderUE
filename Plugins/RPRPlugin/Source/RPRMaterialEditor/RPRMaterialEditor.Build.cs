@@ -39,6 +39,7 @@ public class RPRMaterialEditor : ModuleRules
                 "RPRMaterialEditor/Private/Xml",
                 "RPRMaterialEditor/Private/Xml/NodeParamTypes",
 
+                "RPRMaterialEditor/Private/Xml/NodeParamTypes",
 
                 "RPRMaterialEditor/Private"
 				// ... add other private include paths required here ...

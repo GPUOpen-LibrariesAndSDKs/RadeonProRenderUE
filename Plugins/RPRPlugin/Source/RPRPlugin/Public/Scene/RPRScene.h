@@ -8,6 +8,7 @@
 #include "RPRSettings.h"
 #include "GameFramework/Actor.h"
 #include "MaterialLibrary.h"
+#include "RPRMaterialLibrary.h"
 #include "UMSControl.h"
 #include <RadeonProRenderInterchange.h>
 #include <map>
@@ -60,6 +61,10 @@ public:
 
 	void	TriggerResize() { m_TriggerEndFrameResize = true; }
 	void	TriggerFrameRebuild() { m_TriggerEndFrameRebuild = true; }
+
+	class FRPRMaterialLibrary&			GetRPRMaterialLibrary();
+	const class FRPRMaterialLibrary&	GetRPRMaterialLibrary() const;
+
 private:
 	virtual void	BeginDestroy() override;
 	virtual void	Tick(float deltaTime) override;
@@ -100,4 +105,6 @@ private:
 
 	UPROPERTY(Transient)
 	class URPRViewportCameraComponent*		ViewportCameraComponent;
+
+	FRPRMaterialLibrary						RPRMaterialLibrary;
 };

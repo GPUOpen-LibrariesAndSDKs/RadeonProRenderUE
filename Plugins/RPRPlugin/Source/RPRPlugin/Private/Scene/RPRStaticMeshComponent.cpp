@@ -21,6 +21,7 @@
 
 #include "RPRStats.h"
 #include "Scene/RPRScene.h"
+#include "RPRMaterialBuilder.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
 
@@ -246,6 +247,13 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		const UMaterial				*parentMaterial = matInterface != NULL ? matInterface->GetMaterial() : NULL;
 		const char* materialName = TCHAR_TO_ANSI(*matInterface->GetName());
 
+		FRPRMaterialLibrary& rprMaterialLibrary = Scene->GetRPRMaterialLibrary();
+		if (matInterface->IsA<URPRMaterial>())
+		{
+			BuildRPRMaterial(shape, Cast<const URPRMaterial>(matInterface));
+			continue;
+		}
+
 		// check the caches to see if we have already converted this material
 		auto cacheIt = Scene->m_MaterialCache.find(materialName);
 
@@ -254,35 +262,9 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 #ifdef RPR_VERBOSE
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("Found %s in Cache"), UTF8_TO_TCHAR(materialName));
 #endif
-
 			rpriExportRprMaterialResult cachedMaterial = cacheIt->second;
-			switch (cachedMaterial.type)
-			{
-			case 0:
-				status = rprShapeSetMaterial(shape,
-						reinterpret_cast<rpr_material_node>(cachedMaterial.data));
-				break;
-			case 1:
-				status = rprxShapeAttachMaterial(Scene->m_RprSupportCtx, shape,
-							reinterpret_cast<rprx_material>(cachedMaterial.data));
-				if (status != RPR_SUCCESS)
-				{
-					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR material to the RPR shape"));
-				}
-				status = rprxMaterialCommit(Scene->m_RprSupportCtx, reinterpret_cast<rprx_material>(cachedMaterial.data));
-				if (status != RPR_SUCCESS)
-				{
-					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't commit RPR X material"));
-				}
-				break;
-			default: assert(false);
-			}
-
-			if (status != RPR_SUCCESS)
-			{
-				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR material to the RPR shape"));
-			}
-
+			FMaterialBuilder materialBuilder(Scene);
+			materialBuilder.BindMaterialRawDatasToShape(cachedMaterial.type, cachedMaterial.data, shape);
 			continue;
 		}
 
@@ -414,6 +396,26 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 	}
 
 	return true;
+}
+
+void URPRStaticMeshComponent::BuildRPRMaterial(RPR::FShape& Shape, const URPRMaterial* Material)
+{
+	FRPRMaterialLibrary& rprMaterialLibrary = Scene->GetRPRMaterialLibrary();
+	if (!rprMaterialLibrary.Contains(Material))
+	{
+		rprMaterialLibrary.CacheAndRegisterMaterial(Material);
+	}
+
+	uint32 materialType;
+	RPR::FMaterialRawDatas materialRawDatas;
+	if (!rprMaterialLibrary.TryGetMaterialRawDatas(Material, materialType, materialRawDatas))
+	{
+		UE_LOG(LogRPRStaticMeshComponent, Error, TEXT("Cannot get the material raw datas from the library."));
+		return;
+	}
+
+	FMaterialBuilder materialBuilder(Scene);
+	materialBuilder.BindMaterialRawDatasToShape(materialType, materialRawDatas, Shape);
 }
 
 #pragma optimize("",on)

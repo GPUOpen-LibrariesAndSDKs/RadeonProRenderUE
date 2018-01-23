@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Engine/Texture2D.h"
+#include "RPRTypedefs.h"
 #include "Color.h"
 #include "RPRUberMaterialParameters.generated.h"
 
@@ -45,6 +46,7 @@ struct RPRPLUGIN_API FRPRMaterialMap : public FRPRMaterialBaseMap
 	FLinearColor	Constant;	
 
 	FRPRMaterialMap(float UniformConstant = 1.0f);
+
 };
 
 USTRUCT(BlueprintType)
@@ -56,6 +58,7 @@ struct RPRPLUGIN_API FRPRMaterialMapChannel1 : public FRPRMaterialBaseMap
 	float		Constant;
 
 	FRPRMaterialMapChannel1(float InConstantValue = 1.0f);
+
 };
 
 USTRUCT(BlueprintType)
@@ -67,6 +70,7 @@ struct RPRPLUGIN_API FRPRMaterialNormal : public FRPRMaterialBaseMap
 	bool		bIsBump;
 
 	FRPRMaterialNormal();
+
 };
 
 USTRUCT(BlueprintType)
@@ -74,7 +78,7 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material, meta = (XmlParamName="diffuse.color"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material, meta = (XmlParamName = "diffuse.color"))
 	FRPRMaterialMap			Diffuse_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material, meta = (XmlParamName = "diffuse.normal"))
@@ -196,6 +200,4 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	bool					SSS_IsMultiScatter;
 
 	FRPRUberMaterialParameters();
-
-	void	Serialize(UMaterialInstance* MaterialInstance, bool bIsLoading);
 };

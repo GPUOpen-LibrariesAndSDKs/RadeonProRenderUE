@@ -55,14 +55,3 @@ FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 	, SSS_IsMultiScatter(true)
 {}
 
-void FRPRUberMaterialParameters::Serialize(UMaterialInstance* MaterialInstance, bool bIsLoading)
-{
-	if (bIsLoading)
-	{
-
-	}
-	else
-	{
-
-	}
-}

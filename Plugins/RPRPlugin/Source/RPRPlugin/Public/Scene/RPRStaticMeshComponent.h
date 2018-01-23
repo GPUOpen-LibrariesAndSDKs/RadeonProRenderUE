@@ -2,39 +2,15 @@
 
 #pragma once
 
+#include "RPRTypedefs.h"
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
 #include "Scene/RPRSceneComponent.h"
 #include "RprSupport.h"
 #include <RadeonProRenderInterchange.h>
+#include "SRPRShape.h"
+#include "RPRMaterial.h"
 #include "RPRStaticMeshComponent.generated.h"
-
-struct	SRPRCachedMesh
-{
-	rpr_shape	m_RprShape;
-	int32		m_UEMaterialIndex;
-
-	SRPRCachedMesh(rpr_shape shape, int32 materialIndex)
-	:	m_RprShape(shape)
-	,	m_UEMaterialIndex(materialIndex) { }
-
-	SRPRCachedMesh(int32 materialIndex)
-	:	m_UEMaterialIndex(materialIndex) { }
-};
-
-struct	SRPRShape
-{
-	rpr_shape			m_RprShape;
-	rpr_material_node	m_RprMaterial;
-    rprx_material       m_RprxMaterial;
-	int32				m_UEMaterialIndex;
-
-	SRPRShape(const SRPRCachedMesh &cached)
-	:	m_RprShape(cached.m_RprShape)
-	,	m_UEMaterialIndex(cached.m_UEMaterialIndex)
-	,	m_RprMaterial(NULL)
-    ,   m_RprxMaterial(NULL) { }
-};
 
 UCLASS(Transient)
 class URPRStaticMeshComponent : public URPRSceneComponent
@@ -54,6 +30,7 @@ private:
 
 	TArray<SRPRCachedMesh>	GetMeshInstances(UStaticMesh *mesh);
 	bool					BuildMaterials();
+	void					BuildRPRMaterial(RPR::FShape& Shape, const URPRMaterial* Material);
 
 	virtual void	TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
 	virtual void	ReleaseResources() override;

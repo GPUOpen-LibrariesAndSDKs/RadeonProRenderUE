@@ -12,7 +12,15 @@ public class RPRPlugin : ModuleRules
 
 		PublicIncludePaths.AddRange(
 			new string[] {
-				"RPRPlugin/Public"
+				"RPRPlugin/Public",
+                "RPRPlugin/Public/Enums",
+
+                "RPRPlugin/Public/Material",
+                "RPRPlugin/Public/Material/Tools",
+                "RPRPlugin/Public/Material/Tools/MaterialNodeTextureSet",
+
+                "RPRPlugin/Public/Scene",
+                "RPRPlugin/Public/Scene/StaticMeshComponent",
 				// ... add public include paths required here ...
 			}
 			);
@@ -28,9 +36,11 @@ public class RPRPlugin : ModuleRules
 		PrivateIncludePaths.AddRange(
 			new string[] {
 				"RPRPlugin/Private",
+
                 SDKRoot + "RadeonProRender",
 				SDKRoot + "RadeonProRender/inc",
-				SDKRoot + "RadeonProRenderInterchange/include"
+				SDKRoot + "RadeonProRenderInterchange/include",
+
 			}
 			);
 

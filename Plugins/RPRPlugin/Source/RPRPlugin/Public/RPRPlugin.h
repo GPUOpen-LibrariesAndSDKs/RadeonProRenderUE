@@ -10,6 +10,8 @@
 #include "CoreMinimal.h"
 #include "ModuleManager.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogRPRPlugin, All, All);
+
 class FRPRPluginModule : public IModuleInterface
 {
 public:

@@ -2,6 +2,7 @@
 
 #include "RPRPlugin.h"
 #include "RPRSettings.h"
+#include "Engine.h"
 
 #if WITH_EDITOR
 #	include "Viewport/SRPRViewportTabContent.h"
@@ -13,6 +14,7 @@
 #	include "WorkspaceMenuStructureModule.h"
 
 #	include "ISettingsModule.h"
+#	include "SDockTab.h"
 #endif
 
 #include "Slate/SceneViewport.h"
@@ -22,6 +24,8 @@
 
 #include "Scene/RPRScene.h"
 #include "EngineUtils.h"
+
+DEFINE_LOG_CATEGORY(LogRPRPlugin)
 
 #define LOCTEXT_NAMESPACE "FRPRPluginModule"
 

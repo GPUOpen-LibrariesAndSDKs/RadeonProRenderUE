@@ -6,6 +6,7 @@
 
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
+#include "DeclarativeSyntaxSupport.h"
 
 class SRPRViewportTabContent : public SCompoundWidget
 {

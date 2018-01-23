@@ -149,7 +149,7 @@ UTexture2D* FRPRMaterialXmlNode::TryLoadingTextureIfAvailable(const FString& Fil
 	if (FPaths::FileExists(FilePath))
 	{
 		// ..., in that case, just load it
-		UTexture2D* existingTexture = LoadObject<UTexture2D>(nullptr, *FilePath);
+		UTexture2D* existingTexture = LoadObject<UTexture2D>((UObject*)ANY_PACKAGE, *FilePath);
 		if (existingTexture != nullptr)
 		{
 			return (existingTexture);

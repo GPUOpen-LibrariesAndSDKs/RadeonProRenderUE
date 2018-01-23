@@ -1,7 +1,7 @@
 #pragma once
 
-#include "RPRUberMaterialParameters.h"
 #include "Materials/MaterialInstanceConstant.h"
+#include "RPRUberMaterialParameters.h"
 #include "RPRMaterial.generated.h"
 
 UCLASS(BlueprintType)
