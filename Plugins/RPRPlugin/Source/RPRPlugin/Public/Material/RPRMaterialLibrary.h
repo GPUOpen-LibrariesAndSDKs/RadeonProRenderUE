@@ -42,5 +42,6 @@ private:
 
 	TMap<const URPRMaterial*, RPR::FExportMaterialResult>	UEMaterialToRPRMaterialCaches;
 
+	bool bIsInitialized;
 	RPR::FMaterialContext MaterialContext;
 };

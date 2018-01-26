@@ -5,7 +5,7 @@
     <param name="diffuse.weight" type="float4" value="1, 1, 1, 1" />
     <param name="diffuse.roughness" type="value" value="0,0,0,0" />
    
-   <param name="reflection.color" type="float4" value="0, 0, 0, 0" />
+   <param name="reflection.color" type="float4" value="1, 0, 0, 0" />
     <param name="reflection.weight" type="float4" value="0, 0, 0, 1" />
     <param name="reflection.roughness" type="float4" value="0.5, 0.5, 0.5, 0.5" />
     <param name="reflection.anisotropy" type="float4" value="0, 0, 0, 0" />

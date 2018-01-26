@@ -3,30 +3,33 @@
 #include "RPRUberMaterialParameters.h"
 #include "UnrealString.h"
 #include "RPRTypedefs.h"
+#include "MaterialContext.h"
 
-namespace RPR
+namespace RPRX
 {
-	namespace MaterialCacheParameterSetter
+	namespace MaterialParameter
 	{
-		struct FParameterArgs
+		struct FArgs
 		{
 			const FString& Name;
 			const FRPRUberMaterialParameters& Parameters;
 			const UProperty* Property;
-			FMaterialContext& MaterialContext;
+			RPR::FMaterialContext& MaterialContext;
+			FMaterial& Material;
 
-			FParameterArgs(const FString& InName, const FRPRUberMaterialParameters& InParameters,
-				const UProperty* InProperty, FMaterialContext& InMaterialContext, FMaterialNode& InMaterialNode);
+			FArgs(const FString& InName, const FRPRUberMaterialParameters& InParameters,
+				const UProperty* InProperty, RPR::FMaterialContext& InMaterialContext, FMaterial& InMaterial);
 
 			template<typename ParameterType>
 			const ParameterType*	GetDirectParameter();
+
+			uint32		GetRprxParam() const;
 		};
 
 		template<typename ParameterType>
-		const ParameterType* RPR::MaterialCacheParameterSetter::FParameterArgs::GetDirectParameter()
+		const ParameterType* FArgs::GetDirectParameter()
 		{
 			return (Property->ContainerPtrToValuePtr<ParameterType>(&Parameters));
 		}
-
 	}
 }

@@ -1,8 +1,11 @@
 #include "MaterialCacheMaker.h"
 #include "RPRHelpers.h"
+#include "MaterialConstants.h"
 #include "RPRMaterialHelpers.h"
-#include "MaterialCacheParameterSetter.h"
-#include "Material/Tools/MaterialCacheMaker/ParameterSetterFactory.h"
+#include "ParameterFactory.h"
+#include "ParameterArgs.h"
+#include "RPRXMaterialHelpers.h"
+#include "MaterialParameter.h"
 
 namespace RPRX
 {
@@ -14,10 +17,10 @@ namespace RPRX
 
 	bool FMaterialCacheMaker::CacheUberMaterial(RPRX::FMaterial& OutMaterial)
 	{
-		FResult result;
+		RPR::FResult result;
 
 		result = RPRX::FMaterialHelpers::CreateMaterial(MaterialContext.RPRXContext, EMaterialType::Uber, OutMaterial);
-		if (IsResultFailed(result))
+		if (RPR::IsResultFailed(result))
 		{
 			return (false);
 		}
@@ -28,21 +31,21 @@ namespace RPRX
 			OutMaterial
 		);
 
-		return (IsResultSuccess(result));
+		return (RPR::IsResultSuccess(result));
 	}
 
-	FResult FMaterialCacheMaker::BrowseUberMaterialParameters(FUberMaterialParametersPropertyVisitor Visitor, 
+	RPR::FResult FMaterialCacheMaker::BrowseUberMaterialParameters(FUberMaterialParametersPropertyVisitor Visitor, 
 																				FMaterial& OutMaterial)
 	{
 		const FRPRUberMaterialParameters& uberMaterialParameters = RPRMaterial->MaterialParameters;
 		UScriptStruct* parametersStruct = FRPRUberMaterialParameters::StaticStruct();
-		FResult result = RPR_SUCCESS;
+		RPR::FResult result = RPR_SUCCESS;
 
 		UProperty* currentProperty = parametersStruct->PropertyLink;
 		while (currentProperty != nullptr)
 		{
 			result = Visitor.Execute(uberMaterialParameters, parametersStruct, currentProperty, OutMaterial);
-			if (IsResultFailed(result))
+			if (RPR::IsResultFailed(result))
 			{
 				return (result);
 			}
@@ -52,16 +55,16 @@ namespace RPRX
 		return (result);
 	}
 
-	FResult FMaterialCacheMaker::ApplyUberMaterialParameter(const FRPRUberMaterialParameters& InParameters,
+	RPR::FResult FMaterialCacheMaker::ApplyUberMaterialParameter(const FRPRUberMaterialParameters& InParameters,
 																			UScriptStruct* InParametersStruct,
 																			UProperty* InParameterProperty,
 																			FMaterial& InOutMaterial)
 	{
-		FResult result = RPR_SUCCESS;
+		RPR::FResult result = RPR_SUCCESS;
 
 		const FString& name = GetMetaDataXmlParam(InParameterProperty);
 
-		RPR::MaterialCacheParameterSetter::FParameterArgs materialCacheParametersSetterArgs(
+		RPRX::MaterialParameter::FArgs materialCacheParametersSetterArgs(
 			name,
 			InParameters,
 			InParameterProperty,
@@ -69,12 +72,12 @@ namespace RPRX
 			InOutMaterial
 		);
 
-		TSharedPtr<RPR::MaterialCacheParameterSetter::IMaterialCacheParameterSetter> mapSetter = 
-			RPR::MaterialCacheParameterSetter::FFactory::Create(InParameterProperty);
+		TSharedPtr<RPRX::IMaterialParameter> mapSetter = 
+			RPRX::MaterialParameter::FFactory::Create(InParameterProperty);
 
 		if (mapSetter.IsValid())
 		{
-			mapSetter->ApplyParameter(materialCacheParametersSetterArgs);
+			mapSetter->ApplyParameterX(materialCacheParametersSetterArgs);
 		}
 
 		return (result);
@@ -82,7 +85,7 @@ namespace RPRX
 
 	const FString&		FMaterialCacheMaker::GetMetaDataXmlParam(UProperty* Property) const
 	{
-		return (Property->GetMetaData("XmlParamName"));
+		return (Property->GetMetaData(RPR::FMaterialConstants::PropertyMetaDataXmlParamName));
 	}
 
 }

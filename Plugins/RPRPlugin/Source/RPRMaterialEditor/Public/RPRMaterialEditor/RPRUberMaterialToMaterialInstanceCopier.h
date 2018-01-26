@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RPRMaterialConstants.h"
+#include "RPREditorMaterialConstants.h"
 #include "RPRUberMaterialParameters.h"
 #include "RPRMaterialEditorInstanceConstant.h"
 

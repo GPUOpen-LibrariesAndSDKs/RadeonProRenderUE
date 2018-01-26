@@ -86,8 +86,7 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material, meta = (XmlParamName = "diffuse.roughness", rprxParam = RPRX_UBER_MATERIAL_DIFFUSE_ROUGHNESS))
 	FRPRMaterialMap			Diffuse_Roughness;
-
-
+	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material, meta = (XmlParamName = "reflection.color", rprxParam = RPRX_UBER_MATERIAL_REFLECTION_COLOR))
 	FRPRMaterialMap			Reflection_Color;
@@ -165,13 +164,13 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material, meta = (XmlParamName = "transparency", rprxParam = RPRX_UBER_MATERIAL_TRANSPARENCY))
 	FRPRMaterialMapChannel1	Transparency;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material, meta = (XmlParamName = "diffuse.normal", rprxParam = RPRX_UBER_MATERIAL_NORMAL))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material, meta = (XmlParamName = "normal", rprxParam = RPRX_UBER_MATERIAL_NORMAL))
 	FRPRMaterialMap			Normal;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material, meta = (XmlParamName = "diffuse.normal", rprxParam = RPRX_UBER_MATERIAL_BUMP))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material, meta = (XmlParamName = "bump", rprxParam = RPRX_UBER_MATERIAL_BUMP))
 	FRPRMaterialMap			Bump;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material, meta = (XmlParamName = "diffuse.normal", rprxParam = RPRX_UBER_MATERIAL_BUMP))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material, meta = (XmlParamName = "displacement", rprxParam = RPRX_UBER_MATERIAL_BUMP))
 	FRPRMaterialMap			Displacement;
 
 

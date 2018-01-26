@@ -2,6 +2,7 @@
 #include "LogMacros.h"
 #include "RPRHelpers.h"
 #include "RPRMaterialHelpers.h"
+#include "RPRXMaterialHelpers.h"
 #include "Tools/MaterialCacheMaker/MaterialCacheMaker.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRMaterialLibrary, Log, All)
@@ -136,12 +137,19 @@ void FRPRXMaterialLibrary::ReleaseRawMaterialDatas(FExportMaterialResult& Materi
 {
 	check(IsInitialized());
 
-	if (Material.type == EMaterialType::Material)
+	try
 	{
-		RPR::DeleteObject(Material.data);
+		if (Material.type == EMaterialType::Material)
+		{
+			RPR::DeleteObject(Material.data);
+		}
+		else
+		{
+			RPRX::FMaterialHelpers::DeleteMaterial(MaterialContext.RPRXContext, reinterpret_cast<RPRX::FMaterial>(Material.data));
+		}
 	}
-	else
+	catch (std::exception)
 	{
-		RPRX::FMaterialHelpers::DeleteMaterial(MaterialContext.RPRXContext, reinterpret_cast<RPRX::FMaterial>(Material.data));
+		UE_LOG(LogRPRMaterialLibrary, Warning, TEXT("Couldn't delete an object/material correctly"));
 	}
 }

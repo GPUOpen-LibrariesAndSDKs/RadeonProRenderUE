@@ -2,6 +2,7 @@
 #include "MaterialEditor/DEditorVectorParameterValue.h"
 #include "MaterialEditor/DEditorTextureParameterValue.h"
 #include "MaterialEditor/DEditorStaticSwitchParameterValue.h"
+#include "MaterialConstants.h"
 
 FName FRPRUberMaterialToMaterialInstanceCopier::VectorParameterGroupName(TEXT("Vector Parameter Values"));
 FName FRPRUberMaterialToMaterialInstanceCopier::ScalarParameterGroupName(TEXT("Scalar Parameter Values"));
@@ -21,7 +22,7 @@ void FRPRUberMaterialToMaterialInstanceCopier::CopyRPRMaterialMap(const FRPRUber
 {
 	CopyRPRMaterialMapBase(RPRUberMaterialParameters, RPRMaterialEditorInstance, MaterialMap, MaterialMapPropertyName);
 
-	const FString constantParamName = GetPropertyXmlParamName(MaterialMapPropertyName, FRPRMaterialConstants::MaterialPropertyConstantSection);
+	const FString constantParamName = GetPropertyXmlParamName(MaterialMapPropertyName, RPR::FEditorMaterialConstants::MaterialPropertyConstantSection);
 
 	SetParameterValueIfAvailable<UDEditorVectorParameterValue>(RPRMaterialEditorInstance, FParameterNameEqualsComparator(constantParamName), MaterialMap.Constant);
 }
@@ -30,8 +31,8 @@ void FRPRUberMaterialToMaterialInstanceCopier::CopyRPRMaterialMapBase(const FRPR
 																		UMaterialEditorInstanceConstant* RPRMaterialEditorInstance, 
 																		const FRPRMaterialBaseMap& MaterialMap, const FName& MaterialMapPropertyName)
 {
-	const FString mapParamName = GetPropertyXmlParamName(MaterialMapPropertyName, FRPRMaterialConstants::MaterialPropertyMapSection);
-	const FString useMapParamName = GetPropertyXmlParamName(MaterialMapPropertyName, FRPRMaterialConstants::MaterialPropertyUseMapSection);
+	const FString mapParamName = GetPropertyXmlParamName(MaterialMapPropertyName, RPR::FEditorMaterialConstants::MaterialPropertyMapSection);
+	const FString useMapParamName = GetPropertyXmlParamName(MaterialMapPropertyName, RPR::FEditorMaterialConstants::MaterialPropertyUseMapSection);
 
 	SetParameterValueIfAvailable<UDEditorStaticSwitchParameterValue>(RPRMaterialEditorInstance, FParameterNameEqualsComparator(useMapParamName), (MaterialMap.Texture != nullptr));
 	SetParameterValueIfAvailable<UDEditorTextureParameterValue>(RPRMaterialEditorInstance, FParameterNameEqualsComparator(mapParamName), MaterialMap.Texture);
@@ -41,7 +42,7 @@ void FRPRUberMaterialToMaterialInstanceCopier::CopyRPRMaterialMapBase(const FRPR
 FString FRPRUberMaterialToMaterialInstanceCopier::GetPropertyXmlParamName(const FName& MaterialMapPropertyName, const FName& SectionName)
 {
 	UProperty* materialMapProperty = FRPRUberMaterialParameters::StaticStruct()->FindPropertyByName(MaterialMapPropertyName);
-	FString xmlParamName = materialMapProperty->GetMetaData(FRPRMaterialConstants::PropertyMetaDataXmlParamName);
+	FString xmlParamName = materialMapProperty->GetMetaData(RPR::FMaterialConstants::PropertyMetaDataXmlParamName);
 	return (CombinePropertyNameSection(xmlParamName, SectionName));
 }
 
@@ -54,7 +55,7 @@ FString FRPRUberMaterialToMaterialInstanceCopier::CombinePropertyNameSectionInte
 		output.Append(SectionsArray[i]);
 		if (i + 1 < NumSections)
 		{
-			output.Append(FRPRMaterialConstants::MaterialPropertyNameSectionSeparatorString);
+			output.Append(RPR::FEditorMaterialConstants::MaterialPropertyNameSectionSeparatorString);
 		}
 	}
 

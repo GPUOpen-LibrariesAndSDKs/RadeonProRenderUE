@@ -14,7 +14,6 @@ namespace RPR
 	typedef rpr_image			FImage;
 
 	typedef void*						FMaterialRawDatas;
-	typedef rprx_material				FMaterial;
 	typedef rpr_material_node			FMaterialNode;
 	typedef rpriExportRprMaterialResult	FExportMaterialResult;
 }

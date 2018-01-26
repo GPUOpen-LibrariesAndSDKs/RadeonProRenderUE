@@ -1,10 +1,13 @@
 #pragma once
 
 #include "RPRMaterial.h"
+#include "RPRTypedefs.h"
+#include "RPRXTypedefs.h"
+#include "MaterialContext.h"
 
 namespace RPRX
 {
-	DECLARE_DELEGATE_RetVal_FourParams(FResult, FUberMaterialParametersPropertyVisitor, const FRPRUberMaterialParameters&, UScriptStruct*, UProperty*, FMaterial&)
+	DECLARE_DELEGATE_RetVal_FourParams(RPR::FResult, FUberMaterialParametersPropertyVisitor, const FRPRUberMaterialParameters&, UScriptStruct*, UProperty*, FMaterial&)
 
 	class FMaterialCacheMaker
 	{
@@ -16,10 +19,9 @@ namespace RPRX
 
 	private:
 
-		FResult	BrowseUberMaterialParameters(FUberMaterialParametersPropertyVisitor Visitor, FMaterial& OutMaterial);
-		FResult	ApplyUberMaterialParameter(const FRPRUberMaterialParameters& Parameters, 
-											UScriptStruct* ParametersStruct, UProperty* ParameterProperty, 
-																					FMaterial& InOutMaterial);
+		RPR::FResult	BrowseUberMaterialParameters(FUberMaterialParametersPropertyVisitor Visitor, FMaterial& OutMaterial);
+		RPR::FResult	ApplyUberMaterialParameter(const FRPRUberMaterialParameters& Parameters, UScriptStruct* ParametersStruct,
+													UProperty* ParameterProperty, FMaterial& InOutMaterial);
 
 		const FString&	GetMetaDataXmlParam(UProperty* Property) const;
 

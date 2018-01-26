@@ -1,4 +1,5 @@
 #include "RPRMaterialHelpers.h"
+#include "RadeonProRender.h"
 #include "RPRHelpers.h"
 #include "LogMacros.h"
 
@@ -6,7 +7,7 @@ DEFINE_LOG_CATEGORY_STATIC(LogRPRMaterialHelpers, Log, All)
 
 namespace RPR
 {
-	const FName FMaterialHelpers::ImageDataInputName(TEXT("data"));
+	const TCHAR* FMaterialHelpers::ImageDataInputName(TEXT("data"));
 
 	FResult FMaterialHelpers::CreateNode(FMaterialSystem MaterialSystem, EMaterialNodeType NodeType, FMaterialNode& OutMaterialNode)
 	{
@@ -22,8 +23,9 @@ namespace RPR
 
 	RPR::FResult FMaterialHelpers::DeleteNode(FMaterialNode& MaterialNode)
 	{
-		rprObjectDelete(MaterialNode);
+		FResult result = rprObjectDelete(MaterialNode);
 		MaterialNode = nullptr;
+		return (result);
 	}
 
 	RPR::FResult FMaterialHelpers::CreateImageNode(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, 
@@ -34,7 +36,7 @@ namespace RPR
 		{
 			// TODO : Cache the image built
 			RPR::FImage image = BuildImage(Texture, RPRContext);
-			result = rprMaterialNodeSetInputImageData(OutMaterialNode, ImageDataInputName, image);
+			result = rprMaterialNodeSetInputImageData(OutMaterialNode, TCHAR_TO_ANSI(ImageDataInputName), image);
 		}
 
 		return (result);

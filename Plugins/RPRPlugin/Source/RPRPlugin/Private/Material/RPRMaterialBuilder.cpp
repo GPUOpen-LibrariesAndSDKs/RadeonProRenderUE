@@ -59,7 +59,7 @@ namespace RPR
 
 	FResult FMaterialBuilder::SetMaterialOnShape(FShape& Shape, FMaterialRawDatas MaterialRawDatas)
 	{
-		FResult status = rprShapeSetMaterial(Shape, reinterpret_cast<FMaterial>(MaterialRawDatas));
+		FResult status = rprShapeSetMaterial(Shape, reinterpret_cast<RPRX::FMaterial>(MaterialRawDatas));
 
 		if (IsResultFailed(status))
 		{
@@ -71,7 +71,7 @@ namespace RPR
 
 	FResult FMaterialBuilder::AttachMaterialToShape(FShape& Shape, FMaterialRawDatas MaterialRawDatas)
 	{
-		FResult status = rprxShapeAttachMaterial(Scene->m_RprSupportCtx, Shape, reinterpret_cast<FMaterial>(MaterialRawDatas));
+		FResult status = rprxShapeAttachMaterial(Scene->m_RprSupportCtx, Shape, reinterpret_cast<RPRX::FMaterial>(MaterialRawDatas));
 
 		if (IsResultFailed(status))
 		{
@@ -84,7 +84,7 @@ namespace RPR
 	FResult FMaterialBuilder::CommitMaterialX(FMaterialRawDatas MaterialRawDatas)
 	{
 		
-		FResult status = rprxMaterialCommit(Scene->m_RprSupportCtx, reinterpret_cast<FMaterial>(MaterialRawDatas));
+		FResult status = rprxMaterialCommit(Scene->m_RprSupportCtx, reinterpret_cast<RPRX::FMaterial>(MaterialRawDatas));
 
 		if (IsResultFailed(status))
 		{
