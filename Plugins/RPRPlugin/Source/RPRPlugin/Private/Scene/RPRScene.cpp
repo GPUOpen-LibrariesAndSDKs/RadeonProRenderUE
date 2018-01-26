@@ -485,7 +485,12 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		}
 
 		m_RenderTexture = m_Plugin->GetRenderTexture();
-		RPRMaterialLibrary.Initialize(m_RprSupportCtx, m_RprMaterialSystem);
+
+		RPR::FMaterialContext materialContext;
+		materialContext.MaterialSystem = m_RprMaterialSystem;
+		materialContext.RPRContext = m_RprContext;
+		materialContext.RPRXContext = m_RprSupportCtx;
+		RPRXMaterialLibrary.Initialize(materialContext);
 
 		LoadMappings();
 
@@ -537,7 +542,7 @@ void	ARPRScene::Rebuild()
 	LoadMappings();
 
 	m_MaterialCache.clear();
-	RPRMaterialLibrary.ClearCache();
+	RPRXMaterialLibrary.ClearCache();
 
 	rprContextClearMemory(m_RprContext);
 	// NOTE: Right now, keeps mesh cache
@@ -790,7 +795,7 @@ void	ARPRScene::RemoveSceneContent(bool clearScene, bool clearCache)
 	{
 		if (clearCache)
 		{
-			RPRMaterialLibrary.ClearCache();
+			RPRXMaterialLibrary.ClearCache();
 
 			URPRStaticMeshComponent::ClearCache(m_RprScene);
 			for (auto&& mat : m_MaterialCache)
@@ -841,7 +846,7 @@ void	ARPRScene::BeginDestroy()
 {
 	Super::BeginDestroy();
 
-	RPRMaterialLibrary.Close();
+	RPRXMaterialLibrary.Close();
 
 	if (m_RendererWorker.IsValid())
 	{
@@ -881,14 +886,14 @@ void	ARPRScene::BeginDestroy()
 }
 
 
-FRPRMaterialLibrary& ARPRScene::GetRPRMaterialLibrary()
+FRPRXMaterialLibrary& ARPRScene::GetRPRMaterialLibrary()
 {
-	return (RPRMaterialLibrary);
+	return (RPRXMaterialLibrary);
 }
 
-const FRPRMaterialLibrary& ARPRScene::GetRPRMaterialLibrary() const
+const FRPRXMaterialLibrary& ARPRScene::GetRPRMaterialLibrary() const
 {
-	return (RPRMaterialLibrary);
+	return (RPRXMaterialLibrary);
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -17,7 +17,8 @@ public class RPRPlugin : ModuleRules
 
                 "RPRPlugin/Public/Material",
                 "RPRPlugin/Public/Material/Tools",
-                "RPRPlugin/Public/Material/Tools/MaterialNodeTextureSet",
+                "RPRPlugin/Public/Material/Tools/MaterialCacheMaker",
+                "RPRPlugin/Public/Material/Tools/MaterialCacheMaker/MaterialCacheParameterSetter",
 
                 "RPRPlugin/Public/Scene",
                 "RPRPlugin/Public/Scene/StaticMeshComponent",

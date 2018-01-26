@@ -2,17 +2,16 @@
 
 #include "RPRTypedefs.h"
 #include "RPRMaterial.h"
+#include "MaterialContext.h"
 #include "Map.h"
 
-using namespace RPR;
-
-class FRPRMaterialLibrary
+class FRPRXMaterialLibrary
 {
 public:
 
-	FRPRMaterialLibrary();
+	FRPRXMaterialLibrary();
 
-	void	Initialize(FContext InRPRContext, FMaterialSystem InRPRMaterialSystem);
+	void	Initialize(const RPR::FMaterialContext& InMaterialContext);
 	bool	IsInitialized() const;
 	void	Close();
 
@@ -21,25 +20,27 @@ public:
 
 	bool	RecacheMaterial(const URPRMaterial* MaterialKey);
 
-	bool	TryGetMaterialRawDatas(const URPRMaterial* MaterialKey, FMaterialRawDatas& OutRawDatas) const;
-	bool	TryGetMaterialRawDatas(const URPRMaterial* MaterialKey, uint32& OutMaterialType, FMaterialRawDatas& OutRawDatas) const;
+	bool	TryGetMaterialRawDatas(const URPRMaterial* MaterialKey, 
+								RPR::FMaterialRawDatas& OutRawDatas) const;
 
-	FMaterialRawDatas	GetMaterialRawDatas(URPRMaterial* MaterialKey) const;
-	uint32				GetMaterialType(URPRMaterial* MaterialKey) const;
+	bool	TryGetMaterialRawDatas(const URPRMaterial* MaterialKey, uint32& OutMaterialType, 
+								RPR::FMaterialRawDatas& OutRawDatas) const;
+
+	RPR::FMaterialRawDatas	GetMaterialRawDatas(URPRMaterial* MaterialKey) const;
+	uint32					GetMaterialType(URPRMaterial* MaterialKey) const;
 
 	void	ClearCache();
 
 private:
 
-	const FExportMaterialResult*	FindMaterialCache(const URPRMaterial* MaterialKey) const;
+	const RPR::FExportMaterialResult*	FindMaterialCache(const URPRMaterial* MaterialKey) const;
 
-	bool	CacheMaterial(const URPRMaterial* InMaterial, FExportMaterialResult& OutMaterial);
-	void	ReleaseRawMaterialDatas(FExportMaterialResult& Material);
+	bool	CacheMaterial(const URPRMaterial* InMaterial, RPR::FExportMaterialResult& OutMaterial);
+	void	ReleaseRawMaterialDatas(RPR::FExportMaterialResult& Material);
 
 private:
 
-	TMap<const URPRMaterial*, FExportMaterialResult>	UEMaterialToRPRMaterialCaches;
+	TMap<const URPRMaterial*, RPR::FExportMaterialResult>	UEMaterialToRPRMaterialCaches;
 
-	FContext		RPRContext;
-	FMaterialSystem	RPRMaterialSystem;
+	RPR::FMaterialContext MaterialContext;
 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RPRTypedefs.h"
+#include "RPRHelpers.h"
 #include "RPREnums.h"
 
 namespace RPR
@@ -9,20 +10,13 @@ namespace RPR
 	{
 	public:
 
-		static FResult	CreateNode(RPR::FMaterialSystem MaterialSystem, EMaterialNodeType NodeType, FMaterialNode& OutMaterialNode);
-		static FResult	DeleteMaterial(RPR::FContext Context, RPR::FMaterial MaterialData);
+		static const FName	ImageDataInputName;
 
-		template<typename ValueType>
-		static FResult	SetNodeParameter(RPR::FMaterial Material, const ValueType& Value);
+		static FResult	CreateNode(FMaterialSystem MaterialSystem, EMaterialNodeType NodeType, FMaterialNode& OutMaterialNode);
+		static FResult	DeleteNode(FMaterialNode& MaterialNode);
 
-		/*template<>
-		static FResult	SetNodeParameter<UTexture2D*>(RPR::FMaterial, const UTexture2D* Texture);*/
+		static FResult	CreateImageNode(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, UTexture2D* Texture, FMaterialNode& OutMaterialNode);
 	};
 
-	template<typename ValueType>
-	FResult RPR::FMaterialHelpers::SetNodeParameter(RPR::FMaterial Material, const ValueType& Value)
-	{
-		static_assert(false, "ValueType not supported");
-	}
 
 }

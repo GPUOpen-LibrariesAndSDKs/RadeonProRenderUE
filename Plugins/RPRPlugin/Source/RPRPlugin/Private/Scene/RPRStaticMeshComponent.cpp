@@ -247,7 +247,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		const UMaterial				*parentMaterial = matInterface != NULL ? matInterface->GetMaterial() : NULL;
 		const char* materialName = TCHAR_TO_ANSI(*matInterface->GetName());
 
-		FRPRMaterialLibrary& rprMaterialLibrary = Scene->GetRPRMaterialLibrary();
+		FRPRXMaterialLibrary& rprMaterialLibrary = Scene->GetRPRMaterialLibrary();
 		if (matInterface->IsA<URPRMaterial>())
 		{
 			BuildRPRMaterial(shape, Cast<const URPRMaterial>(matInterface));
@@ -263,7 +263,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("Found %s in Cache"), UTF8_TO_TCHAR(materialName));
 #endif
 			rpriExportRprMaterialResult cachedMaterial = cacheIt->second;
-			FMaterialBuilder materialBuilder(Scene);
+			RPR::FMaterialBuilder materialBuilder(Scene);
 			materialBuilder.BindMaterialRawDatasToShape(cachedMaterial.type, cachedMaterial.data, shape);
 			continue;
 		}
@@ -400,7 +400,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 
 void URPRStaticMeshComponent::BuildRPRMaterial(RPR::FShape& Shape, const URPRMaterial* Material)
 {
-	FRPRMaterialLibrary& rprMaterialLibrary = Scene->GetRPRMaterialLibrary();
+	FRPRXMaterialLibrary& rprMaterialLibrary = Scene->GetRPRMaterialLibrary();
 	if (!rprMaterialLibrary.Contains(Material))
 	{
 		rprMaterialLibrary.CacheAndRegisterMaterial(Material);
@@ -414,7 +414,7 @@ void URPRStaticMeshComponent::BuildRPRMaterial(RPR::FShape& Shape, const URPRMat
 		return;
 	}
 
-	FMaterialBuilder materialBuilder(Scene);
+	RPR::FMaterialBuilder materialBuilder(Scene);
 	materialBuilder.BindMaterialRawDatasToShape(materialType, materialRawDatas, Shape);
 }
 

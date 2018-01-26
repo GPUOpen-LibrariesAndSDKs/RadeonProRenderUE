@@ -2,28 +2,31 @@
 
 #include "RPRMaterial.h"
 
-namespace RPR
+namespace RPRX
 {
-	DECLARE_DELEGATE_RetVal_FourParams(FResult, FUberMaterialParametersPropertyVisitor, const FRPRUberMaterialParameters&, UScriptStruct*, UProperty*, RPR::FMaterialNode&)
+	DECLARE_DELEGATE_RetVal_FourParams(FResult, FUberMaterialParametersPropertyVisitor, const FRPRUberMaterialParameters&, UScriptStruct*, UProperty*, FMaterial&)
 
 	class FMaterialCacheMaker
 	{
 	public:
 
-		FMaterialCacheMaker(FMaterialSystem InMaterialSystem, const URPRMaterial* InMaterial);
+		FMaterialCacheMaker(RPR::FMaterialContext& InMaterialContent, const URPRMaterial* InRPRMaterial);
 
-		bool	CacheUberMaterial(RPR::FMaterialNode& OutMaterialNode);
-
-	private:
-
-		FResult	BrowseUberMaterialParameters(FUberMaterialParametersPropertyVisitor Visitor, FMaterialNode& OutMaterialNode);
-		FResult	ApplyUberMaterialParameter(const FRPRUberMaterialParameters& Parameters, UScriptStruct* ParametersStruct, UProperty* ParameterProperty, RPR::FMaterialNode& OutMaterialNode);
+		bool	CacheUberMaterial(RPRX::FMaterial& OutMaterial);
 
 	private:
 
-		FMaterialSystem		MaterialSystem;
-		const URPRMaterial* RPRMaterial;
+		FResult	BrowseUberMaterialParameters(FUberMaterialParametersPropertyVisitor Visitor, FMaterial& OutMaterial);
+		FResult	ApplyUberMaterialParameter(const FRPRUberMaterialParameters& Parameters, 
+											UScriptStruct* ParametersStruct, UProperty* ParameterProperty, 
+																					FMaterial& InOutMaterial);
 
+		const FString&	GetMetaDataXmlParam(UProperty* Property) const;
+
+	private:
+
+		RPR::FMaterialContext&	MaterialContext;
+		const URPRMaterial*		RPRMaterial;
 	};
 
 }

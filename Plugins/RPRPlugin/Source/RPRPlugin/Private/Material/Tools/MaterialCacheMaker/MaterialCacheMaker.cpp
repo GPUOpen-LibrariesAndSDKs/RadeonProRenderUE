@@ -1,62 +1,88 @@
 #include "MaterialCacheMaker.h"
-#include "RPRMaterialHelpers.h"
 #include "RPRHelpers.h"
+#include "RPRMaterialHelpers.h"
+#include "MaterialCacheParameterSetter.h"
+#include "Material/Tools/MaterialCacheMaker/ParameterSetterFactory.h"
 
-using namespace RPR;
-
-FMaterialCacheMaker::FMaterialCacheMaker(FMaterialSystem InMaterialSystem, const URPRMaterial* InMaterial)
-	: MaterialSystem(InMaterialSystem)
-	, RPRMaterial(InMaterial)
-{}
-
-bool FMaterialCacheMaker::CacheUberMaterial(FMaterialNode& OutMaterialNode)
+namespace RPRX
 {
-	FResult result;
 
-	result = RPR::FMaterialHelpers::CreateNode(MaterialSystem, EMaterialNodeType::Diffuse, OutMaterialNode);
-	if (IsResultFailed(result))
+	FMaterialCacheMaker::FMaterialCacheMaker(RPR::FMaterialContext& InMaterialContext, const URPRMaterial* InRPRMaterial)
+		: MaterialContext(InMaterialContext)
+		, RPRMaterial(InRPRMaterial)
+	{}
+
+	bool FMaterialCacheMaker::CacheUberMaterial(RPRX::FMaterial& OutMaterial)
 	{
-		return (false);
-	}
+		FResult result;
 
-	// Browse each property and set parameter
-	result = BrowseUberMaterialParameters(
-		FUberMaterialParametersPropertyVisitor::CreateRaw(this, &FMaterialCacheMaker::ApplyUberMaterialParameter),
-		OutMaterialNode
-	);
-
-	return (IsResultSuccess(result));
-}
-
-FResult FMaterialCacheMaker::BrowseUberMaterialParameters(FUberMaterialParametersPropertyVisitor Visitor, FMaterialNode& OutMaterialNode)
-{
-	const FRPRUberMaterialParameters& uberMaterialParameters = RPRMaterial->MaterialParameters;
-	UScriptStruct* parametersStruct = FRPRUberMaterialParameters::StaticStruct();
-	FResult result = RPR_SUCCESS;
-
-	UProperty* currentProperty = parametersStruct->PropertyLink;
-	while (currentProperty != nullptr)
-	{
-		result = Visitor.Execute(uberMaterialParameters, parametersStruct, currentProperty, OutMaterialNode);
+		result = RPRX::FMaterialHelpers::CreateMaterial(MaterialContext.RPRXContext, EMaterialType::Uber, OutMaterial);
 		if (IsResultFailed(result))
 		{
-			return (result);
+			return (false);
 		}
 
-		currentProperty = parametersStruct->PropertyLink;
+		// Browse each property and set parameter
+		result = BrowseUberMaterialParameters(
+			FUberMaterialParametersPropertyVisitor::CreateRaw(this, &FMaterialCacheMaker::ApplyUberMaterialParameter),
+			OutMaterial
+		);
+
+		return (IsResultSuccess(result));
 	}
-	return (result);
+
+	FResult FMaterialCacheMaker::BrowseUberMaterialParameters(FUberMaterialParametersPropertyVisitor Visitor, 
+																				FMaterial& OutMaterial)
+	{
+		const FRPRUberMaterialParameters& uberMaterialParameters = RPRMaterial->MaterialParameters;
+		UScriptStruct* parametersStruct = FRPRUberMaterialParameters::StaticStruct();
+		FResult result = RPR_SUCCESS;
+
+		UProperty* currentProperty = parametersStruct->PropertyLink;
+		while (currentProperty != nullptr)
+		{
+			result = Visitor.Execute(uberMaterialParameters, parametersStruct, currentProperty, OutMaterial);
+			if (IsResultFailed(result))
+			{
+				return (result);
+			}
+
+			currentProperty = currentProperty->PropertyLinkNext;
+		}
+		return (result);
+	}
+
+	FResult FMaterialCacheMaker::ApplyUberMaterialParameter(const FRPRUberMaterialParameters& InParameters,
+																			UScriptStruct* InParametersStruct,
+																			UProperty* InParameterProperty,
+																			FMaterial& InOutMaterial)
+	{
+		FResult result = RPR_SUCCESS;
+
+		const FString& name = GetMetaDataXmlParam(InParameterProperty);
+
+		RPR::MaterialCacheParameterSetter::FParameterArgs materialCacheParametersSetterArgs(
+			name,
+			InParameters,
+			InParameterProperty,
+			MaterialContext,
+			InOutMaterial
+		);
+
+		TSharedPtr<RPR::MaterialCacheParameterSetter::IMaterialCacheParameterSetter> mapSetter = 
+			RPR::MaterialCacheParameterSetter::FFactory::Create(InParameterProperty);
+
+		if (mapSetter.IsValid())
+		{
+			mapSetter->ApplyParameter(materialCacheParametersSetterArgs);
+		}
+
+		return (result);
+	}
+
+	const FString&		FMaterialCacheMaker::GetMetaDataXmlParam(UProperty* Property) const
+	{
+		return (Property->GetMetaData("XmlParamName"));
+	}
+
 }
-
-FResult FMaterialCacheMaker::ApplyUberMaterialParameter(const FRPRUberMaterialParameters& Parameters,
-															UScriptStruct* ParametersStruct,
-															UProperty* ParameterProperty,
-															FMaterialNode& OutMaterialNode)
-{
-	FResult result = RPR_SUCCESS;
-
-	// TODO : HERE
-
-	return (result);
-}
-

@@ -26,7 +26,10 @@ namespace RPR
 		Refraction				= RPR_MATERIAL_NODE_REFRACTION,
 		MicrofacetRefraction	= RPR_MATERIAL_NODE_MICROFACET_REFRACTION,
 		Transparent				= RPR_MATERIAL_NODE_TRANSPARENT,
-		Emissive				= RPR_MATERIAL_NODE_EMISSIVE
+		Emissive				= RPR_MATERIAL_NODE_EMISSIVE,
+
+		ImageTexture			= RPR_MATERIAL_NODE_IMAGE_TEXTURE,
+		NormalMap				= RPR_MATERIAL_NODE_NORMAL_MAP
 
 		// Not completed. See rpr_material_node_type in RadeonProRender for others
 	};
