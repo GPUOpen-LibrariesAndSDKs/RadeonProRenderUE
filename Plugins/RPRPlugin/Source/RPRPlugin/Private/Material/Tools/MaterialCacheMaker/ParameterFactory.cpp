@@ -9,7 +9,13 @@ namespace RPRX
 
 		void FFactory::InitializeMap()
 		{
-			RegisterParameterSetter<FMaterialMapParameterSetter>("FRPRMaterialMap");
+#define REGISTER_PARAMETER_CHECK_CLASS(ClassName, ParameterSetterClass)			\
+			static_assert(TIsClass<ClassName>::Value, "Class doesn't exist!");	\
+			RegisterParameterSetter<ParameterSetterClass>(#ClassName);
+
+			REGISTER_PARAMETER_CHECK_CLASS(FRPRMaterialMap, FMaterialMapParameterSetter);
+			REGISTER_PARAMETER_CHECK_CLASS(FRPRMaterialMapChannel1, FMaterialMapChannel1ParameterSetter);
+			RegisterParameterSetter<FUInt8ParameterSetter>(TEXT("uint8"));
 		}
 
 		void FFactory::InitializeMapIfRequired()
@@ -24,7 +30,18 @@ namespace RPRX
 		{
 			InitializeMapIfRequired();
 
-			FString propertyNameType = Property->GetCPPType();
+			FString propertyNameType;
+
+			UEnumProperty* enumProperty = Cast<UEnumProperty>(Property);
+			if (enumProperty)
+			{
+				propertyNameType = TEXT("uint8");
+			}
+			else
+			{
+				propertyNameType = Property->GetCPPType();
+			}
+
 			FParameterCreator* creator = Map.Find(*propertyNameType);
 			return (creator != nullptr ? (*creator)() : nullptr);
 		}

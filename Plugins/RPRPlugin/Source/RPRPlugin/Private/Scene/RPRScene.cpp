@@ -797,18 +797,25 @@ void	ARPRScene::RemoveSceneContent(bool clearScene, bool clearCache)
 		{
 			RPRXMaterialLibrary.ClearCache();
 
-			URPRStaticMeshComponent::ClearCache(m_RprScene);
-			for (auto&& mat : m_MaterialCache)
+			try
 			{
-				if (mat.second.type == 0)
+				URPRStaticMeshComponent::ClearCache(m_RprScene);
+				for (auto&& mat : m_MaterialCache)
 				{
-					rprObjectDelete(mat.second.data);
+					if (mat.second.type == 0)
+					{
+						rprObjectDelete(mat.second.data);
 
+					}
+					else
+					{
+						rprxMaterialDelete(m_RprSupportCtx, reinterpret_cast<rprx_material>(mat.second.data));
+					}
 				}
-				else
-				{
-					rprxMaterialDelete(m_RprSupportCtx, reinterpret_cast<rprx_material>(mat.second.data));
-				}
+			}
+			catch (std::exception)
+			{
+				UE_LOG(LogRPRScene, Warning, TEXT("RPRScene could not clean the materials correctly!"));
 			}
 			m_MaterialCache.clear();
 		}

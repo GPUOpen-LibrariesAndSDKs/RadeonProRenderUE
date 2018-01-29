@@ -40,12 +40,15 @@ public:
 	static void	CopyParameters(const FRPRUberMaterialParameters& RPRUberMaterialParameters, UMaterialEditorInstanceConstant* RPRMaterialEditorInstance);
 
 private:
+	
+	static void	CopyRPRMaterialMapBase(const FRPRUberMaterialParameters& RPRUberMaterialParameters,
+		UMaterialEditorInstanceConstant* RPRMaterialEditorInstance, const FRPRMaterialBaseMap& MaterialMap, const FName& MaterialMapPropertyName);
 
 	static void	CopyRPRMaterialMap(const FRPRUberMaterialParameters& RPRUberMaterialParameters,
 		UMaterialEditorInstanceConstant* RPRMaterialEditorInstance, const FRPRMaterialMap& MaterialMap, const FName& MaterialMapPropertyName);
 
-	static void	CopyRPRMaterialMapBase(const FRPRUberMaterialParameters& RPRUberMaterialParameters,
-		UMaterialEditorInstanceConstant* RPRMaterialEditorInstance, const FRPRMaterialBaseMap& MaterialMap, const FName& MaterialMapPropertyName);
+	static void	CopyRPRMaterialMapChannel1(const FRPRUberMaterialParameters& RPRUberMaterialParameters,
+		UMaterialEditorInstanceConstant* RPRMaterialEditorInstance, const FRPRMaterialMapChannel1& MaterialMap, const FName& MaterialMapPropertyName);
 
 	static FString	GetPropertyXmlParamName(const FName& MaterialMapPropertyName, const FName& SectionName);
 
