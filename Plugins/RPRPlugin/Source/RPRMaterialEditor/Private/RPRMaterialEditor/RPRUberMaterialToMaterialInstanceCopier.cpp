@@ -4,11 +4,6 @@
 #include "MaterialEditor/DEditorStaticSwitchParameterValue.h"
 #include "MaterialConstants.h"
 
-FName FRPRUberMaterialToMaterialInstanceCopier::VectorParameterGroupName(TEXT("Vector Parameter Values"));
-FName FRPRUberMaterialToMaterialInstanceCopier::ScalarParameterGroupName(TEXT("Scalar Parameter Values"));
-FName FRPRUberMaterialToMaterialInstanceCopier::TextureParameterGroupName(TEXT("Texture Parameter Values"));
-FName FRPRUberMaterialToMaterialInstanceCopier::StaticSwitchParameterGroupName(TEXT("Static Switch Parameter Values"));
-
 void FRPRUberMaterialToMaterialInstanceCopier::CopyParameters(const FRPRUberMaterialParameters& RPRUberMaterialParameters, 
 																UMaterialEditorInstanceConstant* RPRMaterialEditorInstance)
 {

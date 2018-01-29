@@ -30,7 +30,7 @@ private:
 
 	TArray<SRPRCachedMesh>	GetMeshInstances(UStaticMesh *mesh);
 	bool					BuildMaterials();
-	void					BuildRPRMaterial(RPR::FShape& Shape, const URPRMaterial* Material);
+	void					BuildRPRMaterial(RPR::FShape& Shape, URPRMaterial* Material);
 
 	virtual void	TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
 	virtual void	ReleaseResources() override;

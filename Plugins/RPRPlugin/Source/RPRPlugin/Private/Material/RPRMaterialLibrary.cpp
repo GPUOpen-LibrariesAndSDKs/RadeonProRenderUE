@@ -37,7 +37,7 @@ bool FRPRXMaterialLibrary::Contains(const URPRMaterial* InMaterial) const
 	return (UEMaterialToRPRMaterialCaches.Contains(InMaterial));
 }
 
-bool FRPRXMaterialLibrary::CacheAndRegisterMaterial(const URPRMaterial* InMaterial)
+bool FRPRXMaterialLibrary::CacheAndRegisterMaterial(URPRMaterial* InMaterial)
 {
 	check(!Contains(InMaterial));
 
@@ -51,7 +51,7 @@ bool FRPRXMaterialLibrary::CacheAndRegisterMaterial(const URPRMaterial* InMateri
 	return (false);
 }
 
-bool FRPRXMaterialLibrary::RecacheMaterial(const URPRMaterial* MaterialKey)
+bool FRPRXMaterialLibrary::RecacheMaterial(URPRMaterial* MaterialKey)
 {
 	FExportMaterialResult exportMaterialResult;
 	if (CacheMaterial(MaterialKey, exportMaterialResult))
@@ -84,14 +84,14 @@ bool FRPRXMaterialLibrary::TryGetMaterialRawDatas(const URPRMaterial* MaterialKe
 	return (true);
 }
 
-FMaterialRawDatas	FRPRXMaterialLibrary::GetMaterialRawDatas(URPRMaterial* MaterialKey) const
+FMaterialRawDatas	FRPRXMaterialLibrary::GetMaterialRawDatas(const URPRMaterial* MaterialKey) const
 {
 	RPR::FMaterialRawDatas rawDatas;
 	TryGetMaterialRawDatas(MaterialKey, rawDatas);
 	return (rawDatas);
 }
 
-uint32 FRPRXMaterialLibrary::GetMaterialType(URPRMaterial* MaterialKey) const
+uint32 FRPRXMaterialLibrary::GetMaterialType(const URPRMaterial* MaterialKey) const
 {
 	const FExportMaterialResult* result = FindMaterialCache(MaterialKey);
 	if (result != nullptr)
@@ -119,7 +119,7 @@ const FExportMaterialResult* FRPRXMaterialLibrary::FindMaterialCache(const URPRM
 	return (UEMaterialToRPRMaterialCaches.Find(MaterialKey));
 }
 
-bool FRPRXMaterialLibrary::CacheMaterial(const URPRMaterial* InMaterial, FExportMaterialResult& OutMaterial)
+bool FRPRXMaterialLibrary::CacheMaterial(URPRMaterial* InMaterial, FExportMaterialResult& OutMaterial)
 {
 	RPRX::FMaterial newMaterial;
 	RPRX::FMaterialCacheMaker cacheMaker(MaterialContext, InMaterial);
@@ -130,6 +130,8 @@ bool FRPRXMaterialLibrary::CacheMaterial(const URPRMaterial* InMaterial, FExport
 
 	OutMaterial.type = EMaterialType::MaterialX;
 	OutMaterial.data = newMaterial;
+
+	InMaterial->bShouldCacheBeRebuild = false;
 	return (true);
 }
 

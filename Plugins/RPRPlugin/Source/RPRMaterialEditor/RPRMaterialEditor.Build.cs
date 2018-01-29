@@ -37,6 +37,8 @@ public class RPRMaterialEditor : ModuleRules
                 "RPRMaterialEditor/Private/RPRMaterialInstanceTab",
 
                 "RPRMaterialEditor/Private/Xml",
+                "RPRMaterialEditor/Private/Xml/Node",
+                "RPRMaterialEditor/Private/Xml/Node/Factory",
                 "RPRMaterialEditor/Private/Xml/NodeParamTypes",
 
                 "RPRMaterialEditor/Private/Xml/NodeParamTypes",

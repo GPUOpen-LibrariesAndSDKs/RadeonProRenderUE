@@ -243,14 +243,14 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		rpr_int status = RPR_SUCCESS;
 
 		// If we have a wrong index, it ll just return NULL, and fallback to a dummy material
-		const UMaterialInterface	*matInterface = component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
-		const UMaterial				*parentMaterial = matInterface != NULL ? matInterface->GetMaterial() : NULL;
+		UMaterialInterface	*matInterface = component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
+		const UMaterial		*parentMaterial = matInterface != NULL ? matInterface->GetMaterial() : NULL;
 		const char* materialName = TCHAR_TO_ANSI(*matInterface->GetName());
 
 		FRPRXMaterialLibrary& rprMaterialLibrary = Scene->GetRPRMaterialLibrary();
 		if (matInterface->IsA<URPRMaterial>())
 		{
-			BuildRPRMaterial(shape, Cast<const URPRMaterial>(matInterface));
+			BuildRPRMaterial(shape, Cast<URPRMaterial>(matInterface));
 			continue;
 		}
 
@@ -398,12 +398,16 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 	return true;
 }
 
-void URPRStaticMeshComponent::BuildRPRMaterial(RPR::FShape& Shape, const URPRMaterial* Material)
+void URPRStaticMeshComponent::BuildRPRMaterial(RPR::FShape& Shape, URPRMaterial* Material)
 {
 	FRPRXMaterialLibrary& rprMaterialLibrary = Scene->GetRPRMaterialLibrary();
 	if (!rprMaterialLibrary.Contains(Material))
 	{
 		rprMaterialLibrary.CacheAndRegisterMaterial(Material);
+	}
+	else if (Material->bShouldCacheBeRebuild)
+	{
+		rprMaterialLibrary.RecacheMaterial(Material);
 	}
 
 	uint32 materialType;

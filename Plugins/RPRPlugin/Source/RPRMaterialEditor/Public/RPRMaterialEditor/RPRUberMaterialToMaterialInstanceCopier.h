@@ -57,29 +57,7 @@ private:
 	static void	SetParameterValueIfAvailable(UMaterialEditorInstanceConstant* RPRMaterialEditorInstance, 
 												const IParameterNameComparator& ParameterNameCompator, 
 												TValue InValue);
-
-	template<typename T>
-	static FName&	GetParameterGroupName() { return FName(); }
-
-	template<>
-	static FName&	GetParameterGroupName<class UDEditorStaticSwitchParameterValue>() { return StaticSwitchParameterGroupName; }
-
-	template<>
-	static FName&	GetParameterGroupName<class UDEditorTextureParameterValue>() { return TextureParameterGroupName; }
-
-	template<>
-	static FName&	GetParameterGroupName<class UDEditorVectorParameterValue>() { return VectorParameterGroupName; }
-
-	template<>
-	static FName&	GetParameterGroupName<class UDEditorScalarParameterValue>() { return ScalarParameterGroupName; }
-
-private:
-
-	static FName	VectorParameterGroupName;
-	static FName	ScalarParameterGroupName;
-	static FName	TextureParameterGroupName;
-	static FName	StaticSwitchParameterGroupName;
-
+	
 };
 
 template<typename... TSection>

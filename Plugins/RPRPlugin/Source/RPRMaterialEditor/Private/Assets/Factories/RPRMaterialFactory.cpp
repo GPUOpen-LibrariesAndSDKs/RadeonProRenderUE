@@ -91,8 +91,8 @@ void URPRMaterialFactory::LoadRPRMaterialParameter(URPRMaterial* RPRMaterial, FR
 {
 	FRPRUberMaterialParameters& materialParameters = RPRMaterial->MaterialParameters;
 
-	FRPRMaterialXmlNode* materialXmlNode = MaterialXmlGraph.GetFirstMaterial();
-	if (materialXmlNode != nullptr)
+	FRPRMaterialXmlUberNodePtr uberMaterialNode = MaterialXmlGraph.GetUberMaterial();
+	if (uberMaterialNode.IsValid())
 	{
 		FRPRMaterialNodeSerializationContext serializationContext;
 		serializationContext.bIsLoading = true;
@@ -100,7 +100,7 @@ void URPRMaterialFactory::LoadRPRMaterialParameter(URPRMaterial* RPRMaterial, FR
 		serializationContext.MaterialParameters = &RPRMaterial->MaterialParameters;
 		serializationContext.MaterialXmlGraph = &MaterialXmlGraph;
 
-		materialXmlNode->Serialize(serializationContext);
+		uberMaterialNode->Serialize(serializationContext);
 	}
 }
 

@@ -2,6 +2,7 @@
 <material name="Master_material_textured">
   <node name="UberMaterial #0" type="UBER">
     <param name="diffuse.color" type="connection" value="diffuse_input_texture" />
+	<param name="diffuse.color" type="float4" value="1, 0, 0, 1" />
     <param name="diffuse.weight" type="float4" value="1, 1, 1, 1" />
     <param name="diffuse.roughness" type="value" value="0,0,0,0" />
    

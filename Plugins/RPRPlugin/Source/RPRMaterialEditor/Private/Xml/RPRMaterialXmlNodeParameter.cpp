@@ -35,7 +35,8 @@ bool FRPRMaterialXmlNodeParameter::ParseFromXml(const FXmlNode& Node)
 
 void FRPRMaterialXmlNodeParameter::SerializeProperty(FRPRMaterialNodeSerializationContext& SerializationContext, UProperty* PropertyPtr)
 {
-	TSharedPtr<INodeParamType> nodeParam = FNodeParamTypeFactory::CreateNewNodeParam(Type);
+	FString type = PropertyPtr->GetCPPType();
+	TSharedPtr<INodeParamType> nodeParam = FNodeParamTypeFactory::CreateNewNodeParam(type);
 	if (nodeParam.IsValid())
 	{
 		nodeParam->Serialize(SerializationContext, *this, PropertyPtr);

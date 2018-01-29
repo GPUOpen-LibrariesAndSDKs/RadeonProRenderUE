@@ -3,6 +3,7 @@
 #include "NameTypes.h"
 #include "Array.h"
 #include "RPRMaterialXmlNode.h"
+#include "RPRMaterialXmlUberNode.h"
 
 class FRPRMaterialXmlGraph
 {
@@ -11,12 +12,24 @@ public:
 	bool	ParseFromXml(const class FXmlNode& Node);
 	void	Serialize(FRPRMaterialNodeSerializationContext& SerializationContext);
 
-	const FName&						GetName() const;
-	FRPRMaterialXmlNode*				GetFirstMaterial();
-	const FRPRMaterialXmlNode*			GetFirstMaterial() const;
-	const TArray<FRPRMaterialXmlNode>&	GetMaterials() const;
+	const FName&							GetName() const;
+	FRPRMaterialXmlUberNodePtr				GetUberMaterial() const;
+	FRPRMaterialXmlNodePtr					GetFirstMaterial();
+	const FRPRMaterialXmlNodePtr			GetFirstMaterial() const;
+	const TArray<FRPRMaterialXmlNodePtr>&	GetMaterials() const;
 
-	FRPRMaterialXmlNode*				FindNodeByName(const FName& NodeName);
+	FRPRMaterialXmlNodePtr				FindNodeByName(const FName& NodeName);
+
+	template<typename NodeType>
+	TSharedPtr<NodeType>				FindNodeByName(const FName& NodeName)
+	{
+		FRPRMaterialXmlNodePtr nodePtr = FindNodeByName(NodeName);
+		if (nodePtr.IsValid())
+		{
+			return (StaticCastSharedPtr<NodeType>(nodePtr));
+		}
+		return (nullptr);
+	}
 
 private:
 
@@ -25,6 +38,6 @@ private:
 private:
 	
 	FName Name;
-	TArray<FRPRMaterialXmlNode> Nodes;
+	TArray<FRPRMaterialXmlNodePtr> Nodes;
 
 };

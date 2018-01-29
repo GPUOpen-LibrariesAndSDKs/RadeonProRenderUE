@@ -8,5 +8,4 @@ class FPropertyHelper
 public:
 
 	static bool	IsPropertyMemberOf(const FPropertyChangedEvent& PropertyChangedEvent, const FString& PropertyName);
-
 };

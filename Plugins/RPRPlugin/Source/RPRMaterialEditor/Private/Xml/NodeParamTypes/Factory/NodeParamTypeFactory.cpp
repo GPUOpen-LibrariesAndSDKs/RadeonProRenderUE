@@ -1,32 +1,33 @@
 #include "NodeParamTypeFactory.h"
 
-#include "Connection/NodeParamConnection.h"
+#include "NodeParamRPRMaterialMap/NodeParamRPRMaterialMap.h"
+#include "RPRUberMaterialParameters.h"
+#include "IsClass.h"
+#include "SharedPointer.h"
 
-TSharedPtr<INodeParamType> FNodeParamTypeFactory::CreateNewNodeParam(ERPRMaterialNodeParameterValueType NodeParameterValueType)
+DECLARE_LOG_CATEGORY_CLASS(LogNodeParamTypeFactory, Log, All)
+
+TMap<FString, FNodeParamTypeCreator> FNodeParamTypeFactory::FactoryMap;
+
+TSharedPtr<INodeParamType> FNodeParamTypeFactory::CreateNewNodeParam(const FString& PropertyType)
 {
-	INodeParamType* paramType = nullptr;
-
-	switch (NodeParameterValueType)
+	if (FactoryMap.Num() == 0)
 	{
-	case ERPRMaterialNodeParameterValueType::Connection:
-		paramType = new FNodeParamConnection();
-		break;
-	case ERPRMaterialNodeParameterValueType::Float4:
-		break;
-	case ERPRMaterialNodeParameterValueType::Float:
-		break;
-	case ERPRMaterialNodeParameterValueType::UInt:
-		break;
+		#define ADD_TO_FACTORY_CHECK_CLASS(ClassCheck, NodeType) \
+			static_assert(TIsClass<ClassCheck>::Value, "Class doesn't exist"); \
+			FNodeParamTypeCreator func = FNodeParamTypeCreator::CreateLambda([]() { return MakeShareable(new NodeType()); }); \
+			FactoryMap.Add(TEXT(#ClassCheck), func);
 
-	default:
-		break;
+		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialMap, FNodeParamRPRMaterialMap);
 	}
 
-	if (paramType != nullptr)
+	FNodeParamTypeCreator* nodeParamTypeCreator = FactoryMap.Find(PropertyType);
+	if (nodeParamTypeCreator == nullptr)
 	{
-		return (MakeShareable(paramType));
+		UE_LOG(LogNodeParamTypeFactory, Warning, TEXT("Type %s not supported!"), *PropertyType);
+		return (nullptr);
 	}
 
-	return (nullptr);
+	TSharedPtr<INodeParamType> nodeParamType = nodeParamTypeCreator->Execute();
+	return (nodeParamType);
 }
-

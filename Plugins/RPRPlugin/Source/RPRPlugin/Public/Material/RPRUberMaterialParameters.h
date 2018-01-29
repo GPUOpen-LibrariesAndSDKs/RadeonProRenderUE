@@ -3,6 +3,7 @@
 #include "Engine/Texture2D.h"
 #include "RPRTypedefs.h"
 #include "Color.h"
+#include "UnrealTypeTraits.h"
 #include "RPRUberMaterialParameters.generated.h"
 
 
@@ -35,6 +36,7 @@ struct RPRPLUGIN_API FRPRMaterialBaseMap
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
 	UTexture2D*		Texture;
 };
+
 
 
 USTRUCT(BlueprintType)
