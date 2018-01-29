@@ -18,7 +18,6 @@ namespace RPRX
 
 		uint32 FArgs::GetRprxParam() const
 		{
-
 			const FString& meta = Property->GetMetaData(RPR::FMaterialConstants::PropertyMetaDataRprxParam);
 			const uint32 rprxParamValue = RPR::FUberMaterialParameterTypeMacroToValue::FindParameterTypeValueByName(meta);
 			return (rprxParamValue);

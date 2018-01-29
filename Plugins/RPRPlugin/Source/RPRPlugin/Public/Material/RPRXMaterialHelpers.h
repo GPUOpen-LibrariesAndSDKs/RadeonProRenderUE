@@ -30,7 +30,6 @@ namespace RPRX
 
 		static RPR::FResult	SetMaterialParameterColor(FContext Context, FMaterial Material,
 												FParameter Parameter, const FLinearColor& Color);
-
 	};
 
 

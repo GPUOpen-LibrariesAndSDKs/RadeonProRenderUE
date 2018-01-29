@@ -10,22 +10,22 @@
 UENUM(BlueprintType)
 enum class ERPRReflectionMode : uint8
 {
-	PBR,
-	Metalness,
+	PBR			= RPRX_UBER_MATERIAL_REFLECTION_MODE_PBR,
+	Metalness	= RPRX_UBER_MATERIAL_REFLECTION_MODE_METALNESS,
 };
 
 UENUM(BlueprintType)
 enum class ERPREmissionMode : uint8
 {
-	SingleSided,
-	DoubleSided
+	SingleSided = RPRX_UBER_MATERIAL_EMISSION_MODE_SINGLESIDED,
+	DoubleSided = RPRX_UBER_MATERIAL_EMISSION_MODE_DOUBLESIDED
 };
 
 UENUM(BlueprintType)
 enum class ERPRRefractionMode : uint8
 {
-	Separate,
-	Linked
+	Separate	= RPRX_UBER_MATERIAL_REFRACTION_MODE_SEPARATE,
+	Linked		= RPRX_UBER_MATERIAL_REFRACTION_MODE_LINKED
 };
 
 USTRUCT(BlueprintType)

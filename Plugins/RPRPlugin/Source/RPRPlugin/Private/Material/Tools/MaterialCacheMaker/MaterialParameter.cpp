@@ -86,7 +86,7 @@ namespace RPRX
 	void FUInt8ParameterSetter::ApplyParameterX(MaterialParameter::FArgs& SetterParameters)
 	{
 		const uint8* uint8Parameter = SetterParameters.GetDirectParameter<uint8>();
-		FMaterialHelpers::SetMaterialParameterFloat(
+		FMaterialHelpers::SetMaterialParameterUInt(
 			SetterParameters.MaterialContext.RPRXContext,
 			SetterParameters.Material, 
 			SetterParameters.GetRprxParam(), 
