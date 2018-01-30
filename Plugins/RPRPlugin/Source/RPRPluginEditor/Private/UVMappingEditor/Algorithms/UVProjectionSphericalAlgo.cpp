@@ -22,6 +22,7 @@ void FUVProjectionSphericalAlgo::StartAlgorithm()
 	//TArray<FColor> colors;
 	//FUVFixer::Fix(vertexPositions, wedgeIndices, NewUVs, colors);
 	FUVUtility::ShrinkUVsToBounds(NewUVs);
+	FUVUtility::CenterUVs(NewUVs);
 	//RawMesh.WedgeColors = colors;
 
 	StopAlgorithmAndRaiseCompletion(true);

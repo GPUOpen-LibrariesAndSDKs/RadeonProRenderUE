@@ -8,8 +8,16 @@
 #include "STextBlock.h"
 #include "Engine/StaticMesh.h"
 #include "SBox.h"
+#include "PropertyEditorModule.h"
+#include "IDetailsView.h"
+#include "RawMesh.h"
+#include "StaticMeshHelper.h"
 
 #define LOCTEXT_NAMESPACE "SUVMappingEditor"
+
+SUVMappingEditor::SUVMappingEditor()
+	: PreviousUVScale(1.0f, 1.0f)
+{}
 
 void SUVMappingEditor::Construct(const SUVMappingEditor::FArguments& InArgs)
 {
@@ -21,6 +29,13 @@ void SUVMappingEditor::Construct(const SUVMappingEditor::FArguments& InArgs)
 	AddUVProjectionListEntry(EUVProjectionType::Spherical,		LOCTEXT("ProjectionType_Spherical", "Spherical"),	FEditorStyle::GetBrush("ClassThumbnail.Sphere"), StaticMesh);
 	AddUVProjectionListEntry(EUVProjectionType::Cylindrical,	LOCTEXT("ProjectionType_Cylinder", "Cylinder"),		FEditorStyle::GetBrush("ClassThumbnail.Cylinder"), StaticMesh);
 
+	UVGlobalParameters = NewObject<UUVGlobalParameters>();
+
+	FPropertyEditorModule& propertyEditorModule = FModuleManager::Get().LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+	FDetailsViewArgs detailsViewArgs(false, false, true, FDetailsViewArgs::HideNameArea, true, this);
+	UVGlobalParametersWidget = propertyEditorModule.CreateDetailView(detailsViewArgs);
+	UVGlobalParametersWidget->SetObject(UVGlobalParameters, true);
+
 	this->ChildSlot
 		[
 			SNew(SScrollBox)
@@ -29,6 +44,10 @@ void SUVMappingEditor::Construct(const SUVMappingEditor::FArguments& InArgs)
 			[
 				SNew(STextBlock)
 				.Text(LOCTEXT("Label_UVProjection", "UV Projection"))
+			]
+			+SScrollBox::Slot()
+			[
+				UVGlobalParametersWidget.ToSharedRef()
 			]
 			+SScrollBox::Slot()
 			[
@@ -56,6 +75,28 @@ void SUVMappingEditor::SelectProjectionEntry(SUVProjectionTypeEntryPtr Projectio
 		HideSelectedUVProjectionWidget();
 		SelectedProjectionEntry = ProjectionEntry;
 		ShowSelectedUVProjectionWidget();
+	}
+}
+
+void SUVMappingEditor::AddReferencedObjects(FReferenceCollector& Collector)
+{
+	Collector.AddReferencedObject(UVGlobalParameters);
+}
+
+void SUVMappingEditor::NotifyPreChange(UProperty* PropertyAboutToChange)
+{
+	PreviousUVScale = UVGlobalParameters->UVScale;
+}
+
+void SUVMappingEditor::NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, UProperty* PropertyThatChanged)
+{
+	UProperty* memberProperty = PropertyChangedEvent.MemberProperty;
+	if (memberProperty->GetName() == GET_MEMBER_NAME_STRING_CHECKED(UUVGlobalParameters, UVScale))
+	{
+		const FVector2D oldRatio = (FVector2D(1, 1) / PreviousUVScale);
+		const FVector2D newRatio = (FVector2D(1, 1) / UVGlobalParameters->UVScale);
+		const FVector2D scaleDelta = oldRatio / newRatio;
+		ApplyDeltaScaleUV(scaleDelta);
 	}
 }
 
@@ -128,6 +169,35 @@ void SUVMappingEditor::ShowUVProjectionWidget(IUVProjectionPtr UVProjectionWidge
 		InjectUVProjectionWidget(UVProjectionWidget);
 		UVProjectionWidget->OnUVProjectionDisplayed();
 	}
+}
+
+void SUVMappingEditor::ApplyDeltaScaleUV(const FVector2D& ScaleDelta)
+{
+	// DIRTY CODE TO MOVE IN A GOOD PLACE
+
+	UStaticMesh* staticMesh = RPRStaticMeshEditorPtr->GetStaticMesh();
+
+	const FVector2D Center(0.5f, 0.5f);
+	const int32 ChannelUV = 0;
+
+	FRawMesh rawMesh;
+	FStaticMeshHelper::LoadRawMeshFromStaticMesh(staticMesh, rawMesh);
+	{
+		TArray<FVector2D>& wedgeTexCoords = rawMesh.WedgeTexCoords[ChannelUV];
+		for (int32 i = 0; i < wedgeTexCoords.Num(); ++i)
+		{
+			FVector2D uv = wedgeTexCoords[i];
+			{
+				FVector2D offsetFromCenter = uv - Center;
+				FVector2D newOffsetFromCenter = offsetFromCenter * ScaleDelta;
+				uv = newOffsetFromCenter + Center;
+			}
+			wedgeTexCoords[i] = uv;
+		}
+	}
+	FStaticMeshHelper::SaveRawMeshToStaticMesh(rawMesh, staticMesh);
+	staticMesh->PostEditChange();
+	staticMesh->MarkPackageDirty();
 }
 
 void SUVMappingEditor::InjectUVProjectionWidget(IUVProjectionPtr UVProjectionWidget)

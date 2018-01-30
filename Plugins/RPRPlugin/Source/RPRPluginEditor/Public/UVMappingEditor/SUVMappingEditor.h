@@ -5,8 +5,12 @@
 #include "STableRow.h"
 #include "SDockTab.h"
 #include "UVMappingEditor/SUVProjectionTypeEntry.h"
+#include "GCObject.h"
+#include "NotifyHook.h"
+#include "UVGlobalParameters.h"
+#include "IDetailsView.h"
 
-class SUVMappingEditor : public SCompoundWidget
+class SUVMappingEditor : public SCompoundWidget, public FGCObject, public FNotifyHook
 {
 public:
 
@@ -20,8 +24,16 @@ public:
 
 	SLATE_END_ARGS()
 
+	SUVMappingEditor();
+
 	void	Construct(const FArguments& InArgs);
 	void	SelectProjectionEntry(SUVProjectionTypeEntryPtr InProjectionEntry);
+	
+	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
+
+	virtual void NotifyPreChange(UProperty* PropertyAboutToChange) override;
+	virtual void NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, UProperty* PropertyThatChanged) override;
+
 
 private:
 
@@ -43,16 +55,22 @@ private:
 	void			ShowSelectedUVProjectionWidget();
 	void			ShowUVProjectionWidget(IUVProjectionPtr UVProjectionWidget);
 
+	void			ApplyDeltaScaleUV(const FVector2D& ScaleDelta);
+
 private:
 
 	TArray<SUVProjectionTypeEntryPtr>					UVProjectionTypeList;
 	TSharedPtr<SListView<SUVProjectionTypeEntryPtr>>	UVProjectionTypeListWidget;
 
 	TSharedPtr<SBorder>			UVProjectionContainer;
+	TSharedPtr<IDetailsView>	UVGlobalParametersWidget;
 
 	SUVProjectionTypeEntryPtr	SelectedProjectionEntry;
 	TSharedPtr<SWindow>			LastStaticMeshWindowSelected;
 
 	TSharedPtr<class FRPRStaticMeshEditor>		RPRStaticMeshEditorPtr;
+
+	UUVGlobalParameters*		UVGlobalParameters;
+	FVector2D					PreviousUVScale;
 
 };

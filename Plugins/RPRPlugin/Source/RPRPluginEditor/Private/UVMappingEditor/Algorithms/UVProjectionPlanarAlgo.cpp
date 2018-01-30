@@ -28,6 +28,7 @@ void FUVProjectionPlanarAlgo::StartAlgorithm()
 	PrepareUVs(NewUVs);
 	ProjectVertexOnPlane(Settings, vertexPositions, wedgeIndices, NewUVs);
 	FUVUtility::ShrinkUVsToBounds(NewUVs);
+	FUVUtility::CenterUVs(NewUVs);
 
 	StopAlgorithmAndRaiseCompletion(true);
 }
