@@ -19,10 +19,10 @@ void FUVProjectionSphericalAlgo::StartAlgorithm()
 	PrepareUVs(NewUVs);
 	ProjectVerticesOnSphere(Settings, vertexPositions, wedgeIndices, NewUVs);
 
-	TArray<FColor> colors;
-	FUVFixer::Fix(vertexPositions, wedgeIndices, NewUVs, colors);
-	//FUVUtility::ShrinkUVsToBounds(NewUVs);
-	RawMesh.WedgeColors = colors;
+	//TArray<FColor> colors;
+	//FUVFixer::Fix(vertexPositions, wedgeIndices, NewUVs, colors);
+	FUVUtility::ShrinkUVsToBounds(NewUVs);
+	//RawMesh.WedgeColors = colors;
 
 	StopAlgorithmAndRaiseCompletion(true);
 }
