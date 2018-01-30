@@ -471,7 +471,8 @@ bool	URPRStaticMeshComponent::Build()
 	std::set<WindingOrder> windingOrders;
 
 	TArray<SRPRCachedMesh>	shapes = GetMeshInstances(staticMesh);
-	if (shapes.Num() == 0) // No mesh in cache ?
+	// TODO : Reset the if so the cache system works again
+	if (true/*shapes.Num() == 0*/) // No mesh in cache ?
 	{
 		FIndexArrayView					srcIndices = lodRes.IndexBuffer.GetArrayView();
 		const FStaticMeshVertexBuffer	&srcVertices = lodRes.VertexBuffer;
