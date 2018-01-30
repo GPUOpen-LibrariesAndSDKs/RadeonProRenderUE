@@ -17,7 +17,7 @@ void FRPRUberMaterialToMaterialInstanceCopier::CopyParameters(const FRPRUberMate
 	CopyRPRMaterialMap(RPRUberMaterialParameters, RPRMaterialEditorInstance, RPRUberMaterialParameters.Reflection_Color, "Reflection_Color");
 	CopyRPRMaterialMap(RPRUberMaterialParameters, RPRMaterialEditorInstance, RPRUberMaterialParameters.Reflection_Weight, "Reflection_Weight");
 	CopyRPRMaterialMap(RPRUberMaterialParameters, RPRMaterialEditorInstance, RPRUberMaterialParameters.Reflection_Roughness, "Reflection_Roughness");
-	CopyRPRMaterialMapChannel1(RPRUberMaterialParameters, RPRMaterialEditorInstance, RPRUberMaterialParameters.Reflection_Metalness, "Reflection_Metalness");
+	CopyRPRMaterialMap(RPRUberMaterialParameters, RPRMaterialEditorInstance, RPRUberMaterialParameters.Reflection_Metalness, "Reflection_Metalness");
 
 	CopyRPRMaterialMap(RPRUberMaterialParameters, RPRMaterialEditorInstance, RPRUberMaterialParameters.Normal, "Normal");
 	CopyRPRMaterialMap(RPRUberMaterialParameters, RPRMaterialEditorInstance, RPRUberMaterialParameters.Bump, "Bump");

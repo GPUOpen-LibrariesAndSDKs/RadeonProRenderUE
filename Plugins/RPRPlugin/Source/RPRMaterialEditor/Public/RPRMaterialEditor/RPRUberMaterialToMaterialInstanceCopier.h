@@ -97,9 +97,11 @@ void FRPRUberMaterialToMaterialInstanceCopier::SetParameterValueIfAvailable(UMat
 		FString parameterNameString = editorParameterValues[i]->ParameterName.ToString();
 		if (ParameterNameCompator.DoesComparisonMatch(parameterNameString))
 		{
-			TDEditorParameterValue* specificEditorParameterValue = Cast<TDEditorParameterValue>(editorParameterValues[i]);
-			specificEditorParameterValue->ParameterValue = InValue;
-			specificEditorParameterValue->bOverride = true;
+			if (TDEditorParameterValue* specificEditorParameterValue = Cast<TDEditorParameterValue>(editorParameterValues[i]))
+			{
+				specificEditorParameterValue->ParameterValue = InValue;
+				specificEditorParameterValue->bOverride = true;
+			}
 		}
 	}
 }

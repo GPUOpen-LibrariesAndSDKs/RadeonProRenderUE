@@ -106,7 +106,7 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	FRPRMaterialMapChannel1	Reflection_AnisotropyRotation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection", meta = (XmlParamName = "reflection.metalness", rprxParam = RPRX_UBER_MATERIAL_REFLECTION_METALNESS))
-	FRPRMaterialMapChannel1	Reflection_Metalness;
+	FRPRMaterialMap			Reflection_Metalness;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection", meta = (XmlParamName = "reflection.mode", rprxParam = RPRX_UBER_MATERIAL_REFLECTION_MODE))
 	ERPRReflectionMode		Reflection_Mode;
