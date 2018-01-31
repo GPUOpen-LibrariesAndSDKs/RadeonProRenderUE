@@ -19,8 +19,11 @@ TSharedPtr<INodeParamType> FNodeParamTypeFactory::CreateNewNodeParam(const FStri
 			AddClassToFactory<ClassCheck, NodeType>(TEXT(#ClassCheck));
 		
 		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialMap, FNodeParamRPRMaterialMap);
-		AddNativeTypeToFactory<uint8, FNodeParamUInt>();
-		AddNativeTypeToFactory<bool, FNodeParamBool>();
+		//ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialMapChannel1, FNodeParamRPRMaterialMap);
+		//ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialBool, );
+		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialEnum, );
+		//AddNativeTypeToFactory<uint8, FNodeParamUInt>();
+		//AddNativeTypeToFactory<bool, FNodeParamBool>();
 	}
 
 	FNodeParamTypeCreator* nodeParamTypeCreator = FactoryMap.Find(PropertyType);

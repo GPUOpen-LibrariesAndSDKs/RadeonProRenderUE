@@ -4,30 +4,9 @@
 #include "RPRTypedefs.h"
 #include "Color.h"
 #include "UnrealTypeTraits.h"
+#include "RPRMaterialParameterEnums.h"
 #include "RPRUBerMaterialParameterBase.h"
 #include "RPRUberMaterialParameters.generated.h"
-
-
-UENUM(BlueprintType)
-enum class ERPRReflectionMode : uint8
-{
-	PBR			= RPRX_UBER_MATERIAL_REFLECTION_MODE_PBR,
-	Metalness	= RPRX_UBER_MATERIAL_REFLECTION_MODE_METALNESS,
-};
-
-UENUM(BlueprintType)
-enum class ERPREmissionMode : uint8
-{
-	SingleSided = RPRX_UBER_MATERIAL_EMISSION_MODE_SINGLESIDED,
-	DoubleSided = RPRX_UBER_MATERIAL_EMISSION_MODE_DOUBLESIDED
-};
-
-UENUM(BlueprintType)
-enum class ERPRRefractionMode : uint8
-{
-	Separate	= RPRX_UBER_MATERIAL_REFRACTION_MODE_SEPARATE,
-	Linked		= RPRX_UBER_MATERIAL_REFRACTION_MODE_LINKED
-};
 
 USTRUCT(BlueprintType)
 struct RPRPLUGIN_API FRPRMaterialBaseMap : public FRPRUberMaterialParameterBase
@@ -36,9 +15,10 @@ struct RPRPLUGIN_API FRPRMaterialBaseMap : public FRPRUberMaterialParameterBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
 	UTexture2D*		Texture;
+
+	FRPRMaterialBaseMap() {}
+	FRPRMaterialBaseMap(const FString& InXmlParamName, uint32 InRprxParamID);
 };
-
-
 
 USTRUCT(BlueprintType)
 struct RPRPLUGIN_API FRPRMaterialMap : public FRPRMaterialBaseMap
@@ -48,6 +28,7 @@ struct RPRPLUGIN_API FRPRMaterialMap : public FRPRMaterialBaseMap
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
 	FLinearColor	Constant;	
 
+	FRPRMaterialMap() {}
 	FRPRMaterialMap(const FString& InXmlParamName, uint32 InRprxParamID, float UniformConstant = 1.0f);
 
 };
@@ -60,19 +41,8 @@ struct RPRPLUGIN_API FRPRMaterialMapChannel1 : public FRPRMaterialBaseMap
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
 	float		Constant;
 
+	FRPRMaterialMapChannel1() {}
 	FRPRMaterialMapChannel1(const FString& InXmlParamName, uint32 InRprxParamID, float InConstantValue = 1.0f);
-
-};
-
-USTRUCT(BlueprintType)
-struct RPRPLUGIN_API FRPRMaterialNormal : public FRPRMaterialBaseMap
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
-	bool		bIsBump;
-
-	FRPRMaterialNormal(const FString& InXmlParamName, uint32 InRprxParamID);
 
 };
 
@@ -83,14 +53,47 @@ struct RPRPLUGIN_API FRPRMaterialBool : public FRPRUberMaterialParameterBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
 	bool	bIsEnabled;
+
+	FRPRMaterialBool() {}
+	FRPRMaterialBool(const FString& InXmlParamName, uint32 InRprxParamID, bool DefaultValue);
 };
 
-USTRUCT(Abstract)
+USTRUCT(BlueprintType)
 struct RPRPLUGIN_API FRPRMaterialEnum : public FRPRUberMaterialParameterBase
 {
+	friend struct FRPRUberMaterialParameters;
+
 	GENERATED_BODY()
 
+	UPROPERTY()
 	uint8	EnumValue;
+
+	UPROPERTY()
+	UEnum*	EnumType;
+
+	FRPRMaterialEnum() {}
+
+	template<typename TEnumType>
+	void	SetValue(TEnumType InEnumValue)
+	{
+		EnumValue = StaticCast<uint8>(InEnumValue);
+	}
+
+	void	SetRawValue(uint8 RawValue)
+	{
+		EnumValue = RawValue;
+	}
+
+private:
+
+	template<typename TEnumType>
+	void	Initialize(const FString& InXmlParamName, uint32 InRprxParamID, TEnumType InEnumValue)
+	{
+		SetValue<TEnumType>(InEnumValue);
+		EnumType = FindObject<UEnum>((UObject*)ANY_PACKAGE, TNameOf<TEnumType>::GetName(), true);
+		check(EnumType);
+	}
+
 };
 
 USTRUCT(BlueprintType)
@@ -127,7 +130,7 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	FRPRMaterialMap			Reflection_Metalness;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection", meta = (XmlParamName = "reflection.mode", rprxParam = RPRX_UBER_MATERIAL_REFLECTION_MODE))
-	ERPRReflectionMode		Reflection_Mode;
+	FRPRMaterialEnum		Reflection_Mode;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection", meta = (XmlParamName = "reflection.ior", rprxParam = RPRX_UBER_MATERIAL_REFLECTION_IOR))
 	FRPRMaterialMap			Reflection_Ior;
@@ -144,12 +147,12 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction", meta = (XmlParamName = "refraction.ior", rprxParam = RPRX_UBER_MATERIAL_REFRACTION_IOR))
 	FRPRMaterialMap			Refraction_Ior;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction", meta = (XmlParamName = "refraction.iorMode", rprxParam = RPRX_UBER_MATERIAL_REFRACTION_IOR_MODE))
-	ERPRRefractionMode		Refraction_Mode;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction", meta = (XmlParamName = "refraction.thinSurface", rprxParam = RPRX_UBER_MATERIAL_REFRACTION_THIN_SURFACE))
 	FRPRMaterialBool		Refraction_IsThinSurface;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction", meta = (XmlParamName = "refraction.iorMode", rprxParam = RPRX_UBER_MATERIAL_REFRACTION_IOR_MODE))
+	FRPRMaterialEnum		Refraction_Mode;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.color", rprxParam = RPRX_UBER_MATERIAL_COATING_COLOR))
@@ -164,11 +167,11 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.metalness", rprxParam = RPRX_UBER_MATERIAL_COATING_METALNESS))
 	FRPRMaterialMap			Coating_Metalness;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.mode", rprxParam = RPRX_UBER_MATERIAL_COATING_MODE))
-	ERPRReflectionMode		Coating_Mode;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.ior", rprxParam = RPRX_UBER_MATERIAL_COATING_IOR))
 	FRPRMaterialMap			Coating_Ior;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.mode", rprxParam = RPRX_UBER_MATERIAL_COATING_MODE))
+	FRPRMaterialEnum		Coating_Mode;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Emission", meta = (XmlParamName = "emission.color", rprxParam = RPRX_UBER_MATERIAL_EMISSION_COLOR))
@@ -178,7 +181,7 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	FRPRMaterialMap			Emission_Weight;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Emission", meta = (XmlParamName = "emission.mode", rprxParam = RPRX_UBER_MATERIAL_EMISSION_MODE))
-	ERPREmissionMode		Emission_Mode;
+	FRPRMaterialEnum		Emission_Mode;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Transparency", meta = (XmlParamName = "transparency", rprxParam = RPRX_UBER_MATERIAL_TRANSPARENCY))
@@ -217,7 +220,17 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	FRPRMaterialMap			SSS_SubSurface_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS", meta = (XmlParamName = "sss.multiScatter", rprxParam = RPRX_UBER_MATERIAL_SSS_MULTISCATTER))
-	bool					SSS_IsMultiScatter;
+	FRPRMaterialBool		SSS_IsMultiScatter;
 
 	FRPRUberMaterialParameters();
+
+private:
+	template<typename EnumType>
+	FRPRMaterialEnum	CreateEnum(const FString& InXmlParamName, uint32 InRprxParamID, EnumType InEnumValue)
+	{
+		FRPRMaterialEnum materialEnum;
+		materialEnum.Initialize<EnumType>(InXmlParamName, InRprxParamID, InEnumValue);
+		return (materialEnum);
+	}
 };
+

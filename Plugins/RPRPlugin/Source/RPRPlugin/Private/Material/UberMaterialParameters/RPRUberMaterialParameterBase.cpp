@@ -1,8 +1,12 @@
 #include "RPRUberMaterialParameterBase.h"
 
+FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase()
+	: RprxParamID(INDEX_NONE)
+{}
+
 FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID)
 	: XmlParamName(InXmlParamName)
-	, RprxParam(RprxParamID)
+	, RprxParamID(RprxParamID)
 {}
 
 uint32 FRPRUberMaterialParameterBase::GetRprxParam() const
@@ -15,7 +19,12 @@ const FString& FRPRUberMaterialParameterBase::GetXmlParamName() const
 	return (XmlParamName);
 }
 
-const FString& FRPRUberMaterialParameterBase::GetPropertyName(UProperty* Property) const
+FString FRPRUberMaterialParameterBase::GetPropertyName(UProperty* Property) const
 {
 	return (Property->GetName());
+}
+
+FString FRPRUberMaterialParameterBase::GetPropertyTypeName(UProperty* Property) const
+{
+	return (Property->GetCPPType());
 }

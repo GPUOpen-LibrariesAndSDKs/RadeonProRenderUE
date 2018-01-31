@@ -14,4 +14,9 @@ public:
 	*/
 	static FString	GetPropertyTypeName(const UProperty* Property);
 
+	static FRPRUberMaterialParameterBase*	GetParameterBaseFromProperty(const FRPRUberMaterialParameters* MaterialParameters,
+																			const UProperty* Property);
+
+	static bool				IsPropertyValidUberParameterProperty(const UProperty* Property);
+	static const UStruct*	GetTopStructProperty(const UStruct* Struct);
 };
