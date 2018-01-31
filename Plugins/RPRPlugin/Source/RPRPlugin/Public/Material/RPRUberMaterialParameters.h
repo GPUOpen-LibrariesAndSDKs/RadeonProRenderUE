@@ -4,6 +4,7 @@
 #include "RPRTypedefs.h"
 #include "Color.h"
 #include "UnrealTypeTraits.h"
+#include "RPRUBerMaterialParameterBase.h"
 #include "RPRUberMaterialParameters.generated.h"
 
 
@@ -29,7 +30,7 @@ enum class ERPRRefractionMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct RPRPLUGIN_API FRPRMaterialBaseMap
+struct RPRPLUGIN_API FRPRMaterialBaseMap : public FRPRUberMaterialParameterBase
 {
 	GENERATED_BODY()
 
@@ -47,7 +48,7 @@ struct RPRPLUGIN_API FRPRMaterialMap : public FRPRMaterialBaseMap
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
 	FLinearColor	Constant;	
 
-	FRPRMaterialMap(float UniformConstant = 1.0f);
+	FRPRMaterialMap(const FString& InXmlParamName, uint32 InRprxParamID, float UniformConstant = 1.0f);
 
 };
 
@@ -59,7 +60,7 @@ struct RPRPLUGIN_API FRPRMaterialMapChannel1 : public FRPRMaterialBaseMap
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
 	float		Constant;
 
-	FRPRMaterialMapChannel1(float InConstantValue = 1.0f);
+	FRPRMaterialMapChannel1(const FString& InXmlParamName, uint32 InRprxParamID, float InConstantValue = 1.0f);
 
 };
 
@@ -71,8 +72,25 @@ struct RPRPLUGIN_API FRPRMaterialNormal : public FRPRMaterialBaseMap
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
 	bool		bIsBump;
 
-	FRPRMaterialNormal();
+	FRPRMaterialNormal(const FString& InXmlParamName, uint32 InRprxParamID);
 
+};
+
+USTRUCT(BlueprintType)
+struct RPRPLUGIN_API FRPRMaterialBool : public FRPRUberMaterialParameterBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
+	bool	bIsEnabled;
+};
+
+USTRUCT(Abstract)
+struct RPRPLUGIN_API FRPRMaterialEnum : public FRPRUberMaterialParameterBase
+{
+	GENERATED_BODY()
+
+	uint8	EnumValue;
 };
 
 USTRUCT(BlueprintType)
@@ -115,7 +133,7 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	FRPRMaterialMap			Reflection_Ior;
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction", meta = (XmlParamName = "refraction.ior", rprxParam = RPRX_UBER_MATERIAL_REFRACTION_COLOR))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction", meta = (XmlParamName = "refraction.color", rprxParam = RPRX_UBER_MATERIAL_REFRACTION_COLOR))
 	FRPRMaterialMap			Refraction_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction", meta = (XmlParamName = "refraction.weight", rprxParam = RPRX_UBER_MATERIAL_REFRACTION_WEIGHT))
@@ -131,10 +149,10 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	ERPRRefractionMode		Refraction_Mode;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction", meta = (XmlParamName = "refraction.thinSurface", rprxParam = RPRX_UBER_MATERIAL_REFRACTION_THIN_SURFACE))
-	bool					Refraction_IsThinSurface;
+	FRPRMaterialBool		Refraction_IsThinSurface;
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.ior", rprxParam = RPRX_UBER_MATERIAL_COATING_COLOR))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.color", rprxParam = RPRX_UBER_MATERIAL_COATING_COLOR))
 	FRPRMaterialMap			Coating_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.weight", rprxParam = RPRX_UBER_MATERIAL_COATING_WEIGHT))
