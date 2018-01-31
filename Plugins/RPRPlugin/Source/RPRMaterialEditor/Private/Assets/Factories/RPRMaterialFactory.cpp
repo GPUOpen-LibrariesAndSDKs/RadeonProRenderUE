@@ -8,6 +8,8 @@
 #include "RPRPlugin/Public/Assets/RPRMaterial.h"
 #include "RPRUberMaterialToMaterialInstanceCopier.h"
 
+DECLARE_LOG_CATEGORY_CLASS(LogRPRMaterialFactory, Log, All)
+
 URPRMaterialFactory::URPRMaterialFactory(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -65,7 +67,7 @@ bool URPRMaterialFactory::LoadRPRMaterialFromXmlFile(URPRMaterial* RPRMaterial, 
 
 	if (!xmlFile.IsValid())
 	{
-		//UE_LOG(LogRPRPluginEditor, Error, TEXT("%s"), *xmlFile.GetLastError());
+		UE_LOG(LogRPRMaterialFactory, Error, TEXT("%s"), *xmlFile.GetLastError());
 		return (false);
 	}
 
@@ -76,7 +78,7 @@ bool URPRMaterialFactory::LoadRPRMaterialFromXmlFile(URPRMaterial* RPRMaterial, 
 		FRPRMaterialXmlGraph materialXmlGraph;
 		if (!materialXmlGraph.ParseFromXml(*materialNode))
 		{
-			//UE_LOG(LogRPRPluginEditor, Error, TEXT("Could not parse correctly the Xml file!"));
+			UE_LOG(LogRPRMaterialFactory, Error, TEXT("Could not parse correctly the Xml file!"));
 			return (false);
 		}
 

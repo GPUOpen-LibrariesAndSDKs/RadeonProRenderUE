@@ -1,5 +1,4 @@
 #include "RPRMaterialEditorModule.h"
-#include "RPRMaterialInstanceTab.h"
 #include "RPRMaterialAssetTypeActions.h"
 #include "IAssetTools.h"
 
@@ -10,12 +9,10 @@ DEFINE_LOG_CATEGORY(LogRPRMaterialEditor)
 void RPRMaterialEditorModule::StartupModule()
 {
 	RegisterAssetTypeActions();
-	FRPRMaterialInstanceTab::Register();
 }
 
 void RPRMaterialEditorModule::ShutdownModule()
 {
-	FRPRMaterialInstanceTab::Unregister();
 	UnregisterAllAssetTypeActions();
 }
 
