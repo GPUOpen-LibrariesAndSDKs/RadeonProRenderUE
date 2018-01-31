@@ -14,7 +14,7 @@ public:
 
 	bool	ParseFromXmlFile(const FString& Filename);
 	bool	ParseFromXml(const class FXmlNode& Node);
-	void	Serialize(FRPRMaterialNodeSerializationContext& SerializationContext);
+	void	LoadRPRMaterialParameters(FRPRMaterialNodeSerializationContext& SerializationContext);
 
 	const FName&							GetName() const;
 	FRPRMaterialXmlUberNodePtr				GetUberMaterial() const;

@@ -1,9 +1,11 @@
 #include "NodeParamTypeFactory.h"
 
-#include "NodeParamRPRMaterialMap/NodeParamRPRMaterialMap.h"
 #include "RPRUberMaterialParameters.h"
 #include "IsClass.h"
 #include "SharedPointer.h"
+#include "NodeParamRPRMaterialMap/NodeParamRPRMaterialMap.h"
+#include "NodeParamUInt/NodeParamUInt.h"
+#include "NodeParamBool/NodeParamBool.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogNodeParamTypeFactory, Log, All)
 
@@ -14,11 +16,11 @@ TSharedPtr<INodeParamType> FNodeParamTypeFactory::CreateNewNodeParam(const FStri
 	if (FactoryMap.Num() == 0)
 	{
 		#define ADD_TO_FACTORY_CHECK_CLASS(ClassCheck, NodeType) \
-			static_assert(TIsClass<ClassCheck>::Value, "Class doesn't exist"); \
-			FNodeParamTypeCreator func = FNodeParamTypeCreator::CreateLambda([]() { return MakeShareable(new NodeType()); }); \
-			FactoryMap.Add(TEXT(#ClassCheck), func);
-
+			AddClassToFactory<ClassCheck, NodeType>(TEXT(#ClassCheck));
+		
 		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialMap, FNodeParamRPRMaterialMap);
+		AddNativeTypeToFactory<uint8, FNodeParamUInt>();
+		AddNativeTypeToFactory<bool, FNodeParamBool>();
 	}
 
 	FNodeParamTypeCreator* nodeParamTypeCreator = FactoryMap.Find(PropertyType);
@@ -30,4 +32,10 @@ TSharedPtr<INodeParamType> FNodeParamTypeFactory::CreateNewNodeParam(const FStri
 
 	TSharedPtr<INodeParamType> nodeParamType = nodeParamTypeCreator->Execute();
 	return (nodeParamType);
+}
+
+
+void FNodeParamTypeFactory::AddToFactory(const FString& Key, FNodeParamTypeCreator Value)
+{
+	FactoryMap.Add(Key, Value);
 }

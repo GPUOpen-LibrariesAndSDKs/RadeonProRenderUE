@@ -5,6 +5,13 @@
 #include "Containers/Map.h"
 #include "UnrealString.h"
 
+/*
+ * Represents a parameter node in the RPR Material xml file.
+ * Example : 
+ * <param name="diffuse.color" type="connection" value="diffuse_input_texture" />
+ * or :
+ * <param name="diffuse.color" type="float4" value="1, 0, 0, 1" />
+ */
 class FRPRMaterialXmlNodeParameter
 {
 public:
@@ -12,7 +19,7 @@ public:
 	FRPRMaterialXmlNodeParameter();
 
 	bool	ParseFromXml(const class FXmlNode& Node);
-	void	SerializeProperty(struct FRPRMaterialNodeSerializationContext& SerializationContext, UProperty* PropertyPtr);
+	void	LoadRPRMaterialParameters(struct FRPRMaterialNodeSerializationContext& SerializationContext, UProperty* PropertyPtr);
 	
 	const FName&	GetName() const;
 	const FString&	GetValue() const;

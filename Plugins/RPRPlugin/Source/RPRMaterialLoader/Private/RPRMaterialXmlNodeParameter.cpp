@@ -5,6 +5,7 @@
 #include "RPRMaterialXmlGraph.h"
 #include "INodeParamType.h"
 #include "XmlNode.h"
+#include "UberMaterialPropertyHelper.h"
 
 #define NODE_ATTRIBUTE_NAME		TEXT("name")
 #define NODE_ATTRIBUTE_TYPE		TEXT("type")
@@ -20,6 +21,7 @@ FRPRMaterialXmlNodeParameter::FRPRMaterialXmlNodeParameter()
 		TypeStringToTypeEnumMap.Add(TEXT("float4"), ERPRMaterialNodeParameterValueType::Float4);
 		TypeStringToTypeEnumMap.Add(TEXT("float"), ERPRMaterialNodeParameterValueType::Float);
 		TypeStringToTypeEnumMap.Add(TEXT("uint"), ERPRMaterialNodeParameterValueType::UInt);
+		TypeStringToTypeEnumMap.Add(TEXT("bool"), ERPRMaterialNodeParameterValueType::Bool);
 		TypeStringToTypeEnumMap.Add(TEXT("file_path"), ERPRMaterialNodeParameterValueType::FilePath);
 	}
 }
@@ -33,13 +35,14 @@ bool FRPRMaterialXmlNodeParameter::ParseFromXml(const FXmlNode& Node)
 	return (!Name.IsNone() && Type != ERPRMaterialNodeParameterValueType::Unsupported && !Value.IsEmpty());
 }
 
-void FRPRMaterialXmlNodeParameter::SerializeProperty(FRPRMaterialNodeSerializationContext& SerializationContext, UProperty* PropertyPtr)
+void FRPRMaterialXmlNodeParameter::LoadRPRMaterialParameters(FRPRMaterialNodeSerializationContext& SerializationContext, 
+																									UProperty* PropertyPtr)
 {
-	FString type = PropertyPtr->GetCPPType();
+	FString type = FUberMaterialPropertyHelper::GetPropertyTypeName(PropertyPtr);
 	TSharedPtr<INodeParamType> nodeParam = FNodeParamTypeFactory::CreateNewNodeParam(type);
 	if (nodeParam.IsValid())
 	{
-		nodeParam->Serialize(SerializationContext, *this, PropertyPtr);
+		nodeParam->LoadRPRMaterialParameters(SerializationContext, *this, PropertyPtr);
 	}
 }
 

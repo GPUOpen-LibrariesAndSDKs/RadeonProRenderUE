@@ -38,12 +38,12 @@ bool FRPRMaterialXmlGraph::ParseFromXml(const FXmlNode& Node)
 	return (Name.IsValid() && Nodes.Num() > 0);
 }
 
-void FRPRMaterialXmlGraph::Serialize(FRPRMaterialNodeSerializationContext& SerializationContext)
+void FRPRMaterialXmlGraph::LoadRPRMaterialParameters(FRPRMaterialNodeSerializationContext& SerializationContext)
 {
 	FRPRMaterialXmlUberNodePtr material = GetUberMaterial();
 	if (material.IsValid())
 	{
-		material->Serialize(SerializationContext);
+		material->LoadRPRMaterialParameters(SerializationContext);
 	}
 }
 

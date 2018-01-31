@@ -1,5 +1,6 @@
 #include "ParameterFactory.h"
 #include "MaterialParameter.h"
+#include "UberMaterialPropertyHelper.h"
 
 namespace RPRX
 {
@@ -15,7 +16,7 @@ namespace RPRX
 
 			REGISTER_PARAMETER_CHECK_CLASS(FRPRMaterialMap, FMaterialMapParameterSetter);
 			REGISTER_PARAMETER_CHECK_CLASS(FRPRMaterialMapChannel1, FMaterialMapChannel1ParameterSetter);
-			RegisterParameterSetter<FUInt8ParameterSetter>(TEXT("uint8"));
+			RegisterParameterSetter<FUInt8ParameterSetter>(TNameOf<uint8>::GetName());
 		}
 
 		void FFactory::InitializeMapIfRequired()
@@ -30,21 +31,10 @@ namespace RPRX
 		{
 			InitializeMapIfRequired();
 
-			FString propertyNameType = GetPropertyName(Property);
+			FString propertyNameType = FUberMaterialPropertyHelper::GetPropertyTypeName(Property);
 
 			FParameterCreator* creator = Map.Find(*propertyNameType);
 			return (creator != nullptr ? (*creator)() : nullptr);
-		}
-
-		FString	FFactory::GetPropertyName(const UProperty* Property)
-		{
-			const UEnumProperty* enumProperty = Cast<const UEnumProperty>(Property);
-			if (enumProperty)
-			{
-				return (TEXT("uint8"));
-			}
-
-			return (Property->GetCPPType());
 		}
 	}
 }

@@ -28,7 +28,7 @@ public class RPRMaterialEditor : ModuleRules
         PrivateIncludePaths.AddRange(
             new string[] {
                 "RPRMaterialEditor/Private",
-
+                
                 "RPRMaterialEditor/Tools/PropertyHelper",
 
                 "RPRMaterialEditor/Private/RPRMaterialEditor",

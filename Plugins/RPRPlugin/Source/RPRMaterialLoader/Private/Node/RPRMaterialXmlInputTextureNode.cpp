@@ -57,7 +57,7 @@ UTexture2D* FRPRMaterialXmlInputTextureNode::TryLoadingTextureIfAvailable(const 
 	FString objectFilePath = FilePath + TEXT(".") + FPaths::GetBaseFilename(FilePath);
 
 	// The file may have already been imported, in that case, just load it
-	UTexture2D* existingTexture = FindObject<UTexture2D>((UObject*)ANY_PACKAGE, *objectFilePath);
+	UTexture2D* existingTexture = LoadObject<UTexture2D>(nullptr, *objectFilePath);
 	return (existingTexture);
 }
 

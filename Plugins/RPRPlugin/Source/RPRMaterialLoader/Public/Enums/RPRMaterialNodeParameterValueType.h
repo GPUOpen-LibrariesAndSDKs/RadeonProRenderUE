@@ -7,5 +7,6 @@ enum class ERPRMaterialNodeParameterValueType
 	Float4,
 	Float,
 	UInt,
+	Bool,
 	FilePath
 };

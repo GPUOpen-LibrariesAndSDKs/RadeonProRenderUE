@@ -6,9 +6,9 @@ ERPRMaterialNodeType FRPRMaterialXmlUberNode::GetNodeType() const
 	return (ERPRMaterialNodeType::Uber);
 }
 
-void FRPRMaterialXmlUberNode::Serialize(FRPRMaterialNodeSerializationContext& SerializationContext)
+void FRPRMaterialXmlUberNode::LoadRPRMaterialParameters(FRPRMaterialNodeSerializationContext& SerializationContext)
 {
-	// For each Xml node, find the associated property (thanks to meta specifier) and set the value
+	// For each Xml node, find the associated property (thanks to meta specifier) and load the value into the URPRMaterial
 	UStruct* materialParametersStruct = FRPRUberMaterialParameters::StaticStruct();
 
 	for (FRPRMaterialXmlNodeParameter& parameter : Parameters)
@@ -16,7 +16,7 @@ void FRPRMaterialXmlUberNode::Serialize(FRPRMaterialNodeSerializationContext& Se
 		UProperty* propertyPtr = FindPropertyByMetaDataXmlParamName(materialParametersStruct, parameter.GetName());
 		if (propertyPtr != nullptr)
 		{
-			parameter.SerializeProperty(SerializationContext, propertyPtr);
+			parameter.LoadRPRMaterialParameters(SerializationContext, propertyPtr);
 		}
 	}
 }

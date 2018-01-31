@@ -9,12 +9,12 @@
 
 DECLARE_LOG_CATEGORY_CLASS(LogNodeParamRPRMaterialMap, Log, All)
 
-void FNodeParamRPRMaterialMap::Serialize(FRPRMaterialNodeSerializationContext& SerializationContext, 
+void FNodeParamRPRMaterialMap::LoadRPRMaterialParameters(FRPRMaterialNodeSerializationContext& SerializationContext, 
 											FRPRMaterialXmlNodeParameter& CurrentNodeParameter, 
 											UProperty* Property)
 {
 	FRPRMaterialMap* rprMaterialMap = 
-		Property->ContainerPtrToValuePtr<FRPRMaterialMap>(SerializationContext.MaterialParameters);
+		SerializationContext.GetDirectMaterialParameter<FRPRMaterialMap>(Property);
 
 	switch (CurrentNodeParameter.GetType())
 	{

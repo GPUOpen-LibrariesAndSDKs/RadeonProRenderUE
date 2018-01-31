@@ -69,26 +69,20 @@ bool URPRMaterialFactory::LoadRPRMaterialFromXmlFile(URPRMaterial* RPRMaterial, 
 		return (false);
 	}
 
-	LoadRPRMaterialParameter(RPRMaterial, materialXmlGraph, Filename);
+	LoadRPRMaterialParameters(RPRMaterial, materialXmlGraph, Filename);
 	CopyRPRMaterialParameterToMaterialInstance(RPRMaterial);
 
 	return (true);
 }
 
-void URPRMaterialFactory::LoadRPRMaterialParameter(URPRMaterial* RPRMaterial, FRPRMaterialXmlGraph& MaterialXmlGraph, const FString& Filename)
+void URPRMaterialFactory::LoadRPRMaterialParameters(URPRMaterial* RPRMaterial, FRPRMaterialXmlGraph& MaterialXmlGraph, const FString& Filename)
 {
-	FRPRUberMaterialParameters& materialParameters = RPRMaterial->MaterialParameters;
+	FRPRMaterialNodeSerializationContext serializationContext;
+	serializationContext.ImportedFilePath = Filename;
+	serializationContext.MaterialParameters = &RPRMaterial->MaterialParameters;
+	serializationContext.MaterialXmlGraph = &MaterialXmlGraph;
 
-	FRPRMaterialXmlUberNodePtr uberMaterialNode = MaterialXmlGraph.GetUberMaterial();
-	if (uberMaterialNode.IsValid())
-	{
-		FRPRMaterialNodeSerializationContext serializationContext;
-		serializationContext.ImportedFilePath = Filename;
-		serializationContext.MaterialParameters = &RPRMaterial->MaterialParameters;
-		serializationContext.MaterialXmlGraph = &MaterialXmlGraph;
-
-		uberMaterialNode->Serialize(serializationContext);
-	}
+	MaterialXmlGraph.LoadRPRMaterialParameters(serializationContext);
 }
 
 void URPRMaterialFactory::CopyRPRMaterialParameterToMaterialInstance(class URPRMaterial* RPRMaterial)
