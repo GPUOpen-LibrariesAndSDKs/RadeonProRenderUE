@@ -23,6 +23,7 @@ namespace RPRX
 
 			static void		InitializeMap();
 			static void		InitializeMapIfRequired();
+			static FString	GetPropertyName(const UProperty* Property) const;
 
 			template<typename ParameterSetterType>
 			static TSharedPtr<IMaterialParameter>	InstantiateParameterType();
@@ -32,9 +33,6 @@ namespace RPRX
 			static TMap<FName, FParameterCreator> Map;
 		};
 
-		//////////////////////////////
-		/* Template implementations */
-		//////////////////////////////
 
 		template<typename ParameterSetterType>
 		void	FFactory::RegisterParameterSetter(const FName& PropertyTypeName)

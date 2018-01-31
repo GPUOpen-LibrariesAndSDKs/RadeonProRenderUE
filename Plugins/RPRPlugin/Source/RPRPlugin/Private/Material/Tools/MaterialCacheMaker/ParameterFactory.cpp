@@ -30,20 +30,21 @@ namespace RPRX
 		{
 			InitializeMapIfRequired();
 
-			FString propertyNameType;
-
-			UEnumProperty* enumProperty = Cast<UEnumProperty>(Property);
-			if (enumProperty)
-			{
-				propertyNameType = TEXT("uint8");
-			}
-			else
-			{
-				propertyNameType = Property->GetCPPType();
-			}
+			FString propertyNameType = GetPropertyName(Property);
 
 			FParameterCreator* creator = Map.Find(*propertyNameType);
 			return (creator != nullptr ? (*creator)() : nullptr);
+		}
+
+		FString	GetPropertyName(const UProperty* Property) const
+		{
+			const UEnumProperty* enumProperty = Cast<const UEnumProperty>(Property);
+			if (enumProperty)
+			{
+				return (TEXT("uint8"));
+			}
+
+			return (Property->GetCPPType());
 		}
 	}
 }
