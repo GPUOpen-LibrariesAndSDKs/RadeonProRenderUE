@@ -36,7 +36,7 @@ namespace RPRX
 			return (creator != nullptr ? (*creator)() : nullptr);
 		}
 
-		FString	GetPropertyName(const UProperty* Property) const
+		FString	FFactory::GetPropertyName(const UProperty* Property)
 		{
 			const UEnumProperty* enumProperty = Cast<const UEnumProperty>(Property);
 			if (enumProperty)

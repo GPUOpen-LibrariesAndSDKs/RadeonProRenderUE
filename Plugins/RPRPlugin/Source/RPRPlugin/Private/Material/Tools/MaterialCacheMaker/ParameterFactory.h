@@ -23,7 +23,7 @@ namespace RPRX
 
 			static void		InitializeMap();
 			static void		InitializeMapIfRequired();
-			static FString	GetPropertyName(const UProperty* Property) const;
+			static FString	GetPropertyName(const UProperty* Property);
 
 			template<typename ParameterSetterType>
 			static TSharedPtr<IMaterialParameter>	InstantiateParameterType();
