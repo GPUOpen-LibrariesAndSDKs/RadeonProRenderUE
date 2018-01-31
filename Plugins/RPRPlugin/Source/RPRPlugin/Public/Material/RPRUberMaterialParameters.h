@@ -115,7 +115,7 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	FRPRMaterialMap			Reflection_Ior;
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction", meta = (XmlParamName = "refraction.ior", rprxParam = RPRX_UBER_MATERIAL_REFRACTION_COLOR))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction", meta = (XmlParamName = "refraction.color", rprxParam = RPRX_UBER_MATERIAL_REFRACTION_COLOR))
 	FRPRMaterialMap			Refraction_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction", meta = (XmlParamName = "refraction.weight", rprxParam = RPRX_UBER_MATERIAL_REFRACTION_WEIGHT))
@@ -134,7 +134,7 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	bool					Refraction_IsThinSurface;
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.ior", rprxParam = RPRX_UBER_MATERIAL_COATING_COLOR))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.color", rprxParam = RPRX_UBER_MATERIAL_COATING_COLOR))
 	FRPRMaterialMap			Coating_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.weight", rprxParam = RPRX_UBER_MATERIAL_COATING_WEIGHT))
