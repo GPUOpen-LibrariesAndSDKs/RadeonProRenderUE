@@ -20,6 +20,10 @@
 			"LoadingPhase": "Default"
 		},
 		{
+			"Name": "RPRMaterialLoader",
+			"Type": "Editor"
+		},
+		{
 			"Name": "RPRPluginEditor",
 			"Type": "Editor"
 		},

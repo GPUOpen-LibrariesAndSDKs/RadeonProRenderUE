@@ -1,5 +1,4 @@
 #include "RPRMaterialXmlNode.h"
-#include "RPRMaterialEditorModule.h"
 #include "RPRUberMaterialParameters.h"
 #include "RPRMaterialXmlNodeParameter.h"
 #include "RPREditorMaterialConstants.h"

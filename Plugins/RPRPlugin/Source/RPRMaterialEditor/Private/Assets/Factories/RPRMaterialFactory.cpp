@@ -1,7 +1,6 @@
 #include "RPRMaterialFactory.h"
 #include "RPRPlugin.h"
 #include "Editor.h"
-#include "XmlFile.h"
 #include "RPRSettings.h"
 #include "FeedbackContext.h"
 #include "RPRMaterialXmlGraph.h"
@@ -63,28 +62,15 @@ UObject* URPRMaterialFactory::FactoryCreateFile(UClass* InClass, UObject* InPare
 
 bool URPRMaterialFactory::LoadRPRMaterialFromXmlFile(URPRMaterial* RPRMaterial, const FString& Filename)
 {
-	FXmlFile xmlFile(Filename);
-
-	if (!xmlFile.IsValid())
+	FRPRMaterialXmlGraph materialXmlGraph;
+	if (!materialXmlGraph.ParseFromXmlFile(Filename))
 	{
-		UE_LOG(LogRPRMaterialFactory, Error, TEXT("%s"), *xmlFile.GetLastError());
+		UE_LOG(LogRPRMaterialFactory, Error, TEXT("Could not parse correctly the Xml file!"));
 		return (false);
 	}
 
-	// Get root node
-	const FXmlNode* materialNode = xmlFile.GetRootNode();
-	if (materialNode)
-	{
-		FRPRMaterialXmlGraph materialXmlGraph;
-		if (!materialXmlGraph.ParseFromXml(*materialNode))
-		{
-			UE_LOG(LogRPRMaterialFactory, Error, TEXT("Could not parse correctly the Xml file!"));
-			return (false);
-		}
-
-		LoadRPRMaterialParameter(RPRMaterial, materialXmlGraph, Filename);
-		CopyRPRMaterialParameterToMaterialInstance(RPRMaterial);
-	}
+	LoadRPRMaterialParameter(RPRMaterial, materialXmlGraph, Filename);
+	CopyRPRMaterialParameterToMaterialInstance(RPRMaterial);
 
 	return (true);
 }
@@ -97,7 +83,6 @@ void URPRMaterialFactory::LoadRPRMaterialParameter(URPRMaterial* RPRMaterial, FR
 	if (uberMaterialNode.IsValid())
 	{
 		FRPRMaterialNodeSerializationContext serializationContext;
-		serializationContext.bIsLoading = true;
 		serializationContext.ImportedFilePath = Filename;
 		serializationContext.MaterialParameters = &RPRMaterial->MaterialParameters;
 		serializationContext.MaterialXmlGraph = &MaterialXmlGraph;

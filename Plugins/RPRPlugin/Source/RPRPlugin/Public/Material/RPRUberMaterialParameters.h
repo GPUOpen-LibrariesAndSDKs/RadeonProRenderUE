@@ -112,7 +112,7 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	ERPRReflectionMode		Reflection_Mode;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection", meta = (XmlParamName = "reflection.ior", rprxParam = RPRX_UBER_MATERIAL_REFLECTION_IOR))
-	FRPRMaterialMapChannel1	Reflection_Ior;
+	FRPRMaterialMap			Reflection_Ior;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction", meta = (XmlParamName = "refraction.ior", rprxParam = RPRX_UBER_MATERIAL_REFRACTION_COLOR))
@@ -125,7 +125,7 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	FRPRMaterialMap			Refraction_Roughness;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction", meta = (XmlParamName = "refraction.ior", rprxParam = RPRX_UBER_MATERIAL_REFRACTION_IOR))
-	FRPRMaterialMapChannel1	Refraction_Ior;
+	FRPRMaterialMap			Refraction_Ior;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction", meta = (XmlParamName = "refraction.iorMode", rprxParam = RPRX_UBER_MATERIAL_REFRACTION_IOR_MODE))
 	ERPRRefractionMode		Refraction_Mode;
@@ -138,26 +138,26 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	FRPRMaterialMap			Coating_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.weight", rprxParam = RPRX_UBER_MATERIAL_COATING_WEIGHT))
-	FRPRMaterialMapChannel1	Coating_Weight;
+	FRPRMaterialMap			Coating_Weight;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.roughness", rprxParam = RPRX_UBER_MATERIAL_COATING_ROUGHNESS))
-	FRPRMaterialMapChannel1	Coating_Roughness;
+	FRPRMaterialMap			Coating_Roughness;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.metalness", rprxParam = RPRX_UBER_MATERIAL_COATING_METALNESS))
-	FRPRMaterialMapChannel1	Coating_Metalness;
+	FRPRMaterialMap			Coating_Metalness;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.mode", rprxParam = RPRX_UBER_MATERIAL_COATING_MODE))
 	ERPRReflectionMode		Coating_Mode;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.ior", rprxParam = RPRX_UBER_MATERIAL_COATING_IOR))
-	FRPRMaterialMapChannel1	Coating_Ior;
+	FRPRMaterialMap			Coating_Ior;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Emission", meta = (XmlParamName = "emission.color", rprxParam = RPRX_UBER_MATERIAL_EMISSION_COLOR))
 	FRPRMaterialMap			Emission_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Emission", meta = (XmlParamName = "emission.weight", rprxParam = RPRX_UBER_MATERIAL_EMISSION_WEIGHT))
-	FRPRMaterialMapChannel1	Emission_Weight;
+	FRPRMaterialMap			Emission_Weight;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Emission", meta = (XmlParamName = "emission.mode", rprxParam = RPRX_UBER_MATERIAL_EMISSION_MODE))
 	ERPREmissionMode		Emission_Mode;

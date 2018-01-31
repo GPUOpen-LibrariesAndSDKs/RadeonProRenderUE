@@ -4,8 +4,31 @@
 #include "RPRUberMaterialParameters.h"
 #include "RPRMaterialXmlUberNode.h"
 #include "RPRMaterialXmlNodeFactory.h"
+#include "XmlFile.h"
 
 #define NODE_ATTRIBUTE_NAME	TEXT("name")
+
+DECLARE_LOG_CATEGORY_CLASS(LogRPRMaterialXmlGraph, Log, All)
+
+bool FRPRMaterialXmlGraph::ParseFromXmlFile(const FString& Filename)
+{
+	FXmlFile xmlFile(Filename);
+
+	if (!xmlFile.IsValid())
+	{
+		UE_LOG(LogRPRMaterialXmlGraph, Error, TEXT("Xml parsing error in file '%s' : %s"), *Filename, *xmlFile.GetLastError());
+		return (false);
+	}
+
+	const FXmlNode* materialNode = xmlFile.GetRootNode();
+	if (materialNode == nullptr)
+	{
+		UE_LOG(LogRPRMaterialXmlGraph, Error, TEXT("Cannot get the root node from the Xml file '%s'!"), *Filename);
+		return (false);
+	}
+
+	return (ParseFromXml(*materialNode));
+}
 
 bool FRPRMaterialXmlGraph::ParseFromXml(const FXmlNode& Node)
 {

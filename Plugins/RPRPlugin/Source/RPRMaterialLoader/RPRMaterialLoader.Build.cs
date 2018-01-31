@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class RPRMaterialEditor : ModuleRules
+public class RPRMaterialLoader : ModuleRules
 {
-	public RPRMaterialEditor(ReadOnlyTargetRules Target) : base(Target)
+	public RPRMaterialLoader(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
@@ -15,31 +15,24 @@ public class RPRMaterialEditor : ModuleRules
     {
         PublicIncludePaths.AddRange(
             new string[] {
-                "RPRMaterialEditor/Public",
                 "RPRMaterialLoader/Public",
                 "RPRPlugin/Public",
 				// ... add public include paths required here ...
                 
                 "Runtime/Slate/Private"
+
             }
             );
 
 
         PrivateIncludePaths.AddRange(
             new string[] {
-                "RPRMaterialEditor/Private",
-
-                "RPRMaterialEditor/Tools/PropertyHelper",
-
-                "RPRMaterialEditor/Private/RPRMaterialEditor",
-                "RPRMaterialEditor/Private/RPRMaterialEditor/Parameters",
-
-                "RPRMaterialEditor/Private/RPRMaterialInstanceTab",
-
-                "RPRMaterialEditor/Private/RPRMaterialLoader/NodeParamTypes",
-
-                "RPRMaterialEditor/Private"
+                "RPRMaterialLoader/Private",
 				// ... add other private include paths required here ...
+                
+                "RPRMaterialLoader/Private/Node",
+                "RPRMaterialLoader/Private/Node/Factory",
+                "RPRMaterialLoader/Private/NodeParamTypes",
 			}
             );
 
@@ -48,7 +41,7 @@ public class RPRMaterialEditor : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core", "RPRPlugin", "RPRMaterialLoader"
+                "Core", "RPRPlugin"
 				
 				// ... add other public dependencies that you statically link with here ...
 			}
@@ -60,20 +53,12 @@ public class RPRMaterialEditor : ModuleRules
             {
                 "CoreUObject",
                 "Engine",
-                "Slate",
-                "SlateCore",
-                "UnrealEd",
-                "InputCore",
-                "EditorStyle",
-                "Slate",
-                "LevelEditor",
-                "Settings",
                 "PropertyEditor",
-                "MaterialEditor",
-                "AssetTools"
+                "XmlParser",
+                "RPRMaterialEditor"
 				// ... add private dependencies that you statically link with here ...	
 			}
-        );
+        );	
     }
 
     void IncludeRPR_SDK()
@@ -104,3 +89,4 @@ public class RPRMaterialEditor : ModuleRules
         });
     }
 }
+

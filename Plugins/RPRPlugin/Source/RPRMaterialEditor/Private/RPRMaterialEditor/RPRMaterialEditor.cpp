@@ -37,7 +37,15 @@ void FRPRMaterialEditor::InitRPRMaterialEditor(const EToolkitMode::Type Mode, co
 
 	const bool bCreateDefaultStandaloneMenu = true;
 	const bool bCreateDefaultToolbar = true;
-	FAssetEditorToolkit::InitAssetEditor(Mode, InitToolkitHost, RPRMaterialInstanceEditorAppIdentifier, GenerateDefaultLayout(), bCreateDefaultStandaloneMenu, bCreateDefaultToolbar, ObjectToEdit);
+	FAssetEditorToolkit::InitAssetEditor(
+		Mode,
+		InitToolkitHost, 
+		RPRMaterialInstanceEditorAppIdentifier, 
+		GenerateDefaultLayout(), 
+		bCreateDefaultStandaloneMenu, 
+		bCreateDefaultToolbar, 
+		ObjectToEdit
+	);
 }
 
 TSharedRef<FTabManager::FLayout> FRPRMaterialEditor::GenerateDefaultLayout() const

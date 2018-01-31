@@ -5,10 +5,14 @@
 #include "RPRMaterialXmlNode.h"
 #include "RPRMaterialXmlUberNode.h"
 
-class FRPRMaterialXmlGraph
+/*
+ * Load the datas required for a RPR Material by creating a graph from a Xml file
+ */
+class RPRMATERIALLOADER_API FRPRMaterialXmlGraph
 {
 public:
 
+	bool	ParseFromXmlFile(const FString& Filename);
 	bool	ParseFromXml(const class FXmlNode& Node);
 	void	Serialize(FRPRMaterialNodeSerializationContext& SerializationContext);
 
@@ -18,10 +22,10 @@ public:
 	const FRPRMaterialXmlNodePtr			GetFirstMaterial() const;
 	const TArray<FRPRMaterialXmlNodePtr>&	GetMaterials() const;
 
-	FRPRMaterialXmlNodePtr				FindNodeByName(const FName& NodeName);
+	FRPRMaterialXmlNodePtr		FindNodeByName(const FName& NodeName);
 
 	template<typename NodeType>
-	TSharedPtr<NodeType>				FindNodeByName(const FName& NodeName)
+	TSharedPtr<NodeType>		FindNodeByName(const FName& NodeName)
 	{
 		FRPRMaterialXmlNodePtr nodePtr = FindNodeByName(NodeName);
 		if (nodePtr.IsValid())

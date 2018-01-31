@@ -3,7 +3,7 @@
 #include "RPRMaterialXmlNode.h"
 #include "SharedPointer.h"
 
-class FRPRMaterialXmlUberNode : public FRPRMaterialXmlNode
+class RPRMATERIALLOADER_API FRPRMaterialXmlUberNode : public FRPRMaterialXmlNode
 {
 public:
 
