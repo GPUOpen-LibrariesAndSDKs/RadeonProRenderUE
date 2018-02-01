@@ -1,6 +1,10 @@
 #include "ParameterFactory.h"
-#include "MaterialParameter.h"
 #include "UberMaterialPropertyHelper.h"
+
+#include "MaterialMapChannel1ParameterSetter.h"
+#include "MaterialMapParameterSetter.h"
+#include "MaterialEnumParameterSetter.h"
+#include "MaterialBoolParameterSetter.h"
 
 namespace RPRX
 {
@@ -10,13 +14,14 @@ namespace RPRX
 
 		void FFactory::InitializeMap()
 		{
-#define REGISTER_PARAMETER_CHECK_CLASS(ClassName, ParameterSetterClass)			\
+#define ADD_TO_FACTORY_CHECK_CLASS(ClassName, ParameterSetterClass)			\
 			static_assert(TIsClass<ClassName>::Value, "Class doesn't exist!");	\
 			RegisterParameterSetter<ParameterSetterClass>(#ClassName);
 
-			REGISTER_PARAMETER_CHECK_CLASS(FRPRMaterialMap, FMaterialMapParameterSetter);
-			REGISTER_PARAMETER_CHECK_CLASS(FRPRMaterialMapChannel1, FMaterialMapChannel1ParameterSetter);
-			RegisterParameterSetter<FUInt8ParameterSetter>(TNameOf<uint8>::GetName());
+			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialMapChannel1, FMaterialMapChannel1ParameterSetter);
+			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialMap, FMaterialMapParameterSetter);
+			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialEnum, FMaterialEnumParameterSetter);
+			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialBool, FMaterialBoolParameterSetter);
 		}
 
 		void FFactory::InitializeMapIfRequired()

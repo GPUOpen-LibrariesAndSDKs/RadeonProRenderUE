@@ -17,8 +17,6 @@ public class RPRPlugin : ModuleRules
 
                 "RPRPlugin/Public/Material",
                 "RPRPlugin/Public/Material/Tools",
-                "RPRPlugin/Public/Material/Tools/MaterialCacheMaker",
-                "RPRPlugin/Public/Material/Tools/MaterialCacheMaker/MaterialCacheParameterSetter",
 
                 "RPRPlugin/Public/Scene",
                 "RPRPlugin/Public/Scene/StaticMeshComponent",
@@ -42,7 +40,16 @@ public class RPRPlugin : ModuleRules
 				SDKRoot + "RadeonProRender/inc",
 				SDKRoot + "RadeonProRenderInterchange/include",
 
-			}
+                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker",
+                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/Factory",
+                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterArgs",
+                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters",
+                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/Bool",
+                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/Enum",
+                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialMap",
+                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialMapBase",
+                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialMapChannel1",
+            }
 			);
 
 

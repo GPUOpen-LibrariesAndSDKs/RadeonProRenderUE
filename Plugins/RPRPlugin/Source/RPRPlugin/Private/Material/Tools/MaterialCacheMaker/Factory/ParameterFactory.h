@@ -1,7 +1,7 @@
 #pragma once
 
 #include "UnrealType.h"
-#include "MaterialParameter.h"
+#include "IMaterialParameter.h"
 
 namespace RPRX
 {
@@ -23,7 +23,6 @@ namespace RPRX
 
 			static void		InitializeMap();
 			static void		InitializeMapIfRequired();
-			static FString	GetPropertyName(const UProperty* Property);
 
 			template<typename ParameterSetterType>
 			static TSharedPtr<IMaterialParameter>	InstantiateParameterType();
