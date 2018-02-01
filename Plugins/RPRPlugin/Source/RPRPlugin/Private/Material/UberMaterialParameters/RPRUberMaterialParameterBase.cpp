@@ -6,7 +6,7 @@ FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase()
 
 FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID)
 	: XmlParamName(InXmlParamName)
-	, RprxParamID(RprxParamID)
+	, RprxParamID(InRprxParamID)
 {}
 
 uint32 FRPRUberMaterialParameterBase::GetRprxParam() const

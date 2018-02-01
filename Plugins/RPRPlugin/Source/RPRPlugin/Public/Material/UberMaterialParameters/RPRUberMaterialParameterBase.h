@@ -22,7 +22,10 @@ public:
 	
 private:
 
+	UPROPERTY()
 	uint32		RprxParamID;
+
+	UPROPERTY()
 	FString		XmlParamName;
 
 };

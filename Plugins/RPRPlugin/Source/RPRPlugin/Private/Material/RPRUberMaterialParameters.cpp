@@ -1,29 +1,5 @@
 #include "RPRUberMaterialParameters.h"
 
-FRPRMaterialBaseMap::FRPRMaterialBaseMap(const FString& InXmlParamName, uint32 InRprxParamID)
-	: FRPRUberMaterialParameterBase(InXmlParamName, InRprxParamID)
-{}
-
-FRPRMaterialMap::FRPRMaterialMap(const FString& InXmlParamName, uint32 InRprxParamID, float UniformConstant)
-	: FRPRMaterialBaseMap(InXmlParamName, InRprxParamID)
-	, Constant(FLinearColor(UniformConstant, UniformConstant, UniformConstant, UniformConstant))
-{}
-
-FRPRMaterialMapChannel1::FRPRMaterialMapChannel1(const FString& InXmlParamName, uint32 InRprxParamID, float InConstantValue)
-	: FRPRMaterialBaseMap(InXmlParamName, InRprxParamID)
-	, Constant(1.0f)
-{}
-
-FRPRMaterialBool::FRPRMaterialBool(const FString& InXmlParamName, uint32 InRprxParamID, bool DefaultValue)
-	: FRPRUberMaterialParameterBase(InXmlParamName, InRprxParamID)
-	, bIsEnabled(DefaultValue)
-{}
-
-FRPRMaterialEnum::FRPRMaterialEnum(const FString& InXmlParamName, uint32 InRprxParamID)
-	: FRPRUberMaterialParameterBase(InXmlParamName, InRprxParamID)
-{}
-
-
 FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 	: Diffuse_Color(		TEXT("diffuse.color"),		RPRX_UBER_MATERIAL_DIFFUSE_COLOR, 1.0f)
 	, Diffuse_Weight(		TEXT("diffuse.weight"),		RPRX_UBER_MATERIAL_DIFFUSE_WEIGHT, 1.0f)
@@ -36,7 +12,7 @@ FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 	, Reflection_AnisotropyRotation(		TEXT("reflection.anisotropyRotation"),	RPRX_UBER_MATERIAL_REFLECTION_ANISOTROPY_ROTATION, 0.0f)
 	, Reflection_Metalness(					TEXT("reflection.metalness"),			RPRX_UBER_MATERIAL_REFLECTION_METALNESS, 1.0f)
 
-	, Reflection_Mode(CreateEnum<ERPRReflectionMode>(TEXT("reflection.mode"), RPRX_UBER_MATERIAL_REFLECTION_MODE, ERPRReflectionMode::PBR))
+	, Reflection_Mode(FRPRMaterialEnum::Create<ERPRReflectionMode>(TEXT("reflection.mode"), RPRX_UBER_MATERIAL_REFLECTION_MODE, ERPRReflectionMode::PBR))
 
 	, Reflection_Ior(						TEXT("reflection.ior"),					RPRX_UBER_MATERIAL_REFLECTION_IOR, 1.5f)
 
@@ -46,7 +22,7 @@ FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 	, Refraction_Ior(						TEXT("refraction.ior"),			RPRX_UBER_MATERIAL_REFRACTION_IOR, 1.5f)
 	, Refraction_IsThinSurface(				TEXT("refraction.thinSurface"), RPRX_UBER_MATERIAL_REFRACTION_THIN_SURFACE, false)
 
-	, Refraction_Mode(CreateEnum<ERPRRefractionMode>(TEXT("refraction.iorMode"),		RPRX_UBER_MATERIAL_REFRACTION_IOR_MODE, ERPRRefractionMode::Separate))
+	, Refraction_Mode(FRPRMaterialEnum::Create<ERPRRefractionMode>(TEXT("refraction.iorMode"),		RPRX_UBER_MATERIAL_REFRACTION_IOR_MODE, ERPRRefractionMode::Separate))
 
 	, Coating_Color(					TEXT("coating.color"),		RPRX_UBER_MATERIAL_COATING_COLOR, 1.0f)
 	, Coating_Weight(					TEXT("coating.weight"),		RPRX_UBER_MATERIAL_COATING_WEIGHT, 0.0f)
@@ -54,14 +30,18 @@ FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 	, Coating_Metalness(				TEXT("coating.metalness"),	RPRX_UBER_MATERIAL_COATING_METALNESS, 1.0f)
 	, Coating_Ior(						TEXT("coating.ior"),		RPRX_UBER_MATERIAL_COATING_IOR, 1.5f)
 
-	, Coating_Mode(CreateEnum<ERPRReflectionMode>(TEXT("coating.mode"),		RPRX_UBER_MATERIAL_COATING_MODE, ERPRReflectionMode::PBR))
+	, Coating_Mode(FRPRMaterialEnum::Create<ERPRReflectionMode>(TEXT("coating.mode"),		RPRX_UBER_MATERIAL_COATING_MODE, ERPRReflectionMode::PBR))
 
 	, Emission_Color(					TEXT("emission.color"),		RPRX_UBER_MATERIAL_EMISSION_COLOR, 1.0f)
 	, Emission_Weight(					TEXT("emission.weight"),	RPRX_UBER_MATERIAL_EMISSION_WEIGHT, 0.0f)
 
-	, Emission_Mode(CreateEnum<ERPREmissionMode>(TEXT("emission.mode"),		RPRX_UBER_MATERIAL_EMISSION_MODE, ERPREmissionMode::SingleSided))
+	, Emission_Mode(FRPRMaterialEnum::Create<ERPREmissionMode>(TEXT("emission.mode"),		RPRX_UBER_MATERIAL_EMISSION_MODE, ERPREmissionMode::SingleSided))
 
 	, Transparency(TEXT("transparency"), RPRX_UBER_MATERIAL_TRANSPARENCY, 0.0f)
+
+	, Normal(		TEXT("normal"),			RPRX_UBER_MATERIAL_NORMAL)
+	, Bump(			TEXT("bump"),			RPRX_UBER_MATERIAL_BUMP)
+	, Displacement(	TEXT("displacement"),	RPRX_UBER_MATERIAL_DISPLACEMENT)
 
 	, SSS_Absorption_Color(		TEXT("sss.absorptionColor"),		RPRX_UBER_MATERIAL_SSS_ABSORPTION_COLOR, 0.0f)
 	, SSS_Scatter_Color(		TEXT("sss.scatterColor"),			RPRX_UBER_MATERIAL_SSS_SCATTER_COLOR, 0.0f)

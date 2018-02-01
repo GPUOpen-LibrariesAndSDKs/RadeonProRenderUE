@@ -66,10 +66,7 @@ namespace RPRX
 	{
 		RPR::FResult result = RPR_SUCCESS;
 
-		const FString& name = GetMetaDataXmlParam(InParameterProperty);
-
 		RPRX::MaterialParameter::FArgs materialCacheParametersSetterArgs(
-			name,
 			InParameters,
 			InParameterProperty,
 			MaterialContext,
