@@ -28,13 +28,11 @@ public class RPRMaterialEditor : ModuleRules
         PrivateIncludePaths.AddRange(
             new string[] {
                 "RPRMaterialEditor/Private",
-                
-                "RPRMaterialEditor/Tools/PropertyHelper",
+
+                "RPRMaterialEditor/Private/Tools/PropertyHelper",
 
                 "RPRMaterialEditor/Private/RPRMaterialEditor",
-                "RPRMaterialEditor/Private/RPRMaterialEditor/Parameters",
-
-                "RPRMaterialEditor/Private/RPRMaterialInstanceTab",
+                "RPRMaterialEditor/Public/RPRMaterialEditor/PropertiesLayout",
 
                 "RPRMaterialEditor/Private/RPRMaterialLoader/NodeParamTypes",
 

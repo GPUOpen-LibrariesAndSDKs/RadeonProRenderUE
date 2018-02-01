@@ -1,14 +1,22 @@
 #include "RPRMaterialEditorModule.h"
 #include "RPRMaterialAssetTypeActions.h"
 #include "IAssetTools.h"
+#include "PropertyEditorModule.h"
+#include "RPRMaterial.h"
+#include "RPRUberMaterialParameters.h"
+#include "RPRMaterialEditorBoolPropertiesLayout.h"
+#include "RPRMaterialBool.h"
 
 DEFINE_LOG_CATEGORY(LogRPRMaterialEditor)
+
+#define CUSTOM_RPRMATERIALEDITOR_LAYOUT	TEXT("CustomRPRMaterialEditorLayout")
 
 #define LOCTEXT_NAMESPACE "RPRMaterialEditorModule"
 
 void RPRMaterialEditorModule::StartupModule()
 {
 	RegisterAssetTypeActions();
+	RegisterCustomPropertyLayouts();
 }
 
 void RPRMaterialEditorModule::ShutdownModule()
@@ -48,6 +56,15 @@ void RPRMaterialEditorModule::UnregisterAllAssetTypeActions()
 			}
 		}
 	}
+}
+
+void RPRMaterialEditorModule::RegisterCustomPropertyLayouts()
+{
+	FPropertyEditorModule& propertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+
+	propertyEditorModule.RegisterCustomPropertyTypeLayout(*FRPRMaterialBool::StaticStruct()->GetName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialEditorBoolPropertiesLayout::MakeInstance)
+	);
 }
 
 #undef LOCTEXT_NAMESPACE

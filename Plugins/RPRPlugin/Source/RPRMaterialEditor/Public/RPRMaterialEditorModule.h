@@ -22,6 +22,9 @@ private:
 	void	RegisterAssetTypeActions();
 	void	UnregisterAllAssetTypeActions();
 
+	void	RegisterCustomPropertyLayouts();
+	void	UnregisterCustomPropertyLayouts();
+
 private:
 
 	TArray<TSharedRef<IAssetTypeActions>>	RegisteredAssetTypeActions;
