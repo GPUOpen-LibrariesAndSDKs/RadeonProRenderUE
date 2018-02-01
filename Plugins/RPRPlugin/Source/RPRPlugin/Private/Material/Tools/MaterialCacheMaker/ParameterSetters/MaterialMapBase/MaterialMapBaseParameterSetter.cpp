@@ -7,12 +7,6 @@
 
 namespace RPRX
 {
-	bool FMaterialMapBaseParameterSetter::ShouldUseTexture(MaterialParameter::FArgs& SetterParameters) const
-	{
-		const FRPRMaterialBaseMap* materialMap = SetterParameters.GetDirectParameter<FRPRMaterialBaseMap>();
-		return (materialMap->Texture != nullptr);
-	}
-
 	bool FMaterialMapBaseParameterSetter::ApplyTextureParameter(MaterialParameter::FArgs& SetterParameters)
 	{
 		RPR::FMaterialContext& materialContext = SetterParameters.MaterialContext;

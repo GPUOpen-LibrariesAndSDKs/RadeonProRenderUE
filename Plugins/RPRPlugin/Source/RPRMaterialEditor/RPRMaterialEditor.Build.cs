@@ -68,7 +68,8 @@ public class RPRMaterialEditor : ModuleRules
                 "Settings",
                 "PropertyEditor",
                 "MaterialEditor",
-                "AssetTools"
+                "AssetTools",
+                "AppFramework"
 				// ... add private dependencies that you statically link with here ...	
 			}
         );

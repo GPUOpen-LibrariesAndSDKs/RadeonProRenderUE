@@ -67,8 +67,9 @@ void FRPRMaterialEnumPropertiesLayout::HandleEnumSelectionChanged(TSharedPtr<FSt
 
 void FRPRMaterialEnumPropertiesLayout::GenerateEnumNames(UEnum* EnumType, TArray<TSharedPtr<FString>>& OutEnumNames) const
 {
-	OutEnumNames.Empty(EnumType->NumEnums());
-	for (int32 i = 0; i < EnumType->NumEnums() - 1; ++i)
+	const int32 numEnums = EnumType->NumEnums() - 1; // -1 to remove *_MAX value
+	OutEnumNames.Empty(numEnums);
+	for (int32 i = 0; i < numEnums; ++i)
 	{
 		OutEnumNames.Add(MakeShared<FString>(EnumType->GetNameStringByIndex(i)));
 	}

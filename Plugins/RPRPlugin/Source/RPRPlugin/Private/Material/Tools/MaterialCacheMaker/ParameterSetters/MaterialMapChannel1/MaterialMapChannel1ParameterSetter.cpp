@@ -7,14 +7,15 @@ namespace RPRX
 
 	void FMaterialMapChannel1ParameterSetter::ApplyParameterX(MaterialParameter::FArgs& SetterParameters)
 	{
-		if (ShouldUseTexture(SetterParameters))
+		const FRPRMaterialMapChannel1* materialMap = SetterParameters.GetDirectParameter<FRPRMaterialMapChannel1>();
+
+		if (materialMap->Texture != nullptr)
 		{
 			ApplyTextureParameter(SetterParameters);
 		}
 		else
 		{
 			RPR::FMaterialContext& materialContext = SetterParameters.MaterialContext;
-			const FRPRMaterialMapChannel1* materialMap = SetterParameters.GetDirectParameter<FRPRMaterialMapChannel1>();
 
 			FMaterialHelpers::SetMaterialParameterFloat(
 				materialContext.RPRXContext,

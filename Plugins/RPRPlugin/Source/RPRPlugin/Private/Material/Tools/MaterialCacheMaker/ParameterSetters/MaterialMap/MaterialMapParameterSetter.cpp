@@ -9,14 +9,15 @@ namespace RPRX
 
 	void FMaterialMapParameterSetter::ApplyParameterX(MaterialParameter::FArgs& SetterParameters)
 	{
-		if (ShouldUseTexture(SetterParameters))
+		const FRPRMaterialMap* materialMap = SetterParameters.GetDirectParameter<FRPRMaterialMap>();
+
+		if (materialMap->Mode == ERPRMaterialMapMode::Texture)
 		{
 			ApplyTextureParameter(SetterParameters);
 		}
 		else
 		{
 			RPR::FMaterialContext& materialContext = SetterParameters.MaterialContext;
-			const FRPRMaterialMap* materialMap = SetterParameters.GetDirectParameter<FRPRMaterialMap>();
 
 			FMaterialHelpers::SetMaterialParameterColor(
 				materialContext.RPRXContext,

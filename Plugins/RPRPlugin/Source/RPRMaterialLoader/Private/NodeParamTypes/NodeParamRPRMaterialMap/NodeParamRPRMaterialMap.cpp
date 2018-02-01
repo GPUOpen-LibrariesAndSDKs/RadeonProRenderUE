@@ -16,6 +16,7 @@ void FNodeParamRPRMaterialMap::LoadRPRMaterialParameters(FRPRMaterialNodeSeriali
 	FRPRMaterialMap* rprMaterialMap = 
 		SerializationContext.GetDirectMaterialParameter<FRPRMaterialMap>(Property);
 
+
 	switch (CurrentNodeParameter.GetType())
 	{
 	case ERPRMaterialNodeParameterValueType::Connection:
@@ -31,6 +32,14 @@ void FNodeParamRPRMaterialMap::LoadRPRMaterialParameters(FRPRMaterialNodeSeriali
 			TEXT("Xml parameter type not supported by the node param 'RPRMaterialMap'"));
 		break;
 	}
+}
+
+void FNodeParamRPRMaterialMap::LoadTextureFromConnectionInput(FRPRMaterialBaseMap* InMaterialMap, FRPRMaterialNodeSerializationContext& SerializationContext, FRPRMaterialXmlNodeParameter& CurrentNodeParameter)
+{
+	FNodeParamRPRMaterialMapBase::LoadTextureFromConnectionInput(InMaterialMap, SerializationContext, CurrentNodeParameter);
+
+	FRPRMaterialMap* rprMaterialMap = StaticCast<FRPRMaterialMap*>(InMaterialMap);
+	rprMaterialMap->Mode = (rprMaterialMap->Texture != nullptr ? ERPRMaterialMapMode::Texture : ERPRMaterialMapMode::Constant);
 }
 
 void FNodeParamRPRMaterialMap::LoadColor(FRPRMaterialMap* InMaterialMap, FRPRMaterialXmlNodeParameter& CurrentNodeParameter)
@@ -60,5 +69,7 @@ void FNodeParamRPRMaterialMap::LoadColor(FRPRMaterialMap* InMaterialMap, FRPRMat
 	{
 		color.A = FCString::Atof(*individualFloatStrings[componentIndex]);
 	}
+
+	InMaterialMap->Mode = ERPRMaterialMapMode::Constant;
 }
 

@@ -8,7 +8,7 @@
 class FNodeParamRPRMaterialMapBase : public INodeParamType
 {
 protected:
-	void	LoadTextureFromConnectionInput(FRPRMaterialBaseMap* InMaterialMap, 
-			FRPRMaterialNodeSerializationContext& SerializationContext,
-			FRPRMaterialXmlNodeParameter& CurrentNodeParameter);
+	virtual void	LoadTextureFromConnectionInput(FRPRMaterialBaseMap* InMaterialMap, 
+							FRPRMaterialNodeSerializationContext& SerializationContext,
+							FRPRMaterialXmlNodeParameter& CurrentNodeParameter);
 };
