@@ -4,8 +4,9 @@
 #include "PropertyEditorModule.h"
 #include "RPRMaterial.h"
 #include "RPRUberMaterialParameters.h"
-#include "RPRMaterialEditorBoolPropertiesLayout.h"
+#include "RPRMaterialBoolPropertiesLayout.h"
 #include "RPRMaterialBool.h"
+#include "RPRMaterialEnumPropertiesLayout.h"
 
 DEFINE_LOG_CATEGORY(LogRPRMaterialEditor)
 
@@ -63,7 +64,11 @@ void RPRMaterialEditorModule::RegisterCustomPropertyLayouts()
 	FPropertyEditorModule& propertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 
 	propertyEditorModule.RegisterCustomPropertyTypeLayout(*FRPRMaterialBool::StaticStruct()->GetName(),
-		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialEditorBoolPropertiesLayout::MakeInstance)
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialBoolPropertiesLayout::MakeInstance)
+	);
+
+	propertyEditorModule.RegisterCustomPropertyTypeLayout(*FRPRMaterialEnum::StaticStruct()->GetName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialEnumPropertiesLayout::MakeInstance)
 	);
 }
 

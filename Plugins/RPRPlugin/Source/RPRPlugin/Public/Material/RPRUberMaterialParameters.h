@@ -17,125 +17,125 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Diffuse", meta = (XmlParamName = "diffuse.color", rprxParam = RPRX_UBER_MATERIAL_DIFFUSE_COLOR))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Diffuse")
 	FRPRMaterialMap			Diffuse_Color;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Diffuse", meta = (XmlParamName = "diffuse.weight", rprxParam = RPRX_UBER_MATERIAL_DIFFUSE_WEIGHT))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Diffuse")
 	FRPRMaterialMap			Diffuse_Weight;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Diffuse", meta = (XmlParamName = "diffuse.roughness", rprxParam = RPRX_UBER_MATERIAL_DIFFUSE_ROUGHNESS))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Diffuse")
 	FRPRMaterialMap			Diffuse_Roughness;
 	
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection", meta = (XmlParamName = "reflection.color", rprxParam = RPRX_UBER_MATERIAL_REFLECTION_COLOR))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
 	FRPRMaterialMap			Reflection_Color;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection", meta = (XmlParamName = "reflection.weight", rprxParam = RPRX_UBER_MATERIAL_REFLECTION_WEIGHT))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
 	FRPRMaterialMap			Reflection_Weight;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection", meta = (XmlParamName = "reflection.roughness", rprxParam = RPRX_UBER_MATERIAL_REFLECTION_ROUGHNESS))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
 	FRPRMaterialMap			Reflection_Roughness;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection", meta = (XmlParamName = "reflection.anisotropy", rprxParam = RPRX_UBER_MATERIAL_REFLECTION_ANISOTROPY))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
 	FRPRMaterialMapChannel1	Reflection_Anisotropy;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection", meta = (XmlParamName = "reflection.anisotropyRotation", rprxParam = RPRX_UBER_MATERIAL_REFLECTION_ANISOTROPY_ROTATION))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
 	FRPRMaterialMap			Reflection_AnisotropyRotation;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection", meta = (XmlParamName = "reflection.metalness", rprxParam = RPRX_UBER_MATERIAL_REFLECTION_METALNESS))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
 	FRPRMaterialMap			Reflection_Metalness;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection", meta = (XmlParamName = "reflection.mode", rprxParam = RPRX_UBER_MATERIAL_REFLECTION_MODE))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
 	FRPRMaterialEnum		Reflection_Mode;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection", meta = (XmlParamName = "reflection.ior", rprxParam = RPRX_UBER_MATERIAL_REFLECTION_IOR))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
 	FRPRMaterialMap			Reflection_Ior;
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction", meta = (XmlParamName = "refraction.color", rprxParam = RPRX_UBER_MATERIAL_REFRACTION_COLOR))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction")
 	FRPRMaterialMap			Refraction_Color;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction", meta = (XmlParamName = "refraction.weight", rprxParam = RPRX_UBER_MATERIAL_REFRACTION_WEIGHT))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction")
 	FRPRMaterialMap			Refraction_Weight;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction", meta = (XmlParamName = "refraction.roughness", rprxParam = RPRX_UBER_MATERIAL_REFRACTION_ROUGHNESS))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction")
 	FRPRMaterialMap			Refraction_Roughness;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction", meta = (XmlParamName = "refraction.ior", rprxParam = RPRX_UBER_MATERIAL_REFRACTION_IOR))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction")
 	FRPRMaterialMap			Refraction_Ior;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction", meta = (XmlParamName = "refraction.thinSurface", rprxParam = RPRX_UBER_MATERIAL_REFRACTION_THIN_SURFACE))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction")
 	FRPRMaterialBool		Refraction_IsThinSurface;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction", meta = (XmlParamName = "refraction.iorMode", rprxParam = RPRX_UBER_MATERIAL_REFRACTION_IOR_MODE))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction")
 	FRPRMaterialEnum		Refraction_Mode;
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.color", rprxParam = RPRX_UBER_MATERIAL_COATING_COLOR))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
 	FRPRMaterialMap			Coating_Color;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.weight", rprxParam = RPRX_UBER_MATERIAL_COATING_WEIGHT))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
 	FRPRMaterialMap			Coating_Weight;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.roughness", rprxParam = RPRX_UBER_MATERIAL_COATING_ROUGHNESS))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
 	FRPRMaterialMap			Coating_Roughness;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.metalness", rprxParam = RPRX_UBER_MATERIAL_COATING_METALNESS))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
 	FRPRMaterialMap			Coating_Metalness;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.ior", rprxParam = RPRX_UBER_MATERIAL_COATING_IOR))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
 	FRPRMaterialMap			Coating_Ior;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating", meta = (XmlParamName = "coating.mode", rprxParam = RPRX_UBER_MATERIAL_COATING_MODE))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
 	FRPRMaterialEnum		Coating_Mode;
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Emission", meta = (XmlParamName = "emission.color", rprxParam = RPRX_UBER_MATERIAL_EMISSION_COLOR))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Emission")
 	FRPRMaterialMap			Emission_Color;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Emission", meta = (XmlParamName = "emission.weight", rprxParam = RPRX_UBER_MATERIAL_EMISSION_WEIGHT))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Emission")
 	FRPRMaterialMap			Emission_Weight;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Emission", meta = (XmlParamName = "emission.mode", rprxParam = RPRX_UBER_MATERIAL_EMISSION_MODE))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Emission")
 	FRPRMaterialEnum		Emission_Mode;
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Transparency", meta = (XmlParamName = "transparency", rprxParam = RPRX_UBER_MATERIAL_TRANSPARENCY))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Transparency")
 	FRPRMaterialMapChannel1	Transparency;
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Normal", meta = (XmlParamName = "normal", rprxParam = RPRX_UBER_MATERIAL_NORMAL))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Normal")
 	FRPRMaterialMap			Normal;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Normal", meta = (XmlParamName = "bump", rprxParam = RPRX_UBER_MATERIAL_BUMP))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Normal")
 	FRPRMaterialMap			Bump;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Normal", meta = (XmlParamName = "displacement", rprxParam = RPRX_UBER_MATERIAL_DISPLACEMENT))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Normal")
 	FRPRMaterialMap			Displacement;
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS", meta = (XmlParamName = "sss.absorptionColor", rprxParam = RPRX_UBER_MATERIAL_SSS_ABSORPTION_COLOR))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS")
 	FRPRMaterialMap			SSS_Absorption_Color;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS", meta = (XmlParamName = "sss.scatterColor", rprxParam = RPRX_UBER_MATERIAL_SSS_SCATTER_COLOR))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS")
 	FRPRMaterialMap			SSS_Scatter_Color;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS", meta = (XmlParamName = "sss.absorptionDistance", rprxParam = RPRX_UBER_MATERIAL_SSS_ABSORPTION_DISTANCE))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS")
 	FRPRMaterialMapChannel1	SSS_Absorption_Distance;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS", meta = (XmlParamName = "sss.scatterDistance", rprxParam = RPRX_UBER_MATERIAL_SSS_SCATTER_DISTANCE))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS")
 	FRPRMaterialMapChannel1	SSS_Scatter_Distance;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS", meta = (XmlParamName = "sss.scatterDirection", rprxParam = RPRX_UBER_MATERIAL_SSS_SCATTER_DIRECTION))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS")
 	FRPRMaterialMapChannel1	SSS_Scatter_Direction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS", meta = (XmlParamName = "sss.weight", rprxParam = RPRX_UBER_MATERIAL_SSS_WEIGHT))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS")
 	FRPRMaterialMapChannel1	SSS_Weight;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS", meta = (XmlParamName = "sss.subsurfaceColor", rprxParam = RPRX_UBER_MATERIAL_SSS_SUBSURFACE_COLOR))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS")
 	FRPRMaterialMap			SSS_SubSurface_Color;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS", meta = (XmlParamName = "sss.multiScatter", rprxParam = RPRX_UBER_MATERIAL_SSS_MULTISCATTER))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS")
 	FRPRMaterialBool		SSS_IsMultiScatter;
 
 	FRPRUberMaterialParameters();

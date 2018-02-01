@@ -3,7 +3,7 @@
 #include "SlateTypes.h"
 #include "RPRMaterialBool.h"
 
-class FRPRMaterialEditorBoolPropertiesLayout : public IPropertyTypeCustomization
+class FRPRMaterialBoolPropertiesLayout : public IPropertyTypeCustomization
 {
 
 public:
