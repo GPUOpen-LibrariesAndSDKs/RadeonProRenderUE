@@ -35,14 +35,14 @@ void FRPRMaterialXmlNode::ParseParameters(const FXmlNode& Node)
 }
 
 UProperty* FRPRMaterialXmlNode::FindPropertyByXmlParamName(const FRPRUberMaterialParameters* UberMaterialParameters, 
-																const UStruct* MaterialParameterStruct, const FName& ParameterName) const
+									const UStruct* MaterialParameterStruct, const FName& ParameterName) const
 {
 	FString parameterNameStr = ParameterName.ToString();
 
 	UProperty* propertyPtr = MaterialParameterStruct->PropertyLink;
 	while (propertyPtr != nullptr)
 	{
-		if (IsPropertyValidUberParamaterProperty(propertyPtr))
+		if (FUberMaterialPropertyHelper::IsPropertyValidUberParameterProperty(propertyPtr))
 		{
 			const FRPRUberMaterialParameterBase* uberMaterialParameterBase =
 				FUberMaterialPropertyHelper::GetParameterBaseFromProperty(UberMaterialParameters, propertyPtr);

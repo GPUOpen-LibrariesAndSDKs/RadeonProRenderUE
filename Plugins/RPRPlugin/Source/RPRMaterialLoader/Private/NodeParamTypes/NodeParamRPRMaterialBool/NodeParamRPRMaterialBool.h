@@ -1,7 +1,7 @@
 #pragma once
 #include "INodeParamType.h"
 
-class FNodeParamBool : public INodeParamType
+class FNodeParamRPRMaterialBool : public INodeParamType
 {
 
 public:

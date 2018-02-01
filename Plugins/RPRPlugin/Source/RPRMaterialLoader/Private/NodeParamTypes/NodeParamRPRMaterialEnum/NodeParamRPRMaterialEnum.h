@@ -1,4 +1,5 @@
 #pragma once
+#include "INodeParamType.h"
 
 class FNodeParamRPRMaterialEnum : public INodeParamType
 {

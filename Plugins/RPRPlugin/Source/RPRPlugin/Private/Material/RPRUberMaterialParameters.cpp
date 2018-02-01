@@ -14,15 +14,15 @@ FRPRMaterialMapChannel1::FRPRMaterialMapChannel1(const FString& InXmlParamName, 
 	, Constant(1.0f)
 {}
 
-FRPRMaterialNormal::FRPRMaterialNormal(const FString& InXmlParamName, uint32 InRprxParamID)
-	: FRPRMaterialBaseMap(InXmlParamName, InRprxParamID)
-	, bIsBump(false)
-{}
-
 FRPRMaterialBool::FRPRMaterialBool(const FString& InXmlParamName, uint32 InRprxParamID, bool DefaultValue)
 	: FRPRUberMaterialParameterBase(InXmlParamName, InRprxParamID)
 	, bIsEnabled(DefaultValue)
 {}
+
+FRPRMaterialEnum::FRPRMaterialEnum(const FString& InXmlParamName, uint32 InRprxParamID)
+	: FRPRUberMaterialParameterBase(InXmlParamName, InRprxParamID)
+{}
+
 
 FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 	: Diffuse_Color(		TEXT("diffuse.color"),		RPRX_UBER_MATERIAL_DIFFUSE_COLOR, 1.0f)

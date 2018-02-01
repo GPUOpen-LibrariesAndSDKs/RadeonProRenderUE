@@ -33,20 +33,6 @@ void FNodeParamRPRMaterialMap::LoadRPRMaterialParameters(FRPRMaterialNodeSeriali
 	}
 }
 
-void FNodeParamRPRMaterialMap::LoadTextureFromConnectionInput(FRPRMaterialMap* InMaterialMap, 
-										FRPRMaterialNodeSerializationContext& SerializationContext, 
-										FRPRMaterialXmlNodeParameter& CurrentNodeParameter)
-{
-	const FName inputNodeName = *CurrentNodeParameter.GetValue();
-	FRPRMaterialXmlInputTextureNodePtr node = 
-		SerializationContext.MaterialXmlGraph->FindNodeByName<FRPRMaterialXmlInputTextureNode>(inputNodeName);
-	
-	if (node.IsValid())
-	{
-		InMaterialMap->Texture = node->ImportTexture(SerializationContext);
-	}
-}
-
 void FNodeParamRPRMaterialMap::LoadColor(FRPRMaterialMap* InMaterialMap, FRPRMaterialXmlNodeParameter& CurrentNodeParameter)
 {
 	const FString& paramValueStr = CurrentNodeParameter.GetValue();

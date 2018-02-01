@@ -32,13 +32,11 @@ public:
 protected:
 
 	UProperty*	FindPropertyByXmlParamName(const FRPRUberMaterialParameters* UberMaterialParameters, 
-											const UStruct* MaterialParameterStruct, const FName& ParameterName) const;
+									const UStruct* MaterialParameterStruct, const FName& ParameterName) const;
 	
 private:
 
-	void			ParseParameters(const FXmlNode& Node);
-	bool			IsPropertyValidUberParamaterProperty(const UProperty* Property) const;
-	const UStruct*	GetTopStructProperty(const UStruct* Struct) const;
+	void	ParseParameters(const FXmlNode& Node);
 
 protected:
 

@@ -13,18 +13,18 @@ FString FUberMaterialPropertyHelper::GetPropertyTypeName(const UProperty* Proper
 	return (Property->GetCPPType());
 }
 
-FRPRUberMaterialParameterBase* FUberMaterialPropertyHelper::GetParameterBaseFromProperty(
+const FRPRUberMaterialParameterBase* FUberMaterialPropertyHelper::GetParameterBaseFromProperty(
 													const FRPRUberMaterialParameters* MaterialParameters, 
 													const UProperty* Property)
 {
 	if (IsPropertyValidUberParameterProperty(Property))
 	{
-		return (Property->ContainerPtrToValuePtr<FRPRUberMaterialParameterBase(MaterialParameters));
+		return (Property->ContainerPtrToValuePtr<FRPRUberMaterialParameterBase>(MaterialParameters));
 	}
 	return (nullptr);
 }
 
-bool FUberMaterialPropertyHelper::IsPropertyValidUberParameterProperty(const UProperty* Property) const
+bool FUberMaterialPropertyHelper::IsPropertyValidUberParameterProperty(const UProperty* Property)
 {
 	const UStructProperty* structPropertyPtr = Cast<const UStructProperty>(Property);
 	if (structPropertyPtr != nullptr)
@@ -35,7 +35,7 @@ bool FUberMaterialPropertyHelper::IsPropertyValidUberParameterProperty(const UPr
 	return (false);
 }
 
-const UStruct* FUberMaterialPropertyHelper::GetTopStructProperty(const UStruct* Struct) const
+const UStruct* FUberMaterialPropertyHelper::GetTopStructProperty(const UStruct* Struct)
 {
 	return (
 		Struct->GetSuperStruct() == nullptr ?

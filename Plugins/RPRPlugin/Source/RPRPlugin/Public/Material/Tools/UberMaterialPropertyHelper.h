@@ -2,6 +2,8 @@
 
 #include "UnrealType.h"
 #include "UnrealString.h"
+#include "RPRUberMaterialParameterBase.h"
+#include "RPRUberMaterialParameters.h"
 
 class RPRPLUGIN_API FUberMaterialPropertyHelper
 {
@@ -14,7 +16,7 @@ public:
 	*/
 	static FString	GetPropertyTypeName(const UProperty* Property);
 
-	static FRPRUberMaterialParameterBase*	GetParameterBaseFromProperty(const FRPRUberMaterialParameters* MaterialParameters,
+	static const FRPRUberMaterialParameterBase*	GetParameterBaseFromProperty(const FRPRUberMaterialParameters* MaterialParameters,
 																			const UProperty* Property);
 
 	static bool				IsPropertyValidUberParameterProperty(const UProperty* Property);

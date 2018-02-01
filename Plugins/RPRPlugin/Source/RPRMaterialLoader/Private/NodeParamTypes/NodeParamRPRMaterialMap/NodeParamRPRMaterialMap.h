@@ -1,10 +1,10 @@
 #pragma once
 
-#include "INodeParamType.h"
 #include "RPRMaterialXmlNodeParameter.h"
 #include "RPRUberMaterialParameters.h"
+#include "NodeParamRPRMaterialMapBase/NodeParamRPRMaterialMapBase.h"
 
-class FNodeParamRPRMaterialMap : public INodeParamType
+class FNodeParamRPRMaterialMap : public FNodeParamRPRMaterialMapBase
 {
 
 public:
@@ -12,9 +12,6 @@ public:
 							class FRPRMaterialXmlNodeParameter& CurrentNodeParameter, class UProperty* Property) override;
 
 private:
-
-	void	LoadTextureFromConnectionInput(FRPRMaterialMap* InMaterialMap, struct FRPRMaterialNodeSerializationContext& SerializationContext,
-											FRPRMaterialXmlNodeParameter& CurrentNodeParameter);
 
 	void	LoadColor(FRPRMaterialMap* InMaterialMap, FRPRMaterialXmlNodeParameter& CurrentNodeParameter);
 };

@@ -38,7 +38,7 @@ bool FRPRMaterialXmlNodeParameter::ParseFromXml(const FXmlNode& Node)
 void FRPRMaterialXmlNodeParameter::LoadRPRMaterialParameters(FRPRMaterialNodeSerializationContext& SerializationContext, 
 																									UProperty* PropertyPtr)
 {
-	FRPRUberMaterialParameterBase* uberMaterialParameter =
+	const FRPRUberMaterialParameterBase* uberMaterialParameter =
 		FUberMaterialPropertyHelper::GetParameterBaseFromProperty(SerializationContext.MaterialParameters, PropertyPtr);
 
 	FString type = uberMaterialParameter->GetPropertyTypeName(PropertyPtr);

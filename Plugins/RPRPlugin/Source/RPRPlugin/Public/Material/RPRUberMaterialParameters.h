@@ -65,13 +65,14 @@ struct RPRPLUGIN_API FRPRMaterialEnum : public FRPRUberMaterialParameterBase
 
 	GENERATED_BODY()
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, Category = Material)
 	uint8	EnumValue;
 
 	UPROPERTY()
 	UEnum*	EnumType;
 
 	FRPRMaterialEnum() {}
+	FRPRMaterialEnum(const FString& InXmlParamName, uint32 InRprxParamID);
 
 	template<typename TEnumType>
 	void	SetValue(TEnumType InEnumValue)
@@ -228,7 +229,7 @@ private:
 	template<typename EnumType>
 	FRPRMaterialEnum	CreateEnum(const FString& InXmlParamName, uint32 InRprxParamID, EnumType InEnumValue)
 	{
-		FRPRMaterialEnum materialEnum;
+		FRPRMaterialEnum materialEnum(InXmlParamName, InRprxParamID);
 		materialEnum.Initialize<EnumType>(InXmlParamName, InRprxParamID, InEnumValue);
 		return (materialEnum);
 	}
