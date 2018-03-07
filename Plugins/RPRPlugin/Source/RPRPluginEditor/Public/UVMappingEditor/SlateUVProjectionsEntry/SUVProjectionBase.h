@@ -40,7 +40,7 @@ protected:
 	void	AddComponentToViewport(UActorComponent* InActorComponent, bool bSelectShape = true);
 	/* Create a detail view widget for the shape preview */
 	TSharedPtr<IDetailsView>	CreateShapePreviewDetailView(FName ViewIdentifier);
-	TSharedRef<SWidget>		CreateApplyButton(FOnClicked OnClicked) const;
+	TSharedRef<SWidget>		CreateProjectButton(FOnClicked OnClicked) const;
 
 	/* Provide quick access to the algorithm for the UV mapping projection with the expected type */
 	template<typename AlgorithmType>

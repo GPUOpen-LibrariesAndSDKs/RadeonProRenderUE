@@ -37,7 +37,7 @@ void SUVProjectionPlanar::Construct(const FArguments& InArgs)
 			.AutoHeight()
 			.VAlign(EVerticalAlignment::VAlign_Top)
 			[
-				CreateApplyButton(FOnClicked::CreateSP(this, &SUVProjectionPlanar::OnApplyButtonClicked))->AsShared()
+				CreateProjectButton(FOnClicked::CreateSP(this, &SUVProjectionPlanar::OnApplyButtonClicked))->AsShared()
 			]
 		];
 }

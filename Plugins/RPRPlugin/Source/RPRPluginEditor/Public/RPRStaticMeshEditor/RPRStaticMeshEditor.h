@@ -41,21 +41,27 @@ private:
 	void								BindCommands();
 	void								InitializeWidgets();
 	void								InitializeViewport();
-	void								InitializeUVMappingEditor();
+	void								InitializeUVProjectionMappingEditor();
+	void								InitializeUVVisualizer();
 	TSharedRef<SDockTab>				SpawnTab_Viewport(const FSpawnTabArgs& Args);
-	TSharedRef<SDockTab>				SpawnTab_UVMappingEditor(const FSpawnTabArgs& Args);
+	TSharedRef<SDockTab>				SpawnTab_UVProjectionMappingEditor(const FSpawnTabArgs& Args);
+	TSharedRef<SDockTab>				SpawnTab_UVVisualizer(const FSpawnTabArgs& Args);
 
 	virtual bool	OnRequestClose() override;
 
 private:
 
 	TSharedPtr<class SRPRStaticMeshEditorViewport>	Viewport;
-	TSharedPtr<class SUVMappingEditor>				UVMappingEditor;
+	TSharedPtr<class SUVProjectionMappingEditor>	UVProjectionMappingEditor;
+	TSharedPtr<class SUVVisualizer>					UVVisualizer;
+
+
 	UStaticMesh*									StaticMesh;
 	FRPRStaticMeshEditorSelection					SelectionSystem;
 	
 	static const FName ViewportTabId;
-	static const FName UVMappingEditorTabId;
+	static const FName UVProjectionMappingEditorTabId;
+	static const FName UVVisualizerTabId;
 };
 
 typedef TSharedPtr<FRPRStaticMeshEditor> FRPRStaticMeshEditorPtr;

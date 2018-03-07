@@ -108,6 +108,15 @@ void FUVUtility::SetPackUVsOnMesh(UStaticMesh* InStaticMesh, const TArray<FPackV
 	}
 }
 
+bool FUVUtility::IsUVTriangleValid(const FVector2D& uvA, const FVector2D& uvB, const FVector2D& uvC)
+{
+	FVector uvA_3D(uvA.X, uvA.Y, 0);
+	FVector uvB_3D(uvB.X, uvB.Y, 0);
+	FVector uvC_3D(uvC.X, uvC.Y, 0);
+
+	return (FVector::CrossProduct(uvB_3D - uvA_3D, uvC_3D - uvA_3D).Z > 0);
+}
+
 void FUVUtility::InvertUV(FVector2D& InUV)
 {
 	InUV *= -1;

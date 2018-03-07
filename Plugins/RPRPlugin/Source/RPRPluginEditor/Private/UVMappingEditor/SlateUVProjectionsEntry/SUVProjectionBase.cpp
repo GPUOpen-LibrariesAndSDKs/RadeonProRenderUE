@@ -96,12 +96,12 @@ TSharedPtr<IDetailsView> SUVProjectionBase::CreateShapePreviewDetailView(FName V
 	
 	return (propertyEditorModule.CreateDetailView(detailsViewArgs));
 }
-TSharedRef<class SWidget> SUVProjectionBase::CreateApplyButton(FOnClicked OnClicked) const
+TSharedRef<class SWidget> SUVProjectionBase::CreateProjectButton(FOnClicked OnClicked) const
 {
 	return
 		SNew(SButton)
 		.HAlign(EHorizontalAlignment::HAlign_Center)
-		.Text(LOCTEXT("ApplyButton", "Apply"))
+		.Text(LOCTEXT("ProjectButton", "Project"))
 		.OnClicked(OnClicked);
 }
 

@@ -48,6 +48,8 @@ public class RPRPluginEditor : ModuleRules
 
                 "RPRPluginEditor/Private/UVMappingEditor/Algorithms/Utilities/CubeProjectionFace",
 
+                "RPRPluginEditor/Private/UVVisualizer",
+
                 "RPRPlugin/Private"
 				// ... add other private include paths required here ...
 			}
