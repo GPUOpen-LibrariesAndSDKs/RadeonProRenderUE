@@ -5,7 +5,7 @@
 #include "SUVProjectionMappingEditor.h"
 #include "SRPRStaticMeshEditorViewport.h"
 #include "EditorStyle.h"
-#include "SUVVisualizer.h"
+#include "SUVVisualizerEditor.h"
 
 #define LOCTEXT_NAMESPACE "RPRStaticMeshEditor"
 
@@ -72,7 +72,7 @@ void FRPRStaticMeshEditor::InitializeUVProjectionMappingEditor()
 
 void FRPRStaticMeshEditor::InitializeUVVisualizer()
 {
-	UVVisualizer = SNew(SUVVisualizer)
+	UVVisualizer = SNew(SUVVisualizerEditor)
 		.StaticMesh(StaticMesh);
 }
 

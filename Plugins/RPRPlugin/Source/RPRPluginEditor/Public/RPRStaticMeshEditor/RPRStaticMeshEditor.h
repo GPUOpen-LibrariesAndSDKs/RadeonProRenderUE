@@ -53,7 +53,7 @@ private:
 
 	TSharedPtr<class SRPRStaticMeshEditorViewport>	Viewport;
 	TSharedPtr<class SUVProjectionMappingEditor>	UVProjectionMappingEditor;
-	TSharedPtr<class SUVVisualizer>					UVVisualizer;
+	TSharedPtr<class SUVVisualizerEditor>					UVVisualizer;
 
 
 	UStaticMesh*									StaticMesh;

@@ -16,9 +16,19 @@ void SUVVisualizer::Refresh()
 	FStaticMeshHelper::LoadRawMeshFromStaticMesh(StaticMesh.Get(), RawMesh, 0);
 }
 
+void SUVVisualizer::SetUVChannelIndex(int32 ChannelIndex)
+{
+	int32 newUVChannelIndex = FMath::Min(ChannelIndex, StaticMesh->RenderData->LODResources[0].GetNumTexCoords() - 1);
+	if (newUVChannelIndex != UVChannelIndex)
+	{
+		UVChannelIndex = newUVChannelIndex;
+		Invalidate(EInvalidateWidget::Layout);
+	}
+}
+
 int32 SUVVisualizer::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, 
-							const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, 
-							int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+					const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, 
+					int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
 	const FSlateBrush* TimelineAreaBrush = FEditorStyle::GetBrush("Profiler.LineGraphArea");
 
@@ -36,16 +46,14 @@ int32 SUVVisualizer::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 	);
 	++LayerId;
 
-	const int32 uvChannelIdx = 0;
-
 	if (RawMesh.IsValid())
 	{
 		const TArray<uint32>& triangles = RawMesh.WedgeIndices;
 		for (int32 triIdx = 0; triIdx < triangles.Num(); triIdx += 3)
 		{
-			const FVector2D& uvA = RawMesh.WedgeTexCoords[uvChannelIdx][triIdx];
-			const FVector2D& uvB = RawMesh.WedgeTexCoords[uvChannelIdx][triIdx+1];
-			const FVector2D& uvC = RawMesh.WedgeTexCoords[uvChannelIdx][triIdx+2];
+			const FVector2D& uvA = RawMesh.WedgeTexCoords[UVChannelIndex][triIdx];
+			const FVector2D& uvB = RawMesh.WedgeTexCoords[UVChannelIndex][triIdx + 1];
+			const FVector2D& uvC = RawMesh.WedgeTexCoords[UVChannelIndex][triIdx + 2];
 
 			if (FUVUtility::IsUVTriangleValid(uvA, uvB, uvC))
 			{
@@ -62,8 +70,8 @@ int32 SUVVisualizer::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 	return (SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled));
 }
 
-void SUVVisualizer::PaintUVTriangle(FSlateWindowElementList& OutDrawElements, const FPaintGeometry& PaintGeometry,
-									uint32 LayerId, const FSlateRect& UVBounds, const FLinearColor& Color,
+void SUVVisualizer::PaintUVTriangle(FSlateWindowElementList& OutDrawElements, const FPaintGeometry& PaintGeometry, 
+									uint32 LayerId, const FSlateRect& UVBounds, const FLinearColor& Color, 
 									const FVector2D& PointA, const FVector2D& PointB, const FVector2D& PointC) const
 {
 	FVector2D absPointA = ConvertLocalToAbsoluteUVPosition(UVBounds, PointA);
@@ -130,3 +138,4 @@ FVector2D SUVVisualizer::ConvertLocalToAbsoluteUVPosition(const FSlateRect& UVBo
 		Point.Y * FSlateRectHelper::GetHeight(UVBounds)
 	));
 }
+
