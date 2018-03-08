@@ -24,6 +24,11 @@ TSharedRef<SWidget> SUVProjectionBase::TakeWidget()
 	return (SharedThis(this));
 }
 
+FOnProjectionApplied& SUVProjectionBase::OnProjectionApplied()
+{
+	return (OnProjectionAppliedDelegate);
+}
+
 UStaticMesh* SUVProjectionBase::GetStaticMesh() const
 {
 	return (StaticMesh);
@@ -61,7 +66,16 @@ void SUVProjectionBase::InitializeAlgorithm(EUVProjectionType ProjectionType)
 
 void SUVProjectionBase::SubscribeToAlgorithmCompletion()
 {
-	Algorithm->OnAlgorithmCompleted().AddRaw(this, &SUVProjectionBase::OnAlgorithmCompleted);
+	Algorithm->OnAlgorithmCompleted().AddRaw(this, &SUVProjectionBase::NotifyAlgorithmCompleted);
+}
+
+void SUVProjectionBase::NotifyAlgorithmCompleted(IUVProjectionAlgorithm* AlgorithmInstance, bool bSuccess)
+{
+	if (bSuccess)
+	{
+		OnAlgorithmCompleted(AlgorithmInstance, bSuccess);
+		OnProjectionAppliedDelegate.ExecuteIfBound();
+	}
 }
 
 void SUVProjectionBase::StartAlgorithm()

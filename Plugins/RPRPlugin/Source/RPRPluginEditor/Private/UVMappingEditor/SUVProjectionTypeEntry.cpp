@@ -11,7 +11,10 @@ void SUVProjectionTypeEntry::Construct(const FArguments& InArgs)
 
 	ProjectionType = InArgs._ProjectionType;
 	StaticMesh = InArgs._StaticMesh;
+	OnProjectionApplied = InArgs._OnProjectionApplied;
+
 	ProjectionWidget = FUVProjectionFactory::CreateUVProjectionByType(InArgs._RPRStaticMeshEditor, StaticMesh, ProjectionType);
+	ProjectionWidget->OnProjectionApplied().BindSP(this, &SUVProjectionTypeEntry::NotifyProjectionApplied);
 
 	ChildSlot
 		.HAlign(EHorizontalAlignment::HAlign_Left)
@@ -46,4 +49,9 @@ EUVProjectionType SUVProjectionTypeEntry::GetProjectionType() const
 IUVProjectionPtr SUVProjectionTypeEntry::GetUVProjectionWidget() const
 {
 	return (ProjectionWidget);
+}
+
+void SUVProjectionTypeEntry::NotifyProjectionApplied()
+{
+	OnProjectionApplied.ExecuteIfBound();
 }

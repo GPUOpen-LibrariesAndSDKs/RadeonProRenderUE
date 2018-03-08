@@ -30,22 +30,23 @@ public:
 	virtual FRPRStaticMeshEditorPtr GetRPRStaticMeshEditor() const;
 
 	virtual TSharedRef<SWidget>		TakeWidget() override;
+	virtual FOnProjectionApplied&	OnProjectionApplied() override;
 
 protected:
 	
 	void	ConstructBase();
 
-	/* Utility functions for child classes */
 	/* Add component to the RPR Static Mesh Editor viewport */
 	void	AddComponentToViewport(UActorComponent* InActorComponent, bool bSelectShape = true);
+
 	/* Create a detail view widget for the shape preview */
 	TSharedPtr<IDetailsView>	CreateShapePreviewDetailView(FName ViewIdentifier);
-	TSharedRef<SWidget>		CreateProjectButton(FOnClicked OnClicked) const;
+	
+	TSharedRef<SWidget>			CreateProjectButton(FOnClicked OnClicked) const;
 
 	/* Provide quick access to the algorithm for the UV mapping projection with the expected type */
 	template<typename AlgorithmType>
 	TSharedPtr<AlgorithmType>	GetAlgorithm() const;
-	/**************************************/
 
 	void	InitializeAlgorithm(EUVProjectionType ProjectionType);
 	void	StartAlgorithm();
@@ -56,6 +57,7 @@ protected:
 
 private:
 
+	void	NotifyAlgorithmCompleted(IUVProjectionAlgorithm* AlgorithmInstance, bool bSuccess);
 	void	AddShapePreviewToViewport();
 	void	SubscribeToAlgorithmCompletion();
 
@@ -64,7 +66,7 @@ private:
 	IUVProjectionAlgorithmPtr	Algorithm;
 	UStaticMesh*				StaticMesh;
 	FRPRStaticMeshEditorWeakPtr	RPRStaticMeshEditor;
-
+	FOnProjectionApplied		OnProjectionAppliedDelegate;
 };
 
 

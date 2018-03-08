@@ -11,6 +11,8 @@
 #include "RPRStaticMeshEditor.h"
 #include "SWidget.h"
 
+DECLARE_DELEGATE(FOnProjectionApplied)
+
 class SUVProjectionTypeEntry : public SCompoundWidget
 {
 public:
@@ -24,23 +26,30 @@ public:
 	{}
 
 	SLATE_ARGUMENT(EUVProjectionType, ProjectionType)
-	SLATE_ARGUMENT(FRPRStaticMeshEditorPtr, RPRStaticMeshEditor)
-	SLATE_ARGUMENT(FText, ProjectionName)
-	SLATE_ARGUMENT(UStaticMesh*, StaticMesh)
-	SLATE_ARGUMENT(const FSlateBrush*, Icon)
-
+		SLATE_ARGUMENT(FRPRStaticMeshEditorPtr, RPRStaticMeshEditor)
+		SLATE_ARGUMENT(FText, ProjectionName)
+		SLATE_ARGUMENT(UStaticMesh*, StaticMesh)
+		SLATE_ARGUMENT(const FSlateBrush*, Icon)
+		SLATE_EVENT(FOnProjectionApplied, OnProjectionApplied)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
-	
+
 	EUVProjectionType	GetProjectionType() const;
 	IUVProjectionPtr	GetUVProjectionWidget() const;
 
+
 private:
 
-	EUVProjectionType	ProjectionType;
-	IUVProjectionPtr	ProjectionWidget;
-	UStaticMesh*		StaticMesh;
+	void	NotifyProjectionApplied();
+
+
+private:
+
+	EUVProjectionType		ProjectionType;
+	IUVProjectionPtr		ProjectionWidget;
+	UStaticMesh*			StaticMesh;
+	FOnProjectionApplied	OnProjectionApplied;
 
 };
 

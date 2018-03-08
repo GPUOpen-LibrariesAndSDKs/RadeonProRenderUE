@@ -49,6 +49,8 @@ private:
 
 	virtual bool	OnRequestClose() override;
 
+	void	OnProjectionCompleted();
+
 private:
 
 	TSharedPtr<class SRPRStaticMeshEditorViewport>	Viewport;

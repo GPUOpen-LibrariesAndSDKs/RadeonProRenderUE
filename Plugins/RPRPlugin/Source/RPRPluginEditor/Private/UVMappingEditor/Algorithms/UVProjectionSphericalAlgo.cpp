@@ -34,7 +34,7 @@ void FUVProjectionSphericalAlgo::Finalize()
 	SaveRawMesh();
 }
 
-void FUVProjectionSphericalAlgo::ProjectVerticesOnSphere(const FSettings& InSettings, const TArray<FVector>& VertexPositions, const TArray<uint32>& WedgeIndices, TArray<FVector2D>& OutUVs)
+void FUVProjectionSphericalAlgo::ProjectVerticesOnSphere(const FSettings& InSettings, TArray<FVector>& VertexPositions, TArray<uint32>& WedgeIndices, TArray<FVector2D>& OutUVs)
 {
 	FVector2D newUV;
 
@@ -47,21 +47,48 @@ void FUVProjectionSphericalAlgo::ProjectVerticesOnSphere(const FSettings& InSett
 
 		OutUVs.Add(newUV);
 	}
+
+	FixInvalidTriangles(VertexPositions, WedgeIndices, OutUVs);
 }
 
 void FUVProjectionSphericalAlgo::ProjectVertexOnSphere(const FSettings& InSettings, const FVector& Vertex, FVector2D& OutUV)
 {
 	const FVector localVertex = FRPRVectorTools::TransformToLocal(Vertex, InSettings.SphereCenter, InSettings.SphereRotation).GetSafeNormal();
-	// float radius, angle, azimuth;
-	//FRPRVectorTools::CartesianToPolar(localVertex, radius, angle, azimuth);
-
-	/*const float circleLength = PI * 2;
-	OutUV = FVector2D(angle / circleLength, azimuth / circleLength);*/
 
 	OutUV = FVector2D(
-		0.5f + FMath::Atan2(localVertex.X, -localVertex.Y) / (PI * 2),
+		0.5f + FMath::Atan2(localVertex.Y, localVertex.X) / (2 * PI),
 		0.5f - FMath::Asin(localVertex.Z) / PI
 	);
+}
+
+void FUVProjectionSphericalAlgo::FixInvalidTriangles(TArray<FVector>& VertexPositions, TArray<uint32>& Triangles, TArray<FVector2D>& UVs)
+{
+	for (int32 tri = 0; tri < Triangles.Num(); tri += 3)
+	{
+		FVector2D uvA = UVs[tri];
+		FVector2D uvB = UVs[tri+1];
+		FVector2D uvC = UVs[tri+2];
+
+		if (!FUVUtility::IsUVTriangleValid(uvA, uvB, uvC))
+		{
+			if (uvA.X < 0.5f)
+			{
+				uvA.X += 1.0f;
+			}
+			if (uvB.X < 0.5f)
+			{
+				uvB.X += 1.0f;
+			}
+			if (uvC.X < 0.5f)
+			{
+				uvC.X += 1.0f;
+			}
+
+			UVs[tri] = uvA;
+			UVs[tri+1] = uvB;
+			UVs[tri+2] = uvC;
+		}
+	}
 }
 
 void FUVProjectionSphericalAlgo::SetSettings(const FSettings& InSettings)

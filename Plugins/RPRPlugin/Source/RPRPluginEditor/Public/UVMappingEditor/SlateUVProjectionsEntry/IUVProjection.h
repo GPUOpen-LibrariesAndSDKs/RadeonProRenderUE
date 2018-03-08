@@ -3,6 +3,8 @@
 #include "SharedPointer.h"
 #include "SWidget.h"
 
+DECLARE_DELEGATE(FOnProjectionApplied)
+
 class IUVProjection
 {
 public:
@@ -17,6 +19,7 @@ public:
 	virtual void					SetStaticMesh(class UStaticMesh* StaticMesh) = 0;
 	virtual class UStaticMesh*		GetStaticMesh() const = 0;
 	virtual TSharedRef<SWidget>		TakeWidget() = 0;
+	virtual FOnProjectionApplied&	OnProjectionApplied() = 0;
 };
 
 typedef TSharedPtr<IUVProjection>	IUVProjectionPtr;

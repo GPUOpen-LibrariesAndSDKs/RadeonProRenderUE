@@ -9,6 +9,8 @@
 #include "NotifyHook.h"
 #include "IDetailsView.h"
 
+DECLARE_DELEGATE(FOnProjectionApplied);
+
 class SUVProjectionMappingEditor : public SCompoundWidget
 {
 public:
@@ -20,6 +22,8 @@ public:
 
 		SLATE_ARGUMENT(class UStaticMesh*, StaticMesh)
 		SLATE_ARGUMENT(TSharedPtr<class FRPRStaticMeshEditor>, RPRStaticMeshEditor)
+
+		SLATE_EVENT(FOnProjectionApplied, OnProjectionApplied)
 
 	SLATE_END_ARGS()
 
@@ -48,6 +52,8 @@ private:
 	void			ShowSelectedUVProjectionWidget();
 	void			ShowUVProjectionWidget(IUVProjectionPtr UVProjectionWidget);
 
+	void			NotifyProjectionCompleted();
+
 private:
 
 	TArray<SUVProjectionTypeEntryPtr>					UVProjectionTypeList;
@@ -59,5 +65,7 @@ private:
 	TSharedPtr<SWindow>			LastStaticMeshWindowSelected;
 
 	TSharedPtr<class FRPRStaticMeshEditor>		RPRStaticMeshEditorPtr;
+
+	FOnProjectionApplied	OnProjectionApplied;
 
 };

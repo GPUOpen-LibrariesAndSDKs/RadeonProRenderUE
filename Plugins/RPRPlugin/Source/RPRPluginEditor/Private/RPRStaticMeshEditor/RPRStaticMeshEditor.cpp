@@ -67,7 +67,9 @@ void FRPRStaticMeshEditor::InitializeUVProjectionMappingEditor()
 {
 	UVProjectionMappingEditor = SNew(SUVProjectionMappingEditor)
 		.StaticMesh(StaticMesh)
-		.RPRStaticMeshEditor(SharedThis(this));
+		.RPRStaticMeshEditor(SharedThis(this))
+		.OnProjectionApplied(this, &FRPRStaticMeshEditor::OnProjectionCompleted)
+		;
 }
 
 void FRPRStaticMeshEditor::InitializeUVVisualizer()
@@ -264,6 +266,14 @@ bool FRPRStaticMeshEditor::OnRequestClose()
 {
 	FAssetEditorManager::Get().NotifyAssetClosed(StaticMesh, this);
 	return (true);
+}
+
+void FRPRStaticMeshEditor::OnProjectionCompleted()
+{
+	if (UVVisualizer.IsValid())
+	{
+		UVVisualizer->RefreshUVs();
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

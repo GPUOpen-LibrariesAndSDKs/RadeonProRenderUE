@@ -23,6 +23,8 @@ void SUVProjectionMappingEditor::Construct(const SUVProjectionMappingEditor::FAr
 	UStaticMesh* StaticMesh = InArgs._StaticMesh;
 	RPRStaticMeshEditorPtr = InArgs._RPRStaticMeshEditor;
 
+	OnProjectionApplied = InArgs._OnProjectionApplied;
+
 	AddUVProjectionListEntry(EUVProjectionType::Planar,			LOCTEXT("ProjectionType_Planar", "Planar"),			FEditorStyle::GetBrush("ClassThumbnail.Plane"),		StaticMesh);
 	AddUVProjectionListEntry(EUVProjectionType::Cubic,			LOCTEXT("ProjectionType_Cubic", "Cubic"),			FEditorStyle::GetBrush("ClassThumbnail.Cube"),		StaticMesh);
 	AddUVProjectionListEntry(EUVProjectionType::Spherical,		LOCTEXT("ProjectionType_Spherical", "Spherical"),	FEditorStyle::GetBrush("ClassThumbnail.Sphere"),	StaticMesh);
@@ -70,7 +72,9 @@ void SUVProjectionMappingEditor::AddUVProjectionListEntry(EUVProjectionType Proj
 		.ProjectionType(ProjectionType)
 		.ProjectionName(ProjectionName)
 		.StaticMesh(StaticMesh)
-		.Icon(SlateBrush);
+		.Icon(SlateBrush)
+		.OnProjectionApplied(this, &SUVProjectionMappingEditor::NotifyProjectionCompleted)
+		;
 
 	UVProjectionTypeList.Add(uvProjectionTypeEntryWidget);
 }
@@ -130,6 +134,11 @@ void SUVProjectionMappingEditor::ShowUVProjectionWidget(IUVProjectionPtr UVProje
 		InjectUVProjectionWidget(UVProjectionWidget);
 		UVProjectionWidget->OnUVProjectionDisplayed();
 	}
+}
+
+void SUVProjectionMappingEditor::NotifyProjectionCompleted()
+{
+	OnProjectionApplied.ExecuteIfBound();
 }
 
 void SUVProjectionMappingEditor::InjectUVProjectionWidget(IUVProjectionPtr UVProjectionWidget)
