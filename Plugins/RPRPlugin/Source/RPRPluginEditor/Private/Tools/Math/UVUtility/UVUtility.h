@@ -12,6 +12,7 @@ public:
 	static void CenterUVs(TArray<FVector2D>& UVs, int32 StartOffset = 0);
 	static void SetPackUVsOnMesh(class UStaticMesh* InStaticMesh, const TArray<class FPackVertexUV>& PackVertexUVs, int32 LODIndex = 0);
 	static bool	IsUVTriangleValid(const FVector2D& uvA, const FVector2D& uvB, const FVector2D& uvC);
+	static void	RevertUVTriangle(TArray<FVector2D>& UVs, int32 TriangleIndex);
 
 	static void	InvertUV(FVector2D& InUV);
 

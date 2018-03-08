@@ -1,6 +1,7 @@
 #include "UVProjectionCylinderAlgo.h"
 #include "UVUtility.h"
 #include "RPRVectorTools.h"
+#include "UVFixer.h"
 
 void FUVProjectionCylinderAlgo::StartAlgorithm()
 {
@@ -8,8 +9,7 @@ void FUVProjectionCylinderAlgo::StartAlgorithm()
 
 	PrepareUVs(NewUVs);
 	ProjectVerticesToCylinder(Settings, RawMesh.VertexPositions, RawMesh.WedgeIndices, NewUVs);
-	FUVUtility::ShrinkUVsToBounds(NewUVs);
-	FUVUtility::CenterUVs(NewUVs);
+	FUVFixer::FixInvalidUVsHorizontally(RawMesh.WedgeIndices, NewUVs);
 
 	StopAlgorithmAndRaiseCompletion(true);
 }
@@ -41,11 +41,17 @@ void FUVProjectionCylinderAlgo::ProjectVertexToCylinder(const FSettings& InSetti
 														const FVector& Vertex, FVector2D& OutUV)
 {
 	FVector localVertex = FRPRVectorTools::TransformToLocal(Vertex, InSettings.Center, InSettings.Rotation);
-	localVertex.Z /= (InSettings.Height / 2);
 
-	float radialDistance, height, azimuth;
-	FRPRVectorTools::CartesianToCylinderCoordinates(localVertex, radialDistance, height, azimuth);
-	OutUV = FVector2D(azimuth, height);
+	float phi = FMath::Atan2(localVertex.Y, -localVertex.X);
+
+	OutUV = FVector2D(
+		phi,
+		(localVertex.Z / (InSettings.Height / 2))
+	);
+
+	// Center UVs
+	OutUV.X = (OutUV.X + PI) / (PI * 2);
+	OutUV.Y = OutUV.Y / 2 + 0.5f;
 }
 
 void FUVProjectionCylinderAlgo::SetSettings(const FSettings& InSettings)

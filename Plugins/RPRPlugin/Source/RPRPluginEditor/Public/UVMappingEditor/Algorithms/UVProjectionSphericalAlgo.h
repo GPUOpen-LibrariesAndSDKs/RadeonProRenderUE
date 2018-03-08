@@ -27,8 +27,6 @@ public:
 										TArray<FVector2D>& OutUVs);
 
 	static void	ProjectVertexOnSphere(const FSettings& InSettings, const FVector& Vertex, FVector2D& OutUV);
-	static void	FixInvalidTriangles(TArray<FVector>& VertexPositions, TArray<uint32>& WedgeIndices, TArray<FVector2D>& UVs);
-	static bool IsTriangleValid(const FVector2D& PointA, const FVector2D& PointB, const FVector2D& PointC);
 
 private:
 

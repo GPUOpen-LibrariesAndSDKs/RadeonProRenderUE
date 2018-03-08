@@ -18,12 +18,7 @@ void FUVProjectionSphericalAlgo::StartAlgorithm()
 
 	PrepareUVs(NewUVs);
 	ProjectVerticesOnSphere(Settings, vertexPositions, wedgeIndices, NewUVs);
-
-	//TArray<FColor> colors;
-	//FUVFixer::Fix(vertexPositions, wedgeIndices, NewUVs, colors);
-	FUVUtility::ShrinkUVsToBounds(NewUVs);
-	FUVUtility::CenterUVs(NewUVs);
-	//RawMesh.WedgeColors = colors;
+	FUVFixer::FixInvalidUVsHorizontally(wedgeIndices, NewUVs);
 
 	StopAlgorithmAndRaiseCompletion(true);
 }
@@ -47,8 +42,6 @@ void FUVProjectionSphericalAlgo::ProjectVerticesOnSphere(const FSettings& InSett
 
 		OutUVs.Add(newUV);
 	}
-
-	FixInvalidTriangles(VertexPositions, WedgeIndices, OutUVs);
 }
 
 void FUVProjectionSphericalAlgo::ProjectVertexOnSphere(const FSettings& InSettings, const FVector& Vertex, FVector2D& OutUV)
@@ -59,36 +52,6 @@ void FUVProjectionSphericalAlgo::ProjectVertexOnSphere(const FSettings& InSettin
 		0.5f + FMath::Atan2(localVertex.Y, localVertex.X) / (2 * PI),
 		0.5f - FMath::Asin(localVertex.Z) / PI
 	);
-}
-
-void FUVProjectionSphericalAlgo::FixInvalidTriangles(TArray<FVector>& VertexPositions, TArray<uint32>& Triangles, TArray<FVector2D>& UVs)
-{
-	for (int32 tri = 0; tri < Triangles.Num(); tri += 3)
-	{
-		FVector2D uvA = UVs[tri];
-		FVector2D uvB = UVs[tri+1];
-		FVector2D uvC = UVs[tri+2];
-
-		if (!FUVUtility::IsUVTriangleValid(uvA, uvB, uvC))
-		{
-			if (uvA.X < 0.5f)
-			{
-				uvA.X += 1.0f;
-			}
-			if (uvB.X < 0.5f)
-			{
-				uvB.X += 1.0f;
-			}
-			if (uvC.X < 0.5f)
-			{
-				uvC.X += 1.0f;
-			}
-
-			UVs[tri] = uvA;
-			UVs[tri+1] = uvB;
-			UVs[tri+2] = uvC;
-		}
-	}
 }
 
 void FUVProjectionSphericalAlgo::SetSettings(const FSettings& InSettings)
