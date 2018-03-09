@@ -9,7 +9,7 @@ void FUVProjectionCylinderAlgo::StartAlgorithm()
 
 	PrepareUVs(NewUVs);
 	ProjectVerticesToCylinder(Settings, RawMesh.VertexPositions, RawMesh.WedgeIndices, NewUVs);
-	FUVFixer::FixInvalidUVsHorizontally(RawMesh.WedgeIndices, NewUVs);
+	//FUVFixer::FixInvalidUVsHorizontally(RawMesh.WedgeIndices, NewUVs);
 
 	StopAlgorithmAndRaiseCompletion(true);
 }
@@ -42,11 +42,11 @@ void FUVProjectionCylinderAlgo::ProjectVertexToCylinder(const FSettings& InSetti
 {
 	FVector localVertex = FRPRVectorTools::TransformToLocal(Vertex, InSettings.Center, InSettings.Rotation);
 
-	float phi = FMath::Atan2(localVertex.Y, -localVertex.X);
+	float phi = FMath::Atan2(localVertex.Y, localVertex.X);
 
 	OutUV = FVector2D(
 		phi,
-		(localVertex.Z / (InSettings.Height / 2))
+		localVertex.Z / (InSettings.Height / 2)
 	);
 
 	// Center UVs

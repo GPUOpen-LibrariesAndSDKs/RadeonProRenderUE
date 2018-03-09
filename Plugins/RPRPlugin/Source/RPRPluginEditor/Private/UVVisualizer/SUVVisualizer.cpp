@@ -4,6 +4,12 @@
 #include "SlateRectHelper/SlateRectHelper.h"
 #include "UVUtility.h"
 #include "StaticMeshHelper.h"
+#include "RPRVectorTools.h"
+
+SUVVisualizer::SUVVisualizer()
+	: UVChannelIndex(0)
+	, BackgroundOpacity(1.0f)
+{}
 
 void SUVVisualizer::Construct(const FArguments& InArgs)
 {
@@ -26,52 +32,109 @@ void SUVVisualizer::SetUVChannelIndex(int32 ChannelIndex)
 	}
 }
 
+void SUVVisualizer::SetBackground(UTexture2D* Image)
+{
+	BackgroundBrush.SetResourceObject(Image);
+}
+
+void SUVVisualizer::ClearBackground()
+{
+	SetBackground(nullptr);
+}
+
+void SUVVisualizer::SetBackgroundOpacity(float Opacity)
+{
+	BackgroundOpacity = Opacity;
+}
+
 int32 SUVVisualizer::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, 
 					const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, 
 					int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
-	const FSlateBrush* TimelineAreaBrush = FEditorStyle::GetBrush("Profiler.LineGraphArea");
+	OutDrawElements.PushClip(FSlateClippingZone(AllottedGeometry));
 
 	FSlateRect uvBounds = BuildUVBounds(AllottedGeometry.GetLocalSize());
+	uvBounds = uvBounds.ExtendBy(FMargin(-10));
 
-	FPaintGeometry drawBox = AllottedGeometry.ToPaintGeometry(uvBounds.GetTopLeft(), FVector2D(FSlateRectHelper::GetWidth(uvBounds), FSlateRectHelper::GetHeight(uvBounds)));
+	FPaintGeometry drawBox = 
+		AllottedGeometry.ToPaintGeometry(
+			uvBounds.GetTopLeft(), 
+			FVector2D(FSlateRectHelper::GetWidth(uvBounds), FSlateRectHelper::GetHeight(uvBounds))
+		);
 
-	FSlateDrawElement::MakeBox(
-		OutDrawElements,
-		LayerId,
-		drawBox,
-		TimelineAreaBrush,
-		ESlateDrawEffect::None,
-		FLinearColor(0, 0, 0, 0.4f)
-	);
+	PaintBackground(OutDrawElements, drawBox, LayerId);
 	++LayerId;
 
-	if (RawMesh.IsValid())
+	if (BackgroundBrush.GetResourceObject() != nullptr)
 	{
-		const TArray<uint32>& triangles = RawMesh.WedgeIndices;
-		for (int32 triIdx = 0; triIdx < triangles.Num(); triIdx += 3)
-		{
-			const FVector2D& uvA = RawMesh.WedgeTexCoords[UVChannelIndex][triIdx];
-			const FVector2D& uvB = RawMesh.WedgeTexCoords[UVChannelIndex][triIdx + 1];
-			const FVector2D& uvC = RawMesh.WedgeTexCoords[UVChannelIndex][triIdx + 2];
-
-			if (FUVUtility::IsUVTriangleValid(uvA, uvB, uvC))
-			{
-				PaintUVTriangle(OutDrawElements, drawBox, LayerId, uvBounds, FLinearColor::White, uvA, uvB, uvC);
-			}
-			else
-			{
-				PaintUVTriangle(OutDrawElements, drawBox, LayerId, uvBounds, FLinearColor::Red, uvA, uvB, uvC);
-			}
-		}
+		PaintBackgroundImage(OutDrawElements, drawBox, LayerId, uvBounds);
 		++LayerId;
 	}
+	
+	PaintAxis(OutDrawElements, drawBox, LayerId, uvBounds);
+	++LayerId;
+	
+	if (RawMesh.IsValid())
+	{
+		PaintUVs(OutDrawElements, drawBox, LayerId, uvBounds);
+		++LayerId;
+	}
+
+	OutDrawElements.PopClip();
 
 	return (SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled));
 }
 
+void SUVVisualizer::PaintBackground(FSlateWindowElementList& OutDrawElements, const FPaintGeometry& PaintGeometry, uint32 LayerId) const
+{
+	const FSlateBrush* TimelineAreaBrush = FEditorStyle::GetBrush("Profiler.LineGraphArea");
+
+	FSlateDrawElement::MakeBox(
+		OutDrawElements,
+		LayerId,
+		PaintGeometry,
+		TimelineAreaBrush,
+		ESlateDrawEffect::None,
+		FLinearColor(0, 0, 0, 0.4f)
+	);
+}
+
+void SUVVisualizer::PaintBackgroundImage(FSlateWindowElementList& OutDrawElements, const FPaintGeometry& PaintGeometry,
+											uint32 LayerId, const FSlateRect& UVBounds) const
+{
+	FSlateDrawElement::MakeBox(
+		OutDrawElements,
+		LayerId,
+		PaintGeometry,
+		&BackgroundBrush,
+		ESlateDrawEffect::None,
+		FLinearColor(1, 1, 1, BackgroundOpacity)
+	);
+}
+
+void SUVVisualizer::PaintUVs(FSlateWindowElementList& OutDrawElements, const FPaintGeometry& PaintGeometry,
+							uint32 LayerId, const FSlateRect& UVBounds) const
+{
+	const TArray<uint32>& triangles = RawMesh.WedgeIndices;
+	for (int32 triIdx = 0; triIdx < triangles.Num(); triIdx += 3)
+	{
+		const FVector2D& uvA = RawMesh.WedgeTexCoords[UVChannelIndex][triIdx];
+		const FVector2D& uvB = RawMesh.WedgeTexCoords[UVChannelIndex][triIdx + 1];
+		const FVector2D& uvC = RawMesh.WedgeTexCoords[UVChannelIndex][triIdx + 2];
+
+		if (FUVUtility::IsUVTriangleValid(uvA, uvB, uvC))
+		{
+			PaintUVTriangle(OutDrawElements, PaintGeometry, LayerId, UVBounds, FLinearColor::White, uvA, uvB, uvC);
+		}
+		else
+		{
+			PaintUVTriangle(OutDrawElements, PaintGeometry, LayerId, UVBounds, FLinearColor::Red, uvA, uvB, uvC);
+		}
+	}
+}
+
 void SUVVisualizer::PaintUVTriangle(FSlateWindowElementList& OutDrawElements, const FPaintGeometry& PaintGeometry, 
-									uint32 LayerId, const FSlateRect& UVBounds, const FLinearColor& Color, 
+									uint32 LayerId, const FSlateRect& UVBounds, const FLinearColor& Color,
 									const FVector2D& PointA, const FVector2D& PointB, const FVector2D& PointC) const
 {
 	FVector2D absPointA = ConvertLocalToAbsoluteUVPosition(UVBounds, PointA);
@@ -120,6 +183,90 @@ void SUVVisualizer::PaintUVTriangle(FSlateWindowElementList& OutDrawElements, co
 	);
 }
 
+void SUVVisualizer::PaintArrow(FSlateWindowElementList& OutDrawElements, const FPaintGeometry& PaintGeometry, 
+								uint32 LayerId, const FLinearColor& Color,
+								const FVector2D& StartPoint, const FVector2D& EndPoint, 
+								float Thickness, float ArrowSize) const
+{
+	const float arrowHeadAngle = FMath::DegreesToRadians(25);
+
+	TArray<FVector2D> lines;
+	lines.Reserve(2);
+
+	lines.Add(StartPoint);
+	lines.Add(EndPoint);
+
+	// Draw arrow tail
+	FSlateDrawElement::MakeLines(
+		OutDrawElements,
+		LayerId,
+		PaintGeometry,
+		lines,
+		ESlateDrawEffect::None,
+		Color,
+		true,
+		Thickness
+	);
+
+	FVector2D endToStartDirection = StartPoint - EndPoint;
+	endToStartDirection.Normalize();
+
+	lines[0] = EndPoint + FQuat2D(arrowHeadAngle).TransformVector(endToStartDirection) * ArrowSize;
+
+	// Draw arrow head
+	FSlateDrawElement::MakeLines(
+		OutDrawElements,
+		LayerId,
+		PaintGeometry,
+		lines,
+		ESlateDrawEffect::None,
+		Color,
+		true,
+		Thickness
+	);
+
+	lines[0] = EndPoint + FQuat2D(-arrowHeadAngle).TransformVector(endToStartDirection) * ArrowSize;
+
+	FSlateDrawElement::MakeLines(
+		OutDrawElements,
+		LayerId,
+		PaintGeometry,
+		lines,
+		ESlateDrawEffect::None,
+		Color,
+		true,
+		Thickness
+	);
+}
+
+void SUVVisualizer::PaintAxis(FSlateWindowElementList& OutDrawElements, const FPaintGeometry& PaintGeometry, 
+								uint32 LayerId, const FSlateRect& Bounds) const
+{
+	const int32 arrowThickness = 2;
+	const float width = FSlateRectHelper::GetWidth(Bounds);
+	const float height = FSlateRectHelper::GetHeight(Bounds);
+
+	PaintArrow(
+		OutDrawElements,
+		PaintGeometry,
+		LayerId,
+		FLinearColor(255, 100, 100),
+		FVector2D(0, height),
+		FVector2D(width, height),
+		arrowThickness
+	);
+
+	PaintArrow(
+		OutDrawElements,
+		PaintGeometry,
+		LayerId,
+		FLinearColor(100, 255, 100),
+		FVector2D(0, height),
+		FVector2D(0, 0),
+		arrowThickness
+	);
+}
+
 FSlateRect SUVVisualizer::BuildUVBounds(const FVector2D& BoundsSize) const
 {
 	const float windowRectWidth = BoundsSize.X;
@@ -133,9 +280,12 @@ FSlateRect SUVVisualizer::BuildUVBounds(const FVector2D& BoundsSize) const
 
 FVector2D SUVVisualizer::ConvertLocalToAbsoluteUVPosition(const FSlateRect& UVBounds, const FVector2D& Point) const
 {
+	const float width = FSlateRectHelper::GetWidth(UVBounds);
+	const float height = FSlateRectHelper::GetHeight(UVBounds);
+
 	return (FVector2D(
-		Point.X * FSlateRectHelper::GetWidth(UVBounds),
-		Point.Y * FSlateRectHelper::GetHeight(UVBounds)
+		Point.X * width,
+		height - Point.Y * height // Invert Y so the 0 is at the bottom
 	));
 }
 

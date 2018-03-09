@@ -36,3 +36,8 @@ FVector FRPRVectorTools::TransformToLocal(const FVector& Point, const FVector& O
 {
 	return (Rotation.UnrotateVector(Point - Origin));
 }
+
+FVector2D FRPRVectorTools::ToVector2D(const FVector& Vector)
+{
+	return (FVector2D(Vector.X, Vector.Y));
+}

@@ -43,25 +43,20 @@ void FUVProjectionCubicAlgo::PutVertexIntoCubeProjectionFaceByNormals(const FSet
 {
 	FVector2D uv;
 	float max = 0;
-	FColor color;
 
 	OutProjectionFaces = FCubeProjectionFace::CreateAllCubeProjectionFaces();
 
 	const TArray<FVector>& vertices = InRawMesh.VertexPositions;
-	const TArray<uint32>& wedgeIndices = InRawMesh.WedgeIndices;
+	const TArray<uint32>& triangles = InRawMesh.WedgeIndices;
 	const TArray<FVector>& normals = InRawMesh.WedgeTangentZ;
-
-	TArray<FColor> colors;
-	colors.Reserve(wedgeIndices.Num());
-
+	
 	const int32 numPointsInFace = 3;
 
-	for (int32 wedgeIndiceIdx = 0; wedgeIndiceIdx < wedgeIndices.Num(); wedgeIndiceIdx += numPointsInFace)
+	for (int32 tri = 0; tri < triangles.Num(); tri += numPointsInFace)
 	{
-		const FRPRMeshFace face(vertices, wedgeIndices, wedgeIndiceIdx);
+		const FRPRMeshFace face(vertices, triangles, tri);
 		const FVector normal = face.GetFaceNormal();
 
-		color = FColor::Black;
 		for (int32 cubeProjectionFaceIdx = 0; cubeProjectionFaceIdx < OutProjectionFaces.Num(); ++cubeProjectionFaceIdx)
 		{
 			FCubeProjectionFace& cubeProjectionFace = OutProjectionFaces[cubeProjectionFaceIdx];
@@ -69,20 +64,12 @@ void FUVProjectionCubicAlgo::PutVertexIntoCubeProjectionFaceByNormals(const FSet
 			{
 				for (int32 faceIndex = 0; faceIndex < numPointsInFace; ++faceIndex)
 				{
-					cubeProjectionFace.AddUVIndex(wedgeIndiceIdx + faceIndex);
-
-					UE_LOG(LogRPRPluginEditor, Log, TEXT("Add vertex %d [normal:%s] on face %s"), 
-						wedgeIndiceIdx + faceIndex, 
-						*normal.ToString(), 
-						*cubeProjectionFace.GetProjectionFaceSideName());
+					cubeProjectionFace.AddUVIndex(tri + faceIndex);
 				}
 
-				color += cubeProjectionFace.GetFaceColor();
 				break;
 			}
 		}
-
-		colors.Add(color);
 	}
 
 	//InSettings.RPRStaticMeshEditor->PaintStaticMeshPreview(colors);

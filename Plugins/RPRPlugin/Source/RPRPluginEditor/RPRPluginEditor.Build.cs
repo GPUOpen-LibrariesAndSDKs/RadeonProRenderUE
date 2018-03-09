@@ -84,7 +84,7 @@ public class RPRPluginEditor : ModuleRules
                 "PropertyEditor",
                 "AdvancedPreviewScene",
                 "RenderCore",
-                "RawMesh",
+                "RawMesh"
 				// ... add private dependencies that you statically link with here ...	
 			}
         );

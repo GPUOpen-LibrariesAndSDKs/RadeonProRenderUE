@@ -40,7 +40,7 @@ void UShapePreviewCube::DrawShapePreview()
 		DrawDebugSolidBox(
 			GetWorld(),
 			boxSideCenter,
-			(plane.GetUp() + plane.GetRight()).GetAbs() * GetComponentScale() * FaceScale,
+			(plane.GetUp() + plane.GetLeft()).GetAbs() * GetComponentScale() * FaceScale,
 			faceColor,
 			bPersistentLines,
 			lifeTime,
@@ -72,7 +72,7 @@ void UShapePreviewCube::DrawShapePreview()
 		DrawDebugDirectionalArrow(
 			GetWorld(),
 			arrowStart,
-			arrowStart + plane.GetRight() * ArrowExtentSize,
+			arrowStart + plane.GetLeft() * ArrowExtentSize,
 			ArrowHeadSize,
 			FColor::Green
 		);

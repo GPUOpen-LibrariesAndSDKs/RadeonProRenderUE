@@ -39,6 +39,7 @@ void FUVProjectionSphericalAlgo::ProjectVerticesOnSphere(const FSettings& InSett
 		const FVector& vertexPosition = VertexPositions[vertexIndice];
 
 		ProjectVertexOnSphere(InSettings, vertexPosition, newUV);
+		FUVUtility::InvertTextureCoordinate(newUV.X);
 
 		OutUVs.Add(newUV);
 	}

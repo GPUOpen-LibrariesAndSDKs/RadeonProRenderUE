@@ -1,4 +1,6 @@
 #include "TransformablePlane.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Rotator.h"
 
 FTransformablePlane::FTransformablePlane(const FPlane& InPlane, const FVector& InOrigin, const FVector& InPlaneUp)
 	: Plane(InPlane)
@@ -16,13 +18,16 @@ FTransformablePlane::FTransformablePlane()
 
 FVector2D FTransformablePlane::ProjectToLocalCoordinates(const FVector& Position) const
 {
-	const FVector right = GetRight();
-	FVector localPosition = Position - Origin;
-
-	return (FVector2D(
-		FVector::DotProduct(right, localPosition),
-		FVector::DotProduct(Up, localPosition)
-	));
+	const FVector left = GetLeft();
+	
+	const FVector planeNormal = Plane.GetSafeNormal();
+	FVector projectedPoint = Position - FVector::DotProduct(Position - Origin, planeNormal) * planeNormal;
+	
+	return (FVector2D
+		(
+			-FVector::DotProduct(left, Position),
+			FVector::DotProduct(Up, Position)
+		));
 }
 
 const FPlane& FTransformablePlane::GetPlane() const
@@ -45,7 +50,7 @@ const FVector& FTransformablePlane::GetPlaneNormal() const
 	return Plane;
 }
 
-FVector FTransformablePlane::GetRight() const
+FVector FTransformablePlane::GetLeft() const
 {
 	return (FVector::CrossProduct(Up, Plane/*.XYZ - the normal plane*/));
 }

@@ -16,7 +16,7 @@ public:
 	const FVector&	GetUp() const;
 	const FVector&	GetOrigin() const;
 	const FVector&	GetPlaneNormal() const;
-	FVector			GetRight() const;
+	FVector			GetLeft() const;
 
 private:
 

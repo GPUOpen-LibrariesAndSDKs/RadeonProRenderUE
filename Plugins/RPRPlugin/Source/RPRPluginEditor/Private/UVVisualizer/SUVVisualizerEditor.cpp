@@ -2,6 +2,8 @@
 #include "SBoxPanel.h"
 #include "SComboBox.h"
 #include "Engine/StaticMesh.h"
+#include "PropertyEditorModule.h"
+#include "SScrollBox.h"
 
 #define LOCTEXT_NAMESPACE "SUVVisualizerEditor"
 
@@ -12,29 +14,44 @@ void SUVVisualizerEditor::Construct(const FArguments& InArgs)
 	BuildUVChannelInfos();
 	SelectedUVChannel = UVChannels.Num() > 0 ? UVChannels[0] : nullptr;
 
+	InitUVVisualizerEditorSettings();
+
 	ChildSlot
 		[
-			SNew(SVerticalBox)
-			+SVerticalBox::Slot()
-			.AutoHeight()
-			.HAlign(HAlign_Left)
-			[
-				SNew(SComboBox<TSharedPtr<FChannelInfo>>)
-				.OptionsSource(&UVChannels)
-				.OnGenerateWidget(this, &SUVVisualizerEditor::GenerateUVChannelItem)
-				.OnSelectionChanged(this, &SUVVisualizerEditor::OnUVChannelSelected)
-				[
-					SNew(STextBlock)
-					.Text(this, &SUVVisualizerEditor::GetSelectedUVChannel)
-				]
-			]
-			+SVerticalBox::Slot()
-			.FillHeight(1.0f)
+			SNew(SSplitter)
+			.Orientation(Orient_Horizontal)
+			+SSplitter::Slot()
+			.Value(6)
 			[
 				SAssignNew(UVVisualizer, SUVVisualizer)
 				.StaticMesh(StaticMesh)
 			]
+			+SSplitter::Slot()
+			.Value(4)
+			[
+				SNew(SVerticalBox)
+				+SVerticalBox::Slot()
+				.AutoHeight()
+				.HAlign(HAlign_Left)
+				[
+					SNew(SComboBox<TSharedPtr<FChannelInfo>>)
+					.OptionsSource(&UVChannels)
+					.OnGenerateWidget(this, &SUVVisualizerEditor::GenerateUVChannelItem)
+					.OnSelectionChanged(this, &SUVVisualizerEditor::OnUVChannelSelected)
+					[
+						SNew(STextBlock)
+						.Text(this, &SUVVisualizerEditor::GetSelectedUVChannel)
+					]
+				]
+				+SVerticalBox::Slot()
+				.AutoHeight()
+				[
+					UVVisualizerEditorSettingsView->GetWidget().ToSharedRef()
+				]
+			]
 		];
+
+	UVVisualizer->SetBackgroundOpacity(UVVisualizerEditorSettings.BackgroundOpacity);
 
 	Refresh();
 }
@@ -53,12 +70,46 @@ void SUVVisualizerEditor::RefreshUVs()
 	}
 }
 
+void SUVVisualizerEditor::NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, UProperty* PropertyThatChanged)
+{
+	FName propertyName = PropertyChangedEvent.GetPropertyName();
+	if (propertyName == GET_MEMBER_NAME_CHECKED(FUVVisualizerEditorSettings, BackgroundTexture))
+	{
+		UVVisualizer->SetBackground(UVVisualizerEditorSettings.BackgroundTexture);
+	}
+	else if (propertyName == GET_MEMBER_NAME_CHECKED(FUVVisualizerEditorSettings, BackgroundOpacity))
+	{
+		UVVisualizer->SetBackgroundOpacity(UVVisualizerEditorSettings.BackgroundOpacity);
+	}
+}
+
 void SUVVisualizerEditor::SetUVChannelIndex(int32 ChannelIndex)
 {
 	if (UVVisualizer.IsValid())
 	{
 		UVVisualizer->SetUVChannelIndex(ChannelIndex);
 	}
+}
+
+void SUVVisualizerEditor::InitUVVisualizerEditorSettings()
+{
+	FPropertyEditorModule& propertyEditorModule = FModuleManager::Get().LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+	FDetailsViewArgs viewArgs(
+		false, //const bool InUpdateFromSelection
+		false, //, const bool InLockable
+		false, //, const bool InAllowSearch
+		FDetailsViewArgs::ActorsUseNameArea, //, const ENameAreaSettings InNameAreaSettings
+		false, //, const bool InHideSelectionTip
+		this, //, FNotifyHook* InNotifyHook
+		false, //, const bool InSearchInitialKeyFocus
+		NAME_None //, FName InViewIdentifier
+	);
+
+	UVVisualizerEditorSettingsStructOnScopePtr = 
+		MakeShareable(new FStructOnScope(FUVVisualizerEditorSettings::StaticStruct(), (uint8*)&UVVisualizerEditorSettings));
+
+	UVVisualizerEditorSettingsView = 
+		propertyEditorModule.CreateStructureDetailView(viewArgs, FStructureDetailsViewArgs(), UVVisualizerEditorSettingsStructOnScopePtr);
 }
 
 FText SUVVisualizerEditor::GetSelectedUVChannel() const
@@ -84,7 +135,6 @@ void SUVVisualizerEditor::BuildUVChannelInfos()
 			UVChannels.Add(channelInfo);
 		}
 	}
-
 }
 
 TSharedRef<SWidget> SUVVisualizerEditor::GenerateUVChannelItem(TSharedPtr<FChannelInfo> ChannelInfo)

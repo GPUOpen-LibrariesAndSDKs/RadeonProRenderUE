@@ -119,14 +119,28 @@ bool FUVUtility::IsUVTriangleValid(const FVector2D& uvA, const FVector2D& uvB, c
 
 void FUVUtility::RevertUVTriangle(TArray<FVector2D>& UVs, int32 TriangleIndex)
 {
-	FVector2D temp = UVs[TriangleIndex];
-	UVs[TriangleIndex] = UVs[TriangleIndex + 2];
+	FVector2D temp = UVs[TriangleIndex + 1];
+	UVs[TriangleIndex + 1] = UVs[TriangleIndex + 2];
 	UVs[TriangleIndex + 2] = temp;
+}
+
+void FUVUtility::RevertAllUVTriangles(TArray<FVector2D>& UVs)
+{
+	for (int32 i = 0; i < UVs.Num(); i += 3)
+	{
+		RevertUVTriangle(UVs, i);
+	}
+}
+
+void FUVUtility::InvertTextureCoordinate(float& TextureCoordinate)
+{
+	TextureCoordinate = 1.0f - TextureCoordinate;
 }
 
 void FUVUtility::InvertUV(FVector2D& InUV)
 {
-	InUV *= -1;
+	InvertTextureCoordinate(InUV.X);
+	InvertTextureCoordinate(InUV.Y);
 }
 
 int32 FUVUtility::GetNumTexturesCoordinatesInPackVertexUVs(const TArray<FPackVertexUV>& PackVertexUVs)

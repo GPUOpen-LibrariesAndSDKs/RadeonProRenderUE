@@ -27,6 +27,9 @@ void FUVProjectionPlanarAlgo::StartAlgorithm()
 
 	PrepareUVs(NewUVs);
 	ProjectVertexOnPlane(Settings, vertexPositions, wedgeIndices, NewUVs);
+
+	//FUVUtility::RevertAllUVTriangles(NewUVs);
+
 	FUVUtility::ShrinkUVsToBounds(NewUVs);
 	FUVUtility::CenterUVs(NewUVs);
 

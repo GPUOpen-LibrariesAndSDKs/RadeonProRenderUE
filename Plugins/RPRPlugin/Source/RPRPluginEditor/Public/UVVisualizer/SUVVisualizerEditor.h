@@ -3,8 +3,11 @@
 #include "DeclarativeSyntaxSupport.h"
 #include "SCompoundWidget.h"
 #include "SUVVisualizer.h"
+#include "UVVisualizerEditorSettings.h"
+#include "IStructureDetailsView.h"
+#include "NotifyHook.h"
 
-class SUVVisualizerEditor : public SCompoundWidget
+class SUVVisualizerEditor : public SCompoundWidget, public FNotifyHook
 {
 	struct FChannelInfo
 	{
@@ -24,10 +27,14 @@ public:
 	void	Construct(const FArguments& InArgs);
 	void	Refresh();
 	void	RefreshUVs();
+	
+	virtual void NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, UProperty* PropertyThatChanged) override;
 
 private:
 
 	void	SetUVChannelIndex(int32 ChannelIndex);
+
+	void	InitUVVisualizerEditorSettings();
 
 	FText					GetSelectedUVChannel() const;
 	void					BuildUVChannelInfos();
@@ -37,8 +44,12 @@ private:
 
 private:
 
-	SUVVisualizerPtr			UVVisualizer;
+	SUVVisualizerPtr					UVVisualizer;
+	TSharedPtr<IStructureDetailsView>	UVVisualizerEditorSettingsView;
+	TSharedPtr<FStructOnScope>			UVVisualizerEditorSettingsStructOnScopePtr;
+
 	TWeakObjectPtr<UStaticMesh>	StaticMesh;
+	FUVVisualizerEditorSettings	UVVisualizerEditorSettings;
 
 	TSharedPtr<FChannelInfo>			SelectedUVChannel;
 	TArray<TSharedPtr<FChannelInfo>>	UVChannels;

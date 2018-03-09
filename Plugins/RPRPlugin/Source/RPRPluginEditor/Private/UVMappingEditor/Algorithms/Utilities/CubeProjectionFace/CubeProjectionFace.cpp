@@ -102,7 +102,7 @@ void FCubeProjectionFace::GetFaceProjectedUVs(const TArray<FVector>& Vertices, c
 		const int32 vertexIndice = WedgeIndices[uvIndex];
 		const FVector& positionVector = Vertices[vertexIndice];
 		uv = ProjectionPlane.ProjectToLocalCoordinates(positionVector);
-		FUVUtility::InvertUV(uv);
+		//FUVUtility::InvertUV(uv);
 		OutUVs.Add(uv);
 	}
 
