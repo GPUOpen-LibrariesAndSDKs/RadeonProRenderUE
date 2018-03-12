@@ -37,6 +37,41 @@ FVector FRPRVectorTools::TransformToLocal(const FVector& Point, const FVector& O
 	return (Rotation.UnrotateVector(Point - Origin));
 }
 
+FVector FRPRVectorTools::CalculateFaceNormal(const FVector& PointA, const FVector& PointB, const FVector& PointC)
+{
+	FVector u = PointB - PointA;
+	FVector v = PointC - PointA;
+
+	return FVector(
+		(u.Y * v.Z) - (u.Z * v.Y),
+		(u.Z * v.X) - (u.X * v.Z),
+		(u.X * v.Y) - (u.Y * v.X)
+	);
+}
+
+void FRPRVectorTools::GetDominantAxisComponents(const FVector& Vector, EAxis::Type& AxisComponentA, EAxis::Type& AxisComponentB)
+{
+	float xn = FMath::Abs(Vector.X);
+	float yn = FMath::Abs(Vector.Y);
+	float zn = FMath::Abs(Vector.Z);
+
+	if (zn >= xn && zn >= yn)
+	{
+		AxisComponentA = EAxis::X;
+		AxisComponentB = EAxis::Y;
+	}
+	else if (yn >= xn && yn >= zn)
+	{
+		AxisComponentA = EAxis::X;
+		AxisComponentB = EAxis::Z;
+	}
+	else
+	{
+		AxisComponentA = EAxis::Y;
+		AxisComponentB = EAxis::Z;
+	}
+}
+
 FVector2D FRPRVectorTools::ToVector2D(const FVector& Vector)
 {
 	return (FVector2D(Vector.X, Vector.Y));
