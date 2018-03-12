@@ -13,9 +13,6 @@ void FUVProjectionCubicAlgo::StartAlgorithm()
 
 	PrepareUVs(NewUVs);
 	StartCubicProjection(RawMesh, NewUVs);
-	
-	FUVUtility::ShrinkUVsToBounds(NewUVs);
-	FUVUtility::CenterUVs(NewUVs);
 
 	StopAlgorithmAndRaiseCompletion(true);
 }
