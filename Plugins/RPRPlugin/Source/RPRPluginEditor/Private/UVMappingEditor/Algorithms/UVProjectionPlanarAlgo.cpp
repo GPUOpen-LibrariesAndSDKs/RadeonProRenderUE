@@ -28,8 +28,6 @@ void FUVProjectionPlanarAlgo::StartAlgorithm()
 	PrepareUVs(NewUVs);
 	ProjectVertexOnPlane(Settings, vertexPositions, wedgeIndices, NewUVs);
 
-	//FUVUtility::RevertAllUVTriangles(NewUVs);
-
 	FUVUtility::ShrinkUVsToBounds(NewUVs);
 	FUVUtility::CenterUVs(NewUVs);
 
@@ -51,7 +49,7 @@ void FUVProjectionPlanarAlgo::ProjectVertexOnPlane(const FSettings& InSettings, 
 		const uint32 vertexIndex = WedgeIndices[indiceIdx];
 		const FVector& vertexPosition = VertexPositions[vertexIndex];
 		newUV = InSettings.Plane.ProjectToLocalCoordinates(vertexPosition);
-		FUVUtility::InvertUV(newUV);
+		FUVUtility::InvertTextureCoordinate(newUV.Y);
 		OutUVs.Add(newUV);
 	}
 }
