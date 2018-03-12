@@ -9,7 +9,7 @@ void FUVProjectionCylinderAlgo::StartAlgorithm()
 
 	PrepareUVs(NewUVs);
 	ProjectVerticesToCylinder(Settings, RawMesh.VertexPositions, RawMesh.WedgeIndices, NewUVs);
-	//FUVFixer::FixInvalidUVsHorizontally(RawMesh.WedgeIndices, NewUVs);
+	FUVFixer::FixInvalidUVsHorizontally(RawMesh.WedgeIndices, NewUVs);
 
 	StopAlgorithmAndRaiseCompletion(true);
 }
@@ -32,6 +32,8 @@ void FUVProjectionCylinderAlgo::ProjectVerticesToCylinder(const FSettings& InSet
 		const uint32 vertexIndice = WedgeIndices[i];
 		const FVector& vertex = Vertices[vertexIndice];
 		ProjectVertexToCylinder(InSettings, vertex, uv);
+
+		FUVUtility::InvertUV(uv);
 
 		OutUVs.Add(uv);
 	}

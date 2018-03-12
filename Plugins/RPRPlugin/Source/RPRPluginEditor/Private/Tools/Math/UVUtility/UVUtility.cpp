@@ -114,7 +114,7 @@ bool FUVUtility::IsUVTriangleValid(const FVector2D& uvA, const FVector2D& uvB, c
 	FVector uvB_3D(uvB.X, uvB.Y, 0);
 	FVector uvC_3D(uvC.X, uvC.Y, 0);
 
-	return (FVector::CrossProduct(uvB_3D - uvA_3D, uvC_3D - uvA_3D).Z >= 0);
+	return (FVector::CrossProduct(uvB_3D - uvA_3D, uvC_3D - uvA_3D).Z <= 0);
 }
 
 void FUVUtility::RevertUVTriangle(TArray<FVector2D>& UVs, int32 TriangleIndex)

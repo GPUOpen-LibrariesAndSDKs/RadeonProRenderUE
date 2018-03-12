@@ -251,8 +251,8 @@ void SUVVisualizer::PaintAxis(FSlateWindowElementList& OutDrawElements, const FP
 		PaintGeometry,
 		LayerId,
 		FLinearColor(255, 100, 100),
-		FVector2D(0, height),
-		FVector2D(width, height),
+		FVector2D(0, 0),
+		FVector2D(width, 0),
 		arrowThickness
 	);
 
@@ -261,8 +261,8 @@ void SUVVisualizer::PaintAxis(FSlateWindowElementList& OutDrawElements, const FP
 		PaintGeometry,
 		LayerId,
 		FLinearColor(100, 255, 100),
-		FVector2D(0, height),
 		FVector2D(0, 0),
+		FVector2D(0, height),
 		arrowThickness
 	);
 }
@@ -285,7 +285,7 @@ FVector2D SUVVisualizer::ConvertLocalToAbsoluteUVPosition(const FSlateRect& UVBo
 
 	return (FVector2D(
 		Point.X * width,
-		height - Point.Y * height // Invert Y so the 0 is at the bottom
+		Point.Y * height
 	));
 }
 
