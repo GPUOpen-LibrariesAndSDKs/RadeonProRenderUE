@@ -31,6 +31,7 @@ public:
 
 	virtual TSharedRef<SWidget>		TakeWidget() override;
 	virtual FOnProjectionApplied&	OnProjectionApplied() override;
+	
 
 protected:
 	
@@ -56,7 +57,10 @@ protected:
 	virtual void				OnAlgorithmCompleted(IUVProjectionAlgorithm* InAlgorithm, bool bIsSuccess) = 0;
 	virtual UShapePreviewBase*	GetShapePreview() = 0;
 
+
 private:
+
+	FUVProjectionSettingsPtr	GetUVProjectionSettings() const;
 
 	void	NotifyAlgorithmCompleted(IUVProjectionAlgorithm* AlgorithmInstance, bool bSuccess);
 	void	AddShapePreviewToViewport();
@@ -69,6 +73,9 @@ private:
 	UStaticMesh*				StaticMesh;
 	FRPRStaticMeshEditorWeakPtr	RPRStaticMeshEditor;
 	FOnProjectionApplied		OnProjectionAppliedDelegate;
+	
+	FUVProjectionSettingsPtr	UVProjectionSettings;
+
 };
 
 

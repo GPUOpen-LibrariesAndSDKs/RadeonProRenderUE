@@ -6,7 +6,7 @@
 class FUVProjectionPlanarAlgo : public FUVProjectionAlgorithmBase
 {
 public:
-	struct FSettings : public FUVProjectionAlgorithmBase::FUVProjectionGlobalSettings
+	struct FSettings
 	{
 		FSettings();
 
@@ -21,17 +21,13 @@ public:
 	virtual void StartAlgorithm() override;
 	virtual void Finalize() override;
 
+private:
+
 	void	ProjectVertexOnPlane();
 	
 
-protected:
-
-	virtual const FUVProjectionGlobalSettings& GetSettings() const override;
-
-
 private:
 
-	TArray<FVector2D>	NewUVs;
 	FSettings			Settings;
 
 

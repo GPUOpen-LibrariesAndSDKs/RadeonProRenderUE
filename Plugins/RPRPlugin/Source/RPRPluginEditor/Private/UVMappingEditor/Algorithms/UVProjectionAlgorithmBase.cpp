@@ -3,10 +3,6 @@
 #include "Engine/StaticMesh.h"
 #include "UVUtility.h"
 
-FUVProjectionAlgorithmBase::FUVProjectionGlobalSettings::FUVProjectionGlobalSettings()
-	: UVChannel(0)
-{}
-
 void FUVProjectionAlgorithmBase::SetStaticMesh(UStaticMesh* InStaticMesh)
 {
 	StaticMesh = InStaticMesh;
@@ -33,6 +29,11 @@ void FUVProjectionAlgorithmBase::AbortAlgorithm()
 bool FUVProjectionAlgorithmBase::IsAlgorithimRunning()
 {
 	return (bIsAlgorithmRunning);
+}
+
+void FUVProjectionAlgorithmBase::SetGlobalUVProjectionSettings(FUVProjectionSettingsPtr Settings)
+{
+	UVProjectionSettings = Settings;
 }
 
 void FUVProjectionAlgorithmBase::PrepareUVs()
@@ -85,7 +86,7 @@ void FUVProjectionAlgorithmBase::SaveRawMesh()
 
 bool FUVProjectionAlgorithmBase::IsTriangleAffectedByProjection(int32 TriangleIndex, int32& OutMaterialIndex) const
 {
-	const int32 uvChannel = GetSettings().UVChannel;
+	const int32 uvChannel = UVProjectionSettings->UVChannel;
 	
 	const int32 faceIndex = FMath::DivideAndRoundDown(TriangleIndex, 3);
 	OutMaterialIndex = RawMesh.FaceMaterialIndices[faceIndex];

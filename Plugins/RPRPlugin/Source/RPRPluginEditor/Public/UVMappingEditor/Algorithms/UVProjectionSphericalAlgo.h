@@ -6,7 +6,7 @@ class FUVProjectionSphericalAlgo : public FUVProjectionAlgorithmBase
 {
 public:
 
-	struct FSettings : public FUVProjectionAlgorithmBase::FUVProjectionGlobalSettings
+	struct FSettings
 	{
 		FSettings();
 
@@ -23,14 +23,9 @@ public:
 	void	ProjectVertexOnSphere(const FVector& Vertex, FVector2D& OutUV);
 
 	void	SetSettings(const FSettings& InSettings);
-
-protected:
 	
-	virtual const FUVProjectionGlobalSettings& GetSettings() const override;
-
 private:
 
 	FSettings			Settings;
-
 
 };

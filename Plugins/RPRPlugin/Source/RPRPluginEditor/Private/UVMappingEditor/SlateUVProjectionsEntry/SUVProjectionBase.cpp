@@ -5,19 +5,22 @@
 #include "SScrollBox.h"
 #include "STextBlock.h"
 #include "SSpacer.h"
+#include "SGlobalUVProjectionSettings.h"
 
 #define LOCTEXT_NAMESPACE "SUVProjectionBase"
 
 void SUVProjectionBase::Construct(const FArguments& InArgs)
 {
+	UVProjectionSettings = MakeShareable(new FUVProjectionSettings);
+
 	ChildSlot
 		[
 			SNew(SVerticalBox)
 			+SVerticalBox::Slot()
 			.AutoHeight()
 			[
-				SNew(STextBlock)
-				.Text(LOCTEXT("Test", "General Settings"))
+				SNew(SGlobalUVProjectionSettings)
+				.UVProjectionSettings(UVProjectionSettings)
 			]
 			+SVerticalBox::Slot()
 			.AutoHeight()
@@ -107,6 +110,11 @@ FReply SUVProjectionBase::OnApplyButtonClicked()
 	return (FReply::Handled());
 }
 
+FUVProjectionSettingsPtr SUVProjectionBase::GetUVProjectionSettings() const
+{
+	return (UVProjectionSettings);
+}
+
 void SUVProjectionBase::NotifyAlgorithmCompleted(IUVProjectionAlgorithm* AlgorithmInstance, bool bSuccess)
 {
 	if (bSuccess)
@@ -120,6 +128,7 @@ void SUVProjectionBase::StartAlgorithm()
 {
 	if (Algorithm.IsValid())
 	{
+		Algorithm->SetGlobalUVProjectionSettings(UVProjectionSettings);
 		OnPreAlgorithmStart();
 		Algorithm->StartAlgorithm();
 	}

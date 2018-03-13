@@ -86,8 +86,3 @@ void FUVProjectionCubicAlgo::SetSettings(const FSettings& InSettings)
 {
 	Settings = InSettings;
 }
-
-const FUVProjectionAlgorithmBase::FUVProjectionGlobalSettings& FUVProjectionCubicAlgo::GetSettings() const
-{
-	return (Settings);
-}

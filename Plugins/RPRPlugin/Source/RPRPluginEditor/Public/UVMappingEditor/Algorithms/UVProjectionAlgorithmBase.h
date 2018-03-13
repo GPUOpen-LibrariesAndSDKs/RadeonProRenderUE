@@ -13,14 +13,6 @@
  */
 class FUVProjectionAlgorithmBase : public IUVProjectionAlgorithm
 {
-public:
-	
-	struct FUVProjectionGlobalSettings
-	{
-		int32	UVChannel;
-
-		FUVProjectionGlobalSettings();
-	};
 
 public:
 
@@ -29,6 +21,7 @@ public:
 	virtual ~FUVProjectionAlgorithmBase() {}
 	
 	virtual void SetStaticMesh(class UStaticMesh* InStaticMesh) override;
+	virtual void SetGlobalUVProjectionSettings(FUVProjectionSettingsPtr Settings);
 	virtual FOnAlgorithmCompleted& OnAlgorithmCompleted() override;
 
 	virtual void StartAlgorithm() override;
@@ -51,8 +44,6 @@ protected:
 	void	AddNewUVs(int32 MaterialIndex, const FVector2D& UV);
 	void	FixInvalidUVsHorizontally();
 
-	virtual const FUVProjectionGlobalSettings&	GetSettings() const = 0;
-
 
 private:
 
@@ -61,9 +52,10 @@ private:
 
 protected:
 
-	class UStaticMesh*		StaticMesh;
-	FOnAlgorithmCompleted	OnAlgorithmCompletedEvent;
-	FRawMesh				RawMesh;
+	class UStaticMesh*			StaticMesh;
+	FOnAlgorithmCompleted		OnAlgorithmCompletedEvent;
+	FRawMesh					RawMesh;
+	FUVProjectionSettingsPtr	UVProjectionSettings;
 
 private:
 

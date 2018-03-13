@@ -53,13 +53,7 @@ void FUVProjectionPlanarAlgo::ProjectVertexOnPlane()
 	}
 }
 
-
 void FUVProjectionPlanarAlgo::SetSettings(const FSettings& InSettings)
 {
 	Settings = InSettings;
-}
-
-const FUVProjectionAlgorithmBase::FUVProjectionGlobalSettings& FUVProjectionPlanarAlgo::GetSettings() const
-{
-	return (Settings);
 }

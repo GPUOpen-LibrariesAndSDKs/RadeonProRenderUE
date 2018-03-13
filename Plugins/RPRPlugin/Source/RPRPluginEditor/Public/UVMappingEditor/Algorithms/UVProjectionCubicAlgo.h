@@ -6,7 +6,7 @@
 class FUVProjectionCubicAlgo : public FUVProjectionAlgorithmBase
 {
 public:
-	struct FSettings : public FUVProjectionAlgorithmBase::FUVProjectionGlobalSettings
+	struct FSettings
 	{
 		FTransform	CubeTransform;
 	};
@@ -19,12 +19,7 @@ public:
 	virtual void Finalize() override;
 
 	void	StartCubicProjection(FRawMesh& InRawMesh);
-
-
-protected:
-
-	virtual const FUVProjectionGlobalSettings& GetSettings() const override;
-
+	
 
 private:
 
