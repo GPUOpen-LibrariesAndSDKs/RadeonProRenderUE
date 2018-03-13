@@ -8,50 +8,54 @@ void FUVProjectionCubicAlgo::StartAlgorithm()
 {
 	FUVProjectionAlgorithmBase::StartAlgorithm();
 
-	PrepareUVs(NewUVs);
-	StartCubicProjection(RawMesh, NewUVs);
+	StartCubicProjection(RawMesh);
 
 	StopAlgorithmAndRaiseCompletion(true);
 }
 
 void FUVProjectionCubicAlgo::Finalize()
 {
-	SetUVsOnMesh(NewUVs);
+	ApplyUVsOnMesh();
 	SaveRawMesh();
 }
 
-void FUVProjectionCubicAlgo::StartCubicProjection(FRawMesh& InRawMesh, TArray<FVector2D>& OutNewUVs)
+void FUVProjectionCubicAlgo::StartCubicProjection(FRawMesh& InRawMesh)
 {
 	TArray<uint32>& triangles = InRawMesh.WedgeIndices;
 	EAxis::Type dominantAxisComponentA;
 	EAxis::Type dominantAxisComponentB;
+	int32 materialIndex = 0;
 	
 	FQuat inverseCubeRotation = Settings.CubeTransform.GetRotation().Inverse();
 
 	for (int32 i = 0; i < triangles.Num(); i += 3)
 	{
-		int32 triA = triangles[i];
-		int32 triB = triangles[i+1];
-		int32 triC = triangles[i+2];
+		if (IsTriangleAffectedByProjection(i, materialIndex))
+		{
+			int32 triA = triangles[i];
+			int32 triB = triangles[i + 1];
+			int32 triC = triangles[i + 2];
 
-		const FVector& pA = InRawMesh.VertexPositions[triA];
-		const FVector& pB = InRawMesh.VertexPositions[triB];
-		const FVector& pC = InRawMesh.VertexPositions[triC];
+			const FVector& pA = InRawMesh.VertexPositions[triA];
+			const FVector& pB = InRawMesh.VertexPositions[triB];
+			const FVector& pC = InRawMesh.VertexPositions[triC];
 
-		FVector lpA = inverseCubeRotation * pA;
-		FVector lpB = inverseCubeRotation * pB;
-		FVector lpC = inverseCubeRotation * pC;
+			FVector lpA = inverseCubeRotation * pA;
+			FVector lpB = inverseCubeRotation * pB;
+			FVector lpC = inverseCubeRotation * pC;
 
-		FVector faceNormal = FRPRVectorTools::CalculateFaceNormal(pA, pB, pC);
-		FRPRVectorTools::GetDominantAxisComponents(faceNormal, dominantAxisComponentA, dominantAxisComponentB);
+			FVector faceNormal = FRPRVectorTools::CalculateFaceNormal(pA, pB, pC);
+			FRPRVectorTools::GetDominantAxisComponents(faceNormal, dominantAxisComponentA, dominantAxisComponentB);
 
-		ProjectUVAlongAxis(NewUVs, triA, dominantAxisComponentA, dominantAxisComponentB);
-		ProjectUVAlongAxis(NewUVs, triB, dominantAxisComponentA, dominantAxisComponentB);
-		ProjectUVAlongAxis(NewUVs, triC, dominantAxisComponentA, dominantAxisComponentB);
+			ProjectUVAlongAxis(materialIndex, triA, dominantAxisComponentA, dominantAxisComponentB);
+			ProjectUVAlongAxis(materialIndex, triB, dominantAxisComponentA, dominantAxisComponentB);
+			ProjectUVAlongAxis(materialIndex, triC, dominantAxisComponentA, dominantAxisComponentB);
+		}
 	}
 }
 
-void FUVProjectionCubicAlgo::ProjectUVAlongAxis(TArray<FVector2D>& UVs, int32 VertexIndex, EAxis::Type AxisComponentA, EAxis::Type AxisComponentB)
+void FUVProjectionCubicAlgo::ProjectUVAlongAxis(int32 MaterialIndex, int32 VertexIndex, 
+					EAxis::Type AxisComponentA, EAxis::Type AxisComponentB)
 {
 	FVector scale = Settings.CubeTransform.GetScale3D();
 	FVector origin = Settings.CubeTransform.GetLocation();
@@ -66,14 +70,15 @@ void FUVProjectionCubicAlgo::ProjectUVAlongAxis(TArray<FVector2D>& UVs, int32 Ve
 		return (normalizedVertexCoordinate);
 	};
 
-	FVector2D uv(
+	FVector2D uv;
+	uv.Set(
 		getScalarAlongAxis(AxisComponentA),
 		getScalarAlongAxis(AxisComponentB)
 	);
 
-	FUVUtility::InvertUV(uv);
+	FUVUtility::InvertUV(uv);	
 
-	UVs.Add(uv);
+	AddNewUVs(MaterialIndex, uv);
 }
 
 

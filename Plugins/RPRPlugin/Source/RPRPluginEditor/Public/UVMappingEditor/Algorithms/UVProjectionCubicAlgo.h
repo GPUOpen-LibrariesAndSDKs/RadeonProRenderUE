@@ -18,7 +18,7 @@ public:
 	virtual void StartAlgorithm() override;
 	virtual void Finalize() override;
 
-	void	StartCubicProjection(FRawMesh& InRawMesh, TArray<FVector2D>& OutNewUVs);
+	void	StartCubicProjection(FRawMesh& InRawMesh);
 
 
 protected:
@@ -28,12 +28,11 @@ protected:
 
 private:
 
-	void	ProjectUVAlongAxis(TArray<FVector2D>& UVs, int32 VertexIndex, EAxis::Type AxisComponentA, EAxis::Type AxisComponentB);
-
-
+	void	ProjectUVAlongAxis(int32 MaterialIndex, int32 VertexIndex,
+					EAxis::Type AxisComponentA, EAxis::Type AxisComponentB);
+	
 private:
 
-	TArray<FVector2D>	NewUVs;
 	FSettings			Settings;
 
 };

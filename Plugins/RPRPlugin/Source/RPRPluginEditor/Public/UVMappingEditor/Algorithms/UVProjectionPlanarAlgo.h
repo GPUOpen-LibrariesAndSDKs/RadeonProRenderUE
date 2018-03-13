@@ -11,6 +11,7 @@ public:
 		FSettings();
 
 		FTransformablePlane Plane;
+		float	Scale;
 	};
 
 public:
@@ -20,7 +21,7 @@ public:
 	virtual void StartAlgorithm() override;
 	virtual void Finalize() override;
 
-	static void	ProjectVertexOnPlane(const FSettings& InSettings, const TArray<FVector>& VertexPositions, const TArray<uint32>& WedgeIndices, TArray<FVector2D>& OutUVs);
+	void	ProjectVertexOnPlane();
 	
 
 protected:

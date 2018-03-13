@@ -9,49 +9,54 @@
 
 FUVProjectionPlanarAlgo::FSettings::FSettings()
 	: Plane(FPlane(FVector::ZeroVector, FVector::RightVector), FVector::ZeroVector, FVector::UpVector)
+	, Scale(1.0f)
 {
 
-}
-
-void FUVProjectionPlanarAlgo::SetSettings(const FSettings& InSettings)
-{
-	Settings = InSettings;
 }
 
 void FUVProjectionPlanarAlgo::StartAlgorithm()
 {
 	FUVProjectionAlgorithmBase::StartAlgorithm();
 
-	const TArray<FVector>& vertexPositions = RawMesh.VertexPositions;
-	const TArray<uint32>& wedgeIndices = RawMesh.WedgeIndices;
-
-	PrepareUVs(NewUVs);
-	ProjectVertexOnPlane(Settings, vertexPositions, wedgeIndices, NewUVs);
-
-	FUVUtility::ShrinkUVsToBounds(NewUVs);
-	FUVUtility::CenterUVs(NewUVs);
+	ProjectVertexOnPlane();
 
 	StopAlgorithmAndRaiseCompletion(true);
 }
 
 void FUVProjectionPlanarAlgo::Finalize()
 {
-	SetUVsOnMesh(NewUVs);
+	ApplyUVsOnMesh();
 	SaveRawMesh();
 }
 
-void FUVProjectionPlanarAlgo::ProjectVertexOnPlane(const FSettings& InSettings, const TArray<FVector>& VertexPositions, const TArray<uint32>& WedgeIndices, TArray<FVector2D>& OutUVs)
+void FUVProjectionPlanarAlgo::ProjectVertexOnPlane()
 {
 	FVector2D newUV;
+	int32 materialIndex = 0;
+	FVector2D centerOffset(0.5f, 0.5f);
 
-	for (int32 indiceIdx = 0; indiceIdx < WedgeIndices.Num(); ++indiceIdx)
+	const TArray<uint32>& triangles = RawMesh.WedgeIndices;
+	const TArray<FVector>& vertices = RawMesh.VertexPositions;
+
+	for (int32 indiceIdx = 0; indiceIdx < triangles.Num(); ++indiceIdx)
 	{
-		const uint32 vertexIndex = WedgeIndices[indiceIdx];
-		const FVector& vertexPosition = VertexPositions[vertexIndex];
-		newUV = InSettings.Plane.ProjectToLocalCoordinates(vertexPosition);
-		FUVUtility::InvertTextureCoordinate(newUV.Y);
-		OutUVs.Add(newUV);
+		if (IsTriangleAffectedByProjection(indiceIdx, materialIndex))
+		{
+			const uint32 vertexIndex = triangles[indiceIdx];
+			const FVector& vertexPosition = vertices[vertexIndex];
+
+			newUV = centerOffset + Settings.Plane.ProjectToLocalCoordinates(vertexPosition) / (2.0f * Settings.Scale);
+			FUVUtility::InvertTextureCoordinate(newUV.Y);
+
+			AddNewUVs(materialIndex, newUV);
+		}
 	}
+}
+
+
+void FUVProjectionPlanarAlgo::SetSettings(const FSettings& InSettings)
+{
+	Settings = InSettings;
 }
 
 const FUVProjectionAlgorithmBase::FUVProjectionGlobalSettings& FUVProjectionPlanarAlgo::GetSettings() const

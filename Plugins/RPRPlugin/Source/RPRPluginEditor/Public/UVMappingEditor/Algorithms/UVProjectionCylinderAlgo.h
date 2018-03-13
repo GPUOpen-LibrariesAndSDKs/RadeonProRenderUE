@@ -20,10 +20,8 @@ public:
 	virtual void StartAlgorithm() override;
 	virtual void Finalize() override;
 
-	static void	ProjectVerticesToCylinder(const FSettings& InSettings, const TArray<FVector>& Vertices, 
-										const TArray<uint32>& WedgeIndices, TArray<FVector2D>& OutUVs);
-
-	static void	ProjectVertexToCylinder(const FSettings& InSettings, const FVector& Vertex, FVector2D& OutUV);
+	void	ProjectVerticesToCylinder(const TArray<FVector>& Vertices, const TArray<uint32>& Triangles);
+	void	ProjectVertexToCylinder(const FVector& Vertex, FVector2D& OutUV);
 
 
 protected:
@@ -33,7 +31,6 @@ protected:
 
 private:
 
-	TArray<FVector2D>	NewUVs;
 	FSettings	Settings;
 
 };

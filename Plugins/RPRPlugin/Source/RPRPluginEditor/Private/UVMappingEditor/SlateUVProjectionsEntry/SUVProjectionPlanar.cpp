@@ -60,6 +60,7 @@ void SUVProjectionPlanar::UpdateAlgorithmSettings()
 	{
 		FPlane plane(FVector::ZeroVector, shapeRotation.GetForwardVector());
 		settings.Plane = FTransformablePlane(plane, shapeTransform.GetLocation(), shapeRotation.GetUpVector());
+		settings.Scale = GetShape()->GetPlaneScale();
 	}
 	planarAlgo->SetSettings(settings);
 }

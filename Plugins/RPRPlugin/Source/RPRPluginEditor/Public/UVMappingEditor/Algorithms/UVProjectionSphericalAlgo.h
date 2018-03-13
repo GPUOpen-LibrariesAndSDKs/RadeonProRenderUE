@@ -16,18 +16,13 @@ public:
 
 public:
 
-	void	SetSettings(const FSettings& InSettings);
-
 	virtual void StartAlgorithm() override;
 	virtual void Finalize() override;
 
-	static void	ProjectVerticesOnSphere(const FSettings& InSettings, 
-										TArray<FVector>& VertexPositions, 
-										TArray<uint32>& WedgeIndices, 
-										TArray<FVector2D>& OutUVs);
+	void	ProjectVerticesOnSphere(TArray<FVector>& VertexPositions, TArray<uint32>& WedgeIndices);
+	void	ProjectVertexOnSphere(const FVector& Vertex, FVector2D& OutUV);
 
-	static void	ProjectVertexOnSphere(const FSettings& InSettings, const FVector& Vertex, FVector2D& OutUV);
-
+	void	SetSettings(const FSettings& InSettings);
 
 protected:
 	
@@ -35,7 +30,6 @@ protected:
 
 private:
 
-	TArray<FVector2D>	NewUVs;
 	FSettings			Settings;
 
 

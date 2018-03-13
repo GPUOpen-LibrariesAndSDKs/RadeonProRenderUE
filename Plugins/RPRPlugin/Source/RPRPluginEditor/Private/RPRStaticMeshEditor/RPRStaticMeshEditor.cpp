@@ -111,7 +111,7 @@ TSharedPtr<FTabManager::FLayout>	FRPRStaticMeshEditor::GenerateDefaultLayout()
 					(
 						// UV Visualizer
 						FTabManager::NewStack()
-						->SetSizeCoefficient(1.0f)
+						->SetSizeCoefficient(0.3f)
 						->SetHideTabWell(true)
 						->AddTab(UVVisualizerTabId, ETabState::OpenedTab)
 					)

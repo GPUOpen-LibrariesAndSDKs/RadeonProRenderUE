@@ -1,54 +1,52 @@
 #include "UVProjectionCylinderAlgo.h"
 #include "UVUtility.h"
 #include "RPRVectorTools.h"
-#include "UVFixer.h"
 
 void FUVProjectionCylinderAlgo::StartAlgorithm()
 {
 	FUVProjectionAlgorithmBase::StartAlgorithm();
 
-	PrepareUVs(NewUVs);
-	ProjectVerticesToCylinder(Settings, RawMesh.VertexPositions, RawMesh.WedgeIndices, NewUVs);
-	FUVFixer::FixInvalidUVsHorizontally(RawMesh.WedgeIndices, NewUVs);
+	ProjectVerticesToCylinder(RawMesh.VertexPositions, RawMesh.WedgeIndices);
+	FixInvalidUVsHorizontally();
 
 	StopAlgorithmAndRaiseCompletion(true);
 }
 
 void FUVProjectionCylinderAlgo::Finalize()
 {
-	SetUVsOnMesh(NewUVs);
+	ApplyUVsOnMesh();
 	SaveRawMesh();
 }
 
-void FUVProjectionCylinderAlgo::ProjectVerticesToCylinder(const FSettings& InSettings, 
-															const TArray<FVector>& Vertices, 
-															const TArray<uint32>& WedgeIndices, 
-															TArray<FVector2D>& OutUVs)
+void FUVProjectionCylinderAlgo::ProjectVerticesToCylinder(const TArray<FVector>& Vertices, const TArray<uint32>& Triangles)
 {
 	FVector2D uv;
+	int32 materialIndex;
 
-	for (int32 i = 0; i < WedgeIndices.Num(); ++i)
+	for (int32 tri = 0; tri < Triangles.Num(); ++tri)
 	{
-		const uint32 vertexIndice = WedgeIndices[i];
-		const FVector& vertex = Vertices[vertexIndice];
-		ProjectVertexToCylinder(InSettings, vertex, uv);
+		if (IsTriangleAffectedByProjection(tri, materialIndex))
+		{
+			const uint32 vertexIndice = Triangles[tri];
+			const FVector& vertex = Vertices[vertexIndice];
 
-		FUVUtility::InvertUV(uv);
+			ProjectVertexToCylinder(vertex, uv);
+			FUVUtility::InvertUV(uv);
 
-		OutUVs.Add(uv);
+			AddNewUVs(materialIndex, uv);
+		}
 	}
 }
 
-void FUVProjectionCylinderAlgo::ProjectVertexToCylinder(const FSettings& InSettings, 
-														const FVector& Vertex, FVector2D& OutUV)
+void FUVProjectionCylinderAlgo::ProjectVertexToCylinder(const FVector& Vertex, FVector2D& OutUV)
 {
-	FVector localVertex = FRPRVectorTools::TransformToLocal(Vertex, InSettings.Center, InSettings.Rotation);
+	FVector localVertex = FRPRVectorTools::TransformToLocal(Vertex, Settings.Center, Settings.Rotation);
 
 	float phi = FMath::Atan2(localVertex.Y, localVertex.X);
 
 	OutUV = FVector2D(
 		phi,
-		localVertex.Z / (InSettings.Height / 2)
+		localVertex.Z / (Settings.Height / 2)
 	);
 
 	// Center UVs
