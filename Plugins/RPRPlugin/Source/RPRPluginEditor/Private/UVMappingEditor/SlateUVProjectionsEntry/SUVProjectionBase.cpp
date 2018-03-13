@@ -2,11 +2,43 @@
 #include "AlgorithmFactory.h"
 #include "PropertyEditorModule.h"
 #include "SButton.h"
+#include "SScrollBox.h"
+#include "STextBlock.h"
+#include "SSpacer.h"
 
 #define LOCTEXT_NAMESPACE "SUVProjectionBase"
 
 void SUVProjectionBase::Construct(const FArguments& InArgs)
 {
+	ChildSlot
+		[
+			SNew(SVerticalBox)
+			+SVerticalBox::Slot()
+			.AutoHeight()
+			[
+				SNew(STextBlock)
+				.Text(LOCTEXT("Test", "General Settings"))
+			]
+			+SVerticalBox::Slot()
+			.AutoHeight()
+			[
+				GetAlgorithmSettingsWidget()
+			]
+			+SVerticalBox::Slot()
+			.AutoHeight()
+			[
+				SNew(SSpacer)
+			]
+			+SVerticalBox::Slot()
+			.AutoHeight()
+			.VAlign(EVerticalAlignment::VAlign_Top)
+			[
+				SNew(SButton)
+				.HAlign(EHorizontalAlignment::HAlign_Center)
+				.Text(LOCTEXT("ProjectButton", "Project"))
+				.OnClicked(this, &SUVProjectionBase::OnApplyButtonClicked)
+			]
+		];
 }
 
 void SUVProjectionBase::SetStaticMesh(UStaticMesh* InStaticMesh)
@@ -58,7 +90,7 @@ void SUVProjectionBase::AddComponentToViewport(UActorComponent* InActorComponent
 	}
 }
 
-void SUVProjectionBase::InitializeAlgorithm(EUVProjectionType ProjectionType)
+void SUVProjectionBase::InitAlgorithm(EUVProjectionType ProjectionType)
 {
 	Algorithm = FAlgorithmFactory::CreateAlgorithm(StaticMesh, ProjectionType);
 	SubscribeToAlgorithmCompletion();
@@ -67,6 +99,12 @@ void SUVProjectionBase::InitializeAlgorithm(EUVProjectionType ProjectionType)
 void SUVProjectionBase::SubscribeToAlgorithmCompletion()
 {
 	Algorithm->OnAlgorithmCompleted().AddRaw(this, &SUVProjectionBase::NotifyAlgorithmCompleted);
+}
+
+FReply SUVProjectionBase::OnApplyButtonClicked()
+{
+	StartAlgorithm();
+	return (FReply::Handled());
 }
 
 void SUVProjectionBase::NotifyAlgorithmCompleted(IUVProjectionAlgorithm* AlgorithmInstance, bool bSuccess)
@@ -82,6 +120,7 @@ void SUVProjectionBase::StartAlgorithm()
 {
 	if (Algorithm.IsValid())
 	{
+		OnPreAlgorithmStart();
 		Algorithm->StartAlgorithm();
 	}
 }
@@ -109,14 +148,6 @@ TSharedPtr<IDetailsView> SUVProjectionBase::CreateShapePreviewDetailView(FName V
 		/*InViewIdentifier=*/ ViewIdentifier);
 	
 	return (propertyEditorModule.CreateDetailView(detailsViewArgs));
-}
-TSharedRef<class SWidget> SUVProjectionBase::CreateProjectButton(FOnClicked OnClicked) const
-{
-	return
-		SNew(SButton)
-		.HAlign(EHorizontalAlignment::HAlign_Center)
-		.Text(LOCTEXT("ProjectButton", "Project"))
-		.OnClicked(OnClicked);
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -2,9 +2,6 @@
 #include "RPRPluginEditorModule.h"
 #include "RPRStaticMeshEditor.h"
 #include "UVUtility.h"
-#include "IUVCubeLayout.h"
-#include "UVCubeLayout_CubemapRight.h"
-#include "RPRMeshFace.h"
 #include "RPRVectorTools.h"
 
 void FUVProjectionCubicAlgo::StartAlgorithm()
@@ -63,7 +60,10 @@ void FUVProjectionCubicAlgo::ProjectUVAlongAxis(TArray<FVector2D>& UVs, int32 Ve
 
 	TFunction<float(EAxis::Type)> getScalarAlongAxis = [this, &scale, &origin, localVertexLocation](EAxis::Type Axis)
 	{
-		return (0.5f + 0.25f * scale.GetComponentForAxis(Axis) * (localVertexLocation.GetComponentForAxis(Axis) - origin.GetComponentForAxis(Axis)));
+		const float vertexCoordinate = (localVertexLocation.GetComponentForAxis(Axis) - origin.GetComponentForAxis(Axis));
+		const float scaleAxis = scale.GetComponentForAxis(Axis);
+		const float normalizedVertexCoordinate = 0.5f + vertexCoordinate / (2.0f * scaleAxis);
+		return (normalizedVertexCoordinate);
 	};
 
 	FVector2D uv(
@@ -76,7 +76,13 @@ void FUVProjectionCubicAlgo::ProjectUVAlongAxis(TArray<FVector2D>& UVs, int32 Ve
 	UVs.Add(uv);
 }
 
+
 void FUVProjectionCubicAlgo::SetSettings(const FSettings& InSettings)
 {
 	Settings = InSettings;
+}
+
+const FUVProjectionAlgorithmBase::FUVProjectionGlobalSettings& FUVProjectionCubicAlgo::GetSettings() const
+{
+	return (Settings);
 }

@@ -53,3 +53,8 @@ void FUVProjectionPlanarAlgo::ProjectVertexOnPlane(const FSettings& InSettings, 
 		OutUVs.Add(newUV);
 	}
 }
+
+const FUVProjectionAlgorithmBase::FUVProjectionGlobalSettings& FUVProjectionPlanarAlgo::GetSettings() const
+{
+	return (Settings);
+}

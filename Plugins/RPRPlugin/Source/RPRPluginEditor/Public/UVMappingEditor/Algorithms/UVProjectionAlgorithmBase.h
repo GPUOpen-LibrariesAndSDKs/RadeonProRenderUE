@@ -17,8 +17,9 @@ public:
 	
 	struct FUVProjectionGlobalSettings
 	{
-		// Quick access for debug. Should be removed later.
-		TSharedPtr<class FRPRStaticMeshEditor> RPRStaticMeshEditor;
+		int32	UVChannel;
+
+		FUVProjectionGlobalSettings();
 	};
 
 public:
@@ -33,9 +34,6 @@ public:
 	virtual bool IsAlgorithimRunning() override;
 
 	static bool							AreStaticMeshRenderDatasValid(UStaticMesh* InStaticMesh);
-	static FPositionVertexBuffer*		GetStaticMeshPositionVertexBuffer(UStaticMesh* InStaticMesh);
-	static FStaticMeshVertexBuffer*		GetStaticMeshVertexBuffer(UStaticMesh* InStaticMesh);
-	static FColorVertexBuffer*			GetStaticMeshColorVertexBuffer(UStaticMesh* InStaticMesh);
 
 protected:
 
@@ -49,9 +47,7 @@ protected:
 	void	SetUVsOnMesh(const TArray<FVector2D>& UVs);
 	void	SaveRawMesh();
 
-	FPositionVertexBuffer*		GetStaticMeshPositionVertexBuffer() const;
-	FStaticMeshVertexBuffer*	GetStaticMeshVertexBuffer() const;
-	FColorVertexBuffer*			GetStaticMeshColorVertexBuffer() const;
+	virtual const FUVProjectionGlobalSettings&	GetSettings() const = 0;
 
 protected:
 

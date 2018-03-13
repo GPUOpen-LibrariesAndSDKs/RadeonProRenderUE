@@ -32,7 +32,6 @@ public:
 	FRPRStaticMeshEditorSelection&	GetSelectionSystem();
 
 	void	AddComponentToViewport(UActorComponent* InComponent, bool bSelectComponent = true);
-	void	PaintStaticMeshPreview(const TArray<struct FColor>& Colors);
 	void	GetPreviewMeshBounds(FVector& OutCenter, FVector& OutExtents);
 
 private:

@@ -2,6 +2,10 @@
 #include "StaticMeshHelper.h"
 #include "Engine/StaticMesh.h"
 
+FUVProjectionAlgorithmBase::FUVProjectionGlobalSettings::FUVProjectionGlobalSettings()
+	: UVChannel(0)
+{}
+
 void FUVProjectionAlgorithmBase::SetStaticMesh(UStaticMesh* InStaticMesh)
 {
 	StaticMesh = InStaticMesh;
@@ -64,8 +68,8 @@ bool FUVProjectionAlgorithmBase::AreStaticMeshRenderDatasValid(UStaticMesh* InSt
 void FUVProjectionAlgorithmBase::SetUVsOnMesh(const TArray<FVector2D>& UVs)
 {
 	// Apply the calculated UVs to the StaticMesh
-	const int32 UVChannelIdx = 0;
-	RawMesh.WedgeTexCoords[UVChannelIdx] = UVs;		
+	const int32 UVChannelIdx = GetSettings().UVChannel;
+	RawMesh.WedgeTexCoords[UVChannelIdx] = UVs;
 }
 
 void FUVProjectionAlgorithmBase::SaveRawMesh()
@@ -77,49 +81,7 @@ void FUVProjectionAlgorithmBase::SaveRawMesh()
 	}
 }
 
-FPositionVertexBuffer* FUVProjectionAlgorithmBase::GetStaticMeshPositionVertexBuffer(UStaticMesh* InStaticMesh)
-{
-	if (AreStaticMeshRenderDatasValid(InStaticMesh))
-	{
-		return (&InStaticMesh->RenderData->LODResources[0].PositionVertexBuffer);
-	}
-	return (nullptr);
-}
-
-FStaticMeshVertexBuffer* FUVProjectionAlgorithmBase::GetStaticMeshVertexBuffer(UStaticMesh* InStaticMesh)
-{
-	if (AreStaticMeshRenderDatasValid(InStaticMesh))
-	{
-		return (&InStaticMesh->RenderData->LODResources[0].VertexBuffer);
-	}
-	return (nullptr);
-}
-
-FColorVertexBuffer* FUVProjectionAlgorithmBase::GetStaticMeshColorVertexBuffer(UStaticMesh* InStaticMesh)
-{
-	if (AreStaticMeshRenderDatasValid(InStaticMesh))
-	{
-		return (&InStaticMesh->RenderData->LODResources[0].ColorVertexBuffer);
-	}
-	return (nullptr);
-}
-
 bool FUVProjectionAlgorithmBase::AreStaticMeshRenderDatasValid() const
 {
 	return (AreStaticMeshRenderDatasValid(StaticMesh));
-}
-
-FPositionVertexBuffer* FUVProjectionAlgorithmBase::GetStaticMeshPositionVertexBuffer() const
-{
-	return (GetStaticMeshPositionVertexBuffer(StaticMesh));
-}
-
-class FStaticMeshVertexBuffer* FUVProjectionAlgorithmBase::GetStaticMeshVertexBuffer() const
-{
-	return (GetStaticMeshVertexBuffer(StaticMesh));
-}
-
-FColorVertexBuffer* FUVProjectionAlgorithmBase::GetStaticMeshColorVertexBuffer() const
-{
-	return (GetStaticMeshColorVertexBuffer(StaticMesh));
 }

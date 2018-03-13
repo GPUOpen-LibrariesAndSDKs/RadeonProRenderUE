@@ -218,14 +218,6 @@ void FRPRStaticMeshEditor::AddComponentToViewport(UActorComponent* ActorComponen
 	}
 }
 
-void FRPRStaticMeshEditor::PaintStaticMeshPreview(const TArray<FColor>& Colors)
-{
-	if (Viewport.IsValid())
-	{
-		Viewport->PaintStaticMeshPreview(Colors);
-	}
-}
-
 TSharedRef<SDockTab> FRPRStaticMeshEditor::SpawnTab_Viewport(const FSpawnTabArgs& Args)
 {
 	check(Args.GetTabId() == ViewportTabId);

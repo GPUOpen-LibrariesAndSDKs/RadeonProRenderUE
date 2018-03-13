@@ -1,9 +1,9 @@
 #include "UVUtility.h"
 #include "Engine/StaticMesh.h"
-#include "PackVertexUV.h"
 #include "Vector2D.h"
 #include "Developer/RawMesh/Public/RawMesh.h"
 #include "StaticMeshHelper.h"
+#include "RawMesh.h"
 
 const FVector2D FUVUtility::UVsRange(0, 1);
 
@@ -49,65 +49,6 @@ void FUVUtility::CenterUVs(TArray<FVector2D>& UVs, int32 StartOffset /*= 0*/)
 	}
 }
 
-void FUVUtility::SetPackUVsOnMesh(UStaticMesh* InStaticMesh, const TArray<FPackVertexUV>& PackVertexUVs, int32 LODIndex)
-{
-	if (InStaticMesh->HasValidRenderData())
-	{
-		FStaticMeshLODResources& lodResources = InStaticMesh->RenderData->LODResources[LODIndex];
-		
-		int32 newNumVertices = GetNumTexturesCoordinatesInPackVertexUVs(PackVertexUVs);
-
-		FRawMesh mesh;
-		FStaticMeshHelper::LoadRawMeshFromStaticMesh(InStaticMesh, mesh);
-
-		// TODO : Copy vertex and add the required one
-
-		//TArray<FPackVertexUV> newVertices;
-		//newVertices.Reserve(newNumVertices);
-
-		//for (int32 i = 0; i < PackVertexUVs.Num(); ++i)
-		//{
-		//	if (PackVertexUVs[i].GetNumUVs() > 1)
-		//	{
-		//		newVertices.Add(PackVertexUVs);
-		//	}
-		//}
-
-
-
-		//mesh.VertexPositions.Empty();
-		//mesh.VertexPositions.Emplace(0, 0, 0);
-		//mesh.VertexPositions.Emplace(100, 0, 0);
-		//mesh.VertexPositions.Emplace(50, 100, 0);
-
-		//mesh.WedgeIndices.Empty();
-		//mesh.WedgeIndices.Emplace(0);
-		//mesh.WedgeIndices.Emplace(1);
-		//mesh.WedgeIndices.Emplace(2);
-
-		//mesh.FaceMaterialIndices.Empty();
-		//mesh.FaceMaterialIndices.Add(0);
-
-		//mesh.FaceSmoothingMasks.Empty();
-		//mesh.FaceSmoothingMasks.Add(0);
-
-		//mesh.WedgeTexCoords[0].Empty();
-		//mesh.WedgeTexCoords[0].Emplace(0, 0);
-		//mesh.WedgeTexCoords[0].Emplace(1, 0);
-		//mesh.WedgeTexCoords[0].Emplace(0.5f, 1);
-
-		//mesh.WedgeColors.Empty();
-
-		//for (int32 TexCoordIndex = 1; TexCoordIndex < MAX_MESH_TEXTURE_COORDS; ++TexCoordIndex)
-		//{
-		//	mesh.WedgeTexCoords[TexCoordIndex].Empty();
-		//}
-
-		FStaticMeshHelper::SaveRawMeshToStaticMesh(mesh, InStaticMesh);
-		InStaticMesh->MarkPackageDirty();
-	}
-}
-
 bool FUVUtility::IsUVTriangleValid(const FVector2D& uvA, const FVector2D& uvB, const FVector2D& uvC)
 {
 	FVector uvA_3D(uvA.X, uvA.Y, 0);
@@ -132,6 +73,24 @@ void FUVUtility::RevertAllUVTriangles(TArray<FVector2D>& UVs)
 	}
 }
 
+void FUVUtility::OnEachUVChannel(const FRawMesh& RawMesh, int32 UVChannel, FOnEachUVChannelDelegate Delegate)
+{
+	if (UVChannel < 0)
+	{
+		for (int32 uvChannelIdx = 0; uvChannelIdx < MAX_MESH_TEXTURE_COORDS; ++uvChannelIdx)
+		{
+			if (RawMesh.WedgeTexCoords[uvChannelIdx].Num() > 0)
+			{
+				Delegate.Execute(uvChannelIdx);
+			}
+		}
+	}
+	else
+	{
+		Delegate.Execute(UVChannel);
+	}
+}
+
 void FUVUtility::InvertTextureCoordinate(float& TextureCoordinate)
 {
 	TextureCoordinate = 1.0f - TextureCoordinate;
@@ -141,16 +100,6 @@ void FUVUtility::InvertUV(FVector2D& InUV)
 {
 	InvertTextureCoordinate(InUV.X);
 	InvertTextureCoordinate(InUV.Y);
-}
-
-int32 FUVUtility::GetNumTexturesCoordinatesInPackVertexUVs(const TArray<FPackVertexUV>& PackVertexUVs)
-{
-	int32 sum = 0;
-	for (int32 i = 0; i < PackVertexUVs.Num(); ++i)
-	{
-		sum += PackVertexUVs[i].GetNumUVs();
-	}
-	return (sum);
 }
 
 FVector2D FUVUtility::GetUVsCenter(const TArray<FVector2D>& UVs, int32 StartOffset)

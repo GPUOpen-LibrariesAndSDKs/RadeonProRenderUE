@@ -7,46 +7,26 @@
 
 void SUVProjectionCylinder::Construct(const FArguments& InArgs)
 {
-	ConstructBase();
-
 	ShapePreviewDetailView = CreateShapePreviewDetailView("SUVProjectionCylinderDetailsView");
 
-	ChildSlot
-	[
-		SNew(SVerticalBox)
-		+SVerticalBox::Slot()
-		.AutoHeight()
-		[
-			SNew(SScrollBox)
-			.Orientation(EOrientation::Orient_Vertical)
-			+SScrollBox::Slot()
-			[
-				ShapePreviewDetailView->AsShared()
-			]
-		]
-		+SVerticalBox::Slot()
-		.AutoHeight()
-		[
-			SNew(SSpacer)
-		]
-		+SVerticalBox::Slot()
-		.AutoHeight()
-		.VAlign(EVerticalAlignment::VAlign_Top)
-		[
-			CreateProjectButton(FOnClicked::CreateSP(this, &SUVProjectionCylinder::OnApplyButtonClicked))->AsShared()
-		]
-	];
+	ConstructBase();
 }
 
-void SUVProjectionCylinder::ApplyAlgorithm()
+TSharedRef<SWidget> SUVProjectionCylinder::GetAlgorithmSettingsWidget()
 {
-	UpdateAlgorithmSettings();
-	StartAlgorithm();
+	return
+		SNew(SScrollBox)
+		.Orientation(EOrientation::Orient_Vertical)
+		+ SScrollBox::Slot()
+		[
+			ShapePreviewDetailView->AsShared()
+		]
+	;
 }
 
 void SUVProjectionCylinder::FinalizeCreation()
 {
-	InitializeAlgorithm(EUVProjectionType::Cylindrical);
+	InitAlgorithm(EUVProjectionType::Cylindrical);
 }
 
 void SUVProjectionCylinder::OnUVProjectionDisplayed()
@@ -62,6 +42,11 @@ void SUVProjectionCylinder::OnUVProjectionHidden()
 	IDetailsViewHelper::ClearSelection(ShapePreviewDetailView);
 }
 
+void SUVProjectionCylinder::OnPreAlgorithmStart()
+{
+	UpdateAlgorithmSettings();
+}
+
 void SUVProjectionCylinder::OnAlgorithmCompleted(IUVProjectionAlgorithm* InAlgorithm, bool bIsSuccess)
 {
 	if (bIsSuccess)
@@ -70,14 +55,12 @@ void SUVProjectionCylinder::OnAlgorithmCompleted(IUVProjectionAlgorithm* InAlgor
 	}
 }
 
-
 void SUVProjectionCylinder::UpdateAlgorithmSettings()
 {
 	TSharedPtr<FUVProjectionCylinderAlgo> algo = GetProjectionCylinderAlgo();
 
 	FUVProjectionCylinderAlgo::FSettings settings;
 	{
-		settings.RPRStaticMeshEditor = GetRPRStaticMeshEditor();
 		settings.Center = GetShape()->GetComponentLocation();
 		settings.Rotation = GetShape()->GetComponentRotation().Quaternion();
 		settings.Height = GetShape()->Height;
@@ -100,12 +83,6 @@ void SUVProjectionCylinder::AdaptPreviewShapeToMesh()
 UShapePreviewBase* SUVProjectionCylinder::GetShapePreview()
 {
 	return (FShapePreviewCylinder::GetShape());
-}
-
-FReply SUVProjectionCylinder::OnApplyButtonClicked()
-{
-	ApplyAlgorithm();
-	return (FReply::Handled());
 }
 
 TSharedPtr<FUVProjectionCylinderAlgo> SUVProjectionCylinder::GetProjectionCylinderAlgo() const

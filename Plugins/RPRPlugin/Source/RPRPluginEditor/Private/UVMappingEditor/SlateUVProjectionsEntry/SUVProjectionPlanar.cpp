@@ -11,52 +11,26 @@
 
 void SUVProjectionPlanar::Construct(const FArguments& InArgs)
 {
-	ConstructBase();
-
 	ShapePreviewDetailView = CreateShapePreviewDetailView("SUVProjectionPlanarDetailsView");
 
-	ChildSlot
+	ConstructBase();
+}
+
+TSharedRef<SWidget> SUVProjectionPlanar::GetAlgorithmSettingsWidget()
+{
+	return
+		SNew(SScrollBox)
+		.Orientation(EOrientation::Orient_Vertical)
+		+ SScrollBox::Slot()
 		[
-			SNew(SVerticalBox)
-			+SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				SNew(SScrollBox)
-				.Orientation(EOrientation::Orient_Vertical)
-				+SScrollBox::Slot()
-				[
-					ShapePreviewDetailView->AsShared()
-				]
-			]
-			+SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				SNew(SSpacer)
-			]
-			+SVerticalBox::Slot()
-			.AutoHeight()
-			.VAlign(EVerticalAlignment::VAlign_Top)
-			[
-				CreateProjectButton(FOnClicked::CreateSP(this, &SUVProjectionPlanar::OnApplyButtonClicked))->AsShared()
-			]
-		];
-}
-
-FReply SUVProjectionPlanar::OnApplyButtonClicked()
-{
-	ApplyAlgorithm();
-	return (FReply::Handled());
-}
-
-void SUVProjectionPlanar::ApplyAlgorithm()
-{
-	UpdateAlgorithmSettings();
-	StartAlgorithm();
+			ShapePreviewDetailView->AsShared()
+		]
+	;
 }
 
 void SUVProjectionPlanar::FinalizeCreation()
 {
-	InitializeAlgorithm(EUVProjectionType::Planar);
+	InitAlgorithm(EUVProjectionType::Planar);
 }
 
 void SUVProjectionPlanar::OnUVProjectionDisplayed()
@@ -71,6 +45,11 @@ void SUVProjectionPlanar::OnUVProjectionHidden()
 	IDetailsViewHelper::ClearSelection(ShapePreviewDetailView);
 }
 
+void SUVProjectionPlanar::OnPreAlgorithmStart()
+{
+	UpdateAlgorithmSettings();
+}
+
 void SUVProjectionPlanar::UpdateAlgorithmSettings()
 {
 	TSharedPtr<FUVProjectionPlanarAlgo> planarAlgo = GetProjectionPlanarAlgo();
@@ -79,7 +58,6 @@ void SUVProjectionPlanar::UpdateAlgorithmSettings()
 
 	FUVProjectionPlanarAlgo::FSettings settings;
 	{
-		settings.RPRStaticMeshEditor = GetRPRStaticMeshEditor();
 		FPlane plane(FVector::ZeroVector, shapeRotation.GetForwardVector());
 		settings.Plane = FTransformablePlane(plane, shapeTransform.GetLocation(), shapeRotation.GetUpVector());
 	}

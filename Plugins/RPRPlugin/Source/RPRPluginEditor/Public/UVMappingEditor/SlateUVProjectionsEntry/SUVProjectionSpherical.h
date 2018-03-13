@@ -18,22 +18,22 @@ public:
 	SLATE_END_ARGS()
 
 	void	Construct(const FArguments& InArgs);
-	void	ApplyAlgorithm();
-
 	void	AdaptPreviewShapeToMesh();
 
 	virtual void FinalizeCreation() override;
 	virtual void OnUVProjectionDisplayed() override;
 	virtual void OnUVProjectionHidden() override;
+	virtual void OnPreAlgorithmStart() override;
+
 
 protected:
 
 	virtual void OnAlgorithmCompleted(IUVProjectionAlgorithm* InAlgorithm, bool bIsSuccess) override;
 	virtual UShapePreviewBase* GetShapePreview() override;
+	virtual TSharedRef<SWidget> GetAlgorithmSettingsWidget() override;
 
 private:
 
-	FReply	OnApplyButtonClicked();
 	void	UpdateAlgorithmSettings();
 	
 	TSharedPtr<class FUVProjectionSphericalAlgo>	GetProjectionSphericalAlgo() const;

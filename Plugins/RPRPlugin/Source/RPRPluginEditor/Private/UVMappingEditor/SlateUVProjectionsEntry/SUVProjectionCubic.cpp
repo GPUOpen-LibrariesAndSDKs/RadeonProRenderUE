@@ -8,41 +8,21 @@
 
 void SUVProjectionCubic::Construct(const FArguments& InArgs)
 {
-	ConstructBase();
-
 	ShapePreviewDetailView = CreateShapePreviewDetailView("SUVProjectionCubicDetailsView");
 
-	ChildSlot
-		[
-			SNew(SVerticalBox)
-			+SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				SNew(SScrollBox)
-				.Orientation(EOrientation::Orient_Vertical)
-				+SScrollBox::Slot()
-				[
-					ShapePreviewDetailView->AsShared()
-				]
-			]
-			+SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				SNew(SSpacer)
-			]
-			+SVerticalBox::Slot()
-			.AutoHeight()
-			.VAlign(EVerticalAlignment::VAlign_Top)
-			[
-				CreateProjectButton(FOnClicked::CreateSP(this, &SUVProjectionCubic::OnApplyButtonClicked))->AsShared()
-			]
-		];
+	ConstructBase();
 }
 
-FReply SUVProjectionCubic::OnApplyButtonClicked()
+TSharedRef<SWidget> SUVProjectionCubic::GetAlgorithmSettingsWidget()
 {
-	ApplyAlgorithm();
-	return (FReply::Handled());
+	return
+		SNew(SScrollBox)
+		.Orientation(EOrientation::Orient_Vertical)
+		+SScrollBox::Slot()
+		[
+			ShapePreviewDetailView->AsShared()
+		]
+	;
 }
 
 void SUVProjectionCubic::UpdateAlgorithmSettings()
@@ -51,22 +31,14 @@ void SUVProjectionCubic::UpdateAlgorithmSettings()
 	FUVProjectionCubicAlgo::FSettings settings;
 	{
 		settings.CubeTransform = GetShapePreview()->GetComponentTransform();
-		settings.RPRStaticMeshEditor = GetRPRStaticMeshEditor();
 	}
 	cubicAlgoPtr->SetSettings(settings);
 }
 
 void SUVProjectionCubic::FinalizeCreation()
 {
-	InitializeAlgorithm(EUVProjectionType::Cubic);
+	InitAlgorithm(EUVProjectionType::Cubic);
 }
-
-void SUVProjectionCubic::ApplyAlgorithm()
-{
-	UpdateAlgorithmSettings();
-	StartAlgorithm();
-}
-
 
 void SUVProjectionCubic::OnUVProjectionDisplayed()
 {
@@ -80,6 +52,11 @@ void SUVProjectionCubic::OnUVProjectionHidden()
 {
 	FShapePreviewCube::ReleaseShape();
 	IDetailsViewHelper::ClearSelection(ShapePreviewDetailView);
+}
+
+void SUVProjectionCubic::OnPreAlgorithmStart()
+{
+	UpdateAlgorithmSettings();
 }
 
 void SUVProjectionCubic::OnAlgorithmCompleted(IUVProjectionAlgorithm* InAlgorithm, bool bIsSuccess)

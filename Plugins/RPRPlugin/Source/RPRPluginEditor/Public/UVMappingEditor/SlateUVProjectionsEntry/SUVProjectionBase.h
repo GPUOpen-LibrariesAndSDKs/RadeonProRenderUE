@@ -41,17 +41,18 @@ protected:
 
 	/* Create a detail view widget for the shape preview */
 	TSharedPtr<IDetailsView>	CreateShapePreviewDetailView(FName ViewIdentifier);
-	
-	TSharedRef<SWidget>			CreateProjectButton(FOnClicked OnClicked) const;
 
 	/* Provide quick access to the algorithm for the UV mapping projection with the expected type */
 	template<typename AlgorithmType>
 	TSharedPtr<AlgorithmType>	GetAlgorithm() const;
 
-	void	InitializeAlgorithm(EUVProjectionType ProjectionType);
+	void	InitAlgorithm(EUVProjectionType ProjectionType);
 	void	StartAlgorithm();
 	void	FinalizeAlgorithm();
 
+	virtual void	OnPreAlgorithmStart() {}
+	
+	virtual TSharedRef<SWidget>	GetAlgorithmSettingsWidget() = 0;
 	virtual void				OnAlgorithmCompleted(IUVProjectionAlgorithm* InAlgorithm, bool bIsSuccess) = 0;
 	virtual UShapePreviewBase*	GetShapePreview() = 0;
 
@@ -60,6 +61,7 @@ private:
 	void	NotifyAlgorithmCompleted(IUVProjectionAlgorithm* AlgorithmInstance, bool bSuccess);
 	void	AddShapePreviewToViewport();
 	void	SubscribeToAlgorithmCompletion();
+	FReply	OnApplyButtonClicked();
 
 private:
 

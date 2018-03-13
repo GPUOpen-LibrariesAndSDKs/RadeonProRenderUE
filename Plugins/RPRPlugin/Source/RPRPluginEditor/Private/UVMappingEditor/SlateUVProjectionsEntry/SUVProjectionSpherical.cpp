@@ -7,47 +7,26 @@
 
 void SUVProjectionSpherical::Construct(const FArguments& InArgs)
 {
-	ConstructBase();
-
 	ShapePreviewDetailView = CreateShapePreviewDetailView("SUVProjectionSphericalDetailsView");
 
-	ChildSlot
-	[
-		SNew(SVerticalBox)
-		+SVerticalBox::Slot()
-		.AutoHeight()
-		[
-			SNew(SScrollBox)
-			.Orientation(EOrientation::Orient_Vertical)
-			+SScrollBox::Slot()
-			[
-				ShapePreviewDetailView->AsShared()
-			]
-		]
-		+SVerticalBox::Slot()
-		.AutoHeight()
-		[
-			SNew(SSpacer)
-		]
-		+SVerticalBox::Slot()
-		.AutoHeight()
-		.VAlign(EVerticalAlignment::VAlign_Top)
-		[
-			CreateProjectButton(FOnClicked::CreateSP(this, &SUVProjectionSpherical::OnApplyButtonClicked))->AsShared()
-		]
-	];
+	ConstructBase();
 }
 
-void SUVProjectionSpherical::ApplyAlgorithm()
+TSharedRef<SWidget> SUVProjectionSpherical::GetAlgorithmSettingsWidget()
+{
+	return
+		SNew(SScrollBox)
+		.Orientation(EOrientation::Orient_Vertical)
+		+ SScrollBox::Slot()
+		[
+			ShapePreviewDetailView->AsShared()
+		]
+	;
+}
+
+void SUVProjectionSpherical::OnPreAlgorithmStart()
 {
 	UpdateAlgorithmSettings();
-	StartAlgorithm();
-}
-
-FReply SUVProjectionSpherical::OnApplyButtonClicked()
-{
-	ApplyAlgorithm();
-	return (FReply::Handled());
 }
 
 void SUVProjectionSpherical::UpdateAlgorithmSettings()
@@ -56,7 +35,6 @@ void SUVProjectionSpherical::UpdateAlgorithmSettings()
 
 	FUVProjectionSphericalAlgo::FSettings settings;
 	{
-		settings.RPRStaticMeshEditor = GetRPRStaticMeshEditor();
 		settings.SphereCenter = GetShape()->GetComponentLocation();
 		settings.SphereRotation = GetShape()->GetComponentRotation().Quaternion();
 	}
@@ -66,7 +44,7 @@ void SUVProjectionSpherical::UpdateAlgorithmSettings()
 
 void SUVProjectionSpherical::FinalizeCreation()
 {
-	InitializeAlgorithm(EUVProjectionType::Spherical);
+	InitAlgorithm(EUVProjectionType::Spherical);
 }
 
 void SUVProjectionSpherical::OnUVProjectionDisplayed()

@@ -8,7 +8,6 @@ UShapePreviewCube::UShapePreviewCube()
 	, ArrowHeadSize(20.0f)
 	, ArrowExtentSize(40.0f)
 {
-	CubeProjectionFaces = FCubeProjectionFace::CreateAllCubeProjectionFaces();
 }
 
 void UShapePreviewCube::DrawShapePreview()
@@ -28,54 +27,5 @@ void UShapePreviewCube::DrawShapePreview()
 		depthPriority,
 		Thickness
 	);
-
-	//for (int32 i = 0; i < CubeProjectionFaces.Num(); ++i)
-	//{
-	//	FColor faceColor = CubeProjectionFaces[i].GetFaceColor();
-	//	const FTransformablePlane& plane = CubeProjectionFaces[i].GetPlaneProjection();
-
-	//	FVector boxSideCenter = GetComponentLocation() + (plane.GetPlaneNormal() + plane.GetPlaneNormal() * FaceOffset) * GetComponentScale();
-	//	FVector arrowStart = boxSideCenter + plane.GetPlaneNormal() * 0.1f;
-	//	
-	//	DrawDebugSolidBox(
-	//		GetWorld(),
-	//		boxSideCenter,
-	//		(plane.GetUp() + plane.GetLeft()).GetAbs() * GetComponentScale() * FaceScale,
-	//		faceColor,
-	//		bPersistentLines,
-	//		lifeTime,
-	//		depthPriority
-	//	);
-
-	//	// Normal
-
-	//	DrawDebugDirectionalArrow(
-	//		GetWorld(),
-	//		arrowStart,
-	//		arrowStart + plane.GetPlaneNormal() * ArrowExtentSize,
-	//		ArrowHeadSize,
-	//		FColor::Red
-	//		);
-
-	//	// Up
-
-	//	DrawDebugDirectionalArrow(
-	//		GetWorld(),
-	//		arrowStart,
-	//		arrowStart + plane.GetUp() * ArrowExtentSize,
-	//		ArrowHeadSize,
-	//		FColor::Blue
-	//	);
-
-	//	// Right
-
-	//	DrawDebugDirectionalArrow(
-	//		GetWorld(),
-	//		arrowStart,
-	//		arrowStart + plane.GetLeft() * ArrowExtentSize,
-	//		ArrowHeadSize,
-	//		FColor::Green
-	//	);
-	//}
 }
 

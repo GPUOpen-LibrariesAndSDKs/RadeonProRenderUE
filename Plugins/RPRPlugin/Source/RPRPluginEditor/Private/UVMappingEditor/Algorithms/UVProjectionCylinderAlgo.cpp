@@ -56,6 +56,12 @@ void FUVProjectionCylinderAlgo::ProjectVertexToCylinder(const FSettings& InSetti
 	OutUV.Y = OutUV.Y / 2 + 0.5f;
 }
 
+
+const FUVProjectionAlgorithmBase::FUVProjectionGlobalSettings& FUVProjectionCylinderAlgo::GetSettings() const
+{
+	return (Settings);
+}
+
 void FUVProjectionCylinderAlgo::SetSettings(const FSettings& InSettings)
 {
 	Settings = InSettings;

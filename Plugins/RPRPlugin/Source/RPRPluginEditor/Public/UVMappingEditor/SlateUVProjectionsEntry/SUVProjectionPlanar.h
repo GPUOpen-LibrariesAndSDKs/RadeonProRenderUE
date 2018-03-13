@@ -26,18 +26,16 @@ public:
 	virtual void	FinalizeCreation();
 	virtual void	OnUVProjectionDisplayed() override;
 	virtual void	OnUVProjectionHidden() override;
-
-	void			ApplyAlgorithm();		
-
+	virtual void	OnPreAlgorithmStart() override;
 
 protected:
 
 	virtual void				OnAlgorithmCompleted(IUVProjectionAlgorithm* InAlgorithm, bool bIsSuccess) override;
 	virtual UShapePreviewBase*	GetShapePreview() override;
+	virtual TSharedRef<SWidget> GetAlgorithmSettingsWidget() override;
 
 private:
 
-	FReply										OnApplyButtonClicked();
 	void										UpdateAlgorithmSettings();
 	TSharedPtr<class FUVProjectionPlanarAlgo>	GetProjectionPlanarAlgo() const;
 

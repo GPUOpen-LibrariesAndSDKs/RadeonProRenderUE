@@ -1,7 +1,5 @@
 #pragma once
 
-#include "PackVertexUV.h"
-#include "CubeProjectionFace.h"
 #include "UVProjectionAlgorithmBase.h"
 #include "Axis.h"
 
@@ -22,9 +20,16 @@ public:
 
 	void	StartCubicProjection(FRawMesh& InRawMesh, TArray<FVector2D>& OutNewUVs);
 
+
+protected:
+
+	virtual const FUVProjectionGlobalSettings& GetSettings() const override;
+
+
 private:
 
 	void	ProjectUVAlongAxis(TArray<FVector2D>& UVs, int32 VertexIndex, EAxis::Type AxisComponentA, EAxis::Type AxisComponentB);
+
 
 private:
 

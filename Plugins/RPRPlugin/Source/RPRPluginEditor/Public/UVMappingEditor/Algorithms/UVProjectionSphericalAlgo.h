@@ -28,9 +28,15 @@ public:
 
 	static void	ProjectVertexOnSphere(const FSettings& InSettings, const FVector& Vertex, FVector2D& OutUV);
 
+
+protected:
+	
+	virtual const FUVProjectionGlobalSettings& GetSettings() const override;
+
 private:
 
 	TArray<FVector2D>	NewUVs;
 	FSettings			Settings;
+
 
 };

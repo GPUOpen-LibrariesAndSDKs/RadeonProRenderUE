@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ShapePreviewBase.h"
-#include "CubeProjectionFace.h"
 #include "ShapePreviewCube.generated.h"
 
 UCLASS()
@@ -31,9 +30,5 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Preview)
 	float ArrowExtentSize;
-
-private:
-
-	FCubeProjectionFaces CubeProjectionFaces;
 
 };

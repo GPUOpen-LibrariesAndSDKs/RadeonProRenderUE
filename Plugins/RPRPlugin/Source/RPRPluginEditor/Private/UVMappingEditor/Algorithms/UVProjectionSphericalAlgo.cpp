@@ -55,6 +55,12 @@ void FUVProjectionSphericalAlgo::ProjectVertexOnSphere(const FSettings& InSettin
 	);
 }
 
+
+const FUVProjectionAlgorithmBase::FUVProjectionGlobalSettings& FUVProjectionSphericalAlgo::GetSettings() const
+{
+	return (Settings);
+}
+
 void FUVProjectionSphericalAlgo::SetSettings(const FSettings& InSettings)
 {
 	Settings = InSettings;
