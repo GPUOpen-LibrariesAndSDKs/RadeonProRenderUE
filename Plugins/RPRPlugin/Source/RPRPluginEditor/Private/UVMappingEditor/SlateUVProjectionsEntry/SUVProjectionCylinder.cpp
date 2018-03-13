@@ -8,6 +8,7 @@
 void SUVProjectionCylinder::Construct(const FArguments& InArgs)
 {
 	ShapePreviewDetailView = CreateShapePreviewDetailView("SUVProjectionCylinderDetailsView");
+	StaticMesh = InArgs._StaticMesh;
 
 	ConstructBase();
 }

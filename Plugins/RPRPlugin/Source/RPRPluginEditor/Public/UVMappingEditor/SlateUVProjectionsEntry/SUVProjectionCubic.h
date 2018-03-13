@@ -15,7 +15,12 @@ private:
 
 public:
 
-	SLATE_BEGIN_ARGS(SUVProjectionCubic) {}
+	SLATE_BEGIN_ARGS(SUVProjectionCubic)
+		: _StaticMesh(nullptr)
+	{}
+
+		SLATE_ARGUMENT(UStaticMesh*, StaticMesh)
+
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);

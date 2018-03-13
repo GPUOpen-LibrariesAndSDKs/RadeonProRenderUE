@@ -10,10 +10,12 @@ class SGlobalUVProjectionSettings : public SCompoundWidget
 public:
 
 	SLATE_BEGIN_ARGS(SGlobalUVProjectionSettings) 
-		: _UVChannelIndex(0)
+		: _StaticMesh(nullptr)
+		, _SourceModelIndex(0)
 	{}
 		
-		SLATE_ARGUMENT(int32, UVChannelIndex)
+		SLATE_ARGUMENT(UStaticMesh*, StaticMesh)
+		SLATE_ARGUMENT(int32, SourceModelIndex)
 		SLATE_ARGUMENT(FUVProjectionSettingsPtr, UVProjectionSettings)
 
 	SLATE_END_ARGS()
@@ -25,11 +27,9 @@ private:
 
 	void	OnUVChannelChanged(int32 NewUVChannel);
 
-
 private:
 
 	FUVProjectionSettingsPtr UVProjectionSettings;
-
-	int32	UVChannelIndex;
+	FRawMesh RawMesh;
 
 };

@@ -21,20 +21,16 @@ void FUVProjectionCylinderAlgo::Finalize()
 void FUVProjectionCylinderAlgo::ProjectVerticesToCylinder(const TArray<FVector>& Vertices, const TArray<uint32>& Triangles)
 {
 	FVector2D uv;
-	int32 materialIndex;
 
 	for (int32 tri = 0; tri < Triangles.Num(); ++tri)
 	{
-		if (IsTriangleAffectedByProjection(tri, materialIndex))
-		{
-			const uint32 vertexIndice = Triangles[tri];
-			const FVector& vertex = Vertices[vertexIndice];
+		const uint32 vertexIndice = Triangles[tri];
+		const FVector& vertex = Vertices[vertexIndice];
 
-			ProjectVertexToCylinder(vertex, uv);
-			FUVUtility::InvertUV(uv);
+		ProjectVertexToCylinder(vertex, uv);
+		FUVUtility::InvertUV(uv);
 
-			AddNewUVs(materialIndex, uv);
-		}
+		AddNewUVs(uv);
 	}
 }
 

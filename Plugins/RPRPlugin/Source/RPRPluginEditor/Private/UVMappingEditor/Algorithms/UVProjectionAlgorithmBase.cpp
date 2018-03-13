@@ -39,7 +39,7 @@ void FUVProjectionAlgorithmBase::SetGlobalUVProjectionSettings(FUVProjectionSett
 void FUVProjectionAlgorithmBase::PrepareUVs()
 {
 	check(RawMesh.IsValid());
-	NewUVsPerMaterial.Empty();
+	NewUVs.Empty(RawMesh.WedgeIndices.Num());
 }
 
 void FUVProjectionAlgorithmBase::StopAlgorithm()
@@ -69,9 +69,16 @@ bool FUVProjectionAlgorithmBase::AreStaticMeshRenderDatasValid(UStaticMesh* InSt
 
 void FUVProjectionAlgorithmBase::ApplyUVsOnMesh()
 {
-	for (TUVPerMaterialMap::TIterator it(NewUVsPerMaterial); it; ++it)
+	if (UVProjectionSettings->UVChannel < 0)
 	{
-		RawMesh.WedgeTexCoords[it.Key()] = it.Value();
+		for (int32 i = 0; i < MAX_MESH_TEXTURE_COORDS; ++i)
+		{
+			RawMesh.WedgeTexCoords[i] = NewUVs;
+		}
+	}
+	else
+	{
+		RawMesh.WedgeTexCoords[UVProjectionSettings->UVChannel] = NewUVs;
 	}
 }
 
@@ -84,19 +91,9 @@ void FUVProjectionAlgorithmBase::SaveRawMesh()
 	}
 }
 
-bool FUVProjectionAlgorithmBase::IsTriangleAffectedByProjection(int32 TriangleIndex, int32& OutMaterialIndex) const
+void FUVProjectionAlgorithmBase::AddNewUVs(const FVector2D& UV)
 {
-	const int32 uvChannel = UVProjectionSettings->UVChannel;
-	
-	const int32 faceIndex = FMath::DivideAndRoundDown(TriangleIndex, 3);
-	OutMaterialIndex = RawMesh.FaceMaterialIndices[faceIndex];
-
-	return (uvChannel < 0 || uvChannel == OutMaterialIndex);
-}
-
-void FUVProjectionAlgorithmBase::AddNewUVs(int32 MaterialIndex, const FVector2D& UV)
-{
-	NewUVsPerMaterial.FindOrAdd(MaterialIndex).Add(UV);
+	NewUVs.Add(UV);
 }
 
 void FUVProjectionAlgorithmBase::FixInvalidUVsHorizontally()
@@ -104,25 +101,21 @@ void FUVProjectionAlgorithmBase::FixInvalidUVsHorizontally()
 	const TArray<uint32> triangles = RawMesh.WedgeIndices;
 	int32 materialIndex = 0;
 
-	for (TUVPerMaterialMap::TIterator it(NewUVsPerMaterial); it; ++it)
+	for (int32 tri = 0 ; tri < triangles.Num() ; tri += 3)
 	{
-		TArray<FVector2D>& uv = it.Value();
-		for (int32 tri = 0; tri < uv.Num(); tri += 3)
+		FVector2D uvA = NewUVs[tri];
+		FVector2D uvB = NewUVs[tri + 1];
+		FVector2D uvC = NewUVs[tri + 2];
+
+		if (!FUVUtility::IsUVTriangleValid(uvA, uvB, uvC))
 		{
-			FVector2D uvA = uv[tri];
-			FVector2D uvB = uv[tri + 1];
-			FVector2D uvC = uv[tri + 2];
+			FixTextureCoordinateOnLeftSideIfRequired(uvA.X);
+			FixTextureCoordinateOnLeftSideIfRequired(uvB.X);
+			FixTextureCoordinateOnLeftSideIfRequired(uvC.X);
 
-			if (!FUVUtility::IsUVTriangleValid(uvA, uvB, uvC))
-			{
-				FixTextureCoordinateOnLeftSideIfRequired(uvA.X);
-				FixTextureCoordinateOnLeftSideIfRequired(uvB.X);
-				FixTextureCoordinateOnLeftSideIfRequired(uvC.X);
-
-				uv[tri] = uvA;
-				uv[tri + 1] = uvB;
-				uv[tri + 2] = uvC;
-			}
+			NewUVs[tri] = uvA;
+			NewUVs[tri + 1] = uvB;
+			NewUVs[tri + 2] = uvC;
 		}
 	}
 }

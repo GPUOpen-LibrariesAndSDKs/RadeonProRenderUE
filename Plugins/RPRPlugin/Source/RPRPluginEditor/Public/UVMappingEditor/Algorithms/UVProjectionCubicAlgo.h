@@ -23,8 +23,7 @@ public:
 
 private:
 
-	void	ProjectUVAlongAxis(int32 MaterialIndex, int32 VertexIndex,
-					EAxis::Type AxisComponentA, EAxis::Type AxisComponentB);
+	void	ProjectUVAlongAxis(int32 VertexIndex, EAxis::Type AxisComponentA, EAxis::Type AxisComponentB);
 	
 private:
 

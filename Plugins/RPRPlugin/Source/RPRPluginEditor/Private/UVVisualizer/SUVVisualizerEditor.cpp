@@ -58,8 +58,14 @@ void SUVVisualizerEditor::Construct(const FArguments& InArgs)
 
 void SUVVisualizerEditor::Refresh()
 {
-	BuildUVChannelInfos();
-	RefreshUVs();
+	// Backup UV channel
+	int32 selectedUVChannel = SelectedUVChannel.IsValid() ? SelectedUVChannel->ChannelIndex : 0;
+	{
+		BuildUVChannelInfos();
+		RefreshUVs();
+	}
+	// Try to restore UV channel
+	SelectedUVChannel = selectedUVChannel < UVChannels.Num() ? UVChannels[selectedUVChannel] : nullptr;
 }
 
 void SUVVisualizerEditor::RefreshUVs()

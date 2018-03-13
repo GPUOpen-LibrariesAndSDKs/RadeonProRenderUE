@@ -15,19 +15,23 @@ IUVProjectionPtr FUVProjectionFactory::CreateUVProjectionByType(TSharedPtr<FRPRS
 	switch (Type)
 	{
 	case Planar:
-		projectionPtr = SNew(SUVProjectionPlanar);
+		projectionPtr = SNew(SUVProjectionPlanar)
+			.StaticMesh(StaticMesh);
 		break;
 
 	case Cubic:
-		projectionPtr = SNew(SUVProjectionCubic);
+		projectionPtr = SNew(SUVProjectionCubic)
+			.StaticMesh(StaticMesh);
 		break;
 
 	case Spherical:
-		projectionPtr = SNew(SUVProjectionSpherical);
+		projectionPtr = SNew(SUVProjectionSpherical)
+			.StaticMesh(StaticMesh);
 		break;
 
 	case Cylindrical:
-		projectionPtr = SNew(SUVProjectionCylinder);
+		projectionPtr = SNew(SUVProjectionCylinder)
+			.StaticMesh(StaticMesh);
 		break;
 
 	default:
@@ -37,7 +41,6 @@ IUVProjectionPtr FUVProjectionFactory::CreateUVProjectionByType(TSharedPtr<FRPRS
 	if (projectionPtr.IsValid())
 	{
 		projectionPtr->SetRPRStaticMeshEditor(StaticMeshEditorPtr);
-		projectionPtr->SetStaticMesh(StaticMesh);
 		projectionPtr->FinalizeCreation();
 	}
 	return (projectionPtr);

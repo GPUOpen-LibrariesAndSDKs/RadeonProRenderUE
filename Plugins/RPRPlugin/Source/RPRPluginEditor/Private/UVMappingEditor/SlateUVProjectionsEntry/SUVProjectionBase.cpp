@@ -20,6 +20,7 @@ void SUVProjectionBase::Construct(const FArguments& InArgs)
 			.AutoHeight()
 			[
 				SNew(SGlobalUVProjectionSettings)
+				.StaticMesh(StaticMesh)
 				.UVProjectionSettings(UVProjectionSettings)
 			]
 			+SVerticalBox::Slot()
@@ -42,11 +43,6 @@ void SUVProjectionBase::Construct(const FArguments& InArgs)
 				.OnClicked(this, &SUVProjectionBase::OnApplyButtonClicked)
 			]
 		];
-}
-
-void SUVProjectionBase::SetStaticMesh(UStaticMesh* InStaticMesh)
-{
-	StaticMesh = InStaticMesh;
 }
 
 void SUVProjectionBase::SetRPRStaticMeshEditor(FRPRStaticMeshEditorWeakPtr InRPRStaticMeshEditor)

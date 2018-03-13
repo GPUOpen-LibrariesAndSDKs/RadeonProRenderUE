@@ -32,7 +32,6 @@ void FUVProjectionPlanarAlgo::Finalize()
 void FUVProjectionPlanarAlgo::ProjectVertexOnPlane()
 {
 	FVector2D newUV;
-	int32 materialIndex = 0;
 	FVector2D centerOffset(0.5f, 0.5f);
 
 	const TArray<uint32>& triangles = RawMesh.WedgeIndices;
@@ -40,16 +39,13 @@ void FUVProjectionPlanarAlgo::ProjectVertexOnPlane()
 
 	for (int32 indiceIdx = 0; indiceIdx < triangles.Num(); ++indiceIdx)
 	{
-		if (IsTriangleAffectedByProjection(indiceIdx, materialIndex))
-		{
-			const uint32 vertexIndex = triangles[indiceIdx];
-			const FVector& vertexPosition = vertices[vertexIndex];
+		const uint32 vertexIndex = triangles[indiceIdx];
+		const FVector& vertexPosition = vertices[vertexIndex];
 
-			newUV = centerOffset + Settings.Plane.ProjectToLocalCoordinates(vertexPosition) / (2.0f * Settings.Scale);
-			FUVUtility::InvertTextureCoordinate(newUV.Y);
+		newUV = centerOffset + Settings.Plane.ProjectToLocalCoordinates(vertexPosition) / (2.0f * Settings.Scale);
+		FUVUtility::InvertTextureCoordinate(newUV.Y);
 
-			AddNewUVs(materialIndex, newUV);
-		}
+		AddNewUVs(newUV);
 	}
 }
 

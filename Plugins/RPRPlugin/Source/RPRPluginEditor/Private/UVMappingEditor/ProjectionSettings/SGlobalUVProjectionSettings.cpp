@@ -1,10 +1,14 @@
 #include "SGlobalUVProjectionSettings.h"
 #include "SScrollBox.h"
 #include "SUVChannelAvailable.h"
+#include "StaticMeshHelper.h"
 
 void SGlobalUVProjectionSettings::Construct(const FArguments& InArgs)
 {
-	UVChannelIndex = InArgs._UVChannelIndex;
+	check(InArgs._StaticMesh);
+
+	FStaticMeshHelper::LoadRawMeshFromStaticMesh(InArgs._StaticMesh, RawMesh, InArgs._SourceModelIndex);
+
 	UVProjectionSettings = InArgs._UVProjectionSettings;
 
 	ChildSlot
@@ -13,7 +17,6 @@ void SGlobalUVProjectionSettings::Construct(const FArguments& InArgs)
 			+SScrollBox::Slot()
 			[
 				SNew(SUVChannelAvailable)
-				.SelectedUVChannel(UVProjectionSettings->UVChannel)
 				.OnUVChannelChanged(this, &SGlobalUVProjectionSettings::OnUVChannelChanged)
 			]
 		];

@@ -27,20 +27,16 @@ void FUVProjectionSphericalAlgo::Finalize()
 void FUVProjectionSphericalAlgo::ProjectVerticesOnSphere(TArray<FVector>& VertexPositions, TArray<uint32>& WedgeIndices)
 {
 	FVector2D newUV;
-	int32 materialIndex;
 
 	for (int32 indiceIdx = 0; indiceIdx < WedgeIndices.Num(); ++indiceIdx)
 	{
-		if (IsTriangleAffectedByProjection(indiceIdx, materialIndex))
-		{
-			const uint32 vertexIndice = WedgeIndices[indiceIdx];
-			const FVector& vertexPosition = VertexPositions[vertexIndice];
+		const uint32 vertexIndice = WedgeIndices[indiceIdx];
+		const FVector& vertexPosition = VertexPositions[vertexIndice];
 
-			ProjectVertexOnSphere(vertexPosition, newUV);
-			FUVUtility::InvertTextureCoordinate(newUV.X);
+		ProjectVertexOnSphere(vertexPosition, newUV);
+		FUVUtility::InvertTextureCoordinate(newUV.X);
 
-			AddNewUVs(materialIndex, newUV);
-		}
+		AddNewUVs(newUV);
 	}
 }
 

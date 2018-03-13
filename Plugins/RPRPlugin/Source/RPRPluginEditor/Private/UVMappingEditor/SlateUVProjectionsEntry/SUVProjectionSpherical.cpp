@@ -8,6 +8,7 @@
 void SUVProjectionSpherical::Construct(const FArguments& InArgs)
 {
 	ShapePreviewDetailView = CreateShapePreviewDetailView("SUVProjectionSphericalDetailsView");
+	StaticMesh = InArgs._StaticMesh;
 
 	ConstructBase();
 }

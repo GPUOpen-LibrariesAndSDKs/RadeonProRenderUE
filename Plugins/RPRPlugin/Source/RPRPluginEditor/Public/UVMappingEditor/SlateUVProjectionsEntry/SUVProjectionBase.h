@@ -23,7 +23,6 @@ public:
 
 	void	Construct(const FArguments& InArgs);
 
-	virtual void	SetStaticMesh(UStaticMesh* InStaticMesh) override;
 	virtual void	SetRPRStaticMeshEditor(FRPRStaticMeshEditorWeakPtr InRPRStaticMeshEditor) override;
 
 	virtual UStaticMesh*			GetStaticMesh() const override;
@@ -56,8 +55,7 @@ protected:
 	virtual TSharedRef<SWidget>	GetAlgorithmSettingsWidget() = 0;
 	virtual void				OnAlgorithmCompleted(IUVProjectionAlgorithm* InAlgorithm, bool bIsSuccess) = 0;
 	virtual UShapePreviewBase*	GetShapePreview() = 0;
-
-
+	
 private:
 
 	FUVProjectionSettingsPtr	GetUVProjectionSettings() const;
@@ -67,10 +65,13 @@ private:
 	void	SubscribeToAlgorithmCompletion();
 	FReply	OnApplyButtonClicked();
 
+protected:
+
+	UStaticMesh*				StaticMesh;
+
 private:
 
 	IUVProjectionAlgorithmPtr	Algorithm;
-	UStaticMesh*				StaticMesh;
 	FRPRStaticMeshEditorWeakPtr	RPRStaticMeshEditor;
 	FOnProjectionApplied		OnProjectionAppliedDelegate;
 	

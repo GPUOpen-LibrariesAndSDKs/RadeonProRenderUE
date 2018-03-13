@@ -40,8 +40,7 @@ protected:
 	bool	AreStaticMeshRenderDatasValid() const;
 	void	ApplyUVsOnMesh();
 	void	SaveRawMesh();
-	bool	IsTriangleAffectedByProjection(int32 TriangleIndex, int32& OutMaterialIndex) const;
-	void	AddNewUVs(int32 MaterialIndex, const FVector2D& UV);
+	void	AddNewUVs(const FVector2D& UV);
 	void	FixInvalidUVsHorizontally();
 
 
@@ -59,13 +58,7 @@ protected:
 
 private:
 
-	bool		bIsAlgorithmRunning;
-
-	typedef TMap<
-		int32 /* MaterialIndex */,
-		TArray<FVector2D> /* NewUVs */
-	> TUVPerMaterialMap;
-
-	TUVPerMaterialMap NewUVsPerMaterial;
+	bool bIsAlgorithmRunning;
+	TArray<FVector2D>	NewUVs;
 
 };
