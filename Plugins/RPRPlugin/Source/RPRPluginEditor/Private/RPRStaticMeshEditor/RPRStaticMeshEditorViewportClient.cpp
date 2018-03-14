@@ -26,8 +26,7 @@ namespace {
 
 FRPRStaticMeshEditorViewportClient::FRPRStaticMeshEditorViewportClient(TWeakPtr<FRPRStaticMeshEditor> InStaticMeshEditor, 
 	const TSharedRef<SRPRStaticMeshEditorViewport>& InStaticMeshEditorViewport, 
-	const TSharedRef<FAdvancedPreviewScene>& InPreviewScene, 
-	UStaticMesh* InPreviewStaticMesh, UStaticMeshComponent* InPreviewStaticMeshComponent)
+	const TSharedRef<FAdvancedPreviewScene>& InPreviewScene)
 	: FRPRViewportEditorClient(nullptr, &InPreviewScene.Get(), InStaticMeshEditorViewport)
 	, StaticMeshEditorPtr(InStaticMeshEditor)
 	, StaticMeshEditorViewportPtr(InStaticMeshEditorViewport)
@@ -52,8 +51,6 @@ FRPRStaticMeshEditorViewportClient::FRPRStaticMeshEditorViewportClient(TWeakPtr<
 	bUsingOrbitCamera = true;
 
 	AdvancedPreviewScene = static_cast<FAdvancedPreviewScene*>(PreviewScene);
-
-	SetPreviewMesh(InPreviewStaticMesh, nullptr);
 
 	//// Register delegate to update the show flags when the post processing is turned on or off
 	UAssetViewerSettings::Get()->OnAssetViewerSettingsChanged().AddRaw(this, &FRPRStaticMeshEditorViewportClient::OnAssetViewerSettingsChanged);
@@ -236,7 +233,12 @@ void FRPRStaticMeshEditorViewportClient::ProcessClick(class FSceneView& InView, 
 	}
 }
 
-void FRPRStaticMeshEditorViewportClient::SetPreviewMesh(UStaticMesh* InStaticMesh, UStaticMeshComponent* InPreviewComponent, bool bResetCamera)
+void FRPRStaticMeshEditorViewportClient::InitializeCameraFromBounds()
+{
+
+}
+
+void FRPRStaticMeshEditorViewportClient::AddPreviewMesh(UStaticMeshComponent* InPreviewComponent, bool bResetCamera)
 {
 	if (InPreviewComponent != nullptr)
 	{
@@ -245,9 +247,11 @@ void FRPRStaticMeshEditorViewportClient::SetPreviewMesh(UStaticMesh* InStaticMes
 
 	if (bResetCamera)
 	{
+		UStaticMesh* StaticMesh = InPreviewComponent->GetStaticMesh();
+
 		// If we have a thumbnail transform, we will favor that over the camera position as the user may have customized this for a nice view
 		// If we have neither a custom thumbnail nor a valid camera position, then we'll just use the default thumbnail transform 
-		const USceneThumbnailInfo* const AssetThumbnailInfo = Cast<USceneThumbnailInfo>(InStaticMesh->ThumbnailInfo);
+		const USceneThumbnailInfo* const AssetThumbnailInfo = Cast<USceneThumbnailInfo>(StaticMesh->ThumbnailInfo);
 		const USceneThumbnailInfo* const DefaultThumbnailInfo = USceneThumbnailInfo::StaticClass()->GetDefaultObject<USceneThumbnailInfo>();
 
 		// Prefer the asset thumbnail if available
@@ -260,26 +264,26 @@ void FRPRStaticMeshEditorViewportClient::SetPreviewMesh(UStaticMesh* InStaticMes
 		ThumbnailAngle.Roll = 0;
 		const float ThumbnailDistance = ThumbnailInfo->OrbitZoom;
 
-		const float CameraY = InStaticMesh->GetBounds().SphereRadius / (75.0f * PI / 360.0f);
+		const float CameraY = StaticMesh->GetBounds().SphereRadius / (75.0f * PI / 360.0f);
 		SetCameraSetup(
 			FVector::ZeroVector,
 			ThumbnailAngle,
 			FVector(0.0f, CameraY + ThumbnailDistance - AutoViewportOrbitCameraTranslate, 0.0f),
-			InStaticMesh->GetBounds().Origin,
+			StaticMesh->GetBounds().Origin,
 			-FVector(0, CameraY, 0),
 			FRotator(0, 90.f, 0)
 		);
 
-		if (!AssetThumbnailInfo && InStaticMesh->EditorCameraPosition.bIsSet)
+		if (!AssetThumbnailInfo && StaticMesh->EditorCameraPosition.bIsSet)
 		{
 			// The static mesh editor saves the camera position in terms of an orbit camera, so ensure 
 			// that orbit mode is enabled before we set the new transform information
 			const bool bWasOrbit = bUsingOrbitCamera;
 			ToggleOrbitCamera(true);
 
-			SetViewRotation(InStaticMesh->EditorCameraPosition.CamOrbitRotation);
-			SetViewLocation(InStaticMesh->EditorCameraPosition.CamOrbitPoint + InStaticMesh->EditorCameraPosition.CamOrbitZoom);
-			SetLookAtLocation(InStaticMesh->EditorCameraPosition.CamOrbitPoint);
+			SetViewRotation(StaticMesh->EditorCameraPosition.CamOrbitRotation);
+			SetViewLocation(StaticMesh->EditorCameraPosition.CamOrbitPoint + StaticMesh->EditorCameraPosition.CamOrbitZoom);
+			SetLookAtLocation(StaticMesh->EditorCameraPosition.CamOrbitPoint);
 
 			ToggleOrbitCamera(bWasOrbit);
 		}

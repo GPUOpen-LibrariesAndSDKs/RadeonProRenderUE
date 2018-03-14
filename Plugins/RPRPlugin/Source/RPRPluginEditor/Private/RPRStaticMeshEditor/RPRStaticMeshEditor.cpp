@@ -15,16 +15,16 @@ const FName FRPRStaticMeshEditor::ViewportTabId(TEXT("RPRStaticMeshEditor_Viewpo
 const FName FRPRStaticMeshEditor::UVProjectionMappingEditorTabId(TEXT("RPRStaticMeshEditor_UVProjectionMappingEditor"));
 const FName FRPRStaticMeshEditor::UVVisualizerTabId(TEXT("RPRStaticMeshEditor_UVVisualizer"));
 
-TSharedPtr<FRPRStaticMeshEditor> FRPRStaticMeshEditor::CreateRPRStaticMeshEditor(UStaticMesh* StaticMesh)
+TSharedPtr<FRPRStaticMeshEditor> FRPRStaticMeshEditor::CreateRPRStaticMeshEditor(const TArray<UStaticMesh*>& StaticMeshes)
 {
 	TSharedPtr<FRPRStaticMeshEditor> RPRStaticMeshEditor = MakeShareable(new FRPRStaticMeshEditor);
-	RPRStaticMeshEditor->InitRPRStaticMeshEditor(StaticMesh);
+	RPRStaticMeshEditor->InitRPRStaticMeshEditor(StaticMeshes);
 	return (RPRStaticMeshEditor);
 }
 
-void FRPRStaticMeshEditor::InitRPRStaticMeshEditor(UStaticMesh* InStaticMesh)
+void FRPRStaticMeshEditor::InitRPRStaticMeshEditor(const TArray<UStaticMesh*>& InStaticMeshes)
 {
-	StaticMesh = InStaticMesh;
+	StaticMeshes = InStaticMeshes;
 
 	FRPRStaticMeshEditorActions::Register();
 
@@ -34,6 +34,13 @@ void FRPRStaticMeshEditor::InitRPRStaticMeshEditor(UStaticMesh* InStaticMesh)
 	const bool bCreateDefaultStandaloneMenu = true;
 	const bool bCreateDefaultToolbar = true;
 
+	TArray<UObject*> objects;
+	objects.Reserve(StaticMeshes.Num());
+	for (int32 i = 0; i < StaticMeshes.Num(); ++i)
+	{
+		objects.Add(StaticMeshes[i]);
+	}
+
 	FAssetEditorToolkit::InitAssetEditor(
 		EToolkitMode::Standalone, 
 		TSharedPtr<IToolkitHost>(), 
@@ -41,7 +48,7 @@ void FRPRStaticMeshEditor::InitRPRStaticMeshEditor(UStaticMesh* InStaticMesh)
 		GenerateDefaultLayout().ToSharedRef(),
 		bCreateDefaultStandaloneMenu, 
 		bCreateDefaultToolbar, 
-		StaticMesh
+		objects
 	);
 }
 
@@ -66,7 +73,7 @@ void FRPRStaticMeshEditor::InitializeViewport()
 void FRPRStaticMeshEditor::InitializeUVProjectionMappingEditor()
 {
 	UVProjectionMappingEditor = SNew(SUVProjectionMappingEditor)
-		.StaticMesh(StaticMesh)
+		.StaticMesh(StaticMeshes[0])
 		.RPRStaticMeshEditor(SharedThis(this))
 		.OnProjectionApplied(this, &FRPRStaticMeshEditor::OnProjectionCompleted)
 		;
@@ -75,7 +82,7 @@ void FRPRStaticMeshEditor::InitializeUVProjectionMappingEditor()
 void FRPRStaticMeshEditor::InitializeUVVisualizer()
 {
 	UVVisualizer = SNew(SUVVisualizerEditor)
-		.StaticMesh(StaticMesh);
+		.StaticMesh(StaticMeshes[0]);
 }
 
 TSharedPtr<FTabManager::FLayout>	FRPRStaticMeshEditor::GenerateDefaultLayout()
@@ -170,6 +177,16 @@ FText FRPRStaticMeshEditor::GetBaseToolkitName() const
 	return (LOCTEXT("BaseToolkitName", "RPR Static Mesh Editor"));
 }
 
+FText FRPRStaticMeshEditor::GetToolkitName() const
+{
+	return (LOCTEXT("RPRStaticMeshEditorToolkitName", "RPRStaticMeshEditor"));
+}
+
+FText FRPRStaticMeshEditor::GetToolkitToolTipText() const
+{
+	return (FText::GetEmpty());
+}
+
 FString FRPRStaticMeshEditor::GetWorldCentricTabPrefix() const
 {
 	return (LOCTEXT("WorldCentricTabPrefix", "RPR Static Mesh").ToString());
@@ -186,12 +203,17 @@ bool FRPRStaticMeshEditor::IsPrimaryEditor() const
 
 void FRPRStaticMeshEditor::AddReferencedObjects(FReferenceCollector& Collector)
 {
-	Collector.AddReferencedObject(StaticMesh);
+	Collector.AddReferencedObjects(StaticMeshes);
+
+	StaticMeshes.RemoveAll([](UStaticMesh* staticMesh)
+	{
+		return (staticMesh == nullptr);
+	});
 }
 
-UStaticMesh* FRPRStaticMeshEditor::GetStaticMesh() const
+const TArray<UStaticMesh*> FRPRStaticMeshEditor::GetStaticMeshes() const
 {
-	return (StaticMesh);
+	return (StaticMeshes);
 }
 
 FRPRStaticMeshEditorSelection& FRPRStaticMeshEditor::GetSelectionSystem()
@@ -201,7 +223,15 @@ FRPRStaticMeshEditorSelection& FRPRStaticMeshEditor::GetSelectionSystem()
 
 void FRPRStaticMeshEditor::GetPreviewMeshBounds(FVector& OutCenter, FVector& OutExtents)
 {
-	GetStaticMesh()->GetBoundingBox().GetCenterAndExtents(OutCenter, OutExtents);
+	UStaticMesh* staticMesh = StaticMeshes[0];
+	FBox box = staticMesh->GetBoundingBox();
+	
+	for (int32 i = 1; i < StaticMeshes.Num(); ++i)
+	{
+		box = box + StaticMeshes[i]->GetBoundingBox();
+	}
+
+	box.GetCenterAndExtents(OutCenter, OutExtents);
 }
 
 void FRPRStaticMeshEditor::AddComponentToViewport(UActorComponent* ActorComponent, bool bSelectComponent /*= true*/)
@@ -256,7 +286,7 @@ TSharedRef<SDockTab> FRPRStaticMeshEditor::SpawnTab_UVVisualizer(const FSpawnTab
 
 bool FRPRStaticMeshEditor::OnRequestClose()
 {
-	FAssetEditorManager::Get().NotifyAssetClosed(StaticMesh, this);
+	FAssetEditorManager::Get().NotifyEditorClosed(this);
 	return (true);
 }
 

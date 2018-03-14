@@ -25,7 +25,7 @@ public:
 
 	void SetFloorToStaticMeshBottom();
 
-	void SetPreviewMesh(UStaticMesh* InStaticMesh);
+	UStaticMeshComponent* CreatePreviewMeshAndAddToViewport(UStaticMesh* StaticMesh);
 	void AddComponent(UActorComponent* InComponent);
 
 	/* FGCObject Implementation */
@@ -37,7 +37,7 @@ public:
 	virtual void OnFloatingButtonClicked() override;
 
 	bool	IsVisible() const;
-
+	
 protected:
 
 	virtual TSharedRef<FEditorViewportClient>	MakeEditorViewportClient() override;
@@ -45,8 +45,11 @@ protected:
 
 private:
 
-	UStaticMesh*							StaticMesh;
-	UStaticMeshComponent*					PreviewMeshComponent;
+	void	InitStaticMeshDatas();
+
+private:
+
+	TArray<UStaticMeshComponent*>	StaticMeshComponents;
 
 	TWeakPtr<FRPRStaticMeshEditor>			StaticMeshEditorPtr;
 	FRPRStaticMeshEditorViewportClientPtr	EditorViewportClient;

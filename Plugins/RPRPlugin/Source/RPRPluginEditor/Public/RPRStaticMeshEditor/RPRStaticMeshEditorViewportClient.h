@@ -8,8 +8,7 @@ class FRPRStaticMeshEditorViewportClient : public FRPRViewportEditorClient
 public:
 	FRPRStaticMeshEditorViewportClient(TWeakPtr<class FRPRStaticMeshEditor> InStaticMeshEditor,
 		const TSharedRef<class SRPRStaticMeshEditorViewport>& InStaticMeshEditorViewport,
-		const TSharedRef<class FAdvancedPreviewScene>& InPreviewScene,
-		class UStaticMesh* InPreviewStaticMesh, class UStaticMeshComponent* InPreviewStaticMeshComponent);
+		const TSharedRef<class FAdvancedPreviewScene>& InPreviewScene);
 
 	virtual ~FRPRStaticMeshEditorViewportClient();
 
@@ -28,7 +27,8 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void ProcessClick(class FSceneView& InView, class HHitProxy* HitProxy, FKey Key, EInputEvent Event, uint32 HitX, uint32 HitY) override;
 
-	void	SetPreviewMesh(UStaticMesh* InStaticMesh, UStaticMeshComponent* InPreviewComponent, bool bResetCamera = true);
+	void		InitializeCameraFromBounds();
+	void		AddPreviewMesh(UStaticMeshComponent* InPreviewComponent, bool bResetCamera = true);
 
 private:
 
