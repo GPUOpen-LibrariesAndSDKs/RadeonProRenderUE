@@ -5,6 +5,7 @@
 #include "SBoxPanel.h"
 #include "SBorder.h"
 #include "STextBlock.h"
+#include "SButton.h"
 
 #define LOCTEXT_NAMESPACE "SSceneComponentsOutliner"
 
@@ -29,11 +30,31 @@ void SSceneComponentsOutliner::Construct(const FArguments& InArgs)
 			.AutoHeight()
 			.VAlign(VAlign_Bottom)
 			[
+				SNew(SButton)
+				.Text(LOCTEXT("ButtonSelectAll", "Select All"))
+				.OnClicked(this, &SSceneComponentsOutliner::OnSelectAllButtonClicked)
+			]
+			+SVerticalBox::Slot()
+			.AutoHeight()
+			.VAlign(VAlign_Bottom)
+			[
 				SNew(SBorder)
 				.Padding(FMargin(5.f))
 				[
 					SNew(STextBlock)
-					.Text(LOCTEXT("SelectionInfo", "You can select multiple meshes by holding 'Shift'"))
+					.Text(this, &SSceneComponentsOutliner::GetNumberSelectedItemsText)
+					.AutoWrapText(true)
+				]
+			]
+			+SVerticalBox::Slot()
+			.AutoHeight()
+			.VAlign(VAlign_Bottom)
+			[
+				SNew(SBorder)
+				.Padding(FMargin(5.f))
+				[
+					SNew(STextBlock)
+					.Text(LOCTEXT("SelectionInfo", "You can select multiple meshes by holding 'Ctrl' or 'Shift'"))
 					.Justification(ETextJustify::Center)
 					.AutoWrapText(true)
 				]
@@ -62,6 +83,28 @@ int32 SSceneComponentsOutliner::GetSelectedItem(TArray<UStaticMeshComponent*>& S
 FText SSceneComponentsOutliner::GetPrettyStaticMeshComponentName(UStaticMeshComponent* StaticMeshComponent) const
 {
 	return (FText::FromString(StaticMeshComponent->GetStaticMesh()->GetName()));
+}
+
+FText SSceneComponentsOutliner::GetNumberSelectedItemsText() const
+{
+	int32 numItemSelected = StaticMeshCompsOutliner->GetNumSelectedItems();
+
+	if (numItemSelected == 0)
+	{
+		return (LOCTEXT("NoItemSelected", "No mesh selected"));
+	}
+	else
+	{
+		FFormatNamedArguments args;
+		args.Add(TEXT("num"), FFormatArgumentValue(numItemSelected));
+		return FText::Format(LOCTEXT("OneItemIsSelected", "{num} item selected"), args);
+	}
+}
+
+FReply SSceneComponentsOutliner::OnSelectAllButtonClicked() const
+{
+	StaticMeshCompsOutliner->SelectAll();
+	return (FReply::Handled());
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -30,6 +30,7 @@ public:
 	void	ClearObjects();
 	void	SelectAll();
 	int32	GetSelectedItems(TArray<TObjectType>& SelectedItems) const;
+	int32	GetNumSelectedItems() const;
 
 private:
 
@@ -80,7 +81,7 @@ TSharedRef<ITableRow> SObjectsOutliner<TObjectType>::OnGenerateRow(TObjectType I
 		.Content()
 		[
 			SNew(SBorder)
-			.Padding(FMargin(5f, 2.0f))
+			.Padding(FMargin(5.f, 2.0f))
 			[
 				SNew(STextBlock)
 				.Text(text)
@@ -121,4 +122,10 @@ template<typename TObjectType>
 int32 SObjectsOutliner<TObjectType>::GetSelectedItems(TArray<TObjectType>& SelectedItems) const
 {
 	return (ObjectListView->GetSelectedItems(SelectedItems));
+}
+
+template<typename TObjectType>
+int32 SObjectsOutliner<TObjectType>::GetNumSelectedItems() const
+{
+	return (ObjectListView->GetNumItemsSelected());
 }

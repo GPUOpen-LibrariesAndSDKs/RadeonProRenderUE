@@ -29,6 +29,8 @@ public:
 private:
 
 	FText	GetPrettyStaticMeshComponentName(UStaticMeshComponent* StaticMeshComponent) const;
+	FText	GetNumberSelectedItemsText() const;
+	FReply	OnSelectAllButtonClicked() const;
 
 private:
 

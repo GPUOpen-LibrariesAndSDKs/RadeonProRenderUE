@@ -328,7 +328,7 @@ TSharedRef<SDockTab> FRPRStaticMeshEditor::SpawnTab_SceneComponentsOutliner(cons
 		];
 }
 
-void FRPRStaticMeshEditor::OnSceneComponentOutlinerSelectionChanged(UStaticMeshComponent* NewItemSelected)
+void FRPRStaticMeshEditor::OnSceneComponentOutlinerSelectionChanged(UStaticMeshComponent* NewItemSelected, ESelectInfo::Type SelectInfo)
 {
 	TArray<UStaticMeshComponent*> selectedMeshComponents;
 	int32 numItemSelected = SceneComponentsOutliner->GetSelectedItem(selectedMeshComponents);

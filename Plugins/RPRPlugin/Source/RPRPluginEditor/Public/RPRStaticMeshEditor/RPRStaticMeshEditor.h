@@ -50,7 +50,7 @@ private:
 	TSharedRef<SDockTab>				SpawnTab_UVVisualizer(const FSpawnTabArgs& Args);
 	TSharedRef<SDockTab>				SpawnTab_SceneComponentsOutliner(const FSpawnTabArgs& Args);
 
-	void	OnSceneComponentOutlinerSelectionChanged(UStaticMeshComponent* NewItemSelected);
+	void	OnSceneComponentOutlinerSelectionChanged(UStaticMeshComponent* NewItemSelected, ESelectInfo::Type SelectInfo);
 
 	const TArray<UStaticMeshComponent*>&	GetSceneComponents() const;
 
