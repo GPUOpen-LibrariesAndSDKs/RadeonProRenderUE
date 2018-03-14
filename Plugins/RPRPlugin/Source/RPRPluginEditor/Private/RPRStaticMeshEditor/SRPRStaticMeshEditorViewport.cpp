@@ -51,11 +51,6 @@ UStaticMeshComponent* SRPRStaticMeshEditorViewport::CreatePreviewMeshAndAddToVie
 
 	staticMeshComponent->MarkRenderStateDirty();
 
-	if (EditorViewportClient.IsValid())
-	{
-		EditorViewportClient->AddPreviewMesh(staticMeshComponent);
-	}
-
 	return (staticMeshComponent);
 }
 
@@ -101,14 +96,29 @@ TSharedRef<FEditorViewportClient> SRPRStaticMeshEditorViewport::MakeEditorViewpo
 	EditorViewportClient->SetRealtime(true);
 	EditorViewportClient->VisibilityDelegate.BindSP(this, &SRPRStaticMeshEditorViewport::IsVisible);
 
-	for (int32 i = 0; i < StaticMeshComponents.Num(); ++i)
-	{
-		EditorViewportClient->AddPreviewMesh(StaticMeshComponents[i]);
-	}
-
-	EditorViewportClient->InitializeCameraFromBounds();
+	InitializeEditorViewportClientCamera();
 
 	return (EditorViewportClient.ToSharedRef());
+}
+
+void SRPRStaticMeshEditorViewport::InitializeEditorViewportClientCamera()
+{
+	FBoxSphereBounds bounds;
+	bounds = StaticMeshComponents[0]->GetStaticMesh()->GetBounds();
+
+	for (int32 i = 1; i < StaticMeshComponents.Num(); ++i)
+	{
+		bounds = bounds + StaticMeshComponents[i]->GetStaticMesh()->GetBounds();
+	}
+
+	if (StaticMeshComponents.Num() == 1)
+	{
+		EditorViewportClient->InitializeCameraForStaticMesh(StaticMeshComponents[0]->GetStaticMesh());
+	}
+	else
+	{
+		EditorViewportClient->InitializeCameraFromBounds(bounds);
+	}
 }
 
 TSharedPtr<SWidget> SRPRStaticMeshEditorViewport::MakeViewportToolbar()

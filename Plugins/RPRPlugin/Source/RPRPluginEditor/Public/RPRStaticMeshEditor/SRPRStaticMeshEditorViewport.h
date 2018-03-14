@@ -46,6 +46,7 @@ protected:
 private:
 
 	void	InitStaticMeshDatas();
+	void	InitializeEditorViewportClientCamera();
 
 private:
 

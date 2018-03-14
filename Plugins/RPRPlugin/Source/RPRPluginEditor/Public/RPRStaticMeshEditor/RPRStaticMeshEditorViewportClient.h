@@ -27,8 +27,8 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void ProcessClick(class FSceneView& InView, class HHitProxy* HitProxy, FKey Key, EInputEvent Event, uint32 HitX, uint32 HitY) override;
 
-	void		InitializeCameraFromBounds();
-	void		AddPreviewMesh(UStaticMeshComponent* InPreviewComponent, bool bResetCamera = true);
+	void		InitializeCameraFromBounds(const FBoxSphereBounds& Bounds);
+	void		InitializeCameraForStaticMesh(UStaticMesh* StaticMesh);
 
 private:
 
