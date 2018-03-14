@@ -1,3 +1,5 @@
+#ifdef UV_PROJECTION_PLANAR
+
 #include "SUVProjectionPlanar.h"
 #include "UVProjectionPlanarAlgo.h"
 #include "SBoxPanel.h"
@@ -86,3 +88,5 @@ TSharedPtr<FUVProjectionPlanarAlgo> SUVProjectionPlanar::GetProjectionPlanarAlgo
 }
 
 #undef LOCTEXT_NAMESPACE
+
+#endif // UV_PROJECTION_PLANAR

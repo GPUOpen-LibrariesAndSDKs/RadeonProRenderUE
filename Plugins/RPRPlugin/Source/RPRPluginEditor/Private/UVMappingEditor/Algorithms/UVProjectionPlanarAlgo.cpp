@@ -1,3 +1,5 @@
+#ifdef UV_PROJECTION_PLANAR
+
 #include "UVProjectionPlanarAlgo.h"
 #include "UVUtility.h"
 #include "Engine/StaticMesh.h"
@@ -53,3 +55,5 @@ void FUVProjectionPlanarAlgo::SetSettings(const FSettings& InSettings)
 {
 	Settings = InSettings;
 }
+
+#endif // UV_PROJECTION_PLANAR

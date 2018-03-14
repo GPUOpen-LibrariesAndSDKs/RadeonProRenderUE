@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef UV_PROJECTION_CYLINDRICAL
+
 #include "SUVProjectionBase.h"
 #include "ShapePreviewCylinder.h"
 #include "ShapePreviewable.h"
@@ -46,3 +48,5 @@ private:
 	TSharedPtr<IDetailsView>	ShapePreviewDetailView;
 
 };
+
+#endif

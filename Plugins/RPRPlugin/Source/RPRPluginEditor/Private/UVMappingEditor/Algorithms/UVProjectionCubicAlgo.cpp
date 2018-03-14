@@ -1,3 +1,5 @@
+#ifdef UV_PROJECTION_CUBIC
+
 #include "UVProjectionCubicAlgo.h"
 #include "RPRPluginEditorModule.h"
 #include "RPRStaticMeshEditor.h"
@@ -81,3 +83,5 @@ void FUVProjectionCubicAlgo::SetSettings(const FSettings& InSettings)
 {
 	Settings = InSettings;
 }
+
+#endif

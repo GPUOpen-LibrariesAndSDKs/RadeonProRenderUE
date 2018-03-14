@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef UV_PROJECTION_SPHERICAL
+
 #include "SUVProjectionBase.h"
 #include "ShapePreviewable.h"
 #include "ShapePreviewSphere.h"
@@ -49,3 +51,4 @@ private:
 
 };
 
+#endif // UV_PROJECTION_SPHERICAL

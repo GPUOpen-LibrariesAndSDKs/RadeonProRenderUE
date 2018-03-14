@@ -1,3 +1,5 @@
+#ifdef UV_PROJECTION_CUBIC
+
 #include "SUVProjectionCubic.h"
 #include "UVProjectionCubicAlgo.h"
 #include "RPRVectorTools.h"
@@ -89,3 +91,4 @@ void SUVProjectionCubic::SetPreviewShapeSameBoundsAsShape()
 	shape->SetRelativeScale3D(extents);
 }
 
+#endif // UV_PROJECTION_CUBIC

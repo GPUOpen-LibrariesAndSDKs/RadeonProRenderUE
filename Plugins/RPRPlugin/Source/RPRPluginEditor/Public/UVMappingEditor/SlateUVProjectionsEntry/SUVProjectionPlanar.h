@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef UV_PROJECTION_PLANAR
+
 #include "DeclarativeSyntaxSupport.h"
 #include "IUVProjection.h"
 #include "SharedPointer.h"
@@ -49,3 +51,5 @@ private:
 	TSharedPtr<class IDetailsView> ShapePreviewDetailView;
 
 };
+
+#endif // UV_PROJECTION_PLANAR

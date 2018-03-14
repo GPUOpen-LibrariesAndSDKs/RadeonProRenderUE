@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef UV_PROJECTION_CYLINDRICAL
+
 #include "UVProjectionAlgorithmBase.h"
 
 class FUVProjectionCylinderAlgo : public FUVProjectionAlgorithmBase
@@ -32,3 +34,5 @@ private:
 	FSettings	Settings;
 
 };
+
+#endif // UV_PROJECTION_CYLINDRICAL

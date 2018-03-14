@@ -1,3 +1,5 @@
+#ifdef UV_PROJECTION_SPHERICAL
+
 #include "SUVProjectionSpherical.h"
 #include "UVProjectionSphericalAlgo.h"
 #include "SBoxPanel.h"
@@ -88,3 +90,5 @@ TSharedPtr<FUVProjectionSphericalAlgo> SUVProjectionSpherical::GetProjectionSphe
 {
 	return (GetAlgorithm<FUVProjectionSphericalAlgo>());
 }
+
+#endif // UV_PROJECTION_SPHERICAL

@@ -1,3 +1,5 @@
+#ifdef UV_PROJECTION_CYLINDRICAL
+
 #include "UVProjectionCylinderAlgo.h"
 #include "UVUtility.h"
 #include "RPRVectorTools.h"
@@ -54,3 +56,5 @@ void FUVProjectionCylinderAlgo::SetSettings(const FSettings& InSettings)
 {
 	Settings = InSettings;
 }
+
+#endif // UV_PROJECTION_CYLINDRICAL

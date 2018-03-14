@@ -24,12 +24,8 @@ void SUVProjectionMappingEditor::Construct(const SUVProjectionMappingEditor::FAr
 	RPRStaticMeshEditorPtr = InArgs._RPRStaticMeshEditor;
 
 	OnProjectionApplied = InArgs._OnProjectionApplied;
+	InitUVProjectionList(StaticMesh);
 
-	AddUVProjectionListEntry(EUVProjectionType::Planar,			LOCTEXT("ProjectionType_Planar", "Planar"),			FEditorStyle::GetBrush("ClassThumbnail.Plane"),		StaticMesh);
-	AddUVProjectionListEntry(EUVProjectionType::Cubic,			LOCTEXT("ProjectionType_Cubic", "Cubic"),			FEditorStyle::GetBrush("ClassThumbnail.Cube"),		StaticMesh);
-	AddUVProjectionListEntry(EUVProjectionType::Spherical,		LOCTEXT("ProjectionType_Spherical", "Spherical"),	FEditorStyle::GetBrush("ClassThumbnail.Sphere"),	StaticMesh);
-	AddUVProjectionListEntry(EUVProjectionType::Cylindrical,	LOCTEXT("ProjectionType_Cylinder", "Cylinder"),		FEditorStyle::GetBrush("ClassThumbnail.Cylinder"),	StaticMesh);
-	
 	this->ChildSlot
 		[
 			SNew(SScrollBox)
@@ -61,6 +57,25 @@ void SUVProjectionMappingEditor::SelectProjectionEntry(SUVProjectionTypeEntryPtr
 		SelectedProjectionEntry = ProjectionEntry;
 		ShowSelectedUVProjectionWidget();
 	}
+}
+
+void SUVProjectionMappingEditor::InitUVProjectionList(UStaticMesh* StaticMesh)
+{
+#ifdef UV_PROJECTION_PLANAR
+	AddUVProjectionListEntry(EUVProjectionType::Planar, LOCTEXT("ProjectionType_Planar", "Planar"), FEditorStyle::GetBrush("ClassThumbnail.Plane"), StaticMesh);
+#endif
+
+#ifdef UV_PROJECTION_CUBIC
+	AddUVProjectionListEntry(EUVProjectionType::Cubic, LOCTEXT("ProjectionType_Cubic", "Cubic"), FEditorStyle::GetBrush("ClassThumbnail.Cube"), StaticMesh);
+#endif
+
+#ifdef UV_PROJECTION_SPHERICAL
+	AddUVProjectionListEntry(EUVProjectionType::Spherical, LOCTEXT("ProjectionType_Spherical", "Spherical"), FEditorStyle::GetBrush("ClassThumbnail.Sphere"), StaticMesh);
+#endif
+
+#ifdef UV_PROJECTION_CYLINDRICAL
+	AddUVProjectionListEntry(EUVProjectionType::Cylindrical, LOCTEXT("ProjectionType_Cylinder", "Cylinder"), FEditorStyle::GetBrush("ClassThumbnail.Cylinder"), StaticMesh);
+#endif
 }
 
 void SUVProjectionMappingEditor::AddUVProjectionListEntry(EUVProjectionType ProjectionType, const FText& ProjectionName, 

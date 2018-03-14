@@ -88,6 +88,8 @@ public class RPRPluginEditor : ModuleRules
 				// ... add private dependencies that you statically link with here ...	
 			}
         );
+
+        DefineAvailableUVProjections();
     }
 
     void IncludeRPR_SDK()
@@ -116,5 +118,13 @@ public class RPRPluginEditor : ModuleRules
             SDKRoot + "RadeonProRender/libWin64/Tahoe64.lib",
             SDKRoot + "RadeonProRenderInterchange/libWin64/RadeonProRenderInterchange64.lib"
         });
+    }
+
+    void    DefineAvailableUVProjections()
+    {
+        //Definitions.Add("UV_PROJECTION_PLANAR");
+        //Definitions.Add("UV_PROJECTION_CUBIC");
+        Definitions.Add("UV_PROJECTION_SPHERICAL");
+        //Definitions.Add("UV_PROJECTION_CYLINDRICAL");
     }
 }

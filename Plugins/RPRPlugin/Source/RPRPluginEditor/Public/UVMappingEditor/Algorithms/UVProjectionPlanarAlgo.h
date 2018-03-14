@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef UV_PROJECTION_PLANAR
+
 #include "UVProjectionAlgorithmBase.h"
 #include "TransformablePlane.h"
 
@@ -32,3 +34,5 @@ private:
 
 
 };
+
+#endif // UV_PROJECTION_PLANAR

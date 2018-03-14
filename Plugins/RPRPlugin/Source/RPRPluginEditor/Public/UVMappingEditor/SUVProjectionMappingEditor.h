@@ -34,6 +34,7 @@ public:
 
 private:
 
+	void	InitUVProjectionList(UStaticMesh* StaticMesh);
 	void	AddUVProjectionListEntry(EUVProjectionType ProjectionType, const FText& ProjectionName, 
 										const FSlateBrush* SlateBrush, class UStaticMesh* StaticMesh);
 

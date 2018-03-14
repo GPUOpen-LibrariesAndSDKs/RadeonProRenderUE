@@ -1,3 +1,5 @@
+#ifdef UV_PROJECTION_CYLINDRICAL
+
 #include "SUVProjectionCylinder.h"
 #include "UVProjectionCylinderAlgo.h"
 #include "IDetailsViewHelper.h"
@@ -90,3 +92,5 @@ TSharedPtr<FUVProjectionCylinderAlgo> SUVProjectionCylinder::GetProjectionCylind
 {
 	return (GetAlgorithm<FUVProjectionCylinderAlgo>());
 }
+
+#endif // UV_PROJECTION_CYLINDRICAL

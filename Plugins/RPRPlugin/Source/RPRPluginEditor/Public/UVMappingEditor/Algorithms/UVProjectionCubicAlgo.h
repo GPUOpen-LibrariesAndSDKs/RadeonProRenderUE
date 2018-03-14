@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef UV_PROJECTION_CUBIC
+
 #include "UVProjectionAlgorithmBase.h"
 #include "Axis.h"
 
@@ -30,3 +32,5 @@ private:
 	FSettings			Settings;
 
 };
+
+#endif
