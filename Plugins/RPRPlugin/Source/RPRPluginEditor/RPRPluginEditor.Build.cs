@@ -50,6 +50,10 @@ public class RPRPluginEditor : ModuleRules
 
                 "RPRPluginEditor/Private/UVVisualizer",
 
+                "RPRPluginEditor/Private/Outliners",
+                "RPRPluginEditor/Private/Outliners/ObjectsOutliner",
+                "RPRPluginEditor/Private/Outliners/SceneOutliner",
+
                 "RPRPlugin/Private"
 				// ... add other private include paths required here ...
 			}

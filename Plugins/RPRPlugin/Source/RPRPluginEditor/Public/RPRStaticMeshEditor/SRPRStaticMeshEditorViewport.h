@@ -24,6 +24,7 @@ public:
 	void Construct(const FArguments& InArgs);
 
 	void SetFloorToStaticMeshBottom();
+	const TArray<UStaticMeshComponent*>&	GetStaticMeshComponents() const;
 
 	UStaticMeshComponent* CreatePreviewMeshAndAddToViewport(UStaticMesh* StaticMesh);
 	void AddComponent(UActorComponent* InComponent);

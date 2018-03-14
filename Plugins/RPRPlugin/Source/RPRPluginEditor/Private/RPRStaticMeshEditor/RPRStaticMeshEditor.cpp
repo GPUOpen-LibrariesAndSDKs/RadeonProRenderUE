@@ -6,6 +6,7 @@
 #include "SRPRStaticMeshEditorViewport.h"
 #include "EditorStyle.h"
 #include "SUVVisualizerEditor.h"
+#include "SSceneComponentsOutliner.h"
 
 #define LOCTEXT_NAMESPACE "RPRStaticMeshEditor"
 
@@ -14,6 +15,7 @@ const FName RPRStaticMeshEditorAppIdentifier = TEXT("RPRStaticMeshEditorApp");
 const FName FRPRStaticMeshEditor::ViewportTabId(TEXT("RPRStaticMeshEditor_Viewport"));
 const FName FRPRStaticMeshEditor::UVProjectionMappingEditorTabId(TEXT("RPRStaticMeshEditor_UVProjectionMappingEditor"));
 const FName FRPRStaticMeshEditor::UVVisualizerTabId(TEXT("RPRStaticMeshEditor_UVVisualizer"));
+const FName FRPRStaticMeshEditor::SceneComponentsOutlinerTabId(TEXT("RPRStaticMeshEditor_SceneComponentsOutliner"));
 
 TSharedPtr<FRPRStaticMeshEditor> FRPRStaticMeshEditor::CreateRPRStaticMeshEditor(const TArray<UStaticMesh*>& StaticMeshes)
 {
@@ -62,6 +64,7 @@ void FRPRStaticMeshEditor::InitializeWidgets()
 	InitializeViewport();
 	InitializeUVProjectionMappingEditor();
 	InitializeUVVisualizer();
+	InitializeSceneComponentsOutliner();
 }
 
 void FRPRStaticMeshEditor::InitializeViewport()
@@ -85,6 +88,15 @@ void FRPRStaticMeshEditor::InitializeUVVisualizer()
 		.StaticMesh(StaticMeshes[0]);
 }
 
+void FRPRStaticMeshEditor::InitializeSceneComponentsOutliner()
+{
+	SceneComponentsOutliner = SNew(SSceneComponentsOutliner)
+		.GetStaticMeshComponents(this, &FRPRStaticMeshEditor::GetSceneComponents)
+		.OnSelectionChanged(this, &FRPRStaticMeshEditor::OnSceneComponentOutlinerSelectionChanged);
+
+	SceneComponentsOutliner->SelectAll();
+}
+
 TSharedPtr<FTabManager::FLayout>	FRPRStaticMeshEditor::GenerateDefaultLayout()
 {
 	return FTabManager::NewLayout("Standalone_RPRStaticMeshEditor_Layout_v1")
@@ -93,6 +105,7 @@ TSharedPtr<FTabManager::FLayout>	FRPRStaticMeshEditor::GenerateDefaultLayout()
 			FTabManager::NewPrimaryArea()->SetOrientation(Orient_Vertical)
 			->Split
 			(
+				// Toolbar
 				FTabManager::NewStack()
 				->SetSizeCoefficient(0.1f)
 				->SetHideTabWell(true)
@@ -100,37 +113,50 @@ TSharedPtr<FTabManager::FLayout>	FRPRStaticMeshEditor::GenerateDefaultLayout()
 			)
 			->Split
 			(
+				// Main
 				FTabManager::NewSplitter()->SetOrientation(Orient_Horizontal)
 				->SetSizeCoefficient(0.9f)
 				->Split
 				(
-					FTabManager::NewSplitter()->SetOrientation(Orient_Vertical)
+					FTabManager::NewSplitter()->SetOrientation(Orient_Horizontal)
 					->SetSizeCoefficient(0.7f)
+					->Split
+					(
+						// Scene Outliner
+						FTabManager::NewStack()
+						->SetSizeCoefficient(0.2f)
+						->SetHideTabWell(false)
+						->AddTab(SceneComponentsOutlinerTabId, ETabState::OpenedTab)
+					)
 					->Split
 					(
 						// Viewport
 						FTabManager::NewStack()
-						->SetSizeCoefficient(0.7f)
+						->SetSizeCoefficient(0.8f)
 						->SetHideTabWell(true)
 						->AddTab(ViewportTabId, ETabState::OpenedTab)
+					)
+				)
+				->Split
+				(
+					FTabManager::NewSplitter()->SetOrientation(Orient_Vertical)
+					->SetSizeCoefficient(0.3f)
+					->Split
+					(
+						// UV Projection Mapping Editor
+						FTabManager::NewStack()
+						->SetSizeCoefficient(0.6f)
+						->AddTab(UVProjectionMappingEditorTabId, ETabState::OpenedTab)
+						// Coming soon...
+						// -> AddTab(MaterialLibraryTabId, ETabState::OpenedTab)
 					)
 					->Split
 					(
 						// UV Visualizer
 						FTabManager::NewStack()
-						->SetSizeCoefficient(0.3f)
-						->SetHideTabWell(true)
+						->SetSizeCoefficient(0.4f)
 						->AddTab(UVVisualizerTabId, ETabState::OpenedTab)
 					)
-				)
-				->Split
-				(
-					// UV Projection Mapping Editor
-					FTabManager::NewStack()
-					->SetSizeCoefficient(0.3f)
-					->AddTab(UVProjectionMappingEditorTabId, ETabState::OpenedTab)
-					// Coming soon...
-					// -> AddTab(MaterialLibraryTabId, ETabState::OpenedTab)
 				)
 			)
 		);
@@ -156,6 +182,11 @@ void FRPRStaticMeshEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& In
 		.SetDisplayName(LOCTEXT("UVVisualizer", "UV Visualizer"))
 		.SetGroup(WorkspaceMenuCategoryRef)
 		.SetIcon(FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.Tabs.Viewports"));
+
+	InTabManager->RegisterTabSpawner(SceneComponentsOutlinerTabId, FOnSpawnTab::CreateSP(this, &FRPRStaticMeshEditor::SpawnTab_SceneComponentsOutliner))
+		.SetDisplayName(LOCTEXT("SceneComponentsOutliner", "Scene Outliner"))
+		.SetGroup(WorkspaceMenuCategoryRef)
+		.SetIcon(FSlateIcon());
 }
 
 void FRPRStaticMeshEditor::UnregisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
@@ -165,6 +196,7 @@ void FRPRStaticMeshEditor::UnregisterTabSpawners(const TSharedRef<FTabManager>& 
 	InTabManager->UnregisterTabSpawner(ViewportTabId);
 	InTabManager->UnregisterTabSpawner(UVProjectionMappingEditorTabId);
 	InTabManager->UnregisterTabSpawner(UVVisualizerTabId);
+	InTabManager->UnregisterTabSpawner(SceneComponentsOutlinerTabId);
 }
 
 FName FRPRStaticMeshEditor::GetToolkitFName() const
@@ -282,6 +314,37 @@ TSharedRef<SDockTab> FRPRStaticMeshEditor::SpawnTab_UVVisualizer(const FSpawnTab
 		[
 			UVVisualizer.ToSharedRef()
 		];
+}
+
+TSharedRef<SDockTab> FRPRStaticMeshEditor::SpawnTab_SceneComponentsOutliner(const FSpawnTabArgs& Args)
+{
+	check(Args.GetTabId() == SceneComponentsOutlinerTabId);
+
+	return
+		SNew(SDockTab)
+		.Label(LOCTEXT("RPRStaticMeshEditorSceneComponentsOutliner_TabTitle", "Scene Outliner"))
+		[
+			SceneComponentsOutliner.ToSharedRef()
+		];
+}
+
+void FRPRStaticMeshEditor::OnSceneComponentOutlinerSelectionChanged(UStaticMeshComponent* NewItemSelected)
+{
+	TArray<UStaticMeshComponent*> selectedMeshComponents;
+	int32 numItemSelected = SceneComponentsOutliner->GetSelectedItem(selectedMeshComponents);
+
+
+}
+
+const TArray<UStaticMeshComponent*>& FRPRStaticMeshEditor::GetSceneComponents() const
+{
+	if (Viewport.IsValid())
+	{
+		return (Viewport->GetStaticMeshComponents());
+	}
+
+	static TArray<UStaticMeshComponent*> empty;
+	return (empty);
 }
 
 bool FRPRStaticMeshEditor::OnRequestClose()

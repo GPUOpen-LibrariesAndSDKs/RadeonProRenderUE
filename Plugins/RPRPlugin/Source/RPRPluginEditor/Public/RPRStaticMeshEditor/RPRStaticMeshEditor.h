@@ -44,9 +44,15 @@ private:
 	void								InitializeViewport();
 	void								InitializeUVProjectionMappingEditor();
 	void								InitializeUVVisualizer();
+	void								InitializeSceneComponentsOutliner();
 	TSharedRef<SDockTab>				SpawnTab_Viewport(const FSpawnTabArgs& Args);
 	TSharedRef<SDockTab>				SpawnTab_UVProjectionMappingEditor(const FSpawnTabArgs& Args);
 	TSharedRef<SDockTab>				SpawnTab_UVVisualizer(const FSpawnTabArgs& Args);
+	TSharedRef<SDockTab>				SpawnTab_SceneComponentsOutliner(const FSpawnTabArgs& Args);
+
+	void	OnSceneComponentOutlinerSelectionChanged(UStaticMeshComponent* NewItemSelected);
+
+	const TArray<UStaticMeshComponent*>&	GetSceneComponents() const;
 
 	virtual bool	OnRequestClose() override;
 
@@ -57,6 +63,7 @@ private:
 	TSharedPtr<class SRPRStaticMeshEditorViewport>	Viewport;
 	TSharedPtr<class SUVProjectionMappingEditor>	UVProjectionMappingEditor;
 	TSharedPtr<class SUVVisualizerEditor>			UVVisualizer;
+	TSharedPtr<class SSceneComponentsOutliner>		SceneComponentsOutliner;
 
 	TArray<UStaticMesh*>			StaticMeshes;
 	FRPRStaticMeshEditorSelection	SelectionSystem;
@@ -64,6 +71,7 @@ private:
 	static const FName ViewportTabId;
 	static const FName UVProjectionMappingEditorTabId;
 	static const FName UVVisualizerTabId;
+	static const FName SceneComponentsOutlinerTabId;
 };
 
 typedef TSharedPtr<FRPRStaticMeshEditor> FRPRStaticMeshEditorPtr;

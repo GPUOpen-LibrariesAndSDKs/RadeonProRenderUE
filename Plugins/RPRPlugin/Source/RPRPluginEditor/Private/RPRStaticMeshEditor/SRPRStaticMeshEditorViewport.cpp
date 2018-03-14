@@ -39,6 +39,11 @@ void SRPRStaticMeshEditorViewport::SetFloorToStaticMeshBottom()
 	PreviewScene->SetFloorOffset(-center.Z + extents.Z);
 }
 
+const TArray<UStaticMeshComponent*>& SRPRStaticMeshEditorViewport::GetStaticMeshComponents() const
+{
+	return (StaticMeshComponents);
+}
+
 UStaticMeshComponent* SRPRStaticMeshEditorViewport::CreatePreviewMeshAndAddToViewport(UStaticMesh* StaticMesh)
 {
 	UStaticMeshComponent* staticMeshComponent = 
