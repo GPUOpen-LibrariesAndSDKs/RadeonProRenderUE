@@ -3,9 +3,9 @@
 #include "Engine/StaticMesh.h"
 #include "UVUtility.h"
 
-void FUVProjectionAlgorithmBase::SetStaticMesh(UStaticMesh* InStaticMesh)
+void FUVProjectionAlgorithmBase::SetStaticMeshes(const TArray<UStaticMesh*>& InStaticMeshes)
 {
-	StaticMesh = InStaticMesh;
+	StaticMeshes = InStaticMeshes;
 }
 
 IUVProjectionAlgorithm::FOnAlgorithmCompleted& FUVProjectionAlgorithmBase::OnAlgorithmCompleted()
@@ -16,7 +16,7 @@ IUVProjectionAlgorithm::FOnAlgorithmCompleted& FUVProjectionAlgorithmBase::OnAlg
 void FUVProjectionAlgorithmBase::StartAlgorithm()
 {
 	bIsAlgorithmRunning = true;
-	FStaticMeshHelper::LoadRawMeshFromStaticMesh(StaticMesh, RawMesh);
+	FStaticMeshHelper::LoadRawMeshFromStaticMesh(StaticMeshes[0], RawMesh);
 
 	PrepareUVs();
 }
@@ -49,7 +49,7 @@ void FUVProjectionAlgorithmBase::StopAlgorithm()
 
 void FUVProjectionAlgorithmBase::RaiseAlgorithmCompletion(bool bIsSuccess)
 {
-	OnAlgorithmCompletedEvent.Broadcast(this, bIsSuccess);
+	OnAlgorithmCompletedEvent.Broadcast(this->AsShared(), bIsSuccess);
 }
 
 void FUVProjectionAlgorithmBase::StopAlgorithmAndRaiseCompletion(bool bIsSuccess)
@@ -86,8 +86,8 @@ void FUVProjectionAlgorithmBase::SaveRawMesh()
 {
 	if (RawMesh.IsValid())
 	{
-		FStaticMeshHelper::SaveRawMeshToStaticMesh(RawMesh, StaticMesh);
-		StaticMesh->MarkPackageDirty();
+		FStaticMeshHelper::SaveRawMeshToStaticMesh(RawMesh, StaticMeshes[0]);
+		StaticMeshes[0]->MarkPackageDirty();
 	}
 }
 
@@ -130,5 +130,5 @@ void FUVProjectionAlgorithmBase::FixTextureCoordinateOnLeftSideIfRequired(float&
 
 bool FUVProjectionAlgorithmBase::AreStaticMeshRenderDatasValid() const
 {
-	return (AreStaticMeshRenderDatasValid(StaticMesh));
+	return (AreStaticMeshRenderDatasValid(StaticMeshes[0]));
 }

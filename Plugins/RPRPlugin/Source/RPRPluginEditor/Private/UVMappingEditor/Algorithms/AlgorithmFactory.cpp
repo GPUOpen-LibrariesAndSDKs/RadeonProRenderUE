@@ -3,7 +3,6 @@
 
 #include "UVProjectionPlanarAlgo.h"
 #include "UVProjectionCubicAlgo.h"
-#include "UVProjectionSphericalAlgo.h"
 #include "UVProjectionCylinderAlgo.h"
 
 IUVProjectionAlgorithmPtr FAlgorithmFactory::CreateAlgorithm(UStaticMesh* StaticMesh, EUVProjectionType ProjectionType)

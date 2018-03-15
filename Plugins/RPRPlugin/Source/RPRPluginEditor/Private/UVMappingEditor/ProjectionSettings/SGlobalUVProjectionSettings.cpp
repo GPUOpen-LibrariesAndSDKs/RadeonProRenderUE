@@ -5,10 +5,6 @@
 
 void SGlobalUVProjectionSettings::Construct(const FArguments& InArgs)
 {
-	check(InArgs._StaticMesh);
-
-	FStaticMeshHelper::LoadRawMeshFromStaticMesh(InArgs._StaticMesh, RawMesh, InArgs._SourceModelIndex);
-
 	UVProjectionSettings = InArgs._UVProjectionSettings;
 
 	ChildSlot

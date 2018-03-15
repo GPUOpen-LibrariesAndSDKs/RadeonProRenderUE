@@ -84,8 +84,8 @@ void FRPRStaticMeshEditor::InitializeUVProjectionMappingEditor()
 
 void FRPRStaticMeshEditor::InitializeUVVisualizer()
 {
-	UVVisualizer = SNew(SUVVisualizerEditor)
-		.StaticMesh(StaticMeshes[0]);
+	UVVisualizer = SNew(SUVVisualizerEditor);
+	UVVisualizer->SetMesh(StaticMeshes[0]);
 }
 
 void FRPRStaticMeshEditor::InitializeSceneComponentsOutliner()
@@ -243,7 +243,7 @@ void FRPRStaticMeshEditor::AddReferencedObjects(FReferenceCollector& Collector)
 	});
 }
 
-const TArray<UStaticMesh*> FRPRStaticMeshEditor::GetStaticMeshes() const
+const TArray<UStaticMesh*>& FRPRStaticMeshEditor::GetStaticMeshes() const
 {
 	return (StaticMeshes);
 }
@@ -333,7 +333,7 @@ void FRPRStaticMeshEditor::OnSceneComponentOutlinerSelectionChanged(UStaticMeshC
 	TArray<UStaticMeshComponent*> selectedMeshComponents;
 	int32 numItemSelected = SceneComponentsOutliner->GetSelectedItem(selectedMeshComponents);
 
-
+	UVVisualizer->SetMesh(numItemSelected > 0 ? selectedMeshComponents.Last()->GetStaticMesh() : nullptr);
 }
 
 const TArray<UStaticMeshComponent*>& FRPRStaticMeshEditor::GetSceneComponents() const
@@ -349,7 +349,10 @@ const TArray<UStaticMeshComponent*>& FRPRStaticMeshEditor::GetSceneComponents() 
 
 bool FRPRStaticMeshEditor::OnRequestClose()
 {
-	FAssetEditorManager::Get().NotifyEditorClosed(this);
+	for (int32 i = 0; i < StaticMeshes.Num(); ++i)
+	{
+		FAssetEditorManager::Get().NotifyAssetClosed(StaticMeshes[i], this);
+	}
 	return (true);
 }
 

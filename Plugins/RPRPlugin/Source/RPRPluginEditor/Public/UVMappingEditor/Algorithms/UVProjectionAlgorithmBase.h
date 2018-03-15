@@ -11,7 +11,7 @@
 /*
  * Abstraction class for UV projection algorithms
  */
-class FUVProjectionAlgorithmBase : public IUVProjectionAlgorithm
+class RPRPLUGINEDITOR_API FUVProjectionAlgorithmBase : public IUVProjectionAlgorithm
 {
 
 public:
@@ -20,7 +20,7 @@ public:
 
 	virtual ~FUVProjectionAlgorithmBase() {}
 	
-	virtual void SetStaticMesh(class UStaticMesh* InStaticMesh) override;
+	virtual void SetStaticMeshes(const TArray<class UStaticMesh*>& StaticMeshes) override;
 	virtual void SetGlobalUVProjectionSettings(FUVProjectionSettingsPtr Settings);
 	virtual FOnAlgorithmCompleted& OnAlgorithmCompleted() override;
 
@@ -51,7 +51,7 @@ private:
 
 protected:
 
-	class UStaticMesh*			StaticMesh;
+	TArray<class UStaticMesh*>	StaticMeshes;
 	FOnAlgorithmCompleted		OnAlgorithmCompletedEvent;
 	FRawMesh					RawMesh;
 	FUVProjectionSettingsPtr	UVProjectionSettings;

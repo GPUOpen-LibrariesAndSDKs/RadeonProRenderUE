@@ -13,22 +13,36 @@ SUVVisualizer::SUVVisualizer()
 
 void SUVVisualizer::Construct(const FArguments& InArgs)
 {
-	StaticMesh = InArgs._StaticMesh;
+}
+
+void SUVVisualizer::SetMesh(TWeakObjectPtr<class UStaticMesh> InStaticMesh)
+{
+	StaticMesh = InStaticMesh;
 	Refresh();
 }
 
 void SUVVisualizer::Refresh()
 {
-	FStaticMeshHelper::LoadRawMeshFromStaticMesh(StaticMesh.Get(), RawMesh, 0);
+	if (StaticMesh.IsValid())
+	{
+		FStaticMeshHelper::LoadRawMeshFromStaticMesh(StaticMesh.Get(), RawMesh);
+	}
+	else
+	{
+		RawMesh.Empty();
+	}
 }
 
 void SUVVisualizer::SetUVChannelIndex(int32 ChannelIndex)
 {
-	int32 newUVChannelIndex = FMath::Min(ChannelIndex, StaticMesh->RenderData->LODResources[0].GetNumTexCoords() - 1);
-	if (newUVChannelIndex != UVChannelIndex)
+	if (StaticMesh.IsValid())
 	{
-		UVChannelIndex = newUVChannelIndex;
-		Invalidate(EInvalidateWidget::Layout);
+		int32 newUVChannelIndex = FMath::Min(ChannelIndex, StaticMesh->RenderData->LODResources[0].GetNumTexCoords() - 1);
+		if (newUVChannelIndex != UVChannelIndex)
+		{
+			UVChannelIndex = newUVChannelIndex;
+			Invalidate(EInvalidateWidget::Layout);
+		}
 	}
 }
 
@@ -74,7 +88,7 @@ int32 SUVVisualizer::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 	PaintAxis(OutDrawElements, drawBox, LayerId, uvBounds);
 	++LayerId;
 	
-	if (RawMesh.IsValid())
+	if (StaticMesh.IsValid() && RawMesh.IsValid())
 	{
 		PaintUVs(OutDrawElements, drawBox, LayerId, uvBounds);
 		++LayerId;

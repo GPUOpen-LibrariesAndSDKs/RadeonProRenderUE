@@ -5,7 +5,7 @@
 #include "ShapePreviewBase.generated.h"
 
 UCLASS(Abstract, HideCategories=(Rendering, Tags, ComponentReplication, Activation, Variable, Cooking, Physics, LOD, Collision, Mobility))
-class UShapePreviewBase : public USceneComponent
+class RPRPLUGINEDITOR_API UShapePreviewBase : public USceneComponent
 {
 	GENERATED_BODY()
 

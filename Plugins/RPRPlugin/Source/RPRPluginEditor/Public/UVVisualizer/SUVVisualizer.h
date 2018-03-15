@@ -10,17 +10,13 @@ class SUVVisualizer : public SCompoundWidget
 {
 public:
 
-	SLATE_BEGIN_ARGS(SUVVisualizer)
-		: _StaticMesh()
-	{}
-
-		SLATE_ARGUMENT(TWeakObjectPtr<class UStaticMesh>, StaticMesh)
-
+	SLATE_BEGIN_ARGS(SUVVisualizer) {}
 	SLATE_END_ARGS()
 
 	SUVVisualizer();
 
 	void	Construct(const FArguments& InArgs);
+	void	SetMesh(TWeakObjectPtr<class UStaticMesh> InStaticMesh);
 	void	Refresh();
 
 	void	SetUVChannelIndex(int32 ChannelIndex);

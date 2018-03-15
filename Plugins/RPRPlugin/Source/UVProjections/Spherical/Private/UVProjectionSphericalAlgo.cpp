@@ -1,5 +1,3 @@
-#ifdef UV_PROJECTION_SPHERICAL
-
 #include "UVProjectionSphericalAlgo.h"
 #include "UVUtility.h"
 #include "RPRStaticMeshEditor.h"
@@ -57,5 +55,3 @@ void FUVProjectionSphericalAlgo::SetSettings(const FSettings& InSettings)
 {
 	Settings = InSettings;
 }
-
-#endif // UV_PROJECTION_SPHERICAL

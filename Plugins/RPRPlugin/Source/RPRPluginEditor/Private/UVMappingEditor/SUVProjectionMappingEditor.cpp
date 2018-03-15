@@ -12,6 +12,8 @@
 #include "IDetailsView.h"
 #include "RawMesh.h"
 #include "StaticMeshHelper.h"
+#include "IUVProjectionModule.h"
+#include "UVProjectionFactory.h"
 
 #define LOCTEXT_NAMESPACE "SUVMappingEditor"
 
@@ -61,6 +63,12 @@ void SUVProjectionMappingEditor::SelectProjectionEntry(SUVProjectionTypeEntryPtr
 
 void SUVProjectionMappingEditor::InitUVProjectionList(UStaticMesh* StaticMesh)
 {
+	const TArray<IUVProjectionModule*>& modules = FUVProjectionFactory::GetModules();
+	for (int32 i = 0; i < modules.Num(); ++i)
+	{
+		AddUVProjectionListEntry(modules[i]);
+	}
+
 #ifdef UV_PROJECTION_PLANAR
 	AddUVProjectionListEntry(EUVProjectionType::Planar, LOCTEXT("ProjectionType_Planar", "Planar"), FEditorStyle::GetBrush("ClassThumbnail.Plane"), StaticMesh);
 #endif
@@ -78,18 +86,11 @@ void SUVProjectionMappingEditor::InitUVProjectionList(UStaticMesh* StaticMesh)
 #endif
 }
 
-void SUVProjectionMappingEditor::AddUVProjectionListEntry(EUVProjectionType ProjectionType, const FText& ProjectionName, 
-												const FSlateBrush* SlateBrush, UStaticMesh* StaticMesh)
+void SUVProjectionMappingEditor::AddUVProjectionListEntry(IUVProjectionModule* UVProjectionModule)
 {
 	SUVProjectionTypeEntryPtr uvProjectionTypeEntryWidget = 
 		SNew(SUVProjectionTypeEntry)
-		.RPRStaticMeshEditor(RPRStaticMeshEditorPtr)
-		.ProjectionType(ProjectionType)
-		.ProjectionName(ProjectionName)
-		.StaticMesh(StaticMesh)
-		.Icon(SlateBrush)
-		.OnProjectionApplied(this, &SUVProjectionMappingEditor::NotifyProjectionCompleted)
-		;
+		.UVProjectionModulePtr(UVProjectionModule);
 
 	UVProjectionTypeList.Add(uvProjectionTypeEntryWidget);
 }
@@ -122,11 +123,11 @@ void SUVProjectionMappingEditor::HideSelectedUVProjectionWidget()
 {
 	if (SelectedProjectionEntry.IsValid())
 	{
-		HideUVProjectionWidget(SelectedProjectionEntry->GetUVProjectionWidget());
+		HideUVProjectionWidget(CurrentProjectionSettingsWidget);
 	}
 }
 
-void SUVProjectionMappingEditor::HideUVProjectionWidget(IUVProjectionPtr UVProjectionWidget)
+void SUVProjectionMappingEditor::HideUVProjectionWidget(IUVProjectionSettingsWidgetPtr UVProjectionWidget)
 {
 	if (UVProjectionWidget.IsValid())
 	{
@@ -138,11 +139,14 @@ void SUVProjectionMappingEditor::ShowSelectedUVProjectionWidget()
 {
 	if (SelectedProjectionEntry.IsValid())
 	{
-		ShowUVProjectionWidget(SelectedProjectionEntry->GetUVProjectionWidget());
+		IUVProjectionModule* module = SelectedProjectionEntry->GetUVProjectionModule();
+		CurrentProjectionSettingsWidget = module->CreateUVProjectionSettingsWidget(RPRStaticMeshEditorPtr);
+
+		ShowUVProjectionWidget(CurrentProjectionSettingsWidget);
 	}
 }
 
-void SUVProjectionMappingEditor::ShowUVProjectionWidget(IUVProjectionPtr UVProjectionWidget)
+void SUVProjectionMappingEditor::ShowUVProjectionWidget(IUVProjectionSettingsWidgetPtr UVProjectionWidget)
 {
 	if (UVProjectionWidget.IsValid())
 	{
@@ -156,7 +160,7 @@ void SUVProjectionMappingEditor::NotifyProjectionCompleted()
 	OnProjectionApplied.ExecuteIfBound();
 }
 
-void SUVProjectionMappingEditor::InjectUVProjectionWidget(IUVProjectionPtr UVProjectionWidget)
+void SUVProjectionMappingEditor::InjectUVProjectionWidget(IUVProjectionSettingsWidgetPtr UVProjectionWidget)
 {
 	if (UVProjectionWidget.IsValid())
 	{

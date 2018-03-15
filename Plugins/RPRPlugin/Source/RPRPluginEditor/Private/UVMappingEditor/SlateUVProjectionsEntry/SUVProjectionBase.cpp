@@ -11,8 +11,48 @@
 
 void SUVProjectionBase::Construct(const FArguments& InArgs)
 {
-	UVProjectionSettings = MakeShareable(new FUVProjectionSettings);
+	InitUVProjection();
+}
 
+TSharedRef<SWidget> SUVProjectionBase::TakeWidget()
+{
+	return (SharedThis(this));
+}
+
+FOnProjectionApplied& SUVProjectionBase::OnProjectionApplied()
+{
+	return (OnProjectionAppliedDelegate);
+}
+
+void SUVProjectionBase::SetRPRStaticMeshEditor(FRPRStaticMeshEditorWeakPtr RPRStaticMeshEditor)
+{
+	RPRStaticMeshEditorPtr = RPRStaticMeshEditor;
+}
+
+const TArray<UStaticMesh*>& SUVProjectionBase::GetStaticMeshes() const
+{
+	return (GetRPRStaticMeshEditor()->GetStaticMeshes());
+}
+
+FRPRStaticMeshEditorPtr SUVProjectionBase::GetRPRStaticMeshEditor() const
+{
+	return (RPRStaticMeshEditorPtr.Pin());
+}
+
+void SUVProjectionBase::AddShapePreviewToViewport()
+{
+	AddComponentToViewport(GetShapePreview());
+}
+
+void SUVProjectionBase::InitUVProjection()
+{
+	UVProjectionSettings = MakeShareable(new FUVProjectionSettings);
+	InitAlgorithm();
+	InitWidget();
+}
+
+void SUVProjectionBase::InitWidget()
+{
 	ChildSlot
 		[
 			SNew(SVerticalBox)
@@ -20,7 +60,6 @@ void SUVProjectionBase::Construct(const FArguments& InArgs)
 			.AutoHeight()
 			[
 				SNew(SGlobalUVProjectionSettings)
-				.StaticMesh(StaticMesh)
 				.UVProjectionSettings(UVProjectionSettings)
 			]
 			+SVerticalBox::Slot()
@@ -45,53 +84,18 @@ void SUVProjectionBase::Construct(const FArguments& InArgs)
 		];
 }
 
-void SUVProjectionBase::SetRPRStaticMeshEditor(FRPRStaticMeshEditorWeakPtr InRPRStaticMeshEditor)
-{
-	RPRStaticMeshEditor = InRPRStaticMeshEditor;
-}
-
-TSharedRef<SWidget> SUVProjectionBase::TakeWidget()
-{
-	return (SharedThis(this));
-}
-
-FOnProjectionApplied& SUVProjectionBase::OnProjectionApplied()
-{
-	return (OnProjectionAppliedDelegate);
-}
-
-UStaticMesh* SUVProjectionBase::GetStaticMesh() const
-{
-	return (StaticMesh);
-}
-
-FRPRStaticMeshEditorPtr SUVProjectionBase::GetRPRStaticMeshEditor() const
-{
-	return (RPRStaticMeshEditor.Pin());
-}
-
-void SUVProjectionBase::ConstructBase()
-{
-	Construct(FArguments());
-}
-
-void SUVProjectionBase::AddShapePreviewToViewport()
-{
-	AddComponentToViewport(GetShapePreview());
-}
-
 void SUVProjectionBase::AddComponentToViewport(UActorComponent* InActorComponent, bool bSelectShape /*= true*/)
 {
-	FRPRStaticMeshEditorPtr rprStaticMeshEditor = RPRStaticMeshEditor.Pin();
+	FRPRStaticMeshEditorPtr rprStaticMeshEditor = RPRStaticMeshEditorPtr.Pin();
 	if (rprStaticMeshEditor.IsValid())
 	{
 		rprStaticMeshEditor->AddComponentToViewport(InActorComponent, bSelectShape);
 	}
 }
 
-void SUVProjectionBase::InitAlgorithm(EUVProjectionType ProjectionType)
+void SUVProjectionBase::InitAlgorithm()
 {
-	Algorithm = FAlgorithmFactory::CreateAlgorithm(StaticMesh, ProjectionType);
+	Algorithm = CreateAlgorithm(RPRStaticMeshEditorPtr.Pin()->GetStaticMeshes());
 	SubscribeToAlgorithmCompletion();
 }
 
@@ -111,7 +115,7 @@ FUVProjectionSettingsPtr SUVProjectionBase::GetUVProjectionSettings() const
 	return (UVProjectionSettings);
 }
 
-void SUVProjectionBase::NotifyAlgorithmCompleted(IUVProjectionAlgorithm* AlgorithmInstance, bool bSuccess)
+void SUVProjectionBase::NotifyAlgorithmCompleted(IUVProjectionAlgorithmPtr AlgorithmInstance, bool bSuccess)
 {
 	if (bSuccess)
 	{

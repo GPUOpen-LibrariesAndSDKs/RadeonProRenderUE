@@ -8,7 +8,7 @@
 
 extern const FName RPRStaticMeshEditorAppIdentifier;
 
-class FRPRStaticMeshEditor : public FAssetEditorToolkit, public FGCObject
+class RPRPLUGINEDITOR_API FRPRStaticMeshEditor : public FAssetEditorToolkit, public FGCObject
 {
 
 public:
@@ -30,7 +30,7 @@ public:
 	
 	virtual void	AddReferencedObjects(FReferenceCollector& Collector) override;
 	
-	const TArray<UStaticMesh*>	GetStaticMeshes() const;
+	const TArray<UStaticMesh*>&		GetStaticMeshes() const;
 	FRPRStaticMeshEditorSelection&	GetSelectionSystem();
 
 	void	AddComponentToViewport(UActorComponent* InComponent, bool bSelectComponent = true);

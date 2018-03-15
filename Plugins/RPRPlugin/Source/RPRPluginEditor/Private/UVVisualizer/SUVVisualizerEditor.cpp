@@ -9,11 +9,6 @@
 
 void SUVVisualizerEditor::Construct(const FArguments& InArgs)
 {
-	StaticMesh = InArgs._StaticMesh;
-
-	BuildUVChannelInfos();
-	SelectedUVChannel = UVChannels.Num() > 0 ? UVChannels[0] : nullptr;
-
 	InitUVVisualizerEditorSettings();
 
 	ChildSlot
@@ -24,7 +19,6 @@ void SUVVisualizerEditor::Construct(const FArguments& InArgs)
 			.Value(6)
 			[
 				SAssignNew(UVVisualizer, SUVVisualizer)
-				.StaticMesh(StaticMesh)
 			]
 			+SSplitter::Slot()
 			.Value(4)
@@ -52,20 +46,35 @@ void SUVVisualizerEditor::Construct(const FArguments& InArgs)
 		];
 
 	UVVisualizer->SetBackgroundOpacity(UVVisualizerEditorSettings.BackgroundOpacity);
+}
 
+void SUVVisualizerEditor::SetMesh(TWeakObjectPtr<UStaticMesh> InStaticMesh)
+{
+	StaticMesh = InStaticMesh;
+	if (UVVisualizer.IsValid())
+	{
+		UVVisualizer->SetMesh(StaticMesh);
+	}
 	Refresh();
 }
 
 void SUVVisualizerEditor::Refresh()
 {
-	// Backup UV channel
-	int32 selectedUVChannel = SelectedUVChannel.IsValid() ? SelectedUVChannel->ChannelIndex : 0;
+	if (StaticMesh.IsValid())
 	{
-		BuildUVChannelInfos();
-		RefreshUVs();
+		// Backup UV channel
+		int32 selectedUVChannel = SelectedUVChannel.IsValid() ? SelectedUVChannel->ChannelIndex : 0;
+		{
+			BuildUVChannelInfos();
+			RefreshUVs();
+		}
+		// Try to restore UV channel
+		SelectedUVChannel = selectedUVChannel < UVChannels.Num() ? UVChannels[selectedUVChannel] : nullptr;
 	}
-	// Try to restore UV channel
-	SelectedUVChannel = selectedUVChannel < UVChannels.Num() ? UVChannels[selectedUVChannel] : nullptr;
+	else
+	{
+		SelectedUVChannel = nullptr;
+	}
 }
 
 void SUVVisualizerEditor::RefreshUVs()
@@ -129,11 +138,11 @@ FText SUVVisualizerEditor::GetSelectedUVChannel() const
 
 void SUVVisualizerEditor::BuildUVChannelInfos()
 {
-	if (StaticMesh != nullptr && StaticMesh->HasValidRenderData())
+	if (StaticMesh.IsValid() && StaticMesh->HasValidRenderData())
 	{
 		int32 numChannels = StaticMesh->RenderData->LODResources[0].GetNumTexCoords();
 
-		UVChannels.Empty();
+		UVChannels.Empty(numChannels);
 		for (int32 i = 0; i < numChannels; ++i)
 		{
 			TSharedPtr<FChannelInfo> channelInfo = MakeShareable(new FChannelInfo());

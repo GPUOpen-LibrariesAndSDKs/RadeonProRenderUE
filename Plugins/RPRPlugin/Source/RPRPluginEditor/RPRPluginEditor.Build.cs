@@ -16,9 +16,12 @@ public class RPRPluginEditor : ModuleRules
         PublicIncludePaths.AddRange(
             new string[] {
                 "RPRPluginEditor/Public",
-                "RPRPlugin/Public"				
+                "RPRPlugin/Public",
 				// ... add public include paths required here ...
-			}
+
+                "RPRPlugin/Public/UVMappingEditor",
+                "RPRPlugin/Public/Tools",
+            }
             );
 
 
@@ -45,9 +48,7 @@ public class RPRPluginEditor : ModuleRules
                 "RPRPluginEditor/Private/Tools/Math/UVUtility",
                 "RPRPluginEditor/Private/Tools/Math/RPRMeshFace",
                 "RPRPluginEditor/Private/Tools/Math/RPRMeshFaces",
-
-                "RPRPluginEditor/Private/UVMappingEditor/Algorithms/Utilities/CubeProjectionFace",
-
+                
                 "RPRPluginEditor/Private/UVVisualizer",
 
                 "RPRPluginEditor/Private/Outliners",
@@ -128,7 +129,7 @@ public class RPRPluginEditor : ModuleRules
     {
         //Definitions.Add("UV_PROJECTION_PLANAR");
         //Definitions.Add("UV_PROJECTION_CUBIC");
-        Definitions.Add("UV_PROJECTION_SPHERICAL");
+        //Definitions.Add("UV_PROJECTION_SPHERICAL");
         //Definitions.Add("UV_PROJECTION_CYLINDRICAL");
     }
 }

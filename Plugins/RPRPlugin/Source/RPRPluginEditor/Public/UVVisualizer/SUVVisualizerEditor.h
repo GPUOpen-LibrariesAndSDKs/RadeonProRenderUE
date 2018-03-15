@@ -16,15 +16,11 @@ class SUVVisualizerEditor : public SCompoundWidget, public FNotifyHook
 
 public:
 
-	SLATE_BEGIN_ARGS(SUVVisualizerEditor)
-		: _StaticMesh()
-	{}
-
-		SLATE_ARGUMENT(TWeakObjectPtr<class UStaticMesh>, StaticMesh)
-
+	SLATE_BEGIN_ARGS(SUVVisualizerEditor) {}
 	SLATE_END_ARGS()
 
 	void	Construct(const FArguments& InArgs);
+	void	SetMesh(TWeakObjectPtr<UStaticMesh> StaticMesh);
 	void	Refresh();
 	void	RefreshUVs();
 	

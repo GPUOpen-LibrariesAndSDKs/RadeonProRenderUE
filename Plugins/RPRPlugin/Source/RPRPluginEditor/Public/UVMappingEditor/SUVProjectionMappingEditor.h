@@ -35,8 +35,7 @@ public:
 private:
 
 	void	InitUVProjectionList(UStaticMesh* StaticMesh);
-	void	AddUVProjectionListEntry(EUVProjectionType ProjectionType, const FText& ProjectionName, 
-										const FSlateBrush* SlateBrush, class UStaticMesh* StaticMesh);
+	void	AddUVProjectionListEntry(IUVProjectionModule* UVProjectionModule);
 
 	TSharedRef<ITableRow>	OnGenerateWidgetForUVProjectionTypeEntry(SUVProjectionTypeEntryPtr InItem,
 															const TSharedRef<STableViewBase>& OwnerTable);
@@ -45,13 +44,13 @@ private:
 	bool			HasUVProjectionTypeSelected() const;
 	EVisibility		GetUVProjectionControlsVisibility() const;
 
-	void			InjectUVProjectionWidget(IUVProjectionPtr UVProjectionWidget);
+	void			InjectUVProjectionWidget(IUVProjectionSettingsWidgetPtr UVProjectionWidget);
 	void			ClearUVProjectionWidgetContainer();
 
 	void			HideSelectedUVProjectionWidget();
-	void			HideUVProjectionWidget(IUVProjectionPtr UVProjectionWidget);
+	void			HideUVProjectionWidget(IUVProjectionSettingsWidgetPtr UVProjectionWidget);
 	void			ShowSelectedUVProjectionWidget();
-	void			ShowUVProjectionWidget(IUVProjectionPtr UVProjectionWidget);
+	void			ShowUVProjectionWidget(IUVProjectionSettingsWidgetPtr UVProjectionWidget);
 
 	void			NotifyProjectionCompleted();
 
@@ -63,6 +62,7 @@ private:
 	TSharedPtr<SBorder>			UVProjectionContainer;
 
 	SUVProjectionTypeEntryPtr	SelectedProjectionEntry;
+	IUVProjectionSettingsWidgetPtr CurrentProjectionSettingsWidget;
 	TSharedPtr<SWindow>			LastStaticMeshWindowSelected;
 
 	TSharedPtr<class FRPRStaticMeshEditor>		RPRStaticMeshEditorPtr;

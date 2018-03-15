@@ -4,18 +4,20 @@
 #include "Delegate.h"
 #include "UVProjectionSettings.h"
 
-class IUVProjectionAlgorithm
+class IUVProjectionAlgorithm : public TSharedFromThis<IUVProjectionAlgorithm>
 {
 public:
 
-	virtual void	SetStaticMesh(class UStaticMesh* StaticMesh) = 0;
+	virtual ~IUVProjectionAlgorithm() {}
+
+	virtual void	SetStaticMeshes(const TArray<class UStaticMesh*>& StaticMeshes) = 0;
 	virtual void	StartAlgorithm() = 0;
 	virtual void	AbortAlgorithm() = 0;
 	virtual bool	IsAlgorithimRunning() = 0;
 	virtual void	Finalize() = 0;
 	virtual void	SetGlobalUVProjectionSettings(FUVProjectionSettingsPtr Settings) = 0;
 	
-	DECLARE_EVENT_TwoParams(IUVProjectionAlgorithm, FOnAlgorithmCompleted, class IUVProjectionAlgorithm* /* ProjectionInstance */ , bool /* Does algorithm succeed? */)
+	DECLARE_EVENT_TwoParams(IUVProjectionAlgorithm, FOnAlgorithmCompleted, TSharedPtr<IUVProjectionAlgorithm> /* ProjectionInstance */ , bool /* Does algorithm succeed? */)
 	virtual FOnAlgorithmCompleted&	OnAlgorithmCompleted() = 0;
 	
 };

@@ -9,15 +9,8 @@ class SGlobalUVProjectionSettings : public SCompoundWidget
 {
 public:
 
-	SLATE_BEGIN_ARGS(SGlobalUVProjectionSettings) 
-		: _StaticMesh(nullptr)
-		, _SourceModelIndex(0)
-	{}
-		
-		SLATE_ARGUMENT(UStaticMesh*, StaticMesh)
-		SLATE_ARGUMENT(int32, SourceModelIndex)
+	SLATE_BEGIN_ARGS(SGlobalUVProjectionSettings) {}
 		SLATE_ARGUMENT(FUVProjectionSettingsPtr, UVProjectionSettings)
-
 	SLATE_END_ARGS()
 
 	void	Construct(const FArguments& InArgs);
@@ -30,6 +23,5 @@ private:
 private:
 
 	FUVProjectionSettingsPtr UVProjectionSettings;
-	FRawMesh RawMesh;
 
 };

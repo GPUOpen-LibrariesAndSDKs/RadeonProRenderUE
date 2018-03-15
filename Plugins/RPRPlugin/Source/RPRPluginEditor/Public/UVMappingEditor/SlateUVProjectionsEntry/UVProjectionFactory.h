@@ -1,13 +1,20 @@
 #pragma once
 
-#include "IUVProjection.h"
+#include "IUVProjectionSettingsWidget.h"
 #include "UVProjectionType.h"
 #include "SharedPointer.h"
+#include "IUVProjectionModule.h"
 
-class FUVProjectionFactory
+class RPRPLUGINEDITOR_API FUVProjectionFactory
 {
 public:
-	static IUVProjectionPtr		CreateUVProjectionByType(TSharedPtr<class FRPRStaticMeshEditor> StaticMeshEditorPtr, 
-															class UStaticMesh* StaticMesh, 
-															EUVProjectionType Type);
+
+	static void		RegisterUVProjection(IUVProjectionModule* ProjectionModule);
+	static void		UnregisterUVProjection(IUVProjectionModule* ProjectionModule);
+
+	static const TArray<IUVProjectionModule*>&	GetModules();
+
+private:
+
+	static TArray<IUVProjectionModule*> UVProjectionModules;
 };

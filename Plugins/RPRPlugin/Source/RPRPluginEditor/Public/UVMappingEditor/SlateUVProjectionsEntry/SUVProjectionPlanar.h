@@ -3,7 +3,7 @@
 #ifdef UV_PROJECTION_PLANAR
 
 #include "DeclarativeSyntaxSupport.h"
-#include "IUVProjection.h"
+#include "IUVProjectionSettingsWidget.h"
 #include "SharedPointer.h"
 #include "IUVProjectionAlgorithm.h"
 #include "SUVProjectionBase.h"

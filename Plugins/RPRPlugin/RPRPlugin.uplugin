@@ -30,6 +30,10 @@
 		{
 			"Name": "RPRMaterialEditor",
 			"Type": "Editor"
+		},
+		{
+			"Name": "UVProjection_Spherical",
+			"Type": "Editor"			
 		}
 	]
 }

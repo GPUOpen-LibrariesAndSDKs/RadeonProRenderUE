@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IUVProjection.h"
+#include "IUVProjectionSettingsWidget.h"
 #include "Engine/StaticMesh.h"
 #include "DeclarativeSyntaxSupport.h"
 #include "UVProjectionType.h"
@@ -15,7 +15,7 @@
 /*
  * Abstract class for UV Projection widgets
  */
-class SUVProjectionBase : public SCompoundWidget, public IUVProjection
+class RPRPLUGINEDITOR_API SUVProjectionBase : public SCompoundWidget, public IUVProjectionSettingsWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SUVProjectionBase) {}
@@ -23,18 +23,20 @@ public:
 
 	void	Construct(const FArguments& InArgs);
 
-	virtual void	SetRPRStaticMeshEditor(FRPRStaticMeshEditorWeakPtr InRPRStaticMeshEditor) override;
-
-	virtual UStaticMesh*			GetStaticMesh() const override;
-	virtual FRPRStaticMeshEditorPtr GetRPRStaticMeshEditor() const;
+	virtual const TArray<UStaticMesh*>&	GetStaticMeshes() const override;
+	virtual FRPRStaticMeshEditorPtr		GetRPRStaticMeshEditor() const;
 
 	virtual TSharedRef<SWidget>		TakeWidget() override;
 	virtual FOnProjectionApplied&	OnProjectionApplied() override;
 	
+	virtual void	SetRPRStaticMeshEditor(TWeakPtr<class FRPRStaticMeshEditor> RPRStaticMeshEditor) override;
+	virtual void	OnUVProjectionDisplayed() override {}
+	virtual void	OnUVProjectionHidden() override {}
 
 protected:
 	
-	void	ConstructBase();
+	void	InitUVProjection();
+	void	InitWidget();
 
 	/* Add component to the RPR Static Mesh Editor viewport */
 	void	AddComponentToViewport(UActorComponent* InActorComponent, bool bSelectShape = true);
@@ -46,33 +48,33 @@ protected:
 	template<typename AlgorithmType>
 	TSharedPtr<AlgorithmType>	GetAlgorithm() const;
 
-	void	InitAlgorithm(EUVProjectionType ProjectionType);
+	void	InitAlgorithm();
 	void	StartAlgorithm();
 	void	FinalizeAlgorithm();
 
 	virtual void	OnPreAlgorithmStart() {}
 	
-	virtual TSharedRef<SWidget>	GetAlgorithmSettingsWidget() = 0;
-	virtual void				OnAlgorithmCompleted(IUVProjectionAlgorithm* InAlgorithm, bool bIsSuccess) = 0;
-	virtual UShapePreviewBase*	GetShapePreview() = 0;
+	virtual IUVProjectionAlgorithmPtr	CreateAlgorithm(const TArray<UStaticMesh*>& StaticMeshes) = 0;
+	virtual TSharedRef<SWidget>			GetAlgorithmSettingsWidget() = 0;
+	virtual void						OnAlgorithmCompleted(IUVProjectionAlgorithmPtr InAlgorithm, bool bIsSuccess) = 0;
+	virtual UShapePreviewBase*			GetShapePreview() = 0;
 	
 private:
 
 	FUVProjectionSettingsPtr	GetUVProjectionSettings() const;
 
-	void	NotifyAlgorithmCompleted(IUVProjectionAlgorithm* AlgorithmInstance, bool bSuccess);
+	void	NotifyAlgorithmCompleted(IUVProjectionAlgorithmPtr AlgorithmInstance, bool bSuccess);
 	void	AddShapePreviewToViewport();
 	void	SubscribeToAlgorithmCompletion();
 	FReply	OnApplyButtonClicked();
 
 protected:
 
-	UStaticMesh*				StaticMesh;
+	FRPRStaticMeshEditorWeakPtr	RPRStaticMeshEditorPtr;
 
 private:
 
 	IUVProjectionAlgorithmPtr	Algorithm;
-	FRPRStaticMeshEditorWeakPtr	RPRStaticMeshEditor;
 	FOnProjectionApplied		OnProjectionAppliedDelegate;
 	
 	FUVProjectionSettingsPtr	UVProjectionSettings;

@@ -97,7 +97,14 @@ FText SSceneComponentsOutliner::GetNumberSelectedItemsText() const
 	{
 		FFormatNamedArguments args;
 		args.Add(TEXT("num"), FFormatArgumentValue(numItemSelected));
-		return FText::Format(LOCTEXT("OneItemIsSelected", "{num} item selected"), args);
+		if (numItemSelected == 1)
+		{
+			return FText::Format(LOCTEXT("OneItemSelected", "{num} mesh selected"), args);
+		}
+		else
+		{
+			return FText::Format(LOCTEXT("ItemSelected", "{num} meshes selected"), args);
+		}
 	}
 }
 

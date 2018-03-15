@@ -1,5 +1,3 @@
-#ifdef UV_PROJECTION_SPHERICAL
-
 #include "SUVProjectionSpherical.h"
 #include "UVProjectionSphericalAlgo.h"
 #include "SBoxPanel.h"
@@ -10,9 +8,9 @@
 void SUVProjectionSpherical::Construct(const FArguments& InArgs)
 {
 	ShapePreviewDetailView = CreateShapePreviewDetailView("SUVProjectionSphericalDetailsView");
-	StaticMesh = InArgs._StaticMesh;
+	RPRStaticMeshEditorPtr = InArgs._RPRStaticMeshEditorPtr;
 
-	ConstructBase();
+	InitUVProjection();
 }
 
 TSharedRef<SWidget> SUVProjectionSpherical::GetAlgorithmSettingsWidget()
@@ -25,6 +23,13 @@ TSharedRef<SWidget> SUVProjectionSpherical::GetAlgorithmSettingsWidget()
 			ShapePreviewDetailView->AsShared()
 		]
 	;
+}
+
+IUVProjectionAlgorithmPtr SUVProjectionSpherical::CreateAlgorithm(const TArray<class UStaticMesh*>& StaticMeshes)
+{
+	IUVProjectionAlgorithmPtr algo = MakeShareable(new FUVProjectionSphericalAlgo);
+	algo->SetStaticMeshes(StaticMeshes);
+	return (algo);
 }
 
 void SUVProjectionSpherical::OnPreAlgorithmStart()
@@ -43,11 +48,6 @@ void SUVProjectionSpherical::UpdateAlgorithmSettings()
 	}
 
 	algo->SetSettings(settings);
-}
-
-void SUVProjectionSpherical::FinalizeCreation()
-{
-	InitAlgorithm(EUVProjectionType::Spherical);
 }
 
 void SUVProjectionSpherical::OnUVProjectionDisplayed()
@@ -73,7 +73,7 @@ void SUVProjectionSpherical::OnUVProjectionHidden()
 	IDetailsViewHelper::ClearSelection(ShapePreviewDetailView);
 }
 
-void SUVProjectionSpherical::OnAlgorithmCompleted(IUVProjectionAlgorithm* InAlgorithm, bool bIsSuccess)
+void SUVProjectionSpherical::OnAlgorithmCompleted(IUVProjectionAlgorithmPtr InAlgorithm, bool bIsSuccess)
 {
 	if (bIsSuccess)
 	{
@@ -90,5 +90,3 @@ TSharedPtr<FUVProjectionSphericalAlgo> SUVProjectionSpherical::GetProjectionSphe
 {
 	return (GetAlgorithm<FUVProjectionSphericalAlgo>());
 }
-
-#endif // UV_PROJECTION_SPHERICAL

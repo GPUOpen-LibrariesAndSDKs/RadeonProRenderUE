@@ -7,14 +7,7 @@
 
 void SUVProjectionTypeEntry::Construct(const FArguments& InArgs)
 {
-	check(InArgs._RPRStaticMeshEditor.IsValid());
-
-	ProjectionType = InArgs._ProjectionType;
-	StaticMesh = InArgs._StaticMesh;
-	OnProjectionApplied = InArgs._OnProjectionApplied;
-
-	ProjectionWidget = FUVProjectionFactory::CreateUVProjectionByType(InArgs._RPRStaticMeshEditor, StaticMesh, ProjectionType);
-	ProjectionWidget->OnProjectionApplied().BindSP(this, &SUVProjectionTypeEntry::NotifyProjectionApplied);
+	UVProjectionModulePtr = InArgs._UVProjectionModulePtr;
 
 	ChildSlot
 		.HAlign(EHorizontalAlignment::HAlign_Left)
@@ -27,7 +20,7 @@ void SUVProjectionTypeEntry::Construct(const FArguments& InArgs)
 				.HeightOverride(40)
 				[
 					SNew(SImage)
-					.Image(InArgs._Icon)
+					.Image(UVProjectionModulePtr->GetProjectionIcon())
 				]
 			]
 			+SHorizontalBox::Slot()
@@ -36,22 +29,12 @@ void SUVProjectionTypeEntry::Construct(const FArguments& InArgs)
 			.AutoWidth()
 			[
 				SNew(STextBlock)
-				.Text(InArgs._ProjectionName)
+				.Text(UVProjectionModulePtr->GetProjectionName())
 			]
 		];
 }
 
-EUVProjectionType SUVProjectionTypeEntry::GetProjectionType() const
+IUVProjectionModule* SUVProjectionTypeEntry::GetUVProjectionModule() const
 {
-	return (ProjectionType);
-}
-
-IUVProjectionPtr SUVProjectionTypeEntry::GetUVProjectionWidget() const
-{
-	return (ProjectionWidget);
-}
-
-void SUVProjectionTypeEntry::NotifyProjectionApplied()
-{
-	OnProjectionApplied.ExecuteIfBound();
+	return (UVProjectionModulePtr);
 }

@@ -1,7 +1,5 @@
 #pragma once
 
-#ifdef UV_PROJECTION_SPHERICAL
-
 #include "SUVProjectionBase.h"
 #include "ShapePreviewable.h"
 #include "ShapePreviewSphere.h"
@@ -13,21 +11,20 @@ class SUVProjectionSpherical : public SUVProjectionBase, public FShapePreviewabl
 {
 public:
 	typedef FShapePreviewable<UShapePreviewSphere> FShapePreviewSphere;
-
+	
 public:
 
 	SLATE_BEGIN_ARGS(SUVProjectionSpherical)
-		: _StaticMesh(nullptr)
+		: _RPRStaticMeshEditorPtr()
 	{}
 
-		SLATE_ARGUMENT(UStaticMesh*, StaticMesh)
+		SLATE_ARGUMENT(FRPRStaticMeshEditorWeakPtr, RPRStaticMeshEditorPtr)
 
 	SLATE_END_ARGS()
 
 	void	Construct(const FArguments& InArgs);
 	void	AdaptPreviewShapeToMesh();
 
-	virtual void FinalizeCreation() override;
 	virtual void OnUVProjectionDisplayed() override;
 	virtual void OnUVProjectionHidden() override;
 	virtual void OnPreAlgorithmStart() override;
@@ -35,7 +32,8 @@ public:
 
 protected:
 
-	virtual void OnAlgorithmCompleted(IUVProjectionAlgorithm* InAlgorithm, bool bIsSuccess) override;
+	virtual IUVProjectionAlgorithmPtr CreateAlgorithm(const TArray<class UStaticMesh*>& StaticMeshes) override;
+	virtual void OnAlgorithmCompleted(IUVProjectionAlgorithmPtr InAlgorithm, bool bIsSuccess) override;
 	virtual UShapePreviewBase* GetShapePreview() override;
 	virtual TSharedRef<SWidget> GetAlgorithmSettingsWidget() override;
 
@@ -50,5 +48,3 @@ private:
 	TSharedPtr<IDetailsView>	ShapePreviewDetailView;
 
 };
-
-#endif // UV_PROJECTION_SPHERICAL
