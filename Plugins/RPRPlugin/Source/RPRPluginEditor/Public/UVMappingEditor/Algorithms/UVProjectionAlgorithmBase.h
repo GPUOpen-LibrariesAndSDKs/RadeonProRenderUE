@@ -13,6 +13,9 @@
  */
 class RPRPLUGINEDITOR_API FUVProjectionAlgorithmBase : public IUVProjectionAlgorithm
 {
+protected:
+
+	typedef TArray<FVector2D>	FUVPack;
 
 public:
 
@@ -40,25 +43,27 @@ protected:
 	bool	AreStaticMeshRenderDatasValid() const;
 	void	ApplyUVsOnMesh();
 	void	SaveRawMesh();
-	void	AddNewUVs(const FVector2D& UV);
-	void	FixInvalidUVsHorizontally();
+	void	AddNewUVs(int32 RawMeshIndex, const FVector2D& UV);
+	void	FixInvalidUVsHorizontally(int32 MeshIndex);
 
 
 private:
 
+	void	LoadRawMeshes();
 	void	FixTextureCoordinateOnLeftSideIfRequired(float& TextureCoordinate);
 
 
 protected:
 
 	TArray<class UStaticMesh*>	StaticMeshes;
+	TArray<FRawMesh>			RawMeshes;
+
 	FOnAlgorithmCompleted		OnAlgorithmCompletedEvent;
-	FRawMesh					RawMesh;
 	FUVProjectionSettingsPtr	UVProjectionSettings;
 
 private:
 
 	bool bIsAlgorithmRunning;
-	TArray<FVector2D>	NewUVs;
+	TArray<FUVPack>	NewUVs;
 
 };

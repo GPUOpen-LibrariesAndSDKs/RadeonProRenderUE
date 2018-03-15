@@ -16,8 +16,8 @@ IUVProjectionAlgorithm::FOnAlgorithmCompleted& FUVProjectionAlgorithmBase::OnAlg
 void FUVProjectionAlgorithmBase::StartAlgorithm()
 {
 	bIsAlgorithmRunning = true;
-	FStaticMeshHelper::LoadRawMeshFromStaticMesh(StaticMeshes[0], RawMesh);
-
+	
+	LoadRawMeshes();
 	PrepareUVs();
 }
 
@@ -38,8 +38,14 @@ void FUVProjectionAlgorithmBase::SetGlobalUVProjectionSettings(FUVProjectionSett
 
 void FUVProjectionAlgorithmBase::PrepareUVs()
 {
-	check(RawMesh.IsValid());
-	NewUVs.Empty(RawMesh.WedgeIndices.Num());
+	// Empty UVs and allocate the expected number of UV datas
+	const int32 numMeshes = RawMeshes.Num();
+	NewUVs.Empty(numMeshes);
+	NewUVs.AddDefaulted(numMeshes);
+	for (int32 i = 0; i < RawMeshes.Num(); ++i)
+	{
+		NewUVs[i].Empty(RawMeshes[i].WedgeIndices.Num());
+	}
 }
 
 void FUVProjectionAlgorithmBase::StopAlgorithm()
@@ -69,43 +75,55 @@ bool FUVProjectionAlgorithmBase::AreStaticMeshRenderDatasValid(UStaticMesh* InSt
 
 void FUVProjectionAlgorithmBase::ApplyUVsOnMesh()
 {
-	if (UVProjectionSettings->UVChannel < 0)
+	for (int32 meshIndex = 0; meshIndex < RawMeshes.Num(); ++meshIndex)
 	{
-		for (int32 i = 0; i < MAX_MESH_TEXTURE_COORDS; ++i)
+		FRawMesh& rawMesh = RawMeshes[meshIndex];
+		FUVPack& uv = NewUVs[meshIndex];
+
+		if (UVProjectionSettings->UVChannel < 0)
 		{
-			RawMesh.WedgeTexCoords[i] = NewUVs;
+			for (int32 uvIndex = 0; uvIndex < MAX_MESH_TEXTURE_COORDS; ++uvIndex)
+			{
+				rawMesh.WedgeTexCoords[uvIndex] = uv;
+			}
 		}
-	}
-	else
-	{
-		RawMesh.WedgeTexCoords[UVProjectionSettings->UVChannel] = NewUVs;
+		else
+		{
+			rawMesh.WedgeTexCoords[UVProjectionSettings->UVChannel] = uv;
+		}
 	}
 }
 
 void FUVProjectionAlgorithmBase::SaveRawMesh()
 {
-	if (RawMesh.IsValid())
+	for (int32 i = 0; i < RawMeshes.Num(); ++i)
 	{
-		FStaticMeshHelper::SaveRawMeshToStaticMesh(RawMesh, StaticMeshes[0]);
-		StaticMeshes[0]->MarkPackageDirty();
+		if (RawMeshes[i].IsValid())
+		{
+			FStaticMeshHelper::SaveRawMeshToStaticMesh(RawMeshes[i], StaticMeshes[i]);
+			StaticMeshes[i]->MarkPackageDirty();
+		}
 	}
 }
 
-void FUVProjectionAlgorithmBase::AddNewUVs(const FVector2D& UV)
+void FUVProjectionAlgorithmBase::AddNewUVs(int32 RawMeshIndex, const FVector2D& UV)
 {
-	NewUVs.Add(UV);
+	NewUVs[RawMeshIndex].Add(UV);
 }
 
-void FUVProjectionAlgorithmBase::FixInvalidUVsHorizontally()
+void FUVProjectionAlgorithmBase::FixInvalidUVsHorizontally(int32 MeshIndex)
 {
-	const TArray<uint32> triangles = RawMesh.WedgeIndices;
+	FRawMesh& rawMesh = RawMeshes[MeshIndex];
+	FUVPack& uv = NewUVs[MeshIndex];
+
+	const TArray<uint32> triangles = rawMesh.WedgeIndices;
 	int32 materialIndex = 0;
 
 	for (int32 tri = 0 ; tri < triangles.Num() ; tri += 3)
 	{
-		FVector2D uvA = NewUVs[tri];
-		FVector2D uvB = NewUVs[tri + 1];
-		FVector2D uvC = NewUVs[tri + 2];
+		FVector2D uvA = uv[tri];
+		FVector2D uvB = uv[tri + 1];
+		FVector2D uvC = uv[tri + 2];
 
 		if (!FUVUtility::IsUVTriangleValid(uvA, uvB, uvC))
 		{
@@ -113,10 +131,20 @@ void FUVProjectionAlgorithmBase::FixInvalidUVsHorizontally()
 			FixTextureCoordinateOnLeftSideIfRequired(uvB.X);
 			FixTextureCoordinateOnLeftSideIfRequired(uvC.X);
 
-			NewUVs[tri] = uvA;
-			NewUVs[tri + 1] = uvB;
-			NewUVs[tri + 2] = uvC;
+			uv[tri] = uvA;
+			uv[tri + 1] = uvB;
+			uv[tri + 2] = uvC;
 		}
+	}
+}
+
+void FUVProjectionAlgorithmBase::LoadRawMeshes()
+{
+	FRawMesh rawMesh;
+	for (int32 i = 0; i < StaticMeshes.Num(); ++i)
+	{
+		FStaticMeshHelper::LoadRawMeshFromStaticMesh(StaticMeshes[i], rawMesh);
+		RawMeshes.Add(rawMesh);
 	}
 }
 

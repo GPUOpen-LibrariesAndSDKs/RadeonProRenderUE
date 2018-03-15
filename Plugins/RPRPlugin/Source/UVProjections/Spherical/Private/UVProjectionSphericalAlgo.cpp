@@ -2,6 +2,9 @@
 #include "UVUtility.h"
 #include "RPRStaticMeshEditor.h"
 #include "RPRVectorTools.h"
+#include "ScopedSlowTask.h"
+
+#define LOCTEXT_NAMESPACE "UVProjectionSphericalAlgo"
 
 FUVProjectionSphericalAlgo::FSettings::FSettings()
 	: SphereCenter(EForceInit::ForceInitToZero)
@@ -12,8 +15,18 @@ void FUVProjectionSphericalAlgo::StartAlgorithm()
 {
 	FUVProjectionAlgorithmBase::StartAlgorithm();
 
-	ProjectVerticesOnSphere(RawMesh.VertexPositions, RawMesh.WedgeIndices);
-	FixInvalidUVsHorizontally();
+	FScopedSlowTask slowTask(RawMeshes.Num(), LOCTEXT("ProjectUV", "Project UV"));
+	slowTask.MakeDialog();
+
+	for (int32 i = 0; i < RawMeshes.Num(); ++i)
+	{
+		CurrentMeshIndex = i;
+
+		ProjectVerticesOnSphere(RawMeshes[i].VertexPositions, RawMeshes[i].WedgeIndices);
+		FixInvalidUVsHorizontally(i);
+
+		slowTask.EnterProgressFrame(1);
+	}
 
 	StopAlgorithmAndRaiseCompletion(true);
 }
@@ -36,7 +49,7 @@ void FUVProjectionSphericalAlgo::ProjectVerticesOnSphere(TArray<FVector>& Vertex
 		ProjectVertexOnSphere(vertexPosition, newUV);
 		FUVUtility::InvertTextureCoordinate(newUV.X);
 
-		AddNewUVs(newUV);
+		AddNewUVs(CurrentMeshIndex, newUV);
 	}
 }
 
@@ -55,3 +68,5 @@ void FUVProjectionSphericalAlgo::SetSettings(const FSettings& InSettings)
 {
 	Settings = InSettings;
 }
+
+#undef LOCTEXT_NAMESPACE

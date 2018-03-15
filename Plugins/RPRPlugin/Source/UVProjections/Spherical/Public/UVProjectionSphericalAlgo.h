@@ -26,6 +26,7 @@ public:
 	
 private:
 
-	FSettings			Settings;
+	FSettings	Settings;
+	int32		CurrentMeshIndex;
 
 };

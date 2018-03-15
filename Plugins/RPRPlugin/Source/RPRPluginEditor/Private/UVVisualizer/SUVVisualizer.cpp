@@ -7,7 +7,7 @@
 #include "RPRVectorTools.h"
 
 SUVVisualizer::SUVVisualizer()
-	: UVChannelIndex(0)
+	: UVChannelIndex(INDEX_NONE)
 	, BackgroundOpacity(1.0f)
 {}
 
@@ -31,18 +31,25 @@ void SUVVisualizer::Refresh()
 	{
 		RawMesh.Empty();
 	}
+
+	SetUVChannelIndex(UVChannelIndex);
 }
 
 void SUVVisualizer::SetUVChannelIndex(int32 ChannelIndex)
 {
 	if (StaticMesh.IsValid())
 	{
-		int32 newUVChannelIndex = FMath::Min(ChannelIndex, StaticMesh->RenderData->LODResources[0].GetNumTexCoords() - 1);
+		const int32 numMaxTexCoords = StaticMesh->RenderData->LODResources[0].GetNumTexCoords();
+		const int32 newUVChannelIndex = FMath::Min(ChannelIndex, numMaxTexCoords - 1);
 		if (newUVChannelIndex != UVChannelIndex)
 		{
 			UVChannelIndex = newUVChannelIndex;
 			Invalidate(EInvalidateWidget::Layout);
 		}
+	}
+	else
+	{
+		UVChannelIndex = INDEX_NONE;
 	}
 }
 
@@ -88,7 +95,7 @@ int32 SUVVisualizer::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 	PaintAxis(OutDrawElements, drawBox, LayerId, uvBounds);
 	++LayerId;
 	
-	if (StaticMesh.IsValid() && RawMesh.IsValid())
+	if (StaticMesh.IsValid() && RawMesh.IsValid() && UVChannelIndex != INDEX_NONE)
 	{
 		PaintUVs(OutDrawElements, drawBox, LayerId, uvBounds);
 		++LayerId;
@@ -130,11 +137,18 @@ void SUVVisualizer::PaintUVs(FSlateWindowElementList& OutDrawElements, const FPa
 							uint32 LayerId, const FSlateRect& UVBounds) const
 {
 	const TArray<uint32>& triangles = RawMesh.WedgeIndices;
+	const TArray<FVector2D>& uv = RawMesh.WedgeTexCoords[UVChannelIndex];
+
 	for (int32 triIdx = 0; triIdx < triangles.Num(); triIdx += 3)
 	{
-		const FVector2D& uvA = RawMesh.WedgeTexCoords[UVChannelIndex][triIdx];
-		const FVector2D& uvB = RawMesh.WedgeTexCoords[UVChannelIndex][triIdx + 1];
-		const FVector2D& uvC = RawMesh.WedgeTexCoords[UVChannelIndex][triIdx + 2];
+		if (!uv.IsValidIndex(triIdx))
+		{
+			break;
+		}
+
+		const FVector2D& uvA = uv[triIdx];
+		const FVector2D& uvB = uv[triIdx + 1];
+		const FVector2D& uvC = uv[triIdx + 2];
 
 		if (FUVUtility::IsUVTriangleValid(uvA, uvB, uvC))
 		{
