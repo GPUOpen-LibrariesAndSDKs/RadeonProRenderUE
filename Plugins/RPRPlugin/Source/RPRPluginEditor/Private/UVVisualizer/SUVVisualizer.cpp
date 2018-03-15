@@ -26,13 +26,13 @@ void SUVVisualizer::Refresh()
 	if (StaticMesh.IsValid())
 	{
 		FStaticMeshHelper::LoadRawMeshFromStaticMesh(StaticMesh.Get(), RawMesh);
+		SetUVChannelIndex(FMath::Max(0, UVChannelIndex));
 	}
 	else
 	{
 		RawMesh.Empty();
+		SetUVChannelIndex(INDEX_NONE);
 	}
-
-	SetUVChannelIndex(UVChannelIndex);
 }
 
 void SUVVisualizer::SetUVChannelIndex(int32 ChannelIndex)

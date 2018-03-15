@@ -51,12 +51,11 @@ void SUVVisualizerEditor::Construct(const FArguments& InArgs)
 void SUVVisualizerEditor::SetMesh(TWeakObjectPtr<UStaticMesh> InStaticMesh)
 {
 	StaticMesh = InStaticMesh;
-	Refresh();
-
 	if (UVVisualizer.IsValid())
 	{
 		UVVisualizer->SetMesh(StaticMesh);
 	}
+	Refresh();
 }
 
 void SUVVisualizerEditor::Refresh()
