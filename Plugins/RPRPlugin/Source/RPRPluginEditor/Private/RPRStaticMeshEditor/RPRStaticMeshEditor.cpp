@@ -248,6 +248,27 @@ const TArray<UStaticMesh*>& FRPRStaticMeshEditor::GetStaticMeshes() const
 	return (StaticMeshes);
 }
 
+TArray<UStaticMesh*>	FRPRStaticMeshEditor::GetSelectedStaticMeshes() const
+{
+	TArray<UStaticMesh*> selectedStaticMeshes;
+
+	if (SceneComponentsOutliner.IsValid())
+	{
+		TArray<UStaticMeshComponent*> staticMeshComponents;
+		SceneComponentsOutliner->GetSelectedItem(staticMeshComponents);
+
+		selectedStaticMeshes.Reserve(staticMeshComponents.Num());
+		for (int32 i = 0; i < staticMeshComponents.Num(); ++i)
+		{
+			selectedStaticMeshes.Add(staticMeshComponents[i]->GetStaticMesh());
+		}
+
+		return (selectedStaticMeshes);
+	}
+
+	return (GetStaticMeshes());
+}
+
 FRPRStaticMeshEditorSelection& FRPRStaticMeshEditor::GetSelectionSystem()
 {
 	return (SelectionSystem);

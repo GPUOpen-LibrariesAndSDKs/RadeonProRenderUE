@@ -31,6 +31,7 @@ public:
 	virtual void	AddReferencedObjects(FReferenceCollector& Collector) override;
 	
 	const TArray<UStaticMesh*>&		GetStaticMeshes() const;
+	TArray<UStaticMesh*>			GetSelectedStaticMeshes() const;
 	FRPRStaticMeshEditorSelection&	GetSelectionSystem();
 
 	void	AddComponentToViewport(UActorComponent* InComponent, bool bSelectComponent = true);
