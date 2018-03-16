@@ -1,5 +1,3 @@
-#ifdef UV_PROJECTION_CUBIC
-
 #include "SUVProjectionCubic.h"
 #include "UVProjectionCubicAlgo.h"
 #include "RPRVectorTools.h"
@@ -10,10 +8,10 @@
 
 void SUVProjectionCubic::Construct(const FArguments& InArgs)
 {
+	RPRStaticMeshEditorPtr = InArgs._RPRStaticMeshEditorPtr;
 	ShapePreviewDetailView = CreateShapePreviewDetailView("SUVProjectionCubicDetailsView");
-	StaticMesh = InArgs._StaticMesh;
 
-	ConstructBase();
+	InitUVProjection();
 }
 
 TSharedRef<SWidget> SUVProjectionCubic::GetAlgorithmSettingsWidget()
@@ -38,11 +36,6 @@ void SUVProjectionCubic::UpdateAlgorithmSettings()
 	cubicAlgoPtr->SetSettings(settings);
 }
 
-void SUVProjectionCubic::FinalizeCreation()
-{
-	InitAlgorithm(EUVProjectionType::Cubic);
-}
-
 void SUVProjectionCubic::OnUVProjectionDisplayed()
 {
 	ShapePreviewDetailView->SetObject(GetShapePreview());
@@ -62,7 +55,14 @@ void SUVProjectionCubic::OnPreAlgorithmStart()
 	UpdateAlgorithmSettings();
 }
 
-void SUVProjectionCubic::OnAlgorithmCompleted(IUVProjectionAlgorithm* InAlgorithm, bool bIsSuccess)
+IUVProjectionAlgorithmPtr SUVProjectionCubic::CreateAlgorithm(const TArray<UStaticMesh *>& StaticMeshes)
+{
+	IUVProjectionAlgorithmPtr algo = MakeShareable(new FUVProjectionCubicAlgo);
+	algo->SetStaticMeshes(StaticMeshes);
+	return (algo);
+}
+
+void SUVProjectionCubic::OnAlgorithmCompleted(IUVProjectionAlgorithmPtr InAlgorithm, bool bIsSuccess)
 {
 	if (bIsSuccess)
 	{
@@ -90,5 +90,3 @@ void SUVProjectionCubic::SetPreviewShapeSameBoundsAsShape()
 	shape->SetRelativeLocation(center);
 	shape->SetRelativeScale3D(extents);
 }
-
-#endif // UV_PROJECTION_CUBIC

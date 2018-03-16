@@ -2,12 +2,11 @@
 #include "RPRPluginEditorModule.h"
 
 #include "UVProjectionPlanarAlgo.h"
-#include "UVProjectionCubicAlgo.h"
 #include "UVProjectionCylinderAlgo.h"
 
 IUVProjectionAlgorithmPtr FAlgorithmFactory::CreateAlgorithm(UStaticMesh* StaticMesh, EUVProjectionType ProjectionType)
 {
-#if defined(UV_PROJECTION_PLANAR) || defined(UV_PROJECTION_CUBIC) || defined(UV_PROJECTION_SPHERICAL) || defined(UV_PROJECTION_CYLINDRICAL)
+#if defined(UV_PROJECTION_PLANAR) || defined(UV_PROJECTION_CYLINDRICAL)
 
 	switch (ProjectionType)
 	{
@@ -15,11 +14,6 @@ IUVProjectionAlgorithmPtr FAlgorithmFactory::CreateAlgorithm(UStaticMesh* Static
 #ifdef UV_PROJECTION_PLANAR
 	case EUVProjectionType::Planar:
 		return (InstantiateAlgo<FUVProjectionPlanarAlgo>(StaticMesh));
-#endif
-
-#ifdef UV_PROJECTION_CUBIC
-	case EUVProjectionType::Cubic:
-		return (InstantiateAlgo<FUVProjectionCubicAlgo>(StaticMesh));
 #endif
 
 #ifdef UV_PROJECTION_SPHERICAL

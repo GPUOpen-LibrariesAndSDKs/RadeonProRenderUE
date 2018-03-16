@@ -1,16 +1,25 @@
-#ifdef UV_PROJECTION_CUBIC
-
 #include "UVProjectionCubicAlgo.h"
 #include "RPRPluginEditorModule.h"
 #include "RPRStaticMeshEditor.h"
 #include "UVUtility.h"
 #include "RPRVectorTools.h"
 
+#define LOCTEXT_NAMESPACE "UVProjectionCubicAlgo"
+
 void FUVProjectionCubicAlgo::StartAlgorithm()
 {
 	FUVProjectionAlgorithmBase::StartAlgorithm();
 
-	StartCubicProjection(RawMesh);
+	FScopedSlowTask slowTask(RawMeshes.Num(), LOCTEXT("ProjectUV", "Project UV (Cubic)"));
+	slowTask.MakeDialog();
+
+	for (int32 meshIndex = 0; meshIndex < RawMeshes.Num(); ++meshIndex)
+	{
+		const FString meshName = StaticMeshes[meshIndex]->GetName();
+		slowTask.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Project UV (Cubic) on mesh '%s'"), *meshName)));
+
+		StartCubicProjection(meshIndex);
+	}
 
 	StopAlgorithmAndRaiseCompletion(true);
 }
@@ -21,9 +30,10 @@ void FUVProjectionCubicAlgo::Finalize()
 	SaveRawMesh();
 }
 
-void FUVProjectionCubicAlgo::StartCubicProjection(FRawMesh& InRawMesh)
+void FUVProjectionCubicAlgo::StartCubicProjection(int32 MeshIndex)
 {
-	TArray<uint32>& triangles = InRawMesh.WedgeIndices;
+	FRawMesh& rawMesh = RawMeshes[MeshIndex];
+	TArray<uint32>& triangles = rawMesh.WedgeIndices;
 	EAxis::Type dominantAxisComponentA;
 	EAxis::Type dominantAxisComponentB;
 	
@@ -35,9 +45,9 @@ void FUVProjectionCubicAlgo::StartCubicProjection(FRawMesh& InRawMesh)
 		int32 triB = triangles[i + 1];
 		int32 triC = triangles[i + 2];
 
-		const FVector& pA = InRawMesh.VertexPositions[triA];
-		const FVector& pB = InRawMesh.VertexPositions[triB];
-		const FVector& pC = InRawMesh.VertexPositions[triC];
+		const FVector& pA = rawMesh.VertexPositions[triA];
+		const FVector& pB = rawMesh.VertexPositions[triB];
+		const FVector& pC = rawMesh.VertexPositions[triC];
 
 		FVector lpA = inverseCubeRotation * pA;
 		FVector lpB = inverseCubeRotation * pB;
@@ -46,17 +56,17 @@ void FUVProjectionCubicAlgo::StartCubicProjection(FRawMesh& InRawMesh)
 		FVector faceNormal = FRPRVectorTools::CalculateFaceNormal(pA, pB, pC);
 		FRPRVectorTools::GetDominantAxisComponents(faceNormal, dominantAxisComponentA, dominantAxisComponentB);
 
-		ProjectUVAlongAxis(triA, dominantAxisComponentA, dominantAxisComponentB);
-		ProjectUVAlongAxis(triB, dominantAxisComponentA, dominantAxisComponentB);
-		ProjectUVAlongAxis(triC, dominantAxisComponentA, dominantAxisComponentB);
+		ProjectUVAlongAxis(MeshIndex, triA, dominantAxisComponentA, dominantAxisComponentB);
+		ProjectUVAlongAxis(MeshIndex, triB, dominantAxisComponentA, dominantAxisComponentB);
+		ProjectUVAlongAxis(MeshIndex, triC, dominantAxisComponentA, dominantAxisComponentB);
 	}
 }
 
-void FUVProjectionCubicAlgo::ProjectUVAlongAxis(int32 VertexIndex, EAxis::Type AxisComponentA, EAxis::Type AxisComponentB)
+void FUVProjectionCubicAlgo::ProjectUVAlongAxis(int32 MeshIndex, int32 VertexIndex, EAxis::Type AxisComponentA, EAxis::Type AxisComponentB)
 {
 	FVector scale = Settings.CubeTransform.GetScale3D();
 	FVector origin = Settings.CubeTransform.GetLocation();
-	const FVector& vertexLocation = RawMesh.VertexPositions[VertexIndex];
+	const FVector& vertexLocation = RawMeshes[MeshIndex].VertexPositions[VertexIndex];
 	FVector localVertexLocation = Settings.CubeTransform.GetRotation().Inverse() * vertexLocation;
 
 	TFunction<float(EAxis::Type)> getScalarAlongAxis = [this, &scale, &origin, localVertexLocation](EAxis::Type Axis)
@@ -75,7 +85,7 @@ void FUVProjectionCubicAlgo::ProjectUVAlongAxis(int32 VertexIndex, EAxis::Type A
 
 	FUVUtility::InvertUV(uv);	
 
-	AddNewUVs(uv);
+	AddNewUVs(MeshIndex, uv);
 }
 
 
@@ -84,4 +94,4 @@ void FUVProjectionCubicAlgo::SetSettings(const FSettings& InSettings)
 	Settings = InSettings;
 }
 
-#endif
+#undef LOCTEXT_NAMESPACE

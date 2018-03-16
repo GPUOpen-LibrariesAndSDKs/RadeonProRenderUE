@@ -73,14 +73,6 @@ void SUVProjectionMappingEditor::InitUVProjectionList(UStaticMesh* StaticMesh)
 	AddUVProjectionListEntry(EUVProjectionType::Planar, LOCTEXT("ProjectionType_Planar", "Planar"), FEditorStyle::GetBrush("ClassThumbnail.Plane"), StaticMesh);
 #endif
 
-#ifdef UV_PROJECTION_CUBIC
-	AddUVProjectionListEntry(EUVProjectionType::Cubic, LOCTEXT("ProjectionType_Cubic", "Cubic"), FEditorStyle::GetBrush("ClassThumbnail.Cube"), StaticMesh);
-#endif
-
-#ifdef UV_PROJECTION_SPHERICAL
-	AddUVProjectionListEntry(EUVProjectionType::Spherical, LOCTEXT("ProjectionType_Spherical", "Spherical"), FEditorStyle::GetBrush("ClassThumbnail.Sphere"), StaticMesh);
-#endif
-
 #ifdef UV_PROJECTION_CYLINDRICAL
 	AddUVProjectionListEntry(EUVProjectionType::Cylindrical, LOCTEXT("ProjectionType_Cylinder", "Cylinder"), FEditorStyle::GetBrush("ClassThumbnail.Cylinder"), StaticMesh);
 #endif

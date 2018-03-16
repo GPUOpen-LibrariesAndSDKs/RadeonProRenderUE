@@ -1,7 +1,5 @@
 #pragma once
 
-#ifdef UV_PROJECTION_CUBIC
-
 #include "UVProjectionAlgorithmBase.h"
 #include "Axis.h"
 
@@ -20,17 +18,15 @@ public:
 	virtual void StartAlgorithm() override;
 	virtual void Finalize() override;
 
-	void	StartCubicProjection(FRawMesh& InRawMesh);
+	void	StartCubicProjection(int32 MeshIndex);
 	
 
 private:
 
-	void	ProjectUVAlongAxis(int32 VertexIndex, EAxis::Type AxisComponentA, EAxis::Type AxisComponentB);
+	void	ProjectUVAlongAxis(int32 MeshIndex, int32 VertexIndex, EAxis::Type AxisComponentA, EAxis::Type AxisComponentB);
 	
 private:
 
-	FSettings			Settings;
+	FSettings	Settings;
 
 };
-
-#endif
