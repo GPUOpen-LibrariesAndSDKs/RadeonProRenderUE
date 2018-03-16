@@ -4,7 +4,7 @@
 #include "SCompoundWidget.h"
 #include "STableRow.h"
 #include "SDockTab.h"
-#include "UVMappingEditor/SUVProjectionTypeEntry.h"
+#include "UVProjectionMappingEditor/SUVProjectionTypeEntry.h"
 #include "GCObject.h"
 #include "NotifyHook.h"
 #include "IDetailsView.h"

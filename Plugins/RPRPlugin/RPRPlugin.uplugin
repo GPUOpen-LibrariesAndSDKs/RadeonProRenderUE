@@ -20,6 +20,10 @@
 			"LoadingPhase": "Default"
 		},
 		{
+			"Name": "RPREditorTools",
+			"Type": "Editor"
+		},
+		{
 			"Name": "RPRMaterialLoader",
 			"Type": "Editor"
 		},
@@ -29,6 +33,10 @@
 		},
 		{
 			"Name": "RPRMaterialEditor",
+			"Type": "Editor"
+		},
+		{
+			"Name": "UVVisualizer",
 			"Type": "Editor"
 		},
 		{

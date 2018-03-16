@@ -3,7 +3,7 @@
 #include "Vector.h"
 #include "Vector2D.h"
 
-class RPRPLUGINEDITOR_API FRPRVectorTools
+class RPREDITORTOOLS_API FRPRVectorTools
 {
 public:
 	

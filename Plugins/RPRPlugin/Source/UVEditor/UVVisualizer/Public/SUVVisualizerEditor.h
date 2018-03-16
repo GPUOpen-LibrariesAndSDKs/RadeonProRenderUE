@@ -7,7 +7,7 @@
 #include "IStructureDetailsView.h"
 #include "NotifyHook.h"
 
-class SUVVisualizerEditor : public SCompoundWidget, public FNotifyHook
+class UVVISUALIZER_API SUVVisualizerEditor : public SCompoundWidget, public FNotifyHook
 {
 	struct FChannelInfo
 	{

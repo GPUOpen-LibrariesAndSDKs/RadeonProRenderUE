@@ -3,7 +3,7 @@
 #include "Plane.h"
 #include "Vector.h"
 
-class RPRPLUGINEDITOR_API FTransformablePlane
+class RPREDITORTOOLS_API FTransformablePlane
 {
 public:
 

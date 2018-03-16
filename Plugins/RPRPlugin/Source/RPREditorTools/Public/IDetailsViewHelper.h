@@ -3,7 +3,7 @@
 #include "IDetailsView.h"
 #include "SharedPointer.h"
 
-class RPRPLUGINEDITOR_API IDetailsViewHelper
+class RPREDITORTOOLS_API IDetailsViewHelper
 {
 public:
 

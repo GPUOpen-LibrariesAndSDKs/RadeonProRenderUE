@@ -4,7 +4,7 @@
 #include "Engine/StaticMesh.h"
 #include "StaticMeshVertexBuffer.h"
 
-class FStaticMeshHelper
+class RPREDITORTOOLS_API FStaticMeshHelper
 {
 public:
 

@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class UVProjection_Cubic : ModuleRules
+public class UVProjection_Spherical : ModuleRules
 {
-	public UVProjection_Cubic(ReadOnlyTargetRules Target) : base(Target)
+	public UVProjection_Spherical(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
@@ -15,7 +15,7 @@ public class UVProjection_Cubic : ModuleRules
     {
         PublicIncludePaths.AddRange(
             new string[] {
-                "UVProjections/Cubic/Public",
+                "UVProjections/Spherical/Public",
 				// ... add public include paths required here ...
 			}
             );
@@ -23,7 +23,7 @@ public class UVProjection_Cubic : ModuleRules
 
         PrivateIncludePaths.AddRange(
             new string[] {
-                "UVProjections/Cubic/Private"
+                "UVProjections/Spherical/Private"
 				// ... add other private include paths required here ...
 			}
             );
@@ -31,7 +31,7 @@ public class UVProjection_Cubic : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core", "RPRPluginEditor"
+                "Core"
 				
 				// ... add other public dependencies that you statically link with here ...
 			}
@@ -55,7 +55,9 @@ public class UVProjection_Cubic : ModuleRules
                 "PropertyEditor",
                 "AdvancedPreviewScene",
                 "RenderCore",
-                "RawMesh"
+                "RawMesh",
+                "RPRPluginEditor",
+                "RPREditorTools"
 				// ... add private dependencies that you statically link with here ...	
 			}
         );

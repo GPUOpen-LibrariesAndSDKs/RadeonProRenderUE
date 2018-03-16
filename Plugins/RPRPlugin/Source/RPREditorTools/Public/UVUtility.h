@@ -5,7 +5,7 @@
 
 DECLARE_DELEGATE_OneParam(FOnEachUVChannelDelegate, int32 /* UVChannel */)
 
-class RPRPLUGINEDITOR_API FUVUtility
+class RPREDITORTOOLS_API FUVUtility
 {
 public:
 

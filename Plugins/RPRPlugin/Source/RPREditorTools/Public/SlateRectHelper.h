@@ -1,7 +1,7 @@
 #pragma once
 #include "SlateRect.h"
 
-class FSlateRectHelper
+class RPREDITORTOOLS_API FSlateRectHelper
 {
 public:
 	static void		SetWidth(FSlateRect& Rect, float Width);
