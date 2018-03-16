@@ -22,11 +22,10 @@ SUVProjectionMappingEditor::SUVProjectionMappingEditor()
 
 void SUVProjectionMappingEditor::Construct(const SUVProjectionMappingEditor::FArguments& InArgs)
 {
-	UStaticMesh* StaticMesh = InArgs._StaticMesh;
 	RPRStaticMeshEditorPtr = InArgs._RPRStaticMeshEditor;
 
 	OnProjectionApplied = InArgs._OnProjectionApplied;
-	InitUVProjectionList(StaticMesh);
+	InitUVProjectionList();
 
 	this->ChildSlot
 		[
@@ -61,7 +60,7 @@ void SUVProjectionMappingEditor::SelectProjectionEntry(SUVProjectionTypeEntryPtr
 	}
 }
 
-void SUVProjectionMappingEditor::InitUVProjectionList(UStaticMesh* StaticMesh)
+void SUVProjectionMappingEditor::InitUVProjectionList()
 {
 	const TArray<IUVProjectionModule*>& modules = FUVProjectionFactory::GetModules();
 	for (int32 i = 0; i < modules.Num(); ++i)
@@ -125,6 +124,7 @@ void SUVProjectionMappingEditor::ShowSelectedUVProjectionWidget()
 	{
 		IUVProjectionModule* module = SelectedProjectionEntry->GetUVProjectionModule();
 		CurrentProjectionSettingsWidget = module->CreateUVProjectionSettingsWidget(RPRStaticMeshEditorPtr);
+		CurrentProjectionSettingsWidget->OnProjectionApplied().BindSP(this, &SUVProjectionMappingEditor::NotifyProjectionCompleted);
 
 		ShowUVProjectionWidget(CurrentProjectionSettingsWidget);
 	}

@@ -10,6 +10,11 @@ UShapePreviewPlane::UShapePreviewPlane()
 	, ArrowThickness(1.0f)
 {}
 
+void UShapePreviewPlane::SetScale(float InScale)
+{
+	Scale = InScale;
+}
+
 void UShapePreviewPlane::DrawShapePreview()
 {
 	const FTransform& componentTransform = GetComponentTransform();

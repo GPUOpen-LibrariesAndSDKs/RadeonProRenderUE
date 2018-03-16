@@ -12,6 +12,7 @@ public:
 
 	UShapePreviewPlane();
 	
+	void	SetScale(float InScale);
 	void	SetThickness(float InThickness);
 	void	SetInitialPlaneDatas(const struct FPlane& InPlane);
 	float	GetPlaneScale() const;

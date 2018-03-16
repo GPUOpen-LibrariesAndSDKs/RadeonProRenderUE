@@ -9,6 +9,7 @@ void SUVProjectionTypeEntry::Construct(const FArguments& InArgs)
 {
 	UVProjectionModulePtr = InArgs._UVProjectionModulePtr;
 
+
 	ChildSlot
 		.HAlign(EHorizontalAlignment::HAlign_Left)
 		[

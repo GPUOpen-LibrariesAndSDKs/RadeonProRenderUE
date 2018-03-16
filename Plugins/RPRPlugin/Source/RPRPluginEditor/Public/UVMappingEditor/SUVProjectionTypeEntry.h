@@ -15,6 +15,7 @@ public:
 		: _UVProjectionModulePtr()
 	{}
 		SLATE_ARGUMENT(IUVProjectionModule*, UVProjectionModulePtr)
+
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);

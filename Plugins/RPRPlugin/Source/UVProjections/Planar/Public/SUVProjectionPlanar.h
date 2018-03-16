@@ -41,7 +41,8 @@ protected:
 	
 private:
 
-	void										UpdateAlgorithmSettings();
+	void UpdateAlgorithmSettings();
+	void SetPreviewPlaneSizeToContainsMesh();
 	TSharedPtr<class FUVProjectionPlanarAlgo>	GetProjectionPlanarAlgo() const;
 
 private:

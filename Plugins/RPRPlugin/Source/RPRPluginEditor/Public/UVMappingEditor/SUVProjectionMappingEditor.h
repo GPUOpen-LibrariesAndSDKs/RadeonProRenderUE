@@ -16,11 +16,9 @@ class SUVProjectionMappingEditor : public SCompoundWidget
 public:
 
 	SLATE_BEGIN_ARGS(SUVProjectionMappingEditor)
-		: _StaticMesh()
-		, _RPRStaticMeshEditor()
+		: _RPRStaticMeshEditor()
 	{}
 
-		SLATE_ARGUMENT(class UStaticMesh*, StaticMesh)
 		SLATE_ARGUMENT(TSharedPtr<class FRPRStaticMeshEditor>, RPRStaticMeshEditor)
 
 		SLATE_EVENT(FOnProjectionApplied, OnProjectionApplied)
@@ -34,7 +32,7 @@ public:
 
 private:
 
-	void	InitUVProjectionList(UStaticMesh* StaticMesh);
+	void	InitUVProjectionList();
 	void	AddUVProjectionListEntry(IUVProjectionModule* UVProjectionModule);
 
 	TSharedRef<ITableRow>	OnGenerateWidgetForUVProjectionTypeEntry(SUVProjectionTypeEntryPtr InItem,

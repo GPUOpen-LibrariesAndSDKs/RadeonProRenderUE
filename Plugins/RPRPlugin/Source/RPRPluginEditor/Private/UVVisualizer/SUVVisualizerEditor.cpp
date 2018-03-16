@@ -26,6 +26,17 @@ void SUVVisualizerEditor::Construct(const FArguments& InArgs)
 				SNew(SVerticalBox)
 				+SVerticalBox::Slot()
 				.AutoHeight()
+				.HAlign(HAlign_Fill)
+				[
+					SNew(SBorder)
+					.Visibility(this, &SUVVisualizerEditor::GetStaticMeshLabelVisibility)
+					[
+						SNew(STextBlock)
+						.Text(this, &SUVVisualizerEditor::GetStaticLabelText)
+					]
+				]
+				+SVerticalBox::Slot()
+				.AutoHeight()
 				.HAlign(HAlign_Left)
 				[
 					SNew(SComboBox<TSharedPtr<FChannelInfo>>)
@@ -177,6 +188,20 @@ FText SUVVisualizerEditor::GenerateUVComboBoxText(int32 ChannelIndex) const
 	return FText::FromString(
 		FString::Printf(TEXT("UV Channel %d"), ChannelIndex)
 	);
+}
+
+FText SUVVisualizerEditor::GetStaticLabelText() const
+{
+	return (
+		StaticMesh != nullptr ? 
+		FText::FromString(StaticMesh->GetName()) 
+		: FText::GetEmpty()
+		);
+}
+
+EVisibility SUVVisualizerEditor::GetStaticMeshLabelVisibility() const
+{
+	return (StaticMesh != nullptr ? EVisibility::Visible : EVisibility::Collapsed);
 }
 
 #undef LOCTEXT_NAMESPACE

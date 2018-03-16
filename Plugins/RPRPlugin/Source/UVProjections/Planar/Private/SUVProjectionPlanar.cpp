@@ -38,6 +38,7 @@ void SUVProjectionPlanar::OnUVProjectionDisplayed()
 {
 	ShapePreviewDetailView->SetObject(GetShapePreview());
 	AddComponentToViewport(GetShapePreview());
+	SetPreviewPlaneSizeToContainsMesh();
 }
 
 void SUVProjectionPlanar::OnUVProjectionHidden()
@@ -66,6 +67,17 @@ void SUVProjectionPlanar::UpdateAlgorithmSettings()
 	planarAlgo->SetSettings(settings);
 }
 
+
+void SUVProjectionPlanar::SetPreviewPlaneSizeToContainsMesh()
+{
+	FVector center, extents;
+	GetRPRStaticMeshEditor()->GetPreviewMeshBounds(center, extents);
+	const float biggestSize = extents.GetAbsMax();
+
+	UShapePreviewPlane* shape = GetShape();
+	shape->SetScale(biggestSize + biggestSize * 0.1f); // Add a little margin to it goes beyond the bounds
+	shape->SetRelativeLocation(center);
+}
 
 void SUVProjectionPlanar::OnAlgorithmCompleted(IUVProjectionAlgorithmPtr InAlgorithm, bool bIsSuccess)
 {

@@ -78,7 +78,6 @@ void FRPRStaticMeshEditor::InitializeViewport()
 void FRPRStaticMeshEditor::InitializeUVProjectionMappingEditor()
 {
 	UVProjectionMappingEditor = SNew(SUVProjectionMappingEditor)
-		.StaticMesh(StaticMeshes[0])
 		.RPRStaticMeshEditor(SharedThis(this))
 		.OnProjectionApplied(this, &FRPRStaticMeshEditor::OnProjectionCompleted)
 		;
@@ -407,7 +406,7 @@ void FRPRStaticMeshEditor::OnProjectionCompleted()
 {
 	if (UVVisualizer.IsValid())
 	{
-		UVVisualizer->RefreshUVs();
+		UVVisualizer->Refresh();
 	}
 }
 

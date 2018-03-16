@@ -22,12 +22,12 @@ public:
 	void	Construct(const FArguments& InArgs);
 	void	SetMesh(TWeakObjectPtr<UStaticMesh> StaticMesh);
 	void	Refresh();
-	void	RefreshUVs();
 	
 	virtual void NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, UProperty* PropertyThatChanged) override;
 
 private:
 
+	void	RefreshUVs();
 	void	SetUVChannelIndex(int32 ChannelIndex);
 
 	void	InitUVVisualizerEditorSettings();
@@ -37,6 +37,9 @@ private:
 	TSharedRef<SWidget>		GenerateUVChannelItem(TSharedPtr<FChannelInfo> ChannelInfo);
 	void					OnUVChannelSelected(TSharedPtr<FChannelInfo> ChannelInfo, ESelectInfo::Type SelectInfoType);
 	FText					GenerateUVComboBoxText(int32 ChannelIndex) const;
+
+	FText		GetStaticLabelText() const;
+	EVisibility GetStaticMeshLabelVisibility() const;
 
 private:
 
