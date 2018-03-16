@@ -1,7 +1,5 @@
 #pragma once
 
-#ifdef UV_PROJECTION_CYLINDRICAL
-
 #include "UVProjectionAlgorithmBase.h"
 
 class FUVProjectionCylinderAlgo : public FUVProjectionAlgorithmBase
@@ -25,7 +23,7 @@ public:
 
 private:
 
-	void	ProjectVerticesToCylinder(const TArray<FVector>& Vertices, const TArray<uint32>& Triangles);
+	void	ProjectVerticesToCylinder(int32 MeshIndex);
 	void	ProjectVertexToCylinder(const FVector& Vertex, FVector2D& OutUV);
 
 
@@ -34,5 +32,3 @@ private:
 	FSettings	Settings;
 
 };
-
-#endif // UV_PROJECTION_CYLINDRICAL

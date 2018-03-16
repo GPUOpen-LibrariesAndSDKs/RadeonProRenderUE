@@ -42,6 +42,10 @@
 		{
 			"Name": "UVProjection_Spherical",
 			"Type": "Editor"			
+		},
+		{
+			"Name": "UVProjection_Cylindrical",
+			"Type": "Editor"			
 		}
 	]
 }

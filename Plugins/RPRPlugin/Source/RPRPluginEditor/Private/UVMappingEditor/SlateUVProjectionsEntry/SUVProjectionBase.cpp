@@ -1,5 +1,4 @@
 #include "SUVProjectionBase.h"
-#include "AlgorithmFactory.h"
 #include "PropertyEditorModule.h"
 #include "SButton.h"
 #include "SScrollBox.h"

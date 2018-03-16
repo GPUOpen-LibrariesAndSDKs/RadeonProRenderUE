@@ -40,6 +40,7 @@ public:
 private:
 
 	TSharedPtr<FTabManager::FLayout>	GenerateDefaultLayout();
+	void								OpenOrCloseSceneOutlinerIfRequired();
 	void								BindCommands();
 	void								InitializeWidgets();
 	void								InitializeViewport();

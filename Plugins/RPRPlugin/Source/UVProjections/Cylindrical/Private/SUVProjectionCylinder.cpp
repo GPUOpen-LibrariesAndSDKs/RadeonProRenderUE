@@ -1,5 +1,3 @@
-#ifdef UV_PROJECTION_CYLINDRICAL
-
 #include "SUVProjectionCylinder.h"
 #include "UVProjectionCylinderAlgo.h"
 #include "IDetailsViewHelper.h"
@@ -9,10 +7,10 @@
 
 void SUVProjectionCylinder::Construct(const FArguments& InArgs)
 {
+	RPRStaticMeshEditorPtr = InArgs._RPRStaticMeshEditorPtr;
 	ShapePreviewDetailView = CreateShapePreviewDetailView("SUVProjectionCylinderDetailsView");
-	StaticMesh = InArgs._StaticMesh;
 
-	ConstructBase();
+	InitUVProjection();
 }
 
 TSharedRef<SWidget> SUVProjectionCylinder::GetAlgorithmSettingsWidget()
@@ -27,9 +25,9 @@ TSharedRef<SWidget> SUVProjectionCylinder::GetAlgorithmSettingsWidget()
 	;
 }
 
-void SUVProjectionCylinder::FinalizeCreation()
+IUVProjectionAlgorithmPtr SUVProjectionCylinder::CreateAlgorithm() const
 {
-	InitAlgorithm(EUVProjectionType::Cylindrical);
+	return (MakeShareable(new FUVProjectionCylinderAlgo));
 }
 
 void SUVProjectionCylinder::OnUVProjectionDisplayed()
@@ -50,7 +48,7 @@ void SUVProjectionCylinder::OnPreAlgorithmStart()
 	UpdateAlgorithmSettings();
 }
 
-void SUVProjectionCylinder::OnAlgorithmCompleted(IUVProjectionAlgorithm* InAlgorithm, bool bIsSuccess)
+void SUVProjectionCylinder::OnAlgorithmCompleted(IUVProjectionAlgorithmPtr InAlgorithm, bool bIsSuccess)
 {
 	if (bIsSuccess)
 	{
@@ -92,5 +90,3 @@ TSharedPtr<FUVProjectionCylinderAlgo> SUVProjectionCylinder::GetProjectionCylind
 {
 	return (GetAlgorithm<FUVProjectionCylinderAlgo>());
 }
-
-#endif // UV_PROJECTION_CYLINDRICAL

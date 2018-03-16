@@ -68,10 +68,6 @@ void SUVProjectionMappingEditor::InitUVProjectionList(UStaticMesh* StaticMesh)
 	{
 		AddUVProjectionListEntry(modules[i]);
 	}
-
-#ifdef UV_PROJECTION_CYLINDRICAL
-	AddUVProjectionListEntry(EUVProjectionType::Cylindrical, LOCTEXT("ProjectionType_Cylinder", "Cylinder"), FEditorStyle::GetBrush("ClassThumbnail.Cylinder"), StaticMesh);
-#endif
 }
 
 void SUVProjectionMappingEditor::AddUVProjectionListEntry(IUVProjectionModule* UVProjectionModule)

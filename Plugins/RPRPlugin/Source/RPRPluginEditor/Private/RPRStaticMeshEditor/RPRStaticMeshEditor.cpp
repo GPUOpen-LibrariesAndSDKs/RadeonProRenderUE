@@ -52,6 +52,8 @@ void FRPRStaticMeshEditor::InitRPRStaticMeshEditor(const TArray<UStaticMesh*>& I
 		bCreateDefaultToolbar, 
 		objects
 	);
+
+	OpenOrCloseSceneOutlinerIfRequired();
 }
 
 void FRPRStaticMeshEditor::BindCommands()
@@ -162,6 +164,22 @@ TSharedPtr<FTabManager::FLayout>	FRPRStaticMeshEditor::GenerateDefaultLayout()
 		);
 }
 
+void FRPRStaticMeshEditor::OpenOrCloseSceneOutlinerIfRequired()
+{
+	if (StaticMeshes.Num() == 1)
+	{
+		TSharedPtr<SDockTab> tab = TabManager->FindExistingLiveTab(SceneComponentsOutlinerTabId);
+		if (tab.IsValid())
+		{
+			tab->RequestCloseTab();
+		}
+	}
+	else
+	{
+		TabManager->InvokeTab(SceneComponentsOutlinerTabId);		
+	}
+}
+
 void FRPRStaticMeshEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
 {
 	WorkspaceMenuCategory = InTabManager->AddLocalWorkspaceMenuCategory(LOCTEXT("WorkspaceMenu_RPRStaticMeshEditor", "RPR Static Mesh Editor"));
@@ -257,10 +275,18 @@ TArray<UStaticMesh*>	FRPRStaticMeshEditor::GetSelectedStaticMeshes() const
 		TArray<UStaticMeshComponent*> staticMeshComponents;
 		SceneComponentsOutliner->GetSelectedItem(staticMeshComponents);
 
-		selectedStaticMeshes.Reserve(staticMeshComponents.Num());
-		for (int32 i = 0; i < staticMeshComponents.Num(); ++i)
+		// If there is only one mesh available, we consider it has selected
+		if (staticMeshComponents.Num() == 1)
 		{
-			selectedStaticMeshes.Add(staticMeshComponents[i]->GetStaticMesh());
+			selectedStaticMeshes.Add(staticMeshComponents[0]->GetStaticMesh());
+		}
+		else
+		{
+			selectedStaticMeshes.Reserve(staticMeshComponents.Num());
+			for (int32 i = 0; i < staticMeshComponents.Num(); ++i)
+			{
+				selectedStaticMeshes.Add(staticMeshComponents[i]->GetStaticMesh());
+			}
 		}
 
 		return (selectedStaticMeshes);

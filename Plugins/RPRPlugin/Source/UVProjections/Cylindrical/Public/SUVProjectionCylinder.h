@@ -1,7 +1,5 @@
 #pragma once
 
-#ifdef UV_PROJECTION_CYLINDRICAL
-
 #include "SUVProjectionBase.h"
 #include "ShapePreviewCylinder.h"
 #include "ShapePreviewable.h"
@@ -14,10 +12,10 @@ public:
 public:
 
 	SLATE_BEGIN_ARGS(SUVProjectionCylinder)
-		: _StaticMesh(nullptr)
+		: _RPRStaticMeshEditorPtr()
 	{}
 
-		SLATE_ARGUMENT(UStaticMesh*, StaticMesh)
+		SLATE_ARGUMENT(FRPRStaticMeshEditorWeakPtr, RPRStaticMeshEditorPtr)
 
 	SLATE_END_ARGS()
 
@@ -25,7 +23,6 @@ public:
 
 	void	AdaptPreviewShapeToMesh();
 
-	virtual void FinalizeCreation() override;
 	virtual void OnUVProjectionDisplayed() override;
 	virtual void OnUVProjectionHidden() override;
 	virtual void OnPreAlgorithmStart() override;
@@ -33,7 +30,8 @@ public:
 
 protected:
 	
-	virtual void OnAlgorithmCompleted(IUVProjectionAlgorithm* InAlgorithm, bool bIsSuccess) override;
+	virtual IUVProjectionAlgorithmPtr CreateAlgorithm() const override;
+	virtual void OnAlgorithmCompleted(IUVProjectionAlgorithmPtr InAlgorithm, bool bIsSuccess) override;
 	virtual UShapePreviewBase* GetShapePreview() override;
 	virtual TSharedRef<SWidget> GetAlgorithmSettingsWidget() override;
 
@@ -48,5 +46,3 @@ private:
 	TSharedPtr<IDetailsView>	ShapePreviewDetailView;
 
 };
-
-#endif
