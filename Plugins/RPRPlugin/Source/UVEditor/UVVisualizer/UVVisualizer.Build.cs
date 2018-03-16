@@ -48,12 +48,6 @@ public class UVVisualizer : ModuleRules
                 "UnrealEd",
                 "InputCore",
                 "EditorStyle",
-                "Slate",
-                "LevelEditor",
-                "Settings",
-                "StaticMeshEditor",
-                "PropertyEditor",
-                "AdvancedPreviewScene",
                 "RenderCore",
                 "RawMesh",
                 "RPREditorTools"

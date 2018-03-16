@@ -46,16 +46,8 @@ public class UVProjection_Planar : ModuleRules
                 "Slate",
                 "SlateCore",
                 "UnrealEd",
-                "InputCore",
-                "EditorStyle",
-                "Slate",
-                "LevelEditor",
-                "Settings",
-                "StaticMeshEditor",
-                "PropertyEditor",
-                "AdvancedPreviewScene",
-                "RenderCore",
                 "RawMesh",
+                "EditorStyle",
                 "RPRPluginEditor",
                 "RPREditorTools"
 				// ... add private dependencies that you statically link with here ...	

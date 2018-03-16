@@ -20,7 +20,6 @@ public class RPRPluginEditor : ModuleRules
 				// ... add public include paths required here ...
 
                 "RPRPlugin/Public/UVMappingEditor",
-                "RPRPlugin/Public/Tools",
             }
             );
 
@@ -35,8 +34,6 @@ public class RPRPluginEditor : ModuleRules
                 "RPRPluginEditor/Private/Material/",
                 "RPRPluginEditor/Private/Material/NodeParamTypes",
                 
-                "RPRPluginEditor/Private/UVVisualizer",
-
                 "RPRPluginEditor/Private/Outliners",
                 "RPRPluginEditor/Private/Outliners/ObjectsOutliner",
                 "RPRPluginEditor/Private/Outliners/SceneOutliner",
@@ -68,7 +65,6 @@ public class RPRPluginEditor : ModuleRules
                 "UnrealEd",
                 "InputCore",
                 "EditorStyle",
-                "Slate",
                 "LevelEditor",
                 "Settings",
                 "StaticMeshEditor",

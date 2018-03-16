@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class UVProjection_Cylindrical : ModuleRules
+public class UVController : ModuleRules
 {
-	public UVProjection_Cylindrical(ReadOnlyTargetRules Target) : base(Target)
+	public UVController(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
@@ -15,7 +15,7 @@ public class UVProjection_Cylindrical : ModuleRules
     {
         PublicIncludePaths.AddRange(
             new string[] {
-                "UVProjections/Cylindrical/Public",
+                "UVController/Public",
 				// ... add public include paths required here ...
 			}
             );
@@ -23,7 +23,7 @@ public class UVProjection_Cylindrical : ModuleRules
 
         PrivateIncludePaths.AddRange(
             new string[] {
-                "UVProjections/Cylindrical/Private"
+                "UVController/Private"
 				// ... add other private include paths required here ...
 			}
             );
@@ -46,9 +46,16 @@ public class UVProjection_Cylindrical : ModuleRules
                 "Slate",
                 "SlateCore",
                 "UnrealEd",
-                "RawMesh",
+                "InputCore",
                 "EditorStyle",
-                "RPRPluginEditor",
+                "Slate",
+                "LevelEditor",
+                "Settings",
+                "StaticMeshEditor",
+                "PropertyEditor",
+                "AdvancedPreviewScene",
+                "RenderCore",
+                "RawMesh",
                 "RPREditorTools"
 				// ... add private dependencies that you statically link with here ...	
 			}
