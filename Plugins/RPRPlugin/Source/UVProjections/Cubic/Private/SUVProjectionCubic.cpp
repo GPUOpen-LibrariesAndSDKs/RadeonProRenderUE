@@ -55,11 +55,9 @@ void SUVProjectionCubic::OnPreAlgorithmStart()
 	UpdateAlgorithmSettings();
 }
 
-IUVProjectionAlgorithmPtr SUVProjectionCubic::CreateAlgorithm(const TArray<UStaticMesh *>& StaticMeshes)
+IUVProjectionAlgorithmPtr SUVProjectionCubic::CreateAlgorithm() const
 {
-	IUVProjectionAlgorithmPtr algo = MakeShareable(new FUVProjectionCubicAlgo);
-	algo->SetStaticMeshes(StaticMeshes);
-	return (algo);
+	return (MakeShareable(new FUVProjectionCubicAlgo));
 }
 
 void SUVProjectionCubic::OnAlgorithmCompleted(IUVProjectionAlgorithmPtr InAlgorithm, bool bIsSuccess)

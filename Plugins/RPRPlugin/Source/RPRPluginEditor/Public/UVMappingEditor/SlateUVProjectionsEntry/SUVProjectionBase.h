@@ -54,7 +54,7 @@ protected:
 
 	virtual void	OnPreAlgorithmStart() {}
 	
-	virtual IUVProjectionAlgorithmPtr	CreateAlgorithm(const TArray<UStaticMesh*>& StaticMeshes) = 0;
+	virtual IUVProjectionAlgorithmPtr	CreateAlgorithm() const = 0;
 	virtual TSharedRef<SWidget>			GetAlgorithmSettingsWidget() = 0;
 	virtual void						OnAlgorithmCompleted(IUVProjectionAlgorithmPtr InAlgorithm, bool bIsSuccess) = 0;
 	virtual UShapePreviewBase*			GetShapePreview() = 0;

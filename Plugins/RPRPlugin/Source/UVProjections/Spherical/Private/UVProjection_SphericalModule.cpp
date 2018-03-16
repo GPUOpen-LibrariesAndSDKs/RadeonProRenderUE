@@ -1,6 +1,8 @@
 #include "UVProjection_SphericalModule.h"
 #include "SUVProjectionTypeEntry.h"
 #include "UVProjectionFactory.h"
+#include "SUVProjectionSpherical.h"
+#include "EditorStyleSet.h"
 
 #define LOCTEXT_NAMESPACE "UVProjection_SphericalModule"
 

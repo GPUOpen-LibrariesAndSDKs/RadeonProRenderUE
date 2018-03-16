@@ -1,6 +1,8 @@
 #include "UVProjection_CubicModule.h"
 #include "SUVProjectionTypeEntry.h"
 #include "UVProjectionFactory.h"
+#include "SUVProjectionCubic.h"
+#include "EditorStyleSet.h"
 
 #define LOCTEXT_NAMESPACE "UVProjection_CubicModule"
 

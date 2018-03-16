@@ -1,7 +1,5 @@
 #pragma once
 
-#ifdef UV_PROJECTION_PLANAR
-
 #include "DeclarativeSyntaxSupport.h"
 #include "IUVProjectionSettingsWidget.h"
 #include "SharedPointer.h"
@@ -21,26 +19,26 @@ private:
 public:
 
 	SLATE_BEGIN_ARGS(SUVProjectionPlanar) 
-		: _StaticMesh(nullptr)
+		: _RPRStaticMeshEditorPtr()
 	{}
 
-		SLATE_ARGUMENT(UStaticMesh*, StaticMesh)
+		SLATE_ARGUMENT(FRPRStaticMeshEditorWeakPtr, RPRStaticMeshEditorPtr)
 
 	SLATE_END_ARGS()
 
 	void			Construct(const FArguments& InArgs);
 
-	virtual void	FinalizeCreation();
 	virtual void	OnUVProjectionDisplayed() override;
 	virtual void	OnUVProjectionHidden() override;
 	virtual void	OnPreAlgorithmStart() override;
 
 protected:
 
-	virtual void				OnAlgorithmCompleted(IUVProjectionAlgorithm* InAlgorithm, bool bIsSuccess) override;
-	virtual UShapePreviewBase*	GetShapePreview() override;
+	virtual IUVProjectionAlgorithmPtr CreateAlgorithm() const override;
+	virtual void OnAlgorithmCompleted(IUVProjectionAlgorithmPtr InAlgorithm, bool bIsSuccess) override;
+	virtual UShapePreviewBase* GetShapePreview() override;
 	virtual TSharedRef<SWidget> GetAlgorithmSettingsWidget() override;
-
+	
 private:
 
 	void										UpdateAlgorithmSettings();
@@ -51,5 +49,3 @@ private:
 	TSharedPtr<class IDetailsView> ShapePreviewDetailView;
 
 };
-
-#endif // UV_PROJECTION_PLANAR

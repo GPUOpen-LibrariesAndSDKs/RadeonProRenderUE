@@ -69,10 +69,6 @@ void SUVProjectionMappingEditor::InitUVProjectionList(UStaticMesh* StaticMesh)
 		AddUVProjectionListEntry(modules[i]);
 	}
 
-#ifdef UV_PROJECTION_PLANAR
-	AddUVProjectionListEntry(EUVProjectionType::Planar, LOCTEXT("ProjectionType_Planar", "Planar"), FEditorStyle::GetBrush("ClassThumbnail.Plane"), StaticMesh);
-#endif
-
 #ifdef UV_PROJECTION_CYLINDRICAL
 	AddUVProjectionListEntry(EUVProjectionType::Cylindrical, LOCTEXT("ProjectionType_Cylinder", "Cylinder"), FEditorStyle::GetBrush("ClassThumbnail.Cylinder"), StaticMesh);
 #endif

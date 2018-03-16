@@ -1,26 +1,28 @@
-#ifdef UV_PROJECTION_PLANAR
-
 #include "UVProjectionPlanarAlgo.h"
 #include "UVUtility.h"
-#include "Engine/StaticMesh.h"
-#include "PositionVertexBuffer.h"
-#include "StaticMeshVertexBuffer.h"
-#include "RPRVectorTools.h"
-#include "StaticMeshHelper.h"
 #include "TransformablePlane.h"
+
+#define LOCTEXT_NAMESPACE "UVProjectionPlanarAlgo"
 
 FUVProjectionPlanarAlgo::FSettings::FSettings()
 	: Plane(FPlane(FVector::ZeroVector, FVector::RightVector), FVector::ZeroVector, FVector::UpVector)
 	, Scale(1.0f)
-{
-
-}
+{}
 
 void FUVProjectionPlanarAlgo::StartAlgorithm()
 {
 	FUVProjectionAlgorithmBase::StartAlgorithm();
 
-	ProjectVertexOnPlane();
+	FScopedSlowTask slowTask(RawMeshes.Num(), LOCTEXT("ProjectUV", "Project UV (Planar)"));
+	slowTask.MakeDialog();
+
+	for (int32 meshIndex = 0; meshIndex < RawMeshes.Num(); ++meshIndex)
+	{
+		const FString meshName = StaticMeshes[meshIndex]->GetName();
+		slowTask.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Project UV (Planar) on mesh '%s'"), *meshName)));
+
+		ProjectVertexOnPlane(meshIndex);
+	}
 
 	StopAlgorithmAndRaiseCompletion(true);
 }
@@ -31,13 +33,13 @@ void FUVProjectionPlanarAlgo::Finalize()
 	SaveRawMesh();
 }
 
-void FUVProjectionPlanarAlgo::ProjectVertexOnPlane()
+void FUVProjectionPlanarAlgo::ProjectVertexOnPlane(int32 MeshIndex)
 {
 	FVector2D newUV;
 	FVector2D centerOffset(0.5f, 0.5f);
 
-	const TArray<uint32>& triangles = RawMesh.WedgeIndices;
-	const TArray<FVector>& vertices = RawMesh.VertexPositions;
+	const TArray<uint32>& triangles = RawMeshes[MeshIndex].WedgeIndices;
+	const TArray<FVector>& vertices = RawMeshes[MeshIndex].VertexPositions;
 
 	for (int32 indiceIdx = 0; indiceIdx < triangles.Num(); ++indiceIdx)
 	{
@@ -47,7 +49,7 @@ void FUVProjectionPlanarAlgo::ProjectVertexOnPlane()
 		newUV = centerOffset + Settings.Plane.ProjectToLocalCoordinates(vertexPosition) / (2.0f * Settings.Scale);
 		FUVUtility::InvertTextureCoordinate(newUV.Y);
 
-		AddNewUVs(newUV);
+		AddNewUVs(MeshIndex, newUV);
 	}
 }
 
@@ -56,4 +58,4 @@ void FUVProjectionPlanarAlgo::SetSettings(const FSettings& InSettings)
 	Settings = InSettings;
 }
 
-#endif // UV_PROJECTION_PLANAR
+#undef LOCTEXT_NAMESPACE

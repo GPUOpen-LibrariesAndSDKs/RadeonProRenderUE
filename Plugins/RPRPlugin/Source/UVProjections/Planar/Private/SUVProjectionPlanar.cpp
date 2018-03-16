@@ -1,5 +1,3 @@
-#ifdef UV_PROJECTION_PLANAR
-
 #include "SUVProjectionPlanar.h"
 #include "UVProjectionPlanarAlgo.h"
 #include "SBoxPanel.h"
@@ -13,10 +11,10 @@
 
 void SUVProjectionPlanar::Construct(const FArguments& InArgs)
 {
+	RPRStaticMeshEditorPtr = InArgs._RPRStaticMeshEditorPtr;
 	ShapePreviewDetailView = CreateShapePreviewDetailView("SUVProjectionPlanarDetailsView");
-	StaticMesh = InArgs._StaticMesh;
 
-	ConstructBase();
+	InitUVProjection();
 }
 
 TSharedRef<SWidget> SUVProjectionPlanar::GetAlgorithmSettingsWidget()
@@ -31,9 +29,9 @@ TSharedRef<SWidget> SUVProjectionPlanar::GetAlgorithmSettingsWidget()
 	;
 }
 
-void SUVProjectionPlanar::FinalizeCreation()
+IUVProjectionAlgorithmPtr SUVProjectionPlanar::CreateAlgorithm() const
 {
-	InitAlgorithm(EUVProjectionType::Planar);
+	return (MakeShareable(new FUVProjectionPlanarAlgo));
 }
 
 void SUVProjectionPlanar::OnUVProjectionDisplayed()
@@ -69,7 +67,7 @@ void SUVProjectionPlanar::UpdateAlgorithmSettings()
 }
 
 
-void SUVProjectionPlanar::OnAlgorithmCompleted(IUVProjectionAlgorithm* InAlgorithm, bool bIsSuccess)
+void SUVProjectionPlanar::OnAlgorithmCompleted(IUVProjectionAlgorithmPtr InAlgorithm, bool bIsSuccess)
 {
 	if (bIsSuccess)
 	{
@@ -88,5 +86,3 @@ TSharedPtr<FUVProjectionPlanarAlgo> SUVProjectionPlanar::GetProjectionPlanarAlgo
 }
 
 #undef LOCTEXT_NAMESPACE
-
-#endif // UV_PROJECTION_PLANAR

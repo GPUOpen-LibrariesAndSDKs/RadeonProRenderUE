@@ -32,11 +32,15 @@
 			"Type": "Editor"
 		},
 		{
-			"Name": "UVProjection_Spherical",
+			"Name": "UVProjection_Planar",
 			"Type": "Editor"			
 		},
 		{
 			"Name": "UVProjection_Cubic",
+			"Type": "Editor"			
+		},
+		{
+			"Name": "UVProjection_Spherical",
 			"Type": "Editor"			
 		}
 	]

@@ -25,11 +25,9 @@ TSharedRef<SWidget> SUVProjectionSpherical::GetAlgorithmSettingsWidget()
 	;
 }
 
-IUVProjectionAlgorithmPtr SUVProjectionSpherical::CreateAlgorithm(const TArray<class UStaticMesh*>& StaticMeshes)
+IUVProjectionAlgorithmPtr SUVProjectionSpherical::CreateAlgorithm() const
 {
-	IUVProjectionAlgorithmPtr algo = MakeShareable(new FUVProjectionSphericalAlgo);
-	algo->SetStaticMeshes(StaticMeshes);
-	return (algo);
+	return (MakeShareable(new FUVProjectionSphericalAlgo));
 }
 
 void SUVProjectionSpherical::OnPreAlgorithmStart()

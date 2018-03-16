@@ -95,7 +95,8 @@ void SUVProjectionBase::AddComponentToViewport(UActorComponent* InActorComponent
 
 void SUVProjectionBase::InitAlgorithm()
 {
-	Algorithm = CreateAlgorithm(RPRStaticMeshEditorPtr.Pin()->GetStaticMeshes());
+	Algorithm = CreateAlgorithm();
+	Algorithm->SetStaticMeshes(RPRStaticMeshEditorPtr.Pin()->GetStaticMeshes());
 	SubscribeToAlgorithmCompletion();
 }
 

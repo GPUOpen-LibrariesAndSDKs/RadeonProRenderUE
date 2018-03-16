@@ -141,6 +141,8 @@ void FUVProjectionAlgorithmBase::FixInvalidUVsHorizontally(int32 MeshIndex)
 void FUVProjectionAlgorithmBase::LoadRawMeshes()
 {
 	FRawMesh rawMesh;
+
+	RawMeshes.Empty(StaticMeshes.Num());
 	for (int32 i = 0; i < StaticMeshes.Num(); ++i)
 	{
 		FStaticMeshHelper::LoadRawMeshFromStaticMesh(StaticMeshes[i], rawMesh);

@@ -32,7 +32,7 @@ public:
 
 protected:
 
-	virtual IUVProjectionAlgorithmPtr CreateAlgorithm(const TArray<class UStaticMesh*>& StaticMeshes) override;
+	virtual IUVProjectionAlgorithmPtr CreateAlgorithm() const override;
 	virtual void OnAlgorithmCompleted(IUVProjectionAlgorithmPtr InAlgorithm, bool bIsSuccess) override;
 	virtual UShapePreviewBase* GetShapePreview() override;
 	virtual TSharedRef<SWidget> GetAlgorithmSettingsWidget() override;

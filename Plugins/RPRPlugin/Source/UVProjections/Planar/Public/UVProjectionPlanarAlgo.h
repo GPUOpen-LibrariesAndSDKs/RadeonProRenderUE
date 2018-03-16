@@ -1,7 +1,5 @@
 #pragma once
 
-#ifdef UV_PROJECTION_PLANAR
-
 #include "UVProjectionAlgorithmBase.h"
 #include "TransformablePlane.h"
 
@@ -25,7 +23,7 @@ public:
 
 private:
 
-	void	ProjectVertexOnPlane();
+	void	ProjectVertexOnPlane(int32 MeshIndex);
 	
 
 private:
@@ -34,5 +32,3 @@ private:
 
 
 };
-
-#endif // UV_PROJECTION_PLANAR
