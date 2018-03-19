@@ -2,7 +2,7 @@
 
 #include "DeclarativeSyntaxSupport.h"
 #include "SCompoundWidget.h"
-#include "SUVVisualizer.h"
+#include "SUVViewport.h"
 #include "UVVisualizerEditorSettings.h"
 #include "IStructureDetailsView.h"
 #include "NotifyHook.h"

@@ -18,7 +18,7 @@ void SUVVisualizerEditor::Construct(const FArguments& InArgs)
 			+SSplitter::Slot()
 			.Value(6)
 			[
-				SAssignNew(UVVisualizer, SUVVisualizer)
+				SAssignNew(UVVisualizer, SUVViewport)
 			]
 			+SSplitter::Slot()
 			.Value(4)

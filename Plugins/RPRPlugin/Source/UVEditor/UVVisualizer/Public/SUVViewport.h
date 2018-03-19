@@ -1,19 +1,20 @@
 #pragma once
 
 #include "DeclarativeSyntaxSupport.h"
-#include "SCompoundWidget.h"
 #include "RawMesh.h"
 #include "Engine/Texture2D.h"
 #include "SlateBrush.h"
+#include "UVViewportClient.h"
+#include "SEditorViewport.h"
 
-class SUVVisualizer : public SCompoundWidget
+class SUVViewport : public SEditorViewport
 {
 public:
 
-	SLATE_BEGIN_ARGS(SUVVisualizer) {}
+	SLATE_BEGIN_ARGS(SUVViewport) {}
 	SLATE_END_ARGS()
 
-	SUVVisualizer();
+	SUVViewport();
 
 	void	Construct(const FArguments& InArgs);
 	void	SetMesh(TWeakObjectPtr<class UStaticMesh> InStaticMesh);
@@ -27,6 +28,10 @@ public:
 	virtual int32	OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
 						const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements,
 						int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
+	
+protected:
+	
+	virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override;
 
 private:
 
@@ -54,6 +59,8 @@ private:
 
 private:
 
+	FUVViewportClientPtr ViewportClient;
+
 	TWeakObjectPtr<UStaticMesh>	StaticMesh;
 	FRawMesh RawMesh;
 	int32 UVChannelIndex;
@@ -63,4 +70,4 @@ private:
 
 };
 
-typedef TSharedPtr<SUVVisualizer> SUVVisualizerPtr;
+typedef TSharedPtr<SUVViewport> SUVVisualizerPtr;

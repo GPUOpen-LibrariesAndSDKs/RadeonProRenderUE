@@ -40,10 +40,6 @@
 			"Type": "Editor"
 		},
 		{
-			"Name": "UVController",
-			"Type": "Editor"
-		},
-		{
 			"Name": "UVProjection_Planar",
 			"Type": "Editor"			
 		},

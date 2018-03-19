@@ -1,4 +1,4 @@
-#include "SUVVisualizer.h"
+#include "SUVViewport.h"
 #include "EditorStyleSet.h"
 #include "DrawElements.h"
 #include "SlateRect.h"
@@ -7,22 +7,23 @@
 #include "StaticMeshHelper.h"
 #include "RPRVectorTools.h"
 
-SUVVisualizer::SUVVisualizer()
+SUVViewport::SUVViewport()
 	: UVChannelIndex(INDEX_NONE)
 	, BackgroundOpacity(1.0f)
 {}
 
-void SUVVisualizer::Construct(const FArguments& InArgs)
+void SUVViewport::Construct(const FArguments& InArgs)
 {
+	SEditorViewport::Construct(SEditorViewport::FArguments());
 }
 
-void SUVVisualizer::SetMesh(TWeakObjectPtr<class UStaticMesh> InStaticMesh)
+void SUVViewport::SetMesh(TWeakObjectPtr<class UStaticMesh> InStaticMesh)
 {
 	StaticMesh = InStaticMesh;
 	Refresh();
 }
 
-void SUVVisualizer::Refresh()
+void SUVViewport::Refresh()
 {
 	if (StaticMesh.IsValid())
 	{
@@ -36,7 +37,7 @@ void SUVVisualizer::Refresh()
 	}
 }
 
-void SUVVisualizer::SetUVChannelIndex(int32 ChannelIndex)
+void SUVViewport::SetUVChannelIndex(int32 ChannelIndex)
 {
 	if (StaticMesh.IsValid())
 	{
@@ -45,7 +46,7 @@ void SUVVisualizer::SetUVChannelIndex(int32 ChannelIndex)
 		if (newUVChannelIndex != UVChannelIndex)
 		{
 			UVChannelIndex = newUVChannelIndex;
-			Invalidate(EInvalidateWidget::Layout);
+			Invalidate();
 		}
 	}
 	else
@@ -54,22 +55,22 @@ void SUVVisualizer::SetUVChannelIndex(int32 ChannelIndex)
 	}
 }
 
-void SUVVisualizer::SetBackground(UTexture2D* Image)
+void SUVViewport::SetBackground(UTexture2D* Image)
 {
 	BackgroundBrush.SetResourceObject(Image);
 }
 
-void SUVVisualizer::ClearBackground()
+void SUVViewport::ClearBackground()
 {
 	SetBackground(nullptr);
 }
 
-void SUVVisualizer::SetBackgroundOpacity(float Opacity)
+void SUVViewport::SetBackgroundOpacity(float Opacity)
 {
 	BackgroundOpacity = Opacity;
 }
 
-int32 SUVVisualizer::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, 
+int32 SUVViewport::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, 
 					const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, 
 					int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
@@ -107,7 +108,7 @@ int32 SUVVisualizer::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 	return (SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled));
 }
 
-void SUVVisualizer::PaintBackground(FSlateWindowElementList& OutDrawElements, const FPaintGeometry& PaintGeometry, uint32 LayerId) const
+void SUVViewport::PaintBackground(FSlateWindowElementList& OutDrawElements, const FPaintGeometry& PaintGeometry, uint32 LayerId) const
 {
 	const FSlateBrush* TimelineAreaBrush = FEditorStyle::GetBrush("Profiler.LineGraphArea");
 
@@ -121,7 +122,7 @@ void SUVVisualizer::PaintBackground(FSlateWindowElementList& OutDrawElements, co
 	);
 }
 
-void SUVVisualizer::PaintBackgroundImage(FSlateWindowElementList& OutDrawElements, const FPaintGeometry& PaintGeometry,
+void SUVViewport::PaintBackgroundImage(FSlateWindowElementList& OutDrawElements, const FPaintGeometry& PaintGeometry,
 											uint32 LayerId, const FSlateRect& UVBounds) const
 {
 	FSlateDrawElement::MakeBox(
@@ -134,7 +135,7 @@ void SUVVisualizer::PaintBackgroundImage(FSlateWindowElementList& OutDrawElement
 	);
 }
 
-void SUVVisualizer::PaintUVs(FSlateWindowElementList& OutDrawElements, const FPaintGeometry& PaintGeometry,
+void SUVViewport::PaintUVs(FSlateWindowElementList& OutDrawElements, const FPaintGeometry& PaintGeometry,
 							uint32 LayerId, const FSlateRect& UVBounds) const
 {
 	const TArray<uint32>& triangles = RawMesh.WedgeIndices;
@@ -162,7 +163,7 @@ void SUVVisualizer::PaintUVs(FSlateWindowElementList& OutDrawElements, const FPa
 	}
 }
 
-void SUVVisualizer::PaintUVTriangle(FSlateWindowElementList& OutDrawElements, const FPaintGeometry& PaintGeometry, 
+void SUVViewport::PaintUVTriangle(FSlateWindowElementList& OutDrawElements, const FPaintGeometry& PaintGeometry, 
 									uint32 LayerId, const FSlateRect& UVBounds, const FLinearColor& Color,
 									const FVector2D& PointA, const FVector2D& PointB, const FVector2D& PointC) const
 {
@@ -212,7 +213,7 @@ void SUVVisualizer::PaintUVTriangle(FSlateWindowElementList& OutDrawElements, co
 	);
 }
 
-void SUVVisualizer::PaintArrow(FSlateWindowElementList& OutDrawElements, const FPaintGeometry& PaintGeometry, 
+void SUVViewport::PaintArrow(FSlateWindowElementList& OutDrawElements, const FPaintGeometry& PaintGeometry, 
 								uint32 LayerId, const FLinearColor& Color,
 								const FVector2D& StartPoint, const FVector2D& EndPoint, 
 								float Thickness, float ArrowSize) const
@@ -268,7 +269,7 @@ void SUVVisualizer::PaintArrow(FSlateWindowElementList& OutDrawElements, const F
 	);
 }
 
-void SUVVisualizer::PaintAxis(FSlateWindowElementList& OutDrawElements, const FPaintGeometry& PaintGeometry, 
+void SUVViewport::PaintAxis(FSlateWindowElementList& OutDrawElements, const FPaintGeometry& PaintGeometry, 
 								uint32 LayerId, const FSlateRect& Bounds) const
 {
 	const int32 arrowThickness = 2;
@@ -296,7 +297,7 @@ void SUVVisualizer::PaintAxis(FSlateWindowElementList& OutDrawElements, const FP
 	);
 }
 
-FSlateRect SUVVisualizer::BuildUVBounds(const FVector2D& BoundsSize) const
+FSlateRect SUVViewport::BuildUVBounds(const FVector2D& BoundsSize) const
 {
 	const float windowRectWidth = BoundsSize.X;
 	const float windowRectHeight = BoundsSize.Y;
@@ -307,7 +308,7 @@ FSlateRect SUVVisualizer::BuildUVBounds(const FVector2D& BoundsSize) const
 	return (uvBounds);
 }
 
-FVector2D SUVVisualizer::ConvertLocalToAbsoluteUVPosition(const FSlateRect& UVBounds, const FVector2D& Point) const
+FVector2D SUVViewport::ConvertLocalToAbsoluteUVPosition(const FSlateRect& UVBounds, const FVector2D& Point) const
 {
 	const float width = FSlateRectHelper::GetWidth(UVBounds);
 	const float height = FSlateRectHelper::GetHeight(UVBounds);
@@ -316,5 +317,11 @@ FVector2D SUVVisualizer::ConvertLocalToAbsoluteUVPosition(const FSlateRect& UVBo
 		Point.X * width,
 		Point.Y * height
 	));
+}
+
+TSharedRef<FEditorViewportClient> SUVViewport::MakeEditorViewportClient()
+{
+	ViewportClient = MakeShareable(new FUVViewportClient(StaticCastSharedRef<SUVViewport>(this->AsShared())));
+	return (ViewportClient.ToSharedRef());
 }
 
