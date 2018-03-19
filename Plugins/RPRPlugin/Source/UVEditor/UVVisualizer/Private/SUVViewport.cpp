@@ -325,3 +325,17 @@ TSharedRef<FEditorViewportClient> SUVViewport::MakeEditorViewportClient()
 	return (ViewportClient.ToSharedRef());
 }
 
+UStaticMesh* SUVViewport::GetStaticMesh() const
+{
+	return (StaticMesh.Get());
+}
+
+FRawMesh& SUVViewport::GetRawMesh()
+{
+	return (RawMesh);
+}
+
+int32 SUVViewport::GetUVChannel() const
+{
+	return (UVChannelIndex);
+}
