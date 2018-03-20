@@ -1,6 +1,5 @@
 #pragma once
-#include "Array.h"
-#include "UVVertexData.h"
+#include "UVCache.h"
 
 class FUVSelection
 {
@@ -8,7 +7,7 @@ public:
 
 	FUVSelection();
 
-	void					SetCachedUVs(TArray<FUVVertexData>* InCachedUVs);
+	void					SetCachedUVs(FUVCache* InCachedUVs);
 	void					SelectUV(int32 UVIndex);
 	void					AddUV(int32 UVIndex);
 	void					DeselectUV(int32 UVIndex);
@@ -18,12 +17,12 @@ public:
 
 private:
 
-	FUVVertexData&			GetUV(int32 UVIndex);
-	const FUVVertexData&	GetUV(int32 UVIndex) const;
+	FUVCacheData& GetUV(int32 UVIndex);
+	const FUVCacheData&	GetUV(int32 UVIndex) const;
 
 private:
 
 	TArray<int32> SelectedUVs;
-	TArray<FUVVertexData>* CachedUVs;
+	FUVCache* CachedUVs;
 
 };

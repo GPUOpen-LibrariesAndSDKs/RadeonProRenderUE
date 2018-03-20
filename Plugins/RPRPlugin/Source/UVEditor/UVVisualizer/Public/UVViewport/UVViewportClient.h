@@ -4,7 +4,7 @@
 #include "PreviewScene.h"
 #include "UnrealWidget.h"
 #include "UVSelection.h"
-#include "UVVertexData.h"
+#include "UVCache.h"
 
 class FUVViewportClient : public FEditorViewportClient
 {
@@ -39,6 +39,7 @@ private:
 	FTransform SceneTransform;
 
 	FUVSelection	UVSelection;
+	FUVCache		UVCache;
 
 	bool bIsManipulating;
 
@@ -46,8 +47,6 @@ private:
 	const FLinearColor	SelectedVertexColor;
 	const FLinearColor	ValidEdgeColor;
 	const FLinearColor	InvalidEdgeColor;
-
-	TArray<FUVVertexData> CachedUV;
 };
 
 typedef TSharedPtr<FUVViewportClient> FUVViewportClientPtr;

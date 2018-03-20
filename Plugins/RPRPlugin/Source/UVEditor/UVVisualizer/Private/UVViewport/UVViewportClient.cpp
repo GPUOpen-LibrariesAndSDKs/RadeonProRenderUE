@@ -47,23 +47,18 @@ FUVViewportClient::FUVViewportClient(const TWeakPtr<SEditorViewport>& InViewport
 
 void FUVViewportClient::GenerateCacheUV()
 {
-	CachedUV.Empty();
-
 	SUVViewportPtr viewport = GetUVViewport();
 	if (viewport.IsValid())
 	{
 		const FRawMesh& rawMesh = viewport->GetRawMesh();
-		const TArray<FVector2D>& uv = rawMesh.WedgeTexCoords[viewport->GetUVChannel()];
-
-		CachedUV.AddZeroed(uv.Num());
-		for (int32 i = 0; i < uv.Num(); ++i)
-		{
-			CachedUV[i].UVIndex = i;
-			CachedUV[i].bIsSelected = false;
-		}
+		UVCache.GenerateCache(rawMesh, viewport->GetUVChannel());
+	}
+	else
+	{
+		UVCache.ClearCache();
 	}
 
-	UVSelection.SetCachedUVs(&CachedUV);
+	UVSelection.SetCachedUVs(&UVCache);
 }
 
 void FUVViewportClient::SetupCamera()

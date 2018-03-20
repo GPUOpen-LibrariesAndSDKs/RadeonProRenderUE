@@ -5,7 +5,7 @@ FUVSelection::FUVSelection()
 	: CachedUVs(nullptr)
 {}
 
-void FUVSelection::SetCachedUVs(TArray<FUVVertexData>* InCachedUVs)
+void FUVSelection::SetCachedUVs(FUVCache* InCachedUVs)
 {
 	CachedUVs = InCachedUVs;
 }
@@ -56,12 +56,12 @@ void FUVSelection::ClearSelection()
 	}
 }
 
-FUVVertexData& FUVSelection::GetUV(int32 UVIndex)
+FUVCacheData& FUVSelection::GetUV(int32 UVIndex)
 {
 	return ((*CachedUVs)[UVIndex]);
 }
 
-const FUVVertexData& FUVSelection::GetUV(int32 UVIndex) const
+const FUVCacheData& FUVSelection::GetUV(int32 UVIndex) const
 {
 	return ((*CachedUVs)[UVIndex]);
 }
