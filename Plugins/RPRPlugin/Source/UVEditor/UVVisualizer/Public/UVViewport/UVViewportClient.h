@@ -18,6 +18,8 @@ public:
 	virtual bool ShouldOrbitCamera() const override;
 	void	RegenerateUVCache();
 
+	void	SelectAllUVs();
+
 private:
 
 	void	GenerateCacheUV();

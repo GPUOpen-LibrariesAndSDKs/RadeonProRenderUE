@@ -6,6 +6,11 @@
 #include "UVUtility.h"
 #include "StaticMeshHelper.h"
 #include "RPRVectorTools.h"
+#include "SUVViewportToolBar.h"
+#include "UVViewportActions.h"
+#include "SEditorViewport.h"
+#include "UICommandList.h"
+#include "UIAction.h"
 
 SUVViewport::SUVViewport()
 	: UVChannelIndex(INDEX_NONE)
@@ -321,10 +326,34 @@ FVector2D SUVViewport::ConvertLocalToAbsoluteUVPosition(const FSlateRect& UVBoun
 	));
 }
 
+void SUVViewport::SelectAllUVs()
+{
+	if (ViewportClient.IsValid())
+	{
+		ViewportClient->SelectAllUVs();
+	}
+}
+
 TSharedRef<FEditorViewportClient> SUVViewport::MakeEditorViewportClient()
 {
 	ViewportClient = MakeShareable(new FUVViewportClient(StaticCastSharedRef<SUVViewport>(this->AsShared())));
 	return (ViewportClient.ToSharedRef());
+}
+
+TSharedPtr<SWidget> SUVViewport::MakeViewportToolbar()
+{
+	return SNew(SUVViewportToolBar)
+		.Viewport(SharedThis(this));
+}
+
+void SUVViewport::BindCommands()
+{
+	const FUVViewportCommands& viewportActions = FUVViewportCommands::Get();
+
+	CommandList->MapAction(
+		viewportActions.SelectAllUV,
+		FExecuteAction::CreateSP(this, &SUVViewport::SelectAllUVs)
+	);
 }
 
 UStaticMesh* SUVViewport::GetStaticMesh() const

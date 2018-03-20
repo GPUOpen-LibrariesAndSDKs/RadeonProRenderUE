@@ -36,6 +36,9 @@ public:
 protected:
 	
 	virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override;
+	virtual TSharedPtr<SWidget> MakeViewportToolbar() override;
+	
+	virtual void BindCommands() override;
 
 private:
 
@@ -60,6 +63,8 @@ private:
 
 	FSlateRect	BuildUVBounds(const FVector2D& BoundsSize) const;
 	FVector2D	ConvertLocalToAbsoluteUVPosition(const FSlateRect& UVBounds, const FVector2D& Point) const;
+
+	void		SelectAllUVs();
 
 private:
 

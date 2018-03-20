@@ -144,10 +144,17 @@ void FUVViewportClient::ProcessClick(FSceneView& View, HHitProxy* HitProxy, FKey
 {
 	FEditorViewportClient::ProcessClick(View, HitProxy, Key, Event, HitX, HitY);
 
-	if (HitProxy != nullptr && HitProxy->IsA(HUVVertexProxy::StaticGetType()))
+	if (HitProxy != nullptr)
 	{
-		HUVVertexProxy* uvProxy = StaticCast<HUVVertexProxy*>(HitProxy);
-		UVSelection.SelectUV(uvProxy->UVIndex);
+		if (HitProxy->IsA(HUVVertexProxy::StaticGetType()))
+		{
+			HUVVertexProxy* uvProxy = StaticCast<HUVVertexProxy*>(HitProxy);
+			UVSelection.SelectUV(uvProxy->UVIndex);
+		}
+	}
+	else
+	{
+		UVSelection.ClearSelection();
 	}
 }
 
@@ -159,6 +166,11 @@ bool FUVViewportClient::ShouldOrbitCamera() const
 void FUVViewportClient::RegenerateUVCache()
 {
 	GenerateCacheUV();
+}
+
+void FUVViewportClient::SelectAllUVs()
+{
+	UVSelection.SelectAllUVs();
 }
 
 SUVViewportPtr FUVViewportClient::GetUVViewport() const

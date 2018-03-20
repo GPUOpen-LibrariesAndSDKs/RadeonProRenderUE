@@ -8,6 +8,7 @@ public:
 	FUVSelection();
 
 	void					SetCachedUVs(FUVCache* InCachedUVs);
+	void					SelectAllUVs();
 	void					SelectUV(int32 UVIndex);
 	void					AddUV(int32 UVIndex);
 	void					DeselectUV(int32 UVIndex);

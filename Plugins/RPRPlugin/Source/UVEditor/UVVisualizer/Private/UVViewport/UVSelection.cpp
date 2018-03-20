@@ -10,6 +10,14 @@ void FUVSelection::SetCachedUVs(FUVCache* InCachedUVs)
 	CachedUVs = InCachedUVs;
 }
 
+void FUVSelection::SelectAllUVs()
+{
+	for (int32 i = 0; i < CachedUVs->Num(); ++i)
+	{
+		GetUV(i).bIsSelected = true;
+	}
+}
+
 void FUVSelection::SelectUV(int32 UVIndex)
 {
 	ClearSelection();
