@@ -16,6 +16,7 @@ public class UVVisualizer : ModuleRules
         PublicIncludePaths.AddRange(
             new string[] {
                 "UVVisualizer/Public",
+                "UVVisualizer/Public/UVViewport",
 				// ... add public include paths required here ...
 			}
             );
@@ -23,7 +24,8 @@ public class UVVisualizer : ModuleRules
 
         PrivateIncludePaths.AddRange(
             new string[] {
-                "UVVisualizer/Private"
+                "UVVisualizer/Private",
+                "UVVisualizer/Private/UVViewport"
 				// ... add other private include paths required here ...
 			}
             );

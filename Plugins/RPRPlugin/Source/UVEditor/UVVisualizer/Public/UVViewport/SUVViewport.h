@@ -74,4 +74,4 @@ private:
 
 };
 
-typedef TSharedPtr<SUVViewport> SUVVisualizerPtr;
+typedef TSharedPtr<SUVViewport> SUVViewportPtr;

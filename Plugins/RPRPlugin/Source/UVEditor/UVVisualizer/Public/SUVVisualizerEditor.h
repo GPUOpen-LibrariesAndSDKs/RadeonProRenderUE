@@ -43,7 +43,7 @@ private:
 
 private:
 
-	SUVVisualizerPtr					UVVisualizer;
+	SUVViewportPtr					UVVisualizer;
 	TSharedPtr<IStructureDetailsView>	UVVisualizerEditorSettingsView;
 	TSharedPtr<FStructOnScope>			UVVisualizerEditorSettingsStructOnScopePtr;
 

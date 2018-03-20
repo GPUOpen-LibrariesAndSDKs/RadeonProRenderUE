@@ -3,6 +3,8 @@
 #include "SharedPointer.h"
 #include "PreviewScene.h"
 #include "UnrealWidget.h"
+#include "UVSelection.h"
+#include "UVVertexData.h"
 
 class FUVViewportClient : public FEditorViewportClient
 {
@@ -12,14 +14,18 @@ public:
 
 	virtual void Draw(const FSceneView* View, FPrimitiveDrawInterface* PDI) override;
 	virtual void ProcessClick(FSceneView& View, HHitProxy* HitProxy, FKey Key, EInputEvent Event, uint32 HitX, uint32 HitY) override;
-	
+
 	virtual bool ShouldOrbitCamera() const override;
-	
+	void	RegenerateUVCache();
+
 private:
 
+	void	GenerateCacheUV();
+	void	SetupCamera();
 	void	DrawUV(const FSceneView* View, FPrimitiveDrawInterface* PDI, TSharedPtr<class SUVViewport> Viewport);
-	void	DrawUVTriangle(FPrimitiveDrawInterface* PDI, const FLinearColor& Color, 
-					const FVector2D& uvA, const FVector2D& uvB, const FVector2D& uvC);
+	void	DrawUVTriangle(FPrimitiveDrawInterface* PDI, int32 UVStartIndex, const FLinearColor& Color, 
+								const FVector2D& uvA, const FVector2D& uvB, const FVector2D& uvC);
+	void	DrawUVVertex(FPrimitiveDrawInterface* PDI, int32 UVIndex, const FVector& UV_3D);
 
 	TSharedPtr<class SUVViewport> GetUVViewport() const;
 	FVector	UVto3D(const FVector2D& UV) const;
@@ -32,7 +38,16 @@ private:
 	FPreviewScene OwnedPreviewScene;
 	FTransform SceneTransform;
 
+	FUVSelection	UVSelection;
+
 	bool bIsManipulating;
+
+	const FLinearColor	VertexColor;
+	const FLinearColor	SelectedVertexColor;
+	const FLinearColor	ValidEdgeColor;
+	const FLinearColor	InvalidEdgeColor;
+
+	TArray<FUVVertexData> CachedUV;
 };
 
 typedef TSharedPtr<FUVViewportClient> FUVViewportClientPtr;

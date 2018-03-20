@@ -46,6 +46,8 @@ void SUVViewport::SetUVChannelIndex(int32 ChannelIndex)
 		if (newUVChannelIndex != UVChannelIndex)
 		{
 			UVChannelIndex = newUVChannelIndex;
+
+			ViewportClient->RegenerateUVCache();
 			Invalidate();
 		}
 	}
