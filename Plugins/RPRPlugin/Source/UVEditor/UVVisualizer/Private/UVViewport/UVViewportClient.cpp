@@ -4,7 +4,8 @@
 #include "RawMesh.h"
 #include "UVUtility.h"
 #include "SUVViewport.h"
-#include "UVSelection.h"
+#include "Engine/Selection.h"
+#include "UVViewportActions.h"
 
 struct HUVVertexProxy : public HHitProxy
 {
@@ -12,15 +13,17 @@ struct HUVVertexProxy : public HHitProxy
 
 public:
 
-	HUVVertexProxy(int32 InUVIndex)
-		: UVIndex(InUVIndex)
+	HUVVertexProxy(UUVCacheData* InUV)
+		: UV(InUV)
 	{}
 
-	int32 UVIndex;
+	UUVCacheData* UV;
 
 };
 
 IMPLEMENT_HIT_PROXY(HUVVertexProxy, HHitProxy)
+
+const FEditorModeID FUVViewportClient::UVModeID("EM_UV");
 
 FUVViewportClient::FUVViewportClient(const TWeakPtr<SEditorViewport>& InViewport)
 	: FEditorViewportClient(nullptr, nullptr, InViewport)
@@ -32,7 +35,6 @@ FUVViewportClient::FUVViewportClient(const TWeakPtr<SEditorViewport>& InViewport
 	bDrawAxes = false;
 
 	PreviewScene = &OwnedPreviewScene;
-	WidgetMode = FWidget::WM_Translate;
 	bIsManipulating = false;
 
 	// Scale the UV drawn so it is better to navigate in the scene
@@ -57,8 +59,6 @@ void FUVViewportClient::GenerateCacheUV()
 	{
 		UVCache.ClearCache();
 	}
-
-	UVSelection.SetCachedUVs(&UVCache);
 }
 
 void FUVViewportClient::SetupCamera()
@@ -134,8 +134,15 @@ void FUVViewportClient::DrawUVVertex(FPrimitiveDrawInterface* PDI, int32 UVIndex
 	const int32 vertexSize = 5.0f;
 	const uint8 depthPriority = SDPG_World;
 
-	PDI->SetHitProxy(new HUVVertexProxy(UVIndex));
-	FLinearColor color = UVSelection.IsUVSelected(UVIndex) ? SelectedVertexColor : VertexColor;	
+	UUVCacheData* uv = UVCache[UVIndex];
+	PDI->SetHitProxy(new HUVVertexProxy(uv));
+	FLinearColor color = VertexColor;
+	
+	if (ModeTools->GetSelectedObjects()->IsSelected(uv))
+	{
+		color = SelectedVertexColor;
+	}
+
 	PDI->DrawPoint(UV_3D, color, vertexSize, depthPriority);
 	PDI->SetHitProxy(nullptr);
 }
@@ -144,17 +151,14 @@ void FUVViewportClient::ProcessClick(FSceneView& View, HHitProxy* HitProxy, FKey
 {
 	FEditorViewportClient::ProcessClick(View, HitProxy, Key, Event, HitX, HitY);
 
-	if (HitProxy != nullptr)
+	if (HitProxy != nullptr && HitProxy->IsA(HUVVertexProxy::StaticGetType()))
 	{
-		if (HitProxy->IsA(HUVVertexProxy::StaticGetType()))
-		{
-			HUVVertexProxy* uvProxy = StaticCast<HUVVertexProxy*>(HitProxy);
-			UVSelection.SelectUV(uvProxy->UVIndex);
-		}
+		HUVVertexProxy* uvProxy = StaticCast<HUVVertexProxy*>(HitProxy);
+		ModeTools->GetSelectedObjects()->Select(uvProxy->UV);
 	}
 	else
 	{
-		UVSelection.ClearSelection();
+		ModeTools->GetSelectedObjects()->DeselectAll();
 	}
 }
 
@@ -170,7 +174,36 @@ void FUVViewportClient::RegenerateUVCache()
 
 void FUVViewportClient::SelectAllUVs()
 {
-	UVSelection.SelectAllUVs();
+	USelection* selection = ModeTools->GetSelectedObjects();
+	selection->BeginBatchSelectOperation();
+	{
+		for (int32 i = 0; i < UVCache.Num(); ++i)
+		{
+			selection->Select(UVCache[i]);
+		}
+	}
+	selection->EndBatchSelectOperation();
+}
+
+FWidget::EWidgetMode FUVViewportClient::GetWidgetMode() const
+{
+	return (ModeTools->GetSelectedObjects()->Num() > 0 ? ModeTools->GetWidgetMode() : FWidget::EWidgetMode::WM_None);
+}
+
+FVector FUVViewportClient::GetWidgetLocation() const
+{
+	USelection* selection = ModeTools->GetSelectedObjects();
+	if (selection->Num() > 0)
+	{
+		SUVViewportPtr viewport = GetUVViewport();
+		if (viewport.IsValid())
+		{
+			const FVector2D barycenter = GetUVSelectionBarycenter();
+			return (UVto3D(barycenter));
+		}
+	}
+
+	return (FVector::ZeroVector);
 }
 
 SUVViewportPtr FUVViewportClient::GetUVViewport() const
@@ -182,4 +215,30 @@ SUVViewportPtr FUVViewportClient::GetUVViewport() const
 FVector FUVViewportClient::UVto3D(const FVector2D& UV) const
 {
 	return (SceneTransform.TransformPosition(FVector(UV.X, 0, UV.Y)));
+}
+
+FVector2D FUVViewportClient::GetUVSelectionBarycenter() const
+{
+	USelection* selection = ModeTools->GetSelectedObjects();
+	TArray<UUVCacheData*> uvCacheData;
+	selection->GetSelectedObjects<UUVCacheData>(uvCacheData);
+
+	FVector2D barycenter = FVector2D::ZeroVector;
+
+	if (uvCacheData.Num() > 0)
+	{
+		SUVViewportPtr viewport = GetUVViewport();
+		if (viewport.IsValid())
+		{
+			const TArray<FVector2D>& uv = viewport->GetUV();
+			for (int32 i = 0; i < uvCacheData.Num(); ++i)
+			{
+				barycenter += uv[uvCacheData[i]->UVIndex];
+			}
+
+			barycenter /= uvCacheData.Num();
+		}
+	}
+
+	return (barycenter);
 }

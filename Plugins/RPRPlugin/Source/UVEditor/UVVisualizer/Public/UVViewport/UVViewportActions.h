@@ -15,5 +15,5 @@ public:
 
 	virtual void RegisterCommands() override;
 
-	TSharedPtr<FUICommandInfo> SelectAllUV;
+	TSharedPtr<FUICommandInfo>	SelectAllUV;
 };

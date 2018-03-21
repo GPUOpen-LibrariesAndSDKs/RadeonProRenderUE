@@ -11,6 +11,7 @@
 #include "SEditorViewport.h"
 #include "UICommandList.h"
 #include "UIAction.h"
+#include "EditorViewportCommands.h"
 
 SUVViewport::SUVViewport()
 	: UVChannelIndex(INDEX_NONE)
@@ -343,17 +344,45 @@ TSharedRef<FEditorViewportClient> SUVViewport::MakeEditorViewportClient()
 TSharedPtr<SWidget> SUVViewport::MakeViewportToolbar()
 {
 	return SNew(SUVViewportToolBar)
-		.Viewport(SharedThis(this));
+		.Viewport(SharedThis(this))
+		.CommandList(CommandList);
 }
 
 void SUVViewport::BindCommands()
 {
 	const FUVViewportCommands& viewportActions = FUVViewportCommands::Get();
+	TSharedRef<FUVViewportClient> clientRef = ViewportClient.ToSharedRef();
 
 	CommandList->MapAction(
 		viewportActions.SelectAllUV,
 		FExecuteAction::CreateSP(this, &SUVViewport::SelectAllUVs)
 	);
+
+	CommandList->MapAction(
+		FEditorViewportCommands::Get().TranslateMode,
+		FExecuteAction::CreateSP(clientRef, &FEditorViewportClient::SetWidgetMode, FWidget::EWidgetMode::WM_Translate),
+		FCanExecuteAction::CreateSP(clientRef, &FEditorViewportClient::CanSetWidgetMode, FWidget::WM_Translate),
+		FIsActionChecked::CreateSP(this, &SUVViewport::IsWidgetModeActive, FWidget::WM_Translate)
+		);
+
+	CommandList->MapAction(
+		FEditorViewportCommands::Get().RotateMode,
+		FExecuteAction::CreateSP(clientRef, &FEditorViewportClient::SetWidgetMode, FWidget::EWidgetMode::WM_Rotate),
+		FCanExecuteAction::CreateSP(clientRef, &FEditorViewportClient::CanSetWidgetMode, FWidget::WM_Rotate),
+		FIsActionChecked::CreateSP(this, &SUVViewport::IsWidgetModeActive, FWidget::WM_Rotate)
+	);
+
+	CommandList->MapAction(
+		FEditorViewportCommands::Get().ScaleMode,
+		FExecuteAction::CreateSP(clientRef, &FEditorViewportClient::SetWidgetMode, FWidget::EWidgetMode::WM_Scale),
+		FCanExecuteAction::CreateSP(clientRef, &FEditorViewportClient::CanSetWidgetMode, FWidget::WM_Scale),
+		FIsActionChecked::CreateSP(this, &SUVViewport::IsWidgetModeActive, FWidget::WM_Scale)
+	);
+}
+
+bool SUVViewport::IsWidgetModeActive(FWidget::EWidgetMode Mode) const
+{
+	return (SEditorViewport::IsWidgetModeActive(Mode));
 }
 
 UStaticMesh* SUVViewport::GetStaticMesh() const
@@ -369,4 +398,9 @@ FRawMesh& SUVViewport::GetRawMesh()
 int32 SUVViewport::GetUVChannel() const
 {
 	return (UVChannelIndex);
+}
+
+const TArray<FVector2D>& SUVViewport::GetUV() const
+{
+	return (RawMesh.WedgeTexCoords[GetUVChannel()]);
 }

@@ -3,8 +3,9 @@
 #include "SharedPointer.h"
 #include "PreviewScene.h"
 #include "UnrealWidget.h"
-#include "UVSelection.h"
 #include "UVCache.h"
+#include "Editor.h"
+#include "UICommandList.h"
 
 class FUVViewportClient : public FEditorViewportClient
 {
@@ -19,6 +20,9 @@ public:
 	void	RegenerateUVCache();
 
 	void	SelectAllUVs();
+	
+	virtual FWidget::EWidgetMode GetWidgetMode() const override;
+	virtual FVector GetWidgetLocation() const override;
 
 private:
 
@@ -30,17 +34,14 @@ private:
 	void	DrawUVVertex(FPrimitiveDrawInterface* PDI, int32 UVIndex, const FVector& UV_3D);
 
 	TSharedPtr<class SUVViewport> GetUVViewport() const;
-	FVector	UVto3D(const FVector2D& UV) const;
+	FVector		UVto3D(const FVector2D& UV) const;
+	FVector2D	GetUVSelectionBarycenter() const;
 
 private:
-
-	FWidget* Widget;
-	FWidget::EWidgetMode WidgetMode;
 
 	FPreviewScene OwnedPreviewScene;
 	FTransform SceneTransform;
 
-	FUVSelection	UVSelection;
 	FUVCache		UVCache;
 
 	bool bIsManipulating;
@@ -49,6 +50,8 @@ private:
 	const FLinearColor	SelectedVertexColor;
 	const FLinearColor	ValidEdgeColor;
 	const FLinearColor	InvalidEdgeColor;
+
+	static const FEditorModeID	UVModeID;
 };
 
 typedef TSharedPtr<FUVViewportClient> FUVViewportClientPtr;

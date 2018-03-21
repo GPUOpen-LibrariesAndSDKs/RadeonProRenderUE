@@ -28,6 +28,7 @@ public:
 	UStaticMesh*	GetStaticMesh() const;
 	FRawMesh&		GetRawMesh();
 	int32			GetUVChannel() const;
+	const TArray<FVector2D>&	GetUV() const;
 
 	virtual int32	OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
 						const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements,
@@ -39,6 +40,7 @@ protected:
 	virtual TSharedPtr<SWidget> MakeViewportToolbar() override;
 	
 	virtual void BindCommands() override;
+	virtual bool IsWidgetModeActive(FWidget::EWidgetMode Mode) const override;
 
 private:
 
