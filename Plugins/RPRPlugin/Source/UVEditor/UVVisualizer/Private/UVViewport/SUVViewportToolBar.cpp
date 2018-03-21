@@ -7,6 +7,7 @@
 #include "UVViewportActions.h"
 #include "EditorViewportCommands.h"
 #include "SViewportToolBarIconMenu.h"
+#include "STransformViewportToolbar.h"
 
 #define LOCTEXT_NAMESPACE "SUVViewportToolBar"
 
@@ -17,11 +18,12 @@ void SUVViewportToolBar::Construct(const FArguments& InArgs)
 	UVViewport = InArgs._Viewport;
 	CommandList = InArgs._CommandList;
 
-	static const FName DefaultForegroundName("DefaultForeground");
+	const FMargin ToolbarSlotPadding(2.0f, 2.0f);
 
 	ChildSlot
 	[
 		SNew(SBorder)
+		.Padding(ToolbarSlotPadding)
 		.HAlign(HAlign_Right)
 		[
 			MakeToolbar()
@@ -41,17 +43,11 @@ TSharedRef<SWidget> SUVViewportToolBar::MakeToolbar()
 	toolbarBuilder.BeginSection("Transform");
 	toolbarBuilder.BeginBlockGroup();
 	{
-		// Translate Mode
-		static FName TranslateModeName = FName(TEXT("TranslateMode"));
-		toolbarBuilder.AddToolBarButton(FEditorViewportCommands::Get().TranslateMode, NAME_None, TAttribute<FText>(), TAttribute<FText>(), TAttribute<FSlateIcon>(), TranslateModeName);
-
-		// Rotate Mode
-		static FName RotateModeName = FName(TEXT("RotateMode"));
-		toolbarBuilder.AddToolBarButton(FEditorViewportCommands::Get().RotateMode, NAME_None, TAttribute<FText>(), TAttribute<FText>(), TAttribute<FSlateIcon>(), RotateModeName);
-
-		// Scale Mode
-		static FName ScaleModeName = FName(TEXT("ScaleMode"));
-		toolbarBuilder.AddToolBarButton(FEditorViewportCommands::Get().ScaleMode, NAME_None, TAttribute<FText>(), TAttribute<FText>(), TAttribute<FSlateIcon>(), ScaleModeName);
+		toolbarBuilder.AddWidget(
+			SNew(STransformViewportToolBar)
+			.Viewport(UVViewport.Pin())
+			.CommandList(CommandList)
+		);
 	}
 	toolbarBuilder.EndBlockGroup();
 	toolbarBuilder.EndSection();

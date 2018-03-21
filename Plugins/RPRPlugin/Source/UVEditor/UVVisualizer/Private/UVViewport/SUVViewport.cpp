@@ -12,6 +12,8 @@
 #include "UICommandList.h"
 #include "UIAction.h"
 #include "EditorViewportCommands.h"
+#include "STransformViewportToolbar.h"
+#include "SBorder.h"
 
 SUVViewport::SUVViewport()
 	: UVChannelIndex(INDEX_NONE)
@@ -378,6 +380,23 @@ void SUVViewport::BindCommands()
 		FCanExecuteAction::CreateSP(clientRef, &FEditorViewportClient::CanSetWidgetMode, FWidget::WM_Scale),
 		FIsActionChecked::CreateSP(this, &SUVViewport::IsWidgetModeActive, FWidget::WM_Scale)
 	);
+
+	DisableAction(FEditorViewportCommands::Get().TranslateRotateMode);
+	DisableAction(FEditorViewportCommands::Get().TranslateRotate2DMode);
+	DisableAction(FEditorViewportCommands::Get().SurfaceSnapping);
+	DisableAction(FEditorViewportCommands::Get().CycleTransformGizmoCoordSystem);
+}
+
+void SUVViewport::DisableAction(TSharedPtr<FUICommandInfo> CommandInfo)
+{
+	static auto returnFalseFunc = []() { return (false);  };
+	
+	CommandList->MapAction(CommandInfo, 
+		FExecuteAction(), 
+		FCanExecuteAction(), 
+		FIsActionChecked::CreateLambda(returnFalseFunc), 
+		FIsActionButtonVisible::CreateLambda(returnFalseFunc)
+	);
 }
 
 bool SUVViewport::IsWidgetModeActive(FWidget::EWidgetMode Mode) const
@@ -401,6 +420,11 @@ int32 SUVViewport::GetUVChannel() const
 }
 
 const TArray<FVector2D>& SUVViewport::GetUV() const
+{
+	return (RawMesh.WedgeTexCoords[GetUVChannel()]);
+}
+
+TArray<FVector2D>& SUVViewport::GetUV()
 {
 	return (RawMesh.WedgeTexCoords[GetUVChannel()]);
 }

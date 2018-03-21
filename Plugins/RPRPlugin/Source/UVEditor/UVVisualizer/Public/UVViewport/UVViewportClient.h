@@ -15,6 +15,9 @@ public:
 
 	virtual void Draw(const FSceneView* View, FPrimitiveDrawInterface* PDI) override;
 	virtual void ProcessClick(FSceneView& View, HHitProxy* HitProxy, FKey Key, EInputEvent Event, uint32 HitX, uint32 HitY) override;
+	virtual void TrackingStarted(const struct FInputEventState& InInputState, bool bIsDragging, bool bNudge) override;
+	virtual void TrackingStopped() override;
+	virtual bool InputWidgetDelta(FViewport* Viewport, EAxisList::Type CurrentAxis, FVector& Drag, FRotator& Rot, FVector& Scale) override;
 
 	virtual bool ShouldOrbitCamera() const override;
 	void	RegenerateUVCache();
@@ -34,8 +37,14 @@ private:
 	void	DrawUVVertex(FPrimitiveDrawInterface* PDI, int32 UVIndex, const FVector& UV_3D);
 
 	TSharedPtr<class SUVViewport> GetUVViewport() const;
-	FVector		UVto3D(const FVector2D& UV) const;
+	FVector		ConvertUVto3D(const FVector2D& UV) const;
+	FVector2D	Convert3DtoUV(const FVector& In3D) const;
 	FVector2D	GetUVSelectionBarycenter() const;
+	bool		HasUVSelected() const;
+
+	void		ApplyTranslation(const FVector& Drag);
+	void		ApplyRotation(const FRotator& Rotation);
+	void		ApplyScale(const FVector& Scale);
 
 private:
 

@@ -7,6 +7,8 @@
 #include "Engine/Selection.h"
 #include "UVViewportActions.h"
 
+#define LOCTEXT_NAMESPACE "UVViewportClient"
+
 struct HUVVertexProxy : public HHitProxy
 {
 	DECLARE_HIT_PROXY()
@@ -115,9 +117,9 @@ void FUVViewportClient::DrawUV(const FSceneView* View, FPrimitiveDrawInterface* 
 void FUVViewportClient::DrawUVTriangle(FPrimitiveDrawInterface* PDI, int32 UVStartIndex, const FLinearColor& Color,
 									const FVector2D& uvA, const FVector2D& uvB, const FVector2D& uvC)
 {
-	FVector uvA_3D = UVto3D(uvA);
-	FVector uvB_3D = UVto3D(uvB);
-	FVector uvC_3D = UVto3D(uvC);
+	FVector uvA_3D = ConvertUVto3D(uvA);
+	FVector uvB_3D = ConvertUVto3D(uvB);
+	FVector uvC_3D = ConvertUVto3D(uvC);
 
 	const uint8 depthPriority = SDPG_World;
 	PDI->DrawLine(uvA_3D, uvB_3D, Color, depthPriority);
@@ -162,6 +164,77 @@ void FUVViewportClient::ProcessClick(FSceneView& View, HHitProxy* HitProxy, FKey
 	}
 }
 
+void FUVViewportClient::TrackingStarted(const struct FInputEventState& InInputState, bool bIsDragging, bool bNudge)
+{
+	if (!bIsManipulating && bIsDragging)
+	{
+		if (HasUVSelected())
+		{
+			FText transText;
+			if (GetWidgetMode() == FWidget::WM_Translate)
+			{
+				transText = LOCTEXT("FUVViewportClient_TranslateUV", "Translate UV");
+			}
+			else if (GetWidgetMode() == FWidget::WM_Rotate)
+			{
+				transText = LOCTEXT("FUVViewportClient_RotateUV", "Rotate UV");
+			}
+			else
+			{
+				transText = LOCTEXT("FUVViewportClient_ScaleUV", "Scale UV");
+			}
+
+			GEditor->BeginTransaction(transText);
+		}
+
+		bIsManipulating = true;
+	}
+}
+
+void FUVViewportClient::TrackingStopped()
+{
+	if (bIsManipulating)
+	{
+		bIsManipulating = false;
+		GEditor->EndTransaction();
+	}
+}
+
+bool FUVViewportClient::InputWidgetDelta(FViewport* InViewport, EAxisList::Type CurrentAxis, FVector& Drag, FRotator& Rot, FVector& Scale)
+{
+	bool bHandled = false;
+
+	if (bIsManipulating)
+	{
+		if (CurrentAxis != EAxisList::None)
+		{
+			UProperty* ChangedProperty = NULL;
+			const FWidget::EWidgetMode MoveMode = GetWidgetMode();
+			switch (MoveMode)
+			{
+			case FWidget::WM_Translate:
+				ApplyTranslation(Drag);
+				break;
+
+			case FWidget::WM_Rotate:
+				ApplyRotation(Rot);
+				break;
+
+			case FWidget::WM_Scale:
+				ApplyScale(Scale);
+				break;
+
+			default:
+				break;
+			}
+
+			bHandled = true;
+		}
+	}
+
+	return (bHandled);
+}
+
 bool FUVViewportClient::ShouldOrbitCamera() const
 {
 	return (false);
@@ -199,7 +272,7 @@ FVector FUVViewportClient::GetWidgetLocation() const
 		if (viewport.IsValid())
 		{
 			const FVector2D barycenter = GetUVSelectionBarycenter();
-			return (UVto3D(barycenter));
+			return (ConvertUVto3D(barycenter));
 		}
 	}
 
@@ -212,9 +285,15 @@ SUVViewportPtr FUVViewportClient::GetUVViewport() const
 	return (StaticCastSharedPtr<SUVViewport>(viewport));
 }
 
-FVector FUVViewportClient::UVto3D(const FVector2D& UV) const
+FVector FUVViewportClient::ConvertUVto3D(const FVector2D& UV) const
 {
 	return (SceneTransform.TransformPosition(FVector(UV.X, 0, UV.Y)));
+}
+
+FVector2D FUVViewportClient::Convert3DtoUV(const FVector& In3D) const
+{
+	FVector transformed = SceneTransform.InverseTransformPosition(In3D);
+	return (FVector2D(transformed.X, transformed.Z));
 }
 
 FVector2D FUVViewportClient::GetUVSelectionBarycenter() const
@@ -242,3 +321,92 @@ FVector2D FUVViewportClient::GetUVSelectionBarycenter() const
 
 	return (barycenter);
 }
+
+bool FUVViewportClient::HasUVSelected() const
+{
+	return (ModeTools->GetSelectedObjects()->Num() > 0);
+}
+
+void FUVViewportClient::ApplyTranslation(const FVector& Drag)
+{
+	SUVViewportPtr viewport = GetUVViewport();
+
+	if (!viewport.IsValid())
+	{
+		return;
+	}
+
+	FVector2D drag2D = Convert3DtoUV(Drag);
+
+	USelection* selection = ModeTools->GetSelectedObjects();
+
+	TArray<UUVCacheData*> cacheData;
+	selection->GetSelectedObjects<UUVCacheData>(cacheData);
+	
+	for (int32 i = 0; i < cacheData.Num(); ++i)
+	{
+		int32 uvIndex = cacheData[i]->UVIndex;
+		FVector2D& uv = viewport->GetUV()[uvIndex];
+		uv += drag2D;
+	}
+}
+
+void FUVViewportClient::ApplyRotation(const FRotator& Rotation)
+{
+	SUVViewportPtr viewport = GetUVViewport();
+
+	if (!viewport.IsValid())
+	{
+		return;
+	}
+
+	USelection* selection = ModeTools->GetSelectedObjects();
+
+	FVector2D barycenter = GetUVSelectionBarycenter();
+	FVector barycenter3D = ConvertUVto3D(barycenter);
+
+	TArray<UUVCacheData*> cacheData;
+	selection->GetSelectedObjects<UUVCacheData>(cacheData);
+	
+	for (int32 i = 0; i < cacheData.Num(); ++i)
+	{
+		int32 uvIndex = cacheData[i]->UVIndex;
+		FVector2D& uv = viewport->GetUV()[uvIndex];
+		FVector uv3D = ConvertUVto3D(uv);
+		FVector barycenterToUV = uv3D - barycenter3D;
+		FVector newPosition3D = barycenter3D + Rotation.RotateVector(barycenterToUV);
+
+		uv = Convert3DtoUV(newPosition3D);
+	}
+}
+
+void FUVViewportClient::ApplyScale(const FVector& Scale)
+{
+	SUVViewportPtr viewport = GetUVViewport();
+
+	if (!viewport.IsValid())
+	{
+		return;
+	}
+
+	USelection* selection = ModeTools->GetSelectedObjects();
+
+	FVector2D barycenter = GetUVSelectionBarycenter();
+	FVector barycenter3D = ConvertUVto3D(barycenter);
+
+	TArray<UUVCacheData*> cacheData;
+	selection->GetSelectedObjects<UUVCacheData>(cacheData);
+
+	for (int32 i = 0; i < cacheData.Num(); ++i)
+	{
+		int32 uvIndex = cacheData[i]->UVIndex;
+		FVector2D& uv = viewport->GetUV()[uvIndex];
+		FVector uv3D = ConvertUVto3D(uv);
+		FVector barycenterToUV = uv3D - barycenter3D;
+		FVector newPosition3D = barycenter3D + barycenterToUV + Scale * barycenterToUV;
+		
+		uv = Convert3DtoUV(newPosition3D);
+	}
+}
+
+#undef LOCTEXT_NAMESPACE
