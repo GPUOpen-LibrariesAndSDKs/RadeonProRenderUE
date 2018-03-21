@@ -197,6 +197,11 @@ void FUVViewportClient::TrackingStopped()
 	{
 		bIsManipulating = false;
 		GEditor->EndTransaction();
+
+		if (HasUVSelected())
+		{
+			GetUVViewport()->RebuildMeshFromRawMesh();
+		}
 	}
 }
 

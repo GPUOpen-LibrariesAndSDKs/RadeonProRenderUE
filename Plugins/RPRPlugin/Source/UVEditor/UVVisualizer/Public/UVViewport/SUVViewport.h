@@ -18,6 +18,7 @@ public:
 
 	void	Construct(const FArguments& InArgs);
 	void	SetMesh(TWeakObjectPtr<class UStaticMesh> InStaticMesh);
+	void	RebuildMeshFromRawMesh();
 	void	Refresh();
 
 	void	SetUVChannelIndex(int32 ChannelIndex);

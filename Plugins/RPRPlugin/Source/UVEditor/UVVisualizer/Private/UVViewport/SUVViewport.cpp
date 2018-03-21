@@ -31,6 +31,14 @@ void SUVViewport::SetMesh(TWeakObjectPtr<class UStaticMesh> InStaticMesh)
 	Refresh();
 }
 
+void SUVViewport::RebuildMeshFromRawMesh()
+{
+	if (StaticMesh.IsValid())
+	{
+		FStaticMeshHelper::SaveRawMeshToStaticMesh(RawMesh, StaticMesh.Get());
+	}
+}
+
 void SUVViewport::Refresh()
 {
 	if (StaticMesh.IsValid())
