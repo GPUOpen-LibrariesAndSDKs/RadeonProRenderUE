@@ -9,6 +9,19 @@ class RPRPLUGINEDITOR_API URPRMeshPreviewComponent : public UProceduralMeshCompo
 	GENERATED_BODY()
 
 private:
+
+	struct FSectionData
+	{
+		int32 SectionStart;
+		int32 SectionEnd;
+
+		TArray<FVector> Vertices;
+		TArray<int32> Triangles;
+		TArray<FVector> Normals;
+		TArray<FVector2D> UV;
+		TArray<FColor> Colors;
+		TArray<FProcMeshTangent> Tangents;
+	};
 	
 	struct FVertexData
 	{
@@ -22,19 +35,22 @@ public:
 
 	URPRMeshPreviewComponent();
 
-	void			Regenerate();
+	void 			Regenerate();
 	void			SetStaticMesh(UStaticMesh* InStaticMesh, FRawMesh* InRawMesh);
 	UStaticMesh*	GetStaticMesh() const;
 
 private:
 
-	void	GenerateUVsAndAdaptMesh(TArray<FVector>& InOutVertices, TArray<int32>& InOutTriangles, TArray<FVector2D>& OutUVs);
+	int32	CountNumMaterials() const;
+	void	FindTrianglesBoundsBySection(int32 SectionIndex, int32& OutStartIndex, int32& OutEndIndex) const;
+	void	BuildSection(int32 SectionIndex, FSectionData& OutSectionData);
+	void	GenerateUVsAndAdaptMesh(FSectionData& SectionData);
 	bool	ShareSameVertex(int32 VertexIndexA, int32 VertexIndexB) const;
 	bool	AreUVIdentical(const FVector2D& uvA, const FVector2D& uvB) const;
 	int32	FindDuplicatedVertexInfo(const TArray<FVertexData>& VertexInfos, int32 StartIndex, int32 VertexIndex, const FVector2D& UV) const;
-	void	RemoveRedundantVerticesData(int32 NumVertices, const TArray<FVertexData>& VertexInfos, TArray<FVertexData>& OutVerticesData);
+	void	RemoveRedundantVerticesData(int32 NumVertices, TArray<FVertexData>& VertexInfos);
 	void	GetUVsFromVerticesData(const TArray<FVertexData>& VerticesData, TArray<FVector2D>& UV) const;
-	// void	GetNormalsAndTangentsFromVerticesData(const TArray<FVertexData>& VerticesData, TArray<FVector>& OutNormals, TArray<FProcMeshTangent>& OutTangents);
+	void	AssignMaterialFromStaticMesh();
 
 private:
 
@@ -42,5 +58,13 @@ private:
 	UStaticMesh* StaticMesh;
 	
 	FRawMesh* RawMesh;
+
+	TArray<FVector> MeshVertices;
+	TArray<int32> MeshTriangles;
+	TArray<FVector> MeshNormals;
+	TArray<FVector2D> MeshUV;
+	TArray<FProcMeshTangent> MeshTangents;
+
+	TArray<FSectionData> SectionDatas;
 
 };

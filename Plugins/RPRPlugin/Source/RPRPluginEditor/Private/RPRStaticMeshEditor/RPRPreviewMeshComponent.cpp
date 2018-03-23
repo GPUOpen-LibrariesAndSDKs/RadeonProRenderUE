@@ -11,46 +11,19 @@ void URPRMeshPreviewComponent::Regenerate()
 {
 	ClearAllMeshSections();
 
-	int32 meshSection = 0;
-	TArray<FVector> vertices;
-	TArray<int32> triangles;
-	TArray<FVector> normals;
-	TArray<FVector2D> uv;
-	TArray<FProcMeshTangent> tangents;
+	int32 numSections = CountNumMaterials();
+	SectionDatas.Empty(numSections);
 
-	vertices = RawMesh->VertexPositions;
+	FSectionData sectionData;
 
-	for (int32 i = 0; i < RawMesh->WedgeIndices.Num(); ++i)
+	for (int32 sectionIndex = 0; sectionIndex < numSections; ++sectionIndex)
 	{
-		triangles.Add(RawMesh->WedgeIndices[i]);
+		FindTrianglesBoundsBySection(sectionIndex, sectionData.SectionStart, sectionData.SectionEnd);
+		BuildSection(sectionIndex, sectionData);
+		SectionDatas.Add(sectionData);
 	}
 
-	for (int32 i = 0; i < RawMesh->WedgeTangentX.Num(); ++i)
-	{
-		tangents.Add(FProcMeshTangent(RawMesh->WedgeTangentX[i], false));
-	}
-
-	GenerateUVsAndAdaptMesh(vertices, triangles, uv);
-
-	CreateMeshSection(
-		meshSection,
-		vertices,
-		triangles,
-		TArray<FVector>(),
-		uv,
-		TArray<FColor>(),
-		TArray<FProcMeshTangent>(),
-		false
-	);
-
-
-	int32 materialIndex = 0;
-	UMaterialInterface* material = nullptr;
-	while ((material = StaticMesh->GetMaterial(materialIndex)) != nullptr)
-	{
-		SetMaterial(materialIndex, material);
-		++materialIndex;
-	}
+	AssignMaterialFromStaticMesh();
 }
 
 void URPRMeshPreviewComponent::SetStaticMesh(UStaticMesh* InStaticMesh, FRawMesh* InRawMesh)
@@ -66,14 +39,91 @@ UStaticMesh* URPRMeshPreviewComponent::GetStaticMesh() const
 	return (StaticMesh);
 }
 
-void URPRMeshPreviewComponent::GenerateUVsAndAdaptMesh(TArray<FVector>& InOutVertices, TArray<int32>& InOutTriangles, TArray<FVector2D>& OutUVs)
+int32 URPRMeshPreviewComponent::CountNumMaterials() const
 {
-	TArray<FVertexData> verticesData;
-	for (int32 i = 0; i < InOutTriangles.Num(); ++i)
+	int32 maxFaceMaterialIndice = 0;
+
+	for (int32 i = 0; i < RawMesh->FaceMaterialIndices.Num(); ++i)
 	{
-		int32 vertexIndex = InOutTriangles[i];
-		FVector2D uv = RawMesh->WedgeTexCoords[0][i];
-		const FVector& vertexPosition = RawMesh->VertexPositions[vertexIndex];
+		if (RawMesh->FaceMaterialIndices[i] > maxFaceMaterialIndice)
+		{
+			maxFaceMaterialIndice = RawMesh->FaceMaterialIndices[i];
+		}
+	}
+
+	return (maxFaceMaterialIndice + 1);
+}
+
+void URPRMeshPreviewComponent::FindTrianglesBoundsBySection(int32 SectionIndex, int32& OutStartIndex, int32& OutEndIndex) const
+{
+	bool bHasFoundStart = false;
+
+	for (int32 i = 0; i < RawMesh->FaceMaterialIndices.Num(); ++i)
+	{
+		if (RawMesh->FaceMaterialIndices[i] == SectionIndex)
+		{
+			if (!bHasFoundStart)
+			{
+				bHasFoundStart = true;
+				OutStartIndex = i;
+			}
+
+			OutEndIndex = i + 1;
+		}
+	}
+
+	// Because they are indexes by face but we want indexes by triangle
+	OutStartIndex = (OutStartIndex * 3);
+	OutEndIndex = (OutEndIndex * 3);
+}
+
+void URPRMeshPreviewComponent::BuildSection(int32 SectionIndex, FSectionData& OutSectionData)
+{
+	OutSectionData.Vertices = RawMesh->VertexPositions;
+	
+	OutSectionData.Triangles.Empty(OutSectionData.SectionEnd - OutSectionData.SectionStart);
+	for (int32 i = OutSectionData.SectionStart; i < OutSectionData.SectionEnd; ++i)
+	{
+		OutSectionData.Triangles.Add(RawMesh->WedgeIndices[i]);
+	}
+
+	OutSectionData.Tangents.Empty();
+	for (int32 i = OutSectionData.SectionStart; i < OutSectionData.SectionEnd; ++i)
+	{
+		if (RawMesh->WedgeTangentX.IsValidIndex(i))
+		{
+			OutSectionData.Tangents.Add(FProcMeshTangent(RawMesh->WedgeTangentX[i], false));
+		}
+	}
+
+	GenerateUVsAndAdaptMesh(OutSectionData);
+
+	CreateMeshSection(
+		SectionIndex,
+		OutSectionData.Vertices,
+		OutSectionData.Triangles,
+		OutSectionData.Normals,
+		OutSectionData.UV,
+		OutSectionData.Colors,
+		OutSectionData.Tangents,
+		false
+	);
+}
+
+void URPRMeshPreviewComponent::GenerateUVsAndAdaptMesh(FSectionData& SectionData)
+{
+	const int32 uvChannel = 0;
+	const TArray<FVector2D>& meshUV = RawMesh->WedgeTexCoords[uvChannel];
+
+	TArray<FVector>& vertices = RawMesh->VertexPositions;
+	TArray<int32>& triangles = SectionData.Triangles;
+
+	TArray<FVertexData> verticesData;
+	for (int32 triIndex = 0; triIndex < triangles.Num(); ++triIndex)
+	{
+		int32 vertexIndex = triangles[triIndex];
+		FVector2D uv = meshUV[triIndex];
+		const FVector& vertexPosition = vertices[vertexIndex];
 
 		bool hasRegisteredVertexData = false;
 		for (int32 j = 0; j < verticesData.Num(); ++j)
@@ -86,13 +136,13 @@ void URPRMeshPreviewComponent::GenerateUVsAndAdaptMesh(TArray<FVector>& InOutVer
 
 				if (indexOfDuplicated != INDEX_NONE) // Found
 				{
-					InOutTriangles[i] = verticesData[indexOfDuplicated].VertexIndex;
+					triangles[triIndex] = verticesData[indexOfDuplicated].VertexIndex;
 				}
 				else // Not found
 				{
 					// Duplicate vertex and assign the new one to the triangle
-					int32 newVertexIndex = InOutVertices.Add(vertexPosition);
-					InOutTriangles[i] = newVertexIndex;
+					int32 newVertexIndex = SectionData.Vertices.Add(vertexPosition);
+					triangles[triIndex] = newVertexIndex;
 
 					FVertexData vertexInfo;
 					vertexInfo.OriginalVertexIndex = vertexIndex;
@@ -115,9 +165,8 @@ void URPRMeshPreviewComponent::GenerateUVsAndAdaptMesh(TArray<FVector>& InOutVer
 		}
 	}
 
-	TArray<FVertexData> noRedundantVerticesData;
-	RemoveRedundantVerticesData(InOutVertices.Num(), verticesData, noRedundantVerticesData);
-	GetUVsFromVerticesData(noRedundantVerticesData, OutUVs);
+	RemoveRedundantVerticesData(SectionData.Vertices.Num(), verticesData);
+	GetUVsFromVerticesData(verticesData, SectionData.UV);
 }
 
 bool URPRMeshPreviewComponent::ShareSameVertex(int32 VertexIndexA, int32 VertexIndexB) const
@@ -145,36 +194,44 @@ int32 URPRMeshPreviewComponent::FindDuplicatedVertexInfo(const TArray<FVertexDat
 	return (INDEX_NONE);
 }
 
-void URPRMeshPreviewComponent::RemoveRedundantVerticesData(int32 NumVertices, const TArray<FVertexData>& VertexInfos, TArray<FVertexData>& OutVerticesData)
+void URPRMeshPreviewComponent::RemoveRedundantVerticesData(int32 NumVertices, TArray<FVertexData>& VertexInfos)
 {
+	TArray<FVertexData> uniqueVertexInfos;
 	int32 vertexIndex = 0;
+
+	uniqueVertexInfos.Reserve(NumVertices);
 	while (vertexIndex <= NumVertices)
 	{
 		for (int32 i = 0; i < VertexInfos.Num(); ++i)
 		{
 			if (vertexIndex == VertexInfos[i].VertexIndex)
 			{
-				OutVerticesData.Add(VertexInfos[i]);
+				uniqueVertexInfos.Add(VertexInfos[i]);
 				break;
 			}
 		}
 		++vertexIndex;
 	}
+
+	VertexInfos = uniqueVertexInfos;
 }
 
 void URPRMeshPreviewComponent::GetUVsFromVerticesData(const TArray<FVertexData>& VerticesData, TArray<FVector2D>& UV) const
 {
+	UV.Empty(VerticesData.Num());
 	for (int32 i = 0; i < VerticesData.Num(); ++i)
 	{
 		UV.Add(VerticesData[i].UV);
 	}
 }
 
-//void URPRMeshPreviewComponent::GetNormalsAndTangentsFromVerticesData(const TArray<FVertexData>& VerticesData, 
-//											TArray<FVector>& OutNormals, TArray<FProcMeshTangent>& OutTangents)
-//{
-//	for (int32 i = 0; i < VerticesData.Num(); ++i)
-//	{
-//		OutNormals.Add(RawMesh->WedgeTangentZ[]);
-//	}
-//}
+void URPRMeshPreviewComponent::AssignMaterialFromStaticMesh()
+{
+	int32 materialIndex = 0;
+	UMaterialInterface* material = nullptr;
+	while ((material = StaticMesh->GetMaterial(materialIndex)) != nullptr)
+	{
+		SetMaterial(materialIndex, material);
+		++materialIndex;
+	}
+}
