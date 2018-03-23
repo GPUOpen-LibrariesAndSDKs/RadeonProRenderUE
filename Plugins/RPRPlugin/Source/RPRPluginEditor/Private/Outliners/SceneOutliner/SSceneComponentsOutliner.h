@@ -3,14 +3,15 @@
 #include "DeclarativeSyntaxSupport.h"
 #include "SObjectOutliner.h"
 #include "Components/StaticMeshComponent.h"
+#include "RPRPreviewMeshComponent.h"
 
-DECLARE_DELEGATE_RetVal(const TArray<UStaticMeshComponent*>&, FGetStaticMeshComponents)
+DECLARE_DELEGATE_RetVal(const TArray<URPRMeshPreviewComponent*>&, FGetStaticMeshComponents)
 
 class SSceneComponentsOutliner : public SCompoundWidget
 {
 private:
 
-	typedef SObjectsOutliner<UStaticMeshComponent*> SStaticMeshComponentsOutliner;
+	typedef SObjectsOutliner<URPRMeshPreviewComponent*> SStaticMeshComponentsOutliner;
 	typedef TSharedPtr<SStaticMeshComponentsOutliner> SStaticMeshComponentsOutlinerPtr;
 
 public:
@@ -24,11 +25,11 @@ public:
 	void	Refresh();
 
 	void	SelectAll();
-	int32	GetSelectedItem(TArray<UStaticMeshComponent*>& SelectedMeshComponents) const;
+	int32	GetSelectedItem(TArray<URPRMeshPreviewComponent*>& SelectedMeshComponents) const;
 
 private:
 
-	FText	GetPrettyStaticMeshComponentName(UStaticMeshComponent* StaticMeshComponent) const;
+	FText	GetPrettyStaticMeshComponentName(URPRMeshPreviewComponent* StaticMeshComponent) const;
 	FText	GetNumberSelectedItemsText() const;
 	FReply	OnSelectAllButtonClicked() const;
 

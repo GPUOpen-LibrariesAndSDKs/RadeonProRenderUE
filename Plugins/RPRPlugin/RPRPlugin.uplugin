@@ -54,6 +54,12 @@
 		{
 			"Name": "UVProjection_Cylindrical",
 			"Type": "Editor"			
+		},
+	],
+	"Plugins": [
+		{
+			"Name": "ProceduralMeshComponent",
+			"Enabled": true
 		}
 	]
 }

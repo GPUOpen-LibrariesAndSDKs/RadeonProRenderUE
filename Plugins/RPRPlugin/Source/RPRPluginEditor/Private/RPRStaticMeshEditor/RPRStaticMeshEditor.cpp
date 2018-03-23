@@ -271,7 +271,7 @@ TArray<UStaticMesh*>	FRPRStaticMeshEditor::GetSelectedStaticMeshes() const
 
 	if (SceneComponentsOutliner.IsValid())
 	{
-		TArray<UStaticMeshComponent*> staticMeshComponents;
+		TArray<URPRMeshPreviewComponent*> staticMeshComponents;
 		SceneComponentsOutliner->GetSelectedItem(staticMeshComponents);
 
 		// If there is only one mesh available, we consider it has selected
@@ -374,22 +374,22 @@ TSharedRef<SDockTab> FRPRStaticMeshEditor::SpawnTab_SceneComponentsOutliner(cons
 		];
 }
 
-void FRPRStaticMeshEditor::OnSceneComponentOutlinerSelectionChanged(UStaticMeshComponent* NewItemSelected, ESelectInfo::Type SelectInfo)
+void FRPRStaticMeshEditor::OnSceneComponentOutlinerSelectionChanged(URPRMeshPreviewComponent* NewItemSelected, ESelectInfo::Type SelectInfo)
 {
-	TArray<UStaticMeshComponent*> selectedMeshComponents;
+	TArray<URPRMeshPreviewComponent*> selectedMeshComponents;
 	int32 numItemSelected = SceneComponentsOutliner->GetSelectedItem(selectedMeshComponents);
 
 	UVVisualizer->SetMesh(numItemSelected > 0 ? selectedMeshComponents.Last()->GetStaticMesh() : nullptr);
 }
 
-const TArray<UStaticMeshComponent*>& FRPRStaticMeshEditor::GetSceneComponents() const
+const TArray<URPRMeshPreviewComponent*>& FRPRStaticMeshEditor::GetSceneComponents() const
 {
 	if (Viewport.IsValid())
 	{
 		return (Viewport->GetStaticMeshComponents());
 	}
 
-	static TArray<UStaticMeshComponent*> empty;
+	static TArray<URPRMeshPreviewComponent*> empty;
 	return (empty);
 }
 

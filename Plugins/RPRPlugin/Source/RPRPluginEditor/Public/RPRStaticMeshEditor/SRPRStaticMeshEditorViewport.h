@@ -7,6 +7,7 @@
 #include "RPRStaticMeshEditorViewportClient.h"
 #include "AdvancedPreviewScene.h"
 #include "Components/StaticMeshComponent.h"
+#include "RPRPreviewMeshComponent.h"
 
 class SRPRStaticMeshEditorViewport : public SEditorViewport, public FGCObject, public ICommonEditorViewportToolbarInfoProvider
 {
@@ -24,9 +25,9 @@ public:
 	void Construct(const FArguments& InArgs);
 
 	void SetFloorToStaticMeshBottom();
-	const TArray<UStaticMeshComponent*>&	GetStaticMeshComponents() const;
+	const TArray<URPRMeshPreviewComponent*>&	GetStaticMeshComponents() const;
 
-	UStaticMeshComponent* CreatePreviewMeshAndAddToViewport(UStaticMesh* StaticMesh);
+	URPRMeshPreviewComponent* CreatePreviewMeshAndAddToViewport(UStaticMesh* StaticMesh);
 	void AddComponent(UActorComponent* InComponent);
 
 	/* FGCObject Implementation */
@@ -51,7 +52,7 @@ private:
 
 private:
 
-	TArray<UStaticMeshComponent*>	StaticMeshComponents;
+	TArray<URPRMeshPreviewComponent*>	MeshComponents;
 
 	TWeakPtr<FRPRStaticMeshEditor>			StaticMeshEditorPtr;
 	FRPRStaticMeshEditorViewportClientPtr	EditorViewportClient;

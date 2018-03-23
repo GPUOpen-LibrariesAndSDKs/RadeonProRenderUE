@@ -22,7 +22,7 @@ void SSceneComponentsOutliner::Construct(const FArguments& InArgs)
 			+SVerticalBox::Slot()
 			.FillHeight(0.9f)
 			[
-				SAssignNew(StaticMeshCompsOutliner, SObjectsOutliner<UStaticMeshComponent*>)
+				SAssignNew(StaticMeshCompsOutliner, SObjectsOutliner<URPRMeshPreviewComponent*>)
 				.OnSelectionChanged(OnSelectionChanged)
 				.OverrideGetObjectName(this, &SSceneComponentsOutliner::GetPrettyStaticMeshComponentName)
 			]
@@ -75,12 +75,12 @@ void SSceneComponentsOutliner::SelectAll()
 	StaticMeshCompsOutliner->SelectAll();
 }
 
-int32 SSceneComponentsOutliner::GetSelectedItem(TArray<UStaticMeshComponent*>& SelectedMeshComponents) const
+int32 SSceneComponentsOutliner::GetSelectedItem(TArray<URPRMeshPreviewComponent*>& SelectedMeshComponents) const
 {
 	return (StaticMeshCompsOutliner->GetSelectedItems(SelectedMeshComponents));
 }
 
-FText SSceneComponentsOutliner::GetPrettyStaticMeshComponentName(UStaticMeshComponent* StaticMeshComponent) const
+FText SSceneComponentsOutliner::GetPrettyStaticMeshComponentName(URPRMeshPreviewComponent* StaticMeshComponent) const
 {
 	return (FText::FromString(StaticMeshComponent->GetStaticMesh()->GetName()));
 }

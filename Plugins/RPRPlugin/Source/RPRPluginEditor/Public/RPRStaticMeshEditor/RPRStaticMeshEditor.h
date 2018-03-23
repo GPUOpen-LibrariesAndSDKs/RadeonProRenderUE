@@ -5,6 +5,7 @@
 #include "SharedPointer.h"
 #include "RPRStaticMeshEditorSelection.h"
 #include "Engine/StaticMesh.h"
+#include "RPRPreviewMeshComponent.h"
 
 extern const FName RPRStaticMeshEditorAppIdentifier;
 
@@ -52,9 +53,9 @@ private:
 	TSharedRef<SDockTab>				SpawnTab_UVVisualizer(const FSpawnTabArgs& Args);
 	TSharedRef<SDockTab>				SpawnTab_SceneComponentsOutliner(const FSpawnTabArgs& Args);
 
-	void	OnSceneComponentOutlinerSelectionChanged(UStaticMeshComponent* NewItemSelected, ESelectInfo::Type SelectInfo);
+	void	OnSceneComponentOutlinerSelectionChanged(URPRMeshPreviewComponent* NewItemSelected, ESelectInfo::Type SelectInfo);
 
-	const TArray<UStaticMeshComponent*>&	GetSceneComponents() const;
+	const TArray<URPRMeshPreviewComponent*>&	GetSceneComponents() const;
 
 	virtual bool	OnRequestClose() override;
 
