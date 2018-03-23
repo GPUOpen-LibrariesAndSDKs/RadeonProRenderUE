@@ -87,15 +87,6 @@ void URPRMeshPreviewComponent::BuildSection(int32 SectionIndex, FSectionData& Ou
 		OutSectionData.Triangles.Add(RawMesh->WedgeIndices[i]);
 	}
 
-	OutSectionData.Tangents.Empty();
-	for (int32 i = OutSectionData.SectionStart; i < OutSectionData.SectionEnd; ++i)
-	{
-		if (RawMesh->WedgeTangentX.IsValidIndex(i))
-		{
-			OutSectionData.Tangents.Add(FProcMeshTangent(RawMesh->WedgeTangentX[i], false));
-		}
-	}
-
 	GenerateUVsAndAdaptMesh(OutSectionData);
 
 	CreateMeshSection(
@@ -147,6 +138,7 @@ void URPRMeshPreviewComponent::GenerateUVsAndAdaptMesh(FSectionData& SectionData
 					FVertexData vertexInfo;
 					vertexInfo.OriginalVertexIndex = vertexIndex;
 					vertexInfo.VertexIndex = newVertexIndex;
+					vertexInfo.TriangleIndex = triIndex;
 					vertexInfo.UV = uv;
 					verticesData.Add(vertexInfo);
 				}
@@ -160,6 +152,7 @@ void URPRMeshPreviewComponent::GenerateUVsAndAdaptMesh(FSectionData& SectionData
 			FVertexData vertexInfo;
 			vertexInfo.OriginalVertexIndex = vertexIndex;
 			vertexInfo.VertexIndex = vertexIndex;
+			vertexInfo.TriangleIndex = triIndex;
 			vertexInfo.UV = uv;
 			verticesData.Add(vertexInfo);
 		}
@@ -167,6 +160,7 @@ void URPRMeshPreviewComponent::GenerateUVsAndAdaptMesh(FSectionData& SectionData
 
 	RemoveRedundantVerticesData(SectionData.Vertices.Num(), verticesData);
 	GetUVsFromVerticesData(verticesData, SectionData.UV);
+	GetColorNormalsAndTangentsFromVerticesData(verticesData, SectionData);
 }
 
 bool URPRMeshPreviewComponent::ShareSameVertex(int32 VertexIndexA, int32 VertexIndexB) const
@@ -222,6 +216,36 @@ void URPRMeshPreviewComponent::GetUVsFromVerticesData(const TArray<FVertexData>&
 	for (int32 i = 0; i < VerticesData.Num(); ++i)
 	{
 		UV.Add(VerticesData[i].UV);
+	}
+}
+
+void URPRMeshPreviewComponent::GetColorNormalsAndTangentsFromVerticesData(const TArray<FVertexData>& VerticesData, FSectionData& SectionData) const
+{
+	TArray<FVector>& Normals = SectionData.Normals;
+	TArray<FProcMeshTangent>& Tangents = SectionData.Tangents;
+	TArray<FColor>& Colors = SectionData.Colors;
+
+	Normals.Empty();
+	Tangents.Empty();
+	Colors.Empty();
+
+	for (int32 i = 0; i < VerticesData.Num(); ++i)
+	{
+		int32 tri = VerticesData[i].TriangleIndex;
+		if (RawMesh->WedgeTangentZ.IsValidIndex(tri))
+		{
+			Normals.Add(RawMesh->WedgeTangentZ[tri]);
+		}
+		if (RawMesh->WedgeTangentX.IsValidIndex(tri))
+		{
+			Tangents.Add(FProcMeshTangent(RawMesh->WedgeTangentX[tri], false));
+		}
+
+		int32 vertexIndex = VerticesData[i].VertexIndex;
+		if (RawMesh->WedgeColors.IsValidIndex(vertexIndex))
+		{
+			Colors.Add(RawMesh->WedgeColors[vertexIndex]);
+		}
 	}
 }
 

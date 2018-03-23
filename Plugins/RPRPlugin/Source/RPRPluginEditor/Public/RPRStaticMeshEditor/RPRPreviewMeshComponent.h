@@ -50,6 +50,7 @@ private:
 	int32	FindDuplicatedVertexInfo(const TArray<FVertexData>& VertexInfos, int32 StartIndex, int32 VertexIndex, const FVector2D& UV) const;
 	void	RemoveRedundantVerticesData(int32 NumVertices, TArray<FVertexData>& VertexInfos);
 	void	GetUVsFromVerticesData(const TArray<FVertexData>& VerticesData, TArray<FVector2D>& UV) const;
+	void	GetColorNormalsAndTangentsFromVerticesData(const TArray<FVertexData>& VerticesData, FSectionData& SectionData) const;
 	void	AssignMaterialFromStaticMesh();
 
 private:
