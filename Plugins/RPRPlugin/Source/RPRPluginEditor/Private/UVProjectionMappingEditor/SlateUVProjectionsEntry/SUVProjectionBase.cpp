@@ -28,9 +28,9 @@ void SUVProjectionBase::SetRPRStaticMeshEditor(FRPRStaticMeshEditorWeakPtr RPRSt
 	RPRStaticMeshEditorPtr = RPRStaticMeshEditor;
 }
 
-const TArray<UStaticMesh*>& SUVProjectionBase::GetStaticMeshes() const
+const FRPRMeshDataContainer& SUVProjectionBase::GetMeshDatas() const
 {
-	return (GetRPRStaticMeshEditor()->GetStaticMeshes());
+	return (GetRPRStaticMeshEditor()->GetMeshDatas());
 }
 
 FRPRStaticMeshEditorPtr SUVProjectionBase::GetRPRStaticMeshEditor() const
@@ -127,7 +127,7 @@ void SUVProjectionBase::StartAlgorithm()
 {
 	if (Algorithm.IsValid())
 	{
-		Algorithm->SetStaticMeshes(RPRStaticMeshEditorPtr.Pin()->GetSelectedStaticMeshes());
+		Algorithm->SetMeshDatas(RPRStaticMeshEditorPtr.Pin()->GetSelectedMeshes());
 		Algorithm->SetGlobalUVProjectionSettings(UVProjectionSettings);
 		OnPreAlgorithmStart();
 		Algorithm->StartAlgorithm();

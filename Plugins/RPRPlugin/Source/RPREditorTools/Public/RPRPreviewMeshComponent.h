@@ -4,7 +4,7 @@
 #include "RPRPreviewMeshComponent.generated.h"
 
 UCLASS()
-class RPRPLUGINEDITOR_API URPRMeshPreviewComponent : public UProceduralMeshComponent
+class RPREDITORTOOLS_API URPRMeshPreviewComponent : public UProceduralMeshComponent
 {
 	GENERATED_BODY()
 
@@ -36,11 +36,13 @@ public:
 	URPRMeshPreviewComponent();
 
 	void 			Regenerate();
-	void			SetStaticMesh(UStaticMesh* InStaticMesh, FRawMesh* InRawMesh);
-	UStaticMesh*	GetStaticMesh() const;
+	void			RegenerateUVs();
+	void			SetMeshData(TSharedPtr<class FRPRMeshData> InMeshData);
+	TSharedPtr<class FRPRMeshData> GetMeshData();
 
 private:
 
+	const FRawMesh&	GetRawMesh() const;
 	int32	CountNumMaterials() const;
 	void	FindTrianglesBoundsBySection(int32 SectionIndex, int32& OutStartIndex, int32& OutEndIndex) const;
 	void	BuildSection(int32 SectionIndex, FSectionData& OutSectionData);
@@ -55,16 +57,7 @@ private:
 
 private:
 
-	UPROPERTY(Transient)
-	UStaticMesh* StaticMesh;
-	
-	FRawMesh* RawMesh;
-
-	TArray<FVector> MeshVertices;
-	TArray<int32> MeshTriangles;
-	TArray<FVector> MeshNormals;
-	TArray<FVector2D> MeshUV;
-	TArray<FProcMeshTangent> MeshTangents;
+	TSharedPtr<class FRPRMeshData> MeshData;
 
 	TArray<FSectionData> SectionDatas;
 

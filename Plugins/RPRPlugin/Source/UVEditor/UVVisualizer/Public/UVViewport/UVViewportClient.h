@@ -6,12 +6,16 @@
 #include "UVCache.h"
 #include "Editor.h"
 #include "UICommandList.h"
+#include "UVScaleModifierContext.h"
+
+DECLARE_DELEGATE(FOnUVChanged)
 
 class FUVViewportClient : public FEditorViewportClient
 {
 public:
 
 	FUVViewportClient(const TWeakPtr<SEditorViewport>& InUVViewport);
+	virtual ~FUVViewportClient();
 
 	virtual void Draw(const FSceneView* View, FPrimitiveDrawInterface* PDI) override;
 	virtual void ProcessClick(FSceneView& View, HHitProxy* HitProxy, FKey Key, EInputEvent Event, uint32 HitX, uint32 HitY) override;
@@ -27,6 +31,8 @@ public:
 	virtual FWidget::EWidgetMode GetWidgetMode() const override;
 	virtual FVector GetWidgetLocation() const override;
 
+	FOnUVChanged&	OnUVChanged() const;
+
 private:
 
 	void	GenerateCacheUV();
@@ -41,10 +47,18 @@ private:
 	FVector2D	Convert3DtoUV(const FVector& In3D) const;
 	FVector2D	GetUVSelectionBarycenter() const;
 	bool		HasUVSelected() const;
+	bool		GetSelectedUV(TArray<class UUVCacheData*>& OutUVCacheData) const;
+	bool		GetSelectedUV(TArray<FVector2D>& UV) const;
+
+	TArray<FVector2D>&	GetRawMeshUV();
+	const TArray<FVector2D>& GetRawMeshUV() const;
 
 	void		ApplyTranslation(const FVector& Drag);
 	void		ApplyRotation(const FRotator& Rotation);
 	void		ApplyScale(const FVector& Scale);
+	void		EndRawMeshChanges();
+
+	void		DeselectAll();
 
 private:
 
@@ -52,8 +66,10 @@ private:
 	FTransform SceneTransform;
 
 	FUVCache		UVCache;
+	FOnUVChanged	OnUVChangedDelegate;
 
 	bool bIsManipulating;
+	FUVScaleModifierContext ScaleModifierContext;
 
 	const FLinearColor	VertexColor;
 	const FLinearColor	SelectedVertexColor;

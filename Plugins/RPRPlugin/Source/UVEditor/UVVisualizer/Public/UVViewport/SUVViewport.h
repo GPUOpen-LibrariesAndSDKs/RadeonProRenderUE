@@ -6,6 +6,7 @@
 #include "SlateBrush.h"
 #include "UVViewportClient.h"
 #include "SEditorViewport.h"
+#include "RPRMeshData.h"
 
 class SUVViewport : public SEditorViewport
 {
@@ -17,8 +18,7 @@ public:
 	SUVViewport();
 
 	void	Construct(const FArguments& InArgs);
-	void	SetMesh(TWeakObjectPtr<class UStaticMesh> InStaticMesh);
-	void	RebuildMeshFromRawMesh();
+	void	SetRPRMeshData(TWeakPtr<FRPRMeshData> InRPRMeshData);
 	void	Refresh();
 
 	void	SetUVChannelIndex(int32 ChannelIndex);
@@ -26,10 +26,9 @@ public:
 	void	ClearBackground();
 	void	SetBackgroundOpacity(float Opacity);
 
-	UStaticMesh*	GetStaticMesh() const;
-	FRawMesh&		GetRawMesh();
-	int32			GetUVChannel() const;
-	TArray<FVector2D>&	GetUV();
+	TWeakPtr<FRPRMeshData>		GetRPRMeshData() const;
+	int32						GetUVChannel() const;
+	TArray<FVector2D>&			GetUV();
 	const TArray<FVector2D>&	GetUV() const;
 
 	virtual int32	OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
@@ -75,8 +74,7 @@ private:
 
 	FUVViewportClientPtr ViewportClient;
 
-	TWeakObjectPtr<UStaticMesh>	StaticMesh;
-	FRawMesh RawMesh;
+	TWeakPtr<FRPRMeshData> RPRMeshData;
 	int32 UVChannelIndex;
 
 	FSlateBrush BackgroundBrush;

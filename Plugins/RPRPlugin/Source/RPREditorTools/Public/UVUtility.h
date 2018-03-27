@@ -22,8 +22,6 @@ public:
 	static void	InvertTextureCoordinate(float& TextureCoordinate);
 	static void	InvertUV(FVector2D& InUV);
 
-private:
-
 	static FVector2D	GetUVsCenter(const TArray<FVector2D>& UVs, int32 StartOffset = 0);
 
 public:

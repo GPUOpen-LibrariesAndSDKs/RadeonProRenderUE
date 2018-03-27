@@ -26,21 +26,20 @@ TSharedPtr<FRPRStaticMeshEditor> FRPRStaticMeshEditor::CreateRPRStaticMeshEditor
 
 void FRPRStaticMeshEditor::InitRPRStaticMeshEditor(const TArray<UStaticMesh*>& InStaticMeshes)
 {
-	StaticMeshes = InStaticMeshes;
-
 	FRPRStaticMeshEditorActions::Register();
 
-	BindCommands();
+	MeshDatas.AppendFromStaticMeshes(InStaticMeshes);
+
 	InitializeWidgets();
 
 	const bool bCreateDefaultStandaloneMenu = true;
 	const bool bCreateDefaultToolbar = true;
 
 	TArray<UObject*> objects;
-	objects.Reserve(StaticMeshes.Num());
-	for (int32 i = 0; i < StaticMeshes.Num(); ++i)
+	objects.Reserve(MeshDatas.Num());
+	for (int32 i = 0; i < MeshDatas.Num(); ++i)
 	{
-		objects.Add(StaticMeshes[i]);
+		objects.Add(InStaticMeshes[i]);
 	}
 
 	FAssetEditorToolkit::InitAssetEditor(
@@ -54,11 +53,6 @@ void FRPRStaticMeshEditor::InitRPRStaticMeshEditor(const TArray<UStaticMesh*>& I
 	);
 
 	OpenOrCloseSceneOutlinerIfRequired();
-}
-
-void FRPRStaticMeshEditor::BindCommands()
-{
-
 }
 
 void FRPRStaticMeshEditor::InitializeWidgets()
@@ -79,20 +73,19 @@ void FRPRStaticMeshEditor::InitializeUVProjectionMappingEditor()
 {
 	UVProjectionMappingEditor = SNew(SUVProjectionMappingEditor)
 		.RPRStaticMeshEditor(SharedThis(this))
-		.OnProjectionApplied(this, &FRPRStaticMeshEditor::OnProjectionCompleted)
-		;
+		.OnProjectionApplied(this, &FRPRStaticMeshEditor::OnProjectionCompleted);
 }
 
 void FRPRStaticMeshEditor::InitializeUVVisualizer()
 {
 	UVVisualizer = SNew(SUVVisualizerEditor);
-	UVVisualizer->SetMesh(StaticMeshes[0]);
+	UVVisualizer->SetMeshData(MeshDatas[0]);
 }
 
 void FRPRStaticMeshEditor::InitializeSceneComponentsOutliner()
 {
 	SceneComponentsOutliner = SNew(SSceneComponentsOutliner)
-		.GetStaticMeshComponents(this, &FRPRStaticMeshEditor::GetSceneComponents)
+		.GetMeshDatas(this, &FRPRStaticMeshEditor::GetMeshDatas)
 		.OnSelectionChanged(this, &FRPRStaticMeshEditor::OnSceneComponentOutlinerSelectionChanged);
 
 	SceneComponentsOutliner->SelectAll();
@@ -165,7 +158,7 @@ TSharedPtr<FTabManager::FLayout>	FRPRStaticMeshEditor::GenerateDefaultLayout()
 
 void FRPRStaticMeshEditor::OpenOrCloseSceneOutlinerIfRequired()
 {
-	if (StaticMeshes.Num() == 1)
+	if (MeshDatas.Num() == 1)
 	{
 		TSharedPtr<SDockTab> tab = TabManager->FindExistingLiveTab(SceneComponentsOutlinerTabId);
 		if (tab.IsValid())
@@ -223,22 +216,40 @@ FName FRPRStaticMeshEditor::GetToolkitFName() const
 
 FText FRPRStaticMeshEditor::GetBaseToolkitName() const
 {
-	return (LOCTEXT("BaseToolkitName", "RPR Static Mesh Editor"));
+	return LOCTEXT("BaseToolkitName", "RPR Static Mesh Editor");
 }
 
 FText FRPRStaticMeshEditor::GetToolkitName() const
 {
-	return (LOCTEXT("RPRStaticMeshEditorToolkitName", "RPRStaticMeshEditor"));
+	if (MeshDatas.Num() == 1)
+	{
+		return FText::FormatOrdered(
+			LOCTEXT("RPRStaticMeshEditorToolkitNamePrefixOnly", "RPR-{0}"), 
+			FText::FromString(MeshDatas[0]->GetStaticMesh()->GetName()));
+	}
+
+	return FText::FormatOrdered(
+		LOCTEXT("RPRStaticMeshEditorToolkitName", "RPR Mesh Editor ({0})"), 
+		MeshDatas.Num());
 }
 
 FText FRPRStaticMeshEditor::GetToolkitToolTipText() const
 {
-	return (FText::GetEmpty());
+	FString names;
+	for (int32 i = 0; i + 1 < MeshDatas.Num(); ++i)
+	{
+		names += MeshDatas[i]->GetStaticMesh()->GetName() + TEXT(", ");
+	}
+	names += MeshDatas.Last()->GetStaticMesh()->GetName();
+
+	return FText::FormatOrdered(
+		LOCTEXT("RPRStaticMeshEditorTooltipFormat", "RPR - {0}"), 
+		FText::FromString(names));
 }
 
 FString FRPRStaticMeshEditor::GetWorldCentricTabPrefix() const
 {
-	return (LOCTEXT("WorldCentricTabPrefix", "RPR Static Mesh").ToString());
+	return LOCTEXT("WorldCentricTabPrefix", "RPR Static Mesh").ToString();
 }
 FLinearColor FRPRStaticMeshEditor::GetWorldCentricTabColorScale() const
 {
@@ -252,46 +263,33 @@ bool FRPRStaticMeshEditor::IsPrimaryEditor() const
 
 void FRPRStaticMeshEditor::AddReferencedObjects(FReferenceCollector& Collector)
 {
-	Collector.AddReferencedObjects(StaticMeshes);
-
-	StaticMeshes.RemoveAll([](UStaticMesh* staticMesh)
+	TArray<UStaticMesh*> staticMeshes = MeshDatas.GetStaticMeshes();
 	{
-		return (staticMesh == nullptr);
-	});
+		Collector.AddReferencedObjects(staticMeshes);
+	}
+	MeshDatas.RemoveInvalidStaticMeshes();
 }
 
-const TArray<UStaticMesh*>& FRPRStaticMeshEditor::GetStaticMeshes() const
+FRPRMeshDataContainer	FRPRStaticMeshEditor::GetSelectedMeshes() const
 {
-	return (StaticMeshes);
-}
-
-TArray<UStaticMesh*>	FRPRStaticMeshEditor::GetSelectedStaticMeshes() const
-{
-	TArray<UStaticMesh*> selectedStaticMeshes;
+	FRPRMeshDataContainer selectedMeshDatas;
 
 	if (SceneComponentsOutliner.IsValid())
 	{
-		TArray<URPRMeshPreviewComponent*> staticMeshComponents;
-		SceneComponentsOutliner->GetSelectedItem(staticMeshComponents);
-
-		// If there is only one mesh available, we consider it has selected
-		if (staticMeshComponents.Num() == 1)
+		// If there is only one mesh available, we always consider it has selected
+		if (MeshDatas.Num() == 1)
 		{
-			selectedStaticMeshes.Add(staticMeshComponents[0]->GetStaticMesh());
+			selectedMeshDatas.Add(MeshDatas[0]);
 		}
 		else
 		{
-			selectedStaticMeshes.Reserve(staticMeshComponents.Num());
-			for (int32 i = 0; i < staticMeshComponents.Num(); ++i)
-			{
-				selectedStaticMeshes.Add(staticMeshComponents[i]->GetStaticMesh());
-			}
+			SceneComponentsOutliner->GetSelectedItem(selectedMeshDatas);
 		}
 
-		return (selectedStaticMeshes);
+		return (selectedMeshDatas);
 	}
 
-	return (GetStaticMeshes());
+	return (MeshDatas);
 }
 
 FRPRStaticMeshEditorSelection& FRPRStaticMeshEditor::GetSelectionSystem()
@@ -301,12 +299,12 @@ FRPRStaticMeshEditorSelection& FRPRStaticMeshEditor::GetSelectionSystem()
 
 void FRPRStaticMeshEditor::GetPreviewMeshBounds(FVector& OutCenter, FVector& OutExtents)
 {
-	UStaticMesh* staticMesh = StaticMeshes[0];
+	UStaticMesh* staticMesh = MeshDatas[0]->GetStaticMesh();
 	FBox box = staticMesh->GetBoundingBox();
 	
-	for (int32 i = 1; i < StaticMeshes.Num(); ++i)
+	for (int32 i = 1; i < MeshDatas.Num(); ++i)
 	{
-		box = box + StaticMeshes[i]->GetBoundingBox();
+		box = box + MeshDatas[i]->GetStaticMesh()->GetBoundingBox();
 	}
 
 	box.GetCenterAndExtents(OutCenter, OutExtents);
@@ -376,28 +374,25 @@ TSharedRef<SDockTab> FRPRStaticMeshEditor::SpawnTab_SceneComponentsOutliner(cons
 
 void FRPRStaticMeshEditor::OnSceneComponentOutlinerSelectionChanged(URPRMeshPreviewComponent* NewItemSelected, ESelectInfo::Type SelectInfo)
 {
-	TArray<URPRMeshPreviewComponent*> selectedMeshComponents;
-	int32 numItemSelected = SceneComponentsOutliner->GetSelectedItem(selectedMeshComponents);
+	FRPRMeshDataContainer meshDatas;
+	int32 numItemSelected = SceneComponentsOutliner->GetSelectedItem(meshDatas);
 
-	UVVisualizer->SetMesh(numItemSelected > 0 ? selectedMeshComponents.Last()->GetStaticMesh() : nullptr);
-}
-
-const TArray<URPRMeshPreviewComponent*>& FRPRStaticMeshEditor::GetSceneComponents() const
-{
-	if (Viewport.IsValid())
+	if (numItemSelected > 0)
 	{
-		return (Viewport->GetStaticMeshComponents());
+		UVVisualizer->SetMeshData(meshDatas[0]);
 	}
-
-	static TArray<URPRMeshPreviewComponent*> empty;
-	return (empty);
+	else
+	{
+		UVVisualizer->SetMeshData(nullptr);
+	}
 }
 
 bool FRPRStaticMeshEditor::OnRequestClose()
 {
-	for (int32 i = 0; i < StaticMeshes.Num(); ++i)
+	TArray<UStaticMesh*> staticMeshes = MeshDatas.GetStaticMeshes();
+	for (int32 i = 0; i < staticMeshes.Num(); ++i)
 	{
-		FAssetEditorManager::Get().NotifyAssetClosed(StaticMeshes[i], this);
+		FAssetEditorManager::Get().NotifyAssetClosed(staticMeshes[i], this);
 	}
 	return (true);
 }

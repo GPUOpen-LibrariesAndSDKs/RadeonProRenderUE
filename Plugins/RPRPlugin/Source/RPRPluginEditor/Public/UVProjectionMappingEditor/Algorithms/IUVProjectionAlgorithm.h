@@ -3,6 +3,7 @@
 #include "SharedPointer.h"
 #include "Delegate.h"
 #include "UVProjectionSettings.h"
+#include "RPRMeshDataContainer.h"
 
 class IUVProjectionAlgorithm : public TSharedFromThis<IUVProjectionAlgorithm>
 {
@@ -10,7 +11,7 @@ public:
 
 	virtual ~IUVProjectionAlgorithm() {}
 
-	virtual void	SetStaticMeshes(const TArray<class UStaticMesh*>& StaticMeshes) = 0;
+	virtual void	SetMeshDatas(const FRPRMeshDataContainer& MeshDatas) = 0;
 	virtual void	StartAlgorithm() = 0;
 	virtual void	AbortAlgorithm() = 0;
 	virtual bool	IsAlgorithimRunning() = 0;

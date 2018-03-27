@@ -6,6 +6,7 @@
 #include "UVVisualizerEditorSettings.h"
 #include "IStructureDetailsView.h"
 #include "NotifyHook.h"
+#include "RPRMeshData.h"
 
 class UVVISUALIZER_API SUVVisualizerEditor : public SCompoundWidget, public FNotifyHook
 {
@@ -20,14 +21,13 @@ public:
 	SLATE_END_ARGS()
 
 	void	Construct(const FArguments& InArgs);
-	void	SetMesh(TWeakObjectPtr<UStaticMesh> StaticMesh);
+	void	SetMeshData(TSharedPtr<FRPRMeshData> InRPRMeshData);
 	void	Refresh();
 	
 	virtual void NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, UProperty* PropertyThatChanged) override;
 
 private:
 
-	void	RefreshUVs();
 	void	SetUVChannelIndex(int32 ChannelIndex);
 
 	void	InitUVVisualizerEditorSettings();
@@ -47,7 +47,7 @@ private:
 	TSharedPtr<IStructureDetailsView>	UVVisualizerEditorSettingsView;
 	TSharedPtr<FStructOnScope>			UVVisualizerEditorSettingsStructOnScopePtr;
 
-	TWeakObjectPtr<UStaticMesh>	StaticMesh;
+	TWeakPtr<FRPRMeshData> RPRMeshData;
 	FUVVisualizerEditorSettings	UVVisualizerEditorSettings;
 
 	TSharedPtr<FChannelInfo>			SelectedUVChannel;

@@ -48,8 +48,7 @@ public class RPRPluginEditor : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core", "RPRPlugin",
-                "ProceduralMeshComponent"
+                "Core", "RPRPlugin"
 				// ... add other public dependencies that you statically link with here ...
 			}
             );

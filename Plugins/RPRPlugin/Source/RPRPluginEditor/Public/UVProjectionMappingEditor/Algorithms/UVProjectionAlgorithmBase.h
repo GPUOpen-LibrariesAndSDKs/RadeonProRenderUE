@@ -7,6 +7,7 @@
 #include "GCObject.h"
 #include "SharedPointer.h"
 #include "RawMesh.h"
+#include "RPRMeshDataContainer.h"
 
 /*
  * Abstraction class for UV projection algorithms
@@ -23,7 +24,7 @@ public:
 
 	virtual ~FUVProjectionAlgorithmBase() {}
 	
-	virtual void SetStaticMeshes(const TArray<class UStaticMesh*>& StaticMeshes) override;
+	virtual void SetMeshDatas(const FRPRMeshDataContainer& MeshDatas) override;
 	virtual void SetGlobalUVProjectionSettings(FUVProjectionSettingsPtr Settings);
 	virtual FOnAlgorithmCompleted& OnAlgorithmCompleted() override;
 
@@ -40,7 +41,6 @@ protected:
 	void	StopAlgorithm();
 	void	RaiseAlgorithmCompletion(bool bIsSuccess);
 	void	StopAlgorithmAndRaiseCompletion(bool bIsSuccess);
-	bool	AreStaticMeshRenderDatasValid() const;
 	void	ApplyUVsOnMesh();
 	void	SaveRawMesh();
 	void	AddNewUVs(int32 RawMeshIndex, const FVector2D& UV);
@@ -49,14 +49,12 @@ protected:
 
 private:
 
-	void	LoadRawMeshes();
 	void	FixTextureCoordinateOnLeftSideIfRequired(float& TextureCoordinate);
 
 
 protected:
 
-	TArray<class UStaticMesh*>	StaticMeshes;
-	TArray<FRawMesh>			RawMeshes;
+	FRPRMeshDataContainer		MeshDatas;
 
 	FOnAlgorithmCompleted		OnAlgorithmCompletedEvent;
 	FUVProjectionSettingsPtr	UVProjectionSettings;

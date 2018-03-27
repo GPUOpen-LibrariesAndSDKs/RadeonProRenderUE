@@ -3,9 +3,9 @@
 #include "Engine/StaticMesh.h"
 #include "UVUtility.h"
 
-void FUVProjectionAlgorithmBase::SetStaticMeshes(const TArray<UStaticMesh*>& InStaticMeshes)
+void FUVProjectionAlgorithmBase::SetMeshDatas(const FRPRMeshDataContainer& InMeshDatas)
 {
-	StaticMeshes = InStaticMeshes;
+	MeshDatas = InMeshDatas;
 }
 
 IUVProjectionAlgorithm::FOnAlgorithmCompleted& FUVProjectionAlgorithmBase::OnAlgorithmCompleted()
@@ -17,7 +17,6 @@ void FUVProjectionAlgorithmBase::StartAlgorithm()
 {
 	bIsAlgorithmRunning = true;
 	
-	LoadRawMeshes();
 	PrepareUVs();
 }
 
@@ -39,12 +38,13 @@ void FUVProjectionAlgorithmBase::SetGlobalUVProjectionSettings(FUVProjectionSett
 void FUVProjectionAlgorithmBase::PrepareUVs()
 {
 	// Empty UVs and allocate the expected number of UV datas
-	const int32 numMeshes = RawMeshes.Num();
+	const int32 numMeshes = MeshDatas.Num();
 	NewUVs.Empty(numMeshes);
 	NewUVs.AddDefaulted(numMeshes);
-	for (int32 i = 0; i < RawMeshes.Num(); ++i)
+	for (int32 i = 0; i < MeshDatas.Num(); ++i)
 	{
-		NewUVs[i].Empty(RawMeshes[i].WedgeIndices.Num());
+		const FRawMesh& rawMesh = MeshDatas[i]->GetRawMesh();
+		NewUVs[i].Empty(rawMesh.WedgeIndices.Num());
 	}
 }
 
@@ -75,9 +75,9 @@ bool FUVProjectionAlgorithmBase::AreStaticMeshRenderDatasValid(UStaticMesh* InSt
 
 void FUVProjectionAlgorithmBase::ApplyUVsOnMesh()
 {
-	for (int32 meshIndex = 0; meshIndex < RawMeshes.Num(); ++meshIndex)
+	for (int32 meshIndex = 0; meshIndex < MeshDatas.Num(); ++meshIndex)
 	{
-		FRawMesh& rawMesh = RawMeshes[meshIndex];
+		FRawMesh& rawMesh = MeshDatas[meshIndex]->GetRawMesh();
 		FUVPack& uv = NewUVs[meshIndex];
 
 		if (UVProjectionSettings->UVChannel < 0)
@@ -91,17 +91,18 @@ void FUVProjectionAlgorithmBase::ApplyUVsOnMesh()
 		{
 			rawMesh.WedgeTexCoords[UVProjectionSettings->UVChannel] = uv;
 		}
+
+		MeshDatas[meshIndex]->NotifyRawMeshChanges();
 	}
 }
 
 void FUVProjectionAlgorithmBase::SaveRawMesh()
 {
-	for (int32 i = 0; i < RawMeshes.Num(); ++i)
+	for (int32 i = 0; i < MeshDatas.Num(); ++i)
 	{
-		if (RawMeshes[i].IsValid())
+		if (MeshDatas[i].IsValid())
 		{
-			FStaticMeshHelper::SaveRawMeshToStaticMesh(RawMeshes[i], StaticMeshes[i]);
-			StaticMeshes[i]->MarkPackageDirty();
+			MeshDatas[i]->ApplyRawMeshDatas();
 		}
 	}
 }
@@ -113,7 +114,7 @@ void FUVProjectionAlgorithmBase::AddNewUVs(int32 RawMeshIndex, const FVector2D& 
 
 void FUVProjectionAlgorithmBase::FixInvalidUVsHorizontally(int32 MeshIndex)
 {
-	FRawMesh& rawMesh = RawMeshes[MeshIndex];
+	FRawMesh& rawMesh = MeshDatas[MeshIndex]->GetRawMesh();
 	FUVPack& uv = NewUVs[MeshIndex];
 
 	const TArray<uint32> triangles = rawMesh.WedgeIndices;
@@ -138,18 +139,6 @@ void FUVProjectionAlgorithmBase::FixInvalidUVsHorizontally(int32 MeshIndex)
 	}
 }
 
-void FUVProjectionAlgorithmBase::LoadRawMeshes()
-{
-	FRawMesh rawMesh;
-
-	RawMeshes.Empty(StaticMeshes.Num());
-	for (int32 i = 0; i < StaticMeshes.Num(); ++i)
-	{
-		FStaticMeshHelper::LoadRawMeshFromStaticMesh(StaticMeshes[i], rawMesh);
-		RawMeshes.Add(rawMesh);
-	}
-}
-
 void FUVProjectionAlgorithmBase::FixTextureCoordinateOnLeftSideIfRequired(float& TextureCoordinate)
 {
 	if (TextureCoordinate < 0.5f)
@@ -158,7 +147,3 @@ void FUVProjectionAlgorithmBase::FixTextureCoordinateOnLeftSideIfRequired(float&
 	}
 }
 
-bool FUVProjectionAlgorithmBase::AreStaticMeshRenderDatasValid() const
-{
-	return (AreStaticMeshRenderDatasValid(StaticMeshes[0]));
-}

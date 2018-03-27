@@ -59,25 +59,24 @@ void SUVVisualizerEditor::Construct(const FArguments& InArgs)
 	UVVisualizer->SetBackgroundOpacity(UVVisualizerEditorSettings.BackgroundOpacity);
 }
 
-void SUVVisualizerEditor::SetMesh(TWeakObjectPtr<UStaticMesh> InStaticMesh)
+void SUVVisualizerEditor::SetMeshData(TSharedPtr<FRPRMeshData> InRPRMeshData)
 {
-	StaticMesh = InStaticMesh;
+	RPRMeshData = InRPRMeshData;
 	if (UVVisualizer.IsValid())
 	{
-		UVVisualizer->SetMesh(StaticMesh);
+		UVVisualizer->SetRPRMeshData(RPRMeshData);
 	}
 	Refresh();
 }
 
 void SUVVisualizerEditor::Refresh()
 {
-	if (StaticMesh.IsValid())
+	if (RPRMeshData.IsValid())
 	{
 		// Backup UV channel
 		int32 selectedUVChannel = SelectedUVChannel.IsValid() ? SelectedUVChannel->ChannelIndex : 0;
 		{
 			BuildUVChannelInfos();
-			RefreshUVs();
 		}
 		// Try to restore UV channel
 		SelectedUVChannel = selectedUVChannel < UVChannels.Num() ? UVChannels[selectedUVChannel] : nullptr;
@@ -85,14 +84,6 @@ void SUVVisualizerEditor::Refresh()
 	else
 	{
 		SelectedUVChannel = nullptr;
-	}
-}
-
-void SUVVisualizerEditor::RefreshUVs()
-{
-	if (UVVisualizer.IsValid())
-	{
-		UVVisualizer->Refresh();
 	}
 }
 
@@ -149,19 +140,29 @@ FText SUVVisualizerEditor::GetSelectedUVChannel() const
 
 void SUVVisualizerEditor::BuildUVChannelInfos()
 {
-	if (StaticMesh.IsValid() && StaticMesh->HasValidRenderData())
-	{
-		int32 numChannels = StaticMesh->RenderData->LODResources[0].GetNumTexCoords();
+	bool bIsMeshValid = false;
 
-		UVChannels.Empty(numChannels);
-		for (int32 i = 0; i < numChannels; ++i)
+	if (RPRMeshData.IsValid())
+	{
+		UStaticMesh* staticMesh = RPRMeshData.Pin()->GetStaticMesh();
+		if (staticMesh->HasValidRenderData())
 		{
-			TSharedPtr<FChannelInfo> channelInfo = MakeShareable(new FChannelInfo());
-			channelInfo->ChannelIndex = i;
-			UVChannels.Add(channelInfo);
+			bIsMeshValid = true;
+
+			int32 numChannels = staticMesh->RenderData->LODResources[0].GetNumTexCoords();
+
+			UVChannels.Empty(numChannels);
+			for (int32 i = 0; i < numChannels; ++i)
+			{
+				TSharedPtr<FChannelInfo> channelInfo = MakeShareable(new FChannelInfo());
+				channelInfo->ChannelIndex = i;
+				UVChannels.Add(channelInfo);
+			}
 		}
 	}
-	else
+	
+
+	if (!bIsMeshValid)
 	{
 		UVChannels.Empty();
 	}
@@ -192,16 +193,19 @@ FText SUVVisualizerEditor::GenerateUVComboBoxText(int32 ChannelIndex) const
 
 FText SUVVisualizerEditor::GetStaticLabelText() const
 {
+	const UStaticMesh* staticMesh = RPRMeshData.IsValid() ? RPRMeshData.Pin()->GetStaticMesh() : nullptr;
+
 	return (
-		StaticMesh != nullptr ? 
-		FText::FromString(StaticMesh->GetName()) 
+		staticMesh != nullptr ?
+		FText::FromString(staticMesh->GetName())
 		: FText::GetEmpty()
 		);
 }
 
 EVisibility SUVVisualizerEditor::GetStaticMeshLabelVisibility() const
 {
-	return (StaticMesh != nullptr ? EVisibility::Visible : EVisibility::Collapsed);
+	const UStaticMesh* staticMesh = RPRMeshData.IsValid() ? RPRMeshData.Pin()->GetStaticMesh() : nullptr;
+	return (staticMesh != nullptr ? EVisibility::Visible : EVisibility::Collapsed);
 }
 
 #undef LOCTEXT_NAMESPACE

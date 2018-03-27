@@ -9,13 +9,13 @@
 void FUVProjectionCubicAlgo::StartAlgorithm()
 {
 	FUVProjectionAlgorithmBase::StartAlgorithm();
-
-	FScopedSlowTask slowTask(RawMeshes.Num(), LOCTEXT("ProjectUV", "Project UV (Cubic)"));
+	
+	FScopedSlowTask slowTask(MeshDatas.Num(), LOCTEXT("ProjectUV", "Project UV (Cubic)"));
 	slowTask.MakeDialog();
 
-	for (int32 meshIndex = 0; meshIndex < RawMeshes.Num(); ++meshIndex)
+	for (int32 meshIndex = 0; meshIndex < MeshDatas.Num(); ++meshIndex)
 	{
-		const FString meshName = StaticMeshes[meshIndex]->GetName();
+		const FString meshName = MeshDatas[meshIndex]->GetStaticMesh()->GetName();
 		slowTask.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Project UV (Cubic) on mesh '%s'"), *meshName)));
 
 		StartCubicProjection(meshIndex);
@@ -32,7 +32,7 @@ void FUVProjectionCubicAlgo::Finalize()
 
 void FUVProjectionCubicAlgo::StartCubicProjection(int32 MeshIndex)
 {
-	FRawMesh& rawMesh = RawMeshes[MeshIndex];
+	FRawMesh& rawMesh = MeshDatas[MeshIndex]->GetRawMesh();
 	TArray<uint32>& triangles = rawMesh.WedgeIndices;
 	EAxis::Type dominantAxisComponentA;
 	EAxis::Type dominantAxisComponentB;
@@ -66,7 +66,9 @@ void FUVProjectionCubicAlgo::ProjectUVAlongAxis(int32 MeshIndex, int32 VertexInd
 {
 	FVector scale = Settings.CubeTransform.GetScale3D();
 	FVector origin = Settings.CubeTransform.GetLocation();
-	const FVector& vertexLocation = RawMeshes[MeshIndex].VertexPositions[VertexIndex];
+
+	const FRawMesh& rawMesh = MeshDatas[MeshIndex]->GetRawMesh();
+	const FVector& vertexLocation = rawMesh.VertexPositions[VertexIndex];
 	FVector localVertexLocation = Settings.CubeTransform.GetRotation().Inverse() * vertexLocation;
 
 	TFunction<float(EAxis::Type)> getScalarAlongAxis = [this, &scale, &origin, localVertexLocation](EAxis::Type Axis)

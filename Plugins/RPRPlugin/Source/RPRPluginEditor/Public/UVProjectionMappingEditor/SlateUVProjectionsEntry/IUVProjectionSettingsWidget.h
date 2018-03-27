@@ -2,6 +2,7 @@
 
 #include "SharedPointer.h"
 #include "SWidget.h"
+#include "RPRMeshDataContainer.h"
 
 DECLARE_DELEGATE(FOnProjectionApplied)
 
@@ -14,7 +15,7 @@ public:
 	virtual void	OnUVProjectionHidden() = 0;
 
 	virtual void								SetRPRStaticMeshEditor(TWeakPtr<class FRPRStaticMeshEditor> RPRStaticMeshEditor) = 0;
-	virtual const TArray<class UStaticMesh*>&	GetStaticMeshes() const = 0;
+	virtual const FRPRMeshDataContainer&		GetMeshDatas() const = 0;
 	virtual TSharedRef<SWidget>					TakeWidget() = 0;
 	virtual FOnProjectionApplied&				OnProjectionApplied() = 0;
 };

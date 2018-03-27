@@ -6,6 +6,7 @@
 #include "RPRStaticMeshEditorSelection.h"
 #include "Engine/StaticMesh.h"
 #include "RPRPreviewMeshComponent.h"
+#include "RPRMeshDataContainer.h"
 
 extern const FName RPRStaticMeshEditorAppIdentifier;
 
@@ -31,8 +32,10 @@ public:
 	
 	virtual void	AddReferencedObjects(FReferenceCollector& Collector) override;
 	
-	const TArray<UStaticMesh*>&		GetStaticMeshes() const;
-	TArray<UStaticMesh*>			GetSelectedStaticMeshes() const;
+	FORCEINLINE FRPRMeshDataContainer&			GetMeshDatas() { return (MeshDatas); }
+	FORCEINLINE const FRPRMeshDataContainer&	GetMeshDatas() const { return (MeshDatas); }
+
+	FRPRMeshDataContainer			GetSelectedMeshes() const;
 	FRPRStaticMeshEditorSelection&	GetSelectionSystem();
 
 	void	AddComponentToViewport(UActorComponent* InComponent, bool bSelectComponent = true);
@@ -42,7 +45,6 @@ private:
 
 	TSharedPtr<FTabManager::FLayout>	GenerateDefaultLayout();
 	void								OpenOrCloseSceneOutlinerIfRequired();
-	void								BindCommands();
 	void								InitializeWidgets();
 	void								InitializeViewport();
 	void								InitializeUVProjectionMappingEditor();
@@ -55,22 +57,22 @@ private:
 
 	void	OnSceneComponentOutlinerSelectionChanged(URPRMeshPreviewComponent* NewItemSelected, ESelectInfo::Type SelectInfo);
 
-	const TArray<URPRMeshPreviewComponent*>&	GetSceneComponents() const;
-
 	virtual bool	OnRequestClose() override;
 
 	void	OnProjectionCompleted();
 
 private:
 
+	FRPRMeshDataContainer	MeshDatas;
+
 	TSharedPtr<class SRPRStaticMeshEditorViewport>	Viewport;
 	TSharedPtr<class SUVProjectionMappingEditor>	UVProjectionMappingEditor;
 	TSharedPtr<class SUVVisualizerEditor>			UVVisualizer;
 	TSharedPtr<class SSceneComponentsOutliner>		SceneComponentsOutliner;
-
-	TArray<UStaticMesh*>			StaticMeshes;
+	
 	FRPRStaticMeshEditorSelection	SelectionSystem;
 	
+
 	static const FName ViewportTabId;
 	static const FName UVProjectionMappingEditorTabId;
 	static const FName UVVisualizerTabId;

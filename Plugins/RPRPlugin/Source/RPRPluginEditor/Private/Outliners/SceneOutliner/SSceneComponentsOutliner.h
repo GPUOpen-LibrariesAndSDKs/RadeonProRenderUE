@@ -4,8 +4,9 @@
 #include "SObjectOutliner.h"
 #include "Components/StaticMeshComponent.h"
 #include "RPRPreviewMeshComponent.h"
+#include "RPRMeshDataContainer.h"
 
-DECLARE_DELEGATE_RetVal(const TArray<URPRMeshPreviewComponent*>&, FGetStaticMeshComponents)
+DECLARE_DELEGATE_RetVal(const FRPRMeshDataContainer&, FGetMeshDatas)
 
 class SSceneComponentsOutliner : public SCompoundWidget
 {
@@ -18,14 +19,14 @@ public:
 
 	SLATE_BEGIN_ARGS(SSceneComponentsOutliner) {}
 		SLATE_EVENT(SStaticMeshComponentsOutliner::FOnSelectionChanged, OnSelectionChanged)
-		SLATE_EVENT(FGetStaticMeshComponents, GetStaticMeshComponents)
+		SLATE_EVENT(FGetMeshDatas, GetMeshDatas)
 	SLATE_END_ARGS()
 
 	void	Construct(const FArguments& InArgs);
 	void	Refresh();
 
 	void	SelectAll();
-	int32	GetSelectedItem(TArray<URPRMeshPreviewComponent*>& SelectedMeshComponents) const;
+	int32	GetSelectedItem(FRPRMeshDataContainer& SelectedMeshComponents) const;
 
 private:
 
@@ -37,7 +38,7 @@ private:
 
 	SStaticMeshComponentsOutlinerPtr StaticMeshCompsOutliner;
 	SStaticMeshComponentsOutliner::FOnSelectionChanged OnSelectionChanged;
-	FGetStaticMeshComponents GetStaticMeshComponents;
+	FGetMeshDatas GetMeshDatas;
 
 };
 

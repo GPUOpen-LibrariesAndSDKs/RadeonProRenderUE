@@ -16,22 +16,40 @@ SRPRStaticMeshEditorViewport::SRPRStaticMeshEditorViewport()
 void SRPRStaticMeshEditorViewport::Construct(const FArguments& InArgs)
 {
 	StaticMeshEditorPtr = InArgs._StaticMeshEditor;
-	InitStaticMeshDatas();
+	InitMeshDatas();
 
 	SEditorViewport::Construct(SEditorViewport::FArguments());
 
 	SetFloorToStaticMeshBottom();
 }
 
-void SRPRStaticMeshEditorViewport::InitStaticMeshDatas()
+void SRPRStaticMeshEditorViewport::RefreshSingleMeshUV(FRPRMeshDataPtr MeshDataPtr)
 {
-	const TArray<UStaticMesh*>& staticMeshes = StaticMeshEditorPtr.Pin()->GetStaticMeshes();
-
-	MeshComponents.Empty(staticMeshes.Num());
-	for (int32 i = 0; i < staticMeshes.Num(); ++i)
+	if (URPRMeshPreviewComponent* preview = MeshDataPtr->GetPreview())
 	{
-		URPRMeshPreviewComponent* staticMeshComponent = CreatePreviewMeshAndAddToViewport(staticMeshes[i]);
-		MeshComponents.Add(staticMeshComponent);
+		preview->RegenerateUVs();
+	}
+}
+
+void SRPRStaticMeshEditorViewport::RefreshMeshUVs()
+{
+	FRPRMeshDataContainer& meshDatas = StaticMeshEditorPtr.Pin()->GetMeshDatas();
+
+	for (int32 i = 0; i < meshDatas.Num(); ++i)
+	{
+		RefreshSingleMeshUV(meshDatas[i]);
+	}
+}
+
+void SRPRStaticMeshEditorViewport::InitMeshDatas()
+{
+	FRPRMeshDataContainer& meshDatas = StaticMeshEditorPtr.Pin()->GetMeshDatas();
+
+	for (int32 i = 0; i < meshDatas.Num(); ++i)
+	{
+		CreatePreviewMeshAndAddToViewport(meshDatas[i]);
+
+		meshDatas[i]->OnPostRawMeshChange.AddSP(this, &SRPRStaticMeshEditorViewport::RefreshSingleMeshUV, meshDatas[i]);
 	}
 }
 
@@ -42,31 +60,18 @@ void SRPRStaticMeshEditorViewport::SetFloorToStaticMeshBottom()
 	PreviewScene->SetFloorOffset(-center.Z + extents.Z);
 }
 
-const TArray<URPRMeshPreviewComponent*>& SRPRStaticMeshEditorViewport::GetStaticMeshComponents() const
+void SRPRStaticMeshEditorViewport::CreatePreviewMeshAndAddToViewport(TSharedPtr<FRPRMeshData> MeshData)
 {
-	return (MeshComponents);
-}
-
-URPRMeshPreviewComponent* SRPRStaticMeshEditorViewport::CreatePreviewMeshAndAddToViewport(UStaticMesh* StaticMesh)
-{
-	//UStaticMeshComponent* staticMeshComponent = 
-		//NewObject<UStaticMeshComponent>((UObject*)GetTransientPackage(), FName(), RF_Transient);
-
-	FRawMesh rawMesh;
-	FStaticMeshHelper::LoadRawMeshFromStaticMesh(StaticMesh, rawMesh);
-
-	URPRMeshPreviewComponent* staticMeshComponent =
+	URPRMeshPreviewComponent* previewMeshComponent =
 		NewObject<URPRMeshPreviewComponent>((UObject*)GetTransientPackage(), FName(), RF_Transient);
 
-	FComponentReregisterContext ReregisterContext(staticMeshComponent);
-	staticMeshComponent->SetStaticMesh(StaticMesh, &rawMesh);
-	//staticMeshComponent->SetStaticMesh(StaticMesh);
+	FComponentReregisterContext ReregisterContext(previewMeshComponent);
+	previewMeshComponent->SetMeshData(MeshData);
 
-	AddComponent(staticMeshComponent);
+	AddComponent(previewMeshComponent);
+	PreviewMeshComponents.Add(previewMeshComponent);
 
-	staticMeshComponent->MarkRenderStateDirty();
-
-	return (staticMeshComponent);
+	MeshData->AssignPreview(previewMeshComponent);
 }
 
 void SRPRStaticMeshEditorViewport::AddComponent(UActorComponent* InComponent)
@@ -77,7 +82,12 @@ void SRPRStaticMeshEditorViewport::AddComponent(UActorComponent* InComponent)
 
 void SRPRStaticMeshEditorViewport::AddReferencedObjects(FReferenceCollector& Collector)
 {
-	Collector.AddReferencedObjects(MeshComponents);
+	Collector.AddReferencedObjects(PreviewMeshComponents);
+
+	PreviewMeshComponents.RemoveAll([](URPRMeshPreviewComponent* mesPreviewComponent)
+	{
+		return (mesPreviewComponent == nullptr);
+	});
 }
 
 TSharedRef<class SEditorViewport> SRPRStaticMeshEditorViewport::GetViewportWidget()
@@ -118,17 +128,19 @@ TSharedRef<FEditorViewportClient> SRPRStaticMeshEditorViewport::MakeEditorViewpo
 
 void SRPRStaticMeshEditorViewport::InitializeEditorViewportClientCamera()
 {
-	FBoxSphereBounds bounds;
-	bounds = MeshComponents[0]->GetStaticMesh()->GetBounds();
+	FRPRMeshDataContainer& meshData = StaticMeshEditorPtr.Pin()->GetMeshDatas();
 
-	for (int32 i = 1; i < MeshComponents.Num(); ++i)
+	FBoxSphereBounds bounds;
+	bounds = meshData[0]->GetStaticMesh()->GetBounds();
+
+	for (int32 i = 1; i < meshData.Num(); ++i)
 	{
-		bounds = bounds + MeshComponents[i]->GetStaticMesh()->GetBounds();
+		bounds = bounds + meshData[0]->GetStaticMesh()->GetBounds();
 	}
 
-	if (MeshComponents.Num() == 1)
+	if (meshData.Num() == 1)
 	{
-		EditorViewportClient->InitializeCameraForStaticMesh(MeshComponents[0]->GetStaticMesh());
+		EditorViewportClient->InitializeCameraForStaticMesh(meshData[0]->GetStaticMesh());
 	}
 	else
 	{

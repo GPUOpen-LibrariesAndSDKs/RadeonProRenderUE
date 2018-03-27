@@ -1,6 +1,7 @@
 #include "RPRPreviewMeshComponent.h"
 #include "ProceduralMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "RPRMeshData.h"
 
 URPRMeshPreviewComponent::URPRMeshPreviewComponent()
 {
@@ -21,33 +22,61 @@ void URPRMeshPreviewComponent::Regenerate()
 		FindTrianglesBoundsBySection(sectionIndex, sectionData.SectionStart, sectionData.SectionEnd);
 		BuildSection(sectionIndex, sectionData);
 		SectionDatas.Add(sectionData);
+
+		CreateMeshSection(
+			sectionIndex,
+			sectionData.Vertices,
+			sectionData.Triangles,
+			sectionData.Normals,
+			sectionData.UV,
+			sectionData.Colors,
+			sectionData.Tangents,
+			false
+		);
 	}
 
 	AssignMaterialFromStaticMesh();
 }
 
-void URPRMeshPreviewComponent::SetStaticMesh(UStaticMesh* InStaticMesh, FRawMesh* InRawMesh)
+void URPRMeshPreviewComponent::RegenerateUVs()
 {
-	StaticMesh = InStaticMesh;
-	RawMesh = InRawMesh;
+	for (int32 sectionIndex = 0; sectionIndex < SectionDatas.Num(); ++sectionIndex)
+	{
+		FSectionData& sectionData = SectionDatas[sectionIndex];
 
+		FindTrianglesBoundsBySection(sectionIndex, sectionData.SectionStart, sectionData.SectionEnd);
+		BuildSection(sectionIndex, sectionData);
+
+		UpdateMeshSection(sectionIndex, sectionData.Vertices, sectionData.Normals, sectionData.UV, sectionData.Colors, sectionData.Tangents);
+	}
+}
+
+void URPRMeshPreviewComponent::SetMeshData(TSharedPtr<FRPRMeshData> InMeshData)
+{
+	MeshData = InMeshData;
 	Regenerate();
 }
 
-UStaticMesh* URPRMeshPreviewComponent::GetStaticMesh() const
+TSharedPtr<FRPRMeshData> URPRMeshPreviewComponent::GetMeshData()
 {
-	return (StaticMesh);
+	return (MeshData);
+}
+
+const FRawMesh& URPRMeshPreviewComponent::GetRawMesh() const
+{
+	return (MeshData->GetRawMesh());
 }
 
 int32 URPRMeshPreviewComponent::CountNumMaterials() const
 {
 	int32 maxFaceMaterialIndice = 0;
 
-	for (int32 i = 0; i < RawMesh->FaceMaterialIndices.Num(); ++i)
+	const FRawMesh& rawMesh = GetRawMesh();
+	for (int32 i = 0; i < rawMesh.FaceMaterialIndices.Num(); ++i)
 	{
-		if (RawMesh->FaceMaterialIndices[i] > maxFaceMaterialIndice)
+		if (rawMesh.FaceMaterialIndices[i] > maxFaceMaterialIndice)
 		{
-			maxFaceMaterialIndice = RawMesh->FaceMaterialIndices[i];
+			maxFaceMaterialIndice = rawMesh.FaceMaterialIndices[i];
 		}
 	}
 
@@ -58,9 +87,10 @@ void URPRMeshPreviewComponent::FindTrianglesBoundsBySection(int32 SectionIndex, 
 {
 	bool bHasFoundStart = false;
 
-	for (int32 i = 0; i < RawMesh->FaceMaterialIndices.Num(); ++i)
+	const FRawMesh& rawMesh = GetRawMesh();
+	for (int32 i = 0; i < rawMesh.FaceMaterialIndices.Num(); ++i)
 	{
-		if (RawMesh->FaceMaterialIndices[i] == SectionIndex)
+		if (rawMesh.FaceMaterialIndices[i] == SectionIndex)
 		{
 			if (!bHasFoundStart)
 			{
@@ -79,34 +109,25 @@ void URPRMeshPreviewComponent::FindTrianglesBoundsBySection(int32 SectionIndex, 
 
 void URPRMeshPreviewComponent::BuildSection(int32 SectionIndex, FSectionData& OutSectionData)
 {
-	OutSectionData.Vertices = RawMesh->VertexPositions;
+	const FRawMesh& rawMesh = GetRawMesh();
+	OutSectionData.Vertices = rawMesh.VertexPositions;
 	
 	OutSectionData.Triangles.Empty(OutSectionData.SectionEnd - OutSectionData.SectionStart);
 	for (int32 i = OutSectionData.SectionStart; i < OutSectionData.SectionEnd; ++i)
 	{
-		OutSectionData.Triangles.Add(RawMesh->WedgeIndices[i]);
+		OutSectionData.Triangles.Add(rawMesh.WedgeIndices[i]);
 	}
 
 	GenerateUVsAndAdaptMesh(OutSectionData);
-
-	CreateMeshSection(
-		SectionIndex,
-		OutSectionData.Vertices,
-		OutSectionData.Triangles,
-		OutSectionData.Normals,
-		OutSectionData.UV,
-		OutSectionData.Colors,
-		OutSectionData.Tangents,
-		false
-	);
 }
 
 void URPRMeshPreviewComponent::GenerateUVsAndAdaptMesh(FSectionData& SectionData)
 {
 	const int32 uvChannel = 0;
-	const TArray<FVector2D>& meshUV = RawMesh->WedgeTexCoords[uvChannel];
+	FRawMesh& rawMesh = MeshData->GetRawMesh();
+	const TArray<FVector2D>& meshUV = rawMesh.WedgeTexCoords[uvChannel];
 
-	TArray<FVector>& vertices = RawMesh->VertexPositions;
+	TArray<FVector>& vertices = rawMesh.VertexPositions;
 	TArray<int32>& triangles = SectionData.Triangles;
 
 	TArray<FVertexData> verticesData;
@@ -221,6 +242,7 @@ void URPRMeshPreviewComponent::GetUVsFromVerticesData(const TArray<FVertexData>&
 
 void URPRMeshPreviewComponent::GetColorNormalsAndTangentsFromVerticesData(const TArray<FVertexData>& VerticesData, FSectionData& SectionData) const
 {
+	const FRawMesh& rawMesh = GetRawMesh();
 	TArray<FVector>& Normals = SectionData.Normals;
 	TArray<FProcMeshTangent>& Tangents = SectionData.Tangents;
 	TArray<FColor>& Colors = SectionData.Colors;
@@ -232,19 +254,19 @@ void URPRMeshPreviewComponent::GetColorNormalsAndTangentsFromVerticesData(const 
 	for (int32 i = 0; i < VerticesData.Num(); ++i)
 	{
 		int32 tri = VerticesData[i].TriangleIndex;
-		if (RawMesh->WedgeTangentZ.IsValidIndex(tri))
+		if (rawMesh.WedgeTangentZ.IsValidIndex(tri))
 		{
-			Normals.Add(RawMesh->WedgeTangentZ[tri]);
+			Normals.Add(rawMesh.WedgeTangentZ[tri]);
 		}
-		if (RawMesh->WedgeTangentX.IsValidIndex(tri))
+		if (rawMesh.WedgeTangentX.IsValidIndex(tri))
 		{
-			Tangents.Add(FProcMeshTangent(RawMesh->WedgeTangentX[tri], false));
+			Tangents.Add(FProcMeshTangent(rawMesh.WedgeTangentX[tri], false));
 		}
 
 		int32 vertexIndex = VerticesData[i].VertexIndex;
-		if (RawMesh->WedgeColors.IsValidIndex(vertexIndex))
+		if (rawMesh.WedgeColors.IsValidIndex(vertexIndex))
 		{
-			Colors.Add(RawMesh->WedgeColors[vertexIndex]);
+			Colors.Add(rawMesh.WedgeColors[vertexIndex]);
 		}
 	}
 }
@@ -253,7 +275,8 @@ void URPRMeshPreviewComponent::AssignMaterialFromStaticMesh()
 {
 	int32 materialIndex = 0;
 	UMaterialInterface* material = nullptr;
-	while ((material = StaticMesh->GetMaterial(materialIndex)) != nullptr)
+	UStaticMesh* staticMesh = MeshData->GetStaticMesh();
+	while ((material = staticMesh->GetMaterial(materialIndex)) != nullptr)
 	{
 		SetMaterial(materialIndex, material);
 		++materialIndex;

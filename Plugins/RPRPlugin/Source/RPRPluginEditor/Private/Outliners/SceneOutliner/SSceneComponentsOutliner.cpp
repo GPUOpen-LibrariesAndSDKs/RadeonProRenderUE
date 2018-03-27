@@ -6,15 +6,16 @@
 #include "SBorder.h"
 #include "STextBlock.h"
 #include "SButton.h"
+#include "RPRMeshData.h"
 
 #define LOCTEXT_NAMESPACE "SSceneComponentsOutliner"
 
 void SSceneComponentsOutliner::Construct(const FArguments& InArgs)
 {
 	OnSelectionChanged = InArgs._OnSelectionChanged;
-	GetStaticMeshComponents = InArgs._GetStaticMeshComponents;
+	GetMeshDatas = InArgs._GetMeshDatas;
 
-	check(GetStaticMeshComponents.IsBound());
+	check(GetMeshDatas.IsBound());
 
 	ChildSlot
 		[
@@ -67,7 +68,10 @@ void SSceneComponentsOutliner::Construct(const FArguments& InArgs)
 void SSceneComponentsOutliner::Refresh()
 {
 	StaticMeshCompsOutliner->ClearObjects();
-	StaticMeshCompsOutliner->AddObjects(GetStaticMeshComponents.Execute());
+
+	FRPRMeshDataContainer meshDataContainer = GetMeshDatas.Execute();
+	TArray<URPRMeshPreviewComponent*> previews = meshDataContainer.GetMeshPreviews();
+	StaticMeshCompsOutliner->AddObjects(previews);
 }
 
 void SSceneComponentsOutliner::SelectAll()
@@ -75,14 +79,26 @@ void SSceneComponentsOutliner::SelectAll()
 	StaticMeshCompsOutliner->SelectAll();
 }
 
-int32 SSceneComponentsOutliner::GetSelectedItem(TArray<URPRMeshPreviewComponent*>& SelectedMeshComponents) const
+int32 SSceneComponentsOutliner::GetSelectedItem(FRPRMeshDataContainer& SelectedMeshDatas) const
 {
-	return (StaticMeshCompsOutliner->GetSelectedItems(SelectedMeshComponents));
+	TArray<URPRMeshPreviewComponent*> previewMeshComponents;
+	int32 numItems = StaticMeshCompsOutliner->GetSelectedItems(previewMeshComponents);
+
+	FRPRMeshDataContainer meshDatas = GetMeshDatas.Execute();
+
+	SelectedMeshDatas.Empty(previewMeshComponents.Num());
+	for (int32 i = 0; i < previewMeshComponents.Num(); ++i)
+	{
+		FRPRMeshDataPtr meshData = meshDatas.FindByPreview(previewMeshComponents[i]);
+		SelectedMeshDatas.Add(meshData);
+	}
+
+	return (numItems);
 }
 
-FText SSceneComponentsOutliner::GetPrettyStaticMeshComponentName(URPRMeshPreviewComponent* StaticMeshComponent) const
+FText SSceneComponentsOutliner::GetPrettyStaticMeshComponentName(URPRMeshPreviewComponent* PreviewMeshComponent) const
 {
-	return (FText::FromString(StaticMeshComponent->GetStaticMesh()->GetName()));
+	return (FText::FromString(PreviewMeshComponent->GetMeshData()->GetStaticMesh()->GetName()));
 }
 
 FText SSceneComponentsOutliner::GetNumberSelectedItemsText() const
@@ -95,16 +111,7 @@ FText SSceneComponentsOutliner::GetNumberSelectedItemsText() const
 	}
 	else
 	{
-		FFormatNamedArguments args;
-		args.Add(TEXT("num"), FFormatArgumentValue(numItemSelected));
-		if (numItemSelected == 1)
-		{
-			return FText::Format(LOCTEXT("OneItemSelected", "{num} mesh selected"), args);
-		}
-		else
-		{
-			return FText::Format(LOCTEXT("ItemSelected", "{num} meshes selected"), args);
-		}
+		return FText::FormatOrdered(LOCTEXT("OneItemSelected", "{0}|plural(one=mesh,other=meshes) selected"), numItemSelected);
 	}
 }
 

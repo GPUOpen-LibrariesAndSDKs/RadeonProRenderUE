@@ -11,6 +11,7 @@
 #include "SlateDelegates.h"
 #include "IDetailsView.h"
 #include "RPRStaticMeshEditor.h"
+#include "RPRMeshDataContainer.h"
 
 /*
  * Abstract class for UV Projection widgets
@@ -23,8 +24,8 @@ public:
 
 	void	Construct(const FArguments& InArgs);
 
-	virtual const TArray<UStaticMesh*>&	GetStaticMeshes() const override;
-	virtual FRPRStaticMeshEditorPtr		GetRPRStaticMeshEditor() const;
+	virtual const FRPRMeshDataContainer&	GetMeshDatas() const override;
+	virtual FRPRStaticMeshEditorPtr			GetRPRStaticMeshEditor() const;
 
 	virtual TSharedRef<SWidget>		TakeWidget() override;
 	virtual FOnProjectionApplied&	OnProjectionApplied() override;

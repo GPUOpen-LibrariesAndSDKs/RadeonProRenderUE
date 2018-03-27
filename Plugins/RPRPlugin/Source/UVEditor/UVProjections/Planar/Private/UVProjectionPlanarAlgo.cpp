@@ -1,6 +1,7 @@
 #include "UVProjectionPlanarAlgo.h"
 #include "UVUtility.h"
 #include "TransformablePlane.h"
+#include "ScopedSlowTask.h"
 
 #define LOCTEXT_NAMESPACE "UVProjectionPlanarAlgo"
 
@@ -13,12 +14,12 @@ void FUVProjectionPlanarAlgo::StartAlgorithm()
 {
 	FUVProjectionAlgorithmBase::StartAlgorithm();
 
-	FScopedSlowTask slowTask(RawMeshes.Num(), LOCTEXT("ProjectUV", "Project UV (Planar)"));
+	FScopedSlowTask slowTask(MeshDatas.Num(), LOCTEXT("ProjectUV", "Project UV (Planar)"));
 	slowTask.MakeDialog();
 
-	for (int32 meshIndex = 0; meshIndex < RawMeshes.Num(); ++meshIndex)
+	for (int32 meshIndex = 0; meshIndex < MeshDatas.Num(); ++meshIndex)
 	{
-		const FString meshName = StaticMeshes[meshIndex]->GetName();
+		const FString meshName = MeshDatas[meshIndex]->GetStaticMesh()->GetName();
 		slowTask.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Project UV (Planar) on mesh '%s'"), *meshName)));
 
 		ProjectVertexOnPlane(meshIndex);
@@ -38,8 +39,10 @@ void FUVProjectionPlanarAlgo::ProjectVertexOnPlane(int32 MeshIndex)
 	FVector2D newUV;
 	FVector2D centerOffset(0.5f, 0.5f);
 
-	const TArray<uint32>& triangles = RawMeshes[MeshIndex].WedgeIndices;
-	const TArray<FVector>& vertices = RawMeshes[MeshIndex].VertexPositions;
+	const FRawMesh& rawMesh = MeshDatas[MeshIndex]->GetRawMesh();
+
+	const TArray<uint32>& triangles = rawMesh.WedgeIndices;
+	const TArray<FVector>& vertices = rawMesh.VertexPositions;
 
 	for (int32 indiceIdx = 0; indiceIdx < triangles.Num(); ++indiceIdx)
 	{

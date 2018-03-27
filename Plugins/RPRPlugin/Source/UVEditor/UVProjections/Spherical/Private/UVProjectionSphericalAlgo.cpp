@@ -15,19 +15,19 @@ void FUVProjectionSphericalAlgo::StartAlgorithm()
 {
 	FUVProjectionAlgorithmBase::StartAlgorithm();
 
-	FScopedSlowTask slowTask(RawMeshes.Num(), LOCTEXT("ProjectUV", "Project UV (Spherical)"));
+	FScopedSlowTask slowTask(MeshDatas.Num(), LOCTEXT("ProjectUV", "Project UV (Spherical)"));
 	slowTask.MakeDialog();
 
-	for (int32 meshIndex = 0; meshIndex < RawMeshes.Num(); ++meshIndex)
+	for (int32 meshIndex = 0; meshIndex < MeshDatas.Num(); ++meshIndex)
 	{
-		const FString meshName = StaticMeshes[meshIndex]->GetName();
+		const FString meshName = MeshDatas[meshIndex]->GetStaticMesh()->GetName();
 		slowTask.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Project UV (Spherical) on mesh '%s'"), *meshName)));
 
 		CurrentMeshIndex = meshIndex;
 
-		ProjectVerticesOnSphere(RawMeshes[meshIndex].VertexPositions, RawMeshes[meshIndex].WedgeIndices);
+		FRawMesh& rawMesh = MeshDatas[meshIndex]->GetRawMesh();
+		ProjectVerticesOnSphere(rawMesh.VertexPositions, rawMesh.WedgeIndices);
 		FixInvalidUVsHorizontally(meshIndex);
-
 	}
 
 	StopAlgorithmAndRaiseCompletion(true);

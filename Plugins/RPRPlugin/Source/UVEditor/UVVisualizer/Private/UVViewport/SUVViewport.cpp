@@ -25,52 +25,58 @@ void SUVViewport::Construct(const FArguments& InArgs)
 	SEditorViewport::Construct(SEditorViewport::FArguments());
 }
 
-void SUVViewport::SetMesh(TWeakObjectPtr<class UStaticMesh> InStaticMesh)
+void SUVViewport::SetRPRMeshData(TWeakPtr<FRPRMeshData> InRPRMeshData)
 {
-	StaticMesh = InStaticMesh;
-	Refresh();
-}
-
-void SUVViewport::RebuildMeshFromRawMesh()
-{
-	if (StaticMesh.IsValid())
+	if (InRPRMeshData != RPRMeshData)
 	{
-		FStaticMeshHelper::SaveRawMeshToStaticMesh(RawMesh, StaticMesh.Get());
+		RPRMeshData = InRPRMeshData;
+		if (RPRMeshData.IsValid())
+		{
+			RPRMeshData.Pin()->OnPostRawMeshChange.AddSP(this, &SUVViewport::Refresh);
+		}
+		Refresh();
 	}
 }
 
 void SUVViewport::Refresh()
 {
-	if (StaticMesh.IsValid())
+	if (RPRMeshData.IsValid())
 	{
-		FStaticMeshHelper::LoadRawMeshFromStaticMesh(StaticMesh.Get(), RawMesh);
 		SetUVChannelIndex(FMath::Max(0, UVChannelIndex));
 	}
 	else
 	{
-		RawMesh.Empty();
 		SetUVChannelIndex(INDEX_NONE);
 	}
 }
 
 void SUVViewport::SetUVChannelIndex(int32 ChannelIndex)
 {
-	if (StaticMesh.IsValid())
+	bool bIsMeshValid = false;
+
+	if (RPRMeshData.IsValid())
 	{
-		const int32 numMaxTexCoords = StaticMesh->RenderData->LODResources[0].GetNumTexCoords();
-		const int32 newUVChannelIndex = FMath::Min(ChannelIndex, numMaxTexCoords - 1);
-		if (newUVChannelIndex != UVChannelIndex)
+		UStaticMesh* staticMesh = RPRMeshData.Pin()->GetStaticMesh();
+		if (staticMesh != nullptr && staticMesh->HasValidRenderData())
 		{
-			UVChannelIndex = newUVChannelIndex;
+			bIsMeshValid = true;
+			const int32 numMaxTexCoords = staticMesh->RenderData->LODResources[0].GetNumTexCoords();
+			const int32 newUVChannelIndex = FMath::Min(ChannelIndex, numMaxTexCoords - 1);
+			if (newUVChannelIndex != UVChannelIndex)
+			{
+				UVChannelIndex = newUVChannelIndex;
+			}
 
 			ViewportClient->RegenerateUVCache();
-			Invalidate();
 		}
 	}
-	else
+	
+	if (!bIsMeshValid)
 	{
 		UVChannelIndex = INDEX_NONE;
 	}
+
+	Invalidate();
 }
 
 void SUVViewport::SetBackground(UTexture2D* Image)
@@ -115,7 +121,7 @@ int32 SUVViewport::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
 	PaintAxis(OutDrawElements, drawBox, LayerId, uvBounds);
 	++LayerId;
 	
-	if (StaticMesh.IsValid() && RawMesh.IsValid() && UVChannelIndex != INDEX_NONE)
+	if (RPRMeshData.IsValid() && UVChannelIndex != INDEX_NONE)
 	{
 		PaintUVs(OutDrawElements, drawBox, LayerId, uvBounds);
 		++LayerId;
@@ -156,8 +162,9 @@ void SUVViewport::PaintBackgroundImage(FSlateWindowElementList& OutDrawElements,
 void SUVViewport::PaintUVs(FSlateWindowElementList& OutDrawElements, const FPaintGeometry& PaintGeometry,
 							uint32 LayerId, const FSlateRect& UVBounds) const
 {
-	const TArray<uint32>& triangles = RawMesh.WedgeIndices;
-	const TArray<FVector2D>& uv = RawMesh.WedgeTexCoords[UVChannelIndex];
+	const FRawMesh& rawMesh = RPRMeshData.Pin()->GetRawMesh();
+	const TArray<uint32>& triangles = rawMesh.WedgeIndices;
+	const TArray<FVector2D>& uv = rawMesh.WedgeTexCoords[UVChannelIndex];
 
 	for (int32 triIdx = 0; triIdx < triangles.Num(); triIdx += 3)
 	{
@@ -412,14 +419,9 @@ bool SUVViewport::IsWidgetModeActive(FWidget::EWidgetMode Mode) const
 	return (SEditorViewport::IsWidgetModeActive(Mode));
 }
 
-UStaticMesh* SUVViewport::GetStaticMesh() const
+TWeakPtr<FRPRMeshData> SUVViewport::GetRPRMeshData() const
 {
-	return (StaticMesh.Get());
-}
-
-FRawMesh& SUVViewport::GetRawMesh()
-{
-	return (RawMesh);
+	return (RPRMeshData);
 }
 
 int32 SUVViewport::GetUVChannel() const
@@ -427,12 +429,14 @@ int32 SUVViewport::GetUVChannel() const
 	return (UVChannelIndex);
 }
 
-const TArray<FVector2D>& SUVViewport::GetUV() const
-{
-	return (RawMesh.WedgeTexCoords[GetUVChannel()]);
-}
-
 TArray<FVector2D>& SUVViewport::GetUV()
 {
-	return (RawMesh.WedgeTexCoords[GetUVChannel()]);
+	check(RPRMeshData.IsValid());
+	return (RPRMeshData.Pin()->GetRawMesh().WedgeTexCoords[GetUVChannel()]);
+}
+
+const TArray<FVector2D>& SUVViewport::GetUV() const
+{
+	check(RPRMeshData.IsValid());
+	return (RPRMeshData.Pin()->GetRawMesh().WedgeTexCoords[GetUVChannel()]);
 }

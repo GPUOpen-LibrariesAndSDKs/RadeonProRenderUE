@@ -1,6 +1,7 @@
 #include "UVProjectionCylinderAlgo.h"
 #include "UVUtility.h"
 #include "RPRVectorTools.h"
+#include "ScopedSlowTask.h"
 
 #define LOCTEXT_NAMESPACE "UVProjectionCylinderAlgo"
 
@@ -8,12 +9,12 @@ void FUVProjectionCylinderAlgo::StartAlgorithm()
 {
 	FUVProjectionAlgorithmBase::StartAlgorithm();
 
-	FScopedSlowTask slowTask(RawMeshes.Num(), LOCTEXT("ProjectUV", "Project UV (Cylinder)"));
+	FScopedSlowTask slowTask(MeshDatas.Num(), LOCTEXT("ProjectUV", "Project UV (Cylinder)"));
 	slowTask.MakeDialog();
 
-	for (int32 meshIndex = 0; meshIndex < RawMeshes.Num(); ++meshIndex)
+	for (int32 meshIndex = 0; meshIndex < MeshDatas.Num(); ++meshIndex)
 	{
-		const FString meshName = StaticMeshes[meshIndex]->GetName();
+		const FString meshName = MeshDatas[meshIndex]->GetStaticMesh()->GetName();
 		slowTask.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Project UV (Cylinder) on mesh '%s'"), *meshName)));
 		
 		ProjectVerticesToCylinder(meshIndex);
@@ -32,9 +33,10 @@ void FUVProjectionCylinderAlgo::Finalize()
 void FUVProjectionCylinderAlgo::ProjectVerticesToCylinder(int32 MeshIndex)
 {
 	FVector2D uv;
+	FRawMesh& rawMesh = MeshDatas[MeshIndex]->GetRawMesh();
 
-	const TArray<FVector>& vertices = RawMeshes[MeshIndex].VertexPositions;
-	const TArray<uint32>& triangles = RawMeshes[MeshIndex].WedgeIndices;
+	const TArray<FVector>& vertices = rawMesh.VertexPositions;
+	const TArray<uint32>& triangles = rawMesh.WedgeIndices;
 	for (int32 tri = 0; tri < triangles.Num(); ++tri)
 	{
 		const uint32 vertexIndice = triangles[tri];

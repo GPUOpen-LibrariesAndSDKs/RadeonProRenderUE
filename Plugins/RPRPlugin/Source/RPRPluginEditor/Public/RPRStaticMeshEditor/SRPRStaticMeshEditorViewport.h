@@ -13,7 +13,7 @@ class SRPRStaticMeshEditorViewport : public SEditorViewport, public FGCObject, p
 {
 public:
 	SLATE_BEGIN_ARGS(SRPRStaticMeshEditorViewport)
-	: _StaticMeshEditor(nullptr)
+		: _StaticMeshEditor(nullptr)
 	{}
 
 		SLATE_ARGUMENT(FRPRStaticMeshEditorPtr, StaticMeshEditor)
@@ -23,11 +23,12 @@ public:
 	SRPRStaticMeshEditorViewport();
 
 	void Construct(const FArguments& InArgs);
+	void RefreshSingleMeshUV(FRPRMeshDataPtr MeshDataPtr);
+	void RefreshMeshUVs();
 
 	void SetFloorToStaticMeshBottom();
-	const TArray<URPRMeshPreviewComponent*>&	GetStaticMeshComponents() const;
 
-	URPRMeshPreviewComponent* CreatePreviewMeshAndAddToViewport(UStaticMesh* StaticMesh);
+	void CreatePreviewMeshAndAddToViewport(TSharedPtr<FRPRMeshData> InMeshData);
 	void AddComponent(UActorComponent* InComponent);
 
 	/* FGCObject Implementation */
@@ -47,12 +48,12 @@ protected:
 
 private:
 
-	void	InitStaticMeshDatas();
+	void	InitMeshDatas();
 	void	InitializeEditorViewportClientCamera();
 
 private:
 
-	TArray<URPRMeshPreviewComponent*>	MeshComponents;
+	TArray<class URPRMeshPreviewComponent*>	PreviewMeshComponents;
 
 	TWeakPtr<FRPRStaticMeshEditor>			StaticMeshEditorPtr;
 	FRPRStaticMeshEditorViewportClientPtr	EditorViewportClient;
