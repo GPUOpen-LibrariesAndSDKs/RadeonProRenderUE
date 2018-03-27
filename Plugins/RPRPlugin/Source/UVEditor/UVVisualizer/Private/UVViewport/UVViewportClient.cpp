@@ -154,7 +154,6 @@ void FUVViewportClient::DrawUVVertex(FPrimitiveDrawInterface* PDI, int32 UVIndex
 	const uint8 depthPriority = SDPG_World;
 
 	UUVCacheData* uv = UVCache[UVIndex];
-	PDI->SetHitProxy(new HUVVertexProxy(uv));
 	FLinearColor color = VertexColor;
 	
 	if (ModeTools->GetSelectedObjects()->IsSelected(uv))
@@ -162,7 +161,9 @@ void FUVViewportClient::DrawUVVertex(FPrimitiveDrawInterface* PDI, int32 UVIndex
 		color = SelectedVertexColor;
 	}
 
-	PDI->DrawPoint(UV_3D, color, vertexSize, depthPriority);
+	// Disable point selection for now
+	//PDI->SetHitProxy(new HUVVertexProxy(uv));
+	//PDI->DrawPoint(UV_3D, color, vertexSize, depthPriority);
 	PDI->SetHitProxy(nullptr);
 }
 

@@ -20,7 +20,7 @@ void URPRMeshPreviewComponent::Regenerate()
 	for (int32 sectionIndex = 0; sectionIndex < numSections; ++sectionIndex)
 	{
 		FindTrianglesBoundsBySection(sectionIndex, sectionData.SectionStart, sectionData.SectionEnd);
-		BuildSection2(sectionIndex, sectionData);
+		BuildSection(sectionIndex, sectionData);
 		SectionDatas.Add(sectionData);
 
 		CreateMeshSection(
@@ -43,10 +43,7 @@ void URPRMeshPreviewComponent::RegenerateUVs()
 	for (int32 sectionIndex = 0; sectionIndex < SectionDatas.Num(); ++sectionIndex)
 	{
 		FSectionData& sectionData = SectionDatas[sectionIndex];
-
-		FindTrianglesBoundsBySection(sectionIndex, sectionData.SectionStart, sectionData.SectionEnd);
-		BuildSection2(sectionIndex, sectionData);
-
+		UpdateSectionUV(sectionIndex);
 		UpdateMeshSection(sectionIndex, sectionData.Vertices, sectionData.Normals, sectionData.UV, sectionData.Colors, sectionData.Tangents);
 	}
 }
@@ -107,166 +104,21 @@ void URPRMeshPreviewComponent::FindTrianglesBoundsBySection(int32 SectionIndex, 
 	OutEndIndex = (OutEndIndex * 3);
 }
 
-void URPRMeshPreviewComponent::BuildSection(int32 SectionIndex, FSectionData& OutSectionData)
+void URPRMeshPreviewComponent::UpdateSectionUV(int32 SectionIndex)
 {
 	const FRawMesh& rawMesh = GetRawMesh();
-	OutSectionData.Vertices = rawMesh.VertexPositions;
-	
-	OutSectionData.Triangles.Empty(OutSectionData.SectionEnd - OutSectionData.SectionStart);
-	for (int32 i = OutSectionData.SectionStart; i < OutSectionData.SectionEnd; ++i)
+	FSectionData& sectionData = SectionDatas[SectionIndex];
+
+	if (rawMesh.WedgeTexCoords[0].Num() > 0)
 	{
-		OutSectionData.Triangles.Add(rawMesh.WedgeIndices[i]);
+		sectionData.UV.Empty(rawMesh.WedgeTexCoords[0].Num());
 	}
 
-	GenerateUVsAndAdaptMesh(OutSectionData);
-}
-
-void URPRMeshPreviewComponent::GenerateUVsAndAdaptMesh(FSectionData& SectionData)
-{
-	const int32 uvChannel = 0;
-	FRawMesh& rawMesh = MeshData->GetRawMesh();
-	const TArray<FVector2D>& meshUV = rawMesh.WedgeTexCoords[uvChannel];
-
-	TArray<FVector>& vertices = rawMesh.VertexPositions;
-	TArray<int32>& triangles = SectionData.Triangles;
-
-	TArray<FVertexData> verticesData;
-	for (int32 triIndex = 0; triIndex < triangles.Num(); ++triIndex)
+	if (rawMesh.WedgeTexCoords[0].Num() > 0)
 	{
-		int32 vertexIndex = triangles[triIndex];
-		FVector2D uv = meshUV[triIndex];
-		const FVector& vertexPosition = vertices[vertexIndex];
-
-		bool hasRegisteredVertexData = false;
-		for (int32 j = 0; j < verticesData.Num(); ++j)
+		for (int32 tri = sectionData.SectionStart; tri <= sectionData.SectionEnd; ++tri)
 		{
-			// If the current triangle access the same vertex but the UV are different...
-			if (ShareSameVertex(verticesData[j].OriginalVertexIndex, vertexIndex) && !AreUVIdentical(verticesData[j].UV, uv))
-			{
-				// Search if there is already another verticesData that contains these datas
-				int32 indexOfDuplicated = FindDuplicatedVertexInfo(verticesData, j + 1, vertexIndex, uv);
-
-				if (indexOfDuplicated != INDEX_NONE) // Found
-				{
-					triangles[triIndex] = verticesData[indexOfDuplicated].VertexIndex;
-				}
-				else // Not found
-				{
-					// Duplicate vertex and assign the new one to the triangle
-					int32 newVertexIndex = SectionData.Vertices.Add(vertexPosition);
-					triangles[triIndex] = newVertexIndex;
-
-					FVertexData vertexInfo;
-					vertexInfo.OriginalVertexIndex = vertexIndex;
-					vertexInfo.VertexIndex = newVertexIndex;
-					vertexInfo.TriangleIndex = triIndex;
-					vertexInfo.UV = uv;
-					verticesData.Add(vertexInfo);
-				}
-
-				hasRegisteredVertexData = true;
-			}
-		}
-
-		if (!hasRegisteredVertexData)
-		{
-			FVertexData vertexInfo;
-			vertexInfo.OriginalVertexIndex = vertexIndex;
-			vertexInfo.VertexIndex = vertexIndex;
-			vertexInfo.TriangleIndex = triIndex;
-			vertexInfo.UV = uv;
-			verticesData.Add(vertexInfo);
-		}
-	}
-
-	RemoveRedundantVerticesData(SectionData.Vertices.Num(), verticesData);
-	GetUVsFromVerticesData(verticesData, SectionData.UV);
-	GetColorNormalsAndTangentsFromVerticesData(verticesData, SectionData);
-}
-
-bool URPRMeshPreviewComponent::ShareSameVertex(int32 VertexIndexA, int32 VertexIndexB) const
-{
-	return (VertexIndexA == VertexIndexB);
-}
-
-bool URPRMeshPreviewComponent::AreUVIdentical(const FVector2D& uvA, const FVector2D& uvB) const
-{
-	return (FVector2D::DistSquared(uvA, uvB) <= SMALL_NUMBER);
-}
-
-int32 URPRMeshPreviewComponent::FindDuplicatedVertexInfo(const TArray<FVertexData>& VerticesData, 
-										int32 StartIndex, int32 VertexIndex, const FVector2D& UV) const
-{
-	for (int32 i = StartIndex; i < VerticesData.Num(); ++i)
-	{
-		if (ShareSameVertex(VerticesData[i].OriginalVertexIndex, VertexIndex) && 
-			AreUVIdentical(VerticesData[i].UV, UV))
-		{
-			return (i);
-		}
-	}
-
-	return (INDEX_NONE);
-}
-
-void URPRMeshPreviewComponent::RemoveRedundantVerticesData(int32 NumVertices, TArray<FVertexData>& VertexInfos)
-{
-	TArray<FVertexData> uniqueVertexInfos;
-	int32 vertexIndex = 0;
-
-	uniqueVertexInfos.Reserve(NumVertices);
-	while (vertexIndex <= NumVertices)
-	{
-		for (int32 i = 0; i < VertexInfos.Num(); ++i)
-		{
-			if (vertexIndex == VertexInfos[i].VertexIndex)
-			{
-				uniqueVertexInfos.Add(VertexInfos[i]);
-				break;
-			}
-		}
-		++vertexIndex;
-	}
-
-	VertexInfos = uniqueVertexInfos;
-}
-
-void URPRMeshPreviewComponent::GetUVsFromVerticesData(const TArray<FVertexData>& VerticesData, TArray<FVector2D>& UV) const
-{
-	UV.Empty(VerticesData.Num());
-	for (int32 i = 0; i < VerticesData.Num(); ++i)
-	{
-		UV.Add(VerticesData[i].UV);
-	}
-}
-
-void URPRMeshPreviewComponent::GetColorNormalsAndTangentsFromVerticesData(const TArray<FVertexData>& VerticesData, FSectionData& SectionData) const
-{
-	const FRawMesh& rawMesh = GetRawMesh();
-	TArray<FVector>& Normals = SectionData.Normals;
-	TArray<FProcMeshTangent>& Tangents = SectionData.Tangents;
-	TArray<FColor>& Colors = SectionData.Colors;
-
-	Normals.Empty();
-	Tangents.Empty();
-	Colors.Empty();
-
-	for (int32 i = 0; i < VerticesData.Num(); ++i)
-	{
-		int32 tri = VerticesData[i].TriangleIndex;
-		if (rawMesh.WedgeTangentZ.IsValidIndex(tri))
-		{
-			Normals.Add(rawMesh.WedgeTangentZ[tri]);
-		}
-		if (rawMesh.WedgeTangentX.IsValidIndex(tri))
-		{
-			Tangents.Add(FProcMeshTangent(rawMesh.WedgeTangentX[tri], false));
-		}
-
-		int32 vertexIndex = VerticesData[i].VertexIndex;
-		if (rawMesh.WedgeColors.IsValidIndex(vertexIndex))
-		{
-			Colors.Add(rawMesh.WedgeColors[vertexIndex]);
+			AddIfIndexValid(rawMesh.WedgeTexCoords[0], sectionData.UV, tri);
 		}
 	}
 }
@@ -283,7 +135,7 @@ void URPRMeshPreviewComponent::AssignMaterialFromStaticMesh()
 	}
 }
 
-void URPRMeshPreviewComponent::BuildSection2(int32 SectionIndex, FSectionData& SectionData)
+void URPRMeshPreviewComponent::BuildSection(int32 SectionIndex, FSectionData& SectionData)
 {
 	const FRawMesh& rawMesh = GetRawMesh();
 
@@ -307,11 +159,11 @@ void URPRMeshPreviewComponent::BuildSection2(int32 SectionIndex, FSectionData& S
 		SectionData.Tangents.Empty(rawMesh.WedgeTangentZ.Num());
 	}
 
-	for (int32 tri = 0; tri < rawMesh.WedgeIndices.Num(); ++tri)
+	for (int32 tri = SectionData.SectionStart; tri < SectionData.SectionEnd; ++tri)
 	{
 		int32 vertexIndex = rawMesh.WedgeIndices[tri];
 		SectionData.Vertices.Add(rawMesh.VertexPositions[vertexIndex]);
-		SectionData.Triangles.Add(tri);
+		SectionData.Triangles.Add(tri - SectionData.SectionStart);
 
 		AddIfIndexValid(rawMesh.WedgeTangentZ, SectionData.Normals, tri);
 		AddIfIndexValid(rawMesh.WedgeTexCoords[0], SectionData.UV, tri);
