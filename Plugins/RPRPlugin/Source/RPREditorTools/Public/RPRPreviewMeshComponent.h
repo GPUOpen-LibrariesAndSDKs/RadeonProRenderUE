@@ -55,6 +55,11 @@ private:
 	void	GetColorNormalsAndTangentsFromVerticesData(const TArray<FVertexData>& VerticesData, FSectionData& SectionData) const;
 	void	AssignMaterialFromStaticMesh();
 
+	void	BuildSection2(int32 SectionIndex, FSectionData& SectionData);
+
+	template<typename TParameter>
+	void	AddIfIndexValid(const TArray<TParameter>& Source, TArray<TParameter>& Destination, int32 Index);
+
 private:
 
 	TSharedPtr<class FRPRMeshData> MeshData;
@@ -62,3 +67,12 @@ private:
 	TArray<FSectionData> SectionDatas;
 
 };
+
+template<typename TParameter>
+void URPRMeshPreviewComponent::AddIfIndexValid(const TArray<TParameter>& Source, TArray<TParameter>& Destination, int32 Index)
+{
+	if (Source.IsValidIndex(Index))
+	{
+		Destination.Add(Source[Index]);
+	}
+}

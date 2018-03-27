@@ -20,7 +20,7 @@ void URPRMeshPreviewComponent::Regenerate()
 	for (int32 sectionIndex = 0; sectionIndex < numSections; ++sectionIndex)
 	{
 		FindTrianglesBoundsBySection(sectionIndex, sectionData.SectionStart, sectionData.SectionEnd);
-		BuildSection(sectionIndex, sectionData);
+		BuildSection2(sectionIndex, sectionData);
 		SectionDatas.Add(sectionData);
 
 		CreateMeshSection(
@@ -45,7 +45,7 @@ void URPRMeshPreviewComponent::RegenerateUVs()
 		FSectionData& sectionData = SectionDatas[sectionIndex];
 
 		FindTrianglesBoundsBySection(sectionIndex, sectionData.SectionStart, sectionData.SectionEnd);
-		BuildSection(sectionIndex, sectionData);
+		BuildSection2(sectionIndex, sectionData);
 
 		UpdateMeshSection(sectionIndex, sectionData.Vertices, sectionData.Normals, sectionData.UV, sectionData.Colors, sectionData.Tangents);
 	}
@@ -280,5 +280,46 @@ void URPRMeshPreviewComponent::AssignMaterialFromStaticMesh()
 	{
 		SetMaterial(materialIndex, material);
 		++materialIndex;
+	}
+}
+
+void URPRMeshPreviewComponent::BuildSection2(int32 SectionIndex, FSectionData& SectionData)
+{
+	const FRawMesh& rawMesh = GetRawMesh();
+
+	SectionData.Vertices.Empty(rawMesh.WedgeIndices.Num());
+	SectionData.Triangles.Empty(rawMesh.WedgeIndices.Num());
+
+	if (rawMesh.WedgeTangentZ.Num() > 0)
+	{
+		SectionData.Normals.Empty(rawMesh.WedgeIndices.Num());
+	}
+	if (rawMesh.WedgeTexCoords[0].Num() > 0)
+	{
+		SectionData.UV.Empty(rawMesh.WedgeTexCoords[0].Num());
+	}
+	if (rawMesh.WedgeColors.Num() > 0)
+	{
+		SectionData.Colors.Empty(rawMesh.WedgeColors.Num());
+	}
+	if (rawMesh.WedgeTangentX.Num() > 0)
+	{
+		SectionData.Tangents.Empty(rawMesh.WedgeTangentZ.Num());
+	}
+
+	for (int32 tri = 0; tri < rawMesh.WedgeIndices.Num(); ++tri)
+	{
+		int32 vertexIndex = rawMesh.WedgeIndices[tri];
+		SectionData.Vertices.Add(rawMesh.VertexPositions[vertexIndex]);
+		SectionData.Triangles.Add(tri);
+
+		AddIfIndexValid(rawMesh.WedgeTangentZ, SectionData.Normals, tri);
+		AddIfIndexValid(rawMesh.WedgeTexCoords[0], SectionData.UV, tri);
+		AddIfIndexValid(rawMesh.WedgeColors, SectionData.Colors, tri);
+
+		if (rawMesh.WedgeTangentX.IsValidIndex(tri))
+		{
+			SectionData.Tangents.Add(FProcMeshTangent(rawMesh.WedgeTangentX[tri], false));
+		}
 	}
 }
