@@ -7,6 +7,7 @@
 #include "Editor.h"
 #include "UICommandList.h"
 #include "UVScaleModifierContext.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 DECLARE_DELEGATE(FOnUVChanged)
 
@@ -17,6 +18,8 @@ public:
 	FUVViewportClient(const TWeakPtr<SEditorViewport>& InUVViewport);
 	virtual ~FUVViewportClient();
 
+	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
+
 	virtual void Draw(const FSceneView* View, FPrimitiveDrawInterface* PDI) override;
 	virtual void ProcessClick(FSceneView& View, HHitProxy* HitProxy, FKey Key, EInputEvent Event, uint32 HitX, uint32 HitY) override;
 	virtual void TrackingStarted(const struct FInputEventState& InInputState, bool bIsDragging, bool bNudge) override;
@@ -25,6 +28,9 @@ public:
 
 	virtual bool ShouldOrbitCamera() const override;
 	void	RegenerateUVCache();
+
+	void	SetBackgroundImage(UTexture2D* BackgroundImage);
+	void	SetBackgroundOpacity(float Opacity);
 
 	void	SelectAllUVs();
 	
@@ -36,7 +42,8 @@ public:
 private:
 
 	void	GenerateCacheUV();
-	void	SetupCamera();
+	void	SetupCameraView();
+	void	SetupBackground();
 	void	DrawUV(const FSceneView* View, FPrimitiveDrawInterface* PDI, TSharedPtr<class SUVViewport> Viewport);
 	void	DrawUVTriangle(FPrimitiveDrawInterface* PDI, int32 UVStartIndex, const FLinearColor& Color, 
 								const FVector2D& uvA, const FVector2D& uvB, const FVector2D& uvC);
@@ -64,6 +71,9 @@ private:
 
 	FPreviewScene OwnedPreviewScene;
 	FTransform SceneTransform;
+
+	UStaticMeshComponent* BackgroundMeshComponent;
+	UMaterialInstanceDynamic* BackgroundMeshMID;
 
 	FUVCache		UVCache;
 	FOnUVChanged	OnUVChangedDelegate;

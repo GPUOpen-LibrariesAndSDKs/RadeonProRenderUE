@@ -57,7 +57,9 @@ public class RPREditorTools : ModuleRules
                 "StaticMeshEditor",
                 "PropertyEditor",
                 "AdvancedPreviewScene",
+                "RHI",
                 "RenderCore",
+                "ShaderCore",
                 "RawMesh",
 				// ... add private dependencies that you statically link with here ...	
 			}

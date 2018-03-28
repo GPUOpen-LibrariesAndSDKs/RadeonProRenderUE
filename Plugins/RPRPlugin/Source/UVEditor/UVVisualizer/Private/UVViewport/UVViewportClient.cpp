@@ -8,6 +8,9 @@
 #include "UVViewportActions.h"
 #include "UVCacheData.h"
 #include "RPRConstAway.h"
+#include "Engine/StaticMesh.h"
+#include "ActorFactories/ActorFactoryBasicShape.h"
+#include "Materials/Material.h"
 
 #define LOCTEXT_NAMESPACE "UVViewportClient"
 
@@ -45,17 +48,22 @@ FUVViewportClient::FUVViewportClient(const TWeakPtr<SEditorViewport>& InViewport
 
 	// Scale the UV drawn so it is better to navigate in the scene
 	SceneTransform.SetScale3D(FVector::OneVector * 100);
-
-	SetRealtime(true);
-	EngineShowFlags.DisableAdvancedFeatures();
-
-	SetupCamera();
+	
+	SetupCameraView();
+	SetupBackground();
 	GenerateCacheUV();
 }
 
 FUVViewportClient::~FUVViewportClient()
 {
 	UVCache.ClearCache();
+}
+
+void FUVViewportClient::AddReferencedObjects(FReferenceCollector& Collector)
+{
+	FEditorViewportClient::AddReferencedObjects(Collector);
+	Collector.AddReferencedObject(BackgroundMeshComponent);
+	Collector.AddReferencedObject(BackgroundMeshMID);
 }
 
 void FUVViewportClient::GenerateCacheUV()
@@ -79,14 +87,42 @@ void FUVViewportClient::GenerateCacheUV()
 	}
 }
 
-void FUVViewportClient::SetupCamera()
+void FUVViewportClient::SetupCameraView()
 {
+	EngineShowFlags.DisableAdvancedFeatures();
+	EngineShowFlags.SetCompositeEditorPrimitives(true);
+	EngineShowFlags.SetSeparateTranslucency(true);
+
 	SetViewportType(LVT_OrthoXZ);
+	SetViewMode(VMI_Unlit);
 	SetOrthoZoom(2500.0f);
 
 	const FVector cameraLocation(50, 1, 50);
 	const FRotator cameraRotation = UKismetMathLibrary::FindLookAtRotation(cameraLocation, FVector::ZeroVector);
 	SetCameraSetup(FVector::ZeroVector, cameraRotation, FVector::ZeroVector, FVector::ZeroVector, cameraLocation, cameraRotation);
+}
+
+void FUVViewportClient::SetupBackground()
+{
+	UStaticMesh* mesh = LoadObject<UStaticMesh>(nullptr, *UActorFactoryBasicShape::BasicPlane.ToString());
+	BackgroundMeshComponent = NewObject<UStaticMeshComponent>();
+	BackgroundMeshComponent->SetStaticMesh(mesh);
+
+	UMaterialInterface* material = LoadObject<UMaterialInterface>(nullptr, TEXT("/RPRPlugin/Materials/Editor/M_UVBackground.M_UVBackground"));
+	if (material != nullptr)
+	{
+		BackgroundMeshMID = 
+			BackgroundMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, material);
+	}
+
+	FTransform transform;
+	transform.SetRotation(FQuat(FVector::ForwardVector, FMath::DegreesToRadians(-90)));
+	// Center and move backward
+	transform.SetTranslation((FVector::ForwardVector + FVector::UpVector) * SceneTransform.GetMaximumAxisScale() / 2 - FVector::RightVector);
+
+	PreviewScene->AddComponent(BackgroundMeshComponent, transform);
+
+	SetBackgroundImage(nullptr);
 }
 
 void FUVViewportClient::Draw(const FSceneView* View, FPrimitiveDrawInterface* PDI)
@@ -282,6 +318,27 @@ void FUVViewportClient::RegenerateUVCache()
 	}
 }
 
+void FUVViewportClient::SetBackgroundImage(UTexture2D* BackgroundImage)
+{
+	if (BackgroundMeshMID)
+	{
+		BackgroundMeshMID->SetTextureParameterValue(FName("Texture"), BackgroundImage);
+	}
+
+	if (BackgroundMeshComponent)
+	{
+		BackgroundMeshComponent->SetVisibility(BackgroundImage != nullptr);
+	}
+}
+
+void FUVViewportClient::SetBackgroundOpacity(float Opacity)
+{
+	if (BackgroundMeshMID)
+	{
+		BackgroundMeshMID->SetScalarParameterValue(FName("Opacity"), Opacity);
+	}
+}
+
 void FUVViewportClient::SelectAllUVs()
 {
 	USelection* selection = ModeTools->GetSelectedObjects();
@@ -293,6 +350,11 @@ void FUVViewportClient::SelectAllUVs()
 		}
 	}
 	selection->EndBatchSelectOperation();
+
+	if (GetWidgetMode() == FWidget::EWidgetMode::WM_None)
+	{
+		SetWidgetMode(FWidget::EWidgetMode::WM_Translate);
+	}
 }
 
 FWidget::EWidgetMode FUVViewportClient::GetWidgetMode() const
