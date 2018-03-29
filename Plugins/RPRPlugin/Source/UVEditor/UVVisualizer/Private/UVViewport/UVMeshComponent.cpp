@@ -5,11 +5,6 @@
 #include "Materials/Material.h"
 #include "DynamicMeshBuilder.h"
 
-struct FUVBuffer
-{
-	FVector Position;
-};
-
 class FUVMeshVertexBuffer : public FVertexBuffer
 {
 public:
@@ -29,7 +24,6 @@ public:
 
 class FUVMeshVertexFactory : public FLocalVertexFactory
 {
-
 public:
 
 	void Init(const FUVMeshVertexBuffer* VertexBuffer)
@@ -162,10 +156,9 @@ public:
 				{
 					if (IsTriangleReversed(uv, uvIndex))
 					{
-						const int32 vertexIndex = uvIndex;
-						ColorVertex(vertexIndex, FColor::Red);
-						ColorVertex(vertexIndex+1, FColor::Red);
-						ColorVertex(vertexIndex+2, FColor::Red);
+						ColorVertex(uvIndex, FColor::Red);
+						ColorVertex(uvIndex + 1, FColor::Red);
+						ColorVertex(uvIndex + 2, FColor::Red);
 					}
 				}
 			}
@@ -185,14 +178,7 @@ public:
 
 		return (!FUVUtility::IsUVTriangleValid(uvA, uvB, uvC));
 	}
-
-	void ReverseTriangle(int32 TriangleStartIndex)
-	{
-		uint16 tempTri = IndexBuffer.Indices[TriangleStartIndex];
-		IndexBuffer.Indices[TriangleStartIndex] = IndexBuffer.Indices[TriangleStartIndex + 2];
-		IndexBuffer.Indices[TriangleStartIndex + 2] = tempTri;
-	}
-
+	
 	int32 CountNumUVDatas(int32 UVChannel, const FRawMesh& RawMesh) const
 	{
 		return (RawMesh.WedgeTexCoords[UVChannel].Num());
@@ -210,56 +196,6 @@ public:
 		}
 	}
 
-	void BuildMesh()
-	{
-		/*VertexBuffer.Vertices.Empty(4);
-		VertexBuffer.Vertices.AddUninitialized(4);
-
-		VertexBuffer.Vertices[0].Position = FVector(-1, 0, -1);
-		VertexBuffer.Vertices[1].Position = FVector(1, 0, -1);
-		VertexBuffer.Vertices[2].Position = FVector(-1, 0, 1);
-		VertexBuffer.Vertices[3].Position = FVector(1, 0, 1);
-
-		VertexBuffer.Vertices[0].TextureCoordinate = FVector2D(0, 1);
-		VertexBuffer.Vertices[1].TextureCoordinate = FVector2D(1, 1);
-		VertexBuffer.Vertices[2].TextureCoordinate = FVector2D(0, 0);
-		VertexBuffer.Vertices[3].TextureCoordinate = FVector2D(1, 0);
-
-		FPackedNormal normal = FPackedNormal(FVector(0, 1, 0));
-		for (int32 i = 0; i < VertexBuffer.Vertices.Num(); ++i)
-		{
-			VertexBuffer.Vertices[i].TangentZ = normal;
-		}
-
-		IndexBuffer.Indices.Empty(6);
-		IndexBuffer.Indices.AddUninitialized(6);
-
-		IndexBuffer.Indices[0] = 0;
-		IndexBuffer.Indices[1] = 1;
-		IndexBuffer.Indices[2] = 2;
-		IndexBuffer.Indices[3] = 1;
-		IndexBuffer.Indices[4] = 3;
-		IndexBuffer.Indices[5] = 2;*/
-
-
-		/*VertexBuffer.Vertices.Empty(3);
-		VertexBuffer.Vertices.AddUninitialized(3);
-		VertexBuffer.Vertices[0].Position = FVector(-1, 0, 0);
-		VertexBuffer.Vertices[1].Position = FVector(1, 0, 0);
-		VertexBuffer.Vertices[2].Position = FVector(0.5f, 0, 1);
-
-		VertexBuffer.Vertices[0].TextureCoordinate = FVector2D(0, 0);
-		VertexBuffer.Vertices[1].TextureCoordinate = FVector2D(1, 1);
-		VertexBuffer.Vertices[2].TextureCoordinate = FVector2D(1, 0);
-
-		IndexBuffer.Indices.Empty(4);
-		IndexBuffer.Indices.AddUninitialized(4);
-		IndexBuffer.Indices[0] = 0;
-		IndexBuffer.Indices[1] = 1;
-		IndexBuffer.Indices[2] = 1;
-		IndexBuffer.Indices[3] = 2;*/
-	}
-
 	virtual void DrawStaticElements(FStaticPrimitiveDrawInterface* PDI)
 	{
 		if (VertexBuffer.Vertices.Num() > 0)
@@ -269,12 +205,9 @@ public:
 				FMeshBatch mesh;
 				mesh.VertexFactory = &VertexFactory;
 				mesh.MaterialRenderProxy = MaterialRenderProxy;
-				mesh.ReverseCulling = IsLocalToWorldDeterminantNegative();
 				mesh.CastShadow = false;
 				mesh.DepthPriorityGroup = SDPG_World;
 				mesh.Type = PT_LineList;
-				//mesh.bWireframe = false;
-				mesh.bDisableBackfaceCulling = true;
 
 				FMeshBatchElement& batchElement = mesh.Elements[0];
 				batchElement.IndexBuffer = &IndexBuffer;
@@ -293,11 +226,11 @@ public:
 	{
 		FPrimitiveViewRelevance ViewRelevance;
 		ViewRelevance.bDrawRelevance = IsShown(View);
-		// ViewRelevance.bDynamicRelevance = true;
 		ViewRelevance.bShadowRelevance = IsShadowCast(View);
 		ViewRelevance.bRenderInMainPass = ShouldRenderInMainPass();
 		ViewRelevance.bRenderCustomDepth = ShouldRenderCustomDepth();
 
+		ViewRelevance.bDynamicRelevance = false;
 		ViewRelevance.bStaticRelevance = true;
 
 		return ViewRelevance;
