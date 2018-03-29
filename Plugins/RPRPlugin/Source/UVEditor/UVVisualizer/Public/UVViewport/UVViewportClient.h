@@ -43,6 +43,7 @@ private:
 	void	GenerateCacheUV();
 	void	SetupCameraView();
 	void	SetupBackground();
+	void	SetupUVMesh();
 	//void	DrawUV(const FSceneView* View, FPrimitiveDrawInterface* PDI, TSharedPtr<class SUVViewport> Viewport);
 	//void	DrawUVTriangle(FPrimitiveDrawInterface* PDI, int32 UVStartIndex, const FLinearColor& Color, 
 	//							const FVector2D& uvA, const FVector2D& uvB, const FVector2D& uvC);

@@ -81,8 +81,7 @@ void FRPRStaticMeshEditor::InitializeUVProjectionMappingEditor()
 void FRPRStaticMeshEditor::InitializeUVVisualizer()
 {
 	UVVisualizer = SNew(SUVVisualizerEditor);
-	// TODO : Re-enable
-	//UVVisualizer->SetMeshData(MeshDatas[0]);
+	UVVisualizer->SetMeshDatas(MeshDatas);
 }
 
 void FRPRStaticMeshEditor::InitializeSceneComponentsOutliner()
@@ -376,12 +375,11 @@ void FRPRStaticMeshEditor::OnSceneComponentOutlinerSelectionChanged(URPRMeshPrev
 
 	if (numItemSelected > 0)
 	{
-		// TODO : re-enable
-		// UVVisualizer->SetMeshData(meshDatas[0]);
+		UVVisualizer->SetMeshDatas(meshDatas);
 	}
 	else
 	{
-		UVVisualizer->SetMeshData(nullptr);
+		UVVisualizer->ClearMeshDatas();
 	}
 }
 

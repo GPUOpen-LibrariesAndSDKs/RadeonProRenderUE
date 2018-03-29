@@ -21,8 +21,8 @@ public:
 	SLATE_END_ARGS()
 
 	void	Construct(const FArguments& InArgs);
-	void	SetMeshData(TSharedPtr<FRPRMeshData> InRPRMeshData);
-	void	SetMeshDatas(const FRPRMeshDataContainer& InRPRMeshDatas);
+	void	SetMeshDatas(FRPRMeshDataContainerWkPtr InRPRMeshDatas);
+	void	ClearMeshDatas();
 	void	Refresh();
 	
 	virtual void NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, UProperty* PropertyThatChanged) override;
@@ -39,8 +39,9 @@ private:
 	void					OnUVChannelSelected(TSharedPtr<FChannelInfo> ChannelInfo, ESelectInfo::Type SelectInfoType);
 	FText					GenerateUVComboBoxText(int32 ChannelIndex) const;
 
-	FText		GetStaticLabelText() const;
-	EVisibility GetStaticMeshLabelVisibility() const;
+	FText		GetMeshLabelText() const;
+	FText		GetMeshTooltip() const;
+	EVisibility GetMeshLabelVisibility() const;
 
 private:
 
@@ -48,7 +49,7 @@ private:
 	TSharedPtr<IStructureDetailsView>	UVVisualizerEditorSettingsView;
 	TSharedPtr<FStructOnScope>			UVVisualizerEditorSettingsStructOnScopePtr;
 
-	FRPRMeshDataContainer		RPRMeshDatas;
+	FRPRMeshDataContainerWkPtr	RPRMeshDatasWkPtr;
 	FUVVisualizerEditorSettings	UVVisualizerEditorSettings;
 
 	TSharedPtr<FChannelInfo>			SelectedUVChannel;

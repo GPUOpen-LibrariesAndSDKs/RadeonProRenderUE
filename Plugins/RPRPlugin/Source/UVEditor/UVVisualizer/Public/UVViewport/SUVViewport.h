@@ -18,7 +18,7 @@ public:
 	SUVViewport();
 
 	void	Construct(const FArguments& InArgs);
-	void	SetRPRMeshDatas(const FRPRMeshDataContainer& InRPRMeshDatas);
+	void	SetRPRMeshDatas(FRPRMeshDataContainerWkPtr InRPRMeshDatas);
 	void	Refresh();
 
 	void	SetUVChannelIndex(int32 ChannelIndex);
@@ -26,11 +26,10 @@ public:
 	void	ClearBackground();
 	void	SetBackgroundOpacity(float Opacity);
 
-	FRPRMeshDataContainer&			GetRPRMeshDatas();
-	const FRPRMeshDataContainer&	GetRPRMeshDatas() const;
-	int32							GetUVChannel() const;
-	TArray<FVector2D>&				GetUV(int32 MeshIndex);
-	const TArray<FVector2D>&		GetUV(int32 MeshIndex) const;
+	FRPRMeshDataContainerPtr	GetRPRMeshDatas() const;
+	int32						GetUVChannel() const;
+	TArray<FVector2D>&			GetUV(int32 MeshIndex);
+	const TArray<FVector2D>&	GetUV(int32 MeshIndex) const;
 	
 protected:
 	
@@ -49,7 +48,7 @@ private:
 
 	FUVViewportClientPtr ViewportClient;
 
-	FRPRMeshDataContainer RPRMeshDatas;
+	FRPRMeshDataContainerWkPtr RPRMeshDatas;
 	int32 UVChannelIndex;
 
 };

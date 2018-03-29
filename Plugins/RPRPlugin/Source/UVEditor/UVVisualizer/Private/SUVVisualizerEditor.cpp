@@ -29,11 +29,12 @@ void SUVVisualizerEditor::Construct(const FArguments& InArgs)
 				.AutoHeight()
 				.HAlign(HAlign_Fill)
 				[
-					SNew(SBox)
-					.Visibility(this, &SUVVisualizerEditor::GetStaticMeshLabelVisibility)
+					SNew(SBorder)
+					.Visibility(this, &SUVVisualizerEditor::GetMeshLabelVisibility)
 					[
 						SNew(STextBlock)
-						.Text(this, &SUVVisualizerEditor::GetStaticLabelText)
+						.Text(this, &SUVVisualizerEditor::GetMeshLabelText)
+						.ToolTipText(this, &SUVVisualizerEditor::GetMeshTooltip)
 					]
 				]
 				+SVerticalBox::Slot()
@@ -60,22 +61,20 @@ void SUVVisualizerEditor::Construct(const FArguments& InArgs)
 	UVVisualizer->SetBackgroundOpacity(UVVisualizerEditorSettings.BackgroundOpacity);
 }
 
-void SUVVisualizerEditor::SetMeshData(TSharedPtr<FRPRMeshData> InRPRMeshData)
+void SUVVisualizerEditor::SetMeshDatas(FRPRMeshDataContainerWkPtr InRPRMeshDatas)
 {
-	RPRMeshDatas.Empty(1);
-	RPRMeshDatas.Add(InRPRMeshData);
-	SetMeshDatas(RPRMeshDatas);
-}
-
-void SUVVisualizerEditor::SetMeshDatas(const FRPRMeshDataContainer& InRPRMeshDatas)
-{
-	RPRMeshDatas = InRPRMeshDatas;
+	RPRMeshDatasWkPtr = InRPRMeshDatas;
 
 	if (UVVisualizer.IsValid())
 	{
-		UVVisualizer->SetRPRMeshDatas(RPRMeshDatas);
+		UVVisualizer->SetRPRMeshDatas(RPRMeshDatasWkPtr);
 	}
 	Refresh();
+}
+
+void SUVVisualizerEditor::ClearMeshDatas()
+{
+	RPRMeshDatasWkPtr.Reset();
 }
 
 void SUVVisualizerEditor::Refresh()
@@ -191,21 +190,52 @@ FText SUVVisualizerEditor::GenerateUVComboBoxText(int32 ChannelIndex) const
 	);
 }
 
-FText SUVVisualizerEditor::GetStaticLabelText() const
+FText SUVVisualizerEditor::GetMeshLabelText() const
 {
-	const UStaticMesh* staticMesh = RPRMeshDatas.Num() > 1 ? RPRMeshDatas[0]->GetStaticMesh() : nullptr;
+	FRPRMeshDataContainerPtr meshDatas = RPRMeshDatasWkPtr.Pin();
 
-	return (
-		staticMesh != nullptr ?
-		FText::FromString(staticMesh->GetName())
-		: FText::GetEmpty()
-		);
+	if (!meshDatas.IsValid())
+	{
+		return (FText::GetEmpty());
+	}
+
+	if (meshDatas->Num() == 1)
+	{
+		const UStaticMesh* staticMesh = (*meshDatas)[0]->GetStaticMesh();
+		return FText::FromString(staticMesh->GetName());
+	}
+	else
+	{
+		return (FText::FormatOrdered(LOCTEXT("MultiMeshSelectedLabel", "{0} {0}|plural=(mesh,meshes) visualized"), meshDatas->Num()));
+	}
 }
 
-EVisibility SUVVisualizerEditor::GetStaticMeshLabelVisibility() const
+FText SUVVisualizerEditor::GetMeshTooltip() const
 {
-	const UStaticMesh* staticMesh = RPRMeshDatas.Num() > 1 ? RPRMeshDatas[0]->GetStaticMesh() : nullptr;
-	return (staticMesh != nullptr ? EVisibility::Visible : EVisibility::Collapsed);
+	FRPRMeshDataContainerPtr meshDatas = RPRMeshDatasWkPtr.Pin();
+
+	if (!meshDatas.IsValid() || meshDatas->Num() == 0)
+	{
+		return (FText::GetEmpty());
+	}
+
+	FString meshNames;
+	for (int32 i = 0; i < meshDatas->Num(); ++i)
+	{
+		meshNames += (*meshDatas)[i]->GetStaticMesh()->GetName();
+		if (i + 1 < meshDatas->Num())
+		{
+			meshNames += TEXT(", ");
+		}
+	}
+
+	return (FText::FromString(meshNames));
+}
+
+EVisibility SUVVisualizerEditor::GetMeshLabelVisibility() const
+{
+	FRPRMeshDataContainerPtr meshDatas = RPRMeshDatasWkPtr.Pin();
+	return (meshDatas.IsValid() && meshDatas->Num() > 0 ? EVisibility::Visible : EVisibility::Collapsed);
 }
 
 #undef LOCTEXT_NAMESPACE

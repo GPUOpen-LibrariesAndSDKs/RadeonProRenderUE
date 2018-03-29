@@ -15,7 +15,7 @@ public:
 	virtual void PostLoad() override;
 
 	virtual FPrimitiveSceneProxy* CreateSceneProxy() override;
-
+	virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
 	virtual int32 GetNumMaterials() const override;
 
 	void	SetUVChannel(int32 InUVChannel);
@@ -28,6 +28,7 @@ public:
 
 private:
 
+	void UpdateLocalBounds();
 	void UpdateRPRMeshDatasFromTemplateMesh();
 
 public:
@@ -39,7 +40,7 @@ private:
 
 	int32 UVChannel;
 	FRPRMeshDataContainerWkPtr RPRMeshDatas;
-
+	FBoxSphereBounds LocalBounds;
 
 	FRPRMeshDataContainerPtr TempMeshDataPtr;
 };

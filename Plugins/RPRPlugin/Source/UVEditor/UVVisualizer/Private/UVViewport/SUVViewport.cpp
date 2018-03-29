@@ -25,19 +25,22 @@ void SUVViewport::Construct(const FArguments& InArgs)
 	SEditorViewport::Construct(SEditorViewport::FArguments());
 }
 
-void SUVViewport::SetRPRMeshDatas(const FRPRMeshDataContainer& InRPRMeshDatas)
+void SUVViewport::SetRPRMeshDatas(FRPRMeshDataContainerWkPtr InRPRMeshDatas)
 {
 	RPRMeshDatas = InRPRMeshDatas;
-	for (int32 i = 0; i < RPRMeshDatas.Num(); ++i)
+
+	const FRPRMeshDataContainer& meshDatas = *RPRMeshDatas.Pin();
+	for (int32 i = 0; i < meshDatas.Num(); ++i)
 	{
-		RPRMeshDatas[i]->OnPostRawMeshChange.AddSP(this, &SUVViewport::Refresh);
+		meshDatas[i]->OnPostRawMeshChange.AddSP(this, &SUVViewport::Refresh);
 	}
 	Refresh();
 }
 
 void SUVViewport::Refresh()
 {
-	if (RPRMeshDatas.Num() > 0)
+	FRPRMeshDataContainerPtr meshDataPtr = RPRMeshDatas.Pin();
+	if (meshDataPtr.IsValid() && meshDataPtr->Num() > 0)
 	{
 		SetUVChannelIndex(FMath::Max(0, UVChannelIndex));
 	}
@@ -51,7 +54,9 @@ void SUVViewport::SetUVChannelIndex(int32 ChannelIndex)
 {
 	bool bIsMeshValid = false;
 
-	int32 maxUVChannelIndex = RPRMeshDatas.GetMaxUVChannelIndex();
+	FRPRMeshDataContainerPtr meshDataPtr = RPRMeshDatas.Pin();
+
+	int32 maxUVChannelIndex = meshDataPtr->GetMaxUVChannelIndex();
 	const int32 newUVChannelIndex = FMath::Min(ChannelIndex, maxUVChannelIndex);
 	if (newUVChannelIndex != UVChannelIndex)
 	{
@@ -151,15 +156,9 @@ bool SUVViewport::IsWidgetModeActive(FWidget::EWidgetMode Mode) const
 	return (SEditorViewport::IsWidgetModeActive(Mode));
 }
 
-const FRPRMeshDataContainer& SUVViewport::GetRPRMeshDatas() const
+FRPRMeshDataContainerPtr SUVViewport::GetRPRMeshDatas() const
 {
-	return (RPRMeshDatas);
-}
-
-FRPRMeshDataContainer& SUVViewport::GetRPRMeshDatas()
-{
-	const SUVViewport* thisConst = this;
-	return (RPR::ConstRefAway(thisConst->GetRPRMeshDatas()));
+	return (RPRMeshDatas.Pin());
 }
 
 int32 SUVViewport::GetUVChannel() const
@@ -175,5 +174,7 @@ TArray<FVector2D>& SUVViewport::GetUV(int32 MeshIndex)
 
 const TArray<FVector2D>& SUVViewport::GetUV(int32 MeshIndex) const
 {
-	return (RPRMeshDatas[MeshIndex]->GetRawMesh().WedgeTexCoords[GetUVChannel()]);
+	check(RPRMeshDatas.IsValid());
+	const FRPRMeshDataContainer& meshDatas = *RPRMeshDatas.Pin();
+	return (meshDatas[MeshIndex]->GetRawMesh().WedgeTexCoords[GetUVChannel()]);
 }

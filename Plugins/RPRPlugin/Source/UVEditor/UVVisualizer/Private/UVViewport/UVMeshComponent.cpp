@@ -222,6 +222,60 @@ public:
 		}
 	}
 
+	virtual void GetDynamicMeshElements(const TArray<const FSceneView *>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, class FMeshElementCollector& Collector) const override
+	{
+		// Set up wireframe material (if needed)
+		const bool bWireframe = AllowDebugViewmodes() && ViewFamily.EngineShowFlags.Wireframe;
+
+		FColoredMaterialRenderProxy* WireframeMaterialInstance = NULL;
+		if (bWireframe)
+		{
+			WireframeMaterialInstance = new FColoredMaterialRenderProxy(
+				GEngine->WireframeMaterial ? GEngine->WireframeMaterial->GetRenderProxy(IsSelected()) : NULL,
+				FLinearColor(0, 0.5f, 1.f)
+			);
+
+			Collector.RegisterOneFrameMaterialProxy(WireframeMaterialInstance);
+
+			for (int32 ViewIndex = 0; ViewIndex < Views.Num(); ViewIndex++)
+			{
+				if (VisibilityMap & (1 << ViewIndex))
+				{
+					const FSceneView* View = Views[ViewIndex];
+					// Draw the mesh.
+					FMeshBatch& Mesh = Collector.AllocateMesh();
+					FMeshBatchElement& BatchElement = Mesh.Elements[0];
+					BatchElement.IndexBuffer = &IndexBuffer;
+					Mesh.bWireframe = bWireframe;
+					Mesh.VertexFactory = &VertexFactory;
+					Mesh.MaterialRenderProxy = MaterialRenderProxy;
+					BatchElement.PrimitiveUniformBuffer = CreatePrimitiveUniformBufferImmediate(GetLocalToWorld(), GetBounds(), GetLocalBounds(), true, UseEditorDepthTest());
+					BatchElement.FirstIndex = 0;
+					BatchElement.NumPrimitives = IndexBuffer.Indices.Num() / 2;
+					BatchElement.MinVertexIndex = 0;
+					BatchElement.MaxVertexIndex = IndexBuffer.Indices.Num() / 2;
+					Mesh.Type = PT_LineList;
+					Mesh.DepthPriorityGroup = SDPG_World;
+					Mesh.bCanApplyViewModeOverrides = false;
+					Collector.AddMesh(ViewIndex, Mesh);
+				}
+			}
+		}
+
+		// Draw bounds
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+		for (int32 ViewIndex = 0; ViewIndex < Views.Num(); ViewIndex++)
+		{
+			if (VisibilityMap & (1 << ViewIndex))
+			{
+				// Render bounds
+				RenderBounds(Collector.GetPDI(ViewIndex), ViewFamily.EngineShowFlags, GetBounds(), IsSelected());
+			}
+		}
+#endif
+
+	}
+
 	virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const override
 	{
 		FPrimitiveViewRelevance ViewRelevance;
@@ -230,7 +284,8 @@ public:
 		ViewRelevance.bRenderInMainPass = ShouldRenderInMainPass();
 		ViewRelevance.bRenderCustomDepth = ShouldRenderCustomDepth();
 
-		ViewRelevance.bDynamicRelevance = false;
+		const FSceneViewFamily& ViewFamily = *View->Family;
+		ViewRelevance.bDynamicRelevance = (ViewFamily.EngineShowFlags.Bounds || ViewFamily.EngineShowFlags.Wireframe);
 		ViewRelevance.bStaticRelevance = true;
 
 		return ViewRelevance;
@@ -271,6 +326,16 @@ FPrimitiveSceneProxy* UUVMeshComponent::CreateSceneProxy()
 	return new FUVMeshComponentProxy(this);
 }
 
+FBoxSphereBounds UUVMeshComponent::CalcBounds(const FTransform& LocalToWorld) const
+{
+	FBoxSphereBounds Ret(LocalBounds.TransformBy(LocalToWorld));
+
+	Ret.BoxExtent *= BoundsScale;
+	Ret.SphereRadius *= BoundsScale;
+
+	return Ret;
+}
+
 int32 UUVMeshComponent::GetNumMaterials() const
 {
 	return (1);
@@ -279,12 +344,14 @@ int32 UUVMeshComponent::GetNumMaterials() const
 void UUVMeshComponent::SetUVChannel(int32 InUVChannel)
 {
 	UVChannel = InUVChannel;
+	UpdateLocalBounds();
 	MarkRenderStateDirty();
 }
 
 void UUVMeshComponent::SetMeshDatas(FRPRMeshDataContainerWkPtr InRPRMeshDatas)
 {
 	RPRMeshDatas = InRPRMeshDatas;
+	UpdateLocalBounds();
 	MarkRenderStateDirty();
 }
 
@@ -306,6 +373,62 @@ void UUVMeshComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 	{
 		UpdateRPRMeshDatasFromTemplateMesh();
 	}
+}
+
+void UUVMeshComponent::UpdateLocalBounds()
+{
+	const FBoxSphereBounds invalidBoxSphere = FBoxSphereBounds(EForceInit::ForceInitToZero);
+	FBox localBox(EForceInit::ForceInit);
+	if (!RPRMeshDatas.IsValid())
+	{
+		LocalBounds = invalidBoxSphere;
+	}
+	else
+	{
+		FRPRMeshDataContainerPtr meshDatasPtr = RPRMeshDatas.Pin();
+		const FRPRMeshDataContainer& meshData = *meshDatasPtr;
+
+		if (meshData.Num() > 0)
+		{
+			FVector2D min2D, max2D;
+			FVector min, max;
+
+			for (int32 i = 0; i < meshData.Num(); ++i)
+			{
+				const FRawMesh& rawMesh = meshData[i]->GetRawMesh();
+				FUVUtility::GetUVsBounds(rawMesh.WedgeTexCoords[UVChannel], min2D, max2D);
+
+				if (i == 0)
+				{
+					min = FVector(min2D.X, -0.1f, min2D.Y);
+					max = FVector(max2D.X,  0.1f, max2D.Y);
+				}
+				else
+				{
+					min = FVector(
+						FMath::Min(min2D.X, min.X),
+						-0.01f,
+						FMath::Min(min2D.Y, min.Z)
+					);
+
+					max = FVector(
+						FMath::Max(max2D.X, min.X),
+						0.01f,
+						FMath::Max(max2D.Y, min.Z)
+					);
+				}
+			}
+
+			LocalBounds = FBoxSphereBounds(FBox(min, max));
+		}
+		else
+		{
+			LocalBounds = invalidBoxSphere;
+		}
+	}
+
+	UpdateBounds();
+	MarkRenderTransformDirty();
 }
 
 void UUVMeshComponent::UpdateRPRMeshDatasFromTemplateMesh()

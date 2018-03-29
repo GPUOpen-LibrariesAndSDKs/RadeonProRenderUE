@@ -51,12 +51,7 @@ FUVViewportClient::FUVViewportClient(const TWeakPtr<SEditorViewport>& InViewport
 	
 	SetupCameraView();
 	SetupBackground();
-
-	UVMeshComponent = NewObject<UUVMeshComponent>();
-	FTransform transform;
-	PreviewScene->AddComponent(UVMeshComponent, transform);
-
-	GenerateCacheUV();
+	SetupUVMesh();
 }
 
 FUVViewportClient::~FUVViewportClient()
@@ -81,11 +76,12 @@ void FUVViewportClient::GenerateCacheUV()
 	SUVViewportPtr viewport = GetUVViewport();
 	if (viewport.IsValid())
 	{
-		const FRPRMeshDataContainer& meshDatas = viewport->GetRPRMeshDatas();
-		UVCache.GenerateCache(meshDatas, viewport->GetUVChannel());
-		
-		TempMeshDataContainerPtr = MakeShareable(new FRPRMeshDataContainer(meshDatas));
-		UVMeshComponent->SetMeshDatas(TempMeshDataContainerPtr);
+		FRPRMeshDataContainerPtr meshDatas = viewport->GetRPRMeshDatas();
+		if (meshDatas.IsValid())
+		{
+			UVCache.GenerateCache(*meshDatas, viewport->GetUVChannel());
+			UVMeshComponent->SetMeshDatas(meshDatas);
+		}
 	}
 	else
 	{
@@ -99,11 +95,11 @@ void FUVViewportClient::SetupCameraView()
 	EngineShowFlags.SetCompositeEditorPrimitives(true);
 	EngineShowFlags.SetSeparateTranslucency(true);
 
-	//SetViewportType(LVT_OrthoXZ);
-	//SetViewMode(VMI_Unlit);
-	//SetOrthoZoom(2500.0f);
+	SetViewportType(LVT_OrthoXZ);
+	SetViewMode(VMI_Unlit);
+	SetOrthoZoom(2500.0f);
 
-	const FVector cameraLocation(50, 1, 50);
+	const FVector cameraLocation(50, 100, 50);
 	const FRotator cameraRotation = UKismetMathLibrary::FindLookAtRotation(cameraLocation, FVector::ZeroVector);
 	SetCameraSetup(FVector::ZeroVector, cameraRotation, FVector::ZeroVector, FVector::ZeroVector, cameraLocation, cameraRotation);
 }
@@ -115,7 +111,7 @@ void FUVViewportClient::SetupBackground()
 	BackgroundMeshComponent->SetStaticMesh(mesh);
 
 	UMaterialInterface* material = LoadObject<UMaterialInterface>(nullptr, TEXT("/RPRPlugin/Materials/Editor/M_UVBackground.M_UVBackground"));
-	if (material != nullptr)
+	if (material)
 	{
 		BackgroundMeshMID = 
 			BackgroundMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, material);
@@ -129,6 +125,17 @@ void FUVViewportClient::SetupBackground()
 	PreviewScene->AddComponent(BackgroundMeshComponent, transform);
 
 	SetBackgroundImage(nullptr);
+}
+
+void FUVViewportClient::SetupUVMesh()
+{
+	UVMeshComponent = NewObject<UUVMeshComponent>();
+	UMaterialInterface* material = LoadObject<UMaterial>(nullptr, TEXT("/RPRPlugin/Materials/Editor/M_UV.M_UV"));
+	if (material)
+	{
+		UVMeshComponent->SetMaterial(0, material);
+	}
+	PreviewScene->AddComponent(UVMeshComponent, SceneTransform);
 }
 
 void FUVViewportClient::Draw(const FSceneView* View, FPrimitiveDrawInterface* PDI)
@@ -267,10 +274,13 @@ void FUVViewportClient::TrackingStopped()
 			SUVViewportPtr viewport = GetUVViewport();
 			if (viewport.IsValid())
 			{
-				FRPRMeshDataContainer& meshDatas = viewport->GetRPRMeshDatas();
-				for (int32 i = 0; i < meshDatas.Num(); ++i)
+				FRPRMeshDataContainerPtr meshDatas = viewport->GetRPRMeshDatas();
+				if (meshDatas.IsValid())
 				{
-					meshDatas[i]->ApplyRawMeshDatas();
+					for (int32 i = 0; i < meshDatas->Num(); ++i)
+					{
+						(*meshDatas)[i]->ApplyRawMeshDatas();
+					}
 				}
 			}
 		}
@@ -492,9 +502,9 @@ const TArray<FVector2D>& FUVViewportClient::GetRawMeshUV(int32 MeshIndex) const
 	SUVViewportPtr viewport = GetUVViewport();
 	check(viewport.IsValid());
 
-	const FRPRMeshDataContainer& meshDatas = viewport->GetRPRMeshDatas();
+	FRPRMeshDataContainerPtr meshDatas = viewport->GetRPRMeshDatas();
 
-	const FRawMesh& rawMesh = meshDatas[MeshIndex]->GetRawMesh();
+	const FRawMesh& rawMesh = (*meshDatas)[MeshIndex]->GetRawMesh();
 	const TArray<FVector2D>& uv = rawMesh.WedgeTexCoords[viewport->GetUVChannel()];
 
 	return (uv);
@@ -571,10 +581,13 @@ void FUVViewportClient::EndRawMeshChanges()
 
 	if (!viewport.IsValid()) { return; }
 
-	FRPRMeshDataContainer& meshDatas = viewport->GetRPRMeshDatas();
-	for (int32 i = 0; i < meshDatas.Num(); ++i)
+	FRPRMeshDataContainerPtr meshDatas = viewport->GetRPRMeshDatas();
+	if (meshDatas.IsValid())
 	{
-		meshDatas[i]->NotifyRawMeshChanges();
+		for (int32 i = 0; i < meshDatas->Num(); ++i)
+		{
+			(*meshDatas)[i]->NotifyRawMeshChanges();
+		}
 	}
 }
 
