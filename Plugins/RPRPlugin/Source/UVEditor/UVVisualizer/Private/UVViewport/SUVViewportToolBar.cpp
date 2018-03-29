@@ -1,7 +1,7 @@
 #include "SUVViewportToolBar.h"
 #include "SUVViewport.h"
 #include "SEditorViewportToolBarMenu.h"
-#include "SBorder.h"
+#include "SBox.h"
 #include "EditorStyleSet.h"
 #include "MultiBoxBuilder.h"
 #include "UVViewportActions.h"
@@ -22,7 +22,7 @@ void SUVViewportToolBar::Construct(const FArguments& InArgs)
 
 	ChildSlot
 	[
-		SNew(SBorder)
+		SNew(SBox)
 		.Padding(ToolbarSlotPadding)
 		.HAlign(HAlign_Right)
 		[

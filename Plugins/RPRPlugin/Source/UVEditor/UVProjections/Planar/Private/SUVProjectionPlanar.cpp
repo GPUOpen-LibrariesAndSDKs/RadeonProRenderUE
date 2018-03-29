@@ -71,7 +71,7 @@ void SUVProjectionPlanar::UpdateAlgorithmSettings()
 void SUVProjectionPlanar::SetPreviewPlaneSizeToContainsMesh()
 {
 	FVector center, extents;
-	GetRPRStaticMeshEditor()->GetPreviewMeshBounds(center, extents);
+	GetRPRStaticMeshEditor()->GetMeshesBounds(center, extents);
 	const float biggestSize = extents.GetAbsMax();
 
 	UShapePreviewPlane* shape = GetShape();

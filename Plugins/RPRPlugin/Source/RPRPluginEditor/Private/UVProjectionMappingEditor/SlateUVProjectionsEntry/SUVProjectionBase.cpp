@@ -28,7 +28,7 @@ void SUVProjectionBase::SetRPRStaticMeshEditor(FRPRStaticMeshEditorWeakPtr RPRSt
 	RPRStaticMeshEditorPtr = RPRStaticMeshEditor;
 }
 
-const FRPRMeshDataContainer& SUVProjectionBase::GetMeshDatas() const
+FRPRMeshDataContainerPtr SUVProjectionBase::GetMeshDatas() const
 {
 	return (GetRPRStaticMeshEditor()->GetMeshDatas());
 }
@@ -127,10 +127,14 @@ void SUVProjectionBase::StartAlgorithm()
 {
 	if (Algorithm.IsValid())
 	{
-		Algorithm->SetMeshDatas(RPRStaticMeshEditorPtr.Pin()->GetSelectedMeshes());
-		Algorithm->SetGlobalUVProjectionSettings(UVProjectionSettings);
-		OnPreAlgorithmStart();
-		Algorithm->StartAlgorithm();
+		FRPRMeshDataContainerPtr meshDataPtr = RPRStaticMeshEditorPtr.Pin()->GetSelectedMeshes();
+		if (meshDataPtr.IsValid())
+		{
+			Algorithm->SetMeshDatas(*meshDataPtr);
+			Algorithm->SetGlobalUVProjectionSettings(UVProjectionSettings);
+			OnPreAlgorithmStart();
+			Algorithm->StartAlgorithm();
+		}
 	}
 }
 

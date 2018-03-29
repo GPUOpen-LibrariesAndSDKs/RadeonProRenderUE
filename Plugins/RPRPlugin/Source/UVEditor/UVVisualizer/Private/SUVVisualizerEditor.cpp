@@ -1,4 +1,5 @@
 #include "SUVVisualizerEditor.h"
+#include "SBox.h"
 #include "SBoxPanel.h"
 #include "SComboBox.h"
 #include "Engine/StaticMesh.h"
@@ -28,7 +29,7 @@ void SUVVisualizerEditor::Construct(const FArguments& InArgs)
 				.AutoHeight()
 				.HAlign(HAlign_Fill)
 				[
-					SNew(SBorder)
+					SNew(SBox)
 					.Visibility(this, &SUVVisualizerEditor::GetStaticMeshLabelVisibility)
 					[
 						SNew(STextBlock)

@@ -6,8 +6,6 @@
 #include "RPRPreviewMeshComponent.h"
 #include "RPRMeshDataContainer.h"
 
-DECLARE_DELEGATE_RetVal(const FRPRMeshDataContainer&, FGetMeshDatas)
-
 class SSceneComponentsOutliner : public SCompoundWidget
 {
 private:
@@ -18,15 +16,15 @@ private:
 public:
 
 	SLATE_BEGIN_ARGS(SSceneComponentsOutliner) {}
+		SLATE_ARGUMENT(FRPRMeshDataContainerWkPtr, MeshDatas)
 		SLATE_EVENT(SStaticMeshComponentsOutliner::FOnSelectionChanged, OnSelectionChanged)
-		SLATE_EVENT(FGetMeshDatas, GetMeshDatas)
 	SLATE_END_ARGS()
 
 	void	Construct(const FArguments& InArgs);
 	void	Refresh();
 
 	void	SelectAll();
-	int32	GetSelectedItem(FRPRMeshDataContainer& SelectedMeshComponents) const;
+	int32	GetSelectedItems(FRPRMeshDataContainerPtr SelectedMeshComponents) const;
 
 private:
 
@@ -38,8 +36,7 @@ private:
 
 	SStaticMeshComponentsOutlinerPtr StaticMeshCompsOutliner;
 	SStaticMeshComponentsOutliner::FOnSelectionChanged OnSelectionChanged;
-	FGetMeshDatas GetMeshDatas;
-
+	FRPRMeshDataContainerWkPtr MeshDatas;
 };
 
 typedef TSharedPtr<SSceneComponentsOutliner> SSceneComponentsOutlinerPtr;

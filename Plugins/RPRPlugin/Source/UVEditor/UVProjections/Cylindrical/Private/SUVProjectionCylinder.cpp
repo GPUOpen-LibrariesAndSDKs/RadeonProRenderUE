@@ -73,7 +73,7 @@ void SUVProjectionCylinder::UpdateAlgorithmSettings()
 void SUVProjectionCylinder::AdaptPreviewShapeToMesh()
 {
 	FVector center, extents;
-	GetRPRStaticMeshEditor()->GetPreviewMeshBounds(center, extents);
+	GetRPRStaticMeshEditor()->GetMeshesBounds(center, extents);
 	
 	UShapePreviewCylinder* cylinder = GetShape();
 	cylinder->Height = extents.Z * 2;

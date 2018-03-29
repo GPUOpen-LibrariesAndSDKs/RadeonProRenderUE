@@ -24,8 +24,8 @@ public:
 
 	void	Construct(const FArguments& InArgs);
 
-	virtual const FRPRMeshDataContainer&	GetMeshDatas() const override;
-	virtual FRPRStaticMeshEditorPtr			GetRPRStaticMeshEditor() const;
+	virtual FRPRMeshDataContainerPtr	GetMeshDatas() const override;
+	virtual FRPRStaticMeshEditorPtr		GetRPRStaticMeshEditor() const;
 
 	virtual TSharedRef<SWidget>		TakeWidget() override;
 	virtual FOnProjectionApplied&	OnProjectionApplied() override;

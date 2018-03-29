@@ -97,3 +97,26 @@ int32 FRPRMeshDataContainer::GetMaxUVChannelIndex() const
 
 	return (minUVChannelIndex);
 }
+
+void FRPRMeshDataContainer::GetMeshesBounds(FVector& OutCenter, FVector& OutExtents) const
+{
+	const UStaticMesh* staticMesh = MeshDatas[0]->GetStaticMesh();
+	FBox box = staticMesh->GetBoundingBox();
+
+	for (int32 i = 1; i < MeshDatas.Num(); ++i)
+	{
+		box = box + MeshDatas[i]->GetStaticMesh()->GetBoundingBox();
+	}
+
+	box.GetCenterAndExtents(OutCenter, OutExtents);
+}
+
+void FRPRMeshDataContainer::GetMeshesBoxSphereBounds(FBoxSphereBounds& OutBounds) const
+{
+	OutBounds = MeshDatas[0]->GetStaticMesh()->GetBounds();
+
+	for (int32 i = 1; i < MeshDatas.Num(); ++i)
+	{
+		OutBounds = OutBounds + MeshDatas[i]->GetStaticMesh()->GetBounds();
+	}
+}

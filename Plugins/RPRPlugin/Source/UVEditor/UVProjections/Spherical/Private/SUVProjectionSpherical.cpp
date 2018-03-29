@@ -58,7 +58,7 @@ void SUVProjectionSpherical::OnUVProjectionDisplayed()
 void SUVProjectionSpherical::AdaptPreviewShapeToMesh()
 {
 	FVector center, extents;
-	GetRPRStaticMeshEditor()->GetPreviewMeshBounds(center, extents);
+	GetRPRStaticMeshEditor()->GetMeshesBounds(center, extents);
 
 	UShapePreviewSphere* sphere = GetShape();
 	sphere->SetRelativeLocation(center);

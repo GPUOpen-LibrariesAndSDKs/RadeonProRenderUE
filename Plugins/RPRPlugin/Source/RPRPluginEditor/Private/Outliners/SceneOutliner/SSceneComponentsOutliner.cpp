@@ -12,10 +12,8 @@
 
 void SSceneComponentsOutliner::Construct(const FArguments& InArgs)
 {
+	MeshDatas = InArgs._MeshDatas;
 	OnSelectionChanged = InArgs._OnSelectionChanged;
-	GetMeshDatas = InArgs._GetMeshDatas;
-
-	check(GetMeshDatas.IsBound());
 
 	ChildSlot
 		[
@@ -69,9 +67,12 @@ void SSceneComponentsOutliner::Refresh()
 {
 	StaticMeshCompsOutliner->ClearObjects();
 
-	FRPRMeshDataContainer meshDataContainer = GetMeshDatas.Execute();
-	TArray<URPRMeshPreviewComponent*> previews = meshDataContainer.GetMeshPreviews();
-	StaticMeshCompsOutliner->AddObjects(previews);
+	FRPRMeshDataContainerPtr meshDatas = MeshDatas.Pin();
+	if (meshDatas.IsValid())
+	{
+		TArray<URPRMeshPreviewComponent*> previews = meshDatas->GetMeshPreviews();
+		StaticMeshCompsOutliner->AddObjects(previews);
+	}
 }
 
 void SSceneComponentsOutliner::SelectAll()
@@ -79,18 +80,21 @@ void SSceneComponentsOutliner::SelectAll()
 	StaticMeshCompsOutliner->SelectAll();
 }
 
-int32 SSceneComponentsOutliner::GetSelectedItem(FRPRMeshDataContainer& SelectedMeshDatas) const
+int32 SSceneComponentsOutliner::GetSelectedItems(FRPRMeshDataContainerPtr OutSelectedMeshDatas) const
 {
 	TArray<URPRMeshPreviewComponent*> previewMeshComponents;
 	int32 numItems = StaticMeshCompsOutliner->GetSelectedItems(previewMeshComponents);
 
-	FRPRMeshDataContainer meshDatas = GetMeshDatas.Execute();
+	FRPRMeshDataContainerPtr meshDatas = MeshDatas.Pin();
 
-	SelectedMeshDatas.Empty(previewMeshComponents.Num());
-	for (int32 i = 0; i < previewMeshComponents.Num(); ++i)
+	if (meshDatas.IsValid())
 	{
-		FRPRMeshDataPtr meshData = meshDatas.FindByPreview(previewMeshComponents[i]);
-		SelectedMeshDatas.Add(meshData);
+		OutSelectedMeshDatas->Empty(previewMeshComponents.Num());
+		for (int32 i = 0; i < previewMeshComponents.Num(); ++i)
+		{
+			FRPRMeshDataPtr meshData = meshDatas->FindByPreview(previewMeshComponents[i]);
+			OutSelectedMeshDatas->Add(meshData);
+		}
 	}
 
 	return (numItems);

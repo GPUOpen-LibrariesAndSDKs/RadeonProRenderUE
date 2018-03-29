@@ -23,6 +23,8 @@ public:
 	TArray<URPRMeshPreviewComponent*>	GetMeshPreviews() const;
 
 	int32	GetMaxUVChannelIndex() const;
+	void	GetMeshesBounds(FVector& OutCenter, FVector& OutExtents) const;
+	void	GetMeshesBoxSphereBounds(FBoxSphereBounds& OutBounds) const;
 
 	FORCEINLINE FRPRMeshDataPtr&		operator[](int32 index) { return (MeshDatas[index]); }
 	FORCEINLINE const FRPRMeshDataPtr&	operator[](int32 index) const { return (MeshDatas[index]); }

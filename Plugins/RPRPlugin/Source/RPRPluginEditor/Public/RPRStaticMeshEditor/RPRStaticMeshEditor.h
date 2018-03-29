@@ -32,14 +32,13 @@ public:
 	
 	virtual void	AddReferencedObjects(FReferenceCollector& Collector) override;
 	
-	FORCEINLINE FRPRMeshDataContainer&			GetMeshDatas() { return (MeshDatas); }
-	FORCEINLINE const FRPRMeshDataContainer&	GetMeshDatas() const { return (MeshDatas); }
+	FORCEINLINE FRPRMeshDataContainerPtr	GetMeshDatas() const { return (MeshDatas); }
 
-	FRPRMeshDataContainer			GetSelectedMeshes() const;
+	FRPRMeshDataContainerPtr		GetSelectedMeshes() const;
 	FRPRStaticMeshEditorSelection&	GetSelectionSystem();
 
 	void	AddComponentToViewport(UActorComponent* InComponent, bool bSelectComponent = true);
-	void	GetPreviewMeshBounds(FVector& OutCenter, FVector& OutExtents);
+	void	GetMeshesBounds(FVector& OutCenter, FVector& OutExtents);
 
 private:
 
@@ -63,7 +62,7 @@ private:
 
 private:
 
-	FRPRMeshDataContainer	MeshDatas;
+	FRPRMeshDataContainerPtr	MeshDatas;
 
 	TSharedPtr<class SRPRStaticMeshEditorViewport>	Viewport;
 	TSharedPtr<class SUVProjectionMappingEditor>	UVProjectionMappingEditor;
