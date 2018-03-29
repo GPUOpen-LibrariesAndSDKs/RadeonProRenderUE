@@ -50,6 +50,8 @@ public class UVVisualizer : ModuleRules
                 "InputCore",
                 "EditorStyle",
                 "RenderCore",
+                "RHI",
+                "ShaderCore",
                 "RawMesh",
                 "RPREditorTools"
 				// ... add private dependencies that you statically link with here ...	

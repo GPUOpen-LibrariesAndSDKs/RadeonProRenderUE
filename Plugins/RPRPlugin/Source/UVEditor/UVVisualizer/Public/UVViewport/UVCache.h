@@ -2,6 +2,7 @@
 #include "RawMesh.h"
 #include "UVCacheData.h"
 #include "GCObject.h"
+#include "RPRMeshDataContainer.h"
 
 class FUVCache : public FGCObject
 {
@@ -10,7 +11,7 @@ public:
 	virtual ~FUVCache();
 
 	void	ClearCache();
-	void	GenerateCache(const FRawMesh& RawMesh, int32 UVChannelIndex);
+	void	GenerateCache(const FRPRMeshDataContainer& MeshDatas, int32 UVChannelIndex);
 	int32	Num() const;
 
 	UUVCacheData*		operator[](int32 index);

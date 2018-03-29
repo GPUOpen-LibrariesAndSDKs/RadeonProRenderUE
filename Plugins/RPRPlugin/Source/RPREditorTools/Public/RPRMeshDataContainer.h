@@ -22,6 +22,8 @@ public:
 	TArray<UStaticMesh*>	GetStaticMeshes() const;
 	TArray<URPRMeshPreviewComponent*>	GetMeshPreviews() const;
 
+	int32	GetMaxUVChannelIndex() const;
+
 	FORCEINLINE FRPRMeshDataPtr&		operator[](int32 index) { return (MeshDatas[index]); }
 	FORCEINLINE const FRPRMeshDataPtr&	operator[](int32 index) const { return (MeshDatas[index]); }
 
@@ -30,3 +32,6 @@ private:
 	TArray<FRPRMeshDataPtr>	MeshDatas;
 
 };
+
+typedef TSharedPtr<FRPRMeshDataContainer> FRPRMeshDataContainerPtr;
+typedef TWeakPtr<FRPRMeshDataContainer> FRPRMeshDataContainerWkPtr;

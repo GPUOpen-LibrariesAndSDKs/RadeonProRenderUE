@@ -6,7 +6,7 @@
 #include "SlateBrush.h"
 #include "UVViewportClient.h"
 #include "SEditorViewport.h"
-#include "RPRMeshData.h"
+#include "RPRMeshDataContainer.h"
 
 class SUVViewport : public SEditorViewport
 {
@@ -18,7 +18,7 @@ public:
 	SUVViewport();
 
 	void	Construct(const FArguments& InArgs);
-	void	SetRPRMeshData(TWeakPtr<FRPRMeshData> InRPRMeshData);
+	void	SetRPRMeshDatas(const FRPRMeshDataContainer& InRPRMeshDatas);
 	void	Refresh();
 
 	void	SetUVChannelIndex(int32 ChannelIndex);
@@ -26,10 +26,11 @@ public:
 	void	ClearBackground();
 	void	SetBackgroundOpacity(float Opacity);
 
-	TWeakPtr<FRPRMeshData>		GetRPRMeshData() const;
-	int32						GetUVChannel() const;
-	TArray<FVector2D>&			GetUV();
-	const TArray<FVector2D>&	GetUV() const;
+	FRPRMeshDataContainer&			GetRPRMeshDatas();
+	const FRPRMeshDataContainer&	GetRPRMeshDatas() const;
+	int32							GetUVChannel() const;
+	TArray<FVector2D>&				GetUV(int32 MeshIndex);
+	const TArray<FVector2D>&		GetUV(int32 MeshIndex) const;
 	
 protected:
 	
@@ -48,7 +49,7 @@ private:
 
 	FUVViewportClientPtr ViewportClient;
 
-	TWeakPtr<FRPRMeshData> RPRMeshData;
+	FRPRMeshDataContainer RPRMeshDatas;
 	int32 UVChannelIndex;
 
 };

@@ -14,6 +14,7 @@
 #include "EditorViewportCommands.h"
 #include "STransformViewportToolbar.h"
 #include "SBorder.h"
+#include "RPRConstAway.h"
 
 SUVViewport::SUVViewport()
 	: UVChannelIndex(INDEX_NONE)
@@ -24,22 +25,19 @@ void SUVViewport::Construct(const FArguments& InArgs)
 	SEditorViewport::Construct(SEditorViewport::FArguments());
 }
 
-void SUVViewport::SetRPRMeshData(TWeakPtr<FRPRMeshData> InRPRMeshData)
+void SUVViewport::SetRPRMeshDatas(const FRPRMeshDataContainer& InRPRMeshDatas)
 {
-	if (InRPRMeshData != RPRMeshData)
+	RPRMeshDatas = InRPRMeshDatas;
+	for (int32 i = 0; i < RPRMeshDatas.Num(); ++i)
 	{
-		RPRMeshData = InRPRMeshData;
-		if (RPRMeshData.IsValid())
-		{
-			RPRMeshData.Pin()->OnPostRawMeshChange.AddSP(this, &SUVViewport::Refresh);
-		}
-		Refresh();
+		RPRMeshDatas[i]->OnPostRawMeshChange.AddSP(this, &SUVViewport::Refresh);
 	}
+	Refresh();
 }
 
 void SUVViewport::Refresh()
 {
-	if (RPRMeshData.IsValid())
+	if (RPRMeshDatas.Num() > 0)
 	{
 		SetUVChannelIndex(FMath::Max(0, UVChannelIndex));
 	}
@@ -53,29 +51,14 @@ void SUVViewport::SetUVChannelIndex(int32 ChannelIndex)
 {
 	bool bIsMeshValid = false;
 
-	if (RPRMeshData.IsValid())
+	int32 maxUVChannelIndex = RPRMeshDatas.GetMaxUVChannelIndex();
+	const int32 newUVChannelIndex = FMath::Min(ChannelIndex, maxUVChannelIndex);
+	if (newUVChannelIndex != UVChannelIndex)
 	{
-		UStaticMesh* staticMesh = RPRMeshData.Pin()->GetStaticMesh();
-		if (staticMesh != nullptr && staticMesh->HasValidRenderData())
-		{
-			bIsMeshValid = true;
-			const int32 numMaxTexCoords = staticMesh->RenderData->LODResources[0].GetNumTexCoords();
-			const int32 newUVChannelIndex = FMath::Min(ChannelIndex, numMaxTexCoords - 1);
-			if (newUVChannelIndex != UVChannelIndex)
-			{
-				UVChannelIndex = newUVChannelIndex;
-			}
-
-			ViewportClient->RegenerateUVCache();
-		}
+		UVChannelIndex = newUVChannelIndex;
+		ViewportClient->RegenerateUVCache();
+		Invalidate();
 	}
-	
-	if (!bIsMeshValid)
-	{
-		UVChannelIndex = INDEX_NONE;
-	}
-
-	Invalidate();
 }
 
 void SUVViewport::SetBackground(UTexture2D* Image)
@@ -168,9 +151,15 @@ bool SUVViewport::IsWidgetModeActive(FWidget::EWidgetMode Mode) const
 	return (SEditorViewport::IsWidgetModeActive(Mode));
 }
 
-TWeakPtr<FRPRMeshData> SUVViewport::GetRPRMeshData() const
+const FRPRMeshDataContainer& SUVViewport::GetRPRMeshDatas() const
 {
-	return (RPRMeshData);
+	return (RPRMeshDatas);
+}
+
+FRPRMeshDataContainer& SUVViewport::GetRPRMeshDatas()
+{
+	const SUVViewport* thisConst = this;
+	return (RPR::ConstRefAway(thisConst->GetRPRMeshDatas()));
 }
 
 int32 SUVViewport::GetUVChannel() const
@@ -178,14 +167,13 @@ int32 SUVViewport::GetUVChannel() const
 	return (UVChannelIndex);
 }
 
-TArray<FVector2D>& SUVViewport::GetUV()
+TArray<FVector2D>& SUVViewport::GetUV(int32 MeshIndex)
 {
-	check(RPRMeshData.IsValid());
-	return (RPRMeshData.Pin()->GetRawMesh().WedgeTexCoords[GetUVChannel()]);
+	const SUVViewport* thisConst = this;
+	return (RPR::ConstRefAway(thisConst->GetUV(MeshIndex)));
 }
 
-const TArray<FVector2D>& SUVViewport::GetUV() const
+const TArray<FVector2D>& SUVViewport::GetUV(int32 MeshIndex) const
 {
-	check(RPRMeshData.IsValid());
-	return (RPRMeshData.Pin()->GetRawMesh().WedgeTexCoords[GetUVChannel()]);
+	return (RPRMeshDatas[MeshIndex]->GetRawMesh().WedgeTexCoords[GetUVChannel()]);
 }

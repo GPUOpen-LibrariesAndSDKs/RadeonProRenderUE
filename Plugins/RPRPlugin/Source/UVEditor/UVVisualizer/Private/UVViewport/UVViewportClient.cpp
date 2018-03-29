@@ -51,6 +51,11 @@ FUVViewportClient::FUVViewportClient(const TWeakPtr<SEditorViewport>& InViewport
 	
 	SetupCameraView();
 	SetupBackground();
+
+	UVMeshComponent = NewObject<UUVMeshComponent>();
+	FTransform transform;
+	PreviewScene->AddComponent(UVMeshComponent, transform);
+
 	GenerateCacheUV();
 }
 
@@ -64,6 +69,8 @@ void FUVViewportClient::AddReferencedObjects(FReferenceCollector& Collector)
 	FEditorViewportClient::AddReferencedObjects(Collector);
 	Collector.AddReferencedObject(BackgroundMeshComponent);
 	Collector.AddReferencedObject(BackgroundMeshMID);
+
+	Collector.AddReferencedObject(UVMeshComponent);
 }
 
 void FUVViewportClient::GenerateCacheUV()
@@ -74,12 +81,11 @@ void FUVViewportClient::GenerateCacheUV()
 	SUVViewportPtr viewport = GetUVViewport();
 	if (viewport.IsValid())
 	{
-		TWeakPtr<FRPRMeshData> meshData = viewport->GetRPRMeshData();
-		if (meshData.IsValid())
-		{
-			const FRawMesh& rawMesh = meshData.Pin()->GetRawMesh();
-			UVCache.GenerateCache(rawMesh, viewport->GetUVChannel());
-		}
+		const FRPRMeshDataContainer& meshDatas = viewport->GetRPRMeshDatas();
+		UVCache.GenerateCache(meshDatas, viewport->GetUVChannel());
+		
+		TempMeshDataContainerPtr = MakeShareable(new FRPRMeshDataContainer(meshDatas));
+		UVMeshComponent->SetMeshDatas(TempMeshDataContainerPtr);
 	}
 	else
 	{
@@ -93,9 +99,9 @@ void FUVViewportClient::SetupCameraView()
 	EngineShowFlags.SetCompositeEditorPrimitives(true);
 	EngineShowFlags.SetSeparateTranslucency(true);
 
-	SetViewportType(LVT_OrthoXZ);
-	SetViewMode(VMI_Unlit);
-	SetOrthoZoom(2500.0f);
+	//SetViewportType(LVT_OrthoXZ);
+	//SetViewMode(VMI_Unlit);
+	//SetOrthoZoom(2500.0f);
 
 	const FVector cameraLocation(50, 1, 50);
 	const FRotator cameraRotation = UKismetMathLibrary::FindLookAtRotation(cameraLocation, FVector::ZeroVector);
@@ -132,76 +138,76 @@ void FUVViewportClient::Draw(const FSceneView* View, FPrimitiveDrawInterface* PD
 	SUVViewportPtr viewport = GetUVViewport();
 	if (viewport.IsValid())
 	{
-		DrawUV(View, PDI, viewport);
+		//DrawUV(View, PDI, viewport);
 	}
 }
-
-void FUVViewportClient::DrawUV(const FSceneView* View, FPrimitiveDrawInterface* PDI, SUVViewportPtr UVViewport)
-{
-	FRPRMeshDataPtr meshData = UVViewport->GetRPRMeshData().Pin();
-	const FRawMesh& rawMesh = meshData->GetRawMesh();
-	const int32 uvChannel = UVViewport->GetUVChannel();
-
-	const TArray<FVector2D>& uv = rawMesh.WedgeTexCoords[uvChannel];
-	const TArray<uint32>& triangles = rawMesh.WedgeIndices;
-	
-	for (int32 triIdx = 0; triIdx < triangles.Num(); triIdx += 3)
-	{
-		if (!uv.IsValidIndex(triIdx))
-		{
-			break;
-		}
-
-		const FVector2D& uvA = uv[triIdx];
-		const FVector2D& uvB = uv[triIdx + 1];
-		const FVector2D& uvC = uv[triIdx + 2];
-
-		if (FUVUtility::IsUVTriangleValid(uvA, uvB, uvC))
-		{
-			DrawUVTriangle(PDI, triIdx, ValidEdgeColor, uvA, uvB, uvC);
-		}
-		else
-		{
-			DrawUVTriangle(PDI, triIdx, InvalidEdgeColor, uvA, uvB, uvC);
-		}
-	}
-}
-
-void FUVViewportClient::DrawUVTriangle(FPrimitiveDrawInterface* PDI, int32 UVStartIndex, const FLinearColor& Color,
-									const FVector2D& uvA, const FVector2D& uvB, const FVector2D& uvC)
-{
-	FVector uvA_3D = ConvertUVto3D(uvA);
-	FVector uvB_3D = ConvertUVto3D(uvB);
-	FVector uvC_3D = ConvertUVto3D(uvC);
-
-	const uint8 depthPriority = SDPG_World;
-	PDI->DrawLine(uvA_3D, uvB_3D, Color, depthPriority);
-	PDI->DrawLine(uvB_3D, uvC_3D, Color, depthPriority);
-	PDI->DrawLine(uvC_3D, uvA_3D, Color, depthPriority);
-
-	DrawUVVertex(PDI, UVStartIndex, uvA_3D);
-	DrawUVVertex(PDI, UVStartIndex + 1, uvB_3D);
-	DrawUVVertex(PDI, UVStartIndex + 2, uvC_3D);
-}
-
-void FUVViewportClient::DrawUVVertex(FPrimitiveDrawInterface* PDI, int32 UVIndex, const FVector& UV_3D)
-{
-	const int32 vertexSize = 5.0f;
-	const uint8 depthPriority = SDPG_World;
-
-	UUVCacheData* uv = UVCache[UVIndex];
-	FLinearColor color = VertexColor;
-	
-	if (ModeTools->GetSelectedObjects()->IsSelected(uv))
-	{
-		color = SelectedVertexColor;
-	}
-
-	// Disable point selection for now
-	//PDI->SetHitProxy(new HUVVertexProxy(uv));
-	//PDI->DrawPoint(UV_3D, color, vertexSize, depthPriority);
-	PDI->SetHitProxy(nullptr);
-}
+//
+//void FUVViewportClient::DrawUV(const FSceneView* View, FPrimitiveDrawInterface* PDI, SUVViewportPtr UVViewport)
+//{
+//	FRPRMeshDataContainer meshData = UVViewport->GetRPRMeshDatas();
+//	const FRawMesh& rawMesh = meshData->GetRawMesh();
+//	const int32 uvChannel = UVViewport->GetUVChannel();
+//
+//	const TArray<FVector2D>& uv = rawMesh.WedgeTexCoords[uvChannel];
+//	const TArray<uint32>& triangles = rawMesh.WedgeIndices;
+//	
+//	for (int32 triIdx = 0; triIdx < triangles.Num(); triIdx += 3)
+//	{
+//		if (!uv.IsValidIndex(triIdx))
+//		{
+//			break;
+//		}
+//
+//		const FVector2D& uvA = uv[triIdx];
+//		const FVector2D& uvB = uv[triIdx + 1];
+//		const FVector2D& uvC = uv[triIdx + 2];
+//
+//		if (FUVUtility::IsUVTriangleValid(uvA, uvB, uvC))
+//		{
+//			DrawUVTriangle(PDI, triIdx, ValidEdgeColor, uvA, uvB, uvC);
+//		}
+//		else
+//		{
+//			DrawUVTriangle(PDI, triIdx, InvalidEdgeColor, uvA, uvB, uvC);
+//		}
+//	}
+//}
+//
+//void FUVViewportClient::DrawUVTriangle(FPrimitiveDrawInterface* PDI, int32 UVStartIndex, const FLinearColor& Color,
+//									const FVector2D& uvA, const FVector2D& uvB, const FVector2D& uvC)
+//{
+//	FVector uvA_3D = ConvertUVto3D(uvA);
+//	FVector uvB_3D = ConvertUVto3D(uvB);
+//	FVector uvC_3D = ConvertUVto3D(uvC);
+//
+//	const uint8 depthPriority = SDPG_World;
+//	PDI->DrawLine(uvA_3D, uvB_3D, Color, depthPriority);
+//	PDI->DrawLine(uvB_3D, uvC_3D, Color, depthPriority);
+//	PDI->DrawLine(uvC_3D, uvA_3D, Color, depthPriority);
+//
+//	DrawUVVertex(PDI, UVStartIndex, uvA_3D);
+//	DrawUVVertex(PDI, UVStartIndex + 1, uvB_3D);
+//	DrawUVVertex(PDI, UVStartIndex + 2, uvC_3D);
+//}
+//
+//void FUVViewportClient::DrawUVVertex(FPrimitiveDrawInterface* PDI, int32 UVIndex, const FVector& UV_3D)
+//{
+//	const int32 vertexSize = 5.0f;
+//	const uint8 depthPriority = SDPG_World;
+//
+//	UUVCacheData* uv = UVCache[UVIndex];
+//	FLinearColor color = VertexColor;
+//	
+//	if (ModeTools->GetSelectedObjects()->IsSelected(uv))
+//	{
+//		color = SelectedVertexColor;
+//	}
+//
+//	// Disable point selection for now
+//	//PDI->SetHitProxy(new HUVVertexProxy(uv));
+//	//PDI->DrawPoint(UV_3D, color, vertexSize, depthPriority);
+//	PDI->SetHitProxy(nullptr);
+//}
 
 void FUVViewportClient::ProcessClick(FSceneView& View, HHitProxy* HitProxy, FKey Key, EInputEvent Event, uint32 HitX, uint32 HitY)
 {
@@ -261,8 +267,11 @@ void FUVViewportClient::TrackingStopped()
 			SUVViewportPtr viewport = GetUVViewport();
 			if (viewport.IsValid())
 			{
-				TWeakPtr<FRPRMeshData> meshData = viewport->GetRPRMeshData();
-				meshData.Pin()->ApplyRawMeshDatas();
+				FRPRMeshDataContainer& meshDatas = viewport->GetRPRMeshDatas();
+				for (int32 i = 0; i < meshDatas.Num(); ++i)
+				{
+					meshDatas[i]->ApplyRawMeshDatas();
+				}
 			}
 		}
 	}
@@ -410,9 +419,9 @@ FVector2D FUVViewportClient::GetUVSelectionBarycenter() const
 		SUVViewportPtr viewport = GetUVViewport();
 		if (viewport.IsValid())
 		{
-			const TArray<FVector2D>& uv = viewport->GetUV();
 			for (int32 i = 0; i < uvCacheData.Num(); ++i)
 			{
+				const TArray<FVector2D>& uv = viewport->GetUV(uvCacheData[i]->MeshIndex);
 				barycenter += uv[uvCacheData[i]->UVIndex];
 			}
 
@@ -442,51 +451,50 @@ bool FUVViewportClient::GetSelectedUV(TArray<UUVCacheData*>& OutUVCacheData) con
 
 bool FUVViewportClient::GetSelectedUV(TArray<FVector2D>& OutUV) const
 {
-	TArray<UUVCacheData*> uvCacheData;
-	if (!GetSelectedUV(uvCacheData))
-	{
-		return (false);
-	}
+	//TArray<UUVCacheData*> uvCacheData;
+	//if (!GetSelectedUV(uvCacheData))
+	//{
+	//	return (false);
+	//}
 
-	SUVViewportPtr viewport = GetUVViewport();
-	if (!viewport.IsValid())
-	{
-		return (false);
-	}
+	//SUVViewportPtr viewport = GetUVViewport();
+	//if (!viewport.IsValid())
+	//{
+	//	return (false);
+	//}
 
-	TWeakPtr<FRPRMeshData> meshData = viewport->GetRPRMeshData();
-	if (!meshData.IsValid())
-	{
-		return (false);
-	}
+	//FRPRMeshDataContainer meshDatas = viewport->GetRPRMeshDatas();
+	//if (!meshData.IsValid())
+	//{
+	//	return (false);
+	//}
 
-	const FRawMesh& rawMesh = meshData.Pin()->GetRawMesh();
-	const TArray<FVector2D>& uv = rawMesh.WedgeTexCoords[viewport->GetUVChannel()];
+	//const FRawMesh& rawMesh = meshData.Pin()->GetRawMesh();
+	//const TArray<FVector2D>& uv = rawMesh.WedgeTexCoords[viewport->GetUVChannel()];
 
-	OutUV.Empty(uvCacheData.Num());
-	for (int32 i = 0; i < uvCacheData.Num(); ++i)
-	{
-		OutUV.Add(uv[uvCacheData[i]->UVIndex]);
-	}
+	//OutUV.Empty(uvCacheData.Num());
+	//for (int32 i = 0; i < uvCacheData.Num(); ++i)
+	//{
+	//	OutUV.Add(uv[uvCacheData[i]->UVIndex]);
+	//}
 
 	return (true);
 }
 
-TArray<FVector2D>& FUVViewportClient::GetRawMeshUV()
+TArray<FVector2D>& FUVViewportClient::GetRawMeshUV(int32 MeshIndex)
 {
 	const FUVViewportClient* thisConst = this;
-	return (RPR::ConstRefAway(thisConst->GetRawMeshUV()));
+	return (RPR::ConstRefAway(thisConst->GetRawMeshUV(MeshIndex)));
 }
 
-const TArray<FVector2D>& FUVViewportClient::GetRawMeshUV() const
+const TArray<FVector2D>& FUVViewportClient::GetRawMeshUV(int32 MeshIndex) const
 {
 	SUVViewportPtr viewport = GetUVViewport();
 	check(viewport.IsValid());
 
-	TWeakPtr<FRPRMeshData> meshData = viewport->GetRPRMeshData();
-	check(meshData.IsValid());
+	const FRPRMeshDataContainer& meshDatas = viewport->GetRPRMeshDatas();
 
-	const FRawMesh& rawMesh = meshData.Pin()->GetRawMesh();
+	const FRawMesh& rawMesh = meshDatas[MeshIndex]->GetRawMesh();
 	const TArray<FVector2D>& uv = rawMesh.WedgeTexCoords[viewport->GetUVChannel()];
 
 	return (uv);
@@ -497,13 +505,17 @@ void FUVViewportClient::ApplyTranslation(const FVector& Drag)
 	TArray<UUVCacheData*> cacheData;
 	GetSelectedUV(cacheData);
 
+	SUVViewportPtr viewport = GetUVViewport();
+	
 	FVector2D drag2D = Convert3DtoUV(Drag);
-	TArray<FVector2D>& meshUV = GetRawMeshUV();
 	
 	for (int32 i = 0; i < cacheData.Num(); ++i)
 	{
 		int32 uvIndex = cacheData[i]->UVIndex;
+		
+		TArray<FVector2D>& meshUV = GetRawMeshUV(cacheData[i]->MeshIndex);
 		FVector2D& uv = meshUV[uvIndex];
+
 		uv += drag2D;
 	}
 
@@ -517,11 +529,12 @@ void FUVViewportClient::ApplyRotation(const FRotator& Rotation)
 
 	FVector2D barycenter = GetUVSelectionBarycenter();
 	FVector barycenter3D = ConvertUVto3D(barycenter);
-	TArray<FVector2D>& meshUV = GetRawMeshUV();
 	
 	for (int32 i = 0; i < cacheData.Num(); ++i)
 	{
 		int32 uvIndex = cacheData[i]->UVIndex;
+		TArray<FVector2D>& meshUV = GetRawMeshUV(cacheData[i]->MeshIndex);
+
 		FVector2D& uv = meshUV[uvIndex];
 		FVector uv3D = ConvertUVto3D(uv);
 		FVector barycenterToUV = uv3D - barycenter3D;
@@ -540,11 +553,10 @@ void FUVViewportClient::ApplyScale(const FVector& Scale)
 	TArray<UUVCacheData*> cacheData;
 	GetSelectedUV(cacheData);
 
-	TArray<FVector2D>& meshUV = GetRawMeshUV();
-
 	for (int32 i = 0; i < cacheData.Num(); ++i)
 	{
 		int32 uvIndex = cacheData[i]->UVIndex;
+		TArray<FVector2D>& meshUV = GetRawMeshUV(cacheData[i]->MeshIndex);
 		FVector2D& uv = meshUV[uvIndex];
 
 		uv = ScaleModifierContext.CalculateUV(uvIndex);
@@ -559,10 +571,11 @@ void FUVViewportClient::EndRawMeshChanges()
 
 	if (!viewport.IsValid()) { return; }
 
-	TWeakPtr<FRPRMeshData> meshData = viewport->GetRPRMeshData();
-	if (!meshData.IsValid()) { return; }
-
-	meshData.Pin()->NotifyRawMeshChanges();
+	FRPRMeshDataContainer& meshDatas = viewport->GetRPRMeshDatas();
+	for (int32 i = 0; i < meshDatas.Num(); ++i)
+	{
+		meshDatas[i]->NotifyRawMeshChanges();
+	}
 }
 
 void FUVViewportClient::DeselectAll()

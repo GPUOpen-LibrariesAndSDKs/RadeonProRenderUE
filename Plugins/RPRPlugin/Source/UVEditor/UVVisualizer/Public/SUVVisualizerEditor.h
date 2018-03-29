@@ -6,7 +6,7 @@
 #include "UVVisualizerEditorSettings.h"
 #include "IStructureDetailsView.h"
 #include "NotifyHook.h"
-#include "RPRMeshData.h"
+#include "RPRMeshDataContainer.h"
 
 class UVVISUALIZER_API SUVVisualizerEditor : public SCompoundWidget, public FNotifyHook
 {
@@ -22,6 +22,7 @@ public:
 
 	void	Construct(const FArguments& InArgs);
 	void	SetMeshData(TSharedPtr<FRPRMeshData> InRPRMeshData);
+	void	SetMeshDatas(const FRPRMeshDataContainer& InRPRMeshDatas);
 	void	Refresh();
 	
 	virtual void NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, UProperty* PropertyThatChanged) override;
@@ -43,11 +44,11 @@ private:
 
 private:
 
-	SUVViewportPtr					UVVisualizer;
+	SUVViewportPtr						UVVisualizer;
 	TSharedPtr<IStructureDetailsView>	UVVisualizerEditorSettingsView;
 	TSharedPtr<FStructOnScope>			UVVisualizerEditorSettingsStructOnScopePtr;
 
-	TWeakPtr<FRPRMeshData> RPRMeshData;
+	FRPRMeshDataContainer		RPRMeshDatas;
 	FUVVisualizerEditorSettings	UVVisualizerEditorSettings;
 
 	TSharedPtr<FChannelInfo>			SelectedUVChannel;

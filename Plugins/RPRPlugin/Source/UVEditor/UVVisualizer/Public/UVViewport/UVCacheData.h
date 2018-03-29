@@ -12,6 +12,7 @@ public:
 
 public:
 
+	int32 MeshIndex;
 	int32 UVIndex;
 	bool bIsSelected;
 

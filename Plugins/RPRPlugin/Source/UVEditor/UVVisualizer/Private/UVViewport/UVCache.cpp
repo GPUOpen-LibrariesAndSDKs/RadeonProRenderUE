@@ -1,4 +1,5 @@
 #include "UVCache.h"
+#include "RawMesh.h"
 
 FUVCache::~FUVCache()
 {
@@ -9,22 +10,30 @@ void FUVCache::ClearCache()
 {
 	for (int32 i = 0; i < CachedUV.Num(); ++i)
 	{
-		CachedUV[i]->RemoveFromRoot();
+		if (CachedUV[i])
+		{
+			CachedUV[i]->RemoveFromRoot();
+		}
 	}
 
 	CachedUV.Empty();
 }
 
-void FUVCache::GenerateCache(const FRawMesh& RawMesh, int32 UVChannelIndex)
+void FUVCache::GenerateCache(const FRPRMeshDataContainer& MeshDatas, int32 UVChannelIndex)
 {
-	const TArray<FVector2D>& uv = RawMesh.WedgeTexCoords[UVChannelIndex];
-
-	CachedUV.Empty(uv.Num());
-	for (int32 i = 0; i < uv.Num(); ++i)
+	CachedUV.Empty();
+	for (int32 meshIndex = 0; meshIndex < MeshDatas.Num(); ++meshIndex)
 	{
-		CachedUV.Add(NewObject<UUVCacheData>());
-		CachedUV[i]->AddToRoot();
-		CachedUV[i]->UVIndex = i;
+		const FRawMesh& rawMesh = MeshDatas[meshIndex]->GetRawMesh();
+		const TArray<FVector2D>& uv = rawMesh.WedgeTexCoords[UVChannelIndex];
+		
+		for (int32 uvIndex = 0; uvIndex < uv.Num(); ++uvIndex)
+		{
+			CachedUV.Add(NewObject<UUVCacheData>());
+			CachedUV[uvIndex]->AddToRoot();
+			CachedUV[uvIndex]->MeshIndex = meshIndex;
+			CachedUV[uvIndex]->UVIndex = uvIndex;
+		}
 	}
 }
 

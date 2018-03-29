@@ -37,3 +37,20 @@ void FRPRMeshData::NotifyStaticMeshChanges()
 {
 	OnPostStaticMeshChange.Broadcast();
 }
+
+int32 FRPRMeshData::GetNumUVChannelsUsed() const
+{
+	int32 numChannels = 0;
+
+	for (int32 i = 0; i < MAX_MESH_TEXTURE_COORDS; ++i)
+	{
+		bool bIsUVUsed = (RawMesh.WedgeTexCoords[i].Num() > 0);
+		if (!bIsUVUsed)
+		{
+			break;
+		}
+		++numChannels;
+	}
+
+	return (numChannels);
+}

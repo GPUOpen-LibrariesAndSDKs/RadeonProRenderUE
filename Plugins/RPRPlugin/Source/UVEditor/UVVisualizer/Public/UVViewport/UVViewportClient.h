@@ -8,6 +8,7 @@
 #include "UICommandList.h"
 #include "UVScaleModifierContext.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "UVMeshComponent.h"
 
 DECLARE_DELEGATE(FOnUVChanged)
 
@@ -37,17 +38,15 @@ public:
 	virtual FWidget::EWidgetMode GetWidgetMode() const override;
 	virtual FVector GetWidgetLocation() const override;
 
-	FOnUVChanged&	OnUVChanged() const;
-
 private:
 
 	void	GenerateCacheUV();
 	void	SetupCameraView();
 	void	SetupBackground();
-	void	DrawUV(const FSceneView* View, FPrimitiveDrawInterface* PDI, TSharedPtr<class SUVViewport> Viewport);
-	void	DrawUVTriangle(FPrimitiveDrawInterface* PDI, int32 UVStartIndex, const FLinearColor& Color, 
-								const FVector2D& uvA, const FVector2D& uvB, const FVector2D& uvC);
-	void	DrawUVVertex(FPrimitiveDrawInterface* PDI, int32 UVIndex, const FVector& UV_3D);
+	//void	DrawUV(const FSceneView* View, FPrimitiveDrawInterface* PDI, TSharedPtr<class SUVViewport> Viewport);
+	//void	DrawUVTriangle(FPrimitiveDrawInterface* PDI, int32 UVStartIndex, const FLinearColor& Color, 
+	//							const FVector2D& uvA, const FVector2D& uvB, const FVector2D& uvC);
+	//void	DrawUVVertex(FPrimitiveDrawInterface* PDI, int32 UVIndex, const FVector& UV_3D);
 
 	TSharedPtr<class SUVViewport> GetUVViewport() const;
 	FVector		ConvertUVto3D(const FVector2D& UV) const;
@@ -57,8 +56,8 @@ private:
 	bool		GetSelectedUV(TArray<class UUVCacheData*>& OutUVCacheData) const;
 	bool		GetSelectedUV(TArray<FVector2D>& UV) const;
 
-	TArray<FVector2D>&	GetRawMeshUV();
-	const TArray<FVector2D>& GetRawMeshUV() const;
+	TArray<FVector2D>&	GetRawMeshUV(int32 MeshIndex);
+	const TArray<FVector2D>& GetRawMeshUV(int32 MeshIndex) const;
 
 	void		ApplyTranslation(const FVector& Drag);
 	void		ApplyRotation(const FRotator& Rotation);
@@ -72,11 +71,11 @@ private:
 	FPreviewScene OwnedPreviewScene;
 	FTransform SceneTransform;
 
+	UUVMeshComponent* UVMeshComponent;
 	UStaticMeshComponent* BackgroundMeshComponent;
 	UMaterialInstanceDynamic* BackgroundMeshMID;
 
 	FUVCache		UVCache;
-	FOnUVChanged	OnUVChangedDelegate;
 
 	bool bIsManipulating;
 	FUVScaleModifierContext ScaleModifierContext;
@@ -87,6 +86,8 @@ private:
 	const FLinearColor	InvalidEdgeColor;
 
 	static const FEditorModeID	UVModeID;
+
+	FRPRMeshDataContainerPtr TempMeshDataContainerPtr;
 };
 
 typedef TSharedPtr<FUVViewportClient> FUVViewportClientPtr;

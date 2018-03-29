@@ -79,3 +79,21 @@ TArray<URPRMeshPreviewComponent*> FRPRMeshDataContainer::GetMeshPreviews() const
 
 	return (meshPreviewComponents);
 }
+
+int32 FRPRMeshDataContainer::GetMaxUVChannelIndex() const
+{
+	int32 minUVChannelIndex = INDEX_NONE;
+
+	for (int32 i = 0; i < MeshDatas.Num(); ++i)
+	{
+		int32 numUVChannelUsed = MeshDatas[i]->GetNumUVChannelsUsed();
+		
+		if (minUVChannelIndex == INDEX_NONE || 
+			numUVChannelUsed < minUVChannelIndex + 1) // +1 because we compare an index to a quantity
+		{
+			minUVChannelIndex = numUVChannelUsed - 1;
+		}
+	}
+
+	return (minUVChannelIndex);
+}

@@ -33,6 +33,8 @@ public:
 
 	FORCEINLINE class URPRMeshPreviewComponent* GetPreview() const { return (Preview.Get()); }
 	FORCEINLINE TWeakObjectPtr<class URPRMeshPreviewComponent> GetWeakPreview() const { return (Preview); }
+
+	int32	GetNumUVChannelsUsed() const;
 	
 private:
 	
