@@ -19,7 +19,7 @@ public:
 
 	void	AssignPreview(class URPRMeshPreviewComponent* InPreviewMeshComponent);
 	void	ApplyRawMeshDatas();
-	
+
 	void	NotifyRawMeshChanges();
 	void	NotifyStaticMeshChanges();
 

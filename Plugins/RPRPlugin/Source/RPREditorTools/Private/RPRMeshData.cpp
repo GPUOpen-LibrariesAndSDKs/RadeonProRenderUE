@@ -7,6 +7,7 @@ FRPRMeshData::FRPRMeshData(UStaticMesh* InStaticMesh)
 {
 	Barycenters.AddDefaulted(MAX_MESH_TEXTURE_COORDS);
 	FStaticMeshHelper::LoadRawMeshFromStaticMesh(InStaticMesh, RawMesh);
+	UpdateAllBarycenters();
 }
 
 void FRPRMeshData::AssignPreview(URPRMeshPreviewComponent* InPreviewMeshComponent)
@@ -19,7 +20,6 @@ void FRPRMeshData::ApplyRawMeshDatas()
 	if (StaticMesh.IsValid())
 	{
 		FStaticMeshHelper::SaveRawMeshToStaticMesh(RawMesh, StaticMesh.Get());
-		UpdateAllBarycenters();
 
 		NotifyStaticMeshChanges();
 
@@ -33,6 +33,7 @@ void FRPRMeshData::ApplyRawMeshDatas()
 
 void FRPRMeshData::NotifyRawMeshChanges()
 {
+	UpdateAllBarycenters();
 	OnPostRawMeshChange.Broadcast();
 }
 

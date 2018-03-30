@@ -54,6 +54,10 @@ void FUVViewportClient::ProcessClick(FSceneView& View, HHitProxy* HitProxy, FKey
 			if (actorHitProxy != nullptr && actorHitProxy->PrimComponent == UVMeshComponent)
 			{
 				bSelectUVMesh = true;
+				if (GetWidgetMode() == FWidget::WM_None)
+				{
+					SetWidgetMode(FWidget::WM_Translate);
+				}
 			}
 		}
 	}
@@ -180,11 +184,25 @@ void FUVViewportClient::TrackingStopped()
 
 		if (IsUVMeshSelected())
 		{
+			// Contains all the transformation done on the UV
+			FTransform uvTransform = UVMeshComponent->GetRelativeTransform();
+
+			const bool bHasTranslated = uvTransform.GetLocation().SizeSquared() > 0.0f;
+			if (bHasTranslated)
+			{
+
+			}
+
 			FRPRMeshDataContainerPtr meshDatas = GetUVViewport()->GetRPRMeshDatas();
 			if (meshDatas.IsValid())
 			{
 				meshDatas->Broadcast_ApplyRawMeshDatas();
 			}
+
+			// Reset preview transformation
+			UVMeshComponent->UpdateMeshDatas();
+			UVMeshComponent->SetRelativeTransform(SceneTransform);
+			RedrawRequested(nullptr);
 		}
 	}
 }
@@ -331,11 +349,12 @@ void FUVViewportClient::ApplyTranslation(const FVector& Drag)
 	FVector2D drag2D = Convert3DtoUV(Drag);
 
 	FRPRMeshDataContainerPtr meshDatasPtr = viewport->GetRPRMeshDatas();
-	meshDatasPtr->OnEachUV(viewport->GetUVChannel(), FOnEachUV::CreateLambda([&drag2D](int32 MeshIndex, FVector2D& UV)
-	{
-		UV += drag2D;
-	}));
+	//meshDatasPtr->OnEachUV(viewport->GetUVChannel(), FOnEachUV::CreateLambda([&drag2D](int32 MeshIndex, FVector2D& UV)
+	//{
+	//	UV += drag2D;
+	//}));
 
+	UVMeshComponent->AddRelativeLocation(Drag);
 	EndRawMeshChanges();
 }
 
@@ -347,15 +366,18 @@ void FUVViewportClient::ApplyRotation(const FRotator& Rotation)
 	FVector2D barycenter = meshDatasPtr->GetUVBarycenter(viewport->GetUVChannel());
 	FVector barycenter3D = ConvertUVto3D(barycenter);
 
-	meshDatasPtr->OnEachUV(viewport->GetUVChannel(), FOnEachUV::CreateLambda([this, &Rotation, &barycenter3D](int32 MeshIndex, FVector2D& UV)
-	{
-		FVector uv3D = ConvertUVto3D(UV);
-		FVector barycenterToUV = uv3D - barycenter3D;
-		FVector newPosition3D = barycenter3D + Rotation.RotateVector(barycenterToUV);
+	//meshDatasPtr->OnEachUV(viewport->GetUVChannel(), FOnEachUV::CreateLambda([this, &Rotation, &barycenter3D](int32 MeshIndex, FVector2D& UV)
+	//{
+	//	FVector uv3D = ConvertUVto3D(UV);
+	//	FVector barycenterToUV = uv3D - barycenter3D;
+	//	FVector newPosition3D = barycenter3D + Rotation.RotateVector(barycenterToUV);
 
-		UV = Convert3DtoUV(newPosition3D);
-	}));
-
+	//	UV = Convert3DtoUV(newPosition3D);
+	//}));
+	
+	UVMeshComponent->SetRelativeLocation(barycenter3D);
+	UVMeshComponent->SetRelativeRotation((UVMeshComponent->GetComponentRotation().Quaternion() * Rotation.Quaternion()).Rotator());
+	UVMeshComponent->SetRelativeLocation(-barycenter3D);
 	EndRawMeshChanges();
 }
 
@@ -364,19 +386,20 @@ void FUVViewportClient::ApplyScale(const FVector& Scale)
 	SUVViewportPtr viewport = GetUVViewport();
 	ScaleModifierContext.ApplyScaleDelta(Scale);
 
-	FRPRMeshDataContainerPtr meshDatasPtr = viewport->GetRPRMeshDatas();
-	int32 uvDone = 0;
-	for (int32 meshIndex = 0; meshIndex < meshDatasPtr->Num(); ++meshIndex)
-	{
-		const FRawMesh& rawMesh = (*meshDatasPtr)[meshIndex]->GetRawMesh();
-		TArray<FVector2D>& uv = viewport->GetUV(meshIndex);
-		for (int32 uvIndex = 0; uvIndex < uv.Num(); ++uvIndex)
-		{
-			uv[uvIndex] = ScaleModifierContext.CalculateUV(uvDone + uvIndex);
-		}
-		uvDone += uv.Num();
-	}
+	//FRPRMeshDataContainerPtr meshDatasPtr = viewport->GetRPRMeshDatas();
+	//int32 uvDone = 0;
+	//for (int32 meshIndex = 0; meshIndex < meshDatasPtr->Num(); ++meshIndex)
+	//{
+	//	const FRawMesh& rawMesh = (*meshDatasPtr)[meshIndex]->GetRawMesh();
+	//	TArray<FVector2D>& uv = viewport->GetUV(meshIndex);
+	//	for (int32 uvIndex = 0; uvIndex < uv.Num(); ++uvIndex)
+	//	{
+	//		uv[uvIndex] = ScaleModifierContext.CalculateUV(uvDone + uvIndex);
+	//	}
+	//	uvDone += uv.Num();
+	//}
 
+	UVMeshComponent->SetRelativeScale3D(UVMeshComponent->GetComponentScale() + Scale);
 	EndRawMeshChanges();
 }
 

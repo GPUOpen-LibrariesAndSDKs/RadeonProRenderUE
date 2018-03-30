@@ -5,6 +5,7 @@
 #include "Materials/Material.h"
 #include "DynamicMeshBuilder.h"
 #include "ConstructorHelpers.h"
+#include "SceneManagement.h"
 
 class FUVMeshVertexBuffer : public FVertexBuffer
 {
@@ -300,7 +301,8 @@ public:
 				if (IsSelected())
 				{
 					// Increase a little the box so it is easier to see UV bounds
-					DrawWireBox(Collector.GetPDI(ViewIndex), GetBounds().GetBox() * 1.1f, FColor(72, 72, 255), SDPG_World);
+					FBox box = GetBounds().GetBox().TransformBy(FScaleMatrix(1.1f));
+					DrawWireBox(Collector.GetPDI(ViewIndex), box, FColor(72, 72, 255), SDPG_World);
 				}
 			}
 		}
