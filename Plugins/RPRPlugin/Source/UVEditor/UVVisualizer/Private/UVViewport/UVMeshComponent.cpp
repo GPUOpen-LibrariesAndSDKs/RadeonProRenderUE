@@ -69,6 +69,7 @@ public:
 	FUVMeshComponentProxy(UUVMeshComponent* InComponent)
 		: FPrimitiveSceneProxy(InComponent)
 		, MaterialRenderProxy(nullptr)
+		, bAreResourcesInitialized(false)
 	{
 		bWillEverBeLit = false;
 		bCastStaticShadow = false;
@@ -88,7 +89,7 @@ public:
 			}
 		}
 
-		ExtractDatas(InComponent);
+		ExtractDatas(InComponent->GetMeshDatas(), InComponent->GetUVChannel());
 	}
 
 	virtual ~FUVMeshComponentProxy()
@@ -98,19 +99,17 @@ public:
 		VertexFactory.ReleaseResource();
 	}
 
-	void ExtractDatas(UUVMeshComponent* UVMeshComponent)
+	void ExtractDatas(FRPRMeshDataContainerWkPtr MeshDatasWkPtr, int32 UVChannel)
 	{
-		FRPRMeshDataContainerWkPtr meshDatasWkPtr = UVMeshComponent->GetMeshDatas();
-		if (meshDatasWkPtr.IsValid())
+		if (MeshDatasWkPtr.IsValid())
 		{
-			FRPRMeshDataContainer& meshDatas = (*meshDatasWkPtr.Pin());
-			const int32 uvChannel = UVMeshComponent->GetUVChannel();
+			FRPRMeshDataContainer& meshDatas = (*MeshDatasWkPtr.Pin());
 
 			int32 totalUV = 0;
 			for (int32 meshIndex = 0; meshIndex < meshDatas.Num(); ++meshIndex)
 			{
 				const FRawMesh& rawMesh = meshDatas[meshIndex]->GetRawMesh();
-				totalUV += CountNumUVDatas(uvChannel, rawMesh);
+				totalUV += CountNumUVDatas(UVChannel, rawMesh);
 			}
 
 			VertexBuffer.Vertices.Empty(totalUV);
@@ -130,7 +129,7 @@ public:
 			for (int32 meshIndex = 0; meshIndex < meshDatas.Num(); ++meshIndex)
 			{
 				const FRawMesh& rawMesh = meshDatas[meshIndex]->GetRawMesh();
-				const TArray<FVector2D>& uv = rawMesh.WedgeTexCoords[uvChannel];
+				const TArray<FVector2D>& uv = rawMesh.WedgeTexCoords[UVChannel];
 				meshVertexIndexStart = vertexIndex;
 				for (int32 uvIndex = 0; uvIndex < uv.Num(); uvIndex += 3)
 				{
@@ -156,12 +155,40 @@ public:
 				{
 					if (IsTriangleReversed(uv, uvIndex))
 					{
-						ColorVertex(uvIndex, FColor::Red);
-						ColorVertex(uvIndex + 1, FColor::Red);
-						ColorVertex(uvIndex + 2, FColor::Red);
+						const int32 meshLocalUVIndex = meshVertexIndexStart + uvIndex;
+						ColorVertex(meshLocalUVIndex, FColor::Red);
+						ColorVertex(meshLocalUVIndex + 1, FColor::Red);
+						ColorVertex(meshLocalUVIndex + 2, FColor::Red);
 					}
 				}
 			}
+		}
+	}
+
+	void UpdateUVs_RenderThread(FRPRMeshDataContainer* MeshDatasPtr, int32 UVChannel)
+	{
+		if (bAreResourcesInitialized && MeshDatasPtr != nullptr)
+		{
+			FRPRMeshDataContainer& meshDatas = *MeshDatasPtr;
+			
+			int32 totalUV = 0;
+			for (int32 meshIndex = 0; meshIndex < meshDatas.Num(); ++meshIndex)
+			{
+				const FRawMesh& rawMesh = meshDatas[meshIndex]->GetRawMesh();
+				totalUV += CountNumUVDatas(UVChannel, rawMesh);
+			}
+
+			const int32 numVertex = totalUV;
+			FDynamicMeshVertex* vertexBufferData = (FDynamicMeshVertex*)RHILockVertexBuffer(VertexBuffer.VertexBufferRHI, 0, numVertex * sizeof(FDynamicMeshVertex), RLM_WriteOnly);
+			
+			for (int32 i = 0; i < totalUV; ++i)
+			{
+				vertexBufferData[i].Position += FVector::OneVector;
+			}
+			
+			RHIUnlockVertexBuffer(VertexBuffer.VertexBufferRHI);
+
+			delete MeshDatasPtr;
 		}
 	}
 
@@ -193,6 +220,8 @@ public:
 			VertexBuffer.InitResource();
 			IndexBuffer.InitResource();
 			VertexFactory.InitResource();
+
+			bAreResourcesInitialized = true;
 		}
 	}
 
@@ -303,6 +332,7 @@ public:
 
 private:
 
+	bool bAreResourcesInitialized;
 	FUVMeshVertexBuffer VertexBuffer;
 	FUVMeshIndexBuffer IndexBuffer;
 	FUVMeshVertexFactory VertexFactory;
@@ -313,6 +343,7 @@ private:
 
 UUVMeshComponent::UUVMeshComponent()
 	: UVChannel(0)
+	, SceneProxy(nullptr)
 {}
 
 void UUVMeshComponent::PostLoad()
@@ -323,7 +354,8 @@ void UUVMeshComponent::PostLoad()
 
 FPrimitiveSceneProxy* UUVMeshComponent::CreateSceneProxy()
 {
-	return new FUVMeshComponentProxy(this);
+	SceneProxy = new FUVMeshComponentProxy(this);
+	return SceneProxy;
 }
 
 FBoxSphereBounds UUVMeshComponent::CalcBounds(const FTransform& LocalToWorld) const
@@ -343,15 +375,27 @@ int32 UUVMeshComponent::GetNumMaterials() const
 
 void UUVMeshComponent::SetUVChannel(int32 InUVChannel)
 {
-	UVChannel = InUVChannel;
-	UpdateLocalBounds();
-	MarkRenderStateDirty();
+	if (UVChannel != InUVChannel)
+	{
+		UVChannel = InUVChannel;
+		UpdateLocalBounds();
+		MarkRenderStateDirty();
+	}
 }
 
 void UUVMeshComponent::SetMeshDatas(FRPRMeshDataContainerWkPtr InRPRMeshDatas)
 {
-	RPRMeshDatas = InRPRMeshDatas;
-	UpdateLocalBounds();
+	if (RPRMeshDatas != InRPRMeshDatas)
+	{
+		RPRMeshDatas = InRPRMeshDatas;	
+		UpdateLocalBounds();
+		MarkRenderStateDirty();
+	}
+}
+
+void UUVMeshComponent::UpdateMeshDatas()
+{
+	UpdateUVs();
 	MarkRenderStateDirty();
 }
 
@@ -440,5 +484,23 @@ void UUVMeshComponent::UpdateRPRMeshDatasFromTemplateMesh()
 		staticMeshes.Add(TemplateMesh);
 		TempMeshDataPtr->AppendFromStaticMeshes(staticMeshes);
 		SetMeshDatas(TempMeshDataPtr);
+	}
+}
+
+void UUVMeshComponent::UpdateUVs()
+{
+	if (SceneProxy)
+	{
+		FRPRMeshDataContainer* meshDatasPtr = new FRPRMeshDataContainer(*RPRMeshDatas.Pin());
+
+		ENQUEUE_UNIQUE_RENDER_COMMAND_THREEPARAMETER(
+			FUpdateUV,
+			FUVMeshComponentProxy*, UVMeshProxy, SceneProxy,
+			FRPRMeshDataContainer*, MeshDatas, meshDatasPtr,
+			int32, UVChannel, UVChannel,
+			{
+				UVMeshProxy->UpdateUVs_RenderThread(MeshDatas, UVChannel);
+			}
+		)
 	}
 }

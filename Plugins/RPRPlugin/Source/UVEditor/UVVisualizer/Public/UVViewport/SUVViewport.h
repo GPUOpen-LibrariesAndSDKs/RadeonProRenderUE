@@ -33,6 +33,8 @@ public:
 	
 protected:
 	
+	void SubscribeToPostRawMeshChange(const FRPRMeshDataContainer& MeshDatas);
+	void UnsubscribeToPostRawMeshChange(const FRPRMeshDataContainer& MeshDatas);
 	virtual TSharedRef<FEditorViewportClient> MakeEditorViewportClient() override;
 	virtual TSharedPtr<SWidget> MakeViewportToolbar() override;
 	
@@ -51,6 +53,7 @@ private:
 	FRPRMeshDataContainerWkPtr RPRMeshDatas;
 	int32 UVChannelIndex;
 
+	TArray<FDelegateHandle>	PostRawMeshChangeDelegates;
 };
 
 typedef TSharedPtr<SUVViewport> SUVViewportPtr;

@@ -7,6 +7,7 @@
 #include "SScrollBox.h"
 #include "SBorder.h"
 #include "STextBlock.h"
+#include "SBox.h"
 
 
 template<typename TObjectType>
@@ -52,7 +53,9 @@ void SObjectsOutliner<TObjectType>::Construct(const FArguments& InArgs)
 
 	ChildSlot
 		[
-			SNew(SBorder)
+			SNew(SBox)
+			.Padding(2.0f)
+			.VAlign(EVerticalAlignment::VAlign_Fill)
 			[
 				SNew(SScrollBox)
 				+SScrollBox::Slot()
@@ -80,7 +83,7 @@ TSharedRef<ITableRow> SObjectsOutliner<TObjectType>::OnGenerateRow(TObjectType I
 		SNew(STableRow<UObject*>, OwnerTable)
 		.Content()
 		[
-			SNew(SBorder)
+			SNew(SBox)
 			.Padding(FMargin(5.f, 2.0f))
 			[
 				SNew(STextBlock)

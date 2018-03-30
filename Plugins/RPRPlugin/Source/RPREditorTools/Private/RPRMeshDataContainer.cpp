@@ -80,7 +80,7 @@ TArray<URPRMeshPreviewComponent*> FRPRMeshDataContainer::GetMeshPreviews() const
 	return (meshPreviewComponents);
 }
 
-int32 FRPRMeshDataContainer::GetMaxUVChannelIndex() const
+int32 FRPRMeshDataContainer::GetMaxUVChannelUsedIndex() const
 {
 	int32 minUVChannelIndex = INDEX_NONE;
 

@@ -27,13 +27,18 @@ void SUVViewport::Construct(const FArguments& InArgs)
 
 void SUVViewport::SetRPRMeshDatas(FRPRMeshDataContainerWkPtr InRPRMeshDatas)
 {
+	if (RPRMeshDatas.IsValid())
+	{
+		UnsubscribeToPostRawMeshChange(*RPRMeshDatas.Pin());
+	}
+
 	RPRMeshDatas = InRPRMeshDatas;
 
-	const FRPRMeshDataContainer& meshDatas = *RPRMeshDatas.Pin();
-	for (int32 i = 0; i < meshDatas.Num(); ++i)
+	if (RPRMeshDatas.IsValid())
 	{
-		meshDatas[i]->OnPostRawMeshChange.AddSP(this, &SUVViewport::Refresh);
+		SubscribeToPostRawMeshChange(*RPRMeshDatas.Pin());
 	}
+
 	Refresh();
 }
 
@@ -56,14 +61,12 @@ void SUVViewport::SetUVChannelIndex(int32 ChannelIndex)
 
 	FRPRMeshDataContainerPtr meshDataPtr = RPRMeshDatas.Pin();
 
-	int32 maxUVChannelIndex = meshDataPtr->GetMaxUVChannelIndex();
+	const int32 maxUVChannelIndex = meshDataPtr->GetMaxUVChannelUsedIndex();
 	const int32 newUVChannelIndex = FMath::Min(ChannelIndex, maxUVChannelIndex);
-	if (newUVChannelIndex != UVChannelIndex)
-	{
-		UVChannelIndex = newUVChannelIndex;
-		ViewportClient->RegenerateUVCache();
-		Invalidate();
-	}
+
+	UVChannelIndex = newUVChannelIndex;
+	ViewportClient->RegenerateUVCache();
+	Invalidate();
 }
 
 void SUVViewport::SetBackground(UTexture2D* Image)
@@ -87,6 +90,25 @@ void SUVViewport::SelectAllUVs()
 	{
 		ViewportClient->SelectAllUVs();
 	}
+}
+
+void SUVViewport::SubscribeToPostRawMeshChange(const FRPRMeshDataContainer& MeshDatas)
+{
+	PostRawMeshChangeDelegates.Reserve(MeshDatas.Num());
+	for (int32 i = 0; i < MeshDatas.Num(); ++i)
+	{
+		PostRawMeshChangeDelegates.Add(MeshDatas[i]->OnPostRawMeshChange.AddSP(this, &SUVViewport::Refresh));
+	}
+}
+
+void SUVViewport::UnsubscribeToPostRawMeshChange(const FRPRMeshDataContainer& MeshDatas)
+{
+	check(MeshDatas.Num() == PostRawMeshChangeDelegates.Num());
+	for (int32 i = 0; i < MeshDatas.Num(); ++i)
+	{
+		MeshDatas[i]->OnPostRawMeshChange.Remove(PostRawMeshChangeDelegates[i]);
+	}
+	PostRawMeshChangeDelegates.Empty();
 }
 
 TSharedRef<FEditorViewportClient> SUVViewport::MakeEditorViewportClient()

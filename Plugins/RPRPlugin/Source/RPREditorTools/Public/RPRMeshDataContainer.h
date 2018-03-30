@@ -22,7 +22,7 @@ public:
 	TArray<UStaticMesh*>	GetStaticMeshes() const;
 	TArray<URPRMeshPreviewComponent*>	GetMeshPreviews() const;
 
-	int32	GetMaxUVChannelIndex() const;
+	int32	GetMaxUVChannelUsedIndex() const;
 	void	GetMeshesBounds(FVector& OutCenter, FVector& OutExtents) const;
 	void	GetMeshesBoxSphereBounds(FBoxSphereBounds& OutBounds) const;
 

@@ -115,7 +115,7 @@ FText SSceneComponentsOutliner::GetNumberSelectedItemsText() const
 	}
 	else
 	{
-		return FText::FormatOrdered(LOCTEXT("OneItemSelected", "{0}|plural(one=mesh,other=meshes) selected"), numItemSelected);
+		return FText::FormatOrdered(LOCTEXT("OneItemSelected", "{0} {0}|plural(one=mesh,other=meshes) selected"), numItemSelected);
 	}
 }
 

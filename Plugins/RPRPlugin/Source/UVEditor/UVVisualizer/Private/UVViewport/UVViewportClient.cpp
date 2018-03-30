@@ -80,7 +80,9 @@ void FUVViewportClient::GenerateCacheUV()
 		if (meshDatas.IsValid())
 		{
 			UVCache.GenerateCache(*meshDatas, viewport->GetUVChannel());
+			UVMeshComponent->SetUVChannel(viewport->GetUVChannel());
 			UVMeshComponent->SetMeshDatas(meshDatas);
+			RedrawRequested(nullptr);
 		}
 	}
 	else
@@ -589,6 +591,8 @@ void FUVViewportClient::EndRawMeshChanges()
 			(*meshDatas)[i]->NotifyRawMeshChanges();
 		}
 	}
+
+	RedrawRequested(nullptr);
 }
 
 void FUVViewportClient::DeselectAll()

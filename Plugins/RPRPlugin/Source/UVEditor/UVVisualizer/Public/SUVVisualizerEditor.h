@@ -21,7 +21,7 @@ public:
 	SLATE_END_ARGS()
 
 	void	Construct(const FArguments& InArgs);
-	void	SetMeshDatas(FRPRMeshDataContainerWkPtr InRPRMeshDatas);
+	void	SetMeshDatas(FRPRMeshDataContainerPtr InRPRMeshDatas);
 	void	ClearMeshDatas();
 	void	Refresh();
 	
@@ -49,7 +49,7 @@ private:
 	TSharedPtr<IStructureDetailsView>	UVVisualizerEditorSettingsView;
 	TSharedPtr<FStructOnScope>			UVVisualizerEditorSettingsStructOnScopePtr;
 
-	FRPRMeshDataContainerWkPtr	RPRMeshDatasWkPtr;
+	FRPRMeshDataContainerPtr	RPRMeshDatasPtr;
 	FUVVisualizerEditorSettings	UVVisualizerEditorSettings;
 
 	TSharedPtr<FChannelInfo>			SelectedUVChannel;

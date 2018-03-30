@@ -20,6 +20,7 @@ public:
 
 	void	SetUVChannel(int32 InUVChannel);
 	void	SetMeshDatas(FRPRMeshDataContainerWkPtr InRPRMeshDatas);
+	void	UpdateMeshDatas();
 
 	FRPRMeshDataContainerWkPtr	GetMeshDatas() const;
 	int32	GetUVChannel() const;
@@ -30,6 +31,7 @@ private:
 
 	void UpdateLocalBounds();
 	void UpdateRPRMeshDatasFromTemplateMesh();
+	void UpdateUVs();
 
 public:
 
@@ -41,6 +43,8 @@ private:
 	int32 UVChannel;
 	FRPRMeshDataContainerWkPtr RPRMeshDatas;
 	FBoxSphereBounds LocalBounds;
+
+	class FUVMeshComponentProxy* SceneProxy;
 
 	FRPRMeshDataContainerPtr TempMeshDataPtr;
 };
