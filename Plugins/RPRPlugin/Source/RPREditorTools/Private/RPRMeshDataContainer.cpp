@@ -42,6 +42,45 @@ void FRPRMeshDataContainer::RemoveInvalidStaticMeshes()
 	});
 }
 
+void FRPRMeshDataContainer::GetAllUV(TArray<int32>& MeshUVStartIndexes, TArray<FVector2D>& UVs, int32 UVChannel) const
+{
+	MeshUVStartIndexes.Empty(MeshDatas.Num());
+
+	int32 uvIndex = 0;
+	for (int32 meshIndex = 0; meshIndex < MeshDatas.Num(); ++meshIndex)
+	{
+		const FRawMesh& rawMesh = MeshDatas[meshIndex]->GetRawMesh();
+		UVs.Append(rawMesh.WedgeTexCoords[UVChannel]);
+		MeshUVStartIndexes.Add(uvIndex);
+		uvIndex += rawMesh.WedgeTexCoords[UVChannel].Num();
+	}
+}
+
+FVector2D FRPRMeshDataContainer::GetUVBarycenter(int32 UVChannel) const
+{
+	FVector2D barycenter(EForceInit::ForceInitToZero);
+
+	if (MeshDatas.Num() > 0)
+	{
+		for (int32 meshIndex = 0; meshIndex < MeshDatas.Num(); ++meshIndex)
+		{
+			barycenter += MeshDatas[meshIndex]->GetUVBarycenter(UVChannel);
+		}
+
+		barycenter /= MeshDatas.Num();
+	}
+
+	return (barycenter);
+}
+
+void FRPRMeshDataContainer::Broadcast_ApplyRawMeshDatas()
+{
+	for (int32 i = 0; i < MeshDatas.Num(); ++i)
+	{
+		MeshDatas[i]->ApplyRawMeshDatas();
+	}
+}
+
 FRPRMeshDataPtr FRPRMeshDataContainer::FindByPreview(URPRMeshPreviewComponent* PreviewMeshComponent)
 {
 	for (int32 i = 0; i < MeshDatas.Num(); ++i)
@@ -118,5 +157,20 @@ void FRPRMeshDataContainer::GetMeshesBoxSphereBounds(FBoxSphereBounds& OutBounds
 	for (int32 i = 1; i < MeshDatas.Num(); ++i)
 	{
 		OutBounds = OutBounds + MeshDatas[i]->GetStaticMesh()->GetBounds();
+	}
+}
+
+void FRPRMeshDataContainer::OnEachUV(int32 UVChannel, FOnEachUV OnEachUVPredicate)
+{
+	check(OnEachUVPredicate.IsBound());
+
+	for (int32 meshIndex = 0; meshIndex < MeshDatas.Num(); ++meshIndex)
+	{
+		FRawMesh& rawMesh = MeshDatas[meshIndex]->GetRawMesh();
+		TArray<FVector2D>& uv = rawMesh.WedgeTexCoords[UVChannel];
+		for (int32 uvIndex = 0; uvIndex < uv.Num(); ++uvIndex)
+		{
+			OnEachUVPredicate.Execute(meshIndex, uv[uvIndex]);
+		}
 	}
 }

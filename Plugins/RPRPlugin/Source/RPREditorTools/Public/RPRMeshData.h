@@ -35,11 +35,19 @@ public:
 	FORCEINLINE TWeakObjectPtr<class URPRMeshPreviewComponent> GetWeakPreview() const { return (Preview); }
 
 	int32	GetNumUVChannelsUsed() const;
+	const FVector2D&	GetUVBarycenter(int32 UVChannel = 0) const;
+
+private:
+
+	void	UpdateAllBarycenters();
+	void	UpdateBarycenter(int32 UVChannel);
 	
 private:
 	
 	TWeakObjectPtr<UStaticMesh> StaticMesh;
 	FRawMesh RawMesh;
+
+	TArray<FVector2D, TInlineAllocator<MAX_MESH_TEXTURE_COORDS>> Barycenters;
 
 	TWeakObjectPtr<class URPRMeshPreviewComponent> Preview;
 

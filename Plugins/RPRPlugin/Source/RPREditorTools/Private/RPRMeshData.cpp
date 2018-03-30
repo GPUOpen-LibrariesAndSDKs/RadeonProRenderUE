@@ -5,6 +5,7 @@
 FRPRMeshData::FRPRMeshData(UStaticMesh* InStaticMesh)
 	: StaticMesh(InStaticMesh)
 {
+	Barycenters.AddDefaulted(MAX_MESH_TEXTURE_COORDS);
 	FStaticMeshHelper::LoadRawMeshFromStaticMesh(InStaticMesh, RawMesh);
 }
 
@@ -18,6 +19,8 @@ void FRPRMeshData::ApplyRawMeshDatas()
 	if (StaticMesh.IsValid())
 	{
 		FStaticMeshHelper::SaveRawMeshToStaticMesh(RawMesh, StaticMesh.Get());
+		UpdateAllBarycenters();
+
 		NotifyStaticMeshChanges();
 
 		StaticMesh->MarkPackageDirty();
@@ -53,4 +56,41 @@ int32 FRPRMeshData::GetNumUVChannelsUsed() const
 	}
 
 	return (numChannels);
+}
+
+const FVector2D& FRPRMeshData::GetUVBarycenter(int32 UVChannel) const
+{
+	return (Barycenters[UVChannel]);
+}
+
+void FRPRMeshData::UpdateAllBarycenters()
+{
+	int32 numUVChannelsUsed = GetNumUVChannelsUsed();
+
+	for (int32 uvChannelIndex = 0; uvChannelIndex < numUVChannelsUsed; ++uvChannelIndex)
+	{
+		UpdateBarycenter(uvChannelIndex);
+	}
+}
+
+void FRPRMeshData::UpdateBarycenter(int32 UVChannel)
+{
+	FVector2D& barycenter = Barycenters[UVChannel];
+	barycenter = FVector2D(EForceInit::ForceInitToZero);
+
+	if (RawMesh.IsValid())
+	{
+		const FRawMesh& rawMesh = GetRawMesh();
+		const TArray<FVector2D>& uv = rawMesh.WedgeTexCoords[UVChannel];
+
+		if (uv.Num() > 0)
+		{
+			for (int32 uvIndex = 0; uvIndex < uv.Num(); ++uvIndex)
+			{
+				barycenter += uv[uvIndex];
+			}
+
+			barycenter /= uv.Num();
+		}
+	}
 }

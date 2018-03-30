@@ -41,11 +41,7 @@ protected:
 	virtual void BindCommands() override;
 	void DisableAction(TSharedPtr<FUICommandInfo> CommandInfo);
 	virtual bool IsWidgetModeActive(FWidget::EWidgetMode Mode) const override;
-
-private:
-
-	void		SelectAllUVs();
-
+	
 private:
 
 	FUVViewportClientPtr ViewportClient;

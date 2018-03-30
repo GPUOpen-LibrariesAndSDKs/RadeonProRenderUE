@@ -4,6 +4,7 @@
 #include "Materials/MaterialInterface.h"
 #include "Materials/Material.h"
 #include "DynamicMeshBuilder.h"
+#include "ConstructorHelpers.h"
 
 class FUVMeshVertexBuffer : public FVertexBuffer
 {
@@ -153,9 +154,9 @@ public:
 				// Color reversed triangles in red
 				for (int32 uvIndex = 0; uvIndex < uv.Num(); uvIndex += 3)
 				{
+					const int32 meshLocalUVIndex = meshVertexIndexStart + uvIndex;
 					if (IsTriangleReversed(uv, uvIndex))
 					{
-						const int32 meshLocalUVIndex = meshVertexIndexStart + uvIndex;
 						ColorVertex(meshLocalUVIndex, FColor::Red);
 						ColorVertex(meshLocalUVIndex + 1, FColor::Red);
 						ColorVertex(meshLocalUVIndex + 2, FColor::Red);
@@ -291,8 +292,22 @@ public:
 			}
 		}
 
+		for (int32 ViewIndex = 0; ViewIndex < Views.Num(); ViewIndex++)
+		{
+			if (VisibilityMap & (1 << ViewIndex))
+			{
+				// Draw bound box if selected
+				if (IsSelected())
+				{
+					// Increase a little the box so it is easier to see UV bounds
+					DrawWireBox(Collector.GetPDI(ViewIndex), GetBounds().GetBox() * 1.1f, FColor(72, 72, 255), SDPG_World);
+				}
+			}
+		}
+
 		// Draw bounds
 #if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+
 		for (int32 ViewIndex = 0; ViewIndex < Views.Num(); ViewIndex++)
 		{
 			if (VisibilityMap & (1 << ViewIndex))
@@ -314,7 +329,10 @@ public:
 		ViewRelevance.bRenderCustomDepth = ShouldRenderCustomDepth();
 
 		const FSceneViewFamily& ViewFamily = *View->Family;
-		ViewRelevance.bDynamicRelevance = (ViewFamily.EngineShowFlags.Bounds || ViewFamily.EngineShowFlags.Wireframe);
+		ViewRelevance.bDynamicRelevance = 
+			ViewFamily.EngineShowFlags.Bounds || 
+			ViewFamily.EngineShowFlags.Wireframe || 
+			IsSelected();
 		ViewRelevance.bStaticRelevance = true;
 
 		return ViewRelevance;
@@ -344,7 +362,14 @@ private:
 UUVMeshComponent::UUVMeshComponent()
 	: UVChannel(0)
 	, SceneProxy(nullptr)
-{}
+{
+	static ConstructorHelpers::FObjectFinder<UMaterial> materialUV(TEXT("/RPRPlugin/Materials/Editor/M_UV.M_UV"));
+
+	if (materialUV.Succeeded())
+	{
+		SetMaterial(0, materialUV.Object);
+	}
+}
 
 void UUVMeshComponent::PostLoad()
 {

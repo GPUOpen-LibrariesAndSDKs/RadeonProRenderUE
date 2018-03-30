@@ -3,6 +3,9 @@
 #include "SharedPointer.h"
 #include "RPRMeshData.h"
 #include "Engine/StaticMesh.h"
+#include "DelegateCombinations.h"
+
+DECLARE_DELEGATE_TwoParams(FOnEachUV, int32 /* MeshIndex */, FVector2D& /* UV */)
 
 class RPREDITORTOOLS_API FRPRMeshDataContainer
 {
@@ -16,6 +19,10 @@ public:
 
 	void	AppendFromStaticMeshes(const TArray<class UStaticMesh*>& StaticMeshes);
 	void	RemoveInvalidStaticMeshes();
+	void	GetAllUV(TArray<int32>& MeshUVStartIndexes, TArray<FVector2D>& UVs, int32 UVChannel = 0) const;
+	FVector2D	GetUVBarycenter(int32 UVChannel = 0) const;
+
+	void	Broadcast_ApplyRawMeshDatas();
 
 	FRPRMeshDataPtr	FindByPreview(class URPRMeshPreviewComponent* PreviewMeshComponent);
 
@@ -28,6 +35,8 @@ public:
 
 	FORCEINLINE FRPRMeshDataPtr&		operator[](int32 index) { return (MeshDatas[index]); }
 	FORCEINLINE const FRPRMeshDataPtr&	operator[](int32 index) const { return (MeshDatas[index]); }
+
+	void	OnEachUV(int32 UVChannel, FOnEachUV OnEachUVPredicate);
 
 private:
 

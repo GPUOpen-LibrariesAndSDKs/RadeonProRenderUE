@@ -65,7 +65,7 @@ void SUVViewport::SetUVChannelIndex(int32 ChannelIndex)
 	const int32 newUVChannelIndex = FMath::Min(ChannelIndex, maxUVChannelIndex);
 
 	UVChannelIndex = newUVChannelIndex;
-	ViewportClient->RegenerateUVCache();
+	ViewportClient->RefreshUV();
 	Invalidate();
 }
 
@@ -82,14 +82,6 @@ void SUVViewport::ClearBackground()
 void SUVViewport::SetBackgroundOpacity(float Opacity)
 {
 	ViewportClient->SetBackgroundOpacity(Opacity);
-}
-
-void SUVViewport::SelectAllUVs()
-{
-	if (ViewportClient.IsValid())
-	{
-		ViewportClient->SelectAllUVs();
-	}
 }
 
 void SUVViewport::SubscribeToPostRawMeshChange(const FRPRMeshDataContainer& MeshDatas)
@@ -128,12 +120,7 @@ void SUVViewport::BindCommands()
 {
 	const FUVViewportCommands& viewportActions = FUVViewportCommands::Get();
 	TSharedRef<FUVViewportClient> clientRef = ViewportClient.ToSharedRef();
-
-	CommandList->MapAction(
-		viewportActions.SelectAllUV,
-		FExecuteAction::CreateSP(this, &SUVViewport::SelectAllUVs)
-	);
-
+	
 	CommandList->MapAction(
 		FEditorViewportCommands::Get().TranslateMode,
 		FExecuteAction::CreateSP(clientRef, &FEditorViewportClient::SetWidgetMode, FWidget::EWidgetMode::WM_Translate),
