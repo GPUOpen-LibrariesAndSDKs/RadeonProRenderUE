@@ -91,7 +91,14 @@ public:
 			}
 		}
 
-		ExtractDatas(InComponent->GetMeshDatas(), InComponent->GetUVChannel());
+		FRPRMeshDataContainer* meshDatasPtr = InComponent->GetMeshDatas().Pin().Get();
+		if (meshDatasPtr)
+		{
+			const int32 uvChannel = InComponent->GetUVChannel();
+
+			AllocateDatas(meshDatasPtr, uvChannel);
+			ExtractDatas(meshDatasPtr, uvChannel, VertexBuffer.Vertices.GetData(), IndexBuffer.Indices.GetData());
+		}
 	}
 
 	virtual ~FUVMeshComponentProxy()
@@ -101,67 +108,74 @@ public:
 		VertexFactory.ReleaseResource();
 	}
 
-	void ExtractDatas(FRPRMeshDataContainerWkPtr MeshDatasWkPtr, int32 UVChannel)
+	int32 CountUVDatas(FRPRMeshDataContainer* MeshDatasPtr, int32 UVChannel) const
 	{
-		if (MeshDatasWkPtr.IsValid())
+		FRPRMeshDataContainer& meshDatas = *MeshDatasPtr;
+		int32 totalUV = 0;
+		for (int32 meshIndex = 0; meshIndex < meshDatas.Num(); ++meshIndex)
 		{
-			FRPRMeshDataContainer& meshDatas = (*MeshDatasWkPtr.Pin());
+			const FRawMesh& rawMesh = meshDatas[meshIndex]->GetRawMesh();
+			totalUV += CountNumUVDatas(UVChannel, rawMesh);
+		}
+		return (totalUV);
+	}
 
-			int32 totalUV = 0;
-			for (int32 meshIndex = 0; meshIndex < meshDatas.Num(); ++meshIndex)
+	void AllocateDatas(FRPRMeshDataContainer* MeshDatasWkPtr, int32 UVChannel)
+	{
+		int32 totalUV = CountUVDatas(MeshDatasWkPtr, UVChannel);
+
+		VertexBuffer.Vertices.Empty(totalUV);
+		VertexBuffer.Vertices.AddUninitialized(totalUV);
+
+		const int32 numTriangles = totalUV / 3;
+		const int32 numEdgesPerTriangle = 3;
+		const int32 numPointsPerEdge = 2;
+		const int32 numIndices = numTriangles * numEdgesPerTriangle * numPointsPerEdge;
+
+		IndexBuffer.Indices.Empty(numIndices);
+		IndexBuffer.Indices.AddUninitialized(numIndices);
+	}
+
+	void ExtractDatas(FRPRMeshDataContainer* MeshDatasPtr, int32 UVChannel, FDynamicMeshVertex* InVertexBuffer, uint16* InIndexBuffer)
+	{
+		FRPRMeshDataContainer& meshDatas = *MeshDatasPtr;
+			
+		int32 vertexIndex = 0;
+		int32 indiceIndex = 0;
+		int32 meshVertexIndexStart = 0;
+		for (int32 meshIndex = 0; meshIndex < meshDatas.Num(); ++meshIndex)
+		{
+			const FRawMesh& rawMesh = meshDatas[meshIndex]->GetRawMesh();
+			const TArray<FVector2D>& uv = rawMesh.WedgeTexCoords[UVChannel];
+			meshVertexIndexStart = vertexIndex;
+			for (int32 uvIndex = 0; uvIndex < uv.Num(); uvIndex += 3)
 			{
-				const FRawMesh& rawMesh = meshDatas[meshIndex]->GetRawMesh();
-				totalUV += CountNumUVDatas(UVChannel, rawMesh);
+				// Line A-B
+				InIndexBuffer[indiceIndex++] = vertexIndex;
+				InIndexBuffer[indiceIndex++] = vertexIndex + 1;
+
+				// Line B-C
+				InIndexBuffer[indiceIndex++] = vertexIndex + 1;
+				InIndexBuffer[indiceIndex++] = vertexIndex + 2;
+
+				// Line C-A
+				InIndexBuffer[indiceIndex++] = vertexIndex + 2;
+				InIndexBuffer[indiceIndex++] = vertexIndex;
+
+				InVertexBuffer[vertexIndex++].Position = FVector(uv[uvIndex].X, 0, uv[uvIndex].Y);
+				InVertexBuffer[vertexIndex++].Position = FVector(uv[uvIndex+1].X, 0, uv[uvIndex+1].Y);
+				InVertexBuffer[vertexIndex++].Position = FVector(uv[uvIndex+2].X, 0, uv[uvIndex+2].Y);
 			}
 
-			VertexBuffer.Vertices.Empty(totalUV);
-			VertexBuffer.Vertices.AddUninitialized(totalUV);
-
-			const int32 numTriangles = totalUV / 3;
-			const int32 numEdgesPerTriangle = 3;
-			const int32 numPointsPerEdge = 2;
-			const int32 numIndices = numTriangles * numEdgesPerTriangle * numPointsPerEdge;
-
-			IndexBuffer.Indices.Empty(numIndices);
-			IndexBuffer.Indices.AddUninitialized(numIndices);
-
-			int32 vertexIndex = 0;
-			int32 indiceIndex = 0;
-			int32 meshVertexIndexStart = 0;
-			for (int32 meshIndex = 0; meshIndex < meshDatas.Num(); ++meshIndex)
+			// Color reversed triangles in red
+			for (int32 uvIndex = 0; uvIndex < uv.Num(); uvIndex += 3)
 			{
-				const FRawMesh& rawMesh = meshDatas[meshIndex]->GetRawMesh();
-				const TArray<FVector2D>& uv = rawMesh.WedgeTexCoords[UVChannel];
-				meshVertexIndexStart = vertexIndex;
-				for (int32 uvIndex = 0; uvIndex < uv.Num(); uvIndex += 3)
+				const int32 meshLocalUVIndex = meshVertexIndexStart + uvIndex;
+				if (IsTriangleReversed(uv, uvIndex))
 				{
-					// Line A-B
-					IndexBuffer.Indices[indiceIndex++] = vertexIndex;
-					IndexBuffer.Indices[indiceIndex++] = vertexIndex + 1;
-
-					// Line B-C
-					IndexBuffer.Indices[indiceIndex++] = vertexIndex + 1;
-					IndexBuffer.Indices[indiceIndex++] = vertexIndex + 2;
-
-					// Line C-A
-					IndexBuffer.Indices[indiceIndex++] = vertexIndex + 2;
-					IndexBuffer.Indices[indiceIndex++] = vertexIndex;
-
-					VertexBuffer.Vertices[vertexIndex++].Position = FVector(uv[uvIndex].X, 0, uv[uvIndex].Y);
-					VertexBuffer.Vertices[vertexIndex++].Position = FVector(uv[uvIndex+1].X, 0, uv[uvIndex+1].Y);
-					VertexBuffer.Vertices[vertexIndex++].Position = FVector(uv[uvIndex+2].X, 0, uv[uvIndex+2].Y);
-				}
-
-				// Color reversed triangles in red
-				for (int32 uvIndex = 0; uvIndex < uv.Num(); uvIndex += 3)
-				{
-					const int32 meshLocalUVIndex = meshVertexIndexStart + uvIndex;
-					if (IsTriangleReversed(uv, uvIndex))
-					{
-						ColorVertex(meshLocalUVIndex, FColor::Red);
-						ColorVertex(meshLocalUVIndex + 1, FColor::Red);
-						ColorVertex(meshLocalUVIndex + 2, FColor::Red);
-					}
+					ColorVertex(InVertexBuffer, meshLocalUVIndex, FColor::Red);
+					ColorVertex(InVertexBuffer, meshLocalUVIndex + 1, FColor::Red);
+					ColorVertex(InVertexBuffer, meshLocalUVIndex + 2, FColor::Red);
 				}
 			}
 		}
@@ -169,34 +183,35 @@ public:
 
 	void UpdateUVs_RenderThread(FRPRMeshDataContainer* MeshDatasPtr, int32 UVChannel)
 	{
+		check(IsInRenderingThread());
+
 		if (bAreResourcesInitialized && MeshDatasPtr != nullptr)
 		{
 			FRPRMeshDataContainer& meshDatas = *MeshDatasPtr;
 			
-			int32 totalUV = 0;
-			for (int32 meshIndex = 0; meshIndex < meshDatas.Num(); ++meshIndex)
-			{
-				const FRawMesh& rawMesh = meshDatas[meshIndex]->GetRawMesh();
-				totalUV += CountNumUVDatas(UVChannel, rawMesh);
-			}
+			int32 totalUV = CountUVDatas(MeshDatasPtr, UVChannel);
+
+			const int32 numTriangles = totalUV / 3;
+			const int32 numEdgesPerTriangle = 3;
+			const int32 numPointsPerEdge = 2;
+			const int32 numIndices = numTriangles * numEdgesPerTriangle * numPointsPerEdge;
 
 			const int32 numVertex = totalUV;
 			FDynamicMeshVertex* vertexBufferData = (FDynamicMeshVertex*)RHILockVertexBuffer(VertexBuffer.VertexBufferRHI, 0, numVertex * sizeof(FDynamicMeshVertex), RLM_WriteOnly);
+			uint16* indexes = (uint16*)RHILockIndexBuffer(IndexBuffer.IndexBufferRHI, 0, numIndices * sizeof(uint16), RLM_WriteOnly);
+
+			ExtractDatas(MeshDatasPtr, UVChannel, vertexBufferData, indexes);
 			
-			for (int32 i = 0; i < totalUV; ++i)
-			{
-				vertexBufferData[i].Position += FVector::OneVector;
-			}
-			
+			RHIUnlockIndexBuffer(IndexBuffer.IndexBufferRHI);
 			RHIUnlockVertexBuffer(VertexBuffer.VertexBufferRHI);
 
 			delete MeshDatasPtr;
 		}
 	}
 
-	void ColorVertex(int32 VertexIndex, const FColor& Color)
+	void ColorVertex(FDynamicMeshVertex* InVertexBuffer, int32 VertexIndex, const FColor& Color)
 	{
-		VertexBuffer.Vertices[VertexIndex].Color = Color;
+		InVertexBuffer[VertexIndex].Color = Color;
 	}
 
 	bool IsTriangleReversed(const TArray<FVector2D>& UV, int32 TriangleStartIndex)
@@ -301,7 +316,7 @@ public:
 				if (IsSelected())
 				{
 					// Increase a little the box so it is easier to see UV bounds
-					FBox box = GetBounds().GetBox().TransformBy(FScaleMatrix(1.1f));
+					FBox box = GetBounds().GetBox().ExpandBy(0.1f);
 					DrawWireBox(Collector.GetPDI(ViewIndex), box, FColor(72, 72, 255), SDPG_World);
 				}
 			}
@@ -424,7 +439,6 @@ void UUVMeshComponent::UpdateMeshDatas()
 {
 	UpdateLocalBounds();
 	UpdateUVs();
-	MarkRenderStateDirty();
 }
 
 FRPRMeshDataContainerWkPtr UUVMeshComponent::GetMeshDatas() const
@@ -484,9 +498,9 @@ void UUVMeshComponent::UpdateLocalBounds()
 					);
 
 					max = FVector(
-						FMath::Max(max2D.X, min.X),
+						FMath::Max(max2D.X, max.X),
 						0.01f,
-						FMath::Max(max2D.Y, min.Z)
+						FMath::Max(max2D.Y, max.Z)
 					);
 				}
 			}
@@ -529,6 +543,6 @@ void UUVMeshComponent::UpdateUVs()
 			{
 				UVMeshProxy->UpdateUVs_RenderThread(MeshDatas, UVChannel);
 			}
-		)
+		);
 	}
 }

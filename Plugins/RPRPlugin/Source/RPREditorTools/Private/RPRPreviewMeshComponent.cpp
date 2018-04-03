@@ -128,7 +128,7 @@ void URPRMeshPreviewComponent::UpdateSectionUV(int32 SectionIndex)
 
 	if (rawMesh.WedgeTexCoords[0].Num() > 0)
 	{
-		for (int32 tri = sectionData.SectionStart; tri <= sectionData.SectionEnd; ++tri)
+		for (int32 tri = sectionData.SectionStart; tri < sectionData.SectionEnd; ++tri)
 		{
 			AddUVIfIndexValid(rawMesh.WedgeTexCoords[0], sectionData.UV, tri, bShouldApplyAdditiveUVTransform);
 		}
