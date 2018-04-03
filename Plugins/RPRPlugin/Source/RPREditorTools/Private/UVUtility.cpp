@@ -110,3 +110,18 @@ FVector2D FUVUtility::GetUVsCenter(const TArray<FVector2D>& UVs, int32 StartOffs
 	return ((max - min) / 2.0f);
 }
 
+FVector FUVUtility::Convert2DTo3D(const FVector2D& UV)
+{
+	return (FVector(UV.X, 0, UV.Y));
+}
+
+FVector2D FUVUtility::Convert3DTo2D(const FVector& UV)
+{
+	return (FVector2D(UV.X, UV.Z));
+}
+
+FVector2D FUVUtility::ApplyTransform(const FTransform& Transform, const FVector2D& UV)
+{
+	return (Convert3DTo2D(Transform.TransformPosition(Convert2DTo3D(UV))));
+}
+

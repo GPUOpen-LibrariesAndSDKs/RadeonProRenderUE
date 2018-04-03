@@ -39,6 +39,8 @@ public:
 	void			RegenerateUVs();
 	void			SetMeshData(TSharedPtr<class FRPRMeshData> InMeshData);
 	TSharedPtr<class FRPRMeshData> GetMeshData();
+	void			SetAdditiveUVTransform(const FTransform& Transform);
+	void			ClearAdditiveUVTransform();
 
 private:
 
@@ -49,20 +51,23 @@ private:
 
 	void	BuildSection(int32 SectionIndex, FSectionData& SectionData);
 	void	UpdateSectionUV(int32 SectionIndex);
+	void	AddUVIfIndexValid(const TArray<FVector2D>& Source, TArray<FVector2D>& Destination, int32 Index, bool bShouldApplyAdditiveUVTransform) const;
+	bool	ShouldApplyAdditiveUVTransform() const;
 
 	template<typename TParameter>
-	void	AddIfIndexValid(const TArray<TParameter>& Source, TArray<TParameter>& Destination, int32 Index);
+	void	AddIfIndexValid(const TArray<TParameter>& Source, TArray<TParameter>& Destination, int32 Index) const;
 
 private:
 
 	TSharedPtr<class FRPRMeshData> MeshData;
+	FTransform AdditiveUVTransform;
 
 	TArray<FSectionData> SectionDatas;
 
 };
 
 template<typename TParameter>
-void URPRMeshPreviewComponent::AddIfIndexValid(const TArray<TParameter>& Source, TArray<TParameter>& Destination, int32 Index)
+void URPRMeshPreviewComponent::AddIfIndexValid(const TArray<TParameter>& Source, TArray<TParameter>& Destination, int32 Index) const
 {
 	if (Source.IsValidIndex(Index))
 	{

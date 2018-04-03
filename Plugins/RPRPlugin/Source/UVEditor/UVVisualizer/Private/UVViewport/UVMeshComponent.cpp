@@ -422,6 +422,7 @@ void UUVMeshComponent::SetMeshDatas(FRPRMeshDataContainerWkPtr InRPRMeshDatas)
 
 void UUVMeshComponent::UpdateMeshDatas()
 {
+	UpdateLocalBounds();
 	UpdateUVs();
 	MarkRenderStateDirty();
 }

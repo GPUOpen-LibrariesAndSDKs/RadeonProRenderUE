@@ -22,6 +22,7 @@ public:
 	void	GetAllUV(TArray<int32>& MeshUVStartIndexes, TArray<FVector2D>& UVs, int32 UVChannel = 0) const;
 	FVector2D	GetUVBarycenter(int32 UVChannel = 0) const;
 
+	void	Broadcast_NotifyRawMeshChanges();
 	void	Broadcast_ApplyRawMeshDatas();
 
 	FRPRMeshDataPtr	FindByPreview(class URPRMeshPreviewComponent* PreviewMeshComponent);

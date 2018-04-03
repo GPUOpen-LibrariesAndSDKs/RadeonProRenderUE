@@ -73,6 +73,14 @@ FVector2D FRPRMeshDataContainer::GetUVBarycenter(int32 UVChannel) const
 	return (barycenter);
 }
 
+void FRPRMeshDataContainer::Broadcast_NotifyRawMeshChanges()
+{
+	for (int32 i = 0; i < MeshDatas.Num(); ++i)
+	{
+		MeshDatas[i]->NotifyRawMeshChanges();
+	}
+}
+
 void FRPRMeshDataContainer::Broadcast_ApplyRawMeshDatas()
 {
 	for (int32 i = 0; i < MeshDatas.Num(); ++i)

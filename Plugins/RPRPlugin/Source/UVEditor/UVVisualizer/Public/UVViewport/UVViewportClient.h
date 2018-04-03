@@ -40,20 +40,29 @@ private:
 	void	SetupCameraView();
 	void	SetupBackground();
 	void	SetupUVMesh();
-	void	SetupScaleModifierContext();
+
+	void	SelectUVMeshComponent(bool bSelect);
 
 	TSharedPtr<class SUVViewport> GetUVViewport() const;
-	FVector		ConvertUVto3D(const FVector2D& UV) const;
-	FVector2D	Convert3DtoUV(const FVector& In3D) const;
+	FVector		ConvertUVto3DPreview(const FVector2D& UV) const;
+	FVector2D	Convert3DPreviewtoUV(const FVector& In3D) const;
 	bool		IsUVMeshSelected() const;
 
 	TArray<FVector2D>&	GetRawMeshUV(int32 MeshIndex);
 	const TArray<FVector2D>& GetRawMeshUV(int32 MeshIndex) const;
 
-	void		ApplyTranslation(const FVector& Drag);
-	void		ApplyRotation(const FRotator& Rotation);
-	void		ApplyScale(const FVector& Scale);
+	void		ApplyTranslationPreview(const FVector& Drag);
+	void		ApplyRotationPreview(const FRotator& Rotation);
+	void		ApplyScalePreview(const FVector& Scale);
+	void		PostTransformChanges();
 	void		EndRawMeshChanges();
+
+	bool		EndTranslation();
+	bool		EndRotation();
+	bool		EndScale();
+	void		EndTransform();
+
+	FTransform	GetNewUVTransformFromPreview() const;
 
 private:
 
@@ -65,7 +74,7 @@ private:
 	UMaterialInstanceDynamic* BackgroundMeshMID;
 	
 	bool bIsManipulating;
-	FUVScaleModifierContext ScaleModifierContext;
+	FVector WidgetLocation;
 };
 
 typedef TSharedPtr<FUVViewportClient> FUVViewportClientPtr;

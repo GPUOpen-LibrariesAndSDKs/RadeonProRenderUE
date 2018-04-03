@@ -59,6 +59,16 @@ TSharedPtr<FRPRMeshData> URPRMeshPreviewComponent::GetMeshData()
 	return (MeshData);
 }
 
+void URPRMeshPreviewComponent::SetAdditiveUVTransform(const FTransform& Transform)
+{
+	AdditiveUVTransform = Transform;
+}
+
+void URPRMeshPreviewComponent::ClearAdditiveUVTransform()
+{
+	AdditiveUVTransform = FTransform::Identity;
+}
+
 const FRawMesh& URPRMeshPreviewComponent::GetRawMesh() const
 {
 	return (MeshData->GetRawMesh());
@@ -107,6 +117,8 @@ void URPRMeshPreviewComponent::FindTrianglesBoundsBySection(int32 SectionIndex, 
 void URPRMeshPreviewComponent::UpdateSectionUV(int32 SectionIndex)
 {
 	const FRawMesh& rawMesh = GetRawMesh();
+	const bool bShouldApplyAdditiveUVTransform = ShouldApplyAdditiveUVTransform();
+
 	FSectionData& sectionData = SectionDatas[SectionIndex];
 
 	if (rawMesh.WedgeTexCoords[0].Num() > 0)
@@ -118,9 +130,32 @@ void URPRMeshPreviewComponent::UpdateSectionUV(int32 SectionIndex)
 	{
 		for (int32 tri = sectionData.SectionStart; tri <= sectionData.SectionEnd; ++tri)
 		{
-			AddIfIndexValid(rawMesh.WedgeTexCoords[0], sectionData.UV, tri);
+			AddUVIfIndexValid(rawMesh.WedgeTexCoords[0], sectionData.UV, tri, bShouldApplyAdditiveUVTransform);
 		}
 	}
+}
+
+void URPRMeshPreviewComponent::AddUVIfIndexValid(const TArray<FVector2D>& Source, TArray<FVector2D>& Destination, int32 Index, bool bShouldApplyAdditiveUVTransform) const
+{
+	if (Source.IsValidIndex(Index))
+	{
+		const FVector2D& initialUV = Source[Index];
+		if (bShouldApplyAdditiveUVTransform)
+		{
+			const FVector transformedUV_3D = AdditiveUVTransform.TransformPosition(FVector(initialUV.X, 0, initialUV.Y));
+			const FVector2D transformUV(transformedUV_3D.X, transformedUV_3D.Z);
+			Destination.Add(transformUV);
+		}
+		else
+		{
+			Destination.Add(initialUV);
+		}
+	}
+}
+
+bool URPRMeshPreviewComponent::ShouldApplyAdditiveUVTransform() const
+{
+	return (!AdditiveUVTransform.Equals(FTransform::Identity));
 }
 
 void URPRMeshPreviewComponent::AssignMaterialFromStaticMesh()
@@ -138,6 +173,7 @@ void URPRMeshPreviewComponent::AssignMaterialFromStaticMesh()
 void URPRMeshPreviewComponent::BuildSection(int32 SectionIndex, FSectionData& SectionData)
 {
 	const FRawMesh& rawMesh = GetRawMesh();
+	const bool bShouldApplyAdditiveUVTransform = ShouldApplyAdditiveUVTransform();
 
 	SectionData.Vertices.Empty(rawMesh.WedgeIndices.Num());
 	SectionData.Triangles.Empty(rawMesh.WedgeIndices.Num());
@@ -166,7 +202,7 @@ void URPRMeshPreviewComponent::BuildSection(int32 SectionIndex, FSectionData& Se
 		SectionData.Triangles.Add(tri - SectionData.SectionStart);
 
 		AddIfIndexValid(rawMesh.WedgeTangentZ, SectionData.Normals, tri);
-		AddIfIndexValid(rawMesh.WedgeTexCoords[0], SectionData.UV, tri);
+		AddUVIfIndexValid(rawMesh.WedgeTexCoords[0], SectionData.UV, tri, bShouldApplyAdditiveUVTransform);
 		AddIfIndexValid(rawMesh.WedgeColors, SectionData.Colors, tri);
 
 		if (rawMesh.WedgeTangentX.IsValidIndex(tri))
