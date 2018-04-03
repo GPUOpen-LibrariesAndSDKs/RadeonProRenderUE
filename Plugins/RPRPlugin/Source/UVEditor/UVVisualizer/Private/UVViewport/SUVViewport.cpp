@@ -118,7 +118,6 @@ TSharedPtr<SWidget> SUVViewport::MakeViewportToolbar()
 
 void SUVViewport::BindCommands()
 {
-	const FUVViewportCommands& viewportActions = FUVViewportCommands::Get();
 	TSharedRef<FUVViewportClient> clientRef = ViewportClient.ToSharedRef();
 	
 	CommandList->MapAction(

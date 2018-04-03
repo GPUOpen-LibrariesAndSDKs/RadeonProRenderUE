@@ -17,7 +17,6 @@ public:
 private:
 
 	TSharedRef<SWidget>	MakeToolbar();
-	TSharedRef<SWidget>	GenerateSelectionMenu() const;
 
 private:
 

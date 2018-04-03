@@ -14,7 +14,7 @@ FUVViewportCommands::FUVViewportCommands()
 
 void FUVViewportCommands::RegisterCommands()
 {
-	UI_COMMAND(SelectAllUV, "Select All UV", "Select all UV vertices", EUserInterfaceActionType::Button, FInputChord());
+
 }
 
 #undef LOCTEXT_NAMESPACE

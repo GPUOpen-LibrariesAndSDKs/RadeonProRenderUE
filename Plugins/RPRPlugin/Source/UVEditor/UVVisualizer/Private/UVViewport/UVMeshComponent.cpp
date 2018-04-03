@@ -427,12 +427,9 @@ void UUVMeshComponent::SetUVChannel(int32 InUVChannel)
 
 void UUVMeshComponent::SetMeshDatas(FRPRMeshDataContainerWkPtr InRPRMeshDatas)
 {
-	if (RPRMeshDatas != InRPRMeshDatas)
-	{
-		RPRMeshDatas = InRPRMeshDatas;	
-		UpdateLocalBounds();
-		MarkRenderStateDirty();
-	}
+	RPRMeshDatas = InRPRMeshDatas;
+	UpdateLocalBounds();
+	MarkRenderStateDirty();
 }
 
 void UUVMeshComponent::UpdateMeshDatas()

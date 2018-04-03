@@ -86,6 +86,11 @@ void SUVVisualizerEditor::Refresh()
 	}
 	// Try to restore UV channel
 	SelectedUVChannel = selectedUVChannel < UVChannels.Num() ? UVChannels[selectedUVChannel] : nullptr;
+
+	if (UVVisualizer.IsValid())
+	{
+		UVVisualizer->Refresh();
+	}
 }
 
 void SUVVisualizerEditor::NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, UProperty* PropertyThatChanged)

@@ -51,35 +51,8 @@ TSharedRef<SWidget> SUVViewportToolBar::MakeToolbar()
 	}
 	toolbarBuilder.EndBlockGroup();
 	toolbarBuilder.EndSection();
-
-	toolbarBuilder.BeginSection("Select");
-	toolbarBuilder.BeginBlockGroup();
-	{
-		toolbarBuilder.AddWidget(
-			SNew(SEditorViewportToolbarMenu)
-			.ParentToolBar(SharedThis(this))
-			.Label(LOCTEXT("SelectMenu", "Select"))
-			.OnGetMenuContent(this, &SUVViewportToolBar::GenerateSelectionMenu)
-		);
-	}
-	toolbarBuilder.EndBlockGroup();
-	toolbarBuilder.EndSection();
-
+	
 	return (toolbarBuilder.MakeWidget());
-}
-
-TSharedRef<SWidget> SUVViewportToolBar::GenerateSelectionMenu() const
-{
-	TSharedPtr<SUVViewport> viewport = UVViewport.Pin();
-
-	const bool bInShouldCloseWindowAfterMenuSelection = true;
-
-	FMenuBuilder menuBuilder(bInShouldCloseWindowAfterMenuSelection, viewport->GetCommandList());
-	{
-		menuBuilder.AddMenuEntry(FUVViewportCommands::Get().SelectAllUV);
-	}
-
-	return (menuBuilder.MakeWidget());
 }
 
 #undef LOCTEXT_NAMESPACE
