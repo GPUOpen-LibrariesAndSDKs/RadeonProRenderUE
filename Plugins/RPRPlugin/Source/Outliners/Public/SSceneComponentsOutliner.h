@@ -1,12 +1,12 @@
 #pragma once
 
 #include "DeclarativeSyntaxSupport.h"
-#include "SObjectOutliner.h"
+#include "Private/SObjectOutliner/SObjectOutliner.h"
 #include "Components/StaticMeshComponent.h"
 #include "RPRPreviewMeshComponent.h"
 #include "RPRMeshDataContainer.h"
 
-class SSceneComponentsOutliner : public SCompoundWidget
+class OUTLINERS_API SSceneComponentsOutliner : public SCompoundWidget
 {
 private:
 

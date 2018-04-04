@@ -55,6 +55,10 @@
 			"Name": "UVProjection_Cylindrical",
 			"Type": "Editor"			
 		},
+		{
+			"Name": "Outliners",
+			"Type": "Editor"
+		}
 	],
 	"Plugins": [
 		{
