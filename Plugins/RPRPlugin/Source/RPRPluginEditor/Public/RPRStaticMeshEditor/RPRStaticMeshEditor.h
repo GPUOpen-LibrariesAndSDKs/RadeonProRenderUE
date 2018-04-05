@@ -39,20 +39,27 @@ public:
 
 	void	AddComponentToViewport(UActorComponent* InComponent, bool bSelectComponent = true);
 	void	GetMeshesBounds(FVector& OutCenter, FVector& OutExtents);
+	void	RefreshViewport();
 
 private:
 
 	TSharedPtr<FTabManager::FLayout>	GenerateDefaultLayout();
-	void								OpenOrCloseSceneOutlinerIfRequired();
-	void								InitializeWidgets();
-	void								InitializeViewport();
-	void								InitializeUVProjectionMappingEditor();
-	void								InitializeUVVisualizer();
-	void								InitializeSceneComponentsOutliner();
+
+	void	OpenOrCloseSceneOutlinerIfRequired();
+	TSharedRef<class IDetailCustomization>	MakeStaticMeshDetails();
+
+	void	InitializeWidgets();
+	void	InitializeViewport();
+	void	InitializeUVProjectionMappingEditor();
+	void	InitializeUVVisualizer();
+	void	InitializeSceneComponentsOutliner();
+	void	InitializePropertiesView();
+
 	TSharedRef<SDockTab>				SpawnTab_Viewport(const FSpawnTabArgs& Args);
 	TSharedRef<SDockTab>				SpawnTab_UVProjectionMappingEditor(const FSpawnTabArgs& Args);
 	TSharedRef<SDockTab>				SpawnTab_UVVisualizer(const FSpawnTabArgs& Args);
 	TSharedRef<SDockTab>				SpawnTab_SceneComponentsOutliner(const FSpawnTabArgs& Args);
+	TSharedRef<SDockTab>				SpawnTab_Properties(const FSpawnTabArgs& Args);
 
 	void	OnSceneComponentOutlinerSelectionChanged(URPRMeshPreviewComponent* NewItemSelected, ESelectInfo::Type SelectInfo);
 
@@ -68,14 +75,20 @@ private:
 	TSharedPtr<class SUVProjectionMappingEditor>	UVProjectionMappingEditor;
 	TSharedPtr<class SUVVisualizerEditor>			UVVisualizer;
 	TSharedPtr<class SSceneComponentsOutliner>		SceneComponentsOutliner;
+	TSharedPtr<class IDetailsView>					PropertiesDetailsView;
+	TSharedPtr<class IDetailCustomization>			StaticMeshDetails;
 	
 	FRPRStaticMeshEditorSelection	SelectionSystem;
-	
+
+
+	/** Tab IDs **/
 
 	static const FName ViewportTabId;
 	static const FName UVProjectionMappingEditorTabId;
 	static const FName UVVisualizerTabId;
 	static const FName SceneComponentsOutlinerTabId;
+	static const FName PropertiesTabId;
+
 };
 
 typedef TSharedPtr<FRPRStaticMeshEditor> FRPRStaticMeshEditorPtr;

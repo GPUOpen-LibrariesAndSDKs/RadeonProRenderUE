@@ -26,8 +26,10 @@ public:
 	void	Broadcast_ApplyRawMeshDatas();
 
 	FRPRMeshDataPtr	FindByPreview(class URPRMeshPreviewComponent* PreviewMeshComponent);
+	FRPRMeshDataPtr	FindByStaticMesh(class UStaticMesh* StaticMesh);
 
 	TArray<UStaticMesh*>	GetStaticMeshes() const;
+	TArray<UObject*>		GetStaticMeshesAsObjects() const;
 	TArray<URPRMeshPreviewComponent*>	GetMeshPreviews() const;
 
 	int32	GetMaxUVChannelUsedIndex() const;

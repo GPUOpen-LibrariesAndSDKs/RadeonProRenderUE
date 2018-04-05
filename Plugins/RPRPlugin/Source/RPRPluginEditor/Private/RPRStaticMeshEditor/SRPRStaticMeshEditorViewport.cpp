@@ -6,6 +6,7 @@
 #include "RawMesh.h"
 #include "StaticMeshHelper.h"
 #include "RPRPreviewMeshComponent.h"
+#include "SceneViewport.h"
 
 SRPRStaticMeshEditorViewport::SRPRStaticMeshEditorViewport()
 	: PreviewScene(MakeShareable(new FAdvancedPreviewScene(FPreviewScene::ConstructionValues())))
@@ -44,6 +45,11 @@ void SRPRStaticMeshEditorViewport::RefreshMeshUVs()
 	}
 }
 
+void SRPRStaticMeshEditorViewport::RefreshViewport()
+{
+	SceneViewport->Invalidate();
+}
+
 void SRPRStaticMeshEditorViewport::InitMeshDatas()
 {
 	FRPRMeshDataContainerPtr meshDatas = StaticMeshEditorPtr.Pin()->GetMeshDatas();
@@ -55,6 +61,7 @@ void SRPRStaticMeshEditorViewport::InitMeshDatas()
 			CreatePreviewMeshAndAddToViewport((*meshDatas)[i]);
 
 			(*meshDatas)[i]->OnPostRawMeshChange.AddSP(this, &SRPRStaticMeshEditorViewport::RefreshSingleMeshUV, (*meshDatas)[i]);
+			(*meshDatas)[i]->OnPostStaticMeshMaterialChange.AddSP(this, &SRPRStaticMeshEditorViewport::UpdatePreviewMaterials, (*meshDatas)[i]);
 		}
 	}
 }
@@ -147,6 +154,12 @@ void SRPRStaticMeshEditorViewport::InitializeEditorViewportClientCamera()
 	{
 		EditorViewportClient->InitializeCameraFromBounds(bounds);
 	}
+}
+
+void SRPRStaticMeshEditorViewport::UpdatePreviewMaterials(FRPRMeshDataPtr MeshData)
+{
+	URPRMeshPreviewComponent* preview = MeshData->GetPreview();
+	preview->UpdateMaterialsFromSource();
 }
 
 TSharedPtr<SWidget> SRPRStaticMeshEditorViewport::MakeViewportToolbar()

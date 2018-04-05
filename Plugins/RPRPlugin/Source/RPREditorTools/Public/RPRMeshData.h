@@ -10,6 +10,7 @@ class RPREDITORTOOLS_API FRPRMeshData
 {
 public:
 
+	FOnMeshDataChanged	OnPostStaticMeshMaterialChange;
 	FOnMeshDataChanged	OnPostStaticMeshChange;
 	FOnMeshDataChanged	OnPostRawMeshChange;
 
@@ -22,6 +23,7 @@ public:
 
 	void	NotifyRawMeshChanges();
 	void	NotifyStaticMeshChanges();
+	void	NotifyStaticMeshMaterialChanges();
 
 	/* You should call NotifyRawMeshChange once you are done with your modification */
 	FORCEINLINE FRawMesh& GetRawMesh() { return (RawMesh); }
@@ -34,7 +36,7 @@ public:
 	FORCEINLINE class URPRMeshPreviewComponent* GetPreview() const { return (Preview.Get()); }
 	FORCEINLINE TWeakObjectPtr<class URPRMeshPreviewComponent> GetWeakPreview() const { return (Preview); }
 
-	int32	GetNumUVChannelsUsed() const;
+	int32				GetNumUVChannelsUsed() const;
 	const FVector2D&	GetUVBarycenter(int32 UVChannel = 0) const;
 
 private:

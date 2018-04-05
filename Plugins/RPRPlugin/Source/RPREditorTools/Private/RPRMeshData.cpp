@@ -42,6 +42,11 @@ void FRPRMeshData::NotifyStaticMeshChanges()
 	OnPostStaticMeshChange.Broadcast();
 }
 
+void FRPRMeshData::NotifyStaticMeshMaterialChanges()
+{
+	OnPostStaticMeshMaterialChange.Broadcast();
+}
+
 int32 FRPRMeshData::GetNumUVChannelsUsed() const
 {
 	int32 numChannels = 0;

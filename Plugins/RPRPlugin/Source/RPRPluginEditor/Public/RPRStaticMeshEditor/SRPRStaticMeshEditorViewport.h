@@ -25,10 +25,11 @@ public:
 	void Construct(const FArguments& InArgs);
 	void RefreshSingleMeshUV(FRPRMeshDataPtr MeshDataPtr);
 	void RefreshMeshUVs();
+	void RefreshViewport();
 
 	void SetFloorToStaticMeshBottom();
 
-	void CreatePreviewMeshAndAddToViewport(TSharedPtr<FRPRMeshData> InMeshData);
+	void CreatePreviewMeshAndAddToViewport(FRPRMeshDataPtr InMeshData);
 	void AddComponent(UActorComponent* InComponent);
 
 	/* FGCObject Implementation */
@@ -50,6 +51,7 @@ private:
 
 	void	InitMeshDatas();
 	void	InitializeEditorViewportClientCamera();
+	void	UpdatePreviewMaterials(FRPRMeshDataPtr MeshData);
 
 private:
 

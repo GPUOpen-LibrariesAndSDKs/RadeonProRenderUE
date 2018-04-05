@@ -101,6 +101,18 @@ FRPRMeshDataPtr FRPRMeshDataContainer::FindByPreview(URPRMeshPreviewComponent* P
 	return (nullptr);
 }
 
+FRPRMeshDataPtr FRPRMeshDataContainer::FindByStaticMesh(class UStaticMesh* StaticMesh)
+{
+	for (int32 i = 0; i < MeshDatas.Num(); ++i)
+	{
+		if (MeshDatas[i].IsValid() && MeshDatas[i]->GetStaticMesh() == StaticMesh)
+		{
+			return (MeshDatas[i]);
+		}
+	}
+	return (nullptr);
+}
+
 TArray<UStaticMesh*> FRPRMeshDataContainer::GetStaticMeshes() const
 {
 	TArray<UStaticMesh*> staticMeshes;
@@ -112,6 +124,19 @@ TArray<UStaticMesh*> FRPRMeshDataContainer::GetStaticMeshes() const
 	}
 
 	return (staticMeshes);
+}
+
+TArray<UObject*> FRPRMeshDataContainer::GetStaticMeshesAsObjects() const
+{
+	TArray<UObject*> objects;
+
+	for (int32 i = 0; i < MeshDatas.Num(); ++i)
+	{
+		UStaticMesh* staticMesh = MeshDatas[i]->GetStaticMesh();
+		objects.Add(staticMesh);
+	}
+
+	return (objects);
 }
 
 TArray<URPRMeshPreviewComponent*> FRPRMeshDataContainer::GetMeshPreviews() const

@@ -58,6 +58,10 @@
 		{
 			"Name": "Outliners",
 			"Type": "Editor"
+		},
+		{
+			"Name": "RPRMaterialSlots",
+			"Type": "Editor"
 		}
 	],
 	"Plugins": [

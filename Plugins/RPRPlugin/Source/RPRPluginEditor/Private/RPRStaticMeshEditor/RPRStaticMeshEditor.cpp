@@ -8,6 +8,12 @@
 #include "SUVVisualizerEditor.h"
 #include "SSceneComponentsOutliner.h"
 #include "RPRMeshDataContainer.h"
+#include "PropertyEditorModule.h"
+#include "IDetailsView.h"
+#include "ModuleManager.h"
+#include "IDetailCustomization.h"
+#include "SharedPointer.h"
+#include "RPRStaticMeshDetailCustomization.h"
 
 #define LOCTEXT_NAMESPACE "RPRStaticMeshEditor"
 
@@ -17,6 +23,7 @@ const FName FRPRStaticMeshEditor::ViewportTabId(TEXT("RPRStaticMeshEditor_Viewpo
 const FName FRPRStaticMeshEditor::UVProjectionMappingEditorTabId(TEXT("RPRStaticMeshEditor_UVProjectionMappingEditor"));
 const FName FRPRStaticMeshEditor::UVVisualizerTabId(TEXT("RPRStaticMeshEditor_UVVisualizer"));
 const FName FRPRStaticMeshEditor::SceneComponentsOutlinerTabId(TEXT("RPRStaticMeshEditor_SceneComponentsOutliner"));
+const FName FRPRStaticMeshEditor::PropertiesTabId(TEXT("RPRStaticMeshEditor_Properties"));
 
 TSharedPtr<FRPRStaticMeshEditor> FRPRStaticMeshEditor::CreateRPRStaticMeshEditor(const TArray<UStaticMesh*>& StaticMeshes)
 {
@@ -63,6 +70,7 @@ void FRPRStaticMeshEditor::InitializeWidgets()
 	InitializeUVProjectionMappingEditor();
 	InitializeUVVisualizer();
 	InitializeSceneComponentsOutliner();
+	InitializePropertiesView();
 }
 
 void FRPRStaticMeshEditor::InitializeViewport()
@@ -91,6 +99,30 @@ void FRPRStaticMeshEditor::InitializeSceneComponentsOutliner()
 		.OnSelectionChanged(this, &FRPRStaticMeshEditor::OnSceneComponentOutlinerSelectionChanged);
 
 	SceneComponentsOutliner->SelectAll();
+}
+
+void FRPRStaticMeshEditor::InitializePropertiesView()
+{
+	FPropertyEditorModule& propertyModule = FModuleManager::Get().LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+
+	FDetailsViewArgs detailsView(
+		/*const bool InUpdateFromSelection*/ false
+		, /*const bool InLockable*/ true
+		, /*const bool InAllowSearch*/ true
+		, /*const ENameAreaSettings InNameAreaSettings*/ FDetailsViewArgs::HideNameArea
+		, /*const bool InHideSelectionTip*/ false
+		, /*FNotifyHook* InNotifyHook*/ NULL
+		, /*const bool InSearchInitialKeyFocus*/ false
+		, /*FName InViewIdentifier*/ NAME_None
+		);
+
+	PropertiesDetailsView = propertyModule.CreateDetailView(detailsView);
+
+	FOnGetDetailCustomizationInstance layoutCustom =
+		FOnGetDetailCustomizationInstance::CreateSP(this, &FRPRStaticMeshEditor::MakeStaticMeshDetails);
+
+	PropertiesDetailsView->RegisterInstancedCustomPropertyLayout(UStaticMesh::StaticClass(), layoutCustom);
+	PropertiesDetailsView->SetObjects(GetSelectedMeshes()->GetStaticMeshesAsObjects());
 }
 
 TSharedPtr<FTabManager::FLayout>	FRPRStaticMeshEditor::GenerateDefaultLayout()
@@ -142,7 +174,9 @@ TSharedPtr<FTabManager::FLayout>	FRPRStaticMeshEditor::GenerateDefaultLayout()
 						// UV Projection Mapping Editor
 						FTabManager::NewStack()
 						->SetSizeCoefficient(0.6f)
+						->AddTab(PropertiesTabId, ETabState::OpenedTab)
 						->AddTab(UVProjectionMappingEditorTabId, ETabState::OpenedTab)
+						->SetForegroundTab(PropertiesTabId)
 						// Coming soon...
 						// -> AddTab(MaterialLibraryTabId, ETabState::OpenedTab)
 					)
@@ -174,6 +208,12 @@ void FRPRStaticMeshEditor::OpenOrCloseSceneOutlinerIfRequired()
 	}
 }
 
+TSharedRef<IDetailCustomization> FRPRStaticMeshEditor::MakeStaticMeshDetails()
+{
+	StaticMeshDetails = MakeShareable(new FRPRStaticMeshDetailCustomization(*this));
+	return (StaticMeshDetails.ToSharedRef());
+}
+
 void FRPRStaticMeshEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
 {
 	WorkspaceMenuCategory = InTabManager->AddLocalWorkspaceMenuCategory(LOCTEXT("WorkspaceMenu_RPRStaticMeshEditor", "RPR Static Mesh Editor"));
@@ -198,7 +238,12 @@ void FRPRStaticMeshEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& In
 	InTabManager->RegisterTabSpawner(SceneComponentsOutlinerTabId, FOnSpawnTab::CreateSP(this, &FRPRStaticMeshEditor::SpawnTab_SceneComponentsOutliner))
 		.SetDisplayName(LOCTEXT("SceneComponentsOutliner", "Scene Outliner"))
 		.SetGroup(WorkspaceMenuCategoryRef)
-		.SetIcon(FSlateIcon());
+		.SetIcon(FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.Tabs.Outliner"));
+
+	InTabManager->RegisterTabSpawner(PropertiesTabId, FOnSpawnTab::CreateSP(this, &FRPRStaticMeshEditor::SpawnTab_Properties))
+		.SetDisplayName(LOCTEXT("Properties", "Properties"))
+		.SetGroup(WorkspaceMenuCategoryRef)
+		.SetIcon(FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.Tabs.Details"));
 }
 
 void FRPRStaticMeshEditor::UnregisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
@@ -209,6 +254,7 @@ void FRPRStaticMeshEditor::UnregisterTabSpawners(const TSharedRef<FTabManager>& 
 	InTabManager->UnregisterTabSpawner(UVProjectionMappingEditorTabId);
 	InTabManager->UnregisterTabSpawner(UVVisualizerTabId);
 	InTabManager->UnregisterTabSpawner(SceneComponentsOutlinerTabId);
+	InTabManager->UnregisterTabSpawner(PropertiesTabId);
 }
 
 FName FRPRStaticMeshEditor::GetToolkitFName() const
@@ -306,6 +352,14 @@ void FRPRStaticMeshEditor::GetMeshesBounds(FVector& OutCenter, FVector& OutExten
 	return (MeshDatas->GetMeshesBounds(OutCenter, OutExtents));
 }
 
+void FRPRStaticMeshEditor::RefreshViewport()
+{
+	if (Viewport.IsValid())
+	{
+		Viewport->RefreshViewport();
+	}
+}
+
 void FRPRStaticMeshEditor::AddComponentToViewport(UActorComponent* ActorComponent, bool bSelectComponent /*= true*/)
 {
 	Viewport->AddComponent(ActorComponent);
@@ -368,6 +422,18 @@ TSharedRef<SDockTab> FRPRStaticMeshEditor::SpawnTab_SceneComponentsOutliner(cons
 		];
 }
 
+TSharedRef<SDockTab> FRPRStaticMeshEditor::SpawnTab_Properties(const FSpawnTabArgs& Args)
+{
+	check(Args.GetTabId() == PropertiesTabId);
+
+	return
+		SNew(SDockTab)
+		.Label(LOCTEXT("RPRStaticMeshEditorDetail_TabTitle", "Details"))
+		[
+			PropertiesDetailsView.ToSharedRef()
+		];
+}
+
 void FRPRStaticMeshEditor::OnSceneComponentOutlinerSelectionChanged(URPRMeshPreviewComponent* NewItemSelected, ESelectInfo::Type SelectInfo)
 {
 	FRPRMeshDataContainerPtr meshDatas = MakeShareable(new FRPRMeshDataContainer);
@@ -380,6 +446,11 @@ void FRPRStaticMeshEditor::OnSceneComponentOutlinerSelectionChanged(URPRMeshPrev
 	else
 	{
 		UVVisualizer->ClearMeshDatas();
+	}
+
+	if (PropertiesDetailsView.IsValid())
+	{
+		PropertiesDetailsView->SetObjects(meshDatas->GetStaticMeshesAsObjects());
 	}
 }
 

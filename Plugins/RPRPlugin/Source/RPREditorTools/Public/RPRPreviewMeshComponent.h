@@ -41,6 +41,7 @@ public:
 	TSharedPtr<class FRPRMeshData> GetMeshData();
 	void			SetAdditiveUVTransform(const FTransform& Transform);
 	void			ClearAdditiveUVTransform();
+	void			UpdateMaterialsFromSource();
 
 private:
 

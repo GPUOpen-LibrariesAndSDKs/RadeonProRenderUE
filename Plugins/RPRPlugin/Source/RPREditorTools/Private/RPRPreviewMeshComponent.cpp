@@ -69,6 +69,11 @@ void URPRMeshPreviewComponent::ClearAdditiveUVTransform()
 	AdditiveUVTransform = FTransform::Identity;
 }
 
+void URPRMeshPreviewComponent::UpdateMaterialsFromSource()
+{
+	AssignMaterialFromStaticMesh();
+}
+
 const FRawMesh& URPRMeshPreviewComponent::GetRawMesh() const
 {
 	return (MeshData->GetRawMesh());
