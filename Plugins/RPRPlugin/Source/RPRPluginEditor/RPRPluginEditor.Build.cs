@@ -69,6 +69,7 @@ public class RPRPluginEditor : ModuleRules
                 "PropertyEditor",
                 "AdvancedPreviewScene",
                 "RenderCore",
+                "RHI",
                 "RawMesh",
                 "RPREditorTools",
                 "UVVisualizer",

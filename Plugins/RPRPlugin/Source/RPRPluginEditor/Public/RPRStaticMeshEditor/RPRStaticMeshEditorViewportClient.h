@@ -1,9 +1,9 @@
 #pragma once
 
 #include "SharedPointer.h"
-#include "RPRViewportEditorClient.h"
+#include "EditorViewportClient.h"
 
-class FRPRStaticMeshEditorViewportClient : public FRPRViewportEditorClient
+class FRPRStaticMeshEditorViewportClient : public FEditorViewportClient
 {
 public:
 	FRPRStaticMeshEditorViewportClient(TWeakPtr<class FRPRStaticMeshEditor> InStaticMeshEditor,

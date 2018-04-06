@@ -27,7 +27,7 @@ namespace {
 FRPRStaticMeshEditorViewportClient::FRPRStaticMeshEditorViewportClient(TWeakPtr<FRPRStaticMeshEditor> InStaticMeshEditor, 
 	const TSharedRef<SRPRStaticMeshEditorViewport>& InStaticMeshEditorViewport, 
 	const TSharedRef<FAdvancedPreviewScene>& InPreviewScene)
-	: FRPRViewportEditorClient(nullptr, &InPreviewScene.Get(), InStaticMeshEditorViewport)
+	: FEditorViewportClient(nullptr, &InPreviewScene.Get(), InStaticMeshEditorViewport)
 	, StaticMeshEditorPtr(InStaticMeshEditor)
 	, StaticMeshEditorViewportPtr(InStaticMeshEditorViewport)
 {

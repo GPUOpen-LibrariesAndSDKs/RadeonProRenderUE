@@ -4,6 +4,7 @@
 #include "RPRMaterialList.h"
 #include "DetailCategoryBuilder.h"
 #include "RPRStaticMeshEditor.h"
+#include "STextBlock.h"
 
 #define LOCTEXT_NAMESPACE "RPRStaticMeshDetailCustomization"
 
@@ -37,6 +38,7 @@ void FRPRStaticMeshDetailCustomization::CustomizeDetails(IDetailLayoutBuilder& D
 	delegates.OnGetMaterials.BindSP(this, &FRPRStaticMeshDetailCustomization::GetMaterials);
 	delegates.OnMaterialChanged.BindSP(this, &FRPRStaticMeshDetailCustomization::OnMaterialChanged);
 	delegates.OnMaterialListDirty.BindSP(this, &FRPRStaticMeshDetailCustomization::IsMaterialListDirty);
+	delegates.OnGenerateCustomMaterialWidgets.BindSP(this, &FRPRStaticMeshDetailCustomization::OnGenerateCustomMaterialWidgets);
 
 	materialsCategory.AddCustomBuilder(MakeShareable(new FMaterialList(DetailBuilder, delegates)));
 }
@@ -138,6 +140,13 @@ void FRPRStaticMeshDetailCustomization::CallPostEditChange(UStaticMesh& StaticMe
 	}
 
 	RPRStaticMeshEditor.RefreshViewport();
+}
+
+TSharedRef<SWidget> FRPRStaticMeshDetailCustomization::OnGenerateCustomMaterialWidgets(UMaterialInterface* Material, int32 MaterialIndex)
+{
+	return 
+		SNew(STextBlock)
+		.Text(LOCTEXT("test", "TEEEEESSSTT"));
 }
 
 #undef LOCTEXT_NAMESPACE

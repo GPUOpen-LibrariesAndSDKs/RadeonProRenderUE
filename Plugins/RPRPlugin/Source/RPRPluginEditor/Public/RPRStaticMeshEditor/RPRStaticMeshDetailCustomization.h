@@ -21,6 +21,7 @@ private:
 	void	ChangeMaterial(UStaticMesh* StaticMesh, class UMaterialInterface* Material, int32 MaterialIndex);
 	bool	IsMaterialListDirty() const;
 	void	CallPostEditChange(UStaticMesh& StaticMesh, UProperty* PropertyChanged = nullptr);
+	TSharedRef<SWidget>	OnGenerateCustomMaterialWidgets(UMaterialInterface* Material, int32 MaterialIndex);
 
 private:
 
