@@ -3,14 +3,14 @@
 #include "DeclarativeSyntaxSupport.h"
 #include "Private/SObjectOutliner/SObjectOutliner.h"
 #include "Components/StaticMeshComponent.h"
-#include "RPRPreviewMeshComponent.h"
+#include "RPRStaticMeshPreviewComponent.h"
 #include "RPRMeshDataContainer.h"
 
 class OUTLINERS_API SSceneComponentsOutliner : public SCompoundWidget
 {
 private:
 
-	typedef SObjectsOutliner<URPRMeshPreviewComponent*> SStaticMeshComponentsOutliner;
+	typedef SObjectsOutliner<URPRStaticMeshPreviewComponent*> SStaticMeshComponentsOutliner;
 	typedef TSharedPtr<SStaticMeshComponentsOutliner> SStaticMeshComponentsOutlinerPtr;
 
 public:
@@ -28,7 +28,7 @@ public:
 
 private:
 
-	FText	GetPrettyStaticMeshComponentName(URPRMeshPreviewComponent* StaticMeshComponent) const;
+	FText	GetPrettyStaticMeshComponentName(URPRStaticMeshPreviewComponent* StaticMeshComponent) const;
 	FText	GetNumberSelectedItemsText() const;
 	FReply	OnSelectAllButtonClicked() const;
 

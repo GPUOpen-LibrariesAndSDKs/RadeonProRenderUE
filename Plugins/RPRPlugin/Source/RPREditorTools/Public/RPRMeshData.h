@@ -18,7 +18,7 @@ public:
 
 	FRPRMeshData(UStaticMesh* InStaticMesh);
 
-	void	AssignPreview(class URPRMeshPreviewComponent* InPreviewMeshComponent);
+	void	AssignPreview(class URPRStaticMeshPreviewComponent* InPreviewMeshComponent);
 	void	ApplyRawMeshDatas();
 
 	void	NotifyRawMeshChanges();
@@ -33,8 +33,8 @@ public:
 	FORCEINLINE UStaticMesh* GetStaticMesh() { return (StaticMesh.Get()); }
 	FORCEINLINE const UStaticMesh* GetStaticMesh() const { return (StaticMesh.Get()); }
 
-	FORCEINLINE class URPRMeshPreviewComponent* GetPreview() const { return (Preview.Get()); }
-	FORCEINLINE TWeakObjectPtr<class URPRMeshPreviewComponent> GetWeakPreview() const { return (Preview); }
+	FORCEINLINE class URPRStaticMeshPreviewComponent* GetPreview() const { return (Preview.Get()); }
+	FORCEINLINE TWeakObjectPtr<class URPRStaticMeshPreviewComponent> GetWeakPreview() const { return (Preview); }
 
 	int32				GetNumUVChannelsUsed() const;
 	const FVector2D&	GetUVBarycenter(int32 UVChannel = 0) const;
@@ -51,7 +51,7 @@ private:
 
 	TArray<FVector2D, TInlineAllocator<MAX_MESH_TEXTURE_COORDS>> Barycenters;
 
-	TWeakObjectPtr<class URPRMeshPreviewComponent> Preview;
+	TWeakObjectPtr<class URPRStaticMeshPreviewComponent> Preview;
 
 };
 

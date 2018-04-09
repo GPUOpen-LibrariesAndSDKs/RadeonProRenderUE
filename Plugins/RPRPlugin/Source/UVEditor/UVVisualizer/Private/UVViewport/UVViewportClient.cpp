@@ -13,6 +13,7 @@
 #include "Materials/Material.h"
 #include "EngineUtils.h"
 #include "RPRPreviewMeshComponent.h"
+#include "RPRStaticMeshPreviewComponent.h"
 
 #define LOCTEXT_NAMESPACE "UVViewportClient"
 
@@ -414,11 +415,10 @@ void FUVViewportClient::PostTransformChanges()
 
 	for (int32 i = 0; i < meshDatas->Num(); ++i)
 	{
-		URPRMeshPreviewComponent* preview = (*meshDatas)[i]->GetPreview();
+		URPRStaticMeshPreviewComponent* preview = (*meshDatas)[i]->GetPreview();
 		if (preview)
 		{
-			preview->SetAdditiveUVTransform(uvTransform);
-			preview->RegenerateUVs();
+			preview->TransformUV(uvTransform, viewport->GetUVChannel());
 		}
 	}
 

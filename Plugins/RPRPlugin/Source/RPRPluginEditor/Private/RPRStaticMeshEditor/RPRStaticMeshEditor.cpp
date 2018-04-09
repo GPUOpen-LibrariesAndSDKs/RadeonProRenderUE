@@ -434,7 +434,7 @@ TSharedRef<SDockTab> FRPRStaticMeshEditor::SpawnTab_Properties(const FSpawnTabAr
 		];
 }
 
-void FRPRStaticMeshEditor::OnSceneComponentOutlinerSelectionChanged(URPRMeshPreviewComponent* NewItemSelected, ESelectInfo::Type SelectInfo)
+void FRPRStaticMeshEditor::OnSceneComponentOutlinerSelectionChanged(URPRStaticMeshPreviewComponent* NewItemSelected, ESelectInfo::Type SelectInfo)
 {
 	FRPRMeshDataContainerPtr meshDatas = MakeShareable(new FRPRMeshDataContainer);
 	int32 numItemSelected = SceneComponentsOutliner->GetSelectedItems(meshDatas);

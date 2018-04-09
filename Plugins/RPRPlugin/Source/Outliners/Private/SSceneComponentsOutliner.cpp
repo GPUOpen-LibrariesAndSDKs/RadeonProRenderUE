@@ -7,6 +7,7 @@
 #include "STextBlock.h"
 #include "SButton.h"
 #include "RPRMeshData.h"
+#include "RPRStaticMeshPreviewComponent.h"
 
 #define LOCTEXT_NAMESPACE "SSceneComponentsOutliner"
 
@@ -21,7 +22,7 @@ void SSceneComponentsOutliner::Construct(const FArguments& InArgs)
 			+SVerticalBox::Slot()
 			.FillHeight(0.9f)
 			[
-				SAssignNew(StaticMeshCompsOutliner, SObjectsOutliner<URPRMeshPreviewComponent*>)
+				SAssignNew(StaticMeshCompsOutliner, SObjectsOutliner<URPRStaticMeshPreviewComponent*>)
 				.OnSelectionChanged(OnSelectionChanged)
 				.OverrideGetObjectName(this, &SSceneComponentsOutliner::GetPrettyStaticMeshComponentName)
 			]
@@ -70,7 +71,7 @@ void SSceneComponentsOutliner::Refresh()
 	FRPRMeshDataContainerPtr meshDatas = MeshDatas.Pin();
 	if (meshDatas.IsValid())
 	{
-		TArray<URPRMeshPreviewComponent*> previews = meshDatas->GetMeshPreviews();
+		TArray<URPRStaticMeshPreviewComponent*> previews = meshDatas->GetMeshPreviews();
 		StaticMeshCompsOutliner->AddObjects(previews);
 	}
 }
@@ -82,7 +83,7 @@ void SSceneComponentsOutliner::SelectAll()
 
 int32 SSceneComponentsOutliner::GetSelectedItems(FRPRMeshDataContainerPtr OutSelectedMeshDatas) const
 {
-	TArray<URPRMeshPreviewComponent*> previewMeshComponents;
+	TArray<URPRStaticMeshPreviewComponent*> previewMeshComponents;
 	int32 numItems = StaticMeshCompsOutliner->GetSelectedItems(previewMeshComponents);
 
 	FRPRMeshDataContainerPtr meshDatas = MeshDatas.Pin();
@@ -100,9 +101,9 @@ int32 SSceneComponentsOutliner::GetSelectedItems(FRPRMeshDataContainerPtr OutSel
 	return (numItems);
 }
 
-FText SSceneComponentsOutliner::GetPrettyStaticMeshComponentName(URPRMeshPreviewComponent* PreviewMeshComponent) const
+FText SSceneComponentsOutliner::GetPrettyStaticMeshComponentName(URPRStaticMeshPreviewComponent* PreviewMeshComponent) const
 {
-	return (FText::FromString(PreviewMeshComponent->GetMeshData()->GetStaticMesh()->GetName()));
+	return (FText::FromString(PreviewMeshComponent->GetStaticMesh()->GetName()));
 }
 
 FText SSceneComponentsOutliner::GetNumberSelectedItemsText() const

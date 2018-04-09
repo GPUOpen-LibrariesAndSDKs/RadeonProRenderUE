@@ -55,7 +55,7 @@ private:
 
 private:
 
-	TArray<class URPRMeshPreviewComponent*>	PreviewMeshComponents;
+	TArray<class URPRStaticMeshPreviewComponent*>	PreviewMeshComponents;
 
 	TWeakPtr<FRPRStaticMeshEditor>			StaticMeshEditorPtr;
 	FRPRStaticMeshEditorViewportClientPtr	EditorViewportClient;

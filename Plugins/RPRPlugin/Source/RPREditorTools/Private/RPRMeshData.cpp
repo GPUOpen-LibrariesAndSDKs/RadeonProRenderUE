@@ -1,6 +1,6 @@
 #include "RPRMeshData.h"
 #include "StaticMeshHelper.h"
-#include "RPRPreviewMeshComponent.h"
+#include "RPRStaticMeshPreviewComponent.h"
 
 FRPRMeshData::FRPRMeshData(UStaticMesh* InStaticMesh)
 	: StaticMesh(InStaticMesh)
@@ -10,7 +10,7 @@ FRPRMeshData::FRPRMeshData(UStaticMesh* InStaticMesh)
 	UpdateAllBarycenters();
 }
 
-void FRPRMeshData::AssignPreview(URPRMeshPreviewComponent* InPreviewMeshComponent)
+void FRPRMeshData::AssignPreview(URPRStaticMeshPreviewComponent* InPreviewMeshComponent)
 {
 	Preview = InPreviewMeshComponent;
 }

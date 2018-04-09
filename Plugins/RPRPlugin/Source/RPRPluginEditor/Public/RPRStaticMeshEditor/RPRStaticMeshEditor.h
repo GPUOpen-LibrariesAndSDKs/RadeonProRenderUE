@@ -61,7 +61,7 @@ private:
 	TSharedRef<SDockTab>				SpawnTab_SceneComponentsOutliner(const FSpawnTabArgs& Args);
 	TSharedRef<SDockTab>				SpawnTab_Properties(const FSpawnTabArgs& Args);
 
-	void	OnSceneComponentOutlinerSelectionChanged(URPRMeshPreviewComponent* NewItemSelected, ESelectInfo::Type SelectInfo);
+	void	OnSceneComponentOutlinerSelectionChanged(URPRStaticMeshPreviewComponent* NewItemSelected, ESelectInfo::Type SelectInfo);
 
 	virtual bool	OnRequestClose() override;
 

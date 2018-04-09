@@ -28,11 +28,11 @@
 			"Type": "Editor"
 		},
 		{
-			"Name": "RPRPluginEditor",
+			"Name": "RPRMaterialEditor",
 			"Type": "Editor"
 		},
 		{
-			"Name": "RPRMaterialEditor",
+			"Name": "RPRPluginEditor",
 			"Type": "Editor"
 		},
 		{

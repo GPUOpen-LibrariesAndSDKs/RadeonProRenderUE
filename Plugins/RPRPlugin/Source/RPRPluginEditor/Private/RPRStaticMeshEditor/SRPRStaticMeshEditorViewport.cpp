@@ -7,6 +7,7 @@
 #include "StaticMeshHelper.h"
 #include "RPRPreviewMeshComponent.h"
 #include "SceneViewport.h"
+#include "RPRStaticMeshPreviewComponent.h"
 
 SRPRStaticMeshEditorViewport::SRPRStaticMeshEditorViewport()
 	: PreviewScene(MakeShareable(new FAdvancedPreviewScene(FPreviewScene::ConstructionValues())))
@@ -26,9 +27,9 @@ void SRPRStaticMeshEditorViewport::Construct(const FArguments& InArgs)
 
 void SRPRStaticMeshEditorViewport::RefreshSingleMeshUV(FRPRMeshDataPtr MeshDataPtr)
 {
-	if (URPRMeshPreviewComponent* preview = MeshDataPtr->GetPreview())
+	if (URPRStaticMeshPreviewComponent* preview = MeshDataPtr->GetPreview())
 	{
-		preview->RegenerateUVs();
+		preview->MarkRenderStateDirty();
 	}
 }
 
@@ -61,7 +62,6 @@ void SRPRStaticMeshEditorViewport::InitMeshDatas()
 			CreatePreviewMeshAndAddToViewport((*meshDatas)[i]);
 
 			(*meshDatas)[i]->OnPostRawMeshChange.AddSP(this, &SRPRStaticMeshEditorViewport::RefreshSingleMeshUV, (*meshDatas)[i]);
-			(*meshDatas)[i]->OnPostStaticMeshMaterialChange.AddSP(this, &SRPRStaticMeshEditorViewport::UpdatePreviewMaterials, (*meshDatas)[i]);
 		}
 	}
 }
@@ -75,11 +75,11 @@ void SRPRStaticMeshEditorViewport::SetFloorToStaticMeshBottom()
 
 void SRPRStaticMeshEditorViewport::CreatePreviewMeshAndAddToViewport(TSharedPtr<FRPRMeshData> MeshData)
 {
-	URPRMeshPreviewComponent* previewMeshComponent =
-		NewObject<URPRMeshPreviewComponent>((UObject*)GetTransientPackage(), FName(), RF_Transient);
+	URPRStaticMeshPreviewComponent* previewMeshComponent =
+		NewObject<URPRStaticMeshPreviewComponent>((UObject*)GetTransientPackage(), FName(), RF_Transient);
 
 	FComponentReregisterContext ReregisterContext(previewMeshComponent);
-	previewMeshComponent->SetMeshData(MeshData);
+	previewMeshComponent->SetStaticMesh(MeshData->GetStaticMesh());
 
 	AddComponent(previewMeshComponent);
 	PreviewMeshComponents.Add(previewMeshComponent);
@@ -97,7 +97,7 @@ void SRPRStaticMeshEditorViewport::AddReferencedObjects(FReferenceCollector& Col
 {
 	Collector.AddReferencedObjects(PreviewMeshComponents);
 
-	PreviewMeshComponents.RemoveAll([](URPRMeshPreviewComponent* mesPreviewComponent)
+	PreviewMeshComponents.RemoveAll([](URPRStaticMeshPreviewComponent* mesPreviewComponent)
 	{
 		return (mesPreviewComponent == nullptr);
 	});
@@ -154,12 +154,6 @@ void SRPRStaticMeshEditorViewport::InitializeEditorViewportClientCamera()
 	{
 		EditorViewportClient->InitializeCameraFromBounds(bounds);
 	}
-}
-
-void SRPRStaticMeshEditorViewport::UpdatePreviewMaterials(FRPRMeshDataPtr MeshData)
-{
-	URPRMeshPreviewComponent* preview = MeshData->GetPreview();
-	preview->UpdateMaterialsFromSource();
 }
 
 TSharedPtr<SWidget> SRPRStaticMeshEditorViewport::MakeViewportToolbar()

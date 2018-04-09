@@ -89,7 +89,7 @@ void FRPRMeshDataContainer::Broadcast_ApplyRawMeshDatas()
 	}
 }
 
-FRPRMeshDataPtr FRPRMeshDataContainer::FindByPreview(URPRMeshPreviewComponent* PreviewMeshComponent)
+FRPRMeshDataPtr FRPRMeshDataContainer::FindByPreview(URPRStaticMeshPreviewComponent* PreviewMeshComponent)
 {
 	for (int32 i = 0; i < MeshDatas.Num(); ++i)
 	{
@@ -139,13 +139,13 @@ TArray<UObject*> FRPRMeshDataContainer::GetStaticMeshesAsObjects() const
 	return (objects);
 }
 
-TArray<URPRMeshPreviewComponent*> FRPRMeshDataContainer::GetMeshPreviews() const
+TArray<URPRStaticMeshPreviewComponent*> FRPRMeshDataContainer::GetMeshPreviews() const
 {
-	TArray<URPRMeshPreviewComponent*> meshPreviewComponents;
+	TArray<URPRStaticMeshPreviewComponent*> meshPreviewComponents;
 
 	for (int32 i = 0; i < MeshDatas.Num(); ++i)
 	{
-		URPRMeshPreviewComponent* meshPreview = MeshDatas[i]->GetPreview();
+		URPRStaticMeshPreviewComponent* meshPreview = MeshDatas[i]->GetPreview();
 		meshPreviewComponents.Add(meshPreview);
 	}
 
