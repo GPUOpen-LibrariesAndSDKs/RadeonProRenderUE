@@ -12,21 +12,6 @@ public:
 		: FStaticMeshSceneProxy(InComponent, false)
 	{}
 
-	void	SetNewVertices(const TArray<FVector>& NewVertices)
-	{
-		FStaticMeshLODResources& lod = RenderData->LODResources[0];
-		FPositionVertexBuffer& vertexBuffer = lod.PositionVertexBuffer;
-
-		FPositionVertex* positionVertex = (FPositionVertex*) RHILockVertexBuffer(vertexBuffer.VertexBufferRHI, 0, vertexBuffer.GetNumVertices() * sizeof(FPositionVertex), RLM_WriteOnly);
-		{
-			for (uint32 i = 0; i < vertexBuffer.GetNumVertices() && i < (uint32) NewVertices.Num(); ++i)
-			{
-				positionVertex[i].Position = NewVertices[i];
-			}
-		}
-		RHIUnlockVertexBuffer(vertexBuffer.VertexBufferRHI);
-	}
-
 	void	SetNewUVs(const TArray<FVector2D>& UV, int32 UVChannel)
 	{
 		FStaticMeshLODResources& lod = RenderData->LODResources[0];
@@ -91,10 +76,7 @@ void URPRStaticMeshPreviewComponent::TickComponent(float DeltaTime, enum ELevelT
 
 		float newOffset = FMath::Sin(ElapsedTime) * Amplitude;
 		float delta = (FMath::Sin(ElapsedTime) - FMath::Sin(ElapsedTime - DeltaTime * Speed)) * Amplitude;
-
-		TArray<FVector> vertices;
-		vertices.AddUninitialized(lod.PositionVertexBuffer.GetNumVertices());
-
+		
 		TArray<FVector2D> uv;
 		uv.AddUninitialized(lod.VertexBuffer.GetNumVertices());
 
@@ -102,17 +84,13 @@ void URPRStaticMeshPreviewComponent::TickComponent(float DeltaTime, enum ELevelT
 		for (int32 i = 0; i < numVertices; ++i)
 		{
 			uv[i] = InitialUV[i] + FVector2D(0, newOffset);
-
-			//vertices[i] = lod.PositionVertexBuffer.VertexPosition(i) + delta;
 		}
 
 		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
 			FRPRStaticMeshPreviewComponent_MoveUV,
 			FRPRStaticMeshPreviewProxy*, SceneProxy, SceneProxy,
-			//TArray<FVector>, Vertices, vertices,
 			TArray<FVector2D>, UV, uv,
 			{
-				//SceneProxy->SetNewVertices(Vertices);
 				SceneProxy->SetNewUVs(UV, 0);
 			}
 		);
