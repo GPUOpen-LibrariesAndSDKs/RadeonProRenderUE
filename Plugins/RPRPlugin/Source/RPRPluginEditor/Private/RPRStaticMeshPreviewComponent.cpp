@@ -32,15 +32,22 @@ public:
 		FStaticMeshLODResources& lod = RenderData->LODResources[0];
 		FStaticMeshVertexBuffer& vertexBuffer = lod.VertexBuffer;
 
-		typedef TStaticMeshFullVertex<EStaticMeshVertexTangentBasisType::Default, EStaticMeshVertexUVType::Default, 1> FStaticMeshFullVertexBufferType;
-
-		FStaticMeshFullVertexBufferType* staticMeshVertexBuffer = (FStaticMeshFullVertexBufferType*) RHILockVertexBuffer(vertexBuffer.VertexBufferRHI, 0, vertexBuffer.GetNumVertices() * sizeof(FStaticMeshFullVertexBufferType), RLM_WriteOnly);
-		{
-			for (uint32 i = 0; i < vertexBuffer.GetNumVertices() && i < (uint32)UV.Num(); ++i)
+		SELECT_STATIC_MESH_VERTEX_TYPE(
+			vertexBuffer.GetUseHighPrecisionTangentBasis(),
+			vertexBuffer.GetUseFullPrecisionUVs(),
+			vertexBuffer.GetNumTexCoords(),
 			{
-				staticMeshVertexBuffer[i].SetUV(UVChannel, UV[i]);
+				int32 sizeofVertexBuffer = sizeof(VertexType);
+				VertexType* staticMeshVertexBuffer = (VertexType*)RHILockVertexBuffer(vertexBuffer.VertexBufferRHI, 0, vertexBuffer.GetNumVertices() * sizeofVertexBuffer, RLM_WriteOnly);
+				{
+					for (uint32 i = 0; i < vertexBuffer.GetNumVertices() && i < (uint32)UV.Num(); ++i)
+					{
+						staticMeshVertexBuffer[i].SetUV(UVChannel, UV[i]);
+					}
+				}
 			}
-		}
+		);
+
 		RHIUnlockVertexBuffer(vertexBuffer.VertexBufferRHI);
 	}
 };
@@ -100,7 +107,7 @@ void URPRStaticMeshPreviewComponent::TickComponent(float DeltaTime, enum ELevelT
 		}
 
 		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
-			FMoveVertices,
+			FRPRStaticMeshPreviewComponent_MoveUV,
 			FRPRStaticMeshPreviewProxy*, SceneProxy, SceneProxy,
 			//TArray<FVector>, Vertices, vertices,
 			TArray<FVector2D>, UV, uv,
