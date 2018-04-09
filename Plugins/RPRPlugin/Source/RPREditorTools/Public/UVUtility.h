@@ -33,6 +33,8 @@ public:
 	/* Apply a transform 3D on UV. The UV.XY must be represented as XZ on 3D so the transform make sense. */
 	static FVector2D	ApplyTransform(const FTransform& Transform, const FVector2D& UV);
 
+	static bool			IsUVValid(const FVector2D& UV);
+
 public:
 
 	static const FVector2D UVsRange;

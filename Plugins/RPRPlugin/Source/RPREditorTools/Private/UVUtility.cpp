@@ -30,11 +30,14 @@ void FUVUtility::GetUVsBounds(const TArray<FVector2D>& UVs, FVector2D& OutMin, F
 
 	for (int32 i = StartOffset + 1; i < UVs.Num(); ++i)
 	{
-		if (UVs[i].X < OutMin.X) OutMin.X = UVs[i].X;
-		else if (UVs[i].X > OutMax.X) OutMax.X = UVs[i].X;
+		if (FUVUtility::IsUVValid(UVs[i]))
+		{
+			if (UVs[i].X < OutMin.X) OutMin.X = UVs[i].X;
+			else if (UVs[i].X > OutMax.X) OutMax.X = UVs[i].X;
 
-		if (UVs[i].Y < OutMin.Y) OutMin.Y = UVs[i].Y;
-		else if (UVs[i].Y > OutMax.Y) OutMax.Y = UVs[i].Y;
+			if (UVs[i].Y < OutMin.Y) OutMin.Y = UVs[i].Y;
+			else if (UVs[i].Y > OutMax.Y) OutMax.Y = UVs[i].Y;
+		}
 	}
 }
 
@@ -123,5 +126,10 @@ FVector2D FUVUtility::Convert3DTo2D(const FVector& UV)
 FVector2D FUVUtility::ApplyTransform(const FTransform& Transform, const FVector2D& UV)
 {
 	return (Convert3DTo2D(Transform.TransformPosition(Convert2DTo3D(UV))));
+}
+
+bool FUVUtility::IsUVValid(const FVector2D& UV)
+{
+	return FMath::IsFinite(UV.X) && FMath::IsFinite(UV.Y);
 }
 

@@ -1,6 +1,7 @@
 #include "RPRMeshData.h"
 #include "StaticMeshHelper.h"
 #include "RPRStaticMeshPreviewComponent.h"
+#include "UVUtility.h"
 
 FRPRMeshData::FRPRMeshData(UStaticMesh* InStaticMesh)
 	: StaticMesh(InStaticMesh)
@@ -91,12 +92,18 @@ void FRPRMeshData::UpdateBarycenter(int32 UVChannel)
 
 		if (uv.Num() > 0)
 		{
+			// Use weight instead of dividing everything at end
+			// so it can handle large quantity of UV without overflowing
+			// - the weight can be a bad idea if there is too much invalid UV
+			// but... come on, it shouldn't happen
+			const float weight = 1.0f / uv.Num();
 			for (int32 uvIndex = 0; uvIndex < uv.Num(); ++uvIndex)
 			{
-				barycenter += uv[uvIndex];
+				if (FUVUtility::IsUVValid(uv[uvIndex]))
+				{
+					barycenter += uv[uvIndex] * weight;
+				}
 			}
-
-			barycenter /= uv.Num();
 		}
 	}
 }

@@ -89,34 +89,7 @@ public:
 		RHIUnlockVertexBuffer(vertexBuffer.VertexBufferRHI);
 	}
 
-	// Code based on FStaticMeshVertexBuffer::GetVertexUV - but use InitialData (uint8*) as input
-	FVector2D GetUV(const FStaticMeshVertexBuffer& VertexBuffer, int32 VertexIndex)
-	{
-		int32 Stride = VertexBuffer.GetStride();
-		if (VertexBuffer.GetUseHighPrecisionTangentBasis())
-		{
-			if (VertexBuffer.GetUseFullPrecisionUVs())
-			{
-				return reinterpret_cast<TStaticMeshFullVertex<EStaticMeshVertexTangentBasisType::HighPrecision, EStaticMeshVertexUVType::HighPrecision, MAX_STATIC_TEXCOORDS>*>(InitialData + VertexIndex * Stride)->GetUV(0);
-			}
-			else
-			{
-				return reinterpret_cast<TStaticMeshFullVertex<EStaticMeshVertexTangentBasisType::HighPrecision, EStaticMeshVertexUVType::Default, MAX_STATIC_TEXCOORDS>*>(InitialData + VertexIndex * Stride)->GetUV(0);
-			}
-		}
-		else
-		{
-			if (VertexBuffer.GetUseFullPrecisionUVs())
-			{
-				return reinterpret_cast<TStaticMeshFullVertex<EStaticMeshVertexTangentBasisType::Default, EStaticMeshVertexUVType::HighPrecision, MAX_STATIC_TEXCOORDS>*>(InitialData + VertexIndex * Stride)->GetUV(0);
-			}
-			else
-			{
-				return reinterpret_cast<TStaticMeshFullVertex<EStaticMeshVertexTangentBasisType::Default, EStaticMeshVertexUVType::Default, MAX_STATIC_TEXCOORDS>*>(InitialData + VertexIndex * Stride)->GetUV(0);
-			}
-		}
-	}
-
+	// Code based on FStaticMeshVertexBuffer::GetVertexUV - but use raw datas (uint8*) as input
 	FVector2D GetUV(int32 Stride, bool bUseHighPrecisionTangentBasis, bool bUseFullPrecisionUVs, uint8* Datas, int32 VertexIndex)
 	{
 		if (bUseHighPrecisionTangentBasis)
