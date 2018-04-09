@@ -6,13 +6,11 @@
 #include "SUVViewport.h"
 #include "Engine/Selection.h"
 #include "UVViewportActions.h"
-#include "UVCacheData.h"
 #include "RPRConstAway.h"
 #include "Engine/StaticMesh.h"
 #include "ActorFactories/ActorFactoryBasicShape.h"
 #include "Materials/Material.h"
 #include "EngineUtils.h"
-#include "RPRPreviewMeshComponent.h"
 #include "RPRStaticMeshPreviewComponent.h"
 
 #define LOCTEXT_NAMESPACE "UVViewportClient"

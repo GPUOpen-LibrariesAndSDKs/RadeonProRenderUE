@@ -33,8 +33,7 @@ public class RPREditorTools : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core",
-                "ProceduralMeshComponent"
+                "Core"
 				
 				// ... add other public dependencies that you statically link with here ...
 			}

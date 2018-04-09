@@ -5,7 +5,6 @@
 #include "SharedPointer.h"
 #include "RPRStaticMeshEditorSelection.h"
 #include "Engine/StaticMesh.h"
-#include "RPRPreviewMeshComponent.h"
 #include "RPRMeshDataContainer.h"
 
 extern const FName RPRStaticMeshEditorAppIdentifier;

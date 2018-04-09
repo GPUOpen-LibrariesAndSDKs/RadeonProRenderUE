@@ -3,10 +3,8 @@
 #include "SharedPointer.h"
 #include "PreviewScene.h"
 #include "UnrealWidget.h"
-#include "UVCache.h"
 #include "Editor.h"
 #include "UICommandList.h"
-#include "UVScaleModifierContext.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "UVMeshComponent.h"
 

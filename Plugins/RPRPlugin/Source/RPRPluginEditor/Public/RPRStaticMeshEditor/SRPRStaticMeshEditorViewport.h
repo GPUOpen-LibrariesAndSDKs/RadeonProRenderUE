@@ -7,7 +7,6 @@
 #include "RPRStaticMeshEditorViewportClient.h"
 #include "AdvancedPreviewScene.h"
 #include "Components/StaticMeshComponent.h"
-#include "RPRPreviewMeshComponent.h"
 
 class SRPRStaticMeshEditorViewport : public SEditorViewport, public FGCObject, public ICommonEditorViewportToolbarInfoProvider
 {

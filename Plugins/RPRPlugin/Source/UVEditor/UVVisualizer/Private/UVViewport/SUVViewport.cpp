@@ -1,8 +1,5 @@
 #include "SUVViewport.h"
 #include "EditorStyleSet.h"
-#include "DrawElements.h"
-#include "SlateRect.h"
-#include "SlateRectHelper.h"
 #include "UVUtility.h"
 #include "StaticMeshHelper.h"
 #include "RPRVectorTools.h"

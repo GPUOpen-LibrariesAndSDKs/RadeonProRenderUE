@@ -5,7 +5,6 @@
 #include "PreviewScene.h"
 #include "RawMesh.h"
 #include "StaticMeshHelper.h"
-#include "RPRPreviewMeshComponent.h"
 #include "SceneViewport.h"
 #include "RPRStaticMeshPreviewComponent.h"
 
