@@ -21,6 +21,7 @@ public:
 	void	RemoveInvalidStaticMeshes();
 	void	GetAllUV(TArray<int32>& MeshUVStartIndexes, TArray<FVector2D>& UVs, int32 UVChannel = 0) const;
 	FVector2D	GetUVBarycenter(int32 UVChannel = 0) const;
+	bool	HasMeshesChangesNotCommitted() const;
 
 	void	Broadcast_NotifyRawMeshChanges();
 	void	Broadcast_ApplyRawMeshDatas();
@@ -40,6 +41,24 @@ public:
 	FORCEINLINE const FRPRMeshDataPtr&	operator[](int32 index) const { return (MeshDatas[index]); }
 
 	void	OnEachUV(int32 UVChannel, FOnEachUV OnEachUVPredicate);
+
+	template<typename TPredicate>
+	void	OnEachMeshData(TPredicate Predicate)
+	{
+		for (int32 i = 0; i < MeshDatas.Num(); ++i)
+		{
+			Predicate(MeshDatas[i]);
+		}
+	}
+
+	template<typename TPredicate>
+	void	OnEachMeshData(TPredicate Predicate) const
+	{
+		for (int32 i = 0; i < MeshDatas.Num(); ++i)
+		{
+			Predicate(MeshDatas[i]);
+		}
+	}
 
 private:
 

@@ -73,20 +73,31 @@ FVector2D FRPRMeshDataContainer::GetUVBarycenter(int32 UVChannel) const
 	return (barycenter);
 }
 
-void FRPRMeshDataContainer::Broadcast_NotifyRawMeshChanges()
+bool FRPRMeshDataContainer::HasMeshesChangesNotCommitted() const
 {
 	for (int32 i = 0; i < MeshDatas.Num(); ++i)
 	{
-		MeshDatas[i]->NotifyRawMeshChanges();
+		if (MeshDatas[i]->HasMeshChangesNotCommitted())
+		{
+			return (true);
+		}
 	}
+
+	return (false);
+}
+
+void FRPRMeshDataContainer::Broadcast_NotifyRawMeshChanges()
+{
+	OnEachMeshData([] (FRPRMeshDataPtr MeshData) {
+		MeshData->NotifyRawMeshChanges();
+	});
 }
 
 void FRPRMeshDataContainer::Broadcast_ApplyRawMeshDatas()
 {
-	for (int32 i = 0; i < MeshDatas.Num(); ++i)
-	{
-		MeshDatas[i]->ApplyRawMeshDatas();
-	}
+	OnEachMeshData([] (FRPRMeshDataPtr MeshData) {
+		MeshData->ApplyRawMeshDatas();
+	});
 }
 
 FRPRMeshDataPtr FRPRMeshDataContainer::FindByPreview(URPRStaticMeshPreviewComponent* PreviewMeshComponent)
@@ -117,11 +128,10 @@ TArray<UStaticMesh*> FRPRMeshDataContainer::GetStaticMeshes() const
 {
 	TArray<UStaticMesh*> staticMeshes;
 
-	for (int32 i = 0; i < MeshDatas.Num(); ++i)
-	{
-		UStaticMesh* staticMesh = MeshDatas[i]->GetStaticMesh();
+	OnEachMeshData([&staticMeshes] (const FRPRMeshDataPtr MeshData) {
+		UStaticMesh* staticMesh = MeshData->GetStaticMesh();
 		staticMeshes.Add(staticMesh);
-	}
+	});
 
 	return (staticMeshes);
 }
@@ -130,11 +140,10 @@ TArray<UObject*> FRPRMeshDataContainer::GetStaticMeshesAsObjects() const
 {
 	TArray<UObject*> objects;
 
-	for (int32 i = 0; i < MeshDatas.Num(); ++i)
-	{
-		UStaticMesh* staticMesh = MeshDatas[i]->GetStaticMesh();
+	OnEachMeshData([&objects] (const FRPRMeshDataPtr MeshData) {
+		UStaticMesh* staticMesh = MeshData->GetStaticMesh();
 		objects.Add(staticMesh);
-	}
+	});
 
 	return (objects);
 }
@@ -143,11 +152,10 @@ TArray<URPRStaticMeshPreviewComponent*> FRPRMeshDataContainer::GetMeshPreviews()
 {
 	TArray<URPRStaticMeshPreviewComponent*> meshPreviewComponents;
 
-	for (int32 i = 0; i < MeshDatas.Num(); ++i)
-	{
-		URPRStaticMeshPreviewComponent* meshPreview = MeshDatas[i]->GetPreview();
+	OnEachMeshData([&meshPreviewComponents] (const FRPRMeshDataPtr MeshData) {
+		URPRStaticMeshPreviewComponent* meshPreview = MeshData->GetPreview();
 		meshPreviewComponents.Add(meshPreview);
-	}
+	});
 
 	return (meshPreviewComponents);
 }

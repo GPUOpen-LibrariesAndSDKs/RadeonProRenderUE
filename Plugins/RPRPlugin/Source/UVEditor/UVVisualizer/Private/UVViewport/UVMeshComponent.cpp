@@ -318,6 +318,7 @@ public:
 					// Increase a little the box so it is easier to see UV bounds
 					FBox box = GetBounds().GetBox().ExpandBy(0.1f);
 					DrawWireBox(Collector.GetPDI(ViewIndex), box, FColor(72, 72, 255), SDPG_World);
+					DrawWireSphere(Collector.GetPDI(ViewIndex), GetLocalToWorld().GetOrigin(), FColor::Red, 0.5f, 6, SDPG_World);
 				}
 			}
 		}

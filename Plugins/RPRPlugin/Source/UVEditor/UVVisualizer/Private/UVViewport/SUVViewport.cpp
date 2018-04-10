@@ -20,6 +20,8 @@ SUVViewport::SUVViewport()
 void SUVViewport::Construct(const FArguments& InArgs)
 {
 	SEditorViewport::Construct(SEditorViewport::FArguments());
+
+	GetUVUpdateMethodDelegate = InArgs._GetUVUpdateMethod;
 }
 
 void SUVViewport::SetRPRMeshDatas(FRPRMeshDataContainerWkPtr InRPRMeshDatas)
@@ -27,6 +29,7 @@ void SUVViewport::SetRPRMeshDatas(FRPRMeshDataContainerWkPtr InRPRMeshDatas)
 	if (RPRMeshDatas.IsValid())
 	{
 		UnsubscribeToPostRawMeshChange(*RPRMeshDatas.Pin());
+		UnsubscribeToPostStaticMeshChange(*RPRMeshDatas.Pin());
 	}
 
 	RPRMeshDatas = InRPRMeshDatas;
@@ -34,6 +37,7 @@ void SUVViewport::SetRPRMeshDatas(FRPRMeshDataContainerWkPtr InRPRMeshDatas)
 	if (RPRMeshDatas.IsValid())
 	{
 		SubscribeToPostRawMeshChange(*RPRMeshDatas.Pin());
+		SubscribeToPostStaticMeshChange(*RPRMeshDatas.Pin());
 	}
 
 	Refresh();
@@ -50,6 +54,8 @@ void SUVViewport::Refresh()
 	{
 		SetUVChannelIndex(INDEX_NONE);
 	}
+	ViewportClient->RedrawRequested(nullptr);
+	Invalidate();
 }
 
 void SUVViewport::SetUVChannelIndex(int32 ChannelIndex)
@@ -98,6 +104,25 @@ void SUVViewport::UnsubscribeToPostRawMeshChange(const FRPRMeshDataContainer& Me
 		MeshDatas[i]->OnPostRawMeshChange.Remove(PostRawMeshChangeDelegates[i]);
 	}
 	PostRawMeshChangeDelegates.Empty();
+}
+
+void SUVViewport::SubscribeToPostStaticMeshChange(const FRPRMeshDataContainer& MeshDatas)
+{
+	PostStaticMeshChangeDelegates.Reserve(MeshDatas.Num());
+	for (int32 i = 0; i < MeshDatas.Num(); ++i)
+	{
+		PostStaticMeshChangeDelegates.Add(MeshDatas[i]->OnPostStaticMeshChange.AddSP(this, &SUVViewport::ClearUVTransform));
+	}
+}
+
+void SUVViewport::UnsubscribeToPostStaticMeshChange(const FRPRMeshDataContainer& MeshDatas)
+{
+	check(MeshDatas.Num() == PostStaticMeshChangeDelegates.Num());
+	for (int32 i = 0; i < MeshDatas.Num(); ++i)
+	{
+		MeshDatas[i]->OnPostStaticMeshChange.Remove(PostStaticMeshChangeDelegates[i]);
+	}
+	PostStaticMeshChangeDelegates.Empty();
 }
 
 TSharedRef<FEditorViewportClient> SUVViewport::MakeEditorViewportClient()
@@ -161,6 +186,11 @@ bool SUVViewport::IsWidgetModeActive(FWidget::EWidgetMode Mode) const
 	return (SEditorViewport::IsWidgetModeActive(Mode));
 }
 
+void SUVViewport::ClearUVTransform()
+{
+	ViewportClient->ClearUVTransform();
+}
+
 FRPRMeshDataContainerPtr SUVViewport::GetRPRMeshDatas() const
 {
 	return (RPRMeshDatas.Pin());
@@ -182,4 +212,15 @@ const TArray<FVector2D>& SUVViewport::GetUV(int32 MeshIndex) const
 	check(RPRMeshDatas.IsValid());
 	const FRPRMeshDataContainer& meshDatas = *RPRMeshDatas.Pin();
 	return (meshDatas[MeshIndex]->GetRawMesh().WedgeTexCoords[GetUVChannel()]);
+}
+
+EUVUpdateMethod SUVViewport::GetUVUpdateMethod() const
+{
+	return (GetUVUpdateMethodDelegate.Execute());
+}
+
+void SUVViewport::ApplyUVTransform()
+{
+	ViewportClient->ApplyUVTransform();
+	ViewportClient->ClearUVTransform();
 }

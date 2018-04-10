@@ -5,6 +5,7 @@
 #include "Engine/StaticMesh.h"
 #include "PropertyEditorModule.h"
 #include "SScrollBox.h"
+#include "UVVisualizerEditorSettingsCustomLayout.h"
 
 #define LOCTEXT_NAMESPACE "SUVVisualizerEditor"
 
@@ -20,6 +21,7 @@ void SUVVisualizerEditor::Construct(const FArguments& InArgs)
 			.Value(6)
 			[
 				SAssignNew(UVVisualizer, SUVViewport)
+				.GetUVUpdateMethod(this, &SUVVisualizerEditor::GetUVUpdateMethod)
 			]
 			+SSplitter::Slot()
 			.Value(4)
@@ -53,12 +55,12 @@ void SUVVisualizerEditor::Construct(const FArguments& InArgs)
 				+SVerticalBox::Slot()
 				.AutoHeight()
 				[
-					UVVisualizerEditorSettingsView->GetWidget().ToSharedRef()
+					UVVisualizerEditorSettingsView.ToSharedRef()
 				]
 			]
 		];
 
-	UVVisualizer->SetBackgroundOpacity(UVVisualizerEditorSettings.BackgroundOpacity);
+	UVVisualizer->SetBackgroundOpacity(UVVisualizerEditorSettings->BackgroundOpacity);
 }
 
 void SUVVisualizerEditor::SetMeshDatas(FRPRMeshDataContainerPtr InRPRMeshDatas)
@@ -96,14 +98,19 @@ void SUVVisualizerEditor::Refresh()
 void SUVVisualizerEditor::NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, UProperty* PropertyThatChanged)
 {
 	FName propertyName = PropertyChangedEvent.GetPropertyName();
-	if (propertyName == GET_MEMBER_NAME_CHECKED(FUVVisualizerEditorSettings, BackgroundTexture))
+	if (propertyName == GET_MEMBER_NAME_CHECKED(UUVVisualizerEditorSettings, BackgroundTexture))
 	{
-		UVVisualizer->SetBackground(UVVisualizerEditorSettings.BackgroundTexture);
+		UVVisualizer->SetBackground(UVVisualizerEditorSettings->BackgroundTexture);
 	}
-	else if (propertyName == GET_MEMBER_NAME_CHECKED(FUVVisualizerEditorSettings, BackgroundOpacity))
+	else if (propertyName == GET_MEMBER_NAME_CHECKED(UUVVisualizerEditorSettings, BackgroundOpacity))
 	{
-		UVVisualizer->SetBackgroundOpacity(UVVisualizerEditorSettings.BackgroundOpacity);
+		UVVisualizer->SetBackgroundOpacity(UVVisualizerEditorSettings->BackgroundOpacity);
 	}
+}
+
+void SUVVisualizerEditor::AddReferencedObjects(FReferenceCollector& Collector)
+{
+	Collector.AddReferencedObject(UVVisualizerEditorSettings);
 }
 
 void SUVVisualizerEditor::SetUVChannelIndex(int32 ChannelIndex)
@@ -116,23 +123,27 @@ void SUVVisualizerEditor::SetUVChannelIndex(int32 ChannelIndex)
 
 void SUVVisualizerEditor::InitUVVisualizerEditorSettings()
 {
+	UVVisualizerEditorSettings = NewObject<UUVVisualizerEditorSettings>();
+
 	FPropertyEditorModule& propertyEditorModule = FModuleManager::Get().LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 	FDetailsViewArgs viewArgs(
 		false, //const bool InUpdateFromSelection
 		false, //, const bool InLockable
 		false, //, const bool InAllowSearch
-		FDetailsViewArgs::ActorsUseNameArea, //, const ENameAreaSettings InNameAreaSettings
+		FDetailsViewArgs::HideNameArea, //, const ENameAreaSettings InNameAreaSettings
 		false, //, const bool InHideSelectionTip
 		this, //, FNotifyHook* InNotifyHook
 		false, //, const bool InSearchInitialKeyFocus
 		NAME_None //, FName InViewIdentifier
 	);
 
-	UVVisualizerEditorSettingsStructOnScopePtr = 
-		MakeShareable(new FStructOnScope(FUVVisualizerEditorSettings::StaticStruct(), (uint8*)&UVVisualizerEditorSettings));
+	propertyEditorModule.RegisterCustomClassLayout(
+		UUVVisualizerEditorSettings::StaticClass()->GetFName(),
+		FOnGetDetailCustomizationInstance::CreateSP(this, &SUVVisualizerEditor::GetUVVisualizerEditorSettingsDetailCustomization)
+	);
 
-	UVVisualizerEditorSettingsView = 
-		propertyEditorModule.CreateStructureDetailView(viewArgs, FStructureDetailsViewArgs(), UVVisualizerEditorSettingsStructOnScopePtr);
+	UVVisualizerEditorSettingsView = propertyEditorModule.CreateDetailView(viewArgs);
+	UVVisualizerEditorSettingsView->SetObject(UVVisualizerEditorSettings, true);
 }
 
 FText SUVVisualizerEditor::GetSelectedUVChannel() const
@@ -191,6 +202,22 @@ FText SUVVisualizerEditor::GenerateUVComboBoxText(int32 ChannelIndex) const
 	);
 }
 
+TSharedRef<IDetailCustomization> SUVVisualizerEditor::GetUVVisualizerEditorSettingsDetailCustomization()
+{
+	FUVVisualizerEditorSettingsCustomLayout::FDelegates delegates;
+	{
+		delegates.OnManualUpdate.BindSP(this, &SUVVisualizerEditor::ApplyUVTransform);
+		delegates.HasMeshChangesNotCommitted.BindSP(this, &SUVVisualizerEditor::HasMeshesChangesNotCommitted);
+	}
+
+	return (MakeShareable(new FUVVisualizerEditorSettingsCustomLayout(delegates)));
+}
+
+void SUVVisualizerEditor::ApplyUVTransform()
+{
+	UVVisualizer->ApplyUVTransform();
+}
+
 FText SUVVisualizerEditor::GetMeshLabelText() const
 {
 	if (!RPRMeshDatasPtr.IsValid())
@@ -232,6 +259,16 @@ FText SUVVisualizerEditor::GetMeshTooltip() const
 EVisibility SUVVisualizerEditor::GetMeshLabelVisibility() const
 {
 	return (RPRMeshDatasPtr.IsValid() && RPRMeshDatasPtr->Num() > 0 ? EVisibility::Visible : EVisibility::Collapsed);
+}
+
+bool SUVVisualizerEditor::HasMeshesChangesNotCommitted() const
+{
+	return (RPRMeshDatasPtr->HasMeshesChangesNotCommitted());
+}
+
+EUVUpdateMethod SUVVisualizerEditor::GetUVUpdateMethod() const
+{
+	return (UVVisualizerEditorSettings != nullptr ? UVVisualizerEditorSettings->UpdateMethod : EUVUpdateMethod::Auto);
 }
 
 #undef LOCTEXT_NAMESPACE

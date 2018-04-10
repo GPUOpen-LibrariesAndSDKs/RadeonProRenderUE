@@ -9,7 +9,7 @@ class UVVISUALIZER_API UUVMeshComponent : public UMeshComponent
 	GENERATED_BODY()
 		
 public:
-
+	
 	UUVMeshComponent();
 
 	virtual void PostLoad() override;
@@ -17,7 +17,7 @@ public:
 	virtual FPrimitiveSceneProxy* CreateSceneProxy() override;
 	virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
 	virtual int32 GetNumMaterials() const override;
-
+	
 	void	SetUVChannel(int32 InUVChannel);
 	void	SetMeshDatas(FRPRMeshDataContainerWkPtr InRPRMeshDatas);
 	void	UpdateMeshDatas();

@@ -25,6 +25,8 @@ public:
 
 	virtual bool ShouldOrbitCamera() const override;
 	void	RefreshUV();
+	void	ClearUVTransform();
+	void	ApplyUVTransform();
 
 	void	SetBackgroundImage(UTexture2D* BackgroundImage);
 	void	SetBackgroundOpacity(float Opacity);
@@ -72,6 +74,7 @@ private:
 	UMaterialInstanceDynamic* BackgroundMeshMID;
 	
 	bool bIsManipulating;
+	bool bHasUVTransformNotCommitted;
 	FVector WidgetLocation;
 };
 

@@ -17,7 +17,7 @@ public:
 public:
 
 	FRPRMeshData(UStaticMesh* InStaticMesh);
-
+	
 	void	AssignPreview(class URPRStaticMeshPreviewComponent* InPreviewMeshComponent);
 	void	ApplyRawMeshDatas();
 
@@ -38,6 +38,7 @@ public:
 
 	int32				GetNumUVChannelsUsed() const;
 	const FVector2D&	GetUVBarycenter(int32 UVChannel = 0) const;
+	bool				HasMeshChangesNotCommitted() const;
 
 private:
 
@@ -52,6 +53,8 @@ private:
 	TArray<FVector2D, TInlineAllocator<MAX_MESH_TEXTURE_COORDS>> Barycenters;
 
 	TWeakObjectPtr<class URPRStaticMeshPreviewComponent> Preview;
+
+	bool bHasMeshChangesNotCommitted;
 
 };
 

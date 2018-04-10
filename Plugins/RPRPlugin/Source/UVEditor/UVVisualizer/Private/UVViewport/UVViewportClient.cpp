@@ -19,11 +19,12 @@ DECLARE_LOG_CATEGORY_CLASS(UVViewportClientLog, Log, All)
 
 FUVViewportClient::FUVViewportClient(const TWeakPtr<SEditorViewport>& InViewport)
 	: FEditorViewportClient(nullptr, nullptr, InViewport)
+	, bIsManipulating(false)
+	, bHasUVTransformNotCommitted(false)
 {
 	bDrawAxes = false;
 
 	PreviewScene = &OwnedPreviewScene;
-	bIsManipulating = false;
 
 	// Scale the UV drawn so it is better to navigate in the scene
 	SceneTransform.SetScale3D(FVector::OneVector * 100);
@@ -77,7 +78,7 @@ void FUVViewportClient::SelectUVMeshComponent(bool bSelect)
 		{
 			FRPRMeshDataContainerPtr meshDatasPtr = viewport->GetRPRMeshDatas();
 			const FVector2D barycenter = meshDatasPtr->GetUVBarycenter(viewport->GetUVChannel());
-			WidgetLocation = ConvertUVto3DPreview(barycenter);
+			WidgetLocation = ConvertUVto3DPreview(barycenter) + UVMeshComponent->GetComponentLocation();
 		}
 
 		UVMeshComponent->MarkRenderStateDirty();
@@ -182,37 +183,48 @@ void FUVViewportClient::TrackingStopped()
 
 		if (IsUVMeshSelected())
 		{
-			bool bHasChanged = false;
+			SUVViewportPtr viewport = GetUVViewport();
+			FRPRMeshDataContainerPtr meshDatas = viewport->GetRPRMeshDatas();
 
-			const FWidget::EWidgetMode MoveMode = GetWidgetMode();
-			switch (MoveMode)
+			if (viewport->GetUVUpdateMethod() == EUVUpdateMethod::Auto)
 			{
-			case FWidget::WM_Translate:
-				bHasChanged = EndTranslation();
-				break;
-			case FWidget::WM_Rotate:
-				bHasChanged = EndRotation();
-				break;
-			case FWidget::WM_Scale:
-				bHasChanged = EndScale();
-				break;
+				bool bHasChanged = false;
 
-			default:
-				break;
-			}
-
-			if (bHasChanged)
-			{
-				FRPRMeshDataContainerPtr meshDatas = GetUVViewport()->GetRPRMeshDatas();
-				if (meshDatas.IsValid())
+				const FWidget::EWidgetMode MoveMode = GetWidgetMode();
+				switch (MoveMode)
 				{
-					meshDatas->Broadcast_ApplyRawMeshDatas();
+					case FWidget::WM_Translate:
+						bHasChanged = EndTranslation();
+						break;
+					case FWidget::WM_Rotate:
+						bHasChanged = EndRotation();
+						break;
+					case FWidget::WM_Scale:
+						bHasChanged = EndScale();
+						break;
+
+					default:
+						break;
+				}
+
+				if (bHasChanged)
+				{
+					if (meshDatas.IsValid())
+					{
+						meshDatas->Broadcast_ApplyRawMeshDatas();
+					}
+
+					UVMeshComponent->UpdateMeshDatas();
 				}
 			}
-
-			// Reset preview transformation
-			UVMeshComponent->UpdateMeshDatas();
-			UVMeshComponent->SetWorldTransform(SceneTransform);
+			else
+			{
+				bHasUVTransformNotCommitted = true;
+				if (meshDatas.IsValid())
+				{
+					meshDatas->Broadcast_NotifyRawMeshChanges();
+				}
+			}
 
 			// Refresh view
 			RedrawRequested(nullptr);
@@ -264,10 +276,29 @@ void FUVViewportClient::RefreshUV()
 {
 	// If the UV cache is trying to be regenerate while we are manipulating,
 	// it means that it is the viewport client that is doing the changes
-	if (!bIsManipulating)
+	if (!bIsManipulating && !bHasUVTransformNotCommitted)
 	{
 		SetupUV();
 	}
+}
+
+void FUVViewportClient::ClearUVTransform()
+{
+	UVMeshComponent->SetWorldTransform(SceneTransform);
+	bHasUVTransformNotCommitted = false;
+}
+
+void FUVViewportClient::ApplyUVTransform()
+{
+	EndTransform();
+	FRPRMeshDataContainerPtr meshDatas = GetUVViewport()->GetRPRMeshDatas();
+	meshDatas->Broadcast_NotifyRawMeshChanges();
+	meshDatas->Broadcast_ApplyRawMeshDatas();
+	
+	UVMeshComponent->UpdateMeshDatas();
+	ClearUVTransform();
+
+	RedrawRequested(nullptr);
 }
 
 void FUVViewportClient::SetBackgroundImage(UTexture2D* BackgroundImage)
@@ -367,12 +398,8 @@ void FUVViewportClient::ApplyRotationPreview(const FRotator& Rotation)
 	}
 
 	SUVViewportPtr viewport = GetUVViewport();
-
-	FRPRMeshDataContainerPtr meshDatasPtr = viewport->GetRPRMeshDatas();
-	FVector2D barycenter = meshDatasPtr->GetUVBarycenter(viewport->GetUVChannel());
-	FVector barycenter3D = ConvertUVto3DPreview(barycenter);
-
-	FTransform deltaTransform = FTransform(FRotationAboutPointMatrix(Rotation, barycenter3D));
+	
+	FTransform deltaTransform = FTransform(FRotationAboutPointMatrix(Rotation, WidgetLocation));
 	FTransform originTransform = UVMeshComponent->GetComponentTransform();
 	FTransform newTransform = originTransform * deltaTransform;
 	UVMeshComponent->SetWorldTransform(newTransform);
@@ -389,10 +416,9 @@ void FUVViewportClient::ApplyScalePreview(const FVector& Scale)
 
 	SUVViewportPtr viewport = GetUVViewport();
 	FRPRMeshDataContainerPtr meshDatasPtr = viewport->GetRPRMeshDatas();
-
-	FVector pivotPoint = ConvertUVto3DPreview(meshDatasPtr->GetUVBarycenter(viewport->GetUVChannel()));
+	
 	FTransform originTransform = UVMeshComponent->GetComponentTransform();
-	FMatrix deltaMatrix = FTranslationMatrix(-pivotPoint) * FScaleMatrix(FVector::OneVector + Scale) * FTranslationMatrix(pivotPoint);
+	FMatrix deltaMatrix = FTranslationMatrix(-WidgetLocation) * FScaleMatrix(FVector::OneVector + Scale) * FTranslationMatrix(WidgetLocation);
 	
 	FTransform deltaTransform(deltaMatrix);
 	FTransform newTransform = originTransform * deltaTransform;
@@ -430,7 +456,7 @@ void FUVViewportClient::EndRawMeshChanges()
 
 	FRPRMeshDataContainerPtr meshDatas = viewport->GetRPRMeshDatas();
 	check(meshDatas.IsValid());
-	meshDatas->Broadcast_NotifyRawMeshChanges();
+	//meshDatas->Broadcast_NotifyRawMeshChanges();
 	
 	RedrawRequested(nullptr);
 }

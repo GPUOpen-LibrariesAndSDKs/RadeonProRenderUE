@@ -7,8 +7,10 @@
 #include "IStructureDetailsView.h"
 #include "NotifyHook.h"
 #include "RPRMeshDataContainer.h"
+#include <GCObject.h>
+#include <IDetailCustomization.h>
 
-class UVVISUALIZER_API SUVVisualizerEditor : public SCompoundWidget, public FNotifyHook
+class UVVISUALIZER_API SUVVisualizerEditor : public SCompoundWidget, public FNotifyHook, public FGCObject
 {
 	struct FChannelInfo
 	{
@@ -24,7 +26,8 @@ public:
 	void	SetMeshDatas(FRPRMeshDataContainerPtr InRPRMeshDatas);
 	void	ClearMeshDatas();
 	void	Refresh();
-	
+
+	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
 	virtual void NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, UProperty* PropertyThatChanged) override;
 
 private:
@@ -38,19 +41,22 @@ private:
 	TSharedRef<SWidget>		GenerateUVChannelItem(TSharedPtr<FChannelInfo> ChannelInfo);
 	void					OnUVChannelSelected(TSharedPtr<FChannelInfo> ChannelInfo, ESelectInfo::Type SelectInfoType);
 	FText					GenerateUVComboBoxText(int32 ChannelIndex) const;
+	void					ApplyUVTransform();
+	TSharedRef<IDetailCustomization>	GetUVVisualizerEditorSettingsDetailCustomization();
 
 	FText		GetMeshLabelText() const;
 	FText		GetMeshTooltip() const;
 	EVisibility GetMeshLabelVisibility() const;
+	bool		HasMeshesChangesNotCommitted() const;
+	EUVUpdateMethod	GetUVUpdateMethod() const;
 
 private:
 
-	SUVViewportPtr						UVVisualizer;
-	TSharedPtr<IStructureDetailsView>	UVVisualizerEditorSettingsView;
-	TSharedPtr<FStructOnScope>			UVVisualizerEditorSettingsStructOnScopePtr;
+	SUVViewportPtr				UVVisualizer;
+	TSharedPtr<IDetailsView>	UVVisualizerEditorSettingsView;
 
-	FRPRMeshDataContainerPtr	RPRMeshDatasPtr;
-	FUVVisualizerEditorSettings	UVVisualizerEditorSettings;
+	FRPRMeshDataContainerPtr		RPRMeshDatasPtr;
+	UUVVisualizerEditorSettings*	UVVisualizerEditorSettings;
 
 	TSharedPtr<FChannelInfo>			SelectedUVChannel;
 	TArray<TSharedPtr<FChannelInfo>>	UVChannels;

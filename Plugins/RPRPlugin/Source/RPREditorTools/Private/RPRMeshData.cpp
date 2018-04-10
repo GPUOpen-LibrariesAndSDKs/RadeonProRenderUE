@@ -5,6 +5,7 @@
 
 FRPRMeshData::FRPRMeshData(UStaticMesh* InStaticMesh)
 	: StaticMesh(InStaticMesh)
+	, bHasMeshChangesNotCommitted(false)
 {
 	Barycenters.AddDefaulted(MAX_MESH_TEXTURE_COORDS);
 	FStaticMeshHelper::LoadRawMeshFromStaticMesh(InStaticMesh, RawMesh);
@@ -21,6 +22,7 @@ void FRPRMeshData::ApplyRawMeshDatas()
 	if (StaticMesh.IsValid())
 	{
 		FStaticMeshHelper::SaveRawMeshToStaticMesh(RawMesh, StaticMesh.Get());
+		bHasMeshChangesNotCommitted = false;
 
 		NotifyStaticMeshChanges();
 
@@ -34,6 +36,7 @@ void FRPRMeshData::ApplyRawMeshDatas()
 
 void FRPRMeshData::NotifyRawMeshChanges()
 {
+	bHasMeshChangesNotCommitted = true;
 	UpdateAllBarycenters();
 	OnPostRawMeshChange.Broadcast();
 }
@@ -68,6 +71,11 @@ int32 FRPRMeshData::GetNumUVChannelsUsed() const
 const FVector2D& FRPRMeshData::GetUVBarycenter(int32 UVChannel) const
 {
 	return (Barycenters[UVChannel]);
+}
+
+bool FRPRMeshData::HasMeshChangesNotCommitted() const
+{
+	return (bHasMeshChangesNotCommitted);
 }
 
 void FRPRMeshData::UpdateAllBarycenters()
