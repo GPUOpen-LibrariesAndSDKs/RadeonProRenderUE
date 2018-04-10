@@ -33,6 +33,8 @@ public:
 
 	virtual FWidget::EWidgetMode GetWidgetMode() const override;
 	virtual FVector GetWidgetLocation() const override;
+	virtual ECoordSystem GetWidgetCoordSystemSpace() const override;
+	virtual FMatrix GetWidgetCoordSystem() const override;
 
 private:
 
@@ -55,19 +57,21 @@ private:
 	void		ApplyRotationPreview(const FRotator& Rotation);
 	void		ApplyScalePreview(const FVector& Scale);
 	void		PostTransformChanges();
-	void		EndRawMeshChanges();
 
 	bool		EndTranslation();
 	bool		EndRotation();
 	bool		EndScale();
-	void		EndTransform();
+	void		EndTransform(const FTransform& DeltaTransform);
 
-	FTransform	GetNewUVTransformFromPreview() const;
+	FTransform	GetNewUVTransformFromPreview(bool bKeepPivotPoint = false) const;
 
 private:
 
 	FPreviewScene OwnedPreviewScene;
 	FTransform SceneTransform;
+	FVector InitialUVMeshOffset;
+
+	FMatrix UVTransformMatrix;
 
 	UUVMeshComponent* UVMeshComponent;
 	UStaticMeshComponent* BackgroundMeshComponent;

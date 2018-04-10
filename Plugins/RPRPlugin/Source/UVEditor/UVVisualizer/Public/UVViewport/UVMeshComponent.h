@@ -38,6 +38,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = UV)
 	UStaticMesh*	TemplateMesh;
 
+	UPROPERTY(EditAnywhere, Category = UV)
+	bool			bCenterUVs;
+
 private:
 
 	int32 UVChannel;

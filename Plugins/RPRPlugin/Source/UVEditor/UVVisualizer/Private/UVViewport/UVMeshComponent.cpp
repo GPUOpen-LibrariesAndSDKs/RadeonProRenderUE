@@ -71,6 +71,7 @@ public:
 	FUVMeshComponentProxy(UUVMeshComponent* InComponent)
 		: FPrimitiveSceneProxy(InComponent)
 		, MaterialRenderProxy(nullptr)
+		, bCenterUVs(InComponent->bCenterUVs)
 		, bAreResourcesInitialized(false)
 	{
 		bWillEverBeLit = false;
@@ -95,7 +96,7 @@ public:
 		if (meshDatasPtr)
 		{
 			const int32 uvChannel = InComponent->GetUVChannel();
-
+			
 			AllocateDatas(meshDatasPtr, uvChannel);
 			ExtractDatas(meshDatasPtr, uvChannel, VertexBuffer.Vertices.GetData(), IndexBuffer.Indices.GetData());
 		}
@@ -139,7 +140,14 @@ public:
 	void ExtractDatas(FRPRMeshDataContainer* MeshDatasPtr, int32 UVChannel, FDynamicMeshVertex* InVertexBuffer, uint16* InIndexBuffer)
 	{
 		FRPRMeshDataContainer& meshDatas = *MeshDatasPtr;
-			
+
+		FVector2D offset;
+		if (bCenterUVs)
+		{
+			FVector2D barycenter = MeshDatasPtr->GetUVBarycenter(UVChannel);
+			offset = -barycenter;
+		}
+
 		int32 vertexIndex = 0;
 		int32 indiceIndex = 0;
 		int32 meshVertexIndexStart = 0;
@@ -162,9 +170,9 @@ public:
 				InIndexBuffer[indiceIndex++] = vertexIndex + 2;
 				InIndexBuffer[indiceIndex++] = vertexIndex;
 
-				InVertexBuffer[vertexIndex++].Position = FVector(uv[uvIndex].X, 0, uv[uvIndex].Y);
-				InVertexBuffer[vertexIndex++].Position = FVector(uv[uvIndex+1].X, 0, uv[uvIndex+1].Y);
-				InVertexBuffer[vertexIndex++].Position = FVector(uv[uvIndex+2].X, 0, uv[uvIndex+2].Y);
+				InVertexBuffer[vertexIndex++].Position = FVector(uv[uvIndex].X + offset.X, 0, uv[uvIndex].Y + offset.Y);
+				InVertexBuffer[vertexIndex++].Position = FVector(uv[uvIndex+1].X + offset.X, 0, uv[uvIndex+1].Y + offset.Y);
+				InVertexBuffer[vertexIndex++].Position = FVector(uv[uvIndex+2].X + offset.X, 0, uv[uvIndex+2].Y + offset.Y);
 			}
 
 			// Color reversed triangles in red
@@ -369,6 +377,9 @@ public:
 private:
 
 	bool bAreResourcesInitialized;
+	bool bCenterUVs;
+	FVector2D Barycenter;
+
 	FUVMeshVertexBuffer VertexBuffer;
 	FUVMeshIndexBuffer IndexBuffer;
 	FUVMeshVertexFactory VertexFactory;
@@ -378,7 +389,8 @@ private:
 };
 
 UUVMeshComponent::UUVMeshComponent()
-	: UVChannel(0)
+	: bCenterUVs(false)
+	, UVChannel(0)
 	, SceneProxy(nullptr)
 {
 	static ConstructorHelpers::FObjectFinder<UMaterial> materialUV(TEXT("/RPRPlugin/Materials/Editor/M_UV.M_UV"));
@@ -457,6 +469,10 @@ void UUVMeshComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 	{
 		UpdateRPRMeshDatasFromTemplateMesh();
 	}
+	if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UUVMeshComponent, bCenterUVs))
+	{
+		UpdateLocalBounds();
+	}
 }
 
 void UUVMeshComponent::UpdateLocalBounds()
@@ -476,9 +492,11 @@ void UUVMeshComponent::UpdateLocalBounds()
 		{
 			FVector2D min2D, max2D;
 			FVector min, max;
+			FVector2D barycenter = FVector2D::ZeroVector;
 
 			for (int32 i = 0; i < meshData.Num(); ++i)
 			{
+				barycenter += meshData[i]->GetUVBarycenter(UVChannel);
 				const FRawMesh& rawMesh = meshData[i]->GetRawMesh();
 				FUVUtility::GetUVsBounds(rawMesh.WedgeTexCoords[UVChannel], min2D, max2D);
 
@@ -501,6 +519,15 @@ void UUVMeshComponent::UpdateLocalBounds()
 						FMath::Max(max2D.Y, max.Z)
 					);
 				}
+			}
+
+			barycenter /= meshData.Num();
+
+			if (bCenterUVs)
+			{
+				const FVector barycenter3D = FVector(barycenter.X, 0, barycenter.Y);
+				min -= barycenter3D;
+				max -= barycenter3D;
 			}
 
 			LocalBounds = FBoxSphereBounds(FBox(min, max));
