@@ -56,6 +56,10 @@
 			"Type": "Editor"			
 		},
 		{
+			"Name": "UVProjection_TriPlanar",
+			"Type": "Editor"			
+		},
+		{
 			"Name": "Outliners",
 			"Type": "Editor"
 		},

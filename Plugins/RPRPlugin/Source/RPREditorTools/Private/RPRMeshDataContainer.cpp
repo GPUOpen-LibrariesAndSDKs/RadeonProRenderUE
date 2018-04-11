@@ -86,20 +86,6 @@ bool FRPRMeshDataContainer::HasMeshesChangesNotCommitted() const
 	return (false);
 }
 
-void FRPRMeshDataContainer::Broadcast_NotifyRawMeshChanges()
-{
-	OnEachMeshData([] (FRPRMeshDataPtr MeshData) {
-		MeshData->NotifyRawMeshChanges();
-	});
-}
-
-void FRPRMeshDataContainer::Broadcast_ApplyRawMeshDatas()
-{
-	OnEachMeshData([] (FRPRMeshDataPtr MeshData) {
-		MeshData->ApplyRawMeshDatas();
-	});
-}
-
 FRPRMeshDataPtr FRPRMeshDataContainer::FindByPreview(URPRStaticMeshPreviewComponent* PreviewMeshComponent)
 {
 	for (int32 i = 0; i < MeshDatas.Num(); ++i)

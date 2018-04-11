@@ -3,7 +3,20 @@
 #include "SharedPointer.h"
 #include "RPRMeshData.h"
 #include "Engine/StaticMesh.h"
+#include "AssertionMacros.h"
 #include "DelegateCombinations.h"
+
+// Verify function exists to it will tell if the function name has changed	
+
+// Use to reroute function calls to RPRMeshData
+#define DECLARE_BROADCAST(FunctionName) \
+	void	Broadcast_##FunctionName() \
+	{ \
+		FName t = GET_FUNCTION_NAME_CHECKED(FRPRMeshData, FunctionName); \
+		OnEachMeshData([](FRPRMeshDataPtr MeshData) { \
+			MeshData->##FunctionName(); \
+		}); \
+	}
 
 DECLARE_DELEGATE_TwoParams(FOnEachUV, int32 /* MeshIndex */, FVector2D& /* UV */)
 
@@ -23,8 +36,10 @@ public:
 	FVector2D	GetUVBarycenter(int32 UVChannel = 0) const;
 	bool	HasMeshesChangesNotCommitted() const;
 
-	void	Broadcast_NotifyRawMeshChanges();
-	void	Broadcast_ApplyRawMeshDatas();
+	DECLARE_BROADCAST(NotifyRawMeshChanges);
+	DECLARE_BROADCAST(NotifyStaticMeshChanges);
+	DECLARE_BROADCAST(NotifyStaticMeshMaterialChanges);
+	DECLARE_BROADCAST(ApplyRawMeshDatas);
 
 	FRPRMeshDataPtr	FindByPreview(class URPRStaticMeshPreviewComponent* PreviewMeshComponent);
 	FRPRMeshDataPtr	FindByStaticMesh(class UStaticMesh* StaticMesh);
@@ -68,3 +83,5 @@ private:
 
 typedef TSharedPtr<FRPRMeshDataContainer> FRPRMeshDataContainerPtr;
 typedef TWeakPtr<FRPRMeshDataContainer> FRPRMeshDataContainerWkPtr;
+
+#undef DECLARE_BROADCAST

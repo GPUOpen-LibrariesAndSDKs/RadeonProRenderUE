@@ -100,7 +100,10 @@ void SUVProjectionBase::InitAlgorithm()
 
 void SUVProjectionBase::SubscribeToAlgorithmCompletion()
 {
-	Algorithm->OnAlgorithmCompleted().AddRaw(this, &SUVProjectionBase::NotifyAlgorithmCompleted);
+	if (Algorithm.IsValid())
+	{
+		Algorithm->OnAlgorithmCompleted().AddRaw(this, &SUVProjectionBase::NotifyAlgorithmCompleted);
+	}
 }
 
 FReply SUVProjectionBase::OnApplyButtonClicked()

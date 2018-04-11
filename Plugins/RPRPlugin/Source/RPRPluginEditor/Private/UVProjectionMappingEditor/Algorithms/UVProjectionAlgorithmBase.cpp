@@ -16,8 +16,6 @@ IUVProjectionAlgorithm::FOnAlgorithmCompleted& FUVProjectionAlgorithmBase::OnAlg
 void FUVProjectionAlgorithmBase::StartAlgorithm()
 {
 	bIsAlgorithmRunning = true;
-	
-	PrepareUVs();
 }
 
 void FUVProjectionAlgorithmBase::AbortAlgorithm()

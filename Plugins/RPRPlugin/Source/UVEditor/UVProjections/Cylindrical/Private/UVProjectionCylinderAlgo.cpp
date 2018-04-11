@@ -7,10 +7,11 @@
 
 void FUVProjectionCylinderAlgo::StartAlgorithm()
 {
-	FUVProjectionAlgorithmBase::StartAlgorithm();
-
 	FScopedSlowTask slowTask(MeshDatas.Num(), LOCTEXT("ProjectUV", "Project UV (Cylinder)"));
-	slowTask.MakeDialog();
+	slowTask.MakeDialogDelayed(0.5f);
+
+	FUVProjectionAlgorithmBase::StartAlgorithm();
+	PrepareUVs();
 
 	for (int32 meshIndex = 0; meshIndex < MeshDatas.Num(); ++meshIndex)
 	{
