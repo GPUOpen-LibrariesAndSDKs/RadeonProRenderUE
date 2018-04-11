@@ -69,6 +69,7 @@ private:
 
 	FPreviewScene OwnedPreviewScene;
 	FTransform SceneTransform;
+	FVector2D Barycenter;
 	FVector InitialUVMeshOffset;
 
 	FMatrix UVTransformMatrix;

@@ -3,6 +3,16 @@
 #include "RPRStaticMeshPreviewComponent.h"
 #include "UVUtility.h"
 
+#include "FileHelper.h"
+#include "PlatformFilemanager.h"
+
+DECLARE_LOG_CATEGORY_CLASS(RPRMeshDataLog, Log, All)
+
+DECLARE_CYCLE_STAT(TEXT("RPRMeshData ~ Apply Raw Mesh Datas"), STAT_ApplyRawMeshDatas, STATGROUP_RPRMeshData)
+DECLARE_CYCLE_STAT(TEXT("RPRMeshData ~ Dump UV"), STAT_DumpUV, STATGROUP_RPRMeshData)
+DECLARE_CYCLE_STAT(TEXT("RPRMeshData ~ Update All Barycenters"), STAT_UpdateAllBarycenters, STATGROUP_RPRMeshData)
+DECLARE_CYCLE_STAT(TEXT("RPRMeshData ~ Update Barycenter"), STAT_UpdateBarycenter, STATGROUP_RPRMeshData)
+
 FRPRMeshData::FRPRMeshData(UStaticMesh* InStaticMesh)
 	: StaticMesh(InStaticMesh)
 	, bHasMeshChangesNotCommitted(false)
@@ -19,6 +29,8 @@ void FRPRMeshData::AssignPreview(URPRStaticMeshPreviewComponent* InPreviewMeshCo
 
 void FRPRMeshData::ApplyRawMeshDatas()
 {
+	SCOPE_CYCLE_COUNTER(STAT_ApplyRawMeshDatas);
+
 	if (StaticMesh.IsValid())
 	{
 		FStaticMeshHelper::SaveRawMeshToStaticMesh(RawMesh, StaticMesh.Get());
@@ -78,8 +90,39 @@ bool FRPRMeshData::HasMeshChangesNotCommitted() const
 	return (bHasMeshChangesNotCommitted);
 }
 
+void FRPRMeshData::DumpUV(int32 UVChannel)
+{
+	SCOPE_CYCLE_COUNTER(STAT_DumpUV);
+
+	if (RawMesh.IsValid())
+	{
+		const FRawMesh& rawMesh = GetRawMesh();
+		const TArray<FVector2D>& uv = rawMesh.WedgeTexCoords[UVChannel];
+
+		TArray<FString> Lines;
+
+		UE_LOG(RPRMeshDataLog, Log, TEXT("== Dump UV : %s (%d UV) =="), *GetStaticMesh()->GetName(), uv.Num());
+
+		for (int32 uvIndex = 0; uvIndex < uv.Num(); ++uvIndex)
+		{
+			Lines.Add(FString::Printf(TEXT("UV[%d] = %s"), uvIndex, *uv[uvIndex].ToString()));
+		}
+
+		FString filename = FString::Printf(TEXT("DumpUV_%s.txt"), *GetStaticMesh()->GetName());
+		FString path = FPaths::Combine(FPaths::ProjectSavedDir(), filename);
+		if (FPaths::FileExists(path))
+		{
+			IPlatformFile& platformFile = FPlatformFileManager::Get().GetPlatformFile();
+			platformFile.DeleteFile(*path);
+		}
+		FFileHelper::SaveStringArrayToFile(Lines, *path);
+	}
+}
+
 void FRPRMeshData::UpdateAllBarycenters()
 {
+	SCOPE_CYCLE_COUNTER(STAT_UpdateAllBarycenters);
+
 	int32 numUVChannelsUsed = GetNumUVChannelsUsed();
 
 	for (int32 uvChannelIndex = 0; uvChannelIndex < numUVChannelsUsed; ++uvChannelIndex)
@@ -90,6 +133,8 @@ void FRPRMeshData::UpdateAllBarycenters()
 
 void FRPRMeshData::UpdateBarycenter(int32 UVChannel)
 {
+	SCOPE_CYCLE_COUNTER(STAT_UpdateBarycenter);
+
 	FVector2D& barycenter = Barycenters[UVChannel];
 	barycenter = FVector2D(EForceInit::ForceInitToZero);
 

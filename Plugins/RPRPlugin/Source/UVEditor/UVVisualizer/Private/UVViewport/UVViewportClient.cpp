@@ -95,7 +95,7 @@ void FUVViewportClient::SetupUV()
 		if (meshDatas.IsValid())
 		{
 			UVMeshComponent->SetUVChannel(viewport->GetUVChannel());
-			UVMeshComponent->SetMeshDatas(meshDatas);	
+			UVMeshComponent->SetMeshDatas(meshDatas);
 			
 			ClearUVTransform();
 
@@ -213,6 +213,7 @@ void FUVViewportClient::TrackingStopped()
 				{
 					if (meshDatas.IsValid())
 					{
+						meshDatas->Broadcast_NotifyRawMeshChanges();
 						meshDatas->Broadcast_ApplyRawMeshDatas();
 					}
 
@@ -292,11 +293,10 @@ void FUVViewportClient::ClearUVTransform()
 		FRPRMeshDataContainerPtr meshDatas = viewport->GetRPRMeshDatas();
 		if (meshDatas.IsValid())
 		{
-			const FVector2D barycenter = meshDatas->GetUVBarycenter(viewport->GetUVChannel());
+			Barycenter = meshDatas->GetUVBarycenter(viewport->GetUVChannel());
 			UVMeshComponent->SetWorldTransform(SceneTransform);
-			InitialUVMeshOffset = ConvertUVto3DPreview(barycenter);
+			InitialUVMeshOffset = ConvertUVto3DPreview(Barycenter);
 			UVMeshComponent->AddWorldOffset(InitialUVMeshOffset);
-
 		}
 	}
 
@@ -424,7 +424,6 @@ void FUVViewportClient::ApplyTranslationPreview(const FVector& Drag)
 		nullptr,
 		nullptr,
 		UVMeshComponent->GetComponentLocation());
-	//UVMeshComponent->AddWorldOffset(Drag);
 
 	PostTransformChanges();
 }
@@ -443,7 +442,6 @@ void FUVViewportClient::ApplyRotationPreview(const FRotator& Rotation)
 		&Rotation,
 		nullptr,
 		UVMeshComponent->GetComponentLocation());
-	//UVMeshComponent->AddWorldRotation(Rotation);
 
 	PostTransformChanges();
 }
@@ -532,19 +530,16 @@ void FUVViewportClient::EndTransform(const FTransform& DeltaTransform)
 	SUVViewportPtr viewport = GetUVViewport();
 
 	FRPRMeshDataContainerPtr meshDatasPtr = viewport->GetRPRMeshDatas();
-	meshDatasPtr->OnEachUV(viewport->GetUVChannel(), FOnEachUV::CreateLambda([&DeltaTransform](int32 MeshIndex, FVector2D& UV)
+	meshDatasPtr->OnEachUV(viewport->GetUVChannel(), FOnEachUV::CreateLambda([this, &DeltaTransform](int32 MeshIndex, FVector2D& UV)
 	{
-		UV = FUVUtility::ApplyTransform(DeltaTransform, UV);
+		UV = Barycenter + FUVUtility::ApplyTransform(DeltaTransform, UV - Barycenter);
 	}));
 }
 
 FTransform FUVViewportClient::GetNewUVTransformFromPreview(bool bKeepPivotPoint) const
 {
 	FTransform NewUVTransformFromPreview = UVMeshComponent->GetRelativeTransform();
-	if (!bKeepPivotPoint)
-	{
-		NewUVTransformFromPreview.AddToTranslation(-InitialUVMeshOffset);
-	}
+	NewUVTransformFromPreview.AddToTranslation(-InitialUVMeshOffset);
 	return (NewUVTransformFromPreview * SceneTransform.Inverse());
 }
 

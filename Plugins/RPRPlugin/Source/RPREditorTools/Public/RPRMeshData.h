@@ -4,6 +4,8 @@
 #include "Engine/StaticMesh.h"
 #include "RawMesh.h"
 
+DECLARE_STATS_GROUP(TEXT("RPRMeshData"), STATGROUP_RPRMeshData, STATCAT_Advanced)
+
 DECLARE_MULTICAST_DELEGATE(FOnMeshDataChanged)
 
 class RPREDITORTOOLS_API FRPRMeshData
@@ -39,6 +41,8 @@ public:
 	int32				GetNumUVChannelsUsed() const;
 	const FVector2D&	GetUVBarycenter(int32 UVChannel = 0) const;
 	bool				HasMeshChangesNotCommitted() const;
+
+	void	DumpUV(int32 UVChannel);
 
 private:
 
