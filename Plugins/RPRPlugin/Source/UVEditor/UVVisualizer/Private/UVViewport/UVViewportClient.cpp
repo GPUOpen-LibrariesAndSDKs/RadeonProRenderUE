@@ -208,7 +208,7 @@ void FUVViewportClient::TrackingStopped()
 					default:
 						break;
 				}
-
+				
 				if (bHasChanged)
 				{
 					if (meshDatas.IsValid())
