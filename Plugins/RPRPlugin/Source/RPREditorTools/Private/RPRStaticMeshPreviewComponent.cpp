@@ -12,11 +12,13 @@ class FRPRStaticMeshPreviewProxy : public FStaticMeshSceneProxy
 {
 public:
 
-	FRPRStaticMeshPreviewProxy(UStaticMeshComponent* InComponent)
+	FRPRStaticMeshPreviewProxy(URPRStaticMeshPreviewComponent* InComponent)
 		: FStaticMeshSceneProxy(InComponent, false)
 	{
 		FStaticMeshLODResources& lod = RenderData->LODResources[0];
 		FStaticMeshVertexBuffer& vertexBuffer = lod.VertexBuffer;
+
+		SetSelectedSections(InComponent->SelectedSections);
 
 		SELECT_STATIC_MESH_VERTEX_TYPE(
 			vertexBuffer.GetUseHighPrecisionTangentBasis(),
@@ -116,9 +118,39 @@ public:
 		}
 	}
 
+	void	SetSelectedSections(const TArray<int32>& InSelectedSections)
+	{
+		SelectedSections = InSelectedSections;
+	}
+
+	// Hack the GetMeshElement to inject selection of multiple sections
+	virtual bool GetMeshElement(
+		int32 LODIndex,
+		int32 BatchIndex,
+		int32 ElementIndex,
+		uint8 InDepthPriorityGroup,
+		bool bUseSelectedMaterial,
+		bool bUseHoveredMaterial,
+		bool bAllowPreCulledIndices,
+		FMeshBatch& OutMeshBatch) const override
+	{
+		return 
+			FStaticMeshSceneProxy::GetMeshElement(
+				LODIndex,
+				BatchIndex,
+				ElementIndex,
+				InDepthPriorityGroup,
+				bUseSelectedMaterial || SelectedSections.Contains(ElementIndex),
+				bUseHoveredMaterial,
+				bAllowPreCulledIndices,
+				OutMeshBatch
+			);
+	}
+
 private:
 
 	uint8* InitialData;
+	TArray<int32> SelectedSections;
 
 };
 
@@ -189,4 +221,50 @@ void URPRStaticMeshPreviewComponent::TransformUV(const FTransform& NewTransform,
 	FTransform2D transform2D(scaleMatrix.Concatenate(rotationMatrix), translation2D);
 
 	TransformUV(transform2D, UVChannel);
+}
+
+void URPRStaticMeshPreviewComponent::SelectSection(int32 SectionIndex)
+{
+	SelectedSections.AddUnique(SectionIndex);
+	UpdateSelection();
+}
+
+void URPRStaticMeshPreviewComponent::SelectSections(const TArray<int32>& Sections)
+{
+	SelectedSections = Sections;
+	UpdateSelection();
+}
+
+bool URPRStaticMeshPreviewComponent::IsSectionSelected(int32 SectionIndex) const
+{
+	return (SelectedSections.Contains(SectionIndex));
+}
+
+void URPRStaticMeshPreviewComponent::DeselectSection(int32 SectionIndex)
+{
+	SelectedSections.Remove(SectionIndex);
+	UpdateSelection();
+}
+
+void URPRStaticMeshPreviewComponent::ClearSectionSelection()
+{
+	SelectedSections.Empty();
+	UpdateSelection();
+}
+
+void URPRStaticMeshPreviewComponent::UpdateSelection()
+{
+	if (SceneProxy)
+	{
+		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
+			RPRStaticMeshPreviewComponent_TransformUV,
+			FRPRStaticMeshPreviewProxy*, SceneProxy, SceneProxy,
+			TArray<int32>, Sections, SelectedSections,
+			{
+				SceneProxy->SetSelectedSections(Sections);
+			}
+		);
+
+		MarkRenderStateDirty();
+	}
 }

@@ -34,6 +34,9 @@ private:
 	ECheckBoxState	IsSectionSelected(FRPRMeshDataPtr MeshData, int32 MaterialIndex) const;
 	void			ToggleSectionSelection(ECheckBoxState CheckboxState, FRPRMeshDataPtr MeshData, int32 MaterialIndex);
 
+	ECheckBoxState	IsSectionHighlighted(FRPRMeshDataPtr MeshData, int32 MaterialIndex) const;
+	void			ToggleSectionHighlight(ECheckBoxState CheckboxState, FRPRMeshDataPtr MeshData, int32 MaterialIndex);
+
 private:
 
 	class FRPRStaticMeshEditor& RPRStaticMeshEditor;

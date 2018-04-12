@@ -11,6 +11,8 @@ class RPREDITORTOOLS_API URPRStaticMeshPreviewComponent : public UStaticMeshComp
 {
 	GENERATED_BODY()
 
+	friend class FRPRStaticMeshPreviewProxy;
+
 public:
 
 	URPRStaticMeshPreviewComponent();
@@ -26,9 +28,20 @@ public:
 
 	void	TransformUV(const FTransform2D& NewTransform2D, int32 UVChannel);
 
+	void	SelectSection(int32 SectionIndex);
+	void	SelectSections(const TArray<int32>& Sections);
+	bool	IsSectionSelected(int32 SectionIndex) const;
+	void	DeselectSection(int32 SectionIndex);
+	void	ClearSectionSelection();
+
+private:
+
+	void	UpdateSelection();
 
 private:
 
 	class FRPRStaticMeshPreviewProxy* SceneProxy;
+	
+	TArray<int32> SelectedSections;
 
 };

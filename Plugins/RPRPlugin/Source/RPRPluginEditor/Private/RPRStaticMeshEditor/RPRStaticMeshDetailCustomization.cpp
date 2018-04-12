@@ -131,13 +131,28 @@ void FRPRStaticMeshDetailCustomization::CallPostEditChange(UStaticMesh& StaticMe
 TSharedRef<SWidget> FRPRStaticMeshDetailCustomization::OnGenerateCustomNameWidgets(UMaterialInterface* Material, int32 MaterialIndex, FRPRMeshDataPtr MeshData)
 {
 	return
-		SNew(SCheckBox)
-		.IsChecked(this, &FRPRStaticMeshDetailCustomization::IsSectionSelected, MeshData, MaterialIndex)
-		.OnCheckStateChanged(this, &FRPRStaticMeshDetailCustomization::ToggleSectionSelection, MeshData, MaterialIndex)
+		SNew(SVerticalBox)
+		+SVerticalBox::Slot()
 		[
-			SNew(STextBlock)
-			.Text(LOCTEXT("SelectSection", "Select"))
-		];
+			SNew(SCheckBox)
+			.IsChecked(this, &FRPRStaticMeshDetailCustomization::IsSectionSelected, MeshData, MaterialIndex)
+			.OnCheckStateChanged(this, &FRPRStaticMeshDetailCustomization::ToggleSectionSelection, MeshData, MaterialIndex)
+			[
+				SNew(STextBlock)
+				.Text(LOCTEXT("SelectSection", "Select"))
+			]
+		]
+		+SVerticalBox::Slot()
+		[
+			SNew(SCheckBox)
+			.IsChecked(this, &FRPRStaticMeshDetailCustomization::IsSectionHighlighted, MeshData, MaterialIndex)
+			.OnCheckStateChanged(this, &FRPRStaticMeshDetailCustomization::ToggleSectionHighlight, MeshData, MaterialIndex)
+			[
+				SNew(STextBlock)
+				.Text(LOCTEXT("HighlightSection", "Highlight"))
+			]
+		]
+	;
 }
 
 ECheckBoxState FRPRStaticMeshDetailCustomization::IsSectionSelected(FRPRMeshDataPtr MeshData, int32 MaterialIndex) const
@@ -157,7 +172,29 @@ void FRPRStaticMeshDetailCustomization::ToggleSectionSelection(ECheckBoxState Ch
 		return;
 	}
 
-	return (MeshData->GetMeshSection(MaterialIndex).Select(CheckboxState == ECheckBoxState::Checked));
+	const bool bShouldSelect = CheckboxState == ECheckBoxState::Checked;
+	MeshData->GetMeshSection(MaterialIndex).Select(bShouldSelect);
+}
+
+ECheckBoxState FRPRStaticMeshDetailCustomization::IsSectionHighlighted(FRPRMeshDataPtr MeshData, int32 MaterialIndex) const
+{
+	if (!MeshData.IsValid())
+	{
+		return (ECheckBoxState::Undetermined);
+	}
+
+	return (MeshData->GetMeshSection(MaterialIndex).IsHighlighted() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked);
+}
+
+void FRPRStaticMeshDetailCustomization::ToggleSectionHighlight(ECheckBoxState CheckboxState, FRPRMeshDataPtr MeshData, int32 MaterialIndex)
+{
+	if (!MeshData.IsValid())
+	{
+		return;
+	}
+
+	const bool bShouldHighlight = CheckboxState == ECheckBoxState::Checked;
+	MeshData->HighlightSection(MaterialIndex, bShouldHighlight);
 }
 
 #undef LOCTEXT_NAMESPACE

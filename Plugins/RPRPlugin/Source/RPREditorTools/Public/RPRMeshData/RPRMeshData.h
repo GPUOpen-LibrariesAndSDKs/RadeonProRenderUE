@@ -27,6 +27,8 @@ public:
 	/* Should be called if the number of sections has changed */
 	void	RebuildSections();
 
+	void	HighlightSection(int32 SectionIndex, bool bHighlight);
+
 	FRPRMeshSection&		GetMeshSection(int32 Index);
 	const FRPRMeshSection&	GetMeshSection(int32 Index) const;
 	int32	GetNumSections() const;
@@ -56,6 +58,7 @@ private:
 
 	void	UpdateAllBarycenters();
 	void	UpdateBarycenter(int32 UVChannel);
+	void	UpdatePreviewSectionHighlights();
 	
 private:
 	

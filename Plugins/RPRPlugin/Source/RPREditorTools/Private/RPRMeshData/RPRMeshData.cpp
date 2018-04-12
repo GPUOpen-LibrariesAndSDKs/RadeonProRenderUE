@@ -166,6 +166,23 @@ void FRPRMeshData::UpdateBarycenter(int32 UVChannel)
 	}
 }
 
+void FRPRMeshData::UpdatePreviewSectionHighlights()
+{
+	if (Preview.IsValid())
+	{
+		Preview->ClearSectionSelection();
+		TArray<int32> highlightedSectionIndexes;
+		for (int32 sectionIndex = 0; sectionIndex < Sections.Num(); ++sectionIndex)
+		{
+			if (Sections[sectionIndex].IsHighlighted())
+			{
+				highlightedSectionIndexes.Add(sectionIndex);
+			}
+		}
+		Preview->SelectSections(highlightedSectionIndexes);
+	}
+}
+
 void FRPRMeshData::RebuildSections()
 {
 	if (StaticMesh.IsValid())
@@ -181,6 +198,12 @@ void FRPRMeshData::RebuildSections()
 			Sections.RemoveAt(newNumSections - 1, Sections.Num() - newNumSections);
 		}
 	}
+}
+
+void FRPRMeshData::HighlightSection(int32 SectionIndex, bool bHighlight)
+{
+	GetMeshSection(SectionIndex).Highlight(bHighlight);
+	UpdatePreviewSectionHighlights();
 }
 
 FRPRMeshSection& FRPRMeshData::GetMeshSection(int32 Index)

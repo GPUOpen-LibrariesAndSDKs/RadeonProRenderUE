@@ -2,6 +2,7 @@
 
 FRPRMeshSection::FRPRMeshSection()
 	: bIsSelected(false)
+	, bIsHighlighted(false)
 {}
 
 bool FRPRMeshSection::IsSelected() const
