@@ -32,7 +32,6 @@ public:
 private:
 
 	void	SetMaterialParametersByMesh(UStaticMesh* StaticMesh);
-	UMaterialInstanceConstant*	CreateMaterialInstanceConstantFromMaterial(UMaterialInterface* Material);
 	UMaterialEditorInstanceConstant*	CreateMaterialEditorInstanceConstant(UMaterialInstanceConstant* MaterialInstanceConstant);
 
 	static void	EditMaterialParameter_UseTriPlanar(FUVProjectionTriPlanarAlgo* Algo, UDEditorParameterValue* ParameterValue);

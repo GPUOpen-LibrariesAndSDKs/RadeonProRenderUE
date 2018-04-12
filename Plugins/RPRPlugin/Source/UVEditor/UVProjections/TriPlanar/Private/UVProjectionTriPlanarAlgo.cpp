@@ -2,6 +2,7 @@
 #include "MaterialEditor/DEditorScalarParameterValue.h"
 #include "MaterialEditor/DEditorStaticSwitchParameterValue.h"
 #include "Factories/MaterialInstanceConstantFactoryNew.h"
+#include "MaterialEditor/MaterialEditorInstanceConstant.h"
 
 TMap<FName, FEditMaterialParameter> FUVProjectionTriPlanarAlgo::EditMaterialParametersRouter;
 
@@ -48,7 +49,7 @@ void FUVProjectionTriPlanarAlgo::StartAlgorithm()
 
 void FUVProjectionTriPlanarAlgo::Finalize()
 {
-	MeshDatas.Broadcast_ApplyRawMeshDatas();
+	
 }
 
 void FUVProjectionTriPlanarAlgo::SetMaterialParametersByMesh(UStaticMesh* StaticMesh)
@@ -59,7 +60,7 @@ void FUVProjectionTriPlanarAlgo::SetMaterialParametersByMesh(UStaticMesh* Static
 		UMaterialInterface* materialInterface = StaticMesh->GetMaterial(materialIndex);
 		if (materialInterface)
 		{
-			UMaterialInstanceConstant* UnrealMaterialConstant = CreateMaterialInstanceConstantFromMaterial(materialInterface);
+			UMaterialInstanceConstant* UnrealMaterialConstant = Cast<UMaterialInstanceConstant>(materialInterface);
 			
 			if (UnrealMaterialConstant != NULL)
 			{
@@ -85,15 +86,10 @@ void FUVProjectionTriPlanarAlgo::SetMaterialParametersByMesh(UStaticMesh* Static
 	}
 }
 
-UMaterialInstanceConstant* FUVProjectionTriPlanarAlgo::CreateMaterialInstanceConstantFromMaterial(UMaterialInterface* Material)
-{
-	MaterialInstanceConstantFactoryNew->InitialParent = Material;
-	return (UMaterialInstanceConstant*)MaterialInstanceConstantFactoryNew->FactoryCreateNew(UMaterialInstanceConstant::StaticClass(), GetTransientPackage(), NAME_None, RF_Transient, nullptr, nullptr);
-}
-
 UMaterialEditorInstanceConstant* FUVProjectionTriPlanarAlgo::CreateMaterialEditorInstanceConstant(UMaterialInstanceConstant* MaterialInstanceConstant)
 {
-	UMaterialEditorInstanceConstant* MaterialEditorInstance = NewObject<UMaterialEditorInstanceConstant>(GetTransientPackage(), NAME_None, RF_Transactional);
+	UMaterialEditorInstanceConstant* MaterialEditorInstance = 
+		NewObject<UMaterialEditorInstanceConstant>((UObject*)GetTransientPackage(), NAME_None, RF_Transactional);
 
 	MaterialEditorInstance->bUseOldStyleMICEditorGroups = false;
 	MaterialEditorInstance->SetSourceInstance(MaterialInstanceConstant);
@@ -106,6 +102,7 @@ void FUVProjectionTriPlanarAlgo::EditMaterialParameter_UseTriPlanar(FUVProjectio
 	if (staticSwitch)
 	{
 		staticSwitch->ParameterValue = true;
+		staticSwitch->bOverride = true;
 	}
 }
 
@@ -115,6 +112,7 @@ void FUVProjectionTriPlanarAlgo::EditMaterialParameter_TriPlanar_TextureScale(FU
 	if (scalarParameter)
 	{
 		scalarParameter->ParameterValue = Algo->Settings.Scale;
+		scalarParameter->bOverride = true;
 	}
 }
 
@@ -124,5 +122,6 @@ void FUVProjectionTriPlanarAlgo::EditMaterialParameter_TriPlanar_TextureAngle(FU
 	if (scalarParameter)
 	{
 		scalarParameter->ParameterValue = Algo->Settings.Angle;
+		scalarParameter->bOverride = true;
 	}
 }
