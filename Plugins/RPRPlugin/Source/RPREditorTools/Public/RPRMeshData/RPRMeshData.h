@@ -2,6 +2,7 @@
 #include "Delegate.h"
 #include "DelegateCombinations.h"
 #include "Engine/StaticMesh.h"
+#include "RPRMeshSection.h"
 #include "RawMesh.h"
 
 DECLARE_STATS_GROUP(TEXT("RPRMeshData"), STATGROUP_RPRMeshData, STATCAT_Advanced)
@@ -22,6 +23,13 @@ public:
 	
 	void	AssignPreview(class URPRStaticMeshPreviewComponent* InPreviewMeshComponent);
 	void	ApplyRawMeshDatas();
+
+	/* Should be called if the number of sections has changed */
+	void	RebuildSections();
+
+	FRPRMeshSection&		GetMeshSection(int32 Index);
+	const FRPRMeshSection&	GetMeshSection(int32 Index) const;
+	int32	GetNumSections() const;
 
 	void	NotifyRawMeshChanges();
 	void	NotifyStaticMeshChanges();
@@ -52,6 +60,10 @@ private:
 private:
 	
 	TWeakObjectPtr<UStaticMesh> StaticMesh;
+
+	/* The number of sections should match the number of sections in the static mesh */
+	TArray<FRPRMeshSection> Sections;
+
 	FRawMesh RawMesh;
 
 	TArray<FVector2D, TInlineAllocator<MAX_MESH_TEXTURE_COORDS>> Barycenters;

@@ -14,6 +14,7 @@ public:
 	{
 		FSettings();
 
+		bool bApply;
 		float Scale;
 		float Angle;
 	};
@@ -32,15 +33,16 @@ public:
 private:
 
 	void	SetMaterialParametersByMesh(UStaticMesh* StaticMesh);
-	UMaterialEditorInstanceConstant*	CreateMaterialEditorInstanceConstant(UMaterialInstanceConstant* MaterialInstanceConstant);
+	UMaterialEditorInstanceConstant*	CreateMaterialEditorInstanceConstant() const;
 
-	static void	EditMaterialParameter_UseTriPlanar(FUVProjectionTriPlanarAlgo* Algo, UDEditorParameterValue* ParameterValue);
 	static void	EditMaterialParameter_TriPlanar_TextureScale(FUVProjectionTriPlanarAlgo* Algo, UDEditorParameterValue* ParameterValue);
 	static void	EditMaterialParameter_TriPlanar_TextureAngle(FUVProjectionTriPlanarAlgo* Algo, UDEditorParameterValue* ParameterValue);
 
 private:
 
 	UMaterialInstanceConstantFactoryNew*	MaterialInstanceConstantFactoryNew;
+	UMaterialEditorInstanceConstant*		MaterialEditorInstance;
+
 	FSettings	Settings;
 
 	static TMap<FName, FEditMaterialParameter>	EditMaterialParametersRouter;

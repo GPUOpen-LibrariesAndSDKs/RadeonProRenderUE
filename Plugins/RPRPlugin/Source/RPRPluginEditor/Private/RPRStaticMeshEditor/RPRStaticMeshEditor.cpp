@@ -127,7 +127,7 @@ void FRPRStaticMeshEditor::InitializePropertiesView()
 
 TSharedPtr<FTabManager::FLayout>	FRPRStaticMeshEditor::GenerateDefaultLayout()
 {
-	return FTabManager::NewLayout("Standalone_RPRStaticMeshEditor_Layout_v1")
+	return FTabManager::NewLayout("Standalone_RPRStaticMeshEditor_Layout_v2")
 		->AddArea
 		(
 			FTabManager::NewPrimaryArea()->SetOrientation(Orient_Vertical)
@@ -171,14 +171,19 @@ TSharedPtr<FTabManager::FLayout>	FRPRStaticMeshEditor::GenerateDefaultLayout()
 					->SetSizeCoefficient(0.3f)
 					->Split
 					(
-						// UV Projection Mapping Editor
-						FTabManager::NewStack()
-						->SetSizeCoefficient(0.6f)
-						->AddTab(PropertiesTabId, ETabState::OpenedTab)
-						->AddTab(UVProjectionMappingEditorTabId, ETabState::OpenedTab)
-						->SetForegroundTab(PropertiesTabId)
-						// Coming soon...
-						// -> AddTab(MaterialLibraryTabId, ETabState::OpenedTab)
+						FTabManager::NewSplitter()->SetOrientation(Orient_Horizontal)
+						->SetSizeCoefficient(0.5f)
+						->Split
+						(
+							FTabManager::NewStack()
+							->AddTab(PropertiesTabId, ETabState::OpenedTab)
+						)
+						->SetSizeCoefficient(0.5f)
+						->Split
+						(
+							FTabManager::NewStack()
+							->AddTab(UVProjectionMappingEditorTabId, ETabState::OpenedTab)
+						)
 					)
 					->Split
 					(

@@ -16,6 +16,7 @@ public class RPREditorTools : ModuleRules
         PublicIncludePaths.AddRange(
             new string[] {
                 "RPREditorTools/Public",
+                "RPREditorTools/Public/RPRMeshData",
 				// ... add public include paths required here ...
 			}
             );
@@ -27,6 +28,7 @@ public class RPREditorTools : ModuleRules
                 // ... add other private include paths required here ...
 
                 "RPREditorTools/Private/Math",
+                "RPREditorTools/Private/RPRMeshData",
             }
             );
 

@@ -73,8 +73,7 @@ public class RPRPluginEditor : ModuleRules
                 "RawMesh",
                 "RPREditorTools",
                 "UVVisualizer",
-                "Outliners",
-                "RPRMaterialSlots"
+                "Outliners"
 				// ... add private dependencies that you statically link with here ...	
 			}
         );

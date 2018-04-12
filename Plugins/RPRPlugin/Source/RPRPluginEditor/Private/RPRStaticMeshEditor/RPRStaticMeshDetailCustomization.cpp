@@ -1,10 +1,10 @@
 #include "RPRStaticMeshDetailCustomization.h"
 #include "DetailLayoutBuilder.h"
 #include "PropertyCustomizationHelpers.h"
-#include "RPRMaterialList.h"
 #include "DetailCategoryBuilder.h"
 #include "RPRStaticMeshEditor.h"
 #include "STextBlock.h"
+#include "SCheckBox.h"
 
 #define LOCTEXT_NAMESPACE "RPRStaticMeshDetailCustomization"
 
@@ -21,26 +21,37 @@ void FRPRStaticMeshDetailCustomization::CustomizeDetails(IDetailLayoutBuilder& D
 	DetailBuilder.HideCategory("Navigation");
 	DetailBuilder.HideCategory("Thumbnail");
 	DetailBuilder.HideCategory("StaticMesh");
-
+	
 	IDetailCategoryBuilder& materialsCategory = DetailBuilder.EditCategory(
-		TEXT("StaticMeshMaterials"), 
-		LOCTEXT("StaticMeshMaterialsLabel", "Material Slots"), 
+		TEXT("StaticMeshMaterials"),
+		LOCTEXT("StaticMeshMaterialsLabel", "Material Slots"),
 		ECategoryPriority::Important
 	);
 
-	FRPRMaterialList::FDelegates materialListDelegates;
+	SelectedMeshDatasPtr = GetStaticMeshes();
 
-	materialListDelegates.GetStaticMeshes.BindSP(this, &FRPRStaticMeshDetailCustomization::GetStaticMeshes);
+	if (SelectedMeshDatasPtr.IsValid())
+	{
+		FRPRMeshDataContainer& meshDatas = *SelectedMeshDatasPtr;
+		int32 materialIndex = 0;
+		for (int32 i = 0; i < meshDatas.Num(); ++i)
+		{
+			FMaterialListDelegates delegates;
+			delegates.OnGetMaterials.BindSP(this, &FRPRStaticMeshDetailCustomization::GetMaterials, meshDatas[i]);
+			delegates.OnMaterialChanged.BindSP(this, &FRPRStaticMeshDetailCustomization::OnMaterialChanged, meshDatas[i]);
+			delegates.OnMaterialListDirty.BindSP(this, &FRPRStaticMeshDetailCustomization::IsMaterialListDirty);
+			delegates.OnGenerateCustomNameWidgets.BindSP(this, &FRPRStaticMeshDetailCustomization::OnGenerateCustomNameWidgets, meshDatas[i]);
 
-	//materialsCategory.AddCustomBuilder(MakeShareable(new FRPRMaterialList(materialsCategory.GetParentLayout(), materialListDelegates)));
-
-	FMaterialListDelegates delegates;
-	delegates.OnGetMaterials.BindSP(this, &FRPRStaticMeshDetailCustomization::GetMaterials);
-	delegates.OnMaterialChanged.BindSP(this, &FRPRStaticMeshDetailCustomization::OnMaterialChanged);
-	delegates.OnMaterialListDirty.BindSP(this, &FRPRStaticMeshDetailCustomization::IsMaterialListDirty);
-	delegates.OnGenerateCustomMaterialWidgets.BindSP(this, &FRPRStaticMeshDetailCustomization::OnGenerateCustomMaterialWidgets);
-
-	materialsCategory.AddCustomBuilder(MakeShareable(new FMaterialList(DetailBuilder, delegates)));
+			FName staticMeshName = meshDatas[i]->GetStaticMesh()->GetFName();
+			materialsCategory.AddCustomRow(FText::GetEmpty())
+				[
+					SNew(STextBlock)
+					.Text(FText::FromName(staticMeshName))
+					.Font(FEditorStyle::GetFontStyle("DetailsView.CategoryFontStyle"))
+				];
+			materialsCategory.AddCustomBuilder(MakeShareable(new FMaterialList(DetailBuilder, delegates)));
+		}
+	}
 }
 
 void FRPRStaticMeshDetailCustomization::MarkMaterialListDirty()
@@ -53,57 +64,32 @@ FRPRMeshDataContainerPtr FRPRStaticMeshDetailCustomization::GetStaticMeshes() co
 	return (RPRStaticMeshEditor.GetSelectedMeshes());
 }
 
-void FRPRStaticMeshDetailCustomization::GetMaterials(IMaterialListBuilder& MaterialListBuidler)
+void FRPRStaticMeshDetailCustomization::GetMaterials(IMaterialListBuilder& MaterialListBuidler, FRPRMeshDataPtr MeshData)
 {
-	SelectedMeshDatasPtr = GetStaticMeshes();
-
-	if (SelectedMeshDatasPtr.IsValid())
+	if (MeshData.IsValid())
 	{
-		FRPRMeshDataContainer& meshDatas = *SelectedMeshDatasPtr;
-		int32 materialIndex = 0;
-		for (int32 i = 0; i < meshDatas.Num(); ++i)
+		UStaticMesh* staticMesh = MeshData->GetStaticMesh();
+		for (int32 materialIndex = 0; staticMesh->GetMaterial(materialIndex) != nullptr; ++materialIndex)
 		{
-			UStaticMesh* staticMesh = meshDatas[i]->GetStaticMesh();
-			for (int32 j = 0; staticMesh->GetMaterial(j) != nullptr; ++j)
-			{
-				MaterialListBuidler.AddMaterial(materialIndex++, staticMesh->GetMaterial(j), true);
-			}
+			MaterialListBuidler.AddMaterial(materialIndex, staticMesh->GetMaterial(materialIndex), true);
 		}
 	}
 
 	bIsMaterialListDirty = false;
 }
 
-void FRPRStaticMeshDetailCustomization::OnMaterialChanged(UMaterialInterface* NewMaterial, UMaterialInterface* PrevMaterial, int32 MaterialIndex, bool bReplaceAll)
+void FRPRStaticMeshDetailCustomization::OnMaterialChanged(UMaterialInterface* NewMaterial, UMaterialInterface* PrevMaterial, int32 MaterialIndex, bool bReplaceAll, FRPRMeshDataPtr MeshData)
 {
-	if (SelectedMeshDatasPtr.IsValid())
+	if (MeshData.IsValid())
 	{
-		FRPRMeshDataContainer& meshDatas = *SelectedMeshDatasPtr;
-
-		int32 materialIndex = 0;
-		for (int32 i = 0; i < meshDatas.Num(); ++i)
-		{
-			UStaticMesh* staticMesh = meshDatas[i]->GetStaticMesh();
-			for (int32 j = 0; staticMesh->GetMaterial(j) != nullptr; ++j)
-			{
-				if (bReplaceAll || materialIndex == MaterialIndex)
-				{
-					ChangeMaterial(staticMesh, NewMaterial, j);
-					if (!bReplaceAll)
-					{
-						break;
-					}
-				}
-				++materialIndex;
-			}
-		}
+		ChangeMaterial(MeshData->GetStaticMesh(), NewMaterial, MaterialIndex);
 	}
 }
 
-void FRPRStaticMeshDetailCustomization::ChangeMaterial(UStaticMesh* StaticMesh, class UMaterialInterface* Material, int32 MaterialIndex)
+void FRPRStaticMeshDetailCustomization::ChangeMaterial(UStaticMesh* StaticMesh, UMaterialInterface* Material, int32 MaterialIndex)
 {
 	UProperty* ChangedProperty = NULL;
-	ChangedProperty = FindField<UProperty>(UStaticMesh::StaticClass(), "StaticMaterials");
+	ChangedProperty = FindField<UProperty>(UStaticMesh::StaticClass(), GET_MEMBER_NAME_CHECKED(UStaticMesh, StaticMaterials));
 	check(ChangedProperty);
 
 	StaticMesh->StaticMaterials[MaterialIndex].MaterialInterface = Material;
@@ -142,11 +128,36 @@ void FRPRStaticMeshDetailCustomization::CallPostEditChange(UStaticMesh& StaticMe
 	RPRStaticMeshEditor.RefreshViewport();
 }
 
-TSharedRef<SWidget> FRPRStaticMeshDetailCustomization::OnGenerateCustomMaterialWidgets(UMaterialInterface* Material, int32 MaterialIndex)
+TSharedRef<SWidget> FRPRStaticMeshDetailCustomization::OnGenerateCustomNameWidgets(UMaterialInterface* Material, int32 MaterialIndex, FRPRMeshDataPtr MeshData)
 {
-	return 
-		SNew(STextBlock)
-		.Text(LOCTEXT("test", "TEEEEESSSTT"));
+	return
+		SNew(SCheckBox)
+		.IsChecked(this, &FRPRStaticMeshDetailCustomization::IsSectionSelected, MeshData, MaterialIndex)
+		.OnCheckStateChanged(this, &FRPRStaticMeshDetailCustomization::ToggleSectionSelection, MeshData, MaterialIndex)
+		[
+			SNew(STextBlock)
+			.Text(LOCTEXT("SelectSection", "Select"))
+		];
+}
+
+ECheckBoxState FRPRStaticMeshDetailCustomization::IsSectionSelected(FRPRMeshDataPtr MeshData, int32 MaterialIndex) const
+{
+	if (!MeshData.IsValid())
+	{
+		return (ECheckBoxState::Undetermined);
+	}
+
+	return (MeshData->GetMeshSection(MaterialIndex).IsSelected() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked);
+}
+
+void FRPRStaticMeshDetailCustomization::ToggleSectionSelection(ECheckBoxState CheckboxState, FRPRMeshDataPtr MeshData, int32 MaterialIndex)
+{
+	if (!MeshData.IsValid())
+	{
+		return;
+	}
+
+	return (MeshData->GetMeshSection(MaterialIndex).Select(CheckboxState == ECheckBoxState::Checked));
 }
 
 #undef LOCTEXT_NAMESPACE

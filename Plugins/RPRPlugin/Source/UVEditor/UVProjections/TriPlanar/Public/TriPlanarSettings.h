@@ -20,6 +20,9 @@ public:
 
 public:
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ToolTip="Uncheck to disable manually the tri planar if desired"), Category = TriPlanar)
+	bool	bUseTriPlanar;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = TriPlanar)
 	float	Scale;
 

@@ -2,6 +2,7 @@
 #include "StaticMeshHelper.h"
 #include "RPRStaticMeshPreviewComponent.h"
 #include "UVUtility.h"
+#include "RPRConstAway.h"
 
 #include "FileHelper.h"
 #include "PlatformFilemanager.h"
@@ -17,8 +18,12 @@ FRPRMeshData::FRPRMeshData(UStaticMesh* InStaticMesh)
 	: StaticMesh(InStaticMesh)
 	, bHasMeshChangesNotCommitted(false)
 {
-	Barycenters.AddDefaulted(MAX_MESH_TEXTURE_COORDS);
+	const int32 lodIndex = 0;
+	Sections.AddDefaulted(StaticMesh->GetNumSections(lodIndex));
+
 	FStaticMeshHelper::LoadRawMeshFromStaticMesh(InStaticMesh, RawMesh);
+
+	Barycenters.AddDefaulted(MAX_MESH_TEXTURE_COORDS);
 	UpdateAllBarycenters();
 }
 
@@ -159,4 +164,38 @@ void FRPRMeshData::UpdateBarycenter(int32 UVChannel)
 			}
 		}
 	}
+}
+
+void FRPRMeshData::RebuildSections()
+{
+	if (StaticMesh.IsValid())
+	{
+		const int32 lodIndex = 0;
+		int32 newNumSections = StaticMesh->GetNumSections(lodIndex);
+		if (newNumSections > Sections.Num())
+		{
+			Sections.AddDefaulted(newNumSections - Sections.Num());
+		}
+		else if (newNumSections < Sections.Num())
+		{
+			Sections.RemoveAt(newNumSections - 1, Sections.Num() - newNumSections);
+		}
+	}
+}
+
+FRPRMeshSection& FRPRMeshData::GetMeshSection(int32 Index)
+{
+	const FRPRMeshData* thisConst = this;
+	return (RPR::ConstRefAway(thisConst->GetMeshSection(Index)));
+}
+
+const FRPRMeshSection& FRPRMeshData::GetMeshSection(int32 Index) const
+{
+	return (Sections[Index]);
+}
+
+int32 FRPRMeshData::GetNumSections() const
+{
+	const int32 lodIndex = 0;
+	return (StaticMesh.IsValid() ? StaticMesh->GetNumSections(lodIndex) : 0);
 }

@@ -8,7 +8,7 @@
 /*
  * Widget displayed when the TriPlanar projection is selected
  */
-class SUVProjectionTriPlanar : public SUVProjectionBase
+class SUVProjectionTriPlanar : public SUVProjectionBase, public FGCObject
 {
 public:
 
@@ -21,6 +21,8 @@ public:
 	SLATE_END_ARGS()
 
 	void	Construct(const FArguments& InArgs);
+		
+	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
 
 protected:
 

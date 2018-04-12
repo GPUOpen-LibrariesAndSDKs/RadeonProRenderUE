@@ -3,6 +3,7 @@
 #include "TriPlanarSettings.h"
 
 UTriPlanarSettings::UTriPlanarSettings()
-	: Scale(100.0f)
-	, Angle(0.0f)
+	: bUseTriPlanar(true)
+	, Scale(100.0f)
+	//, Angle(0.0f)
 {}

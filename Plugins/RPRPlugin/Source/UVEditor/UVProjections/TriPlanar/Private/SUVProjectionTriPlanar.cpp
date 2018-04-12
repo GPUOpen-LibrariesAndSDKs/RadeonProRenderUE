@@ -15,6 +15,11 @@ void SUVProjectionTriPlanar::Construct(const FArguments& InArgs)
 	InitUVProjection();
 }
 
+void SUVProjectionTriPlanar::AddReferencedObjects(FReferenceCollector& Collector)
+{
+	Collector.AddReferencedObject(Settings);
+}
+
 TSharedRef<SWidget> SUVProjectionTriPlanar::GetAlgorithmSettingsWidget()
 {
 	return SettingsDetailsView.ToSharedRef();
@@ -68,6 +73,7 @@ void SUVProjectionTriPlanar::UpdateAlgorithmSettings()
 	
 	FUVProjectionTriPlanarAlgo::FSettings algoSettings;
 	{
+		algoSettings.bApply = Settings->bUseTriPlanar;
 		algoSettings.Angle = Settings->Angle;
 		algoSettings.Scale = Settings->Scale;
 	}
