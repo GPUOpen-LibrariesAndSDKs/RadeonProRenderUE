@@ -36,10 +36,6 @@ public:
 
 private:
 
-	void	UpdateSelection();
-
-private:
-
 	class FRPRStaticMeshPreviewProxy* SceneProxy;
 	
 	TArray<int32> SelectedSections;

@@ -2,6 +2,7 @@
 #include "IDetailCustomization.h"
 #include "RPRMeshDataContainer.h"
 #include "SlateTypes.h"
+#include "DetailCategoryBuilder.h"
 
 class FRPRStaticMeshDetailCustomization : public IDetailCustomization
 {
@@ -31,11 +32,19 @@ private:
 
 private:
 
+	void	AddStaticMeshName(IDetailCategoryBuilder& CategoryBuilder, UStaticMesh* StaticMesh);
+	void	AddMaterialUtilityButtons(IDetailCategoryBuilder& CategoryBuilder, FRPRMeshDataContainerPtr MeshDatas);
+
 	ECheckBoxState	IsSectionSelected(FRPRMeshDataPtr MeshData, int32 MaterialIndex) const;
 	void			ToggleSectionSelection(ECheckBoxState CheckboxState, FRPRMeshDataPtr MeshData, int32 MaterialIndex);
 
 	ECheckBoxState	IsSectionHighlighted(FRPRMeshDataPtr MeshData, int32 MaterialIndex) const;
 	void			ToggleSectionHighlight(ECheckBoxState CheckboxState, FRPRMeshDataPtr MeshData, int32 MaterialIndex);
+
+	FReply			HighlightSelectedSections(FRPRMeshDataContainerPtr MeshDatas);
+	FReply			UnhighlightAllSections(FRPRMeshDataContainerPtr MeshDatas);
+	FReply			SelectAllSections(FRPRMeshDataContainerPtr MeshDatas);
+	FReply			DeselectAllSections(FRPRMeshDataContainerPtr MeshDatas);
 
 private:
 

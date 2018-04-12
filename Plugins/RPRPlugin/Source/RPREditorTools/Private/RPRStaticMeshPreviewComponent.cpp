@@ -226,13 +226,13 @@ void URPRStaticMeshPreviewComponent::TransformUV(const FTransform& NewTransform,
 void URPRStaticMeshPreviewComponent::SelectSection(int32 SectionIndex)
 {
 	SelectedSections.AddUnique(SectionIndex);
-	UpdateSelection();
+	MarkRenderStateDirty();
 }
 
 void URPRStaticMeshPreviewComponent::SelectSections(const TArray<int32>& Sections)
 {
 	SelectedSections = Sections;
-	UpdateSelection();
+	MarkRenderStateDirty();
 }
 
 bool URPRStaticMeshPreviewComponent::IsSectionSelected(int32 SectionIndex) const
@@ -243,28 +243,11 @@ bool URPRStaticMeshPreviewComponent::IsSectionSelected(int32 SectionIndex) const
 void URPRStaticMeshPreviewComponent::DeselectSection(int32 SectionIndex)
 {
 	SelectedSections.Remove(SectionIndex);
-	UpdateSelection();
+	MarkRenderStateDirty();
 }
 
 void URPRStaticMeshPreviewComponent::ClearSectionSelection()
 {
 	SelectedSections.Empty();
-	UpdateSelection();
-}
-
-void URPRStaticMeshPreviewComponent::UpdateSelection()
-{
-	if (SceneProxy)
-	{
-		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
-			RPRStaticMeshPreviewComponent_TransformUV,
-			FRPRStaticMeshPreviewProxy*, SceneProxy, SceneProxy,
-			TArray<int32>, Sections, SelectedSections,
-			{
-				SceneProxy->SetSelectedSections(Sections);
-			}
-		);
-
-		MarkRenderStateDirty();
-	}
+	MarkRenderStateDirty();
 }

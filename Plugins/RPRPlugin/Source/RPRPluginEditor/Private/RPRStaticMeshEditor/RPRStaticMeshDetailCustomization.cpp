@@ -1,10 +1,10 @@
 #include "RPRStaticMeshDetailCustomization.h"
 #include "DetailLayoutBuilder.h"
 #include "PropertyCustomizationHelpers.h"
-#include "DetailCategoryBuilder.h"
 #include "RPRStaticMeshEditor.h"
 #include "STextBlock.h"
 #include "SCheckBox.h"
+#include "SButton.h"
 
 #define LOCTEXT_NAMESPACE "RPRStaticMeshDetailCustomization"
 
@@ -42,15 +42,12 @@ void FRPRStaticMeshDetailCustomization::CustomizeDetails(IDetailLayoutBuilder& D
 			delegates.OnMaterialListDirty.BindSP(this, &FRPRStaticMeshDetailCustomization::IsMaterialListDirty);
 			delegates.OnGenerateCustomNameWidgets.BindSP(this, &FRPRStaticMeshDetailCustomization::OnGenerateCustomNameWidgets, meshDatas[i]);
 
-			FName staticMeshName = meshDatas[i]->GetStaticMesh()->GetFName();
-			materialsCategory.AddCustomRow(FText::GetEmpty())
-				[
-					SNew(STextBlock)
-					.Text(FText::FromName(staticMeshName))
-					.Font(FEditorStyle::GetFontStyle("DetailsView.CategoryFontStyle"))
-				];
+			AddStaticMeshName(materialsCategory, meshDatas[i]->GetStaticMesh());
 			materialsCategory.AddCustomBuilder(MakeShareable(new FMaterialList(DetailBuilder, delegates)));
+
 		}
+
+		AddMaterialUtilityButtons(materialsCategory, SelectedMeshDatasPtr);
 	}
 }
 
@@ -155,6 +152,61 @@ TSharedRef<SWidget> FRPRStaticMeshDetailCustomization::OnGenerateCustomNameWidge
 	;
 }
 
+void FRPRStaticMeshDetailCustomization::AddStaticMeshName(IDetailCategoryBuilder& CategoryBuilder, UStaticMesh* StaticMesh)
+{
+	FName staticMeshName = StaticMesh->GetFName();
+	CategoryBuilder.AddCustomRow(FText::GetEmpty())
+		[
+			SNew(STextBlock)
+			.Text(FText::FromName(staticMeshName))
+			.Font(FEditorStyle::GetFontStyle("DetailsView.CategoryFontStyle"))
+		];
+}
+
+void FRPRStaticMeshDetailCustomization::AddMaterialUtilityButtons(IDetailCategoryBuilder& CategoryBuilder, FRPRMeshDataContainerPtr MeshDatas)
+{
+	CategoryBuilder.AddCustomRow(LOCTEXT("MaterialUtilityButtons", "Material Utility Utilities"))
+		[
+			SNew(SVerticalBox)
+			+SVerticalBox::Slot()
+			[
+				SNew(SHorizontalBox)
+				+SHorizontalBox::Slot()
+				.HAlign(HAlign_Fill)
+				[
+					SNew(SButton)
+					.OnClicked(this, &FRPRStaticMeshDetailCustomization::HighlightSelectedSections, MeshDatas)
+					.Text(LOCTEXT("HighlightSelected", "Highlight selected"))
+				]
+				+SHorizontalBox::Slot()
+				.HAlign(HAlign_Fill)
+				[
+					SNew(SButton)
+					.OnClicked(this, &FRPRStaticMeshDetailCustomization::UnhighlightAllSections, MeshDatas)
+					.Text(LOCTEXT("UnhighlightSelected", "Unhighlight all"))
+				]
+			]
+			+SVerticalBox::Slot()
+			[
+				SNew(SHorizontalBox)
+				+SHorizontalBox::Slot()
+				.HAlign(HAlign_Fill)
+				[
+					SNew(SButton)
+					.OnClicked(this, &FRPRStaticMeshDetailCustomization::SelectAllSections, MeshDatas)
+					.Text(LOCTEXT("SelectAll", "Select all"))
+				]
+				+SHorizontalBox::Slot()
+				.HAlign(HAlign_Fill)
+				[
+					SNew(SButton)
+					.OnClicked(this, &FRPRStaticMeshDetailCustomization::DeselectAllSections, MeshDatas)
+					.Text(LOCTEXT("DeselectSections", "Deselect all"))
+				]
+			]
+		];
+}
+
 ECheckBoxState FRPRStaticMeshDetailCustomization::IsSectionSelected(FRPRMeshDataPtr MeshData, int32 MaterialIndex) const
 {
 	if (!MeshData.IsValid())
@@ -195,6 +247,61 @@ void FRPRStaticMeshDetailCustomization::ToggleSectionHighlight(ECheckBoxState Ch
 
 	const bool bShouldHighlight = CheckboxState == ECheckBoxState::Checked;
 	MeshData->HighlightSection(MaterialIndex, bShouldHighlight);
+}
+
+FReply FRPRStaticMeshDetailCustomization::HighlightSelectedSections(FRPRMeshDataContainerPtr MeshDatas)
+{
+	MeshDatas->OnEachMeshData([](FRPRMeshDataPtr MeshData)
+	{
+		for (int32 sectionIndex = 0; sectionIndex < MeshData->GetNumSections(); ++sectionIndex)
+		{
+			const FRPRMeshSection& meshSection = MeshData->GetMeshSection(sectionIndex);
+			MeshData->HighlightSection(sectionIndex, meshSection.IsSelected());
+		}
+	});
+
+	return (FReply::Handled());
+}
+
+FReply FRPRStaticMeshDetailCustomization::UnhighlightAllSections(FRPRMeshDataContainerPtr MeshDatas)
+{
+	MeshDatas->OnEachMeshData([](FRPRMeshDataPtr MeshData)
+	{
+		for (int32 sectionIndex = 0; sectionIndex < MeshData->GetNumSections(); ++sectionIndex)
+		{
+			MeshData->HighlightSection(sectionIndex, false);
+		}
+	});
+
+	return (FReply::Handled());
+}
+
+FReply FRPRStaticMeshDetailCustomization::SelectAllSections(FRPRMeshDataContainerPtr MeshDatas)
+{
+	MeshDatas->OnEachMeshData([](FRPRMeshDataPtr MeshData)
+	{
+		for (int32 sectionIndex = 0; sectionIndex < MeshData->GetNumSections(); ++sectionIndex)
+		{
+			FRPRMeshSection& meshSection = MeshData->GetMeshSection(sectionIndex);
+			meshSection.Select();
+		}
+	});
+
+	return (FReply::Handled());
+}
+
+FReply FRPRStaticMeshDetailCustomization::DeselectAllSections(FRPRMeshDataContainerPtr MeshDatas)
+{
+	MeshDatas->OnEachMeshData([](FRPRMeshDataPtr MeshData)
+	{
+		for (int32 sectionIndex = 0; sectionIndex < MeshData->GetNumSections(); ++sectionIndex)
+		{
+			FRPRMeshSection& meshSection = MeshData->GetMeshSection(sectionIndex);
+			meshSection.Deselect();
+		}
+	});
+
+	return (FReply::Handled());
 }
 
 #undef LOCTEXT_NAMESPACE
