@@ -6,6 +6,11 @@
 #include "ModuleManager.h"
 #include "PropertyEditorModule.h"
 #include "UVProjectionTriPlanarAlgo.h"
+#include "STextBlock.h"
+#include "SScaleBox.h"
+#include "SImage.h"
+
+#define LOCTEXT_NAMESPACE "SUVProjectionTriPlanar"
 
 void SUVProjectionTriPlanar::Construct(const FArguments& InArgs)
 {
@@ -22,7 +27,42 @@ void SUVProjectionTriPlanar::AddReferencedObjects(FReferenceCollector& Collector
 
 TSharedRef<SWidget> SUVProjectionTriPlanar::GetAlgorithmSettingsWidget()
 {
-	return SettingsDetailsView.ToSharedRef();
+	return 
+		SNew(SVerticalBox)
+		+SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(10.0f)
+		[
+			SNew(SHorizontalBox)
+			+SHorizontalBox::Slot()
+			.AutoWidth()
+			.HAlign(HAlign_Left)
+			[
+				SNew(SScaleBox)
+				.HAlign(HAlign_Center)
+				.Content()
+				[
+					SNew(SImage)
+					.Image(FEditorStyle::GetBrush("SettingsEditor.WarningIcon"))
+				]
+			]
+			+SHorizontalBox::Slot()
+			.HAlign(HAlign_Fill)
+			.VAlign(VAlign_Center)
+			.FillWidth(1.0f)
+			[
+				SNew(STextBlock)
+				.Margin(FMargin(5.0f, 0.0f))
+				.AutoWrapText(true)
+				.Text(LOCTEXT("TriPlanarWarning", "The TriPlanar modifier affects the selected materials (not UV)."))
+			]
+		]
+		+SVerticalBox::Slot()
+		.FillHeight(1.0f)
+		[
+			SettingsDetailsView.ToSharedRef()
+		]
+	;
 }
 
 IUVProjectionAlgorithmPtr SUVProjectionTriPlanar::CreateAlgorithm() const
@@ -80,3 +120,5 @@ void SUVProjectionTriPlanar::UpdateAlgorithmSettings()
 
 	algo->SetSettings(algoSettings);
 }
+
+#undef LOCTEXT_NAMESPACE

@@ -32,6 +32,8 @@ public:
 	FRPRMeshSection&		GetMeshSection(int32 Index);
 	const FRPRMeshSection&	GetMeshSection(int32 Index) const;
 	int32	GetNumSections() const;
+	int32	CountNumSections() const;
+	bool	HasAtLeastOneSectionSelected() const;
 
 	void	NotifyRawMeshChanges();
 	void	NotifyStaticMeshChanges();

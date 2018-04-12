@@ -55,6 +55,9 @@ public:
 	FORCEINLINE FRPRMeshDataPtr&		operator[](int32 index) { return (MeshDatas[index]); }
 	FORCEINLINE const FRPRMeshDataPtr&	operator[](int32 index) const { return (MeshDatas[index]); }
 
+	FORCEINLINE FRPRMeshDataPtr&		Get(int32 Index) { return (*this)[Index]; }
+	FORCEINLINE const FRPRMeshDataPtr&	Get(int32 Index) const { return (*this)[Index]; }
+
 	void	OnEachUV(int32 UVChannel, FOnEachUV OnEachUVPredicate);
 
 	template<typename TPredicate>

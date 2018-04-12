@@ -79,6 +79,7 @@ void SUVProjectionBase::InitWidget()
 				.HAlign(EHorizontalAlignment::HAlign_Center)
 				.Text(LOCTEXT("ProjectButton", "Project"))
 				.OnClicked(this, &SUVProjectionBase::OnApplyButtonClicked)
+				.IsEnabled(this, &SUVProjectionBase::CanProject)
 			]
 		];
 }
@@ -147,6 +148,46 @@ void SUVProjectionBase::FinalizeAlgorithm()
 	{
 		Algorithm->Finalize();
 	}
+}
+
+bool SUVProjectionBase::CanProject() const
+{
+	FRPRMeshDataContainerPtr meshDataPtr = RPRStaticMeshEditorPtr.Pin()->GetSelectedMeshes();
+	if (!meshDataPtr.IsValid())
+	{
+		return (false);
+	}
+
+	for (int32 meshIndex = 0; meshIndex < meshDataPtr->Num(); ++meshIndex)
+	{
+		FRPRMeshDataPtr meshData = meshDataPtr->Get(meshIndex);
+		if (meshData->HasAtLeastOneSectionSelected())
+		{
+			return (true);
+		}
+	}
+
+	return (false);
+}
+
+void SUVProjectionBase::OnEachSelectedSection(FSectionWorker Worker)
+{
+	FRPRMeshDataContainerPtr meshDataPtr = RPRStaticMeshEditorPtr.Pin()->GetSelectedMeshes();
+	if (!meshDataPtr.IsValid())
+	{
+		return;
+	}
+
+	meshDataPtr->OnEachMeshData([&Worker](FRPRMeshDataPtr MeshData)
+	{
+		for (int32 sectionIndex = 0; sectionIndex < MeshData->GetNumSections(); ++sectionIndex)
+		{
+			if (MeshData->GetMeshSection(sectionIndex).IsSelected())
+			{
+				Worker.Execute(MeshData, sectionIndex);
+			}
+		}
+	});
 }
 
 TSharedPtr<IDetailsView> SUVProjectionBase::CreateShapePreviewDetailView(FName ViewIdentifier)

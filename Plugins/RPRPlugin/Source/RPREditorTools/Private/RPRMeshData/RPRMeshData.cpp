@@ -222,3 +222,28 @@ int32 FRPRMeshData::GetNumSections() const
 	const int32 lodIndex = 0;
 	return (StaticMesh.IsValid() ? StaticMesh->GetNumSections(lodIndex) : 0);
 }
+
+int32 FRPRMeshData::CountNumSections() const
+{
+	int32 counter = 0;
+	for (int32 i = 0; i < Sections.Num(); ++i)
+	{
+		if (Sections[i].IsSelected())
+		{
+			++counter;
+		}
+	}
+	return (counter);
+}
+
+bool FRPRMeshData::HasAtLeastOneSectionSelected() const
+{
+	for (int32 i = 0; i < Sections.Num(); ++i)
+	{
+		if (Sections[i].IsSelected())
+		{
+			return (true);
+		}
+	}
+	return (false);
+}
