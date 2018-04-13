@@ -24,6 +24,7 @@ public:
 	void	Construct(const FArguments& InArgs);
 		
 	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
+	virtual void OnSectionSelectionChanged() override;
 
 	/* FNotifyHook implementation */
 	virtual void NotifyPreChange(class FEditPropertyChain* PropertyAboutToChange) {}
@@ -43,6 +44,7 @@ protected:
 private:
 
 	void	InitTriPlanarSettings();
+	void	TryLoadTriPlanarSettings();
 	void	UpdateAlgorithmSettings();
 
 private:

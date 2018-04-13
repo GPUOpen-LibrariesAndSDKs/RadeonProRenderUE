@@ -34,6 +34,7 @@ public:
 	int32	GetNumSections() const;
 	int32	CountNumSelectedSections() const;
 	bool	HasAtLeastOneSectionSelected() const;
+	int32	FindFirstSelectedSectionIndex() const;
 
 	void	NotifyRawMeshChanges();
 	void	NotifyStaticMeshChanges();

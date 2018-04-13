@@ -12,7 +12,6 @@ public:
 	virtual const FSlateBrush*	GetProjectionIcon() const = 0;
 
 	virtual IUVProjectionSettingsWidgetPtr	CreateUVProjectionSettingsWidget(FRPRStaticMeshEditorPtr RPRStaticMeshEditor) = 0;
-
 };
 
 typedef TSharedPtr<IUVProjectionModule>	IUVProjectionModulePtr;

@@ -2,6 +2,7 @@
 #include "UVUtility.h"
 #include "TransformablePlane.h"
 #include "ScopedSlowTask.h"
+#include "TriPlanarMaterialEnabler.h"
 
 #define LOCTEXT_NAMESPACE "UVProjectionPlanarAlgo"
 
@@ -31,6 +32,8 @@ void FUVProjectionPlanarAlgo::StartAlgorithm()
 			int32 meshIndex = MeshDatas.IndexOf(MeshData);
 			ProjectVertexOnPlane(meshIndex, startSection, endSection);
 		}
+
+		FTriPlanarMaterialEnabler::Enable(MeshData->GetStaticMesh(), SectionIndex, false);
 	}));
 
 	StopAlgorithmAndRaiseCompletion(true);

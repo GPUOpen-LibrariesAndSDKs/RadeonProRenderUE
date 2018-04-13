@@ -26,7 +26,7 @@ void SUVProjectionMappingEditor::Construct(const SUVProjectionMappingEditor::FAr
 
 	OnProjectionApplied = InArgs._OnProjectionApplied;
 	InitUVProjectionList();
-
+	
 	this->ChildSlot
 		[
 			SNew(SScrollBox)
@@ -57,6 +57,14 @@ void SUVProjectionMappingEditor::SelectProjectionEntry(SUVProjectionTypeEntryPtr
 		HideSelectedUVProjectionWidget();
 		SelectedProjectionEntry = ProjectionEntry;
 		ShowSelectedUVProjectionWidget();
+	}
+}
+
+void SUVProjectionMappingEditor::UpdateSelection()
+{
+	if (CurrentProjectionSettingsWidget.IsValid())
+	{
+		CurrentProjectionSettingsWidget->OnSectionSelectionChanged();
 	}
 }
 

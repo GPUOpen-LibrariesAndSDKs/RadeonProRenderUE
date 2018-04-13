@@ -1,14 +1,12 @@
 #include "UVProjectionTriPlanarAlgo.h"
 #include "MaterialEditor/DEditorScalarParameterValue.h"
 #include "MaterialEditor/DEditorStaticSwitchParameterValue.h"
-#include "Factories/MaterialInstanceConstantFactoryNew.h"
 #include "MaterialEditor/MaterialEditorInstanceConstant.h"
 #include "TriPlanarMaterialEnabler.h"
+#include "MaterialEditHelper.h"
 
 DECLARE_CYCLE_STAT(TEXT("UVProjection ~ TriPlanar Algo ~ StartAlgorithm"), STAT_TriPlanar_StartAlgorithm, STATGROUP_UVProjection_TriPlanarAlgo)
 DECLARE_CYCLE_STAT(TEXT("UVProjection ~ TriPlanar Algo ~ SetMaterialParameterByMeshSection"), STAT_TriPlanar_SetMaterialParameterByMeshSection, STATGROUP_UVProjection_TriPlanarAlgo)
-
-TMap<FName, FEditMaterialParameter> FUVProjectionTriPlanarAlgo::EditMaterialParametersRouter;
 
 FUVProjectionTriPlanarAlgo::FSettings::FSettings()
 	: Scale(100.0f)
@@ -17,14 +15,7 @@ FUVProjectionTriPlanarAlgo::FSettings::FSettings()
 
 FUVProjectionTriPlanarAlgo::FUVProjectionTriPlanarAlgo()
 {
-	if (EditMaterialParametersRouter.Num() == 0)
-	{
-		EditMaterialParametersRouter.Add(TEXT("TriPlanar_TextureScale"), FEditMaterialParameter::CreateStatic(&FUVProjectionTriPlanarAlgo::EditMaterialParameter_TriPlanar_TextureScale));
-		EditMaterialParametersRouter.Add(TEXT("TriPlanar_TextureAngle"), FEditMaterialParameter::CreateStatic(&FUVProjectionTriPlanarAlgo::EditMaterialParameter_TriPlanar_TextureAngle));
-	}
-
-	MaterialInstanceConstantFactoryNew = NewObject<UMaterialInstanceConstantFactoryNew>();
-	MaterialEditorInstance = CreateMaterialEditorInstanceConstant();
+	MaterialEditorInstance = FMaterialEditHelper::CreateMaterialEditorInstanceConstant();
 }
 
 void FUVProjectionTriPlanarAlgo::SetSettings(const FSettings& InSettings)
@@ -34,7 +25,6 @@ void FUVProjectionTriPlanarAlgo::SetSettings(const FSettings& InSettings)
 
 void FUVProjectionTriPlanarAlgo::AddReferencedObjects(FReferenceCollector& Collector)
 {
-	Collector.AddReferencedObject(MaterialInstanceConstantFactoryNew);
 	Collector.AddReferencedObject(MaterialEditorInstance);
 }
 
@@ -45,10 +35,17 @@ void FUVProjectionTriPlanarAlgo::StartAlgorithm()
 	FUVProjectionAlgorithmBase::StartAlgorithm();
 
 	TArray<FRPRMeshDataPtr> ModifiedMeshDatas;
-	OnEachSelectedSection(FSectionWorker::CreateLambda([this, &ModifiedMeshDatas](FRPRMeshDataPtr MeshData, int32 SectionIndex)
+	TArray<UMaterialInterface*> ProcessedMaterials;
+	OnEachSelectedSection(FSectionWorker::CreateLambda([this, &ModifiedMeshDatas, &ProcessedMaterials](FRPRMeshDataPtr MeshData, int32 SectionIndex)
 	{
-		SetMaterialParameterByMeshSection(MeshData->GetStaticMesh(), SectionIndex);
-		ModifiedMeshDatas.AddUnique(MeshData);
+		// Do not process the same material multiple times
+		UMaterialInterface* material = MeshData->GetStaticMesh()->GetMaterial(SectionIndex);
+		if (!ProcessedMaterials.Contains(material))
+		{
+			SetMaterialParameterByMeshSection(MeshData->GetStaticMesh(), SectionIndex);
+			ModifiedMeshDatas.AddUnique(MeshData);
+			ProcessedMaterials.Add(material);
+		}
 	}));
 
 	for (int32 i = 0; i < ModifiedMeshDatas.Num(); ++i)
@@ -75,18 +72,7 @@ void FUVProjectionTriPlanarAlgo::SetMaterialParameterByMeshSection(UStaticMesh* 
 	{
 		if (Settings.bApply)
 		{
-			FName noneName(NAME_None);
-			FEditorParameterGroup& parameterGroup = MaterialEditorInstance->GetParameterGroup(noneName);
-			TArray<UDEditorParameterValue*> parameterValues = parameterGroup.Parameters;
-			for (int32 parameterIndex = 0; parameterIndex < parameterValues.Num(); ++parameterIndex)
-			{
-				UDEditorParameterValue* parameterValue = parameterValues[parameterIndex];
-				FEditMaterialParameter* editMaterialParameter = EditMaterialParametersRouter.Find(parameterValue->ParameterName);
-				if (editMaterialParameter)
-				{
-					editMaterialParameter->Execute(this, parameterValue);
-				}
-			}
+			FMaterialEditHelper::BindRouterAndExecute(MaterialEditorInstance, CreateEditMaterialParametersRouter());
 		}
 
 		MaterialEditorInstance->CopyToSourceInstance();
@@ -94,31 +80,36 @@ void FUVProjectionTriPlanarAlgo::SetMaterialParameterByMeshSection(UStaticMesh* 
 	}
 }
 
-UMaterialEditorInstanceConstant* FUVProjectionTriPlanarAlgo::CreateMaterialEditorInstanceConstant() const
+TMap<FName, FMaterialParameterBrowseDelegate> FUVProjectionTriPlanarAlgo::CreateEditMaterialParametersRouter() const
 {
-	UMaterialEditorInstanceConstant* materialEditorInstance = 
-		NewObject<UMaterialEditorInstanceConstant>((UObject*)GetTransientPackage(), NAME_None, RF_Transactional);
+	TMap<FName, FMaterialParameterBrowseDelegate>	EditMaterialParametersRouter;
+	EditMaterialParametersRouter.Add(
+		FTriPlanarMaterialEnabler::MaterialParameterName_TextureScale,
+		FMaterialParameterBrowseDelegate::CreateRaw(this, &FUVProjectionTriPlanarAlgo::EditMaterialParameter_TriPlanar_TextureScale));
 
-	materialEditorInstance->bUseOldStyleMICEditorGroups = false;
-	return (materialEditorInstance);
+	EditMaterialParametersRouter.Add(
+		FTriPlanarMaterialEnabler::MaterialParameterName_TextureAngle,
+		FMaterialParameterBrowseDelegate::CreateRaw(this, &FUVProjectionTriPlanarAlgo::EditMaterialParameter_TriPlanar_TextureAngle));
+
+	return (EditMaterialParametersRouter);
 }
 
-void FUVProjectionTriPlanarAlgo::EditMaterialParameter_TriPlanar_TextureScale(FUVProjectionTriPlanarAlgo* Algo, UDEditorParameterValue* ParameterValue)
+void FUVProjectionTriPlanarAlgo::EditMaterialParameter_TriPlanar_TextureScale(UDEditorParameterValue* ParameterValue)
 {
 	UDEditorScalarParameterValue* scalarParameter = Cast<UDEditorScalarParameterValue>(ParameterValue);
 	if (scalarParameter)
 	{
-		scalarParameter->ParameterValue = Algo->Settings.Scale;
+		scalarParameter->ParameterValue = Settings.Scale;
 		scalarParameter->bOverride = true;
 	}
 }
 
-void FUVProjectionTriPlanarAlgo::EditMaterialParameter_TriPlanar_TextureAngle(FUVProjectionTriPlanarAlgo* Algo, UDEditorParameterValue* ParameterValue)
+void FUVProjectionTriPlanarAlgo::EditMaterialParameter_TriPlanar_TextureAngle(UDEditorParameterValue* ParameterValue)
 {
 	UDEditorScalarParameterValue* scalarParameter = Cast<UDEditorScalarParameterValue>(ParameterValue);
 	if (scalarParameter)
 	{
-		scalarParameter->ParameterValue = Algo->Settings.Angle;
+		scalarParameter->ParameterValue = Settings.Angle;
 		scalarParameter->bOverride = true;
 	}
 }

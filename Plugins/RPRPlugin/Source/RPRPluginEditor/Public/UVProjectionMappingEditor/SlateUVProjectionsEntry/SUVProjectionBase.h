@@ -33,6 +33,7 @@ public:
 	virtual void	SetRPRStaticMeshEditor(TWeakPtr<class FRPRStaticMeshEditor> RPRStaticMeshEditor) override;
 	virtual void	OnUVProjectionDisplayed() override {}
 	virtual void	OnUVProjectionHidden() override {}
+	virtual void	OnSectionSelectionChanged() override {}
 
 protected:
 	

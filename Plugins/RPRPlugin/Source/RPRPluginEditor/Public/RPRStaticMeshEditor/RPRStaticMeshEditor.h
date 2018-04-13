@@ -40,12 +40,16 @@ public:
 	void	GetMeshesBounds(FVector& OutCenter, FVector& OutExtents);
 	void	RefreshViewport();
 
+	DECLARE_EVENT(FRPRStaticMeshEditor, FOnSelectionChanged)
+	FOnSelectionChanged&	OnSelectionChanged() { return OnSelectionChangedEvent; }
+
 private:
 
 	TSharedPtr<FTabManager::FLayout>	GenerateDefaultLayout();
+	TSharedRef<class IDetailCustomization>	MakeStaticMeshDetails();
 
 	void	OpenOrCloseSceneOutlinerIfRequired();
-	TSharedRef<class IDetailCustomization>	MakeStaticMeshDetails();
+	void	WatchSectionSelectionChanges();
 
 	void	InitializeWidgets();
 	void	InitializeViewport();
@@ -61,10 +65,11 @@ private:
 	TSharedRef<SDockTab>				SpawnTab_Properties(const FSpawnTabArgs& Args);
 
 	void	OnSceneComponentOutlinerSelectionChanged(URPRStaticMeshPreviewComponent* NewItemSelected, ESelectInfo::Type SelectInfo);
+	void	OnProjectionCompleted();
+	void	OnSectionSelectionChanged(bool NewState);
 
 	virtual bool	OnRequestClose() override;
 
-	void	OnProjectionCompleted();
 
 private:
 
@@ -79,6 +84,8 @@ private:
 	
 	FRPRStaticMeshEditorSelection	SelectionSystem;
 
+	/** Events **/
+	FOnSelectionChanged OnSelectionChangedEvent;
 
 	/** Tab IDs **/
 

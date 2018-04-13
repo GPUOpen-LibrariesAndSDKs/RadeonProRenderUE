@@ -37,6 +37,7 @@ public:
 	FVector2D	GetUVBarycenter(int32 UVChannel = 0) const;
 	bool	HasMeshesChangesNotCommitted() const;
 	int32	CountNumSelectedSections() const;
+	bool	FindFirstSelectedSection(FRPRMeshDataPtr& OutMeshData, int32& OutSectionIndex) const;
 
 	DECLARE_BROADCAST(NotifyRawMeshChanges);
 	DECLARE_BROADCAST(NotifyStaticMeshChanges);

@@ -3,6 +3,8 @@
 #include "MaterialEditor/DEditorStaticSwitchParameterValue.h"
 
 const FName FTriPlanarMaterialEnabler::MaterialParameterName_UseTriPlanar(TEXT("UseTriPlanar"));
+const FName FTriPlanarMaterialEnabler::MaterialParameterName_TextureAngle(TEXT("TriPlanar_TextureAngle"));
+const FName FTriPlanarMaterialEnabler::MaterialParameterName_TextureScale(TEXT("TriPlanar_TextureScale"));
 
 bool FTriPlanarMaterialEnabler::Enable(UMaterialInterface* Material, bool bEnable)
 {
@@ -54,6 +56,11 @@ bool FTriPlanarMaterialEnabler::Enable(UMaterialEditorInstanceConstant* Material
 	}
 
 	return (false);
+}
+
+bool FTriPlanarMaterialEnabler::Enable(UStaticMesh* StaticMesh, int32 SectionIndex, bool bEnable)
+{
+	return (Enable(StaticMesh->GetMaterial(SectionIndex), bEnable));
 }
 
 UMaterialEditorInstanceConstant* FTriPlanarMaterialEnabler::CreateMaterialEditorInstanceConstant(UMaterialInstanceConstant* MaterialInstanceConstant)

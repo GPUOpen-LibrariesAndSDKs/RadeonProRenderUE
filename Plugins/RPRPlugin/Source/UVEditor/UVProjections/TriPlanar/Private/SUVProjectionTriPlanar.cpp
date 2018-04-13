@@ -26,6 +26,14 @@ void SUVProjectionTriPlanar::AddReferencedObjects(FReferenceCollector& Collector
 	Collector.AddReferencedObject(Settings);
 }
 
+void SUVProjectionTriPlanar::OnSectionSelectionChanged()
+{
+	if (Settings)
+	{
+		TryLoadTriPlanarSettings();
+	}
+}
+
 TSharedRef<SWidget> SUVProjectionTriPlanar::GetAlgorithmSettingsWidget()
 {
 	return 
@@ -101,6 +109,7 @@ bool SUVProjectionTriPlanar::RequiredManualApply() const
 void SUVProjectionTriPlanar::InitTriPlanarSettings()
 {
 	Settings = NewObject<UTriPlanarSettings>();
+	TryLoadTriPlanarSettings();
 
 	FPropertyEditorModule& propertyModule = FModuleManager::Get().LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 	FDetailsViewArgs detailsViewArgs(
@@ -115,6 +124,21 @@ void SUVProjectionTriPlanar::InitTriPlanarSettings()
 	);
 	SettingsDetailsView = propertyModule.CreateDetailView(detailsViewArgs);
 	SettingsDetailsView->SetObject(Settings, true);
+}
+
+void SUVProjectionTriPlanar::TryLoadTriPlanarSettings()
+{
+	FRPRMeshDataContainerPtr selectedMeshDatas = RPRStaticMeshEditorPtr.Pin()->GetSelectedMeshes();
+	if (selectedMeshDatas.IsValid())
+	{
+		FRPRMeshDataPtr meshData;
+		int32 sectionIndex;
+		if (selectedMeshDatas->FindFirstSelectedSection(meshData, sectionIndex))
+		{
+			UMaterialInterface* materialInterface = meshData->GetStaticMesh()->GetMaterial(sectionIndex);
+			Settings->LoadFromMaterial(materialInterface);
+		}
+	}
 }
 
 void SUVProjectionTriPlanar::NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, FEditPropertyChain* PropertyThatChanged)

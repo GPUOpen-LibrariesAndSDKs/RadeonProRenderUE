@@ -3,6 +3,7 @@
 #include "RPRStaticMeshEditor.h"
 #include "RPRVectorTools.h"
 #include "ScopedSlowTask.h"
+#include "TriPlanarMaterialEnabler.h"
 
 #define LOCTEXT_NAMESPACE "UVProjectionSphericalAlgo"
 
@@ -34,6 +35,8 @@ void FUVProjectionSphericalAlgo::StartAlgorithm()
 				ProjectVerticesOnSphere(rawMesh.VertexPositions, rawMesh.WedgeIndices);
 				FixInvalidUVsHorizontally(CurrentMeshIndex, CurrentStartSection, CurrentEndSection);
 			}
+
+			FTriPlanarMaterialEnabler::Enable(MeshData->GetStaticMesh(), SectionIndex, false);
 		})
 	);
 

@@ -18,6 +18,8 @@ public:
 	virtual FRPRMeshDataContainerPtr	GetMeshDatas() const = 0;
 	virtual TSharedRef<SWidget>			TakeWidget() = 0;
 	virtual FOnProjectionApplied&		OnProjectionApplied() = 0;
+
+	virtual void						OnSectionSelectionChanged() = 0;
 };
 
 typedef TSharedPtr<IUVProjectionSettingsWidget>	IUVProjectionSettingsWidgetPtr;

@@ -3,6 +3,7 @@
 #include "RPRStaticMeshEditor.h"
 #include "UVUtility.h"
 #include "RPRVectorTools.h"
+#include "TriPlanarMaterialEnabler.h"
 
 #define LOCTEXT_NAMESPACE "UVProjectionCubicAlgo"
 
@@ -30,6 +31,8 @@ void FUVProjectionCubicAlgo::StartAlgorithm()
 		{
 			StartCubicProjection(MeshDatas.IndexOf(MeshData), sectionStart, sectionEnd);
 		}
+
+		FTriPlanarMaterialEnabler::Enable(MeshData->GetStaticMesh(), SectionIndex, false);
 	}));
 
 	StopAlgorithmAndRaiseCompletion(true);

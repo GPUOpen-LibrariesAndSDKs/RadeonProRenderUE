@@ -17,6 +17,13 @@ public:
 
 	UTriPlanarSettings();
 
+	void	LoadFromMaterial(class UMaterialInterface* MaterialInterface);
+
+private:
+
+	void	LoadUseTriPlanar(class UDEditorParameterValue* ParameterValue);
+	void	LoadScale(class UDEditorParameterValue* ParameterValue);
+	void	LoadAngle(class UDEditorParameterValue* ParameterValue);
 
 public:
 

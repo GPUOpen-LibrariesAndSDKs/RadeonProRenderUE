@@ -2,6 +2,7 @@
 #include "UVUtility.h"
 #include "RPRVectorTools.h"
 #include "ScopedSlowTask.h"
+#include "TriPlanarMaterialEnabler.h"
 
 #define LOCTEXT_NAMESPACE "UVProjectionCylinderAlgo"
 
@@ -27,6 +28,8 @@ void FUVProjectionCylinderAlgo::StartAlgorithm()
 			ProjectVerticesToCylinder(meshIndex, startSection, endSection);
 			FixInvalidUVsHorizontally(meshIndex, startSection, endSection);
 		}
+
+		FTriPlanarMaterialEnabler::Enable(MeshData->GetStaticMesh(), SectionIndex, false);
 	}));
 
 	StopAlgorithmAndRaiseCompletion(true);

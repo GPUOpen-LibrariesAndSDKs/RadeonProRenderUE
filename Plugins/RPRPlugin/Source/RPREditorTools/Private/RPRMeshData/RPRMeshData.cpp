@@ -247,3 +247,15 @@ bool FRPRMeshData::HasAtLeastOneSectionSelected() const
 	}
 	return (false);
 }
+
+int32 FRPRMeshData::FindFirstSelectedSectionIndex() const
+{
+	for (int32 sectionIndex = 0; sectionIndex < Sections.Num(); ++sectionIndex)
+	{
+		if (Sections[sectionIndex].IsSelected())
+		{
+			return (sectionIndex);
+		}
+	}
+	return (INDEX_NONE);
+}

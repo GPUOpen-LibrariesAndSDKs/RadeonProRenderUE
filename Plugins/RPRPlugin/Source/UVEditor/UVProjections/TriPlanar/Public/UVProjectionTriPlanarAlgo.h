@@ -4,10 +4,9 @@
 #include "Factories/MaterialInstanceConstantFactoryNew.h"
 #include "MaterialEditor/MaterialEditorInstanceConstant.h"
 #include "Materials/MaterialInstanceConstant.h"
+#include "MaterialEditHelper.h"
 
 DECLARE_STATS_GROUP(TEXT("FUVProjectionTriPlanarAlgo"), STATGROUP_UVProjection_TriPlanarAlgo, STATCAT_Advanced)
-
-DECLARE_DELEGATE_TwoParams(FEditMaterialParameter, class FUVProjectionTriPlanarAlgo*, UDEditorParameterValue*);
 
 class FUVProjectionTriPlanarAlgo : public FUVProjectionAlgorithmBase, public FGCObject
 {
@@ -36,19 +35,17 @@ private:
 
 	void								SetMaterialParameterByMeshSection(UStaticMesh* StaticMesh, int32 SectionIndex);
 	UMaterialEditorInstanceConstant*	CreateMaterialEditorInstanceConstant() const;
+	TMap<FName, FMaterialParameterBrowseDelegate>	CreateEditMaterialParametersRouter() const;
 
-	static void	EditMaterialParameter_TriPlanar_TextureScale(FUVProjectionTriPlanarAlgo* Algo, UDEditorParameterValue* ParameterValue);
-	static void	EditMaterialParameter_TriPlanar_TextureAngle(FUVProjectionTriPlanarAlgo* Algo, UDEditorParameterValue* ParameterValue);
+	void	EditMaterialParameter_TriPlanar_TextureScale(UDEditorParameterValue* ParameterValue);
+	void	EditMaterialParameter_TriPlanar_TextureAngle(UDEditorParameterValue* ParameterValue);
 
 private:
 
-	UMaterialInstanceConstantFactoryNew*	MaterialInstanceConstantFactoryNew;
 	UMaterialEditorInstanceConstant*		MaterialEditorInstance;
 
 	FSettings	Settings;
-
-	static TMap<FName, FEditMaterialParameter>	EditMaterialParametersRouter;
-
+	
 private:
 
 	static const FName	MaterialParameterName_UseTriPlanar;

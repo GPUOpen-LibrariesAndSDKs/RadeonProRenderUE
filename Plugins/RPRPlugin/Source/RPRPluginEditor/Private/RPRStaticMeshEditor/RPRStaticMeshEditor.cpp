@@ -40,6 +40,7 @@ void FRPRStaticMeshEditor::InitRPRStaticMeshEditor(const TArray<UStaticMesh*>& I
 	MeshDatas->AppendFromStaticMeshes(InStaticMeshes);
 
 	InitializeWidgets();
+	WatchSectionSelectionChanges();
 
 	const bool bCreateDefaultStandaloneMenu = true;
 	const bool bCreateDefaultToolbar = true;
@@ -211,6 +212,18 @@ void FRPRStaticMeshEditor::OpenOrCloseSceneOutlinerIfRequired()
 	{
 		TabManager->InvokeTab(SceneComponentsOutlinerTabId);		
 	}
+}
+
+void FRPRStaticMeshEditor::WatchSectionSelectionChanges()
+{
+	MeshDatas->OnEachMeshData([this](FRPRMeshDataPtr MeshData)
+	{
+		for (int32 sectionIndex = 0; sectionIndex < MeshData->GetNumSections(); ++sectionIndex)
+		{
+			FRPRMeshSection& section = MeshData->GetMeshSection(sectionIndex);
+			section.OnSelectionStateChanged().AddSP(this, &FRPRStaticMeshEditor::OnSectionSelectionChanged);
+		}
+	});
 }
 
 TSharedRef<IDetailCustomization> FRPRStaticMeshEditor::MakeStaticMeshDetails()
@@ -457,6 +470,8 @@ void FRPRStaticMeshEditor::OnSceneComponentOutlinerSelectionChanged(URPRStaticMe
 	{
 		PropertiesDetailsView->SetObjects(meshDatas->GetStaticMeshesAsObjects());
 	}
+
+	UVProjectionMappingEditor->UpdateSelection();
 }
 
 bool FRPRStaticMeshEditor::OnRequestClose()
@@ -475,6 +490,11 @@ void FRPRStaticMeshEditor::OnProjectionCompleted()
 	{
 		UVVisualizer->Refresh();
 	}
+}
+
+void FRPRStaticMeshEditor::OnSectionSelectionChanged(bool NewState)
+{
+	UVProjectionMappingEditor->UpdateSelection();
 }
 
 #undef LOCTEXT_NAMESPACE
