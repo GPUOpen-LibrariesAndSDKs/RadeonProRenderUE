@@ -1,7 +1,7 @@
 #include "RPRMeshSection.h"
 
 FRPRMeshSection::FRPRMeshSection()
-	: bIsSelected(false)
+	: bIsSelected(true)
 	, bIsHighlighted(false)
 {}
 

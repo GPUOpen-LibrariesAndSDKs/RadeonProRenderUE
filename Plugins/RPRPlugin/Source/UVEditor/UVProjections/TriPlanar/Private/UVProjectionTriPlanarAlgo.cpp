@@ -5,6 +5,9 @@
 #include "MaterialEditor/MaterialEditorInstanceConstant.h"
 #include "TriPlanarMaterialEnabler.h"
 
+DECLARE_CYCLE_STAT(TEXT("UVProjection ~ TriPlanar Algo ~ StartAlgorithm"), STAT_TriPlanar_StartAlgorithm, STATGROUP_UVProjection_TriPlanarAlgo)
+DECLARE_CYCLE_STAT(TEXT("UVProjection ~ TriPlanar Algo ~ SetMaterialParameterByMeshSection"), STAT_TriPlanar_SetMaterialParameterByMeshSection, STATGROUP_UVProjection_TriPlanarAlgo)
+
 TMap<FName, FEditMaterialParameter> FUVProjectionTriPlanarAlgo::EditMaterialParametersRouter;
 
 FUVProjectionTriPlanarAlgo::FSettings::FSettings()
@@ -37,58 +40,57 @@ void FUVProjectionTriPlanarAlgo::AddReferencedObjects(FReferenceCollector& Colle
 
 void FUVProjectionTriPlanarAlgo::StartAlgorithm()
 {
+	SCOPE_CYCLE_COUNTER(STAT_TriPlanar_StartAlgorithm);
+
 	FUVProjectionAlgorithmBase::StartAlgorithm();
 
-	for (int32 meshIndex = 0; meshIndex < MeshDatas.Num(); ++meshIndex)
+	TArray<FRPRMeshDataPtr> ModifiedMeshDatas;
+	OnEachSelectedSection(FSectionWorker::CreateLambda([this, &ModifiedMeshDatas](FRPRMeshDataPtr MeshData, int32 SectionIndex)
 	{
-		FRPRMeshDataPtr meshData = MeshDatas[meshIndex];
-		SetMaterialParametersByMesh(meshData->GetStaticMesh());
-		meshData->NotifyStaticMeshMaterialChanges();
+		SetMaterialParameterByMeshSection(MeshData->GetStaticMesh(), SectionIndex);
+		ModifiedMeshDatas.AddUnique(MeshData);
+	}));
+
+	for (int32 i = 0; i < ModifiedMeshDatas.Num(); ++i)
+	{
+		ModifiedMeshDatas[i]->NotifyStaticMeshMaterialChanges();
 	}
 
 	StopAlgorithmAndRaiseCompletion(true);
 }
 
-void FUVProjectionTriPlanarAlgo::Finalize()
+void FUVProjectionTriPlanarAlgo::SetMaterialParameterByMeshSection(UStaticMesh* StaticMesh, int32 SectionIndex)
 {
-	
-}
+	SCOPE_CYCLE_COUNTER(STAT_TriPlanar_SetMaterialParameterByMeshSection);
 
-void FUVProjectionTriPlanarAlgo::SetMaterialParametersByMesh(UStaticMesh* StaticMesh)
-{
-	int32 numSections = StaticMesh->GetNumSections(0);
-	for (int32 materialIndex = 0; materialIndex < numSections; ++materialIndex)
+	UMaterialInterface* materialInterface = StaticMesh->GetMaterial(SectionIndex);
+	if (materialInterface == nullptr) return;
+
+	UMaterialInstanceConstant* UnrealMaterialConstant = Cast<UMaterialInstanceConstant>(materialInterface);
+	if (UnrealMaterialConstant == nullptr) return;
+
+	MaterialEditorInstance->SetSourceInstance(UnrealMaterialConstant);
+
+	if (FTriPlanarMaterialEnabler::Enable(MaterialEditorInstance, Settings.bApply))
 	{
-		UMaterialInterface* materialInterface = StaticMesh->GetMaterial(materialIndex);
-		if (materialInterface == nullptr) { continue; }
-
-		UMaterialInstanceConstant* UnrealMaterialConstant = Cast<UMaterialInstanceConstant>(materialInterface);
-		if (UnrealMaterialConstant == nullptr) { continue; }
-
-		MaterialEditorInstance->SetSourceInstance(UnrealMaterialConstant);
-
-		if (FTriPlanarMaterialEnabler::Enable(MaterialEditorInstance, Settings.bApply))
+		if (Settings.bApply)
 		{
-			if (Settings.bApply)
+			FName noneName(NAME_None);
+			FEditorParameterGroup& parameterGroup = MaterialEditorInstance->GetParameterGroup(noneName);
+			TArray<UDEditorParameterValue*> parameterValues = parameterGroup.Parameters;
+			for (int32 parameterIndex = 0; parameterIndex < parameterValues.Num(); ++parameterIndex)
 			{
-				FName noneName(NAME_None);
-				FEditorParameterGroup& parameterGroup = MaterialEditorInstance->GetParameterGroup(noneName);
-				TArray<UDEditorParameterValue*> parameterValues = parameterGroup.Parameters;
-				for (int32 parameterIndex = 0; parameterIndex < parameterValues.Num(); ++parameterIndex)
+				UDEditorParameterValue* parameterValue = parameterValues[parameterIndex];
+				FEditMaterialParameter* editMaterialParameter = EditMaterialParametersRouter.Find(parameterValue->ParameterName);
+				if (editMaterialParameter)
 				{
-					UDEditorParameterValue* parameterValue = parameterValues[parameterIndex];
-					FEditMaterialParameter* editMaterialParameter = EditMaterialParametersRouter.Find(parameterValue->ParameterName);
-					if (editMaterialParameter)
-					{
-						editMaterialParameter->Execute(this, parameterValue);
-					}
+					editMaterialParameter->Execute(this, parameterValue);
 				}
 			}
-
-			MaterialEditorInstance->CopyToSourceInstance();
-			materialInterface->PostEditChange();
 		}
 
+		MaterialEditorInstance->CopyToSourceInstance();
+		materialInterface->PostEditChange();
 	}
 }
 

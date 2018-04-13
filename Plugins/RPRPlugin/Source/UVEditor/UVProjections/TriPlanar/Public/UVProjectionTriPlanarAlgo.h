@@ -5,6 +5,8 @@
 #include "MaterialEditor/MaterialEditorInstanceConstant.h"
 #include "Materials/MaterialInstanceConstant.h"
 
+DECLARE_STATS_GROUP(TEXT("FUVProjectionTriPlanarAlgo"), STATGROUP_UVProjection_TriPlanarAlgo, STATCAT_Advanced)
+
 DECLARE_DELEGATE_TwoParams(FEditMaterialParameter, class FUVProjectionTriPlanarAlgo*, UDEditorParameterValue*);
 
 class FUVProjectionTriPlanarAlgo : public FUVProjectionAlgorithmBase, public FGCObject
@@ -18,7 +20,7 @@ public:
 		float Scale;
 		float Angle;
 	};
-
+	
 
 public:
 	FUVProjectionTriPlanarAlgo();
@@ -28,11 +30,11 @@ public:
 	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
 
 	virtual void StartAlgorithm() override;
-	virtual void Finalize() override;
+	virtual void Finalize() override {}
 
 private:
 
-	void	SetMaterialParametersByMesh(UStaticMesh* StaticMesh);
+	void								SetMaterialParameterByMeshSection(UStaticMesh* StaticMesh, int32 SectionIndex);
 	UMaterialEditorInstanceConstant*	CreateMaterialEditorInstanceConstant() const;
 
 	static void	EditMaterialParameter_TriPlanar_TextureScale(FUVProjectionTriPlanarAlgo* Algo, UDEditorParameterValue* ParameterValue);

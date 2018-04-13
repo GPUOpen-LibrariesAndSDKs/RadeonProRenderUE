@@ -9,6 +9,8 @@
 #include "RawMesh.h"
 #include "RPRMeshDataContainer.h"
 
+DECLARE_DELEGATE_TwoParams(FSectionWorker, FRPRMeshDataPtr /*MeshData*/, int32 /*SectionIndex*/)
+
 /*
  * Abstraction class for UV projection algorithms
  */
@@ -45,6 +47,8 @@ protected:
 	void	SaveRawMesh();
 	void	AddNewUVs(int32 RawMeshIndex, const FVector2D& UV);
 	void	FixInvalidUVsHorizontally(int32 MeshIndex);
+
+	void	OnEachSelectedSection(FSectionWorker Worker);
 
 
 private:

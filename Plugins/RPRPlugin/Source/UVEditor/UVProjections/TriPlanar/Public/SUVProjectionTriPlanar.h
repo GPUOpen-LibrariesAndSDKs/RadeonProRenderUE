@@ -4,11 +4,12 @@
 #include "ShapePreviewBase.h"
 #include "TriPlanarSettings.h"
 #include "IDetailsView.h"
+#include "NotifyHook.h"
 
 /*
  * Widget displayed when the TriPlanar projection is selected
  */
-class SUVProjectionTriPlanar : public SUVProjectionBase, public FGCObject
+class SUVProjectionTriPlanar : public SUVProjectionBase, public FNotifyHook, public FGCObject
 {
 public:
 
@@ -24,6 +25,11 @@ public:
 		
 	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
 
+	/* FNotifyHook implementation */
+	virtual void NotifyPreChange(class FEditPropertyChain* PropertyAboutToChange) {}
+	/* Called when the settings changed */
+	virtual void NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, class FEditPropertyChain* PropertyThatChanged);
+
 protected:
 
 	virtual IUVProjectionAlgorithmPtr	CreateAlgorithm() const;
@@ -32,6 +38,7 @@ protected:
 	virtual UShapePreviewBase*			GetShapePreview();
 	
 	virtual void OnPreAlgorithmStart() override;
+	virtual bool RequiredManualApply() const override;
 
 private:
 

@@ -9,6 +9,7 @@
 #include "STextBlock.h"
 #include "SScaleBox.h"
 #include "SImage.h"
+#include "SBox.h"
 
 #define LOCTEXT_NAMESPACE "SUVProjectionTriPlanar"
 
@@ -51,10 +52,14 @@ TSharedRef<SWidget> SUVProjectionTriPlanar::GetAlgorithmSettingsWidget()
 			.VAlign(VAlign_Center)
 			.FillWidth(1.0f)
 			[
-				SNew(STextBlock)
-				.Margin(FMargin(5.0f, 0.0f))
-				.AutoWrapText(true)
-				.Text(LOCTEXT("TriPlanarWarning", "The TriPlanar modifier affects the selected materials (not UV)."))
+				SNew(SBox)
+				.ToolTipText(LOCTEXT("TriPlanarWorkaround", "You can manually duplicate the materials and assign to the different sections, so everything will not be affected by the TriPlanar."))
+				[
+					SNew(STextBlock)
+					.Margin(FMargin(5.0f, 0.0f))
+					.AutoWrapText(true)
+					.Text(LOCTEXT("TriPlanarWarning", "The TriPlanar modifier affects the selected materials (not UV)."))
+				]
 			]
 		]
 		+SVerticalBox::Slot()
@@ -88,6 +93,11 @@ void SUVProjectionTriPlanar::OnPreAlgorithmStart()
 	UpdateAlgorithmSettings();
 }
 
+bool SUVProjectionTriPlanar::RequiredManualApply() const
+{
+	return (false);
+}
+
 void SUVProjectionTriPlanar::InitTriPlanarSettings()
 {
 	Settings = NewObject<UTriPlanarSettings>();
@@ -99,12 +109,17 @@ void SUVProjectionTriPlanar::InitTriPlanarSettings()
 		, /*const bool InAllowSearch =*/ false
 		, /*const ENameAreaSettings InNameAreaSettings =*/ FDetailsViewArgs::ENameAreaSettings::HideNameArea
 		, /*const bool InHideSelectionTip =*/ false
-		, /*FNotifyHook* InNotifyHook =*/ NULL
+		, /*FNotifyHook* InNotifyHook =*/ this
 		, /*const bool InSearchInitialKeyFocus =*/ false
 		, /*FName InViewIdentifier =*/ NAME_None
 	);
 	SettingsDetailsView = propertyModule.CreateDetailView(detailsViewArgs);
 	SettingsDetailsView->SetObject(Settings, true);
+}
+
+void SUVProjectionTriPlanar::NotifyPostChange(const FPropertyChangedEvent& PropertyChangedEvent, FEditPropertyChain* PropertyThatChanged)
+{
+	StartAlgorithm();
 }
 
 void SUVProjectionTriPlanar::UpdateAlgorithmSettings()

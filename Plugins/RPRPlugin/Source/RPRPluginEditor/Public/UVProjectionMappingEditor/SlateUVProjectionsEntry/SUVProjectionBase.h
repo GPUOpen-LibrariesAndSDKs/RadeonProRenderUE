@@ -13,8 +13,6 @@
 #include "RPRStaticMeshEditor.h"
 #include "RPRMeshDataContainer.h"
 
-DECLARE_DELEGATE_TwoParams(FSectionWorker, FRPRMeshDataPtr /*MeshData*/, int32 /*SectionIndex*/)
-
 /*
  * Abstract class for UV Projection widgets
  */
@@ -62,8 +60,7 @@ protected:
 	virtual TSharedRef<SWidget>			GetAlgorithmSettingsWidget() = 0;
 	virtual void						OnAlgorithmCompleted(IUVProjectionAlgorithmPtr InAlgorithm, bool bIsSuccess) = 0;
 	virtual UShapePreviewBase*			GetShapePreview() = 0;
-
-	void	OnEachSelectedSection(FSectionWorker Worker);
+	virtual bool						RequiredManualApply() const;
 	
 private:
 
@@ -73,6 +70,7 @@ private:
 	void	AddShapePreviewToViewport();
 	void	SubscribeToAlgorithmCompletion();
 	FReply	OnApplyButtonClicked();
+	EVisibility	GetApplyButtonVisibility() const;
 
 protected:
 

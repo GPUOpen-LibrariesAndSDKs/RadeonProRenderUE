@@ -137,6 +137,20 @@ void FUVProjectionAlgorithmBase::FixInvalidUVsHorizontally(int32 MeshIndex)
 	}
 }
 
+void FUVProjectionAlgorithmBase::OnEachSelectedSection(FSectionWorker Worker)
+{
+	MeshDatas.OnEachMeshData([&Worker](FRPRMeshDataPtr MeshData)
+	{
+		for (int32 sectionIndex = 0; sectionIndex < MeshData->GetNumSections(); ++sectionIndex)
+		{
+			if (MeshData->GetMeshSection(sectionIndex).IsSelected())
+			{
+				Worker.Execute(MeshData, sectionIndex);
+			}
+		}
+	});
+}
+
 void FUVProjectionAlgorithmBase::FixTextureCoordinateOnLeftSideIfRequired(float& TextureCoordinate)
 {
 	if (TextureCoordinate < 0.5f)

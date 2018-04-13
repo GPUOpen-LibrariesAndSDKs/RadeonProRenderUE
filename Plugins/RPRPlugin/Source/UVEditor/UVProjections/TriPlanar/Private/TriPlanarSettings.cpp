@@ -5,5 +5,5 @@
 UTriPlanarSettings::UTriPlanarSettings()
 	: bUseTriPlanar(true)
 	, Scale(100.0f)
-	//, Angle(0.0f)
+	, Angle(0.0f)
 {}

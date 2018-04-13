@@ -80,6 +80,7 @@ void SUVProjectionBase::InitWidget()
 				.Text(LOCTEXT("ProjectButton", "Project"))
 				.OnClicked(this, &SUVProjectionBase::OnApplyButtonClicked)
 				.IsEnabled(this, &SUVProjectionBase::CanProject)
+				.Visibility(this, &SUVProjectionBase::GetApplyButtonVisibility)
 			]
 		];
 }
@@ -111,6 +112,11 @@ FReply SUVProjectionBase::OnApplyButtonClicked()
 {
 	StartAlgorithm();
 	return (FReply::Handled());
+}
+
+EVisibility SUVProjectionBase::GetApplyButtonVisibility() const
+{
+	return (RequiredManualApply() ? EVisibility::Visible : EVisibility::Collapsed);
 }
 
 FUVProjectionSettingsPtr SUVProjectionBase::GetUVProjectionSettings() const
@@ -170,24 +176,9 @@ bool SUVProjectionBase::CanProject() const
 	return (false);
 }
 
-void SUVProjectionBase::OnEachSelectedSection(FSectionWorker Worker)
+bool SUVProjectionBase::RequiredManualApply() const
 {
-	FRPRMeshDataContainerPtr meshDataPtr = RPRStaticMeshEditorPtr.Pin()->GetSelectedMeshes();
-	if (!meshDataPtr.IsValid())
-	{
-		return;
-	}
-
-	meshDataPtr->OnEachMeshData([&Worker](FRPRMeshDataPtr MeshData)
-	{
-		for (int32 sectionIndex = 0; sectionIndex < MeshData->GetNumSections(); ++sectionIndex)
-		{
-			if (MeshData->GetMeshSection(sectionIndex).IsSelected())
-			{
-				Worker.Execute(MeshData, sectionIndex);
-			}
-		}
-	});
+	return (true);
 }
 
 TSharedPtr<IDetailsView> SUVProjectionBase::CreateShapePreviewDetailView(FName ViewIdentifier)
