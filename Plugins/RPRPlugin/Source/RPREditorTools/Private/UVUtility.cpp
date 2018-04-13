@@ -133,3 +133,32 @@ bool FUVUtility::IsUVValid(const FVector2D& UV)
 	return FMath::IsFinite(UV.X) && FMath::IsFinite(UV.Y);
 }
 
+bool FUVUtility::FindUVRangeBySection(const TArray<int32>& FaceMaterialIndices, int32 SectionIndex, int32& OutStart, int32& OutEnd)
+{
+	const int32 NumVerticesPerTriangle = 3;
+
+	bool bHasStartBeenDefined = false;
+
+	OutStart = OutEnd = INDEX_NONE;
+
+	for (int32 sectionIndex = 0; sectionIndex < FaceMaterialIndices.Num(); ++sectionIndex)
+	{
+		if (FaceMaterialIndices[sectionIndex] == SectionIndex)
+		{
+			if (!bHasStartBeenDefined)
+			{
+				bHasStartBeenDefined = true;
+				OutStart = sectionIndex * NumVerticesPerTriangle;
+			}
+			else
+			{
+				OutEnd = sectionIndex;
+			}
+		}
+	}
+
+	// + 1 so we can use "<" instead of "<=" when doing a for loop
+	OutEnd = (OutEnd + 1) * NumVerticesPerTriangle;
+	return (bHasStartBeenDefined);
+}
+

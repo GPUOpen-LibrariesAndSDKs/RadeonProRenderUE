@@ -46,7 +46,7 @@ void FUVProjectionCylinderAlgo::ProjectVerticesToCylinder(int32 MeshIndex)
 		ProjectVertexToCylinder(vertex, uv);
 		FUVUtility::InvertUV(uv);
 
-		AddNewUVs(MeshIndex, uv);
+		SetNewUV(MeshIndex, tri, uv);
 	}
 }
 

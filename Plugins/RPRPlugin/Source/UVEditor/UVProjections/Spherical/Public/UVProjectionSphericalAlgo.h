@@ -27,6 +27,8 @@ public:
 private:
 
 	FSettings	Settings;
-	int32		CurrentMeshIndex;
 
+	int32		CurrentMeshIndex;
+	int32		CurrentStartSection;
+	int32		CurrentEndSection;
 };

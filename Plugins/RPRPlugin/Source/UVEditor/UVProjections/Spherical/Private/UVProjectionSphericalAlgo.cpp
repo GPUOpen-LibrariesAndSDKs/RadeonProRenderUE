@@ -13,23 +13,29 @@ FUVProjectionSphericalAlgo::FSettings::FSettings()
 
 void FUVProjectionSphericalAlgo::StartAlgorithm()
 {
-	FScopedSlowTask slowTask(MeshDatas.Num(), LOCTEXT("ProjectUV", "Project UV (Spherical)"));
+	FScopedSlowTask slowTask(MeshDatas.CountNumSelectedSections(), LOCTEXT("ProjectUV", "Project UV (Spherical)"));
 	slowTask.MakeDialogDelayed(0.5f);
 
 	FUVProjectionAlgorithmBase::StartAlgorithm();
 	PrepareUVs();
 
-	for (int32 meshIndex = 0; meshIndex < MeshDatas.Num(); ++meshIndex)
-	{
-		const FString meshName = MeshDatas[meshIndex]->GetStaticMesh()->GetName();
-		slowTask.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Project UV (Spherical) on mesh '%s'"), *meshName)));
+	OnEachSelectedSection(
+		FSectionWorker::CreateLambda([this, &slowTask](FRPRMeshDataPtr MeshData, int32 SectionIndex)
+		{
+			const FString meshName = MeshData->GetStaticMesh()->GetName();
+			slowTask.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Project UV (Spherical) on mesh '%s'"), *meshName)));
 
-		CurrentMeshIndex = meshIndex;
+			FRawMesh& rawMesh = MeshData->GetRawMesh();
 
-		FRawMesh& rawMesh = MeshDatas[meshIndex]->GetRawMesh();
-		ProjectVerticesOnSphere(rawMesh.VertexPositions, rawMesh.WedgeIndices);
-		FixInvalidUVsHorizontally(meshIndex);
-	}
+			if (FUVUtility::FindUVRangeBySection(rawMesh.FaceMaterialIndices, SectionIndex, CurrentStartSection, CurrentEndSection))
+			{
+				CurrentMeshIndex = MeshDatas.IndexOf(MeshData);
+
+				ProjectVerticesOnSphere(rawMesh.VertexPositions, rawMesh.WedgeIndices);
+				FixInvalidUVsHorizontally(CurrentMeshIndex, CurrentStartSection, CurrentEndSection);
+			}
+		})
+	);
 
 	StopAlgorithmAndRaiseCompletion(true);
 }
@@ -44,7 +50,7 @@ void FUVProjectionSphericalAlgo::ProjectVerticesOnSphere(TArray<FVector>& Vertex
 {
 	FVector2D newUV;
 
-	for (int32 indiceIdx = 0; indiceIdx < WedgeIndices.Num(); ++indiceIdx)
+	for (int32 indiceIdx = CurrentStartSection; indiceIdx < CurrentEndSection; ++indiceIdx)
 	{
 		const uint32 vertexIndice = WedgeIndices[indiceIdx];
 		const FVector& vertexPosition = VertexPositions[vertexIndice];
@@ -52,7 +58,7 @@ void FUVProjectionSphericalAlgo::ProjectVerticesOnSphere(TArray<FVector>& Vertex
 		ProjectVertexOnSphere(vertexPosition, newUV);
 		FUVUtility::InvertTextureCoordinate(newUV.X);
 
-		AddNewUVs(CurrentMeshIndex, newUV);
+		SetNewUV(CurrentMeshIndex, indiceIdx, newUV);
 	}
 }
 

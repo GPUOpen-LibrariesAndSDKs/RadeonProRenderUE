@@ -18,12 +18,12 @@ public:
 	virtual void StartAlgorithm() override;
 	virtual void Finalize() override;
 
-	void	StartCubicProjection(int32 MeshIndex);
+	void	StartCubicProjection(int32 MeshIndex, int32 SectionStart, int32 SectionEnd);
 	
 
 private:
 
-	void	ProjectUVAlongAxis(int32 MeshIndex, int32 VertexIndex, EAxis::Type AxisComponentA, EAxis::Type AxisComponentB);
+	void	ProjectUVAlongAxis(int32 MeshIndex, int32 TriangleIndex, int32 VertexIndex, EAxis::Type AxisComponentA, EAxis::Type AxisComponentB);
 	
 private:
 

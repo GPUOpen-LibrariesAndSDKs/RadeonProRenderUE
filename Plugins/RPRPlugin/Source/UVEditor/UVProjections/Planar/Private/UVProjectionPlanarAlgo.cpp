@@ -53,7 +53,7 @@ void FUVProjectionPlanarAlgo::ProjectVertexOnPlane(int32 MeshIndex)
 		newUV = centerOffset + Settings.Plane.ProjectToLocalCoordinates(vertexPosition) / (2.0f * Settings.Scale);
 		FUVUtility::InvertTextureCoordinate(newUV.Y);
 
-		AddNewUVs(MeshIndex, newUV);
+		SetNewUV(MeshIndex, indiceIdx, newUV);
 	}
 }
 

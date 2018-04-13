@@ -26,6 +26,18 @@ FRPRMeshDataPtr FRPRMeshDataContainer::Last() const
 	return (MeshDatas[MeshDatas.Num() - 1]);
 }
 
+int32 FRPRMeshDataContainer::IndexOf(FRPRMeshDataPtr MeshDataPtr) const
+{
+	for (int32 i = 0; i < MeshDatas.Num(); ++i)
+	{
+		if (MeshDatas[i] == MeshDataPtr)
+		{
+			return (i);
+		}
+	}
+	return (INDEX_NONE);
+}
+
 void FRPRMeshDataContainer::AppendFromStaticMeshes(const TArray<UStaticMesh*>& StaticMeshes)
 {
 	for (int32 i = 0; i < StaticMeshes.Num(); ++i)
@@ -84,6 +96,15 @@ bool FRPRMeshDataContainer::HasMeshesChangesNotCommitted() const
 	}
 
 	return (false);
+}
+
+int32 FRPRMeshDataContainer::CountNumSelectedSections() const
+{
+	int32 sum = 0;
+	OnEachMeshData([this, &sum] (const FRPRMeshDataPtr MeshData) {
+		sum += MeshData->CountNumSelectedSections();
+	});
+	return (sum);
 }
 
 FRPRMeshDataPtr FRPRMeshDataContainer::FindByPreview(URPRStaticMeshPreviewComponent* PreviewMeshComponent)

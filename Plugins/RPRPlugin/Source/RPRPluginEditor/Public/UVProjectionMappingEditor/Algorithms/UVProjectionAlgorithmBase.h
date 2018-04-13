@@ -46,7 +46,9 @@ protected:
 	void	ApplyUVsOnMesh();
 	void	SaveRawMesh();
 	void	AddNewUVs(int32 RawMeshIndex, const FVector2D& UV);
+	void	SetNewUV(int32 RawMeshIndex, int32 Index, const FVector2D& UV);
 	void	FixInvalidUVsHorizontally(int32 MeshIndex);
+	void	FixInvalidUVsHorizontally(int32 MeshIndex, int32 StartSection, int32 EndSection);
 
 	void	OnEachSelectedSection(FSectionWorker Worker);
 

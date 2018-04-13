@@ -29,12 +29,14 @@ public:
 	void	Empty(int32 Capacity = 0);
 	int32	Num() const;
 	FRPRMeshDataPtr	Last() const;
+	int32	IndexOf(FRPRMeshDataPtr MeshDataPtr) const;
 
 	void	AppendFromStaticMeshes(const TArray<class UStaticMesh*>& StaticMeshes);
 	void	RemoveInvalidStaticMeshes();
 	void	GetAllUV(TArray<int32>& MeshUVStartIndexes, TArray<FVector2D>& UVs, int32 UVChannel = 0) const;
 	FVector2D	GetUVBarycenter(int32 UVChannel = 0) const;
 	bool	HasMeshesChangesNotCommitted() const;
+	int32	CountNumSelectedSections() const;
 
 	DECLARE_BROADCAST(NotifyRawMeshChanges);
 	DECLARE_BROADCAST(NotifyStaticMeshChanges);

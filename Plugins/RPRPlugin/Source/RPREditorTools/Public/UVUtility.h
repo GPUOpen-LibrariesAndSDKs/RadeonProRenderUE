@@ -24,16 +24,19 @@ public:
 
 	static FVector2D	GetUVsCenter(const TArray<FVector2D>& UVs, int32 StartOffset = 0);
 
-	/* Add a new component to the UV. Will convert from XY to XZ. */
+	// Add a new component to the UV. Will convert from XY to XZ. 
 	static FVector		Convert2DTo3D(const FVector2D& UV);
 
-	/* Remove a component to the UV. Will convert from XZ to XY. */
+	// Remove a component to the UV. Will convert from XZ to XY. 
 	static FVector2D	Convert3DTo2D(const FVector& UV);
 
-	/* Apply a transform 3D on UV. The UV.XY must be represented as XZ on 3D so the transform make sense. */
+	// Apply a transform 3D on UV. The UV.XY must be represented as XZ on 3D so the transform make sense.
 	static FVector2D	ApplyTransform(const FTransform& Transform, const FVector2D& UV);
 
 	static bool			IsUVValid(const FVector2D& UV);
+
+	// Find the start/end of UV indexes for a specific section
+	static bool			FindUVRangeBySection(const TArray<int32>& FaceSectionIndexes, int32 SectionIndex, int32& OutStart, int32& OutEnd);
 
 public:
 

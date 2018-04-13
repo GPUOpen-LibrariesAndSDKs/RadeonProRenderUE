@@ -223,7 +223,7 @@ int32 FRPRMeshData::GetNumSections() const
 	return (StaticMesh.IsValid() ? StaticMesh->GetNumSections(lodIndex) : 0);
 }
 
-int32 FRPRMeshData::CountNumSections() const
+int32 FRPRMeshData::CountNumSelectedSections() const
 {
 	int32 counter = 0;
 	for (int32 i = 0; i < Sections.Num(); ++i)

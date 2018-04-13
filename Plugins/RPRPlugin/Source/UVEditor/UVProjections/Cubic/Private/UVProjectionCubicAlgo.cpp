@@ -8,19 +8,29 @@
 
 void FUVProjectionCubicAlgo::StartAlgorithm()
 {
-	FScopedSlowTask slowTask(MeshDatas.Num(), LOCTEXT("ProjectUV", "Project UV (Cubic)"));
+	FScopedSlowTask slowTask(MeshDatas.CountNumSelectedSections(), LOCTEXT("ProjectUV", "Project UV (Cubic)"));
 	slowTask.MakeDialogDelayed(0.5f);
 
 	FUVProjectionAlgorithmBase::StartAlgorithm();
 	PrepareUVs();
 
-	for (int32 meshIndex = 0; meshIndex < MeshDatas.Num(); ++meshIndex)
+	OnEachSelectedSection(FSectionWorker::CreateLambda([this, &slowTask](FRPRMeshDataPtr MeshData, int32 SectionIndex)
 	{
-		const FString meshName = MeshDatas[meshIndex]->GetStaticMesh()->GetName();
-		slowTask.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Project UV (Cubic) on mesh '%s'"), *meshName)));
+		const FString meshName = MeshData->GetStaticMesh()->GetName();
+		slowTask.EnterProgressFrame(1, 
+			FText::FromString(FString::Printf(TEXT("Project UV (Cubic) on mesh '%s' - Section %d"), 
+				*meshName, 
+				SectionIndex)
+			)
+		);
 
-		StartCubicProjection(meshIndex);
-	}
+		FRawMesh& rawMesh = MeshData->GetRawMesh();
+		int32 sectionStart, sectionEnd;
+		if (FUVUtility::FindUVRangeBySection(rawMesh.FaceMaterialIndices, SectionIndex, sectionStart, sectionEnd))
+		{
+			StartCubicProjection(MeshDatas.IndexOf(MeshData), sectionStart, sectionEnd);
+		}
+	}));
 
 	StopAlgorithmAndRaiseCompletion(true);
 }
@@ -31,7 +41,7 @@ void FUVProjectionCubicAlgo::Finalize()
 	SaveRawMesh();
 }
 
-void FUVProjectionCubicAlgo::StartCubicProjection(int32 MeshIndex)
+void FUVProjectionCubicAlgo::StartCubicProjection(int32 MeshIndex, int32 SectionStart, int32 SectionEnd)
 {
 	FRawMesh& rawMesh = MeshDatas[MeshIndex]->GetRawMesh();
 	TArray<uint32>& triangles = rawMesh.WedgeIndices;
@@ -40,11 +50,11 @@ void FUVProjectionCubicAlgo::StartCubicProjection(int32 MeshIndex)
 	
 	FQuat inverseCubeRotation = Settings.CubeTransform.GetRotation().Inverse();
 
-	for (int32 i = 0; i < triangles.Num(); i += 3)
+	for (int32 tri = SectionStart; tri < SectionEnd; tri += 3)
 	{
-		int32 triA = triangles[i];
-		int32 triB = triangles[i + 1];
-		int32 triC = triangles[i + 2];
+		int32 triA = triangles[tri];
+		int32 triB = triangles[tri + 1];
+		int32 triC = triangles[tri + 2];
 
 		const FVector& pA = rawMesh.VertexPositions[triA];
 		const FVector& pB = rawMesh.VertexPositions[triB];
@@ -57,13 +67,13 @@ void FUVProjectionCubicAlgo::StartCubicProjection(int32 MeshIndex)
 		FVector faceNormal = FRPRVectorTools::CalculateFaceNormal(pA, pB, pC);
 		FRPRVectorTools::GetDominantAxisComponents(faceNormal, dominantAxisComponentA, dominantAxisComponentB);
 
-		ProjectUVAlongAxis(MeshIndex, triA, dominantAxisComponentA, dominantAxisComponentB);
-		ProjectUVAlongAxis(MeshIndex, triB, dominantAxisComponentA, dominantAxisComponentB);
-		ProjectUVAlongAxis(MeshIndex, triC, dominantAxisComponentA, dominantAxisComponentB);
+		ProjectUVAlongAxis(MeshIndex, tri,		triA, dominantAxisComponentA, dominantAxisComponentB);
+		ProjectUVAlongAxis(MeshIndex, tri + 1,	triB, dominantAxisComponentA, dominantAxisComponentB);
+		ProjectUVAlongAxis(MeshIndex, tri + 2,	triC, dominantAxisComponentA, dominantAxisComponentB);
 	}
 }
 
-void FUVProjectionCubicAlgo::ProjectUVAlongAxis(int32 MeshIndex, int32 VertexIndex, EAxis::Type AxisComponentA, EAxis::Type AxisComponentB)
+void FUVProjectionCubicAlgo::ProjectUVAlongAxis(int32 MeshIndex, int32 TriangleIndex, int32 VertexIndex, EAxis::Type AxisComponentA, EAxis::Type AxisComponentB)
 {
 	FVector scale = Settings.CubeTransform.GetScale3D();
 	FVector origin = Settings.CubeTransform.GetLocation();
@@ -88,7 +98,7 @@ void FUVProjectionCubicAlgo::ProjectUVAlongAxis(int32 MeshIndex, int32 VertexInd
 
 	FUVUtility::InvertUV(uv);	
 
-	AddNewUVs(MeshIndex, uv);
+	SetNewUV(MeshIndex, TriangleIndex, uv);
 }
 
 

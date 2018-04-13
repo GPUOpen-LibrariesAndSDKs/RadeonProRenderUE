@@ -42,7 +42,7 @@ void FUVProjectionAlgorithmBase::PrepareUVs()
 	for (int32 i = 0; i < MeshDatas.Num(); ++i)
 	{
 		const FRawMesh& rawMesh = MeshDatas[i]->GetRawMesh();
-		NewUVs[i].Empty(rawMesh.WedgeIndices.Num());
+		NewUVs[i] = rawMesh.WedgeTexCoords[UVProjectionSettings->UVChannel];
 	}
 }
 
@@ -110,15 +110,27 @@ void FUVProjectionAlgorithmBase::AddNewUVs(int32 RawMeshIndex, const FVector2D& 
 	NewUVs[RawMeshIndex].Add(UV);
 }
 
+void FUVProjectionAlgorithmBase::SetNewUV(int32 RawMeshIndex, int32 Index, const FVector2D& UV)
+{
+	NewUVs[RawMeshIndex][Index] = UV;
+}
+
 void FUVProjectionAlgorithmBase::FixInvalidUVsHorizontally(int32 MeshIndex)
 {
+	FixInvalidUVsHorizontally(MeshIndex, 0, MeshDatas[MeshIndex]->GetRawMesh().WedgeIndices.Num());
+}
+
+void FUVProjectionAlgorithmBase::FixInvalidUVsHorizontally(int32 MeshIndex, int32 StartSection, int32 EndSection)
+{
+	// Check that we have a round number of triangles
+	check((EndSection - StartSection) % 3 == 0);
+
 	FRawMesh& rawMesh = MeshDatas[MeshIndex]->GetRawMesh();
 	FUVPack& uv = NewUVs[MeshIndex];
 
 	const TArray<uint32> triangles = rawMesh.WedgeIndices;
-	int32 materialIndex = 0;
 
-	for (int32 tri = 0 ; tri < triangles.Num() ; tri += 3)
+	for (int32 tri = StartSection; tri < EndSection; tri += 3)
 	{
 		FVector2D uvA = uv[tri];
 		FVector2D uvB = uv[tri + 1];
