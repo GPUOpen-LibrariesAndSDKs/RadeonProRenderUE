@@ -17,14 +17,21 @@ void FUVProjectionPlanarAlgo::StartAlgorithm()
 
 	FUVProjectionAlgorithmBase::StartAlgorithm();
 	PrepareUVs();
-
-	for (int32 meshIndex = 0; meshIndex < MeshDatas.Num(); ++meshIndex)
+	
+	OnEachSelectedSection(FSectionWorker::CreateLambda([this, &slowTask](FRPRMeshDataPtr MeshData, int32 SectionIndex)
 	{
-		const FString meshName = MeshDatas[meshIndex]->GetStaticMesh()->GetName();
-		slowTask.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Project UV (Planar) on mesh '%s'"), *meshName)));
+		const FString meshName = MeshData->GetStaticMesh()->GetName();
+		slowTask.EnterProgressFrame(1, 
+			FText::FromString(FString::Printf(TEXT("Project UV (Planar) on mesh '%s' - Section %d"), *meshName, SectionIndex))
+		);
 
-		ProjectVertexOnPlane(meshIndex);
-	}
+		int32 startSection, endSection;
+		if (FUVUtility::FindUVRangeBySection(MeshData->GetRawMesh().FaceMaterialIndices, SectionIndex, startSection, endSection))
+		{
+			int32 meshIndex = MeshDatas.IndexOf(MeshData);
+			ProjectVertexOnPlane(meshIndex, startSection, endSection);
+		}
+	}));
 
 	StopAlgorithmAndRaiseCompletion(true);
 }
@@ -35,7 +42,7 @@ void FUVProjectionPlanarAlgo::Finalize()
 	SaveRawMesh();
 }
 
-void FUVProjectionPlanarAlgo::ProjectVertexOnPlane(int32 MeshIndex)
+void FUVProjectionPlanarAlgo::ProjectVertexOnPlane(int32 MeshIndex, int32 StartSection, int32 EndSection)
 {
 	FVector2D newUV;
 	FVector2D centerOffset(0.5f, 0.5f);
@@ -45,7 +52,7 @@ void FUVProjectionPlanarAlgo::ProjectVertexOnPlane(int32 MeshIndex)
 	const TArray<uint32>& triangles = rawMesh.WedgeIndices;
 	const TArray<FVector>& vertices = rawMesh.VertexPositions;
 
-	for (int32 indiceIdx = 0; indiceIdx < triangles.Num(); ++indiceIdx)
+	for (int32 indiceIdx = StartSection; indiceIdx < EndSection; ++indiceIdx)
 	{
 		const uint32 vertexIndex = triangles[indiceIdx];
 		const FVector& vertexPosition = vertices[vertexIndex];

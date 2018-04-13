@@ -23,7 +23,7 @@ public:
 
 private:
 
-	void	ProjectVertexOnPlane(int32 MeshIndex);
+	void	ProjectVertexOnPlane(int32 MeshIndex, int32 StartSection, int32 EndSection);
 	
 
 private:
