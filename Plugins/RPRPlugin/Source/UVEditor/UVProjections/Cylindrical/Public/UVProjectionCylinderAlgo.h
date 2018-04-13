@@ -23,7 +23,7 @@ public:
 
 private:
 
-	void	ProjectVerticesToCylinder(int32 MeshIndex);
+	void	ProjectVerticesToCylinder(int32 MeshIndex, int32 StartSection, int32 EndSection);
 	void	ProjectVertexToCylinder(const FVector& Vertex, FVector2D& OutUV);
 
 

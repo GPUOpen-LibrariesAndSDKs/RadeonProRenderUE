@@ -7,20 +7,27 @@
 
 void FUVProjectionCylinderAlgo::StartAlgorithm()
 {
-	FScopedSlowTask slowTask(MeshDatas.Num(), LOCTEXT("ProjectUV", "Project UV (Cylinder)"));
+	FScopedSlowTask slowTask(MeshDatas.CountNumSelectedSections(), LOCTEXT("ProjectUV", "Project UV (Cylinder)"));
 	slowTask.MakeDialogDelayed(0.5f);
 
 	FUVProjectionAlgorithmBase::StartAlgorithm();
 	PrepareUVs();
 
-	for (int32 meshIndex = 0; meshIndex < MeshDatas.Num(); ++meshIndex)
+	OnEachSelectedSection(FSectionWorker::CreateLambda([this, &slowTask](FRPRMeshDataPtr MeshData, int32 SectionIndex)
 	{
-		const FString meshName = MeshDatas[meshIndex]->GetStaticMesh()->GetName();
-		slowTask.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Project UV (Cylinder) on mesh '%s'"), *meshName)));
+		const FString meshName = MeshData->GetStaticMesh()->GetName();
+		slowTask.EnterProgressFrame(1, 
+			FText::FromString(FString::Printf(TEXT("Project UV (Cylinder) on mesh '%s' - Section %d"), *meshName, SectionIndex))
+		);
 		
-		ProjectVerticesToCylinder(meshIndex);
-		FixInvalidUVsHorizontally(meshIndex);
-	}
+		int32 startSection, endSection;
+		if (FUVUtility::FindUVRangeBySection(MeshData->GetRawMesh().FaceMaterialIndices, SectionIndex, startSection, endSection))
+		{
+			int32 meshIndex = MeshDatas.IndexOf(MeshData);
+			ProjectVerticesToCylinder(meshIndex, startSection, endSection);
+			FixInvalidUVsHorizontally(meshIndex, startSection, endSection);
+		}
+	}));
 
 	StopAlgorithmAndRaiseCompletion(true);
 }
@@ -31,14 +38,14 @@ void FUVProjectionCylinderAlgo::Finalize()
 	SaveRawMesh();
 }
 
-void FUVProjectionCylinderAlgo::ProjectVerticesToCylinder(int32 MeshIndex)
+void FUVProjectionCylinderAlgo::ProjectVerticesToCylinder(int32 MeshIndex, int32 StartSection, int32 EndSection)
 {
 	FVector2D uv;
 	FRawMesh& rawMesh = MeshDatas[MeshIndex]->GetRawMesh();
 
 	const TArray<FVector>& vertices = rawMesh.VertexPositions;
 	const TArray<uint32>& triangles = rawMesh.WedgeIndices;
-	for (int32 tri = 0; tri < triangles.Num(); ++tri)
+	for (int32 tri = StartSection; tri < EndSection; ++tri)
 	{
 		const uint32 vertexIndice = triangles[tri];
 		const FVector& vertex = vertices[vertexIndice];
