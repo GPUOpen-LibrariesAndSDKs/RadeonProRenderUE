@@ -15,7 +15,6 @@
 #include "SharedPointer.h"
 #include "RPRStaticMeshDetailCustomization.h"
 #include "RPRStaticMeshEditorModesWindow.h"
-#include "RPRStaticMeshEditorModeManager.h"
 
 #define LOCTEXT_NAMESPACE "RPRStaticMeshEditor"
 
@@ -83,14 +82,14 @@ void FRPRStaticMeshEditor::InitializeWidgets()
 void FRPRStaticMeshEditor::InitializeViewport()
 {
 	Viewport = SNew(SRPRStaticMeshEditorViewport)
-		.StaticMeshEditor(SharedThis(this));
+		.StaticMeshEditor(AsSharedEditor());
 }
 
 void FRPRStaticMeshEditor::InitializeUVProjectionMappingEditor()
 {
 	UVProjectionMappingEditor = SNew(SUVProjectionMappingEditor)
-		.RPRStaticMeshEditor(SharedThis(this))
-		.OnProjectionApplied(this, &FRPRStaticMeshEditor::OnProjectionCompleted);
+		.RPRStaticMeshEditor(AsSharedEditor())
+		.OnProjectionApplied(AsSharedEditor(), &FRPRStaticMeshEditor::OnProjectionCompleted);
 }
 
 void FRPRStaticMeshEditor::InitializeUVVisualizer()
@@ -103,7 +102,7 @@ void FRPRStaticMeshEditor::InitializeSceneComponentsOutliner()
 {
 	SceneComponentsOutliner = SNew(SSceneComponentsOutliner)
 		.MeshDatas(MeshDatas)
-		.OnSelectionChanged(this, &FRPRStaticMeshEditor::OnSceneComponentOutlinerSelectionChanged);
+		.OnSelectionChanged(AsSharedEditor(), &FRPRStaticMeshEditor::OnSceneComponentOutlinerSelectionChanged);
 
 	SceneComponentsOutliner->SelectAll();
 }
@@ -126,7 +125,7 @@ void FRPRStaticMeshEditor::InitializePropertiesView()
 	PropertiesDetailsView = propertyModule.CreateDetailView(detailsView);
 
 	FOnGetDetailCustomizationInstance layoutCustom =
-		FOnGetDetailCustomizationInstance::CreateSP(this, &FRPRStaticMeshEditor::MakeStaticMeshDetails);
+		FOnGetDetailCustomizationInstance::CreateSP(AsSharedEditor(), &FRPRStaticMeshEditor::MakeStaticMeshDetails);
 
 	PropertiesDetailsView->RegisterInstancedCustomPropertyLayout(UStaticMesh::StaticClass(), layoutCustom);
 	PropertiesDetailsView->SetObjects(GetSelectedMeshes()->GetStaticMeshesAsObjects());
@@ -134,7 +133,7 @@ void FRPRStaticMeshEditor::InitializePropertiesView()
 
 void FRPRStaticMeshEditor::InitializeEditorModes()
 {
-	ModesEditor = MakeShareable(new FRPRStaticMeshEditorModesWindow(this));
+	ModesEditor = MakeShareable(new FRPRStaticMeshEditorModesWindow(AsSharedEditor()));
 	ModesEditor->BindCommands();
 }
 
@@ -233,7 +232,7 @@ void FRPRStaticMeshEditor::WatchSectionSelectionChanges()
 		for (int32 sectionIndex = 0; sectionIndex < MeshData->GetNumSections(); ++sectionIndex)
 		{
 			FRPRMeshSection& section = MeshData->GetMeshSection(sectionIndex);
-			section.OnSelectionStateChanged().AddSP(this, &FRPRStaticMeshEditor::OnSectionSelectionChanged);
+			section.OnSelectionStateChanged().AddSP(AsSharedEditor(), &FRPRStaticMeshEditor::OnSectionSelectionChanged);
 		}
 	});
 }
@@ -251,31 +250,32 @@ void FRPRStaticMeshEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& In
 
 	FAssetEditorToolkit::RegisterTabSpawners(InTabManager);
 
-	InTabManager->RegisterTabSpawner(ViewportTabId, FOnSpawnTab::CreateSP(this, &FRPRStaticMeshEditor::SpawnTab_Viewport))
+	auto thisPtr = AsSharedEditor();
+	InTabManager->RegisterTabSpawner(ViewportTabId, FOnSpawnTab::CreateSP(thisPtr, &FRPRStaticMeshEditor::SpawnTab_Viewport))
 		.SetDisplayName(LOCTEXT("ViewportTab", "Viewport"))
 		.SetGroup(WorkspaceMenuCategoryRef)
 		.SetIcon(FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.Tabs.Viewports"));
 
-	InTabManager->RegisterTabSpawner(UVProjectionMappingEditorTabId, FOnSpawnTab::CreateSP(this, &FRPRStaticMeshEditor::SpawnTab_UVProjectionMappingEditor))
+	InTabManager->RegisterTabSpawner(UVProjectionMappingEditorTabId, FOnSpawnTab::CreateSP(thisPtr, &FRPRStaticMeshEditor::SpawnTab_UVProjectionMappingEditor))
 		.SetDisplayName(LOCTEXT("UVMappingEditor", "UV Projection"))
 		.SetGroup(WorkspaceMenuCategoryRef);
 
-	InTabManager->RegisterTabSpawner(UVVisualizerTabId, FOnSpawnTab::CreateSP(this, &FRPRStaticMeshEditor::SpawnTab_UVVisualizer))
+	InTabManager->RegisterTabSpawner(UVVisualizerTabId, FOnSpawnTab::CreateSP(thisPtr, &FRPRStaticMeshEditor::SpawnTab_UVVisualizer))
 		.SetDisplayName(LOCTEXT("UVVisualizer", "UV Visualizer"))
 		.SetGroup(WorkspaceMenuCategoryRef)
 		.SetIcon(FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.Tabs.Viewports"));
 
-	InTabManager->RegisterTabSpawner(SceneComponentsOutlinerTabId, FOnSpawnTab::CreateSP(this, &FRPRStaticMeshEditor::SpawnTab_SceneComponentsOutliner))
+	InTabManager->RegisterTabSpawner(SceneComponentsOutlinerTabId, FOnSpawnTab::CreateSP(thisPtr, &FRPRStaticMeshEditor::SpawnTab_SceneComponentsOutliner))
 		.SetDisplayName(LOCTEXT("SceneComponentsOutliner", "Scene Outliner"))
 		.SetGroup(WorkspaceMenuCategoryRef)
 		.SetIcon(FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.Tabs.Outliner"));
 
-	InTabManager->RegisterTabSpawner(PropertiesTabId, FOnSpawnTab::CreateSP(this, &FRPRStaticMeshEditor::SpawnTab_Properties))
+	InTabManager->RegisterTabSpawner(PropertiesTabId, FOnSpawnTab::CreateSP(thisPtr, &FRPRStaticMeshEditor::SpawnTab_Properties))
 		.SetDisplayName(LOCTEXT("Properties", "Properties"))
 		.SetGroup(WorkspaceMenuCategoryRef)
 		.SetIcon(FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.Tabs.Details"));
 
-	InTabManager->RegisterTabSpawner(ModesTabId, FOnSpawnTab::CreateSP(this, &FRPRStaticMeshEditor::SpawnTab_Modes))
+	InTabManager->RegisterTabSpawner(ModesTabId, FOnSpawnTab::CreateSP(thisPtr, &FRPRStaticMeshEditor::SpawnTab_Modes))
 		.SetDisplayName(LOCTEXT("Modes", "Modes"))
 		.SetGroup(WorkspaceMenuCategoryRef)
 		.SetIcon(FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.Tabs.Details"));
@@ -344,11 +344,6 @@ bool FRPRStaticMeshEditor::IsPrimaryEditor() const
 	return (false);
 }
 
-FEdMode* FRPRStaticMeshEditor::GetEditorMode() const
-{
-	return (CurrentMode.Get());
-}
-
 void FRPRStaticMeshEditor::AddReferencedObjects(FReferenceCollector& Collector)
 {
 	TArray<UStaticMesh*> staticMeshes = MeshDatas->GetStaticMeshes();
@@ -400,12 +395,18 @@ void FRPRStaticMeshEditor::RefreshViewport()
 	}
 }
 
-void FRPRStaticMeshEditor::SetMode(FEditorModeID ModeID)
+TSharedRef<FRPRStaticMeshEditor> FRPRStaticMeshEditor::AsSharedEditor()
 {
-	FRPRStaticMeshEditorModeManager& modeManager = FRPRStaticMeshEditorModeManager::Get();
-	TSharedPtr<FEdMode> mode = modeManager.FindMode(ModeID);
+	return (StaticCastSharedRef<FRPRStaticMeshEditor>(AsShared()));
+}
 
-	CurrentMode = mode;
+TSharedPtr<FEditorViewportClient> FRPRStaticMeshEditor::GetMainViewportClient() const
+{
+	if (Viewport.IsValid())
+	{
+		return (Viewport->GetViewportClient());
+	}
+	return (nullptr);
 }
 
 const FRPRStaticMeshEditorModesCommands& FRPRStaticMeshEditor::GetModeCommands() const

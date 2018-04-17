@@ -60,6 +60,10 @@
 			"Type": "Editor"			
 		},
 		{
+			"Name": "RPRSectionsManager",
+			"Type": "Editor"
+		},
+		{
 			"Name": "Outliners",
 			"Type": "Editor"
 		}

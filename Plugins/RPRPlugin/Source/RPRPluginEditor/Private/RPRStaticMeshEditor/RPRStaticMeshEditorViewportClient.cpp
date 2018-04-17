@@ -10,6 +10,9 @@
 #include "ThumbnailRendering/SceneThumbnailInfo.h"
 #include "ShapePreviewProxy.h"
 #include "Matrix.h"
+#include "EditorModes.h"
+#include "EditorModeManager.h"
+#include "EditorViewportClient.h"
 
 #define LOCTEXT_NAMESPACE "RPRStaticMeshEditorViewportClient"
 
@@ -41,6 +44,9 @@ FRPRStaticMeshEditorViewportClient::FRPRStaticMeshEditorViewportClient(TWeakPtr<
 	DrawHelper.GridColorMinor = FColor(128, 128, 128);
 	DrawHelper.PerspectiveGridSize = GridSize;
 	DrawHelper.NumCells = DrawHelper.PerspectiveGridSize / (CellSize * 2);
+
+	GetModeTools()->SetDefaultMode(FBuiltinEditorModes::EM_Default);
+	GetModeTools()->ActivateDefaultMode();
 
 	SetViewMode(VMI_Lit);
 

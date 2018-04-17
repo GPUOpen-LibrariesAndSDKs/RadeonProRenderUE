@@ -30,12 +30,12 @@ public:
 	virtual FString GetWorldCentricTabPrefix() const override;
 	virtual FLinearColor GetWorldCentricTabColorScale() const override;
 	virtual bool IsPrimaryEditor() const override;
-	virtual FEdMode* GetEditorMode() const override;
 	
 	virtual void	AddReferencedObjects(FReferenceCollector& Collector) override;
 	
-	FORCEINLINE FRPRMeshDataContainerPtr	GetMeshDatas() const { return (MeshDatas); }
+	FORCEINLINE FRPRMeshDataContainerPtr		GetMeshDatas() const { return (MeshDatas); }
 	const FRPRStaticMeshEditorModesCommands&	GetModeCommands() const;
+	TSharedPtr<FEditorViewportClient>			GetMainViewportClient() const;
 
 	FRPRMeshDataContainerPtr		GetSelectedMeshes() const;
 	FRPRStaticMeshEditorSelection&	GetSelectionSystem();
@@ -43,11 +43,11 @@ public:
 	void	AddComponentToViewport(UActorComponent* InComponent, bool bSelectComponent = true);
 	void	GetMeshesBounds(FVector& OutCenter, FVector& OutExtents);
 	void	RefreshViewport();
-	void	SetMode(FEditorModeID ModeID);
 
 	DECLARE_EVENT(FRPRStaticMeshEditor, FOnSelectionChanged)
 	FOnSelectionChanged&	OnSelectionChanged() { return OnSelectionChangedEvent; }
 
+	TSharedRef<FRPRStaticMeshEditor>	AsSharedEditor();
 
 private:
 
@@ -82,8 +82,6 @@ private:
 private:
 
 	FRPRMeshDataContainerPtr	MeshDatas;
-
-	TSharedPtr<FEdMode>	CurrentMode;
 
 	TSharedPtr<class SRPRStaticMeshEditorViewport>		Viewport;
 	TSharedPtr<class SUVProjectionMappingEditor>		UVProjectionMappingEditor;

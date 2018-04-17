@@ -15,24 +15,24 @@ DEFINE_LOG_CATEGORY(LogRPRMaterialEditor)
 
 #define LOCTEXT_NAMESPACE "RPRMaterialEditorModule"
 
-void RPRMaterialEditorModule::StartupModule()
+void FRPRMaterialEditorModule::StartupModule()
 {
 	RegisterAssetTypeActions();
 	RegisterCustomPropertyLayouts();
 }
 
-void RPRMaterialEditorModule::ShutdownModule()
+void FRPRMaterialEditorModule::ShutdownModule()
 {
 	UnregisterAllAssetTypeActions();
 }
 
-const FString& RPRMaterialEditorModule::GetPluginName()
+const FString& FRPRMaterialEditorModule::GetPluginName()
 {
 	static FString pluginName(TEXT("RPRPlugin"));
 	return (pluginName);
 }
 
-void RPRMaterialEditorModule::RegisterAssetTypeActions()
+void FRPRMaterialEditorModule::RegisterAssetTypeActions()
 {
 	IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
 
@@ -44,7 +44,7 @@ void RPRMaterialEditorModule::RegisterAssetTypeActions()
 	}
 }
 
-void RPRMaterialEditorModule::UnregisterAllAssetTypeActions()
+void FRPRMaterialEditorModule::UnregisterAllAssetTypeActions()
 {
 	if (FModuleManager::Get().IsModuleLoaded("AssetTools"))
 	{
@@ -60,7 +60,7 @@ void RPRMaterialEditorModule::UnregisterAllAssetTypeActions()
 	}
 }
 
-void RPRMaterialEditorModule::RegisterCustomPropertyLayouts()
+void FRPRMaterialEditorModule::RegisterCustomPropertyLayouts()
 {
 	FPropertyEditorModule& propertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 
@@ -79,4 +79,4 @@ void RPRMaterialEditorModule::RegisterCustomPropertyLayouts()
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(RPRMaterialEditorModule, RPRMaterialEditor);
+IMPLEMENT_MODULE(FRPRMaterialEditorModule, RPRMaterialEditor);

@@ -6,10 +6,10 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRPRMaterialEditor, All, All);
 
-class FRPRMaterialEditorModule : public IModuleInterface
+class FRPRSectionsManager : public IModuleInterface
 {
 public:
-	virtual ~FRPRMaterialEditorModule() {}
+	virtual ~FRPRSectionsManager() {}
 
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;

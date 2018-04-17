@@ -5,10 +5,17 @@
 #include "MultiBoxDefs.h"
 #include "MultiBoxBuilder.h"
 #include "EditorStyleSet.h"
+#include <EditorViewportClient.h>
+#include <EditorModeManager.h>
+#include "SBoxPanel.h"
+#include "SUVProjectionMappingEditor.h"
+#include "EditorModes.h"
+#include "SRPRSectionsManager.h"
+#include "RPRSectionsManagerMode.h"
 
 #define LOCTEXT_NAMESPACE
 
-FRPRStaticMeshEditorModesWindow::FRPRStaticMeshEditorModesWindow(FRPRStaticMeshEditor* InStaticMeshEditor)
+FRPRStaticMeshEditorModesWindow::FRPRStaticMeshEditorModesWindow(TSharedPtr<FRPRStaticMeshEditor> InStaticMeshEditor)
 	: StaticMeshEditor(InStaticMeshEditor)
 {
 	CommandList = MakeShareable(new FUICommandList);
@@ -20,17 +27,16 @@ void FRPRStaticMeshEditorModesWindow::BindCommands()
 
 	CommandList->MapAction(
 		commands.Mode_UVModifier,
-		FExecuteAction::CreateSP(this, &FRPRStaticMeshEditorModesWindow::OnSelectMode, FName(TEXT("Mode_UVModifier"))),
+		FExecuteAction::CreateSP(this, &FRPRStaticMeshEditorModesWindow::OnSelectMode, FBuiltinEditorModes::EM_Default),
 		FCanExecuteAction(),
-		FIsActionChecked::CreateSP(this, &FRPRStaticMeshEditorModesWindow::IsModeSelected, FName(TEXT("Mode_UVModifier")))
+		FIsActionChecked::CreateSP(this, &FRPRStaticMeshEditorModesWindow::IsModeSelected, FBuiltinEditorModes::EM_Default)
 	);
 
-	// Todo : Move mode name to its own class
 	CommandList->MapAction(
 		commands.Mode_SectionsManagement,
-		FExecuteAction::CreateSP(this, &FRPRStaticMeshEditorModesWindow::OnSelectMode, FName(TEXT("Mode_SectionsManagement"))),
+		FExecuteAction::CreateSP(this, &FRPRStaticMeshEditorModesWindow::OnSelectMode, FRPRSectionsManagerMode::EM_SectionsManagerModeID),
 		FCanExecuteAction(),
-		FIsActionChecked::CreateSP(this, &FRPRStaticMeshEditorModesWindow::IsModeSelected, FName(TEXT("Mode_SectionsManagement")))
+		FIsActionChecked::CreateSP(this, &FRPRStaticMeshEditorModesWindow::IsModeSelected, FRPRSectionsManagerMode::EM_SectionsManagerModeID)
 	);
 }
 
@@ -49,18 +55,61 @@ TSharedRef<SWidget> FRPRStaticMeshEditorModesWindow::MakeWidget()
 			builder.AddToolBarButton(commandInfos[i]);
 		}
 	}
-	return builder.MakeWidget();
+
+	return 
+		SNew(SVerticalBox)
+		+SVerticalBox::Slot()
+		.AutoHeight()
+		[
+			builder.MakeWidget()
+		]
+		+SVerticalBox::Slot()
+		[
+			SAssignNew(ModeWidget, SWidgetSwitcher)
+			+SWidgetSwitcher::Slot()
+			[
+				SNew(SUVProjectionMappingEditor)
+				.RPRStaticMeshEditor(StaticMeshEditor)
+			]
+			+SWidgetSwitcher::Slot()
+			[
+				SNew(SRPRSectionsManager)
+			]
+		]
+	;
 }
 
 void FRPRStaticMeshEditorModesWindow::OnSelectMode(FEditorModeID Mode)
 {
-	StaticMeshEditor->SetMode(Mode);
+	auto viewportClient = GetMainViewportClient();
+	if (viewportClient.IsValid())
+	{
+		viewportClient->GetModeTools()->ActivateMode(Mode);
+	}
+
+	if (Mode == FBuiltinEditorModes::EM_Default)
+	{
+		ModeWidget->SetActiveWidgetIndex(0);
+	}
+	else
+	{
+		ModeWidget->SetActiveWidgetIndex(1);
+	}
 }
 
 bool FRPRStaticMeshEditorModesWindow::IsModeSelected(FEditorModeID Mode) const
 {
-	FEdMode* mode = StaticMeshEditor->GetEditorMode();
-	return (mode != nullptr ? mode->GetID() == Mode : false);
+	auto viewportClient = GetMainViewportClient();
+	if (viewportClient.IsValid())
+	{
+		return (viewportClient->GetModeTools()->IsModeActive(Mode));
+	}
+	return (false);
+}
+
+TSharedPtr<FEditorViewportClient> FRPRStaticMeshEditorModesWindow::GetMainViewportClient() const
+{
+	return StaticMeshEditor->GetMainViewportClient();
 }
 
 #undef LOCTEXT_NAMESPACE
