@@ -66,7 +66,7 @@ TSharedRef<SWidget> SUVProjectionTriPlanar::GetAlgorithmSettingsWidget()
 					SNew(STextBlock)
 					.Margin(FMargin(5.0f, 0.0f))
 					.AutoWrapText(true)
-					.Text(LOCTEXT("TriPlanarWarning", "The TriPlanar modifier affects the selected materials (not UV)."))
+					.Text(LOCTEXT("TriPlanarWarning", "The TriPlanar modifier only affects the selected RPR materials (not UV)."))
 				]
 			]
 		]

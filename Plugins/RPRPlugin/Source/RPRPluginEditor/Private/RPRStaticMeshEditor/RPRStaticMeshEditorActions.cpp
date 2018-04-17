@@ -6,10 +6,9 @@
 FRPRStaticMeshEditorActions::FRPRStaticMeshEditorActions()
 	: TCommands<FRPRStaticMeshEditorActions>(
 		"RPRStaticMeshEditor",
-		LOCTEXT("RPRStaticMeshEditorActions", "RPR Static Editor"),
+		LOCTEXT("RPRStaticMeshEditorActions", "RPR Static Mesh Editor"),
 		"RPR Static Mesh Editor",
-		FEditorStyle::GetStyleSetName()
-		)
+		FEditorStyle::GetStyleSetName())
 {}
 
 void FRPRStaticMeshEditorActions::RegisterCommands()

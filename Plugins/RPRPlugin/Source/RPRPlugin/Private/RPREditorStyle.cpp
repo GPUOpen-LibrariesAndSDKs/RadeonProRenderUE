@@ -32,6 +32,7 @@ TSharedRef<FSlateStyleSet>	FRPREditorStyle::Create()
 	TSharedRef< FSlateStyleSet >	styleRef = editorStyle.CreateEditorStyleInstance();
 	FSlateStyleSet					&style = styleRef.Get();
 
+	const FVector2D	Icon40x40(40.0f, 40.0f);
 	const FVector2D	Icon20x20(20.0f, 20.0f);
 	const FVector2D	Icon16x16(16.0f, 16.0f);
 
@@ -67,6 +68,14 @@ TSharedRef<FSlateStyleSet>	FRPREditorStyle::Create()
 
 	style.Set("RPRViewport.Trace", new IMAGE_BRUSH("Icons/icon_tab_Stats_40x", Icon20x20));
 	style.Set("RPRViewport.Trace.Small", new IMAGE_BRUSH("Icons/icon_tab_Stats_16x", Icon16x16));
+
+#if WITH_EDITOR
+	style.Set("RPRStaticMeshEditor.Mode_UVModifier", new IMAGE_BRUSH("Icons/icon_StaticMeshEd_UVOverlay_40x", Icon40x40));
+	style.Set("RPRStaticMeshEditor.Mode_UVModifier.Small", new IMAGE_BRUSH("Icons/icon_StaticMeshEd_UVOverlay_40x", Icon20x20));
+
+	style.Set("RPRStaticMeshEditor.Mode_SectionsManagement", new IMAGE_BRUSH("Icons/icon_StaticMeshEd_Wireframe_40x", Icon40x40));
+	style.Set("RPRStaticMeshEditor.Mode_SectionsManagement.Small", new IMAGE_BRUSH("Icons/icon_StaticMeshEd_Wireframe_40x", Icon20x20));
+#endif
 
 	return styleRef;
 }

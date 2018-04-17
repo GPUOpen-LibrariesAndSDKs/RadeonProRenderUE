@@ -13,4 +13,10 @@ namespace RPR
 	{
 		return (const_cast<T&>(item));
 	}
+
+	template<typename T>
+	T* ConstRefAway(const T* item)
+	{
+		return (const_cast<T*>(item));
+	}
 }

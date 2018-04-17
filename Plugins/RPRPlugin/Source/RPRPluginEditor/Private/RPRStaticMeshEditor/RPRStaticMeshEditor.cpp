@@ -14,6 +14,8 @@
 #include "IDetailCustomization.h"
 #include "SharedPointer.h"
 #include "RPRStaticMeshDetailCustomization.h"
+#include "RPRStaticMeshEditorModesWindow.h"
+#include "RPRStaticMeshEditorModeManager.h"
 
 #define LOCTEXT_NAMESPACE "RPRStaticMeshEditor"
 
@@ -24,6 +26,8 @@ const FName FRPRStaticMeshEditor::UVProjectionMappingEditorTabId(TEXT("RPRStatic
 const FName FRPRStaticMeshEditor::UVVisualizerTabId(TEXT("RPRStaticMeshEditor_UVVisualizer"));
 const FName FRPRStaticMeshEditor::SceneComponentsOutlinerTabId(TEXT("RPRStaticMeshEditor_SceneComponentsOutliner"));
 const FName FRPRStaticMeshEditor::PropertiesTabId(TEXT("RPRStaticMeshEditor_Properties"));
+const FName FRPRStaticMeshEditor::ModesTabId(TEXT("RPRStaticMeshEditor_Modes"));
+
 
 TSharedPtr<FRPRStaticMeshEditor> FRPRStaticMeshEditor::CreateRPRStaticMeshEditor(const TArray<UStaticMesh*>& StaticMeshes)
 {
@@ -35,6 +39,7 @@ TSharedPtr<FRPRStaticMeshEditor> FRPRStaticMeshEditor::CreateRPRStaticMeshEditor
 void FRPRStaticMeshEditor::InitRPRStaticMeshEditor(const TArray<UStaticMesh*>& InStaticMeshes)
 {
 	FRPRStaticMeshEditorActions::Register();
+	FRPRStaticMeshEditorModesCommands::Register();
 
 	MeshDatas = MakeShareable(new FRPRMeshDataContainer);
 	MeshDatas->AppendFromStaticMeshes(InStaticMeshes);
@@ -72,6 +77,7 @@ void FRPRStaticMeshEditor::InitializeWidgets()
 	InitializeUVVisualizer();
 	InitializeSceneComponentsOutliner();
 	InitializePropertiesView();
+	InitializeEditorModes();
 }
 
 void FRPRStaticMeshEditor::InitializeViewport()
@@ -126,9 +132,15 @@ void FRPRStaticMeshEditor::InitializePropertiesView()
 	PropertiesDetailsView->SetObjects(GetSelectedMeshes()->GetStaticMeshesAsObjects());
 }
 
+void FRPRStaticMeshEditor::InitializeEditorModes()
+{
+	ModesEditor = MakeShareable(new FRPRStaticMeshEditorModesWindow(this));
+	ModesEditor->BindCommands();
+}
+
 TSharedPtr<FTabManager::FLayout>	FRPRStaticMeshEditor::GenerateDefaultLayout()
 {
-	return FTabManager::NewLayout("Standalone_RPRStaticMeshEditor_Layout_v2")
+	return FTabManager::NewLayout("Standalone_RPRStaticMeshEditor_Layout_v3")
 		->AddArea
 		(
 			FTabManager::NewPrimaryArea()->SetOrientation(Orient_Vertical)
@@ -183,7 +195,7 @@ TSharedPtr<FTabManager::FLayout>	FRPRStaticMeshEditor::GenerateDefaultLayout()
 						->Split
 						(
 							FTabManager::NewStack()
-							->AddTab(UVProjectionMappingEditorTabId, ETabState::OpenedTab)
+							->AddTab(ModesTabId, ETabState::OpenedTab)
 						)
 					)
 					->Split
@@ -262,6 +274,11 @@ void FRPRStaticMeshEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& In
 		.SetDisplayName(LOCTEXT("Properties", "Properties"))
 		.SetGroup(WorkspaceMenuCategoryRef)
 		.SetIcon(FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.Tabs.Details"));
+
+	InTabManager->RegisterTabSpawner(ModesTabId, FOnSpawnTab::CreateSP(this, &FRPRStaticMeshEditor::SpawnTab_Modes))
+		.SetDisplayName(LOCTEXT("Modes", "Modes"))
+		.SetGroup(WorkspaceMenuCategoryRef)
+		.SetIcon(FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.Tabs.Details"));
 }
 
 void FRPRStaticMeshEditor::UnregisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
@@ -327,6 +344,11 @@ bool FRPRStaticMeshEditor::IsPrimaryEditor() const
 	return (false);
 }
 
+FEdMode* FRPRStaticMeshEditor::GetEditorMode() const
+{
+	return (CurrentMode.Get());
+}
+
 void FRPRStaticMeshEditor::AddReferencedObjects(FReferenceCollector& Collector)
 {
 	TArray<UStaticMesh*> staticMeshes = MeshDatas->GetStaticMeshes();
@@ -376,6 +398,19 @@ void FRPRStaticMeshEditor::RefreshViewport()
 	{
 		Viewport->RefreshViewport();
 	}
+}
+
+void FRPRStaticMeshEditor::SetMode(FEditorModeID ModeID)
+{
+	FRPRStaticMeshEditorModeManager& modeManager = FRPRStaticMeshEditorModeManager::Get();
+	TSharedPtr<FEdMode> mode = modeManager.FindMode(ModeID);
+
+	CurrentMode = mode;
+}
+
+const FRPRStaticMeshEditorModesCommands& FRPRStaticMeshEditor::GetModeCommands() const
+{
+	return (FRPRStaticMeshEditorModesCommands::Get());
 }
 
 void FRPRStaticMeshEditor::AddComponentToViewport(UActorComponent* ActorComponent, bool bSelectComponent /*= true*/)
@@ -449,6 +484,18 @@ TSharedRef<SDockTab> FRPRStaticMeshEditor::SpawnTab_Properties(const FSpawnTabAr
 		.Label(LOCTEXT("RPRStaticMeshEditorDetail_TabTitle", "Details"))
 		[
 			PropertiesDetailsView.ToSharedRef()
+		];
+}
+
+TSharedRef<SDockTab> FRPRStaticMeshEditor::SpawnTab_Modes(const FSpawnTabArgs& Args)
+{
+	check(Args.GetTabId() == ModesTabId);
+
+	return
+		SNew(SDockTab)
+		.Label(LOCTEXT("RPRStaticMeshEditorModes_TabTitle", "Modes"))
+		[
+			ModesEditor->MakeWidget()
 		];
 }
 
