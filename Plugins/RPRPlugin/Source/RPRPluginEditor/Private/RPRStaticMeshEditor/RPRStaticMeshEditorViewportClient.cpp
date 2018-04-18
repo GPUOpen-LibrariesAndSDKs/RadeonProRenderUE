@@ -51,7 +51,7 @@ FRPRStaticMeshEditorViewportClient::FRPRStaticMeshEditorViewportClient(TWeakPtr<
 	SetViewMode(VMI_Lit);
 
 	EngineShowFlags.SetSeparateTranslucency(true);
-	EngineShowFlags.SetSnap(0);
+	EngineShowFlags.SetSnap(false);
 	EngineShowFlags.SetCompositeEditorPrimitives(true);
 	OverrideNearClipPlane(1.0f);
 	bUsingOrbitCamera = true;

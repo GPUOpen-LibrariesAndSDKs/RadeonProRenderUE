@@ -14,4 +14,4 @@ public:
 	virtual IUVProjectionSettingsWidgetPtr	CreateUVProjectionSettingsWidget(FRPRStaticMeshEditorPtr RPRStaticMeshEditor) = 0;
 };
 
-typedef TSharedPtr<IUVProjectionModule>	IUVProjectionModulePtr;
+using IUVProjectionModulePtr = TSharedPtr<IUVProjectionModule>;

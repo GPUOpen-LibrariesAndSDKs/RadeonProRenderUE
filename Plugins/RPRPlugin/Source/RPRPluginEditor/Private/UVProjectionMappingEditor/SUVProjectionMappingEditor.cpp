@@ -68,6 +68,18 @@ void SUVProjectionMappingEditor::UpdateSelection()
 	}
 }
 
+void SUVProjectionMappingEditor::Enable(bool bEnable)
+{
+	if (bEnable)
+	{
+		ShowUVProjectionWidget(CurrentProjectionSettingsWidget);
+	}
+	else
+	{
+		HideUVProjectionWidget(CurrentProjectionSettingsWidget);
+	}
+}
+
 void SUVProjectionMappingEditor::InitUVProjectionList()
 {
 	const TArray<IUVProjectionModule*>& modules = FUVProjectionFactory::GetModules();

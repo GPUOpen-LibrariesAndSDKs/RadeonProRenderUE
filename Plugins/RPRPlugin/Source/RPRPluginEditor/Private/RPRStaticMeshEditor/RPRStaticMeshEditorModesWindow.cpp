@@ -68,7 +68,7 @@ TSharedRef<SWidget> FRPRStaticMeshEditorModesWindow::MakeWidget()
 			SAssignNew(ModeWidget, SWidgetSwitcher)
 			+SWidgetSwitcher::Slot()
 			[
-				SNew(SUVProjectionMappingEditor)
+				SAssignNew(ProjectionMappingEditor, SUVProjectionMappingEditor)
 				.RPRStaticMeshEditor(StaticMeshEditor)
 			]
 			+SWidgetSwitcher::Slot()
@@ -81,10 +81,10 @@ TSharedRef<SWidget> FRPRStaticMeshEditorModesWindow::MakeWidget()
 
 void FRPRStaticMeshEditorModesWindow::OnSelectMode(FEditorModeID Mode)
 {
-	auto viewportClient = GetMainViewportClient();
-	if (viewportClient.IsValid())
+	auto modeTools = GetModeTools();
+	if (modeTools)
 	{
-		viewportClient->GetModeTools()->ActivateMode(Mode);
+		modeTools->ActivateMode(Mode);
 	}
 
 	if (Mode == FBuiltinEditorModes::EM_Default)
@@ -95,21 +95,38 @@ void FRPRStaticMeshEditorModesWindow::OnSelectMode(FEditorModeID Mode)
 	{
 		ModeWidget->SetActiveWidgetIndex(1);
 	}
+
+	ProjectionMappingEditor->Enable(Mode == FBuiltinEditorModes::EM_Default);
 }
 
 bool FRPRStaticMeshEditorModesWindow::IsModeSelected(FEditorModeID Mode) const
 {
-	auto viewportClient = GetMainViewportClient();
-	if (viewportClient.IsValid())
+	auto modeTools = GetModeTools();
+	if (modeTools)
 	{
-		return (viewportClient->GetModeTools()->IsModeActive(Mode));
+		return (modeTools->IsModeActive(Mode));
 	}
 	return (false);
+}
+
+void FRPRStaticMeshEditorModesWindow::DeselectCurrentMode()
+{
+	auto modeTools = GetModeTools();
+	if (modeTools)
+	{
+		modeTools->DeactivateAllModes();
+	}
 }
 
 TSharedPtr<FEditorViewportClient> FRPRStaticMeshEditorModesWindow::GetMainViewportClient() const
 {
 	return StaticMeshEditor->GetMainViewportClient();
+}
+
+FEditorModeTools* FRPRStaticMeshEditorModesWindow::GetModeTools() const
+{
+	auto viewportClient = GetMainViewportClient();
+	return (viewportClient.IsValid() ? viewportClient->GetModeTools() : nullptr);
 }
 
 #undef LOCTEXT_NAMESPACE

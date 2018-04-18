@@ -30,6 +30,7 @@ public:
 	void	Construct(const FArguments& InArgs);
 	void	SelectProjectionEntry(SUVProjectionTypeEntryPtr InProjectionEntry);
 	void	UpdateSelection();
+	void	Enable(bool bEnable);
 
 private:
 
