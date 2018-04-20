@@ -15,6 +15,8 @@
 #include "SharedPointer.h"
 #include "RPRStaticMeshDetailCustomization.h"
 #include "RPRStaticMeshEditorModesWindow.h"
+#include "EditorViewportClient.h"
+#include "EditorModeManager.h"
 
 #define LOCTEXT_NAMESPACE "RPRStaticMeshEditor"
 
@@ -524,6 +526,11 @@ void FRPRStaticMeshEditor::OnSceneComponentOutlinerSelectionChanged(URPRStaticMe
 
 bool FRPRStaticMeshEditor::OnRequestClose()
 {
+	if (Viewport.IsValid())
+	{
+		Viewport->GetViewportClient()->GetModeTools()->DeactivateAllModes();
+	}
+
 	TArray<UStaticMesh*> staticMeshes = MeshDatas->GetStaticMeshes();
 	for (int32 i = 0; i < staticMeshes.Num(); ++i)
 	{

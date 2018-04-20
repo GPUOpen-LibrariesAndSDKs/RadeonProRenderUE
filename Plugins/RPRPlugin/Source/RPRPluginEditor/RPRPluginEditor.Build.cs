@@ -74,7 +74,8 @@ public class RPRPluginEditor : ModuleRules
                 "RPREditorTools",
                 "UVVisualizer",
                 "RPRSectionsManager",
-                "Outliners"
+                "Outliners",
+                "MeshPaint"
 				// ... add private dependencies that you statically link with here ...	
 			}
         );

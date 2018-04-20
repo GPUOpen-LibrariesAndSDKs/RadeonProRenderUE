@@ -1,5 +1,6 @@
 #include "RPRPluginEditorModule.h"
 #include "EditorModeRegistry.h"
+#include "RPRSectionsManagerMode.h"
 
 DEFINE_LOG_CATEGORY(LogRPRPluginEditor)
 
@@ -25,10 +26,12 @@ const FString& FRPRPluginEditorModule::GetPluginName()
 
 void FRPRPluginEditorModule::RegisterModes()
 {
+	FEditorModeRegistry::Get().RegisterMode<FRPRSectionsManagerMode>(FRPRSectionsManagerMode::EM_SectionsManagerModeID);
 }
 
 void FRPRPluginEditorModule::UnregisterModes()
 {
+	FEditorModeRegistry::Get().UnregisterMode(FRPRSectionsManagerMode::EM_SectionsManagerModeID);
 }
 
 #undef LOCTEXT_NAMESPACE

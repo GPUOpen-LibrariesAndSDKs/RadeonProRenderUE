@@ -13,6 +13,7 @@
 #include "EditorModes.h"
 #include "EditorModeManager.h"
 #include "EditorViewportClient.h"
+#include "AssetEditorModeManager.h"
 
 #define LOCTEXT_NAMESPACE "RPRStaticMeshEditorViewportClient"
 
@@ -45,8 +46,10 @@ FRPRStaticMeshEditorViewportClient::FRPRStaticMeshEditorViewportClient(TWeakPtr<
 	DrawHelper.PerspectiveGridSize = GridSize;
 	DrawHelper.NumCells = DrawHelper.PerspectiveGridSize / (CellSize * 2);
 
-	GetModeTools()->SetDefaultMode(FBuiltinEditorModes::EM_Default);
-	GetModeTools()->ActivateDefaultMode();
+	FAssetEditorModeManager* modeTools = (FAssetEditorModeManager*)(ModeTools);
+	modeTools->SetPreviewScene(PreviewScene);
+	modeTools->SetDefaultMode(FBuiltinEditorModes::EM_Default);
+	modeTools->ActivateDefaultMode();
 
 	SetViewMode(VMI_Lit);
 

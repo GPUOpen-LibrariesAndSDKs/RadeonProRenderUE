@@ -7,6 +7,7 @@
 #include "StaticMeshHelper.h"
 #include "SceneViewport.h"
 #include "RPRStaticMeshPreviewComponent.h"
+#include "RPRStaticMeshPreview.h"
 
 SRPRStaticMeshEditorViewport::SRPRStaticMeshEditorViewport()
 	: PreviewScene(MakeShareable(new FAdvancedPreviewScene(FPreviewScene::ConstructionValues())))
@@ -74,21 +75,21 @@ void SRPRStaticMeshEditorViewport::SetFloorToStaticMeshBottom()
 
 void SRPRStaticMeshEditorViewport::CreatePreviewMeshAndAddToViewport(TSharedPtr<FRPRMeshData> MeshData)
 {
-	URPRStaticMeshPreviewComponent* previewMeshComponent =
-		NewObject<URPRStaticMeshPreviewComponent>((UObject*)GetTransientPackage(), FName(), RF_Transient);
-
-	FComponentReregisterContext ReregisterContext(previewMeshComponent);
+	ARPRStaticMeshPreview* meshPreview = PreviewScene->GetWorld()->SpawnActor<ARPRStaticMeshPreview>();
+	URPRStaticMeshPreviewComponent* previewMeshComponent = meshPreview->GetPreviewComponent();
 	previewMeshComponent->SetStaticMesh(MeshData->GetStaticMesh());
-
-	AddComponent(previewMeshComponent);
-	PreviewMeshComponents.Add(previewMeshComponent);
-
+	
 	MeshData->AssignPreview(previewMeshComponent);
 }
 
 void SRPRStaticMeshEditorViewport::AddComponent(UActorComponent* InComponent)
 {
-	FTransform transform = FTransform::Identity;
+	FTransform transform;
+	USceneComponent* sceneComponent = Cast<USceneComponent>(InComponent);
+	if (sceneComponent)
+	{
+		transform = sceneComponent->GetComponentTransform();
+	}
 	PreviewScene->AddComponent(InComponent, transform);
 }
 
