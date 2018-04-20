@@ -17,11 +17,6 @@ public:
 
 	static const FString&	GetPluginName();
 
-private:
-
-	void	RegisterModes();
-	void	UnregisterModes();
-
 	
 private:
 

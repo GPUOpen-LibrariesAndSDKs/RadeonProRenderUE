@@ -136,7 +136,7 @@ bool FRPRSectionsManagerMode::TrySelectFaces(const FVector& Origin, const FVecto
 		TSet<int32> indices;
 		adapter->GetInfluencedVertexIndices(ComponentSpaceSquaredBrushRadius, ComponentScaleBrushPosition, ComponentScaleCameraPosition, false, indices);
 
-		TArray<int32>& selectedIndices = SelectedIndicesPerComponent.FindOrAdd(previewComponent);
+		auto& selectedIndices = SelectedIndicesPerComponent.FindOrAdd(previewComponent);
 		selectedIndices.Reserve(selectedIndices.Num() + indices.Num());
 		for (auto itIndices = indices.CreateConstIterator() ; itIndices; ++itIndices)
 		{
@@ -230,7 +230,7 @@ void FRPRSectionsManagerMode::Render(const FSceneView* View, FViewport* Viewport
 	for (auto it = SelectedIndicesPerComponent.CreateConstIterator(); it; ++it)
 	{
 		const URPRStaticMeshPreviewComponent* component = it.Key();
-		const TArray<int32>& indices = it.Value();
+		const auto& indices = it.Value();
 
 		for (int32 i = 0; i < indices.Num(); ++i)
 		{

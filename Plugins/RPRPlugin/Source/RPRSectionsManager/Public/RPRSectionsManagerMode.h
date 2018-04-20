@@ -2,14 +2,14 @@
 #include "EdMode.h"
 #include "RPRStaticMeshPreviewComponent.h"
 #include "SharedPointer.h"
-#include "IMeshPaintGeometryAdapter.h"
 #include "Map.h"
 #include "EditorViewportClient.h"
 #include "SceneView.h"
+#include "IMeshPaintGeometryAdapter.h"
 
 #define SELECTED_INDICES_ALLOCATOR_SIZE 512
 
-class FRPRSectionsManagerMode : public FEdMode
+class RPRSECTIONSMANAGER_API FRPRSectionsManagerMode : public FEdMode
 {
 public:
 	

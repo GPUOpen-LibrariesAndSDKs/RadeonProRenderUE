@@ -32,7 +32,7 @@ public class RPRSectionsManager : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core", "RPREditorTools"
+                "Core", "RPREditorTools", "MeshPaint"
 				
 				// ... add other public dependencies that you statically link with here ...
 			}
@@ -47,6 +47,7 @@ public class RPRSectionsManager : ModuleRules
                 "Slate",
                 "SlateCore",
                 "UnrealEd",
+                "InputCore"
 				// ... add private dependencies that you statically link with here ...	
 			}
         );

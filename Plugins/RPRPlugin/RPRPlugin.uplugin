@@ -28,6 +28,10 @@
 			"Type": "Editor"
 		},
 		{
+			"Name": "RPRSectionsManager",
+			"Type": "Editor"
+		},
+		{
 			"Name": "RPRMaterialEditor",
 			"Type": "Editor"
 		},
@@ -60,18 +64,8 @@
 			"Type": "Editor"			
 		},
 		{
-			"Name": "RPRSectionsManager",
-			"Type": "Editor"
-		},
-		{
 			"Name": "Outliners",
 			"Type": "Editor"
-		}
-	],
-	"Plugins": [
-		{
-			"Name": "ProceduralMeshComponent",
-			"Enabled": true
 		}
 	]
 }
