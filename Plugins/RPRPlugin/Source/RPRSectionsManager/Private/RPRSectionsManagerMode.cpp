@@ -5,6 +5,7 @@
 #include "Engine/Engine.h"
 #include "Materials/Material.h"
 #include "RPRSectionsManagerModeSettings.h"
+#include "RPRSelectionManager.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRSectionsManagerMode, Log, All)
 
@@ -137,7 +138,16 @@ bool FRPRSectionsManagerMode::TrySelectFaces(const FVector& Origin, const FVecto
 		const float ComponentSpaceSquaredBrushRadius = ComponentSpaceBrushRadius * ComponentSpaceBrushRadius;
 
 		TSet<int32> indices;
-		adapter->GetInfluencedVertexIndices(ComponentSpaceSquaredBrushRadius, ComponentScaleBrushPosition, ComponentScaleCameraPosition, false, indices);
+		adapter->GetInfluencedVertexIndices(
+			ComponentSpaceSquaredBrushRadius, 
+			ComponentScaleBrushPosition, 
+			ComponentScaleCameraPosition, 
+			settings->bOnlyFrontFacing, 
+			indices
+		);
+
+		FRPRSectionsSelectionManager& selectionManager = FRPRSectionsSelectionManager::Get();
+		//selectionManager.AppendSelection(previewComponent, previewComponent->GetStaticMesh()->RenderData->LODResources[0].Sections indices);
 
 		auto& selectedIndices = SelectedIndicesPerComponent.FindOrAdd(previewComponent);
 		selectedIndices.Reserve(selectedIndices.Num() + indices.Num());
