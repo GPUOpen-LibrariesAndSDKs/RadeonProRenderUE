@@ -48,7 +48,6 @@ private:
 	bool bIsSelecting;
 
 	FVector	BrushPosition;
-	float BrushRadius;
 
 	bool bIsBrushOnMesh;
 	FHitResult LastHitResult;

@@ -4,6 +4,7 @@
 #include "MeshPaintAdapterFactory.h"
 #include "Engine/Engine.h"
 #include "Materials/Material.h"
+#include "RPRSectionsManagerModeSettings.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRSectionsManagerMode, Log, All)
 
@@ -11,7 +12,6 @@ const FName FRPRSectionsManagerMode::EM_SectionsManagerModeID(TEXT("EM_SectionsM
 
 FRPRSectionsManagerMode::FRPRSectionsManagerMode()
 	: bIsSelecting(false)
-	, BrushRadius(100.0f)
 	, bIsBrushOnMesh(false)
 {}
 
@@ -91,7 +91,8 @@ bool FRPRSectionsManagerMode::InputAxis(FEditorViewportClient* InViewportClient,
 
 	if (bUserWantsChangeBrushSize)
 	{
-		BrushRadius = FMath::Clamp(BrushRadius + Delta * 5.0f, 0.01f, 10000.0f);
+		URPRSectionsManagerModeSettings* settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
+		settings->BrushSize = FMath::Clamp(settings->BrushSize + Delta * settings->IncrementalBrushSizeStep, 0.001f, 10000.0f);
 		bHandled = true;
 	}
 
@@ -118,19 +119,21 @@ bool FRPRSectionsManagerMode::TrySelectFaces(const FVector& Origin, const FVecto
 
 	if (bIsBrushOnMesh)
 	{
-		URPRStaticMeshPreviewComponent* previewComponent = Cast<URPRStaticMeshPreviewComponent>(LastHitResult.GetComponent());
+		auto previewComponent = Cast<URPRStaticMeshPreviewComponent>(LastHitResult.GetComponent());
 		if (previewComponent == nullptr)
 		{
 			// An internal and weird error occurs where the component type hit was not expected
 			return (false);
 		}
 
+		URPRSectionsManagerModeSettings* settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
+
 		TSharedPtr<IMeshPaintGeometryAdapter> adapter = MeshAdaptersPerComponent[previewComponent];
 
 		const FMatrix ComponentToWorldMatrix = LastHitResult.GetComponent()->GetComponentTransform().ToMatrixWithScale();
 		const FVector ComponentScaleCameraPosition = ComponentToWorldMatrix.InverseTransformPosition(traceStart);
 		const FVector ComponentScaleBrushPosition = ComponentToWorldMatrix.InverseTransformPosition(BrushPosition);
-		const float ComponentSpaceBrushRadius = ComponentToWorldMatrix.InverseTransformVector(FVector(BrushRadius, 0, 0)).Size();
+		const float ComponentSpaceBrushRadius = ComponentToWorldMatrix.InverseTransformVector(FVector(settings->BrushSize, 0, 0)).Size();
 		const float ComponentSpaceSquaredBrushRadius = ComponentSpaceBrushRadius * ComponentSpaceBrushRadius;
 
 		TSet<int32> indices;
@@ -241,11 +244,13 @@ void FRPRSectionsManagerMode::Render(const FSceneView* View, FViewport* Viewport
 
 	if (bIsBrushOnMesh)
 	{
+		URPRSectionsManagerModeSettings* settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
+
 		const int32 numSides = 12;
 		DrawWireSphere(PDI,
 			BrushPosition,
 			bIsSelecting ? FColor::Orange : FColor::Green,
-			BrushRadius,
+			settings->BrushSize,
 			numSides,
 			SDPG_World
 		);
