@@ -7,6 +7,8 @@
 #include "Engine/Engine.h"
 #include "SceneManagement.h"
 #include "SceneView.h"
+#include "Components/StaticMeshComponent.h"
+#include "StaticMeshResources.h"
 
 #define INDEXBUFFER_SEGMENT_SIZE 512
 
@@ -217,8 +219,7 @@ private:
 };
 
 UDynamicSelectionMeshVisualizer::UDynamicSelectionMeshVisualizer()
-	: NumQuads(100)
-	, FaceCreationInterval(0.75f)
+	: FaceCreationInterval(0.75f)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
@@ -226,65 +227,34 @@ UDynamicSelectionMeshVisualizer::UDynamicSelectionMeshVisualizer()
 void UDynamicSelectionMeshVisualizer::BeginPlay()
 {
 	Super::BeginPlay();
-
-	Vertices.AddUninitialized(4 * NumQuads);
-	FVector offset = FVector::ZeroVector;
-	const int32 nativeSize = 100;
-	for (int32 i = 0; i < 4 * NumQuads; i += 4)
-	{
-		FVector topLeft = offset +		FVector(-nativeSize, nativeSize, 0);
-		FVector bottomLeft = offset +	FVector(-nativeSize, -nativeSize, 0);
-		FVector bottomRight = offset +	FVector(nativeSize, -nativeSize, 0);
-		FVector topRight = offset +		FVector(nativeSize, nativeSize, 0);
-
-		Vertices[i] = topLeft;
-		Vertices[i + 1] = bottomLeft;
-		Vertices[i + 2] = bottomRight;
-		Vertices[i + 3] = topRight;
-
-		offset += FVector::ForwardVector * nativeSize * 2;
-
-		/*
-		Triangles.Add(i);
-		Triangles.Add(i + 2);
-		Triangles.Add(i + 1);
-
-		Triangles.Add(i + 2);
-		Triangles.Add(i);
-		Triangles.Add(i + 3);
-		*/
-	}
-
-	UpdateLocalBounds();
-	MarkRenderStateDirty();
+	StartLoadMeshComponent();
 }
 
 void UDynamicSelectionMeshVisualizer::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	ElapsedTime += DeltaTime;
-
-	const int32 numTriangles = Triangles.Num() / 3;
-	int32 currentNumQuads = numTriangles / 2;
-
-	while (ElapsedTime / FaceCreationInterval > currentNumQuads && currentNumQuads < NumQuads)
+	if (Mesh != nullptr)
 	{
-		int32 lastVertexIndex = Triangles.Num() > 0 ? Triangles.Last() + 1 : 0;
+		ElapsedTime += DeltaTime;
 
-		TArray<uint16> NewTriangles;
+		const int32 maxTriangles = MeshIndices.Num() / 3;
+		int32 currentNumTriangles = Indices.Num() / 3;
+
+		while (ElapsedTime / FaceCreationInterval > currentNumTriangles && currentNumTriangles < maxTriangles)
 		{
-			NewTriangles.Add(lastVertexIndex);
-			NewTriangles.Add(lastVertexIndex + 2);
-			NewTriangles.Add(lastVertexIndex + 1);
+			int32 lastTriangleIndex = Indices.Num();
 
-			NewTriangles.Add(lastVertexIndex + 2);
-			NewTriangles.Add(lastVertexIndex);
-			NewTriangles.Add(lastVertexIndex + 3);
+			TArray<uint16> NewTriangles;
+			{
+				NewTriangles.Add(MeshIndices[lastTriangleIndex]);
+				NewTriangles.Add(MeshIndices[lastTriangleIndex+1]);
+				NewTriangles.Add(MeshIndices[lastTriangleIndex+2]);
+			}
+			AddTriangles(NewTriangles);
+
+			++currentNumTriangles;
 		}
-		AddTriangles(NewTriangles);
-
-		++currentNumQuads;
 	}
 }
 
@@ -311,13 +281,13 @@ void UDynamicSelectionMeshVisualizer::SetVertices(const TArray<FVector>& InVerti
 
 void UDynamicSelectionMeshVisualizer::AddTriangles(const TArray<uint16>& InTriangles)
 {
-	AddTriangle_RenderThread(Triangles, InTriangles);
-	Triangles.Append(InTriangles);
+	AddTriangle_RenderThread(Indices, InTriangles);
+	Indices.Append(InTriangles);
 }
 
 void UDynamicSelectionMeshVisualizer::ClearTriangles()
 {
-	Triangles.Empty();
+	Indices.Empty();
 }
 
 const TArray<FVector>& UDynamicSelectionMeshVisualizer::GetVertices() const
@@ -327,7 +297,7 @@ const TArray<FVector>& UDynamicSelectionMeshVisualizer::GetVertices() const
 
 const TArray<uint16>& UDynamicSelectionMeshVisualizer::GetTriangles() const
 {
-	return (Triangles);
+	return (Indices);
 }
 
 void UDynamicSelectionMeshVisualizer::UpdateLocalBounds()
@@ -335,6 +305,26 @@ void UDynamicSelectionMeshVisualizer::UpdateLocalBounds()
 	LocalBounds = FBoxSphereBounds(Vertices.GetData(), Vertices.Num());
 	UpdateBounds();
 }
+
+#if WITH_EDITOR
+void UDynamicSelectionMeshVisualizer::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UDynamicSelectionMeshVisualizer, Mesh))
+	{
+		if (Mesh == nullptr)
+		{
+			Vertices.Empty();
+			Indices.Empty();
+			LocalBounds = FBoxSphereBounds();
+			MarkRenderStateDirty();
+		}
+		else
+		{
+			StartLoadMeshComponent();
+		}
+	}
+}
+#endif
 
 void UDynamicSelectionMeshVisualizer::AddTriangle_RenderThread(const TArray<uint16>& InitialTriangles, const TArray<uint16>& NewTriangles)
 {
@@ -350,6 +340,50 @@ void UDynamicSelectionMeshVisualizer::AddTriangle_RenderThread(const TArray<uint
 			}
 		);
 	}
+}
+
+void UDynamicSelectionMeshVisualizer::StartLoadMeshComponent()
+{
+	if (Mesh == nullptr)
+	{
+		return;
+	}
+
+	ElapsedTime = 0.0f;
+
+	const int32 lodIndex = 0;
+	FStaticMeshLODResources& lodResources = Mesh->RenderData->LODResources[lodIndex];
+
+	const uint32 numVertices = (uint32)Mesh->GetNumVertices(lodIndex);
+
+	// Get indices so we can exploit datas
+	FRawStaticIndexBuffer& indexBuffer = lodResources.IndexBuffer;
+	MeshIndices.Empty(indexBuffer.GetNumIndices());
+	MeshIndices.AddUninitialized(indexBuffer.GetNumIndices());
+	ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
+		FUDynamicSelectionMeshVisualizer_StartLoadMeshComponent_GetIndices,
+		FRawStaticIndexBuffer*, SrcIndexBuffer, &indexBuffer,
+		uint16*, DestIndexBuffer, MeshIndices.GetData(),
+		{
+			const int32 size = SrcIndexBuffer->IndexBufferRHI->GetSize();
+	uint16* indices = (uint16*)RHILockIndexBuffer(SrcIndexBuffer->IndexBufferRHI, 0, size, RLM_ReadOnly);
+	FMemory::Memcpy(DestIndexBuffer, indices, size);
+	RHIUnlockIndexBuffer(SrcIndexBuffer->IndexBufferRHI);
+		}
+	);
+	
+	// Initialize vertices
+	FPositionVertexBuffer& vertexBuffer = lodResources.PositionVertexBuffer;
+	Vertices.Empty(numVertices);
+	for (uint32 i = 0; i < numVertices; ++i)
+	{
+		Vertices.Add(vertexBuffer.VertexPosition(i));
+	}
+
+	UpdateLocalBounds();
+
+	FlushRenderingCommands();
+	MarkRenderStateDirty();
 }
 
 #undef INDEXBUFFER_SEGMENT_SIZE

@@ -1,5 +1,5 @@
 #pragma once
-#include "Components/MeshComponent.h"
+#include "Engine/StaticMesh.h"
 #include "DynamicSelectionMeshVisualizer.generated.h"
 
 UCLASS(Blueprintable, ClassGroup = (Rendering, Common), editinlinenew, BlueprintType, meta = (BlueprintSpawnableComponent))
@@ -26,20 +26,27 @@ public:
 
 	void	UpdateLocalBounds();
 
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+
 private:
 
 	void	AddTriangle_RenderThread(const TArray<uint16>& InitialTriangles, const TArray<uint16>& NewTriangles);
+	void	StartLoadMeshComponent();
 
 public:
 
 	UPROPERTY(EditAnywhere, Category = Test)
-	int32 NumQuads;
+	UStaticMesh* Mesh;
 
 	UPROPERTY(EditAnywhere, Category = Test)
 	float FaceCreationInterval;
 
 	TArray<FVector> Vertices;
-	TArray<uint16> Triangles;
+	TArray<uint16> Indices;
+
+	TArray<uint16> MeshIndices;
 
 	FBoxSphereBounds			LocalBounds;
 	class FDSMVisualizerProxy*	SceneProxy;
