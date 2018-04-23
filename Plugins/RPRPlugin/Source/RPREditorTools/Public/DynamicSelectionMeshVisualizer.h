@@ -9,6 +9,8 @@ class UDynamicSelectionMeshVisualizer : public UMeshComponent
 
 public:
 
+	UDynamicSelectionMeshVisualizer();
+
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 	virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
@@ -24,12 +26,24 @@ public:
 
 	void	UpdateLocalBounds();
 
+private:
+
+	void	AddTriangle_RenderThread(const TArray<uint16>& InitialTriangles, const TArray<uint16>& NewTriangles);
+
 public:
+
+	UPROPERTY(EditAnywhere, Category = Test)
+	int32 NumQuads;
+
+	UPROPERTY(EditAnywhere, Category = Test)
+	float FaceCreationInterval;
 
 	TArray<FVector> Vertices;
 	TArray<uint16> Triangles;
 
 	FBoxSphereBounds			LocalBounds;
 	class FDSMVisualizerProxy*	SceneProxy;
+
+	float ElapsedTime;
 
 };

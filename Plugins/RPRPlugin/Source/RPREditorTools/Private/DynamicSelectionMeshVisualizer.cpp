@@ -59,9 +59,11 @@ public:
 	{
 		FRHIResourceCreateInfo CreatInfo;
 		void* Buffer = nullptr;
-		IndexBufferRHI = RHICreateAndLockIndexBuffer(sizeof(uint16), Indices.Num() * sizeof(uint16), BUF_Static, CreatInfo, Buffer);
-
-		FMemory::Memcpy(Buffer, Indices.GetData(), Indices.Num() * sizeof(uint16));
+		int32 size = Indices.Num() * sizeof(uint16);
+		IndexBufferRHI = RHICreateAndLockIndexBuffer(sizeof(uint16), size, BUF_Static, CreatInfo, Buffer);
+		{
+			FMemory::Memcpy(Buffer, Indices.GetData(), size);
+		}
 		RHIUnlockIndexBuffer(IndexBufferRHI);
 	}
 
@@ -75,7 +77,6 @@ public:
 	FDSMVisualizerProxy(UDynamicSelectionMeshVisualizer* InComponent)
 		: FPrimitiveSceneProxy(InComponent)
 		, MaterialRenderProxy(nullptr)
-		, NumPrimitives(0)
 	{
 		UMaterialInterface* material = InComponent->GetMaterial(0);
 		if (material)
@@ -112,45 +113,16 @@ public:
 		IndexBuffer.Indices = triangles;
 
 		check(triangles.Num() % 3 == 0);
-		NumPrimitives = triangles.Num() / 3;
 	}
 
 	void AddTriangles(const TArray<uint16>& Triangles, const TArray<uint16>& NewTriangles)
 	{
-		check(Triangles.Num() == NumPrimitives);
 		check(NewTriangles.Num() % 3 == 0);
-
-		const int32 newSize = NumPrimitives + NewTriangles.Num();
-		const bool bDoesIndexBufferNeedToBeReallocated = (newSize > IndexBuffer.Indices.Num());
-		if (bDoesIndexBufferNeedToBeReallocated)
-		{
-			// Destroy RHI
-			IndexBuffer.ReleaseRHI();
-
-			// Recreate the index buffer
-			FRHIResourceCreateInfo CreateInfo;
-			uint16* Buffer = nullptr;
-			const int32 bufferNewSize = (newSize * sizeof(uint16) / INDEXBUFFER_SEGMENT_SIZE) * INDEXBUFFER_SEGMENT_SIZE;
-			IndexBuffer.IndexBufferRHI = RHICreateAndLockIndexBuffer(0, bufferNewSize, BUF_Static, CreateInfo, (void*&) Buffer);
-			{
-				FMemory::Memcpy(Buffer, Triangles.GetData(), Triangles.Num() * sizeof(uint16));
-
-				// Move Buffer forward
-				Buffer += Triangles.Num();
-				FMemory::Memcpy(Buffer, NewTriangles.GetData(), NewTriangles.Num() * sizeof(uint16));
-			}
-			RHIUnlockIndexBuffer(IndexBuffer.IndexBufferRHI);
-		}
-		else
-		{
-			void* Buffer = RHILockIndexBuffer(IndexBuffer.IndexBufferRHI, NumPrimitives * sizeof(uint16), NewTriangles.Num() * sizeof(uint16), RLM_WriteOnly);
-			{
-				FMemory::Memcpy(Buffer, NewTriangles.GetData(), NewTriangles.Num());
-			}
-			RHIUnlockIndexBuffer(IndexBuffer.IndexBufferRHI);
-		}
-		
-		NumPrimitives += (NewTriangles.Num() / 3);
+	
+		// Destroy RHI
+		IndexBuffer.ReleaseResource();
+		IndexBuffer.Indices.Append(NewTriangles);
+		IndexBuffer.InitResource();
 	}
 
 	virtual ~FDSMVisualizerProxy()
@@ -162,7 +134,7 @@ public:
 
 	virtual void GetDynamicMeshElements(const TArray<const FSceneView *>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, class FMeshElementCollector& Collector) const override
 	{
-		if (NumPrimitives > 0)
+		if (IndexBuffer.Indices.Num() > 0)
 		{
 			// Set up wireframe material (if needed)
 			const bool bWireframe = AllowDebugViewmodes() && ViewFamily.EngineShowFlags.Wireframe;
@@ -194,10 +166,10 @@ public:
 					Mesh.MaterialRenderProxy = materialRenderProxy;
 					BatchElement.PrimitiveUniformBuffer = CreatePrimitiveUniformBufferImmediate(GetLocalToWorld(), GetBounds(), GetLocalBounds(), true, UseEditorDepthTest());
 					BatchElement.FirstIndex = 0;
-					BatchElement.NumPrimitives = NumPrimitives;
+					BatchElement.NumPrimitives = IndexBuffer.Indices.Num() / 3;
 					BatchElement.MinVertexIndex = 0;
-					BatchElement.MaxVertexIndex = IndexBuffer.Indices.Num() / 3;
-					Mesh.Type = PT_LineList;
+					BatchElement.MaxVertexIndex = VertexBuffer.Vertices.Num() - 1;
+					Mesh.Type = PT_TriangleList;
 					Mesh.DepthPriorityGroup = SDPG_World;
 					Mesh.bCanApplyViewModeOverrides = false;
 					Collector.AddMesh(ViewIndex, Mesh);
@@ -219,7 +191,7 @@ public:
 	
 	virtual void CreateRenderThreadResources() override
 	{
-		if (NumPrimitives > 0)
+		if (IndexBuffer.Indices.Num() > 0)
 		{
 			VertexFactory.Init(&VertexBuffer);
 
@@ -242,18 +214,23 @@ private:
 
 	FMaterialRenderProxy* MaterialRenderProxy;
 
-	int32 NumPrimitives;
-
 };
+
+UDynamicSelectionMeshVisualizer::UDynamicSelectionMeshVisualizer()
+	: NumQuads(100)
+	, FaceCreationInterval(0.75f)
+{
+	PrimaryComponentTick.bCanEverTick = true;
+}
 
 void UDynamicSelectionMeshVisualizer::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Vertices.AddUninitialized(4);
+	Vertices.AddUninitialized(4 * NumQuads);
 	FVector offset = FVector::ZeroVector;
-	const int32 nativeSize = 1000;
-	for (int32 i = 0; i < 4; i += 4)
+	const int32 nativeSize = 100;
+	for (int32 i = 0; i < 4 * NumQuads; i += 4)
 	{
 		FVector topLeft = offset +		FVector(-nativeSize, nativeSize, 0);
 		FVector bottomLeft = offset +	FVector(-nativeSize, -nativeSize, 0);
@@ -265,16 +242,18 @@ void UDynamicSelectionMeshVisualizer::BeginPlay()
 		Vertices[i + 2] = bottomRight;
 		Vertices[i + 3] = topRight;
 
-		offset += FVector::ForwardVector * nativeSize;
+		offset += FVector::ForwardVector * nativeSize * 2;
+
+		/*
+		Triangles.Add(i);
+		Triangles.Add(i + 2);
+		Triangles.Add(i + 1);
+
+		Triangles.Add(i + 2);
+		Triangles.Add(i);
+		Triangles.Add(i + 3);
+		*/
 	}
-
-	Triangles.Add(0);
-	Triangles.Add(1);
-	Triangles.Add(2);
-
-	//Triangles.Add(2);
-	//Triangles.Add(3);
-	//Triangles.Add(0);
 
 	UpdateLocalBounds();
 	MarkRenderStateDirty();
@@ -283,6 +262,30 @@ void UDynamicSelectionMeshVisualizer::BeginPlay()
 void UDynamicSelectionMeshVisualizer::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	ElapsedTime += DeltaTime;
+
+	const int32 numTriangles = Triangles.Num() / 3;
+	int32 currentNumQuads = numTriangles / 2;
+
+	while (ElapsedTime / FaceCreationInterval > currentNumQuads && currentNumQuads < NumQuads)
+	{
+		int32 lastVertexIndex = Triangles.Num() > 0 ? Triangles.Last() + 1 : 0;
+
+		TArray<uint16> NewTriangles;
+		{
+			NewTriangles.Add(lastVertexIndex);
+			NewTriangles.Add(lastVertexIndex + 2);
+			NewTriangles.Add(lastVertexIndex + 1);
+
+			NewTriangles.Add(lastVertexIndex + 2);
+			NewTriangles.Add(lastVertexIndex);
+			NewTriangles.Add(lastVertexIndex + 3);
+		}
+		AddTriangles(NewTriangles);
+
+		++currentNumQuads;
+	}
 }
 
 FBoxSphereBounds UDynamicSelectionMeshVisualizer::CalcBounds(const FTransform& LocalToWorld) const
@@ -308,7 +311,8 @@ void UDynamicSelectionMeshVisualizer::SetVertices(const TArray<FVector>& InVerti
 
 void UDynamicSelectionMeshVisualizer::AddTriangles(const TArray<uint16>& InTriangles)
 {
-	Triangles = InTriangles;
+	AddTriangle_RenderThread(Triangles, InTriangles);
+	Triangles.Append(InTriangles);
 }
 
 void UDynamicSelectionMeshVisualizer::ClearTriangles()
@@ -330,6 +334,22 @@ void UDynamicSelectionMeshVisualizer::UpdateLocalBounds()
 {
 	LocalBounds = FBoxSphereBounds(Vertices.GetData(), Vertices.Num());
 	UpdateBounds();
+}
+
+void UDynamicSelectionMeshVisualizer::AddTriangle_RenderThread(const TArray<uint16>& InitialTriangles, const TArray<uint16>& NewTriangles)
+{
+	if (SceneProxy)
+	{
+		ENQUEUE_UNIQUE_RENDER_COMMAND_THREEPARAMETER(
+			FUDynamicSelectionMeshVisualizer_AddTriangle_RenderThread,
+			FDSMVisualizerProxy*, SceneProxy, SceneProxy,
+			TArray<uint16>, InitialTriangles, InitialTriangles,
+			TArray<uint16>, NewTriangles, NewTriangles,
+			{
+				SceneProxy->AddTriangles(InitialTriangles, NewTriangles);
+			}
+		);
+	}
 }
 
 #undef INDEXBUFFER_SEGMENT_SIZE
