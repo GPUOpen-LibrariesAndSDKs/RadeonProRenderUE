@@ -78,7 +78,7 @@ class FDSMVisualizerProxy : public FPrimitiveSceneProxy
 
 public:
 
-	FDSMVisualizerProxy(UDynamicSelectionMeshVisualizer* InComponent)
+	FDSMVisualizerProxy(UDynamicSelectionMeshVisualizerComponent* InComponent)
 		: FPrimitiveSceneProxy(InComponent)
 		, MaterialRenderProxy(nullptr)
 		, MaterialRelevance(InComponent->GetMaterialRelevance(GetScene().GetFeatureLevel()))
@@ -97,9 +97,9 @@ public:
 		InitializeMesh(InComponent);
 	}
 
-	void InitializeMesh(UDynamicSelectionMeshVisualizer* DSMVisualizer)
+	void InitializeMesh(UDynamicSelectionMeshVisualizerComponent* DSMVisualizer)
 	{
-		UStaticMesh* mesh = DSMVisualizer->Mesh;
+		UStaticMesh* mesh = DSMVisualizer->GetStaticMesh();
 
 		const int32 lodIndex = 0;
 		FStaticMeshLODResources& lodResources = mesh->RenderData->LODResources[lodIndex];
@@ -210,14 +210,10 @@ public:
 	
 	virtual void CreateRenderThreadResources() override
 	{
-		if (IndexBuffer.Indices.Num() > 0)
-		{
-			VertexFactory.Init(&VertexBuffer);
+		VertexFactory.Init(&VertexBuffer);
 
-			VertexBuffer.InitResource();
-			IndexBuffer.InitResource();
-			VertexFactory.InitResource();
-		}
+		VertexBuffer.InitResource();
+		VertexFactory.InitResource();
 	}
 
 	virtual uint32 GetMemoryFootprint(void) const override
@@ -241,64 +237,17 @@ private:
 
 };
 
-UDynamicSelectionMeshVisualizer::UDynamicSelectionMeshVisualizer()
-	: FaceCreationInterval(0.75f)
+UDynamicSelectionMeshVisualizerComponent::UDynamicSelectionMeshVisualizerComponent()
+	: SceneProxy(nullptr)
 {
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> MaterialFinder(TEXT("/RPRPlugin/Materials/Editor/M_FaceSelectionHighlight"));
 	if (MaterialFinder.Succeeded())
 	{
 		Material = MaterialFinder.Object;
 	}
-
-	PrimaryComponentTick.bCanEverTick = true;
 }
 
-void UDynamicSelectionMeshVisualizer::BeginPlay()
-{
-	Super::BeginPlay();
-	StartLoadMeshComponent();
-}
-
-void UDynamicSelectionMeshVisualizer::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	if (Mesh != nullptr)
-	{
-		ElapsedTime += DeltaTime;
-
-		const int32 maxTriangles = MeshIndices.Num() / 3;
-		int32 currentNumTriangles = Indices.Num() / 3;
-
-		if (FMath::IsNearlyZero(FaceCreationInterval))
-		{
-			if (currentNumTriangles != maxTriangles)
-			{
-				SetTriangles(MeshIndices);
-			}
-		}
-		else
-		{
-			while (ElapsedTime / FaceCreationInterval > currentNumTriangles &&
-				currentNumTriangles < maxTriangles)
-			{
-				int32 lastTriangleIndex = Indices.Num();
-
-				TArray<uint16> NewTriangles;
-				{
-					NewTriangles.Add(MeshIndices[lastTriangleIndex]);
-					NewTriangles.Add(MeshIndices[lastTriangleIndex + 1]);
-					NewTriangles.Add(MeshIndices[lastTriangleIndex + 2]);
-				}
-				AddTriangles(NewTriangles);
-
-				++currentNumTriangles;
-			}
-		}
-	}
-}
-
-FBoxSphereBounds UDynamicSelectionMeshVisualizer::CalcBounds(const FTransform& LocalToWorld) const
+FBoxSphereBounds UDynamicSelectionMeshVisualizerComponent::CalcBounds(const FTransform& LocalToWorld) const
 {
 	FBoxSphereBounds Ret(LocalBounds.TransformBy(LocalToWorld));
 
@@ -308,86 +257,84 @@ FBoxSphereBounds UDynamicSelectionMeshVisualizer::CalcBounds(const FTransform& L
 	return Ret;
 }
 
-UMaterialInterface* UDynamicSelectionMeshVisualizer::GetMaterial(int32 ElementIndex) const
+UMaterialInterface* UDynamicSelectionMeshVisualizerComponent::GetMaterial(int32 ElementIndex) const
 {
 	return (Material);
 }
 
-void UDynamicSelectionMeshVisualizer::SetMaterial(int32 ElementIndex, UMaterialInterface* InMaterial)
+void UDynamicSelectionMeshVisualizerComponent::SetMaterial(int32 ElementIndex, UMaterialInterface* InMaterial)
 {
 	Material = InMaterial;
 }
 
-int32 UDynamicSelectionMeshVisualizer::GetNumMaterials() const
+int32 UDynamicSelectionMeshVisualizerComponent::GetNumMaterials() const
 {
 	return (1);
 }
 
-FPrimitiveSceneProxy* UDynamicSelectionMeshVisualizer::CreateSceneProxy()
+FPrimitiveSceneProxy* UDynamicSelectionMeshVisualizerComponent::CreateSceneProxy()
 {
-	SceneProxy = new FDSMVisualizerProxy(this);
+	if (Mesh != nullptr)
+	{
+		SceneProxy = new FDSMVisualizerProxy(this);
+	}
+	else
+	{
+		SceneProxy = nullptr;
+	}
+
 	return (SceneProxy);
 }
 
-void UDynamicSelectionMeshVisualizer::SetVertices(const TArray<FVector>& InVertices)
+void UDynamicSelectionMeshVisualizerComponent::SetMesh(UStaticMesh* InMesh)
 {
-	Vertices = InVertices;
+	Mesh = InMesh;
+	LoadMeshDatas();
 }
 
-void UDynamicSelectionMeshVisualizer::AddTriangles(const TArray<uint16>& InTriangles)
+UStaticMesh* UDynamicSelectionMeshVisualizerComponent::GetStaticMesh() const
 {
-	AddTriangle_RenderThread(Indices, InTriangles);
-	Indices.Append(InTriangles);
+	return (Mesh);
 }
 
-void UDynamicSelectionMeshVisualizer::SetTriangles(const TArray<uint16>& InTriangles)
+void UDynamicSelectionMeshVisualizerComponent::AddTriangles(const TArray<uint16>& InTriangles)
 {
-	Indices = InTriangles;
+	AddTriangle_RenderThread(CurrentIndices, InTriangles);
+	CurrentIndices.Append(InTriangles);
+}
+
+void UDynamicSelectionMeshVisualizerComponent::SetTriangles(const TArray<uint16>& InTriangles)
+{
+	CurrentIndices = InTriangles;
 	MarkRenderStateDirty();
 }
 
-void UDynamicSelectionMeshVisualizer::ClearTriangles()
+const TArray<uint16>& UDynamicSelectionMeshVisualizerComponent::GetCurrentTriangles() const
 {
-	Indices.Empty();
+	return (CurrentIndices);
 }
 
-const TArray<FVector>& UDynamicSelectionMeshVisualizer::GetVertices() const
+const TArray<uint16>& UDynamicSelectionMeshVisualizerComponent::GetMeshTriangles() const
 {
-	return (Vertices);
+	return (MeshIndices);
 }
 
-const TArray<uint16>& UDynamicSelectionMeshVisualizer::GetTriangles() const
+void UDynamicSelectionMeshVisualizerComponent::ClearTriangles()
 {
-	return (Indices);
+	CurrentIndices.Empty();
+}
+const TArray<uint16>& UDynamicSelectionMeshVisualizerComponent::GetTriangles() const
+{
+	return (CurrentIndices);
 }
 
-void UDynamicSelectionMeshVisualizer::UpdateLocalBounds()
+void UDynamicSelectionMeshVisualizerComponent::UpdateLocalBounds()
 {
-	LocalBounds = FBoxSphereBounds(Vertices.GetData(), Vertices.Num());
+	LocalBounds = Mesh != nullptr ? Mesh->GetBounds() : FBoxSphereBounds();
 	UpdateBounds();
 }
 
-#if WITH_EDITOR
-void UDynamicSelectionMeshVisualizer::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UDynamicSelectionMeshVisualizer, Mesh))
-	{
-		if (Mesh == nullptr)
-		{
-			Vertices.Empty();
-			Indices.Empty();
-			LocalBounds = FBoxSphereBounds();
-			MarkRenderStateDirty();
-		}
-		else
-		{
-			StartLoadMeshComponent();
-		}
-	}
-}
-#endif
-
-void UDynamicSelectionMeshVisualizer::AddTriangle_RenderThread(const TArray<uint16>& InitialTriangles, const TArray<uint16>& NewTriangles)
+void UDynamicSelectionMeshVisualizerComponent::AddTriangle_RenderThread(const TArray<uint16>& InitialTriangles, const TArray<uint16>& NewTriangles)
 {
 	if (SceneProxy)
 	{
@@ -403,21 +350,19 @@ void UDynamicSelectionMeshVisualizer::AddTriangle_RenderThread(const TArray<uint
 	}
 }
 
-void UDynamicSelectionMeshVisualizer::StartLoadMeshComponent()
+void UDynamicSelectionMeshVisualizerComponent::LoadMeshDatas()
 {
 	if (Mesh == nullptr)
 	{
 		return;
 	}
 
-	ElapsedTime = 0.0f;
-
 	const int32 lodIndex = 0;
 	FStaticMeshLODResources& lodResources = Mesh->RenderData->LODResources[lodIndex];
 
 	const uint32 numVertices = (uint32)Mesh->GetNumVertices(lodIndex);
 
-	// Get indices so we can exploit datas
+	// Get indices so we can use datas
 	FRawStaticIndexBuffer& indexBuffer = lodResources.IndexBuffer;
 	MeshIndices.Empty(indexBuffer.GetNumIndices());
 	MeshIndices.AddUninitialized(indexBuffer.GetNumIndices());
@@ -432,17 +377,8 @@ void UDynamicSelectionMeshVisualizer::StartLoadMeshComponent()
 			RHIUnlockIndexBuffer(SrcIndexBuffer->IndexBufferRHI);
 		}
 	);
-	
-	// Initialize vertices
-	FPositionVertexBuffer& vertexBuffer = lodResources.PositionVertexBuffer;
-	Vertices.Empty(numVertices);
-	for (uint32 i = 0; i < numVertices; ++i)
-	{
-		Vertices.Add(vertexBuffer.VertexPosition(i));
-	}
 
 	UpdateLocalBounds();
-
 	FlushRenderingCommands();
 	MarkRenderStateDirty();
 }

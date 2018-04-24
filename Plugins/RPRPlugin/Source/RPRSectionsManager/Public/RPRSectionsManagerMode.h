@@ -6,6 +6,7 @@
 #include "EditorViewportClient.h"
 #include "SceneView.h"
 #include "IMeshPaintGeometryAdapter.h"
+#include "DynamicSelectionMeshVisualizer.h"
 
 #define SELECTED_INDICES_ALLOCATOR_SIZE 512
 
@@ -42,8 +43,14 @@ private:
 
 private:
 
-	TMap<URPRStaticMeshPreviewComponent*, TSharedPtr<IMeshPaintGeometryAdapter>> MeshAdaptersPerComponent;
-	TMap<URPRStaticMeshPreviewComponent*, TArray<uint32, TInlineAllocator<SELECTED_INDICES_ALLOCATOR_SIZE>>> SelectedIndicesPerComponent;
+	struct FMeshData
+	{
+		TSharedPtr<IMeshPaintGeometryAdapter> MeshAdapter;
+		TArray<uint32> TrianglesSelected;
+		UDynamicSelectionMeshVisualizerComponent* MeshVisualizer;
+	};
+
+	TMap<URPRStaticMeshPreviewComponent*, FMeshData> MeshDataPerComponent;
 	
 	bool bIsSelecting;
 
