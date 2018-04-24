@@ -137,23 +137,38 @@ bool FRPRSectionsManagerMode::TrySelectFaces(const FVector& Origin, const FVecto
 		const float ComponentSpaceBrushRadius = ComponentToWorldMatrix.InverseTransformVector(FVector(settings->BrushSize, 0, 0)).Size();
 		const float ComponentSpaceSquaredBrushRadius = ComponentSpaceBrushRadius * ComponentSpaceBrushRadius;
 
-		TSet<int32> indices;
+		/*TSet<int32> indices;
 		adapter->GetInfluencedVertexIndices(
 			ComponentSpaceSquaredBrushRadius, 
 			ComponentScaleBrushPosition, 
 			ComponentScaleCameraPosition, 
 			settings->bOnlyFrontFacing, 
 			indices
+		);*/
+
+		TArray<uint32> triangles = adapter->SphereIntersectTriangles(
+			ComponentSpaceSquaredBrushRadius, 
+			ComponentScaleBrushPosition,
+			ComponentScaleCameraPosition,
+			settings->bOnlyFrontFacing
 		);
 
 		FRPRSectionsSelectionManager& selectionManager = FRPRSectionsSelectionManager::Get();
 		//selectionManager.AppendSelection(previewComponent, previewComponent->GetStaticMesh()->RenderData->LODResources[0].Sections indices);
 
 		auto& selectedIndices = SelectedIndicesPerComponent.FindOrAdd(previewComponent);
-		selectedIndices.Reserve(selectedIndices.Num() + indices.Num());
+		/*selectedIndices.Reserve(selectedIndices.Num() + indices.Num());
 		for (auto itIndices = indices.CreateConstIterator() ; itIndices; ++itIndices)
 		{
 			selectedIndices.AddUnique(*itIndices);
+		}*/
+		const TArray<uint32>& meshIndices = adapter->GetMeshIndices();
+		for (int32 i = 0; i < triangles.Num(); ++i)
+		{
+			const int32 triangleIndexStart = triangles[i] * 3;
+			selectedIndices.AddUnique(meshIndices[triangleIndexStart]);
+			selectedIndices.AddUnique(meshIndices[triangleIndexStart +1]);
+			selectedIndices.AddUnique(meshIndices[triangleIndexStart +2]);
 		}
 		bHasSelected = true;
 	}

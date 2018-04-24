@@ -9,6 +9,7 @@
 #include "SceneView.h"
 #include "Components/StaticMeshComponent.h"
 #include "StaticMeshResources.h"
+#include "ConstructorHelpers.h"
 
 #define INDEXBUFFER_SEGMENT_SIZE 512
 
@@ -23,8 +24,9 @@ public:
 		FRHIResourceCreateInfo CreateInfo;
 		void* VertexBufferData = nullptr;
 		VertexBufferRHI = RHICreateAndLockVertexBuffer(Vertices.Num() * sizeof(FDynamicMeshVertex), BUF_Static, CreateInfo, VertexBufferData);
-
-		FMemory::Memcpy(VertexBufferData, Vertices.GetData(), Vertices.Num() * sizeof(FDynamicMeshVertex));
+		{
+			FMemory::Memcpy(VertexBufferData, Vertices.GetData(), Vertices.Num() * sizeof(FDynamicMeshVertex));
+		}
 		RHIUnlockVertexBuffer(VertexBufferRHI);
 	}
 };
@@ -79,6 +81,7 @@ public:
 	FDSMVisualizerProxy(UDynamicSelectionMeshVisualizer* InComponent)
 		: FPrimitiveSceneProxy(InComponent)
 		, MaterialRenderProxy(nullptr)
+		, MaterialRelevance(InComponent->GetMaterialRelevance(GetScene().GetFeatureLevel()))
 	{
 		UMaterialInterface* material = InComponent->GetMaterial(0);
 		if (material)
@@ -96,17 +99,29 @@ public:
 
 	void InitializeMesh(UDynamicSelectionMeshVisualizer* DSMVisualizer)
 	{
+		UStaticMesh* mesh = DSMVisualizer->Mesh;
+
+		const int32 lodIndex = 0;
+		FStaticMeshLODResources& lodResources = mesh->RenderData->LODResources[lodIndex];
+		FStaticMeshVertexBuffer& meshVertexBuffer = lodResources.VertexBuffer;
+		FPositionVertexBuffer& meshPositionVertexBuffer = lodResources.PositionVertexBuffer;
+
 		// Copy vertices
-		const TArray<FVector>& vertices = DSMVisualizer->GetVertices();
-		VertexBuffer.Vertices.AddUninitialized(vertices.Num());
-		for (int32 i = 0; i < vertices.Num(); ++i)
+		const int32 uvChannelIndex = 0;
+		const int32 numVertices = meshPositionVertexBuffer.GetNumVertices();
+		VertexBuffer.Vertices.AddUninitialized(numVertices);
+		for (int32 i = 0; i < numVertices; ++i)
 		{
 			FDynamicMeshVertex& dynamicMeshVertex = VertexBuffer.Vertices[i];
 			{
-				dynamicMeshVertex.Position = vertices[i];
-				dynamicMeshVertex.TextureCoordinate = FVector2D::ZeroVector;
+				dynamicMeshVertex.Position = meshPositionVertexBuffer.VertexPosition(i);
+				dynamicMeshVertex.TextureCoordinate = meshVertexBuffer.GetVertexUV(i, uvChannelIndex);
 				dynamicMeshVertex.Color = FColor::White;
-				dynamicMeshVertex.SetTangents(FVector(1, 0, 0), FVector(0, 1, 0), FVector(0, 0, 1));
+				dynamicMeshVertex.SetTangents(
+					meshVertexBuffer.VertexTangentX(i),
+					meshVertexBuffer.VertexTangentY(i),
+					meshVertexBuffer.VertexTangentZ(i)
+				);
 			}
 		}
 
@@ -173,7 +188,7 @@ public:
 					BatchElement.MaxVertexIndex = VertexBuffer.Vertices.Num() - 1;
 					Mesh.Type = PT_TriangleList;
 					Mesh.DepthPriorityGroup = SDPG_World;
-					Mesh.bCanApplyViewModeOverrides = false;
+					Mesh.bCanApplyViewModeOverrides = true;
 					Collector.AddMesh(ViewIndex, Mesh);
 				}
 			}
@@ -184,12 +199,14 @@ public:
 	{
 		FPrimitiveViewRelevance Result;
 		Result.bDrawRelevance = IsShown(View);
-		Result.bRenderCustomDepth = ShouldRenderCustomDepth();
-		Result.bRenderInMainPass = ShouldRenderInMainPass();
+		Result.bShadowRelevance = IsShadowCast(View);
 		Result.bDynamicRelevance = true;
-
+		Result.bRenderInMainPass = ShouldRenderInMainPass();
+		Result.bUsesLightingChannels = GetLightingChannelMask() != GetDefaultLightingChannelMask();
+		Result.bRenderCustomDepth = ShouldRenderCustomDepth();
+		MaterialRelevance.SetPrimitiveViewRelevance(Result);
 		return (Result);
-	}
+	}	
 	
 	virtual void CreateRenderThreadResources() override
 	{
@@ -208,6 +225,11 @@ public:
 		return (sizeof(*this) + GetAllocatedSize());
 	}
 
+	virtual bool CanBeOccluded() const override
+	{
+		return (!MaterialRelevance.bDisableDepthTest && !ShouldRenderCustomDepth());
+	}
+
 private:
 
 	FDSMVertexBuffer VertexBuffer;
@@ -215,12 +237,19 @@ private:
 	FDSMVertexFactory VertexFactory;
 
 	FMaterialRenderProxy* MaterialRenderProxy;
+	FMaterialRelevance MaterialRelevance;
 
 };
 
 UDynamicSelectionMeshVisualizer::UDynamicSelectionMeshVisualizer()
 	: FaceCreationInterval(0.75f)
 {
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> MaterialFinder(TEXT("/RPRPlugin/Materials/Editor/M_FaceSelectionHighlight"));
+	if (MaterialFinder.Succeeded())
+	{
+		Material = MaterialFinder.Object;
+	}
+
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
@@ -241,19 +270,30 @@ void UDynamicSelectionMeshVisualizer::TickComponent(float DeltaTime, enum ELevel
 		const int32 maxTriangles = MeshIndices.Num() / 3;
 		int32 currentNumTriangles = Indices.Num() / 3;
 
-		while (ElapsedTime / FaceCreationInterval > currentNumTriangles && currentNumTriangles < maxTriangles)
+		if (FMath::IsNearlyZero(FaceCreationInterval))
 		{
-			int32 lastTriangleIndex = Indices.Num();
-
-			TArray<uint16> NewTriangles;
+			if (currentNumTriangles != maxTriangles)
 			{
-				NewTriangles.Add(MeshIndices[lastTriangleIndex]);
-				NewTriangles.Add(MeshIndices[lastTriangleIndex+1]);
-				NewTriangles.Add(MeshIndices[lastTriangleIndex+2]);
+				SetTriangles(MeshIndices);
 			}
-			AddTriangles(NewTriangles);
+		}
+		else
+		{
+			while (ElapsedTime / FaceCreationInterval > currentNumTriangles &&
+				currentNumTriangles < maxTriangles)
+			{
+				int32 lastTriangleIndex = Indices.Num();
 
-			++currentNumTriangles;
+				TArray<uint16> NewTriangles;
+				{
+					NewTriangles.Add(MeshIndices[lastTriangleIndex]);
+					NewTriangles.Add(MeshIndices[lastTriangleIndex + 1]);
+					NewTriangles.Add(MeshIndices[lastTriangleIndex + 2]);
+				}
+				AddTriangles(NewTriangles);
+
+				++currentNumTriangles;
+			}
 		}
 	}
 }
@@ -266,6 +306,21 @@ FBoxSphereBounds UDynamicSelectionMeshVisualizer::CalcBounds(const FTransform& L
 	Ret.SphereRadius *= BoundsScale;
 
 	return Ret;
+}
+
+UMaterialInterface* UDynamicSelectionMeshVisualizer::GetMaterial(int32 ElementIndex) const
+{
+	return (Material);
+}
+
+void UDynamicSelectionMeshVisualizer::SetMaterial(int32 ElementIndex, UMaterialInterface* InMaterial)
+{
+	Material = InMaterial;
+}
+
+int32 UDynamicSelectionMeshVisualizer::GetNumMaterials() const
+{
+	return (1);
 }
 
 FPrimitiveSceneProxy* UDynamicSelectionMeshVisualizer::CreateSceneProxy()
@@ -283,6 +338,12 @@ void UDynamicSelectionMeshVisualizer::AddTriangles(const TArray<uint16>& InTrian
 {
 	AddTriangle_RenderThread(Indices, InTriangles);
 	Indices.Append(InTriangles);
+}
+
+void UDynamicSelectionMeshVisualizer::SetTriangles(const TArray<uint16>& InTriangles)
+{
+	Indices = InTriangles;
+	MarkRenderStateDirty();
 }
 
 void UDynamicSelectionMeshVisualizer::ClearTriangles()
@@ -366,9 +427,9 @@ void UDynamicSelectionMeshVisualizer::StartLoadMeshComponent()
 		uint16*, DestIndexBuffer, MeshIndices.GetData(),
 		{
 			const int32 size = SrcIndexBuffer->IndexBufferRHI->GetSize();
-	uint16* indices = (uint16*)RHILockIndexBuffer(SrcIndexBuffer->IndexBufferRHI, 0, size, RLM_ReadOnly);
-	FMemory::Memcpy(DestIndexBuffer, indices, size);
-	RHIUnlockIndexBuffer(SrcIndexBuffer->IndexBufferRHI);
+			uint16* indices = (uint16*)RHILockIndexBuffer(SrcIndexBuffer->IndexBufferRHI, 0, size, RLM_ReadOnly);
+			FMemory::Memcpy(DestIndexBuffer, indices, size);
+			RHIUnlockIndexBuffer(SrcIndexBuffer->IndexBufferRHI);
 		}
 	);
 	

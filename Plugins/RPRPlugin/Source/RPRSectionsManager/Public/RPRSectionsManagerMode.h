@@ -43,7 +43,7 @@ private:
 private:
 
 	TMap<URPRStaticMeshPreviewComponent*, TSharedPtr<IMeshPaintGeometryAdapter>> MeshAdaptersPerComponent;
-	TMap<URPRStaticMeshPreviewComponent*, TArray<int32, TInlineAllocator<SELECTED_INDICES_ALLOCATOR_SIZE>>> SelectedIndicesPerComponent;
+	TMap<URPRStaticMeshPreviewComponent*, TArray<uint32, TInlineAllocator<SELECTED_INDICES_ALLOCATOR_SIZE>>> SelectedIndicesPerComponent;
 	
 	bool bIsSelecting;
 
