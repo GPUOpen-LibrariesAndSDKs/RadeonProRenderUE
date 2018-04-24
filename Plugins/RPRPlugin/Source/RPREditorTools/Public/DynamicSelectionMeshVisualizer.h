@@ -25,7 +25,6 @@ public:
 	void	SetTriangles(const TArray<uint16>& InTriangles);
 	
 	const TArray<uint16>&	GetCurrentTriangles() const;
-	const TArray<uint16>&	GetMeshTriangles() const;
 
 	void	ClearTriangles();
 
@@ -45,11 +44,9 @@ private:
 
 	UPROPERTY()
 	UMaterialInterface*	Material;
+	
+	class FDSMVisualizerProxy*	SceneProxy;
 
 	TArray<uint16> CurrentIndices;
-	TArray<uint16> MeshIndices;
-
-	FBoxSphereBounds			LocalBounds;
-	class FDSMVisualizerProxy*	SceneProxy;
 
 };

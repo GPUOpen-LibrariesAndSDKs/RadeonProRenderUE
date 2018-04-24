@@ -21,4 +21,7 @@ public:
 	UPROPERTY(EditAnywhere, meta = (ToolTip = "Defines how much the size of the brush is changed when using 'Ctrl + Mouse Wheel'."), AdvancedDisplay, Category = Brush)
 	float	IncrementalBrushSizeStep;
 
+	UPROPERTY(EditAnywhere, AdvancedDisplay, Category = Brush)
+	bool	bShowOnlySelection;
+
 };

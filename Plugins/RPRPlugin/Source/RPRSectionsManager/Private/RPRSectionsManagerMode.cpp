@@ -32,7 +32,7 @@ void FRPRSectionsManagerMode::InitializeMeshAdapters()
 		{
 			const int32 lodIndex = 0;
 			TSharedPtr<IMeshPaintGeometryAdapter> adapter = FMeshPaintAdapterFactory::CreateAdapterForMesh(staticMeshPreviewComponent, lodIndex);
-			if (staticMeshPreviewComponent->IsVisible() && adapter.IsValid() && adapter->IsValid())
+			if (adapter.IsValid() && adapter->IsValid())
 			{
 				FMeshData& meshData = MeshDataPerComponent.Add(staticMeshPreviewComponent);
 				{
@@ -54,8 +54,22 @@ void FRPRSectionsManagerMode::Exit()
 	{
 		FMeshData& meshData = it.Value();
 		meshData.MeshVisualizer->DestroyComponent();
+		
+		FRPRSectionsSelectionManager::Get().ClearSelectionFor(it.Key());
 	}
 	MeshDataPerComponent.Empty();
+}
+
+void FRPRSectionsManagerMode::Tick(FEditorViewportClient* ViewportClient, float DeltaTime)
+{
+	FEdMode::Tick(ViewportClient, DeltaTime);
+
+	URPRSectionsManagerModeSettings* settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
+	for (auto it(MeshDataPerComponent.CreateIterator()); it; ++it)
+	{
+		URPRStaticMeshPreviewComponent* preview = it.Key();
+		preview->SetVisibility(!settings->bShowOnlySelection);
+	}
 }
 
 bool FRPRSectionsManagerMode::InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event)
@@ -138,49 +152,18 @@ bool FRPRSectionsManagerMode::TrySelectFaces(const FVector& Origin, const FVecto
 			return (false);
 		}
 
-		URPRSectionsManagerModeSettings* settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
-
 		FMeshData& meshData = MeshDataPerComponent[previewComponent];
-		TSharedPtr<IMeshPaintGeometryAdapter> adapter = meshData.MeshAdapter;
-
-		const FMatrix ComponentToWorldMatrix = LastHitResult.GetComponent()->GetComponentTransform().ToMatrixWithScale();
-		const FVector ComponentScaleCameraPosition = ComponentToWorldMatrix.InverseTransformPosition(traceStart);
-		const FVector ComponentScaleBrushPosition = ComponentToWorldMatrix.InverseTransformPosition(BrushPosition);
-		const float ComponentSpaceBrushRadius = ComponentToWorldMatrix.InverseTransformVector(FVector(settings->BrushSize, 0, 0)).Size();
-		const float ComponentSpaceSquaredBrushRadius = ComponentSpaceBrushRadius * ComponentSpaceBrushRadius;
-
-		TArray<uint32> triangles = adapter->SphereIntersectTriangles(
-			ComponentSpaceSquaredBrushRadius, 
-			ComponentScaleBrushPosition,
-			ComponentScaleCameraPosition,
-			settings->bOnlyFrontFacing
-		);
-
-		FRPRSectionsSelectionManager& selectionManager = FRPRSectionsSelectionManager::Get();
-		//selectionManager.AppendSelection(previewComponent, previewComponent->GetStaticMesh()->RenderData->LODResources[0].Sections indices);
-
 		UDynamicSelectionMeshVisualizerComponent* visualizer = meshData.MeshVisualizer;
-
-		const TArray<uint32>& meshIndices = adapter->GetMeshIndices();
+		const TArray<uint32>& meshIndices = meshData.MeshAdapter->GetMeshIndices();
 		TArray<uint32>& registeredTriangles = meshData.TrianglesSelected;
-		registeredTriangles.Reserve(registeredTriangles.Num() + triangles.Num());
-
 		TArray<uint16> newIndicesSelected;
-		newIndicesSelected.Reserve(triangles.Num() * 3);
-		for (int32 i = 0; i < triangles.Num(); ++i)
-		{
-			if (!registeredTriangles.Contains(triangles[i]))
-			{
-				registeredTriangles.Add(triangles[i]);
-
-				const int32 triangleIndexStart = triangles[i] * 3;
-				newIndicesSelected.Add(meshIndices[triangleIndexStart]);
-				newIndicesSelected.Add(meshIndices[triangleIndexStart+1]);
-				newIndicesSelected.Add(meshIndices[triangleIndexStart+2]);
-			}
-		}
+		
+		TArray<uint32> newTriangles = GetBrushIntersectTriangles(previewComponent, Origin);
+		GetNewRegisteredTrianglesAndIndices(newTriangles, meshIndices, registeredTriangles, newIndicesSelected);
 
 		visualizer->AddTriangles(newIndicesSelected);
+
+		FRPRSectionsSelectionManager::Get().AppendSelection(previewComponent, registeredTriangles);
 
 		bHasSelected = true;
 	}
@@ -203,6 +186,50 @@ void FRPRSectionsManagerMode::GetViewInfos(FEditorViewportClient* ViewportClient
 
 	OutOrigin = View->ViewMatrices.GetViewOrigin();
 	OutDirection = CursorLocation.GetDirection();
+}
+
+TArray<uint32> FRPRSectionsManagerMode::GetBrushIntersectTriangles(URPRStaticMeshPreviewComponent* PreviewComponent, const FVector& CameraPosition) const
+{
+	URPRSectionsManagerModeSettings* settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
+
+	const FMeshData& meshData = MeshDataPerComponent[PreviewComponent];
+	TSharedPtr<IMeshPaintGeometryAdapter> adapter = meshData.MeshAdapter;
+
+	const FMatrix ComponentToWorldMatrix = LastHitResult.GetComponent()->GetComponentTransform().ToMatrixWithScale();
+	const FVector ComponentScaleCameraPosition = ComponentToWorldMatrix.InverseTransformPosition(CameraPosition);
+	const FVector ComponentScaleBrushPosition = ComponentToWorldMatrix.InverseTransformPosition(BrushPosition);
+	const float ComponentSpaceBrushRadius = ComponentToWorldMatrix.InverseTransformVector(FVector(settings->BrushSize, 0, 0)).Size();
+	const float ComponentSpaceSquaredBrushRadius = ComponentSpaceBrushRadius * ComponentSpaceBrushRadius;
+
+	return adapter->SphereIntersectTriangles(
+		ComponentSpaceSquaredBrushRadius,
+		ComponentScaleBrushPosition,
+		ComponentScaleCameraPosition,
+		settings->bOnlyFrontFacing
+	);
+}
+
+void FRPRSectionsManagerMode::GetNewRegisteredTrianglesAndIndices(
+	const TArray<uint32>& NewTriangles, 
+	const TArray<uint32>& MeshIndices, 
+	TArray<uint32>& OutUniqueNewTriangles, 
+	TArray<uint16>& OutUniqueNewIndices) const
+{
+	OutUniqueNewTriangles.Reserve(OutUniqueNewTriangles.Num() + NewTriangles.Num());
+	OutUniqueNewIndices.Empty(NewTriangles.Num() * 3);
+
+	for (int32 i = 0; i < NewTriangles.Num(); ++i)
+	{
+		if (!OutUniqueNewTriangles.Contains(NewTriangles[i]))
+		{
+			OutUniqueNewTriangles.Add(NewTriangles[i]);
+
+			const int32 triangleIndexStart = NewTriangles[i] * 3;
+			OutUniqueNewIndices.Add(MeshIndices[triangleIndexStart]);
+			OutUniqueNewIndices.Add(MeshIndices[triangleIndexStart + 1]);
+			OutUniqueNewIndices.Add(MeshIndices[triangleIndexStart + 2]);
+		}
+	}
 }
 
 bool FRPRSectionsManagerMode::CapturedMouseMove(FEditorViewportClient* InViewportClient, FViewport* InViewport, int32 InMouseX, int32 InMouseY)
@@ -268,6 +295,28 @@ void FRPRSectionsManagerMode::SelectNone()
 
 void FRPRSectionsManagerMode::Render(const FSceneView* View, FViewport* Viewport, FPrimitiveDrawInterface* PDI)
 {
+	for (auto it = MeshDataPerComponent.CreateIterator(); it; ++it)
+	{
+		URPRStaticMeshPreviewComponent* component = it.Key();
+		const TArray<uint32>* selectedTriangles = FRPRSectionsSelectionManager::Get().GetSelectedTriangles(component);
+		if (selectedTriangles != nullptr)
+		{
+			UStaticMesh* staticMesh = component->GetStaticMesh();
+			FPositionVertexBuffer& vertexBuffer = staticMesh->RenderData->LODResources[0].PositionVertexBuffer;
+			FIndexArrayView indexBuffer = staticMesh->RenderData->LODResources[0].IndexBuffer.GetArrayView();
+			FVector boxSize = FVector::OneVector;
+			for (int32 i = 0; i < selectedTriangles->Num(); ++i)
+			{
+				const int32 indexStart = (*selectedTriangles)[i] * 3;
+				for (int j = 0; j < 3; ++j)
+				{
+					FVector position = vertexBuffer.VertexPosition(indexBuffer[indexStart + j]);
+					DrawWireBox(PDI, FTranslationMatrix(position), FBox(-boxSize, boxSize), FLinearColor::Green, SDPG_World);
+				}
+			}
+		}
+	}
+
 	if (bIsBrushOnMesh)
 	{
 		URPRSectionsManagerModeSettings* settings = GetMutableDefault<URPRSectionsManagerModeSettings>();

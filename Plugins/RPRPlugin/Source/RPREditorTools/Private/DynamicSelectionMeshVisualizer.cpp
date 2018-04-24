@@ -124,12 +124,6 @@ public:
 				);
 			}
 		}
-
-		// Copy triangles
-		const TArray<uint16>& triangles = DSMVisualizer->GetTriangles();
-		IndexBuffer.Indices = triangles;
-
-		check(triangles.Num() % 3 == 0);
 	}
 
 	void AddTriangles(const TArray<uint16>& Triangles, const TArray<uint16>& NewTriangles)
@@ -249,7 +243,8 @@ UDynamicSelectionMeshVisualizerComponent::UDynamicSelectionMeshVisualizerCompone
 
 FBoxSphereBounds UDynamicSelectionMeshVisualizerComponent::CalcBounds(const FTransform& LocalToWorld) const
 {
-	FBoxSphereBounds Ret(LocalBounds.TransformBy(LocalToWorld));
+	FBoxSphereBounds localBounds = Mesh != nullptr ? Mesh->GetBounds() : FBoxSphereBounds();
+	FBoxSphereBounds Ret(localBounds.TransformBy(LocalToWorld));
 
 	Ret.BoxExtent *= BoundsScale;
 	Ret.SphereRadius *= BoundsScale;
@@ -314,11 +309,6 @@ const TArray<uint16>& UDynamicSelectionMeshVisualizerComponent::GetCurrentTriang
 	return (CurrentIndices);
 }
 
-const TArray<uint16>& UDynamicSelectionMeshVisualizerComponent::GetMeshTriangles() const
-{
-	return (MeshIndices);
-}
-
 void UDynamicSelectionMeshVisualizerComponent::ClearTriangles()
 {
 	CurrentIndices.Empty();
@@ -326,12 +316,6 @@ void UDynamicSelectionMeshVisualizerComponent::ClearTriangles()
 const TArray<uint16>& UDynamicSelectionMeshVisualizerComponent::GetTriangles() const
 {
 	return (CurrentIndices);
-}
-
-void UDynamicSelectionMeshVisualizerComponent::UpdateLocalBounds()
-{
-	LocalBounds = Mesh != nullptr ? Mesh->GetBounds() : FBoxSphereBounds();
-	UpdateBounds();
 }
 
 void UDynamicSelectionMeshVisualizerComponent::AddTriangle_RenderThread(const TArray<uint16>& InitialTriangles, const TArray<uint16>& NewTriangles)
@@ -357,28 +341,7 @@ void UDynamicSelectionMeshVisualizerComponent::LoadMeshDatas()
 		return;
 	}
 
-	const int32 lodIndex = 0;
-	FStaticMeshLODResources& lodResources = Mesh->RenderData->LODResources[lodIndex];
-
-	const uint32 numVertices = (uint32)Mesh->GetNumVertices(lodIndex);
-
-	// Get indices so we can use datas
-	FRawStaticIndexBuffer& indexBuffer = lodResources.IndexBuffer;
-	MeshIndices.Empty(indexBuffer.GetNumIndices());
-	MeshIndices.AddUninitialized(indexBuffer.GetNumIndices());
-	ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
-		FUDynamicSelectionMeshVisualizer_StartLoadMeshComponent_GetIndices,
-		FRawStaticIndexBuffer*, SrcIndexBuffer, &indexBuffer,
-		uint16*, DestIndexBuffer, MeshIndices.GetData(),
-		{
-			const int32 size = SrcIndexBuffer->IndexBufferRHI->GetSize();
-			uint16* indices = (uint16*)RHILockIndexBuffer(SrcIndexBuffer->IndexBufferRHI, 0, size, RLM_ReadOnly);
-			FMemory::Memcpy(DestIndexBuffer, indices, size);
-			RHIUnlockIndexBuffer(SrcIndexBuffer->IndexBufferRHI);
-		}
-	);
-
-	UpdateLocalBounds();
+	UpdateBounds();
 	FlushRenderingCommands();
 	MarkRenderStateDirty();
 }

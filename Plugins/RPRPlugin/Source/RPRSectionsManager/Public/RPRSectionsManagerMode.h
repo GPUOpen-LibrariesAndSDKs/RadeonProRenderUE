@@ -21,6 +21,7 @@ public:
 	virtual void Enter() override;
 	virtual void Exit() override;
 
+	virtual void Tick(FEditorViewportClient* ViewportClient, float DeltaTime) override;
 	virtual bool InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event) override;
 	virtual bool InputAxis(FEditorViewportClient* InViewportClient, FViewport* Viewport, int32 ControllerId, FKey Key, float Delta, float DeltaTime) override;
 	virtual bool CapturedMouseMove(FEditorViewportClient* InViewportClient, FViewport* InViewport, int32 InMouseX, int32 InMouseY) override;
@@ -35,11 +36,13 @@ public:
 
 private:
 
-	void	InitializeMeshAdapters();
-	void	UpdateBrushPosition(FEditorViewportClient* InViewportClient);
-	bool	TrySelectionPainting(FEditorViewportClient* InViewportClient, FViewport* InViewport);
-	bool	TrySelectFaces(const FVector& Origin, const FVector& Direction);
-	void	GetViewInfos(FEditorViewportClient* ViewportClient, FVector& OutOrigin, FVector& OutDirection) const;
+	void			InitializeMeshAdapters();
+	void			UpdateBrushPosition(FEditorViewportClient* InViewportClient);
+	bool			TrySelectionPainting(FEditorViewportClient* InViewportClient, FViewport* InViewport);
+	bool			TrySelectFaces(const FVector& Origin, const FVector& Direction);
+	void			GetViewInfos(FEditorViewportClient* ViewportClient, FVector& OutOrigin, FVector& OutDirection) const;
+	TArray<uint32>	GetBrushIntersectTriangles(URPRStaticMeshPreviewComponent* PreviewComponent, const FVector& CameraPosition) const;
+	void			GetNewRegisteredTrianglesAndIndices(const TArray<uint32>& NewTriangles, const TArray<uint32>& MeshIndices, TArray<uint32>& OutUniqueNewTriangles, TArray<uint16>& OutUniqueNewIndices) const;
 
 private:
 

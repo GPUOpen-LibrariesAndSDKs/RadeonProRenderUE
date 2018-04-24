@@ -20,34 +20,39 @@ FRPRSectionsSelectionManager& FRPRSectionsSelectionManager::Get()
 	return (*Instance.Get());
 }
 
-void FRPRSectionsSelectionManager::AppendSelection(const URPRStaticMeshPreviewComponent* PreviewComponent, const TArray<uint32>& Triangles, const TSet<int32>& Indices)
+void FRPRSectionsSelectionManager::AppendSelection(const URPRStaticMeshPreviewComponent* PreviewComponent, const TArray<uint32>& Triangles)
 {
-	//for (TSet<int32>::TConstIterator it = Indices.CreateConstIterator(); it; ++it)
-	//{
-
-
-	//	Indices.Remove(it.GetId());
-	//}
+	TArray<uint32>* selectedTriangles = SelectedTrianglesMap.Find(PreviewComponent);
+	if (selectedTriangles == nullptr)
+	{
+		SelectedTrianglesMap.Add(PreviewComponent, Triangles);
+	}
+	else
+	{
+		selectedTriangles->Append(Triangles);
+	}
 }
 
 void FRPRSectionsSelectionManager::ClearSelectionFor(const URPRStaticMeshPreviewComponent* PreviewComponent)
 {
-	ClearSelectionMapFor(PreviewComponent, SelectedIsolatedIndicesMap);
-	ClearSelectionMapFor(PreviewComponent, SelectedFacesMap);
+	ClearSelectionMapFor(PreviewComponent, SelectedTrianglesMap);
 }
 
 void FRPRSectionsSelectionManager::ClearAllSelection()
 {
-	SelectedFacesMap.Empty();
-	SelectedIsolatedIndicesMap.Empty();
+	SelectedTrianglesMap.Empty();
+}
+
+const TArray<uint32>* FRPRSectionsSelectionManager::GetSelectedTriangles(const URPRStaticMeshPreviewComponent* PreviewComponent) const
+{
+	return (SelectedTrianglesMap.Find(PreviewComponent));
 }
 
 void FRPRSectionsSelectionManager::ClearSelectionMapFor(const URPRStaticMeshPreviewComponent* PreviewComponent, FSelectionMap& Map)
 {
-	// TODO : implement
-}
-
-void FRPRSectionsSelectionManager::MakeFacesFromNewIndices(const TArray<uint32>& Triangles, TSet<int32>& Indices)
-{
-
+	auto* selection = Map.Find(PreviewComponent);
+	if (selection)
+	{
+		selection->Empty();
+	}
 }
