@@ -43,6 +43,7 @@ private:
 	void			GetViewInfos(FEditorViewportClient* ViewportClient, FVector& OutOrigin, FVector& OutDirection) const;
 	TArray<uint32>	GetBrushIntersectTriangles(URPRStaticMeshPreviewComponent* PreviewComponent, const FVector& CameraPosition) const;
 	void			GetNewRegisteredTrianglesAndIndices(const TArray<uint32>& NewTriangles, const TArray<uint32>& MeshIndices, TArray<uint32>& OutUniqueNewTriangles, TArray<uint16>& OutUniqueNewIndices) const;
+	void			RenderSelectedVertices(FPrimitiveDrawInterface* PDI);
 
 private:
 

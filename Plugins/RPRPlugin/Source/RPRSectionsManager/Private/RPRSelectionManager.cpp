@@ -48,6 +48,11 @@ const TArray<uint32>* FRPRSectionsSelectionManager::GetSelectedTriangles(const U
 	return (SelectedTrianglesMap.Find(PreviewComponent));
 }
 
+FRPRSectionsSelectionManager::FSelectionMap::TIterator FRPRSectionsSelectionManager::GetSelectionIterator()
+{
+	return (SelectedTrianglesMap.CreateIterator());
+}
+
 void FRPRSectionsSelectionManager::ClearSelectionMapFor(const URPRStaticMeshPreviewComponent* PreviewComponent, FSelectionMap& Map)
 {
 	auto* selection = Map.Find(PreviewComponent);

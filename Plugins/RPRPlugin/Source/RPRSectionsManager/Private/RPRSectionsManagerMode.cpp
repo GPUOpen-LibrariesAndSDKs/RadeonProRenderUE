@@ -52,8 +52,13 @@ void FRPRSectionsManagerMode::Exit()
 {
 	for (auto it(MeshDataPerComponent.CreateIterator()); it; ++it)
 	{
+		// Destroy the face visualizer component
 		FMeshData& meshData = it.Value();
 		meshData.MeshVisualizer->DestroyComponent();
+
+		// Reset preview visibility if hidden because of the mode settings
+		URPRStaticMeshPreviewComponent* preview = it.Key();
+		preview->SetVisibility(true);
 		
 		FRPRSectionsSelectionManager::Get().ClearSelectionFor(it.Key());
 	}
@@ -295,6 +300,28 @@ void FRPRSectionsManagerMode::SelectNone()
 
 void FRPRSectionsManagerMode::Render(const FSceneView* View, FViewport* Viewport, FPrimitiveDrawInterface* PDI)
 {
+
+#if 0 // Allow to see to check the selected vertices - Be careful on high poly
+	RenderSelectedVertices(PDI);
+#endif
+
+	if (bIsBrushOnMesh)
+	{
+		URPRSectionsManagerModeSettings* settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
+
+		const int32 numSides = 12;
+		DrawWireSphere(PDI,
+			BrushPosition,
+			bIsSelecting ? FColor::Orange : FColor::Green,
+			settings->BrushSize,
+			numSides,
+			SDPG_World
+		);
+	}
+}
+
+void FRPRSectionsManagerMode::RenderSelectedVertices(FPrimitiveDrawInterface* PDI)
+{
 	for (auto it = MeshDataPerComponent.CreateIterator(); it; ++it)
 	{
 		URPRStaticMeshPreviewComponent* component = it.Key();
@@ -315,19 +342,5 @@ void FRPRSectionsManagerMode::Render(const FSceneView* View, FViewport* Viewport
 				}
 			}
 		}
-	}
-
-	if (bIsBrushOnMesh)
-	{
-		URPRSectionsManagerModeSettings* settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
-
-		const int32 numSides = 12;
-		DrawWireSphere(PDI,
-			BrushPosition,
-			bIsSelecting ? FColor::Orange : FColor::Green,
-			settings->BrushSize,
-			numSides,
-			SDPG_World
-		);
 	}
 }

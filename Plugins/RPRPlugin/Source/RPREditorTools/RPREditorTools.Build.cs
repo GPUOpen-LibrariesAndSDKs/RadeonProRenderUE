@@ -35,7 +35,8 @@ public class RPREditorTools : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core"
+                "Core",
+                "RawMesh",
 				
 				// ... add other public dependencies that you statically link with here ...
 			}
@@ -61,7 +62,6 @@ public class RPREditorTools : ModuleRules
                 "RHI",
                 "RenderCore",
                 "ShaderCore",
-                "RawMesh",
 				// ... add private dependencies that you statically link with here ...	
 			}
         );

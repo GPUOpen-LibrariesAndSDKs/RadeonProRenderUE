@@ -47,7 +47,8 @@ public class RPRSectionsManager : ModuleRules
                 "Slate",
                 "SlateCore",
                 "UnrealEd",
-                "InputCore"
+                "InputCore",
+                "PropertyEditor"
 				// ... add private dependencies that you statically link with here ...	
 			}
         );

@@ -74,6 +74,8 @@ TSharedRef<SWidget> FRPRStaticMeshEditorModesWindow::MakeWidget()
 			+SWidgetSwitcher::Slot()
 			[
 				SNew(SRPRSectionsManager)
+				.GetRPRMeshDatas(this, &FRPRStaticMeshEditorModesWindow::GetSelectedRPRMeshDatas)
+				.OnMaterialChanged(this, &FRPRStaticMeshEditorModesWindow::OnMaterialChanged)
 			]
 		]
 	;
@@ -118,9 +120,19 @@ void FRPRStaticMeshEditorModesWindow::DeselectCurrentMode()
 	}
 }
 
+void FRPRStaticMeshEditorModesWindow::OnMaterialChanged()
+{
+	StaticMeshEditor->RefreshViewport();
+}
+
 TSharedPtr<FEditorViewportClient> FRPRStaticMeshEditorModesWindow::GetMainViewportClient() const
 {
 	return StaticMeshEditor->GetMainViewportClient();
+}
+
+FRPRMeshDataContainerPtr FRPRStaticMeshEditorModesWindow::GetSelectedRPRMeshDatas() const
+{
+	return StaticMeshEditor->GetSelectedMeshes();
 }
 
 FEditorModeTools* FRPRStaticMeshEditorModesWindow::GetModeTools() const

@@ -21,6 +21,7 @@ public:
 	void		ClearAllSelection();
 
 	const TArray<uint32>*	GetSelectedTriangles(const URPRStaticMeshPreviewComponent* PreviewComponent) const;
+	FSelectionMap::TIterator	GetSelectionIterator();
 
 private:
 
