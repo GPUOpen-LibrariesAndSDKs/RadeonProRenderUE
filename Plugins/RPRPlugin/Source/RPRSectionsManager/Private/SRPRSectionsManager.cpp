@@ -93,6 +93,15 @@ void SRPRSectionsManager::OnMaterialChanged(UStaticMesh* StaticMesh)
 TSharedRef<IDetailCustomization> SRPRSectionsManager::MakeStaticMeshDetails()
 {
 	FRPRSectionsDetailCustomization::FDelegates delegates;
-	delegates.OnMaterialChanged.BindSP(this, &SRPRSectionsManager::OnMaterialChanged);
+	{
+		delegates.OnMaterialChanged.BindSP(this, &SRPRSectionsManager::OnMaterialChanged);
+		delegates.GetRPRMeshData.BindSP(this, &SRPRSectionsManager::GetRPRMeshData);
+	}
 	return (MakeShareable(new FRPRSectionsDetailCustomization(delegates)));
+}
+
+FRPRMeshDataPtr SRPRSectionsManager::GetRPRMeshData(UStaticMesh* StaticMesh)
+{
+	FRPRMeshDataContainerPtr selectedMeshDatas = GetRPRMeshDatas.Execute();
+	return (selectedMeshDatas.IsValid() ? selectedMeshDatas->FindByStaticMesh(StaticMesh) : nullptr);
 }

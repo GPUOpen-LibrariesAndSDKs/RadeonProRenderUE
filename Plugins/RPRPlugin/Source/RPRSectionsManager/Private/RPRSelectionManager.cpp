@@ -43,6 +43,12 @@ void FRPRSectionsSelectionManager::ClearAllSelection()
 	SelectedTrianglesMap.Empty();
 }
 
+bool FRPRSectionsSelectionManager::HasSelectedTriangles(const URPRStaticMeshPreviewComponent* PreviewComponent)
+{
+	auto result = GetSelectedTriangles(PreviewComponent);
+	return (result != nullptr && result->Num() > 0);
+}
+
 const TArray<uint32>* FRPRSectionsSelectionManager::GetSelectedTriangles(const URPRStaticMeshPreviewComponent* PreviewComponent) const
 {
 	return (SelectedTrianglesMap.Find(PreviewComponent));
@@ -51,6 +57,19 @@ const TArray<uint32>* FRPRSectionsSelectionManager::GetSelectedTriangles(const U
 FRPRSectionsSelectionManager::FSelectionMap::TIterator FRPRSectionsSelectionManager::GetSelectionIterator()
 {
 	return (SelectedTrianglesMap.CreateIterator());
+}
+
+const URPRStaticMeshPreviewComponent* FRPRSectionsSelectionManager::FindPreviewComponentByStaticMesh(UStaticMesh* StaticMesh) const
+{
+	for (auto it = SelectedTrianglesMap.CreateConstIterator(); it; ++it)
+	{
+		const URPRStaticMeshPreviewComponent* component = it.Key();
+		if (component->GetStaticMesh() == StaticMesh)
+		{
+			return (component);
+		}
+	}
+	return (nullptr);
 }
 
 void FRPRSectionsSelectionManager::ClearSelectionMapFor(const URPRStaticMeshPreviewComponent* PreviewComponent, FSelectionMap& Map)

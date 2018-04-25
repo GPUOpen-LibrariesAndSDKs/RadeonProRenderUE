@@ -1,13 +1,17 @@
 #include "RPRSectionsDetailCustomization.h"
 #include "DetailLayoutBuilder.h"
 #include "PropertyCustomizationHelpers.h"
-#include "DetailCategoryBuilder.h"
+#include "STextBlock.h"
+#include "SButton.h"
+#include "RPRSelectionManager.h"
 
 #define LOCTEXT_NAMESPACE "RPRSectionsDetailCustomization"
 
 FRPRSectionsDetailCustomization::FRPRSectionsDetailCustomization(const FDelegates& InDelegates)
 	: Delegates(InDelegates)
-{}
+{
+	check(Delegates.GetRPRMeshData.IsBound());
+}
 
 void FRPRSectionsDetailCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 {
@@ -33,9 +37,23 @@ void FRPRSectionsDetailCustomization::CustomizeDetails(IDetailLayoutBuilder& Det
 			delegates.OnGetMaterials.BindSP(this, &FRPRSectionsDetailCustomization::GetMaterials, selectedMeshes[i]);
 			delegates.OnMaterialChanged.BindSP(this, &FRPRSectionsDetailCustomization::MaterialChanged, selectedMeshes[i]);
 			delegates.OnMaterialListDirty.BindSP(this, &FRPRSectionsDetailCustomization::IsMaterialListDirty);
+			delegates.OnGenerateCustomMaterialWidgets.BindSP(this, &FRPRSectionsDetailCustomization::GenerateCustomMaterialWidgets, selectedMeshes[i]);
 		}
+
+		AddStaticMeshName(materialsCategory, selectedMeshes[i].Get());
 		materialsCategory.AddCustomBuilder(MakeShareable(new FMaterialList(DetailBuilder, delegates, true, true, true)));
 	}
+}
+
+void FRPRSectionsDetailCustomization::AddStaticMeshName(IDetailCategoryBuilder& CategoryBuilder, UStaticMesh* StaticMesh)
+{
+	FName staticMeshName = StaticMesh->GetFName();
+	CategoryBuilder.AddCustomRow(FText::GetEmpty())
+		[
+			SNew(STextBlock)
+			.Text(FText::FromName(staticMeshName))
+			.Font(FEditorStyle::GetFontStyle("DetailsView.CategoryFontStyle"))
+		];
 }
 
 void FRPRSectionsDetailCustomization::GetMaterials(class IMaterialListBuilder& MaterialListBuidler, TWeakObjectPtr<UStaticMesh> MeshPtr)
@@ -79,6 +97,43 @@ bool FRPRSectionsDetailCustomization::IsMaterialListDirty() const
 void FRPRSectionsDetailCustomization::MarkMaterialListDirty()
 {
 	bIsMaterialListDirty = true;
+}
+
+TSharedRef<SWidget> FRPRSectionsDetailCustomization::GenerateCustomMaterialWidgets(UMaterialInterface* Material, int32 MaterialIndex, TWeakObjectPtr<UStaticMesh> StaticMesh)
+{
+	return SNew(SHorizontalBox)
+		+SHorizontalBox::Slot()
+		[
+			SNew(SButton)
+			.Text(LOCTEXT("AddSelectionToSection", "Add"))
+			.ToolTipText(LOCTEXT("AddSelectionToSectionTooltip", "Associate the selected faces to this section. The faces cannot be set on another mesh!"))
+			.OnClicked(this, &FRPRSectionsDetailCustomization::OnSelectedFacesAddedToSection, StaticMesh.Get(), MaterialIndex)
+			.IsEnabled(this, &FRPRSectionsDetailCustomization::IsAddSelectionToSectionButtonEnabled, StaticMesh.Get())
+		]
+		;
+}
+
+FReply FRPRSectionsDetailCustomization::OnSelectedFacesAddedToSection(UStaticMesh* Mesh, int32 MaterialIndex)
+{
+	const URPRStaticMeshPreviewComponent* component = FRPRSectionsSelectionManager::Get().FindPreviewComponentByStaticMesh(Mesh);
+	if (component == nullptr)
+	{
+		return (FReply::Unhandled());
+	}
+
+ 	FRPRMeshDataPtr meshDataPtr = Delegates.GetRPRMeshData.Execute(Mesh);
+	if (meshDataPtr.IsValid())
+	{
+		// Modify raw mesh here
+	}
+
+	return (FReply::Handled());
+}
+
+bool FRPRSectionsDetailCustomization::IsAddSelectionToSectionButtonEnabled(UStaticMesh* Mesh) const
+{
+	const URPRStaticMeshPreviewComponent* component = FRPRSectionsSelectionManager::Get().FindPreviewComponentByStaticMesh(Mesh);
+	return (component != nullptr ? FRPRSectionsSelectionManager::Get().HasSelectedTriangles(component) : false);
 }
 
 void FRPRSectionsDetailCustomization::CallPostEditChange(UStaticMesh* StaticMesh, UProperty* PropertyChanged /*= nullptr*/)

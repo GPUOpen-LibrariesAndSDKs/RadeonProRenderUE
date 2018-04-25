@@ -23,6 +23,7 @@ private:
 	void	InitializeModeDetails();
 	void	InitializeMeshesSectionsDetails();
 	void	OnMaterialChanged(UStaticMesh* StaticMesh);
+	FRPRMeshDataPtr GetRPRMeshData(UStaticMesh* StaticMesh);
 
 	TSharedRef<IDetailCustomization> MakeStaticMeshDetails();
 

@@ -19,9 +19,11 @@ public:
 	void		AppendSelection(const URPRStaticMeshPreviewComponent* PreviewComponent, const TArray<uint32>& Triangles);
 	void		ClearSelectionFor(const URPRStaticMeshPreviewComponent* PreviewComponent);
 	void		ClearAllSelection();
+	bool		HasSelectedTriangles(const URPRStaticMeshPreviewComponent* PreviewComponent);
 
 	const TArray<uint32>*	GetSelectedTriangles(const URPRStaticMeshPreviewComponent* PreviewComponent) const;
 	FSelectionMap::TIterator	GetSelectionIterator();
+	const URPRStaticMeshPreviewComponent*	FindPreviewComponentByStaticMesh(UStaticMesh* StaticMesh) const;
 
 private:
 
