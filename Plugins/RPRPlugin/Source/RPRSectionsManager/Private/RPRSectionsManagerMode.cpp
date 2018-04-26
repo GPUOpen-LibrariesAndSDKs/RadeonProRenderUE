@@ -18,51 +18,25 @@ FRPRSectionsManagerMode::FRPRSectionsManagerMode()
 
 void FRPRSectionsManagerMode::Enter()
 {
-	InitializeMeshAdapters();
-}
-
-void FRPRSectionsManagerMode::InitializeMeshAdapters()
-{
-	MeshDataPerComponent.Empty();
-	UWorld* world = GetWorld();
-	for (TActorIterator<AActor> it(world); it; ++it)
-	{
-		URPRStaticMeshPreviewComponent* staticMeshPreviewComponent = it->FindComponentByClass<URPRStaticMeshPreviewComponent>();
-		if (staticMeshPreviewComponent != nullptr)
-		{
-			const int32 lodIndex = 0;
-			TSharedPtr<IMeshPaintGeometryAdapter> adapter = FMeshPaintAdapterFactory::CreateAdapterForMesh(staticMeshPreviewComponent, lodIndex);
-			if (adapter.IsValid() && adapter->IsValid())
-			{
-				FMeshData& meshData = MeshDataPerComponent.Add(staticMeshPreviewComponent);
-				{
-					meshData.MeshAdapter = adapter;
-
-					UDynamicSelectionMeshVisualizerComponent* visualizer = NewObject<UDynamicSelectionMeshVisualizerComponent>(*it);
-					visualizer->SetMesh(staticMeshPreviewComponent->GetStaticMesh());
-					visualizer->RegisterComponent();
-					meshData.MeshVisualizer = visualizer;
-				}
-			}
-		}
-	}
+	SectionSelectionChangedDelegateHandle = 
+		FRPRSectionsSelectionManager::Get().OnSectionSelectionChanged().AddRaw(this, &FRPRSectionsManagerMode::OnSectionSelectionChanged);
 }
 
 void FRPRSectionsManagerMode::Exit()
 {
-	for (auto it(MeshDataPerComponent.CreateIterator()); it; ++it)
+	for (auto it(MeshSelectionInfosMap.CreateIterator()); it; ++it)
 	{
 		// Destroy the face visualizer component
-		FMeshData& meshData = it.Value();
-		meshData.MeshVisualizer->DestroyComponent();
+		FMeshSelectionInfo& meshSelectionInfo = it.Value();
+		meshSelectionInfo.MeshVisualizer->DestroyComponent();
 
 		// Reset preview visibility if hidden because of the mode settings
-		URPRStaticMeshPreviewComponent* preview = it.Key();
-		preview->SetVisibility(true);
+		FRPRMeshDataPtr meshData = it.Key();
+		meshData->GetPreview()->SetVisibility(true);
 		
-		FRPRSectionsSelectionManager::Get().ClearSelectionFor(it.Key());
 	}
-	MeshDataPerComponent.Empty();
+	FRPRSectionsSelectionManager::Get().ClearAllSelection();
+	FRPRSectionsSelectionManager::Get().OnSectionSelectionChanged().Remove(SectionSelectionChangedDelegateHandle);
 }
 
 void FRPRSectionsManagerMode::Tick(FEditorViewportClient* ViewportClient, float DeltaTime)
@@ -70,10 +44,10 @@ void FRPRSectionsManagerMode::Tick(FEditorViewportClient* ViewportClient, float 
 	FEdMode::Tick(ViewportClient, DeltaTime);
 
 	URPRSectionsManagerModeSettings* settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
-	for (auto it(MeshDataPerComponent.CreateIterator()); it; ++it)
+	for (auto it(MeshSelectionInfosMap.CreateIterator()); it; ++it)
 	{
-		URPRStaticMeshPreviewComponent* preview = it.Key();
-		preview->SetVisibility(!settings->bShowOnlySelection);
+		FRPRMeshDataPtr meshData = it.Key();
+		meshData->GetPreview()->SetVisibility(!settings->bShowOnlySelection);
 	}
 }
 
@@ -157,18 +131,20 @@ bool FRPRSectionsManagerMode::TrySelectFaces(const FVector& Origin, const FVecto
 			return (false);
 		}
 
-		FMeshData& meshData = MeshDataPerComponent[previewComponent];
-		UDynamicSelectionMeshVisualizerComponent* visualizer = meshData.MeshVisualizer;
-		const TArray<uint32>& meshIndices = meshData.MeshAdapter->GetMeshIndices();
-		TArray<uint32>& registeredTriangles = meshData.TrianglesSelected;
+		FRPRMeshDataPtr meshData = FindMeshDataByPreviewComponent(previewComponent);
+		
+		FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[meshData];
+		const TArray<uint32>& meshIndices = meshSelectionInfo.MeshAdapter->GetMeshIndices();
+		TArray<uint32>& registeredTriangles = meshSelectionInfo.TrianglesSelected;
 		TArray<uint16> newIndicesSelected;
 		
-		TArray<uint32> newTriangles = GetBrushIntersectTriangles(previewComponent, Origin);
+		TArray<uint32> newTriangles = GetBrushIntersectTriangles(meshData, Origin);
 		GetNewRegisteredTrianglesAndIndices(newTriangles, meshIndices, registeredTriangles, newIndicesSelected);
 
+		UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;
 		visualizer->AddTriangles(newIndicesSelected);
 
-		FRPRSectionsSelectionManager::Get().AppendSelection(previewComponent, registeredTriangles);
+		FRPRSectionsSelectionManager::Get().SetSelection(meshData, registeredTriangles);
 
 		bHasSelected = true;
 	}
@@ -193,11 +169,11 @@ void FRPRSectionsManagerMode::GetViewInfos(FEditorViewportClient* ViewportClient
 	OutDirection = CursorLocation.GetDirection();
 }
 
-TArray<uint32> FRPRSectionsManagerMode::GetBrushIntersectTriangles(URPRStaticMeshPreviewComponent* PreviewComponent, const FVector& CameraPosition) const
+TArray<uint32> FRPRSectionsManagerMode::GetBrushIntersectTriangles(FRPRMeshDataPtr MeshData, const FVector& CameraPosition) const
 {
 	URPRSectionsManagerModeSettings* settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
 
-	const FMeshData& meshData = MeshDataPerComponent[PreviewComponent];
+	const FMeshSelectionInfo& meshData = MeshSelectionInfosMap[MeshData];
 	TSharedPtr<IMeshPaintGeometryAdapter> adapter = meshData.MeshAdapter;
 
 	const FMatrix ComponentToWorldMatrix = LastHitResult.GetComponent()->GetComponentTransform().ToMatrixWithScale();
@@ -267,9 +243,8 @@ void FRPRSectionsManagerMode::UpdateBrushPosition(FEditorViewportClient* InViewp
 
 	bIsBrushOnMesh = false;
 	LastHitResult.Time = WORLD_MAX;
-	for (auto it = MeshDataPerComponent.CreateIterator(); it; ++it)
+	for (auto it = MeshSelectionInfosMap.CreateIterator(); it; ++it)
 	{
-		URPRStaticMeshPreviewComponent* component = it.Key();
 		TSharedPtr<IMeshPaintGeometryAdapter> adapter = it.Value().MeshAdapter;
 
 		FHitResult hitResult;
@@ -291,16 +266,15 @@ void FRPRSectionsManagerMode::UpdateBrushPosition(FEditorViewportClient* InViewp
 
 void FRPRSectionsManagerMode::SelectNone()
 {
-	for (auto it(MeshDataPerComponent.CreateIterator()); it; ++it)
+	for (auto it(MeshSelectionInfosMap.CreateIterator()); it; ++it)
 	{
-		FMeshData& meshData = it.Value();
+		FMeshSelectionInfo& meshData = it.Value();
 		meshData.TrianglesSelected.Empty();
 	}
 }
 
 void FRPRSectionsManagerMode::Render(const FSceneView* View, FViewport* Viewport, FPrimitiveDrawInterface* PDI)
 {
-
 #if 0 // Allow to see to check the selected vertices - Be careful on high poly
 	RenderSelectedVertices(PDI);
 #endif
@@ -320,15 +294,39 @@ void FRPRSectionsManagerMode::Render(const FSceneView* View, FViewport* Viewport
 	}
 }
 
+void FRPRSectionsManagerMode::SetupGetSelectedRPRMeshData(FGetRPRMeshData InGetSelectedRPRMeshData)
+{
+	check(InGetSelectedRPRMeshData.IsBound());
+	GetSelectedRPRMeshData = InGetSelectedRPRMeshData;
+
+	FRPRMeshDataContainerPtr meshDatas = GetSelectedRPRMeshData.Execute();
+
+	MeshSelectionInfosMap.Empty(meshDatas->Num());
+	for (int32 i = 0; i < meshDatas->Num(); ++i)
+	{
+		FRPRMeshDataPtr meshData = (*meshDatas)[i];
+		FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap.Add(meshData);
+		{
+			const int32 lodIndex = 0;
+			meshSelectionInfo.MeshAdapter = FMeshPaintAdapterFactory::CreateAdapterForMesh(meshData->GetPreview(), lodIndex);
+			meshSelectionInfo.MeshVisualizer = NewObject<UDynamicSelectionMeshVisualizerComponent>(meshData->GetPreview()->GetOwner());
+			{
+				meshSelectionInfo.MeshVisualizer->SetRPRMesh(meshData);
+				meshSelectionInfo.MeshVisualizer->RegisterComponent();
+			}
+		}
+	}
+}
+
 void FRPRSectionsManagerMode::RenderSelectedVertices(FPrimitiveDrawInterface* PDI)
 {
-	for (auto it = MeshDataPerComponent.CreateIterator(); it; ++it)
+	for (auto it = MeshSelectionInfosMap.CreateIterator(); it; ++it)
 	{
-		URPRStaticMeshPreviewComponent* component = it.Key();
-		const TArray<uint32>* selectedTriangles = FRPRSectionsSelectionManager::Get().GetSelectedTriangles(component);
+		FRPRMeshDataPtr meshData = it.Key();
+		const TArray<uint32>* selectedTriangles = FRPRSectionsSelectionManager::Get().GetSelectedTriangles(meshData);
 		if (selectedTriangles != nullptr)
 		{
-			UStaticMesh* staticMesh = component->GetStaticMesh();
+			UStaticMesh* staticMesh = meshData->GetStaticMesh();
 			FPositionVertexBuffer& vertexBuffer = staticMesh->RenderData->LODResources[0].PositionVertexBuffer;
 			FIndexArrayView indexBuffer = staticMesh->RenderData->LODResources[0].IndexBuffer.GetArrayView();
 			FVector boxSize = FVector::OneVector;
@@ -343,4 +341,22 @@ void FRPRSectionsManagerMode::RenderSelectedVertices(FPrimitiveDrawInterface* PD
 			}
 		}
 	}
+}
+
+FRPRMeshDataPtr FRPRSectionsManagerMode::FindMeshDataByPreviewComponent(const URPRStaticMeshPreviewComponent* PreviewComponent)
+{
+	for (auto it = MeshSelectionInfosMap.CreateIterator(); it; ++it)
+	{
+		FRPRMeshDataPtr meshData = it.Key();
+		if (meshData->GetPreview() == PreviewComponent)
+		{
+			return (meshData);
+		}
+	}
+	return (nullptr);
+}
+
+void FRPRSectionsManagerMode::OnSectionSelectionChanged()
+{
+	MeshSelectionInfosMap.Empty();
 }

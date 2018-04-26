@@ -95,7 +95,11 @@ void FRPRStaticMeshEditorModesWindow::OnSelectMode(FEditorModeID Mode)
 	}
 	else
 	{
+		// Setup RPR Sections Manager Mode
+		// It is a dirty way but still better than using a singleton
 		ModeWidget->SetActiveWidgetIndex(1);
+		auto sectionsManagerMode = modeTools->GetActiveModeTyped<FRPRSectionsManagerMode>(Mode);
+		sectionsManagerMode->SetupGetSelectedRPRMeshData(FGetRPRMeshData::CreateRaw(this, &FRPRStaticMeshEditorModesWindow::GetSelectedRPRMeshDatas));
 	}
 
 	ProjectionMappingEditor->Enable(Mode == FBuiltinEditorModes::EM_Default);

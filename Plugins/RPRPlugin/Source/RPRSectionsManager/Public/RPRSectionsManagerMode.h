@@ -7,8 +7,11 @@
 #include "SceneView.h"
 #include "IMeshPaintGeometryAdapter.h"
 #include "DynamicSelectionMeshVisualizer.h"
+#include "RPRMeshDataContainer.h"
 
 #define SELECTED_INDICES_ALLOCATOR_SIZE 512
+
+DECLARE_DELEGATE_RetVal(FRPRMeshDataContainerPtr, FGetRPRMeshData)
 
 class RPRSECTIONSMANAGER_API FRPRSectionsManagerMode : public FEdMode
 {
@@ -34,28 +37,32 @@ public:
 	virtual bool CanCycleWidgetMode() const override { return (false); }
 	virtual bool ShouldDrawWidget() const override { return (false); }
 
+	void	SetupGetSelectedRPRMeshData(FGetRPRMeshData GetSelectedRPRMeshData);
+
 private:
 
-	void			InitializeMeshAdapters();
 	void			UpdateBrushPosition(FEditorViewportClient* InViewportClient);
 	bool			TrySelectionPainting(FEditorViewportClient* InViewportClient, FViewport* InViewport);
 	bool			TrySelectFaces(const FVector& Origin, const FVector& Direction);
 	void			GetViewInfos(FEditorViewportClient* ViewportClient, FVector& OutOrigin, FVector& OutDirection) const;
-	TArray<uint32>	GetBrushIntersectTriangles(URPRStaticMeshPreviewComponent* PreviewComponent, const FVector& CameraPosition) const;
+	TArray<uint32>	GetBrushIntersectTriangles(FRPRMeshDataPtr MeshData, const FVector& CameraPosition) const;
 	void			GetNewRegisteredTrianglesAndIndices(const TArray<uint32>& NewTriangles, const TArray<uint32>& MeshIndices, TArray<uint32>& OutUniqueNewTriangles, TArray<uint16>& OutUniqueNewIndices) const;
 	void			RenderSelectedVertices(FPrimitiveDrawInterface* PDI);
+	FRPRMeshDataPtr	FindMeshDataByPreviewComponent(const URPRStaticMeshPreviewComponent* PreviewComponent);
+	void			OnSectionSelectionChanged();
 
 private:
 
-	struct FMeshData
+	struct FMeshSelectionInfo
 	{
 		TSharedPtr<IMeshPaintGeometryAdapter> MeshAdapter;
 		TArray<uint32> TrianglesSelected;
 		UDynamicSelectionMeshVisualizerComponent* MeshVisualizer;
 	};
 
-	TMap<URPRStaticMeshPreviewComponent*, FMeshData> MeshDataPerComponent;
-	
+	TMap<FRPRMeshDataPtr, FMeshSelectionInfo> MeshSelectionInfosMap;
+	FGetRPRMeshData GetSelectedRPRMeshData;
+
 	bool bIsSelecting;
 
 	FVector	BrushPosition;
@@ -63,6 +70,7 @@ private:
 	bool bIsBrushOnMesh;
 	FHitResult LastHitResult;
 
+	FDelegateHandle SectionSelectionChangedDelegateHandle;
 };
 
 #undef SELECTED_INDICES_ALLOCATOR_SIZE

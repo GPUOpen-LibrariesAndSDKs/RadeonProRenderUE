@@ -4,6 +4,8 @@
 #include "STextBlock.h"
 #include "SButton.h"
 #include "RPRSelectionManager.h"
+#include "StaticMeshHelper.h"
+#include "ScopedSlowTask.h"
 
 #define LOCTEXT_NAMESPACE "RPRSectionsDetailCustomization"
 
@@ -115,25 +117,46 @@ TSharedRef<SWidget> FRPRSectionsDetailCustomization::GenerateCustomMaterialWidge
 
 FReply FRPRSectionsDetailCustomization::OnSelectedFacesAddedToSection(UStaticMesh* Mesh, int32 MaterialIndex)
 {
-	const URPRStaticMeshPreviewComponent* component = FRPRSectionsSelectionManager::Get().FindPreviewComponentByStaticMesh(Mesh);
-	if (component == nullptr)
+	QUICK_SCOPE_CYCLE_COUNTER(AddSelectedFacesToSection);
+
+	const FRPRMeshDataPtr meshData = FRPRSectionsSelectionManager::Get().FindMeshDataByStaticMesh(Mesh);
+	if (!meshData.IsValid())
 	{
 		return (FReply::Unhandled());
 	}
 
- 	FRPRMeshDataPtr meshDataPtr = Delegates.GetRPRMeshData.Execute(Mesh);
-	if (meshDataPtr.IsValid())
 	{
-		// Modify raw mesh here
-	}
+		FScopedSlowTask slowTask(3.0f);
+		slowTask.MakeDialogDelayed(0.5f);
+		{
+			FRawMesh& rawMesh = meshData->GetRawMesh();
+
+			slowTask.EnterProgressFrame(1.0f, LOCTEXT("RebuildRawMeshFromStaticMesh", "Rebuild RawMesh from StaticMesh"));
+			{
+				FStaticMeshHelper::CreateRawMeshFromStaticMesh(Mesh, rawMesh);
+			}
+			slowTask.EnterProgressFrame(1.0f, LOCTEXT("AssignSelectedFace", "Assign selected faces to RawMesh"));
+			{
+				FMeshSectionInfo sectionInfo = Mesh->SectionInfoMap.Get(0, MaterialIndex);
+				const TArray<uint32>* triangles = FRPRSectionsSelectionManager::Get().GetSelectedTriangles(meshData);
+				FStaticMeshHelper::AssignFacesToSection(rawMesh, *triangles, MaterialIndex);
+			}
+			slowTask.EnterProgressFrame(1.0f, LOCTEXT("SaveRawMesh&RebuildStaticMesh", "Save RawMesh & Rebuild StaticMesh"));
+			{
+				meshData->ApplyRawMeshDatas();
+			}
+		}
+	}	
+
+	FRPRSectionsSelectionManager::Get().ClearAllSelection();
 
 	return (FReply::Handled());
 }
 
 bool FRPRSectionsDetailCustomization::IsAddSelectionToSectionButtonEnabled(UStaticMesh* Mesh) const
 {
-	const URPRStaticMeshPreviewComponent* component = FRPRSectionsSelectionManager::Get().FindPreviewComponentByStaticMesh(Mesh);
-	return (component != nullptr ? FRPRSectionsSelectionManager::Get().HasSelectedTriangles(component) : false);
+	const FRPRMeshDataPtr meshData = FRPRSectionsSelectionManager::Get().FindMeshDataByStaticMesh(Mesh);
+	return (meshData.IsValid() ? FRPRSectionsSelectionManager::Get().HasSelectedTriangles(meshData) : false);
 }
 
 void FRPRSectionsDetailCustomization::CallPostEditChange(UStaticMesh* StaticMesh, UProperty* PropertyChanged /*= nullptr*/)

@@ -2,12 +2,13 @@
 #include "Map.h"
 #include "RPRStaticMeshPreviewComponent.h"
 #include "Set.h"
+#include "RPRMeshData.h"
 
 class RPRSECTIONSMANAGER_API FRPRSectionsSelectionManager
 {
 public:
 
-	typedef TMap<const URPRStaticMeshPreviewComponent*, TArray<uint32>> FSelectionMap;
+	typedef TMap<const FRPRMeshDataPtr, TArray<uint32>> FSelectionMap;
 
 public:
 
@@ -16,18 +17,18 @@ public:
 
 	static FRPRSectionsSelectionManager& Get();
 
-	void		AppendSelection(const URPRStaticMeshPreviewComponent* PreviewComponent, const TArray<uint32>& Triangles);
-	void		ClearSelectionFor(const URPRStaticMeshPreviewComponent* PreviewComponent);
+	void		SetSelection(const FRPRMeshDataPtr MeshData, const TArray<uint32>& Triangles);
+	void		AppendSelection(const FRPRMeshDataPtr MeshData, const TArray<uint32>& Triangles);
+	void		ClearSelectionFor(const FRPRMeshDataPtr MeshData);
 	void		ClearAllSelection();
-	bool		HasSelectedTriangles(const URPRStaticMeshPreviewComponent* PreviewComponent);
+	bool		HasSelectedTriangles(const FRPRMeshDataPtr MeshData);
 
-	const TArray<uint32>*	GetSelectedTriangles(const URPRStaticMeshPreviewComponent* PreviewComponent) const;
+	const TArray<uint32>*		GetSelectedTriangles(const FRPRMeshDataPtr MeshData) const;
 	FSelectionMap::TIterator	GetSelectionIterator();
-	const URPRStaticMeshPreviewComponent*	FindPreviewComponentByStaticMesh(UStaticMesh* StaticMesh) const;
+	const FRPRMeshDataPtr		FindMeshDataByStaticMesh(UStaticMesh* StaticMesh) const;
 
-private:
-
-	void		ClearSelectionMapFor(const URPRStaticMeshPreviewComponent* PreviewComponent, FSelectionMap& Map);
+	DECLARE_EVENT(FRPRSectionsSelectionManager, FOnSectionSelectionChanged)
+	FOnSectionSelectionChanged&	OnSectionSelectionChanged() { return OnSelectionChangedEvent; }
 
 private:
 
@@ -39,4 +40,5 @@ private:
 	// `meshIndices[triangles[i]], meshIndices[triangles[i]+1], meshIndices[triangles[i]+2]`
 	FSelectionMap SelectedTrianglesMap;
 
+	FOnSectionSelectionChanged OnSelectionChangedEvent;
 };

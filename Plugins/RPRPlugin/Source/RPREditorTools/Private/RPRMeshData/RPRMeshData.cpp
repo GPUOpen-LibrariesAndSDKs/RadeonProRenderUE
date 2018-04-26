@@ -36,7 +36,7 @@ void FRPRMeshData::ApplyRawMeshDatas()
 {
 	SCOPE_CYCLE_COUNTER(STAT_ApplyRawMeshDatas);
 
-	if (StaticMesh.IsValid())
+	if (StaticMesh.IsValid() && RawMesh.IsValid())
 	{
 		FStaticMeshHelper::SaveRawMeshToStaticMesh(RawMesh, StaticMesh.Get());
 		bHasMeshChangesNotCommitted = false;

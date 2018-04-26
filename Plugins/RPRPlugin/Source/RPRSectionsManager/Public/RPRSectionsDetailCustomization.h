@@ -5,11 +5,12 @@
 #include "RPRMeshData.h"
 
 DECLARE_DELEGATE_OneParam(FMaterialChanged, UStaticMesh* /* Modified mesh */)
-DECLARE_DELEGATE_RetVal_OneParam(FRPRMeshDataPtr, FGetRPRMeshData, UStaticMesh*)
 
 class FRPRSectionsDetailCustomization : public IDetailCustomization
 {
 public:
+	
+	DECLARE_DELEGATE_RetVal_OneParam(FRPRMeshDataPtr, FGetRPRMeshData, UStaticMesh*)
 
 	struct FDelegates
 	{

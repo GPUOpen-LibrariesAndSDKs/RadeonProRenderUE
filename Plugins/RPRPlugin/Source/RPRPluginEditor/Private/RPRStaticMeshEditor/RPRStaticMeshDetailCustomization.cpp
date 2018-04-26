@@ -36,15 +36,17 @@ void FRPRStaticMeshDetailCustomization::CustomizeDetails(IDetailLayoutBuilder& D
 		int32 materialIndex = 0;
 		for (int32 i = 0; i < meshDatas.Num(); ++i)
 		{
-			FMaterialListDelegates delegates;
-			delegates.OnGetMaterials.BindSP(this, &FRPRStaticMeshDetailCustomization::GetMaterials, meshDatas[i]);
-			delegates.OnMaterialChanged.BindSP(this, &FRPRStaticMeshDetailCustomization::OnMaterialChanged, meshDatas[i]);
-			delegates.OnMaterialListDirty.BindSP(this, &FRPRStaticMeshDetailCustomization::IsMaterialListDirty);
-			delegates.OnGenerateCustomNameWidgets.BindSP(this, &FRPRStaticMeshDetailCustomization::OnGenerateCustomNameWidgets, meshDatas[i]);
+			if (meshDatas[i].IsValid())
+			{
+				FMaterialListDelegates delegates;
+				delegates.OnGetMaterials.BindSP(this, &FRPRStaticMeshDetailCustomization::GetMaterials, meshDatas[i]);
+				delegates.OnMaterialChanged.BindSP(this, &FRPRStaticMeshDetailCustomization::OnMaterialChanged, meshDatas[i]);
+				delegates.OnMaterialListDirty.BindSP(this, &FRPRStaticMeshDetailCustomization::IsMaterialListDirty);
+				delegates.OnGenerateCustomNameWidgets.BindSP(this, &FRPRStaticMeshDetailCustomization::OnGenerateCustomNameWidgets, meshDatas[i]);
 
-			AddStaticMeshName(materialsCategory, meshDatas[i]->GetStaticMesh());
-			materialsCategory.AddCustomBuilder(MakeShareable(new FMaterialList(DetailBuilder, delegates)));
-
+				AddStaticMeshName(materialsCategory, meshDatas[i]->GetStaticMesh());
+				materialsCategory.AddCustomBuilder(MakeShareable(new FMaterialList(DetailBuilder, delegates)));
+			}
 		}
 
 		AddMaterialUtilityButtons(materialsCategory, SelectedMeshDatasPtr);
@@ -209,7 +211,7 @@ void FRPRStaticMeshDetailCustomization::AddMaterialUtilityButtons(IDetailCategor
 
 ECheckBoxState FRPRStaticMeshDetailCustomization::IsSectionSelected(FRPRMeshDataPtr MeshData, int32 MaterialIndex) const
 {
-	if (!MeshData.IsValid())
+	if (!MeshData.IsValid() || MaterialIndex >= MeshData->GetNumSections())
 	{
 		return (ECheckBoxState::Undetermined);
 	}
@@ -219,7 +221,7 @@ ECheckBoxState FRPRStaticMeshDetailCustomization::IsSectionSelected(FRPRMeshData
 
 void FRPRStaticMeshDetailCustomization::ToggleSectionSelection(ECheckBoxState CheckboxState, FRPRMeshDataPtr MeshData, int32 MaterialIndex)
 {
-	if (!MeshData.IsValid())
+	if (!MeshData.IsValid() || MaterialIndex >= MeshData->GetNumSections())
 	{
 		return;
 	}
@@ -230,7 +232,7 @@ void FRPRStaticMeshDetailCustomization::ToggleSectionSelection(ECheckBoxState Ch
 
 ECheckBoxState FRPRStaticMeshDetailCustomization::IsSectionHighlighted(FRPRMeshDataPtr MeshData, int32 MaterialIndex) const
 {
-	if (!MeshData.IsValid())
+	if (!MeshData.IsValid() || MaterialIndex >= MeshData->GetNumSections())
 	{
 		return (ECheckBoxState::Undetermined);
 	}
@@ -240,7 +242,7 @@ ECheckBoxState FRPRStaticMeshDetailCustomization::IsSectionHighlighted(FRPRMeshD
 
 void FRPRStaticMeshDetailCustomization::ToggleSectionHighlight(ECheckBoxState CheckboxState, FRPRMeshDataPtr MeshData, int32 MaterialIndex)
 {
-	if (!MeshData.IsValid())
+	if (!MeshData.IsValid() || MaterialIndex >= MeshData->GetNumSections())
 	{
 		return;
 	}
