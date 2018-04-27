@@ -13,6 +13,7 @@ public:
 	static void		CreateStaticMeshBuildVertexFrom(const FStaticMeshVertexBuffer& StaticMeshVertexBuffer, TArray<FStaticMeshBuildVertex>& OutStaticMeshBuildVertex);
 	static void		CreateRawMeshFromStaticMesh(const UStaticMesh* StaticMesh, FRawMesh& OutRawMesh);
 	static void		AssignFacesToSection(FRawMesh& RawMesh, const TArray<uint32>& Triangles, int32 SectionIndex);
+	static void		CleanUnusedMeshSections(UStaticMesh* StaticMesh, FRawMesh& RawMesh);
 
 private:
 
@@ -41,6 +42,13 @@ void FStaticMeshHelper::MoveTriangle(TArray<T>& Indices, uint32 TriangleIndiceIn
 template<typename T>
 void FStaticMeshHelper::MoveTriangleIndex(TArray<T>& Indices, uint32 Indice, int32 DestinationIndex)
 {
+	CopyTriangleIndex(Indices, Indice, DestinationIndex);
+	Indices.RemoveAt(Indice);
+}
+
+template<typename T>
+void FStaticMeshHelper::CopyTriangleIndex(TArray<T>& Indices, uint32 Indice, int32 DestinationIndex)
+{
 	T temp = Indices[Indice];
 
 	if (DestinationIndex >= Indices.Num())
@@ -51,6 +59,4 @@ void FStaticMeshHelper::MoveTriangleIndex(TArray<T>& Indices, uint32 Indice, int
 	{
 		Indices.Insert(temp, DestinationIndex);
 	}
-
-	Indices.RemoveAt(Indice);
 }

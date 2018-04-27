@@ -126,13 +126,28 @@ void FStaticMeshHelper::AssignFacesToSection(FRawMesh& RawMesh, const TArray<uin
 	const int32 endIndexOfSection = FindLastTriangleIndexOfSection(RawMesh.FaceMaterialIndices, SectionIndex);
 	const int32 endIndexOfSectionIndices = (endIndexOfSection + 1) * 3;
 
-	// Sort triangles in the index buffer
+	// Copy triangles to the end the section
 	TArray<uint32>& indices = RawMesh.WedgeIndices;
 	int32 numIndices = indices.Num();
 	for (int32 i = 0; i < Triangles.Num(); ++i)
 	{
-		MoveTriangle(indices, Triangles[i] * 3, endIndexOfSectionIndices + i * 3);
+		const int32 triangleIndex = Triangles[i];
+		CopyTriangleIndex(indices, triangleIndex * 3, endIndexOfSectionIndices);
+		CopyTriangleIndex(indices, triangleIndex * 3 + 1, endIndexOfSectionIndices + 1);
+		CopyTriangleIndex(indices, triangleIndex * 3 + 2, endIndexOfSectionIndices + 2);
+
+		check(indices[triangleIndex * 3] == indices[endIndexOfSectionIndices]);
+		check(indices[triangleIndex * 3+1] == indices[endIndexOfSectionIndices+1]);
+		check(indices[triangleIndex * 3+2] == indices[endIndexOfSectionIndices+2]);
 	}
+
+	// Remove from the initial position
+	for (int32 i = Triangles.Num() - 1; i >= 0; --i)
+	{
+		const int32 triangleIndex = Triangles[i];
+		indices.RemoveAt(triangleIndex * 3, 3, false);
+	}
+	indices.Shrink();
 
 	// Check if the number of triangle has been altered
 	check(indices.Num() == numIndices);
@@ -142,15 +157,26 @@ void FStaticMeshHelper::AssignFacesToSection(FRawMesh& RawMesh, const TArray<uin
 		check(indices[i] != indices[i + 1] && indices[i] != indices[i + 2]);
 	}
 
-	// Move the triangles next to the end of the same face material
+	// Copy face material indices
 	TArray<int32>& faceMaterialIndices = RawMesh.FaceMaterialIndices;
 	for (int32 i = 0; i < Triangles.Num(); i++)
 	{
 		faceMaterialIndices[Triangles[i]] = SectionIndex;
-		MoveTriangleIndex(faceMaterialIndices, Triangles[i], endIndexOfSection + i);
+		CopyTriangleIndex(faceMaterialIndices, Triangles[i], endIndexOfSection + 1);
+	}
+	// Remove old face material index
+	for (int32 i = Triangles.Num() - 1; i >= 0; --i)
+	{
+		faceMaterialIndices.RemoveAt(Triangles[i]);
 	}
 
-	RawMesh.CompactMaterialIndices();
+	// Move the triangles next to the end of the same face material
+	/*TArray<int32>& faceMaterialIndices = RawMesh.FaceMaterialIndices;
+	for (int32 i = 0; i < Triangles.Num(); i++)
+	{
+		faceMaterialIndices[Triangles[i]] = SectionIndex;
+		MoveTriangleIndex(faceMaterialIndices, Triangles[i], endIndexOfSection + i);
+	}*/
 }
 
 uint32 FStaticMeshHelper::FindHighestVertexIndice(FIndexArrayView IndexBuffer)

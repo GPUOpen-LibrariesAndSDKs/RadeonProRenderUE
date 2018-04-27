@@ -49,7 +49,8 @@ public class RPRSectionsManager : ModuleRules
                 "UnrealEd",
                 "InputCore",
                 "PropertyEditor",
-                "EditorStyle"
+                "EditorStyle",
+                "RenderCore"
 				// ... add private dependencies that you statically link with here ...	
 			}
         );

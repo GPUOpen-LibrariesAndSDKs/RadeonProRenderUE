@@ -6,6 +6,7 @@
 #include "RPRSelectionManager.h"
 #include "StaticMeshHelper.h"
 #include "ScopedSlowTask.h"
+#include "RenderingThread.h"
 
 #define LOCTEXT_NAMESPACE "RPRSectionsDetailCustomization"
 
@@ -63,9 +64,10 @@ void FRPRSectionsDetailCustomization::GetMaterials(class IMaterialListBuilder& M
 	if (MeshPtr.IsValid())
 	{
 		UStaticMesh* staticMesh = MeshPtr.Get();
-		for (int32 materialIndex = 0; staticMesh->GetMaterial(materialIndex) != nullptr; ++materialIndex)
+		TArray<FStaticMeshSection>& sections = staticMesh->RenderData->LODResources[0].Sections;
+		for (int32 sectionIndex = 0 ; sectionIndex < sections.Num() ; ++sectionIndex)
 		{
-			MaterialListBuidler.AddMaterial(materialIndex, staticMesh->GetMaterial(materialIndex), true);
+			MaterialListBuidler.AddMaterial(sectionIndex, staticMesh->GetMaterial(sections[sectionIndex].MaterialIndex), true);
 		}
 	}
 
@@ -144,6 +146,9 @@ FReply FRPRSectionsDetailCustomization::OnSelectedFacesAddedToSection(UStaticMes
 			slowTask.EnterProgressFrame(1.0f, LOCTEXT("SaveRawMesh&RebuildStaticMesh", "Save RawMesh & Rebuild StaticMesh"));
 			{
 				meshData->ApplyRawMeshDatas();
+				Mesh->PreEditChange(nullptr);
+				Mesh->PostLoad();
+				Mesh->PostEditChange();
 			}
 		}
 	}	

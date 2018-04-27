@@ -49,7 +49,7 @@ private:
 	void			GetNewRegisteredTrianglesAndIndices(const TArray<uint32>& NewTriangles, const TArray<uint32>& MeshIndices, TArray<uint32>& OutUniqueNewTriangles, TArray<uint16>& OutUniqueNewIndices) const;
 	void			RenderSelectedVertices(FPrimitiveDrawInterface* PDI);
 	FRPRMeshDataPtr	FindMeshDataByPreviewComponent(const URPRStaticMeshPreviewComponent* PreviewComponent);
-	void			OnSectionSelectionChanged();
+	void			OnStaticMeshChanged(FRPRMeshDataPtr MeshData);
 
 private:
 
@@ -58,6 +58,7 @@ private:
 		TSharedPtr<IMeshPaintGeometryAdapter> MeshAdapter;
 		TArray<uint32> TrianglesSelected;
 		UDynamicSelectionMeshVisualizerComponent* MeshVisualizer;
+		FDelegateHandle PostStaticMeshChangeDelegateHandle;
 	};
 
 	TMap<FRPRMeshDataPtr, FMeshSelectionInfo> MeshSelectionInfosMap;
@@ -69,8 +70,6 @@ private:
 
 	bool bIsBrushOnMesh;
 	FHitResult LastHitResult;
-
-	FDelegateHandle SectionSelectionChangedDelegateHandle;
 };
 
 #undef SELECTED_INDICES_ALLOCATOR_SIZE

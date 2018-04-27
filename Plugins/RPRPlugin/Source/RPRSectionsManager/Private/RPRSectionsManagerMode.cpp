@@ -18,25 +18,53 @@ FRPRSectionsManagerMode::FRPRSectionsManagerMode()
 
 void FRPRSectionsManagerMode::Enter()
 {
-	SectionSelectionChangedDelegateHandle = 
-		FRPRSectionsSelectionManager::Get().OnSectionSelectionChanged().AddRaw(this, &FRPRSectionsManagerMode::OnSectionSelectionChanged);
+}
+
+void FRPRSectionsManagerMode::SetupGetSelectedRPRMeshData(FGetRPRMeshData InGetSelectedRPRMeshData)
+{
+	check(InGetSelectedRPRMeshData.IsBound());
+	GetSelectedRPRMeshData = InGetSelectedRPRMeshData;
+
+	FRPRMeshDataContainerPtr meshDatas = GetSelectedRPRMeshData.Execute();
+
+	MeshSelectionInfosMap.Empty(meshDatas->Num());
+	for (int32 i = 0; i < meshDatas->Num(); ++i)
+	{
+		FRPRMeshDataPtr meshData = (*meshDatas)[i];
+		FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap.Add(meshData);
+		{
+			const int32 lodIndex = 0;
+			meshSelectionInfo.MeshAdapter = FMeshPaintAdapterFactory::CreateAdapterForMesh(meshData->GetPreview(), lodIndex);
+			meshSelectionInfo.MeshVisualizer = NewObject<UDynamicSelectionMeshVisualizerComponent>(meshData->GetPreview()->GetOwner());
+			{
+				meshSelectionInfo.MeshVisualizer->SetRPRMesh(meshData);
+				meshSelectionInfo.MeshVisualizer->RegisterComponent();
+			}
+			meshSelectionInfo.PostStaticMeshChangeDelegateHandle =
+				meshData->OnPostStaticMeshChange.AddRaw(this, &FRPRSectionsManagerMode::OnStaticMeshChanged, meshData);
+		}
+	}
 }
 
 void FRPRSectionsManagerMode::Exit()
 {
 	for (auto it(MeshSelectionInfosMap.CreateIterator()); it; ++it)
 	{
+		FRPRMeshDataPtr meshData = it.Key(); 
+		
 		// Destroy the face visualizer component
 		FMeshSelectionInfo& meshSelectionInfo = it.Value();
 		meshSelectionInfo.MeshVisualizer->DestroyComponent();
+		meshSelectionInfo.MeshVisualizer = nullptr;
+
+		// Unsubscribe to the event
+		meshData->OnPostStaticMeshChange.Remove(meshSelectionInfo.PostStaticMeshChangeDelegateHandle);
 
 		// Reset preview visibility if hidden because of the mode settings
-		FRPRMeshDataPtr meshData = it.Key();
 		meshData->GetPreview()->SetVisibility(true);
 		
 	}
 	FRPRSectionsSelectionManager::Get().ClearAllSelection();
-	FRPRSectionsSelectionManager::Get().OnSectionSelectionChanged().Remove(SectionSelectionChangedDelegateHandle);
 }
 
 void FRPRSectionsManagerMode::Tick(FEditorViewportClient* ViewportClient, float DeltaTime)
@@ -145,6 +173,8 @@ bool FRPRSectionsManagerMode::TrySelectFaces(const FVector& Origin, const FVecto
 		visualizer->AddTriangles(newIndicesSelected);
 
 		FRPRSectionsSelectionManager::Get().SetSelection(meshData, registeredTriangles);
+
+		UE_LOG(LogRPRSectionsManagerMode, Log, TEXT("%d triangles selected"), registeredTriangles.Num());
 
 		bHasSelected = true;
 	}
@@ -294,30 +324,6 @@ void FRPRSectionsManagerMode::Render(const FSceneView* View, FViewport* Viewport
 	}
 }
 
-void FRPRSectionsManagerMode::SetupGetSelectedRPRMeshData(FGetRPRMeshData InGetSelectedRPRMeshData)
-{
-	check(InGetSelectedRPRMeshData.IsBound());
-	GetSelectedRPRMeshData = InGetSelectedRPRMeshData;
-
-	FRPRMeshDataContainerPtr meshDatas = GetSelectedRPRMeshData.Execute();
-
-	MeshSelectionInfosMap.Empty(meshDatas->Num());
-	for (int32 i = 0; i < meshDatas->Num(); ++i)
-	{
-		FRPRMeshDataPtr meshData = (*meshDatas)[i];
-		FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap.Add(meshData);
-		{
-			const int32 lodIndex = 0;
-			meshSelectionInfo.MeshAdapter = FMeshPaintAdapterFactory::CreateAdapterForMesh(meshData->GetPreview(), lodIndex);
-			meshSelectionInfo.MeshVisualizer = NewObject<UDynamicSelectionMeshVisualizerComponent>(meshData->GetPreview()->GetOwner());
-			{
-				meshSelectionInfo.MeshVisualizer->SetRPRMesh(meshData);
-				meshSelectionInfo.MeshVisualizer->RegisterComponent();
-			}
-		}
-	}
-}
-
 void FRPRSectionsManagerMode::RenderSelectedVertices(FPrimitiveDrawInterface* PDI)
 {
 	for (auto it = MeshSelectionInfosMap.CreateIterator(); it; ++it)
@@ -356,7 +362,17 @@ FRPRMeshDataPtr FRPRSectionsManagerMode::FindMeshDataByPreviewComponent(const UR
 	return (nullptr);
 }
 
-void FRPRSectionsManagerMode::OnSectionSelectionChanged()
+void FRPRSectionsManagerMode::OnStaticMeshChanged(FRPRMeshDataPtr MeshData)
 {
-	MeshSelectionInfosMap.Empty();
+	FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[MeshData];
+
+	// Clear selection
+	meshSelectionInfo.TrianglesSelected.Empty();
+
+	// Rebuild adapter
+	const int32 lodIndex = 0;
+	meshSelectionInfo.MeshAdapter = FMeshPaintAdapterFactory::CreateAdapterForMesh(MeshData->GetPreview(), lodIndex);
+
+	// Reset selection visualizer
+	meshSelectionInfo.MeshVisualizer->SetRPRMesh(MeshData);
 }

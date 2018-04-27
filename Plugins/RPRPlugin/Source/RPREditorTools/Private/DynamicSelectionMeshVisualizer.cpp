@@ -339,8 +339,12 @@ void UDynamicSelectionMeshVisualizerComponent::LoadMeshDatas()
 		return;
 	}
 
+	FlushRenderingCommands();
+
+	ClearTriangles();
 	BuildVertexBufferCache();
 	UpdateBounds();
+
 	MarkRenderStateDirty();
 }
 
