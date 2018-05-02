@@ -29,6 +29,7 @@ public class RPREditorTools : ModuleRules
 
                 "RPREditorTools/Private/Math",
                 "RPREditorTools/Private/RPRMeshData",
+                "RPREditorTools/Private/FaceAssignationHelper",
             }
             );
 

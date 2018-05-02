@@ -10,32 +10,39 @@ static void GenerateFakeRawMesh(FRawMesh& RawMesh, int32 NumFaces)
 	RawMesh.WedgeTexCoords[0].AddDefaulted(NumFaces * 3);
 	RawMesh.FaceSmoothingMasks.AddDefaulted(NumFaces);
 	RawMesh.FaceMaterialIndices.AddDefaulted(NumFaces);
+
+	for (int32 i = 0; i < NumFaces * 3; ++i)
+	{
+		RawMesh.WedgeTangentX.Add(FVector(1, 0, 0));
+		RawMesh.WedgeTangentY.Add(FVector(0, 1, 0));
+		RawMesh.WedgeTangentZ.Add(FVector(0, 0, 1));
+	}
 }
 
 static void SetupPlaneOf4TrianglesSplitIn2Materials(FRawMesh& RawMesh)
 {
 	GenerateFakeRawMesh(RawMesh, 4);
 
-	RawMesh.WedgeIndices.Add(0);
-	RawMesh.WedgeIndices.Add(1);
-	RawMesh.WedgeIndices.Add(2);
+	RawMesh.WedgeIndices[0] = 0;
+	RawMesh.WedgeIndices[1] = 1;
+	RawMesh.WedgeIndices[2] = 2;
 
-	RawMesh.WedgeIndices.Add(1);
-	RawMesh.WedgeIndices.Add(3);
-	RawMesh.WedgeIndices.Add(2);
+	RawMesh.WedgeIndices[3] = 1;
+	RawMesh.WedgeIndices[4] = 3;
+	RawMesh.WedgeIndices[5] = 2;
 
-	RawMesh.WedgeIndices.Add(2);
-	RawMesh.WedgeIndices.Add(3);
-	RawMesh.WedgeIndices.Add(4);
+	RawMesh.WedgeIndices[6] = 2;
+	RawMesh.WedgeIndices[7] = 3;
+	RawMesh.WedgeIndices[8] = 4;
 
-	RawMesh.WedgeIndices.Add(3);
-	RawMesh.WedgeIndices.Add(5);
-	RawMesh.WedgeIndices.Add(4);
+	RawMesh.WedgeIndices[9] = 3;
+	RawMesh.WedgeIndices[10] = 5;
+	RawMesh.WedgeIndices[11] = 4;
 
-	RawMesh.FaceMaterialIndices.Add(0);
-	RawMesh.FaceMaterialIndices.Add(0);
-	RawMesh.FaceMaterialIndices.Add(1);
-	RawMesh.FaceMaterialIndices.Add(1);
+	RawMesh.FaceMaterialIndices[0] = 0;
+	RawMesh.FaceMaterialIndices[1] = 0;
+	RawMesh.FaceMaterialIndices[2] = 1;
+	RawMesh.FaceMaterialIndices[3] = 1;
 }
 
 static void CheckIndices_PlaneOf4Triangles(FAutomationTestBase* Test, const TArray<uint32>& MeshIndices)
@@ -71,43 +78,43 @@ static void CheckTriangleOrder_PlaneOf4Triangles(FAutomationTestBase* Test, cons
 static void Setup3TrianglesSplitIn3Materials(FRawMesh& RawMesh)
 {
 	GenerateFakeRawMesh(RawMesh, 3);
+	
+	RawMesh.WedgeIndices[0] = 0;
+	RawMesh.WedgeIndices[1] = 1;
+	RawMesh.WedgeIndices[2] = 2;
 
-	RawMesh.WedgeIndices.Add(0);
-	RawMesh.WedgeIndices.Add(1);
-	RawMesh.WedgeIndices.Add(2);
+	RawMesh.WedgeIndices[3] = 0;
+	RawMesh.WedgeIndices[4] = 3;
+	RawMesh.WedgeIndices[5] = 4;
 
-	RawMesh.WedgeIndices.Add(0);
-	RawMesh.WedgeIndices.Add(3);
-	RawMesh.WedgeIndices.Add(4);
+	RawMesh.WedgeIndices[6] = 0;
+	RawMesh.WedgeIndices[7] = 4;
+	RawMesh.WedgeIndices[8] = 1;
 
-	RawMesh.WedgeIndices.Add(0);
-	RawMesh.WedgeIndices.Add(4);
-	RawMesh.WedgeIndices.Add(1);
-
-	RawMesh.FaceMaterialIndices.Add(0);
-	RawMesh.FaceMaterialIndices.Add(1);
-	RawMesh.FaceMaterialIndices.Add(2);
+	RawMesh.FaceMaterialIndices[0] = 0;
+	RawMesh.FaceMaterialIndices[1] = 1;
+	RawMesh.FaceMaterialIndices[2] = 2;
 }
 
 static void Setup3TrianglesSplitIn2Materials(FRawMesh& RawMesh)
 {
 	GenerateFakeRawMesh(RawMesh, 3);
 
-	RawMesh.WedgeIndices.Add(0);
-	RawMesh.WedgeIndices.Add(1);
-	RawMesh.WedgeIndices.Add(2);
+	RawMesh.WedgeIndices[0] = 0;
+	RawMesh.WedgeIndices[1] = 1;
+	RawMesh.WedgeIndices[2] = 2;
 
-	RawMesh.WedgeIndices.Add(0);
-	RawMesh.WedgeIndices.Add(3);
-	RawMesh.WedgeIndices.Add(4);
+	RawMesh.WedgeIndices[3] = 0;
+	RawMesh.WedgeIndices[4] = 3;
+	RawMesh.WedgeIndices[5] = 4;
 
-	RawMesh.WedgeIndices.Add(0);
-	RawMesh.WedgeIndices.Add(2);
-	RawMesh.WedgeIndices.Add(3);
+	RawMesh.WedgeIndices[6] = 0;
+	RawMesh.WedgeIndices[7] = 2;
+	RawMesh.WedgeIndices[8] = 3;
 
-	RawMesh.FaceMaterialIndices.Add(0);
-	RawMesh.FaceMaterialIndices.Add(0);
-	RawMesh.FaceMaterialIndices.Add(1);
+	RawMesh.FaceMaterialIndices[0] = 0;
+	RawMesh.FaceMaterialIndices[1] = 0;
+	RawMesh.FaceMaterialIndices[2] = 1;
 }
 
 static void CheckTriangleOrder_3TrianglesSplitIn3Materials(FAutomationTestBase* Test, const TArray<uint32>& MeshIndices, const TArray<int32>& ExpectedTriangleList)
@@ -183,7 +190,7 @@ static void CheckTriangles(FAutomationTestBase* Test, const FRawMesh& OriginalRa
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FStaticMeshHelperTest_AssignFacesToSection_ConvertFaceMaterial1l_To_FaceMaterial0, 
-	"RPR.StaticMeshHelper.AssignFacesToSelection.Plane_2Tri_2Mat.Convert face material 1 to face material 0", 
+	"RPR.StaticMeshHelper.AssignFacesToSection.Plane_2Tri_2Mat.Convert face material 1 to face material 0", 
 	EAutomationTestFlags::ApplicationContextMask | EAutomationTestFlags::SmokeFilter)
 
 bool FStaticMeshHelperTest_AssignFacesToSection_ConvertFaceMaterial1l_To_FaceMaterial0::RunTest(const FString& Parameters)
@@ -208,7 +215,7 @@ bool FStaticMeshHelperTest_AssignFacesToSection_ConvertFaceMaterial1l_To_FaceMat
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FStaticMeshHelperTest_AssignFacesToSection_FaceMaterial0_To_FaceMaterial1, 
-	"RPR.StaticMeshHelper.AssignFacesToSelection.Plane_2Tri_2Mat.Face material 0 to material 1", 
+	"RPR.StaticMeshHelper.AssignFacesToSection.Plane_2Tri_2Mat.Face material 0 to material 1", 
 	EAutomationTestFlags::ApplicationContextMask | EAutomationTestFlags::SmokeFilter)
 
 bool FStaticMeshHelperTest_AssignFacesToSection_FaceMaterial0_To_FaceMaterial1::RunTest(const FString& Parameters)
@@ -233,7 +240,7 @@ bool FStaticMeshHelperTest_AssignFacesToSection_FaceMaterial0_To_FaceMaterial1::
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FStaticMeshHelperTest_AssignFacesToSection_AllToFaceMaterial1,
-	"RPR.StaticMeshHelper.AssignFacesToSelection.Plane_2Tri_2Mat.Remove face material 1",
+	"RPR.StaticMeshHelper.AssignFacesToSection.Plane_2Tri_2Mat.Remove face material 1",
 	EAutomationTestFlags::ApplicationContextMask | EAutomationTestFlags::SmokeFilter)
 
 bool FStaticMeshHelperTest_AssignFacesToSection_AllToFaceMaterial1::RunTest(const FString& Parameters)
@@ -260,7 +267,7 @@ bool FStaticMeshHelperTest_AssignFacesToSection_AllToFaceMaterial1::RunTest(cons
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FStaticMeshHelperTest_AssignFacesToSection_3Triangles3Mat_SetFace0ToSection2,
-	"RPR.StaticMeshHelper.AssignFacesToSelection.Plane_2Tri_2Mat.Set Face 0 to Mat 1",
+	"RPR.StaticMeshHelper.AssignFacesToSection.Plane_2Tri_2Mat.Set Face 0 to Mat 1",
 	EAutomationTestFlags::ApplicationContextMask | EAutomationTestFlags::SmokeFilter)
 
 bool FStaticMeshHelperTest_AssignFacesToSection_3Triangles3Mat_SetFace0ToSection2::RunTest(const FString& Parameters)
