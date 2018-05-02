@@ -121,11 +121,6 @@ void FStaticMeshHelper::CreateRawMeshFromStaticMesh(const UStaticMesh* StaticMes
 
 void FStaticMeshHelper::AssignFacesToSection(FRawMesh& RawMesh, const TArray<uint32>& Triangles, int32 SectionIndex)
 {
-	AssignFacesToSection(RawMesh.FaceMaterialIndices, RawMesh.WedgeIndices, Triangles, SectionIndex);
-}
-
-void FStaticMeshHelper::AssignFacesToSection(TArray<int32>& MeshFaceMaterialIndices, TArray<uint32>& MeshIndices, const TArray<uint32>& Triangles, int32 SectionIndex)
-{
 	QUICK_SCOPE_CYCLE_COUNTER(AssignFacesToSection);
 
 	// Assure that the triangles are sorted from 0 to X
@@ -134,8 +129,8 @@ void FStaticMeshHelper::AssignFacesToSection(TArray<int32>& MeshFaceMaterialIndi
 	sortedTriangles.Sort();
 
 	TArray<FFaceAssignInfo> delta;
-	CreateFaceSelectionAssignationDelta(MeshFaceMaterialIndices, MeshIndices, sortedTriangles, SectionIndex, delta);
-	ApplyFaceSelectionAssignationDelta(delta, MeshFaceMaterialIndices, MeshIndices, SectionIndex);
+	CreateFaceSelectionAssignationDelta(RawMesh, sortedTriangles, SectionIndex, delta);
+	ApplyFaceSelectionAssignationDelta(delta, RawMesh, SectionIndex);
 }
 
 void FStaticMeshHelper::CleanUnusedMeshSections(UStaticMesh* StaticMesh, FRawMesh& RawMesh)
@@ -162,7 +157,7 @@ void FStaticMeshHelper::CleanUnusedMeshSections(FRawMesh& RawMesh, FMeshSectionI
 			int32 missingSectionMaterialIndex = sectionInfo.MaterialIndex;
 			StaticMaterials.RemoveAt(sectionInfo.MaterialIndex);
 
-			int32 sectionToDeleteIndex = missingSections[missingSectionIndex]; // FindSectionInfoMapIndexByMaterialIndex(StaticMesh->SectionInfoMap, missingSections[missingSectionIndex]);
+			int32 sectionToDeleteIndex = missingSections[missingSectionIndex];
 			if (sectionToDeleteIndex != INDEX_NONE)
 			{
 				SectionInfoMap.Remove(lodIndex, sectionToDeleteIndex);
@@ -282,19 +277,20 @@ void FStaticMeshHelper::ShiftIndicesIfGreaterThanValue(TArray<int32>& Indices, i
 }
 
 void FStaticMeshHelper::CreateFaceSelectionAssignationDelta(
-	const TArray<int32>& FaceMaterialIndices, 
-	const TArray<uint32>& MeshIndices, 
+	const FRawMesh& RawMesh,
 	const TArray<uint32>& Triangles, 
 	int32 SectionIndex, 
 	TArray<FFaceAssignInfo>& OutDelta)
 {
-	int32 triangleDestination = FindLastTriangleIndexOfSection(FaceMaterialIndices, SectionIndex) + 1;
+	QUICK_SCOPE_CYCLE_COUNTER(STAT_StaticMeshHelper_CreateFaceSelectionAssignationDelta);
+
+	int32 triangleDestination = FindLastTriangleIndexOfSection(RawMesh.FaceMaterialIndices, SectionIndex) + 1;
 
 	for (int32 i = 0; i < Triangles.Num(); ++i)
 	{
 		const int32 currentTriangle = Triangles[i];
 		
-		const bool bIsTriangleHasCorrectSection = (FaceMaterialIndices[currentTriangle] == SectionIndex);
+		const bool bIsTriangleHasCorrectSection = (RawMesh.FaceMaterialIndices[currentTriangle] == SectionIndex);
 		const bool bIsTriangleAlreadyOnDestination = (triangleDestination == currentTriangle);
 
 		const bool bRequiresShiftingSection = (!bIsTriangleHasCorrectSection && !bIsTriangleAlreadyOnDestination);
@@ -308,9 +304,9 @@ void FStaticMeshHelper::CreateFaceSelectionAssignationDelta(
 			if (bRequiresShiftingSection)
 			{
 				assignInfo.MeshIndices.AddUninitialized(3);
-				assignInfo.MeshIndices[0] = MeshIndices[currentTriangle * 3];
-				assignInfo.MeshIndices[1] = MeshIndices[currentTriangle * 3 + 1];
-				assignInfo.MeshIndices[2] = MeshIndices[currentTriangle * 3 + 2];
+				assignInfo.MeshIndices[0] = RawMesh.WedgeIndices[currentTriangle * 3];
+				assignInfo.MeshIndices[1] = RawMesh.WedgeIndices[currentTriangle * 3 + 1];
+				assignInfo.MeshIndices[2] = RawMesh.WedgeIndices[currentTriangle * 3 + 2];
 			}
 
 			OutDelta.Add(assignInfo);
@@ -318,9 +314,14 @@ void FStaticMeshHelper::CreateFaceSelectionAssignationDelta(
 	}
 }
 
-void FStaticMeshHelper::ApplyFaceSelectionAssignationDelta(const TArray<FFaceAssignInfo>& Delta, TArray<int32>& FaceMaterialIndices, TArray<uint32>& MeshIndices, int32 SectionIndex)
+void FStaticMeshHelper::ApplyFaceSelectionAssignationDelta(const TArray<FFaceAssignInfo>& Delta, FRawMesh& RawMesh, int32 SectionIndex)
 {
-	int32 triangleDestination = FindLastTriangleIndexOfSection(FaceMaterialIndices, SectionIndex) + 1;
+	QUICK_SCOPE_CYCLE_COUNTER(STAT_StaticMeshHelper_ApplyFaceSelectionAssignationDelta);
+
+	TArray<uint32>& meshIndices = RawMesh.WedgeIndices;
+	TArray<int32>& faceMaterialIndices = RawMesh.FaceMaterialIndices;
+
+	int32 triangleDestination = FindLastTriangleIndexOfSection(faceMaterialIndices, SectionIndex) + 1;
 
 	// Delete triangles that are after the triangle destination
 	for (int32 i = Delta.Num() - 1; i >= 0; --i)
@@ -331,10 +332,10 @@ void FStaticMeshHelper::ApplyFaceSelectionAssignationDelta(const TArray<FFaceAss
 		{
 			if (currentDelta.MeshIndices.Num() > 0)
 			{
-				MeshIndices.RemoveAt(currentDelta.OriginalTriangleIndex * 3, 3, false);
+				meshIndices.RemoveAt(currentDelta.OriginalTriangleIndex * 3, 3, false);
 			}
 
-			FaceMaterialIndices.RemoveAt(currentDelta.OriginalTriangleIndex);
+			faceMaterialIndices.RemoveAt(currentDelta.OriginalTriangleIndex);
 		}
 	}
 
@@ -345,18 +346,18 @@ void FStaticMeshHelper::ApplyFaceSelectionAssignationDelta(const TArray<FFaceAss
 		
 		if (currentDelta.MeshIndices.Num() > 0)
 		{
-			MeshIndices.Insert(currentDelta.MeshIndices[2], triangleDestination * 3);
-			MeshIndices.Insert(currentDelta.MeshIndices[1], triangleDestination * 3);
-			MeshIndices.Insert(currentDelta.MeshIndices[0], triangleDestination * 3);
+			meshIndices.Insert(currentDelta.MeshIndices[2], triangleDestination * 3);
+			meshIndices.Insert(currentDelta.MeshIndices[1], triangleDestination * 3);
+			meshIndices.Insert(currentDelta.MeshIndices[0], triangleDestination * 3);
 		}
 
 		if (currentDelta.OriginalTriangleIndex == triangleDestination)
 		{
-			FaceMaterialIndices[triangleDestination] = SectionIndex;
+			faceMaterialIndices[triangleDestination] = SectionIndex;
 		}
 		else
 		{
-			FaceMaterialIndices.Insert(SectionIndex, triangleDestination);
+			faceMaterialIndices.Insert(SectionIndex, triangleDestination);
 		}
 	}
 
@@ -369,10 +370,10 @@ void FStaticMeshHelper::ApplyFaceSelectionAssignationDelta(const TArray<FFaceAss
 		{
 			if (currentDelta.MeshIndices.Num() > 0)
 			{
-				MeshIndices.RemoveAt(currentDelta.OriginalTriangleIndex * 3, 3, false);
+				meshIndices.RemoveAt(currentDelta.OriginalTriangleIndex * 3, 3, false);
 			}
 
-			FaceMaterialIndices.RemoveAt(currentDelta.OriginalTriangleIndex);
+			faceMaterialIndices.RemoveAt(currentDelta.OriginalTriangleIndex);
 		}
 	}
 }

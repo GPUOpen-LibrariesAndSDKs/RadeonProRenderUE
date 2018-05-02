@@ -13,7 +13,6 @@ public:
 	static void		CreateStaticMeshBuildVertexFrom(const FStaticMeshVertexBuffer& StaticMeshVertexBuffer, TArray<FStaticMeshBuildVertex>& OutStaticMeshBuildVertex);
 	static void		CreateRawMeshFromStaticMesh(const UStaticMesh* StaticMesh, FRawMesh& OutRawMesh);
 	static void		AssignFacesToSection(FRawMesh& RawMesh, const TArray<uint32>& Triangles, int32 SectionIndex);
-	static void		AssignFacesToSection(TArray<int32>& MeshFaceMaterialIndices, TArray<uint32>& MeshIndices, const TArray<uint32>& Triangles, int32 SectionIndex);
 	static void		CleanUnusedMeshSections(UStaticMesh* StaticMesh, FRawMesh& RawMesh);
 	static void		CleanUnusedMeshSections(FRawMesh& RawMesh, FMeshSectionInfoMap& SectionInfoMap, TArray<FStaticMaterial>& StaticMaterials);
 	static void		FindUnusedSections(const TArray<int32>& FaceMaterialIndices, TArray<int32>& OutMissingSections);
@@ -39,17 +38,12 @@ private:
 	};
 
 	static void		CreateFaceSelectionAssignationDelta(
-		const TArray<int32>& FaceMaterialIndices, 
-		const TArray<uint32>& MeshIndices, 
+		const FRawMesh& RawMesh,
 		const TArray<uint32>& SortedTriangles, 
 		int32 SectionIndex, 
 		TArray<FFaceAssignInfo>& OutDelta);
 
-	static void		ApplyFaceSelectionAssignationDelta(
-		const TArray<FFaceAssignInfo>& Delta, 
-		TArray<int32>& FaceMaterialIndices, 
-		TArray<uint32>& MeshIndices, 
-		int32 SectionIndex);
+	static void		ApplyFaceSelectionAssignationDelta(const TArray<FFaceAssignInfo>& Delta, FRawMesh& RawMesh, int32 SectionIndex);
 };
 
 template<typename T>

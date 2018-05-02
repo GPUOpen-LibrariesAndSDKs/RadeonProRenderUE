@@ -3,37 +3,47 @@
 #include "Engine/StaticMesh.h"
 #include "RawMesh.h"
 
-static void SetupPlaneOf4TrianglesSplitIn2Materials(TArray<uint32>& MeshIndices, TArray<int32>& MeshFaceMaterialIndices)
+static void GenerateFakeRawMesh(FRawMesh& RawMesh, int32 NumFaces)
 {
-	MeshIndices.Add(0);
-	MeshIndices.Add(1);
-	MeshIndices.Add(2);
+	RawMesh.VertexPositions.AddDefaulted(3);
+	RawMesh.WedgeIndices.AddDefaulted(NumFaces * 3);
+	RawMesh.WedgeTexCoords[0].AddDefaulted(NumFaces * 3);
+	RawMesh.FaceSmoothingMasks.AddDefaulted(NumFaces);
+	RawMesh.FaceMaterialIndices.AddDefaulted(NumFaces);
+}
 
-	MeshIndices.Add(1);
-	MeshIndices.Add(3);
-	MeshIndices.Add(2);
+static void SetupPlaneOf4TrianglesSplitIn2Materials(FRawMesh& RawMesh)
+{
+	GenerateFakeRawMesh(RawMesh, 4);
 
-	MeshIndices.Add(2);
-	MeshIndices.Add(3);
-	MeshIndices.Add(4);
+	RawMesh.WedgeIndices.Add(0);
+	RawMesh.WedgeIndices.Add(1);
+	RawMesh.WedgeIndices.Add(2);
 
-	MeshIndices.Add(3);
-	MeshIndices.Add(5);
-	MeshIndices.Add(4);
+	RawMesh.WedgeIndices.Add(1);
+	RawMesh.WedgeIndices.Add(3);
+	RawMesh.WedgeIndices.Add(2);
 
-	MeshFaceMaterialIndices.Add(0);
-	MeshFaceMaterialIndices.Add(0);
-	MeshFaceMaterialIndices.Add(1);
-	MeshFaceMaterialIndices.Add(1);
+	RawMesh.WedgeIndices.Add(2);
+	RawMesh.WedgeIndices.Add(3);
+	RawMesh.WedgeIndices.Add(4);
+
+	RawMesh.WedgeIndices.Add(3);
+	RawMesh.WedgeIndices.Add(5);
+	RawMesh.WedgeIndices.Add(4);
+
+	RawMesh.FaceMaterialIndices.Add(0);
+	RawMesh.FaceMaterialIndices.Add(0);
+	RawMesh.FaceMaterialIndices.Add(1);
+	RawMesh.FaceMaterialIndices.Add(1);
 }
 
 static void CheckIndices_PlaneOf4Triangles(FAutomationTestBase* Test, const TArray<uint32>& MeshIndices)
 {
-	TArray<uint32> expectedMeshIndices;
-	TArray<int32> meshFaceMaterialIndices;
-	SetupPlaneOf4TrianglesSplitIn2Materials(expectedMeshIndices, meshFaceMaterialIndices);
+	FRawMesh rawMesh;
+	SetupPlaneOf4TrianglesSplitIn2Materials(rawMesh);
 
-	Test->TestEqual(TEXT("Check if the number of triangle has been altered"), MeshIndices.Num(), expectedMeshIndices.Num());
+	Test->TestEqual(TEXT("Check original/new indices size"), rawMesh.WedgeIndices.Num(), MeshIndices.Num());
 
 	for (int32 i = 0; i < MeshIndices.Num(); i += 3)
 	{
@@ -44,98 +54,92 @@ static void CheckIndices_PlaneOf4Triangles(FAutomationTestBase* Test, const TArr
 
 static void CheckTriangleOrder_PlaneOf4Triangles(FAutomationTestBase* Test, const TArray<uint32>& MeshIndices, const TArray<int32>& ExpectedTriangleList)
 {
-	TArray<uint32> originalMeshIndices;
-	TArray<int32> meshFaceMaterialIndices;
-	SetupPlaneOf4TrianglesSplitIn2Materials(originalMeshIndices, meshFaceMaterialIndices);
+	FRawMesh rawMesh;
+	SetupPlaneOf4TrianglesSplitIn2Materials(rawMesh);
+
+	Test->TestEqual(TEXT("Check original/new indices size"), rawMesh.WedgeIndices.Num(), MeshIndices.Num());
 
 	for (int32 i = 0; i < MeshIndices.Num(); i += 3)
 	{
 		int32 expectedTriangleIndex = ExpectedTriangleList[i / 3];
-		Test->TestEqual(TEXT("Check triangle order (0)"), MeshIndices[i], originalMeshIndices[expectedTriangleIndex * 3]);
-		Test->TestEqual(TEXT("Check triangle order (1)"), MeshIndices[i+1], originalMeshIndices[expectedTriangleIndex * 3+1]);
-		Test->TestEqual(TEXT("Check triangle order (2)"), MeshIndices[i+2], originalMeshIndices[expectedTriangleIndex * 3+2]);
+		Test->TestEqual(TEXT("Check triangle order (0)"), MeshIndices[i], rawMesh.WedgeIndices[expectedTriangleIndex * 3]);
+		Test->TestEqual(TEXT("Check triangle order (1)"), MeshIndices[i+1], rawMesh.WedgeIndices[expectedTriangleIndex * 3+1]);
+		Test->TestEqual(TEXT("Check triangle order (2)"), MeshIndices[i+2], rawMesh.WedgeIndices[expectedTriangleIndex * 3+2]);
 	}
 }
 
-static void Setup3TrianglesSplitIn3Materials(TArray<uint32>& MeshIndices, TArray<int32>& MeshFaceMaterialIndices)
+static void Setup3TrianglesSplitIn3Materials(FRawMesh& RawMesh)
 {
-	MeshIndices.Add(0);
-	MeshIndices.Add(1);
-	MeshIndices.Add(2);
+	GenerateFakeRawMesh(RawMesh, 3);
 
-	MeshIndices.Add(0);
-	MeshIndices.Add(3);
-	MeshIndices.Add(4);
+	RawMesh.WedgeIndices.Add(0);
+	RawMesh.WedgeIndices.Add(1);
+	RawMesh.WedgeIndices.Add(2);
 
-	MeshIndices.Add(0);
-	MeshIndices.Add(4);
-	MeshIndices.Add(1);
+	RawMesh.WedgeIndices.Add(0);
+	RawMesh.WedgeIndices.Add(3);
+	RawMesh.WedgeIndices.Add(4);
 
-	MeshFaceMaterialIndices.Add(0);
-	MeshFaceMaterialIndices.Add(1);
-	MeshFaceMaterialIndices.Add(2);
+	RawMesh.WedgeIndices.Add(0);
+	RawMesh.WedgeIndices.Add(4);
+	RawMesh.WedgeIndices.Add(1);
+
+	RawMesh.FaceMaterialIndices.Add(0);
+	RawMesh.FaceMaterialIndices.Add(1);
+	RawMesh.FaceMaterialIndices.Add(2);
 }
 
-static void Setup3TrianglesSplitIn2Materials(TArray<uint32>& MeshIndices, TArray<int32>& MeshFaceMaterialIndices)
+static void Setup3TrianglesSplitIn2Materials(FRawMesh& RawMesh)
 {
-	MeshIndices.Add(0);
-	MeshIndices.Add(1);
-	MeshIndices.Add(2);
+	GenerateFakeRawMesh(RawMesh, 3);
 
-	MeshIndices.Add(0);
-	MeshIndices.Add(3);
-	MeshIndices.Add(4);
+	RawMesh.WedgeIndices.Add(0);
+	RawMesh.WedgeIndices.Add(1);
+	RawMesh.WedgeIndices.Add(2);
 
-	MeshIndices.Add(0);
-	MeshIndices.Add(2);
-	MeshIndices.Add(3);
+	RawMesh.WedgeIndices.Add(0);
+	RawMesh.WedgeIndices.Add(3);
+	RawMesh.WedgeIndices.Add(4);
 
-	MeshFaceMaterialIndices.Add(0);
-	MeshFaceMaterialIndices.Add(0);
-	MeshFaceMaterialIndices.Add(1);
+	RawMesh.WedgeIndices.Add(0);
+	RawMesh.WedgeIndices.Add(2);
+	RawMesh.WedgeIndices.Add(3);
+
+	RawMesh.FaceMaterialIndices.Add(0);
+	RawMesh.FaceMaterialIndices.Add(0);
+	RawMesh.FaceMaterialIndices.Add(1);
 }
 
 static void CheckTriangleOrder_3TrianglesSplitIn3Materials(FAutomationTestBase* Test, const TArray<uint32>& MeshIndices, const TArray<int32>& ExpectedTriangleList)
 {
-	TArray<uint32> originalMeshIndices;
-	TArray<int32> meshFaceMaterialIndices;
-	Setup3TrianglesSplitIn3Materials(originalMeshIndices, meshFaceMaterialIndices);
+	FRawMesh rawMesh;
+	Setup3TrianglesSplitIn3Materials(rawMesh);
 
-	Test->TestEqual(TEXT("Check original/new indices size"), originalMeshIndices.Num(), MeshIndices.Num());
+	Test->TestEqual(TEXT("Check original/new indices size"), rawMesh.WedgeIndices.Num(), MeshIndices.Num());
 
 	for (int32 i = 0; i < MeshIndices.Num(); i += 3)
 	{
 		int32 expectedTriangleIndex = ExpectedTriangleList[i / 3];
-		Test->TestEqual(TEXT("Check triangle order (0)"), MeshIndices[i], originalMeshIndices[expectedTriangleIndex * 3]);
-		Test->TestEqual(TEXT("Check triangle order (1)"), MeshIndices[i + 1], originalMeshIndices[expectedTriangleIndex * 3 + 1]);
-		Test->TestEqual(TEXT("Check triangle order (2)"), MeshIndices[i + 2], originalMeshIndices[expectedTriangleIndex * 3 + 2]);
+		Test->TestEqual(TEXT("Check triangle order (0)"), MeshIndices[i], rawMesh.WedgeIndices[expectedTriangleIndex * 3]);
+		Test->TestEqual(TEXT("Check triangle order (1)"), MeshIndices[i + 1], rawMesh.WedgeIndices[expectedTriangleIndex * 3 + 1]);
+		Test->TestEqual(TEXT("Check triangle order (2)"), MeshIndices[i + 2], rawMesh.WedgeIndices[expectedTriangleIndex * 3 + 2]);
 	}
 }
 
 static void CheckTriangleOrder_3TrianglesSplitIn2Materials(FAutomationTestBase* Test, const TArray<uint32>& MeshIndices, const TArray<int32>& ExpectedTriangleList)
 {
-	TArray<uint32> originalMeshIndices;
-	TArray<int32> meshFaceMaterialIndices;
-	Setup3TrianglesSplitIn2Materials(originalMeshIndices, meshFaceMaterialIndices);
+	FRawMesh rawMesh;
+	Setup3TrianglesSplitIn2Materials(rawMesh);
 
-	Test->TestEqual(TEXT("Check original/new indices size"), originalMeshIndices.Num(), MeshIndices.Num());
+	Test->TestEqual(TEXT("Check original/new indices size"), rawMesh.WedgeIndices.Num(), MeshIndices.Num());
 
 	for (int32 i = 0; i < MeshIndices.Num(); i += 3)
 	{
 		int32 expectedTriangleIndex = ExpectedTriangleList[i / 3];
-		Test->TestEqual(TEXT("Check triangle order (0)"), MeshIndices[i], originalMeshIndices[expectedTriangleIndex * 3]);
-		Test->TestEqual(TEXT("Check triangle order (1)"), MeshIndices[i + 1], originalMeshIndices[expectedTriangleIndex * 3 + 1]);
-		Test->TestEqual(TEXT("Check triangle order (2)"), MeshIndices[i + 2], originalMeshIndices[expectedTriangleIndex * 3 + 2]);
+		Test->TestEqual(TEXT("Check triangle order (0)"), MeshIndices[i], rawMesh.WedgeIndices[expectedTriangleIndex * 3]);
+		Test->TestEqual(TEXT("Check triangle order (1)"), MeshIndices[i + 1], rawMesh.WedgeIndices[expectedTriangleIndex * 3 + 1]);
+		Test->TestEqual(TEXT("Check triangle order (2)"), MeshIndices[i + 2], rawMesh.WedgeIndices[expectedTriangleIndex * 3 + 2]);
 	}
-}
-
-static void GenerateFakeRawMesh(FRawMesh& RawMesh, int32 NumFaces)
-{
-	RawMesh.VertexPositions.AddDefaulted(3);
-	RawMesh.WedgeIndices.AddDefaulted(NumFaces * 3);
-	RawMesh.WedgeTexCoords[0].AddDefaulted(NumFaces * 3);
-	RawMesh.FaceSmoothingMasks.AddDefaulted(NumFaces);
-	RawMesh.FaceMaterialIndices.AddDefaulted(NumFaces);
 }
 
 static void CheckSectionsContinuous(FAutomationTestBase* Test, const TArray<int32>& MeshFaceMaterialIndices)
@@ -152,18 +156,21 @@ static void CheckSectionsContinuous(FAutomationTestBase* Test, const TArray<int3
 	}
 }
 
-static void CheckTriangles(FAutomationTestBase* Test, const TArray<uint32>& OriginalMeshIndices, const TArray<uint32>& NewMeshIndices)
+static void CheckTriangles(FAutomationTestBase* Test, const FRawMesh& OriginalRawMesh, const FRawMesh& NewRawMesh)
 {
-	Test->TestEqual(TEXT("Check triangles original/new size"), OriginalMeshIndices.Num(), NewMeshIndices.Num());
+	const TArray<uint32>& originalMeshIndices = OriginalRawMesh.WedgeIndices;
+	const TArray<uint32>& newMeshIndices = NewRawMesh.WedgeIndices;
 
-	for (int32 i = 0; i < OriginalMeshIndices.Num(); i += 3)
+	Test->TestEqual(TEXT("Check triangles original/new size"), originalMeshIndices.Num(), newMeshIndices.Num());
+
+	for (int32 i = 0; i < originalMeshIndices.Num(); i += 3)
 	{
 		bool bHasFoundIdenticalTriangle = false;
-		for (int32 j = 0; j < NewMeshIndices.Num(); j += 3)
+		for (int32 j = 0; j < newMeshIndices.Num(); j += 3)
 		{
-			if (NewMeshIndices[j] == OriginalMeshIndices[i] &&
-				NewMeshIndices[j + 1] == OriginalMeshIndices[i + 1] &&
-				NewMeshIndices[j + 2] == OriginalMeshIndices[i + 2])
+			if (newMeshIndices[j] == originalMeshIndices[i] &&
+				newMeshIndices[j + 1] == originalMeshIndices[i + 1] &&
+				newMeshIndices[j + 2] == originalMeshIndices[i + 2])
 			{
 				bHasFoundIdenticalTriangle = true;
 				break;
@@ -181,21 +188,20 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FStaticMeshHelperTest_AssignFacesToSection_ConvertFaceMaterial1l_To_FaceMaterial0::RunTest(const FString& Parameters)
 {
-	TArray<int32> MeshFaceMaterialIndices;
-	TArray<uint32> OriginalMeshIndices, MeshIndices;
 	TArray<uint32> SelectedTriangles;
 	int32 SectionIndex = 0;
 
-	SetupPlaneOf4TrianglesSplitIn2Materials(MeshIndices, MeshFaceMaterialIndices);
+	FRawMesh rawMesh;
+	SetupPlaneOf4TrianglesSplitIn2Materials(rawMesh);
+	FRawMesh originalRawMesh = rawMesh;
 
 	SelectedTriangles.Add(2);
 	SelectedTriangles.Add(3);
 
-	OriginalMeshIndices = MeshIndices;
-	FStaticMeshHelper::AssignFacesToSection(MeshFaceMaterialIndices, MeshIndices, SelectedTriangles, SectionIndex);
+	FStaticMeshHelper::AssignFacesToSection(rawMesh, SelectedTriangles, SectionIndex);
 
-	CheckSectionsContinuous(this, MeshFaceMaterialIndices);
-	CheckTriangles(this, OriginalMeshIndices, MeshIndices);
+	CheckSectionsContinuous(this, rawMesh.FaceMaterialIndices);
+	CheckTriangles(this, originalRawMesh, rawMesh);
 
 	return (true);
 }
@@ -207,21 +213,20 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FStaticMeshHelperTest_AssignFacesToSection_FaceMaterial0_To_FaceMaterial1::RunTest(const FString& Parameters)
 {
-	TArray<int32> MeshFaceMaterialIndices;
-	TArray<uint32> OriginalMeshIndices, MeshIndices;
 	TArray<uint32> SelectedTriangles;
 	int32 SectionIndex = 1;
 
-	SetupPlaneOf4TrianglesSplitIn2Materials(MeshIndices, MeshFaceMaterialIndices);
+	FRawMesh rawMesh;
+	SetupPlaneOf4TrianglesSplitIn2Materials(rawMesh);
+	FRawMesh originalRawMesh = rawMesh;
 
 	SelectedTriangles.Add(0);
 	SelectedTriangles.Add(1);
 
-	OriginalMeshIndices = MeshIndices;
-	FStaticMeshHelper::AssignFacesToSection(MeshFaceMaterialIndices, MeshIndices, SelectedTriangles, SectionIndex);
-
-	CheckSectionsContinuous(this, MeshFaceMaterialIndices);
-	CheckTriangles(this, OriginalMeshIndices, MeshIndices);
+	FStaticMeshHelper::AssignFacesToSection(rawMesh, SelectedTriangles, SectionIndex);
+	
+	CheckSectionsContinuous(this, rawMesh.FaceMaterialIndices);
+	CheckTriangles(this, originalRawMesh, rawMesh);
 
 	return (true);
 }
@@ -233,23 +238,22 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FStaticMeshHelperTest_AssignFacesToSection_AllToFaceMaterial1::RunTest(const FString& Parameters)
 {
-	TArray<int32> MeshFaceMaterialIndices;
-	TArray<uint32> OriginalMeshIndices, MeshIndices;
 	TArray<uint32> SelectedTriangles;
 	int32 SectionIndex = 1;
 
-	SetupPlaneOf4TrianglesSplitIn2Materials(MeshIndices, MeshFaceMaterialIndices);
+	FRawMesh rawMesh;
+	SetupPlaneOf4TrianglesSplitIn2Materials(rawMesh);
+	FRawMesh originalRawMesh = rawMesh;
 
 	SelectedTriangles.Add(0);
 	SelectedTriangles.Add(1);
 	SelectedTriangles.Add(2);
 	SelectedTriangles.Add(3);
 
-	OriginalMeshIndices = MeshIndices;
-	FStaticMeshHelper::AssignFacesToSection(MeshFaceMaterialIndices, MeshIndices, SelectedTriangles, SectionIndex);
+	FStaticMeshHelper::AssignFacesToSection(rawMesh, SelectedTriangles, SectionIndex);
 
-	CheckSectionsContinuous(this, MeshFaceMaterialIndices);
-	CheckTriangles(this, OriginalMeshIndices, MeshIndices);
+	CheckSectionsContinuous(this, rawMesh.FaceMaterialIndices);
+	CheckTriangles(this, originalRawMesh, rawMesh);
 
 	return (true);
 }
@@ -261,20 +265,19 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FStaticMeshHelperTest_AssignFacesToSection_3Triangles3Mat_SetFace0ToSection2::RunTest(const FString& Parameters)
 {
-	TArray<int32> MeshFaceMaterialIndices;
-	TArray<uint32> OriginalMeshIndices, MeshIndices;
 	TArray<uint32> SelectedTriangles;
 	int32 SectionIndex = 1;
 
-	Setup3TrianglesSplitIn3Materials(MeshIndices, MeshFaceMaterialIndices);
+	FRawMesh rawMesh;
+	Setup3TrianglesSplitIn3Materials(rawMesh);
+	FRawMesh originalRawMesh = rawMesh;
 
 	SelectedTriangles.Add(0);
 
-	OriginalMeshIndices = MeshIndices;
-	FStaticMeshHelper::AssignFacesToSection(MeshFaceMaterialIndices, MeshIndices, SelectedTriangles, SectionIndex);
+	FStaticMeshHelper::AssignFacesToSection(rawMesh, SelectedTriangles, SectionIndex);
 
-	CheckSectionsContinuous(this, MeshFaceMaterialIndices);
-	CheckTriangles(this, OriginalMeshIndices, MeshIndices);
+	CheckSectionsContinuous(this, rawMesh.FaceMaterialIndices);
+	CheckTriangles(this, originalRawMesh, rawMesh);
 
 	return (true);
 }
@@ -286,22 +289,21 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FStaticMeshHelperTest_AssignFacesToSection_3Triangles3Mat_SetAllFacesToMat2::RunTest(const FString& Parameters)
 {
-	TArray<int32> MeshFaceMaterialIndices;
-	TArray<uint32> OriginalMeshIndices, MeshIndices;
 	TArray<uint32> SelectedTriangles;
 	int32 SectionIndex = 2;
 
-	Setup3TrianglesSplitIn3Materials(MeshIndices, MeshFaceMaterialIndices);
+	FRawMesh rawMesh;
+	Setup3TrianglesSplitIn3Materials(rawMesh);
+	FRawMesh originalRawMesh = rawMesh;
 
 	SelectedTriangles.Add(0);
 	SelectedTriangles.Add(1);
 	SelectedTriangles.Add(2);
 
-	OriginalMeshIndices = MeshIndices;
-	FStaticMeshHelper::AssignFacesToSection(MeshFaceMaterialIndices, MeshIndices, SelectedTriangles, SectionIndex);
+	FStaticMeshHelper::AssignFacesToSection(rawMesh, SelectedTriangles, SectionIndex);
 
-	CheckSectionsContinuous(this, MeshFaceMaterialIndices);
-	CheckTriangles(this, OriginalMeshIndices, MeshIndices);
+	CheckSectionsContinuous(this, rawMesh.FaceMaterialIndices);
+	CheckTriangles(this, originalRawMesh, rawMesh);
 
 	return (true);
 }
@@ -313,22 +315,21 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 	bool FStaticMeshHelperTest_AssignFacesToSection_3Triangles2Mat_SetAllFacesToMat0::RunTest(const FString& Parameters)
 {
-	TArray<int32> MeshFaceMaterialIndices;
-	TArray<uint32> OriginalMeshIndices, MeshIndices;
 	TArray<uint32> SelectedTriangles;
 	int32 SectionIndex = 0;
 
-	Setup3TrianglesSplitIn2Materials(MeshIndices, MeshFaceMaterialIndices);
+	FRawMesh rawMesh;
+	Setup3TrianglesSplitIn2Materials(rawMesh);
+	FRawMesh originalRawMesh = rawMesh;
 
 	SelectedTriangles.Add(0);
 	SelectedTriangles.Add(1);
 	SelectedTriangles.Add(2);
 
-	OriginalMeshIndices = MeshIndices;
-	FStaticMeshHelper::AssignFacesToSection(MeshFaceMaterialIndices, MeshIndices, SelectedTriangles, SectionIndex);
+	FStaticMeshHelper::AssignFacesToSection(rawMesh, SelectedTriangles, SectionIndex);
 
-	CheckSectionsContinuous(this, MeshFaceMaterialIndices);
-	CheckTriangles(this, OriginalMeshIndices, MeshIndices);
+	CheckSectionsContinuous(this, rawMesh.FaceMaterialIndices);
+	CheckTriangles(this, originalRawMesh, rawMesh);
 
 	return (true);
 }
