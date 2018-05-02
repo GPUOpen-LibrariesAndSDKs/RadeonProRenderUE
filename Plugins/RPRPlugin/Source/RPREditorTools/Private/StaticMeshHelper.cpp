@@ -119,64 +119,142 @@ void FStaticMeshHelper::CreateRawMeshFromStaticMesh(const UStaticMesh* StaticMes
 	}
 }
 
-void FStaticMeshHelper::AssignFacesToSection(FRawMesh& RawMesh, const TArray<uint32>& Triangles, int32 SectionIndex)
+void FStaticMeshHelper::AssignFacesToSection(FRawMesh& RawMesh, TArray<uint32> Triangles, int32 SectionIndex)
+{
+	AssignFacesToSection(RawMesh.FaceMaterialIndices, RawMesh.WedgeIndices, Triangles, SectionIndex);
+}
+
+void FStaticMeshHelper::AssignFacesToSection(TArray<int32>& MeshFaceMaterialIndices, TArray<uint32>& MeshIndices, TArray<uint32> Triangles, int32 SectionIndex)
 {
 	QUICK_SCOPE_CYCLE_COUNTER(AssignFacesToSection);
 
-	const int32 endIndexOfSection = FindLastTriangleIndexOfSection(RawMesh.FaceMaterialIndices, SectionIndex);
+	const int32 endIndexOfSection = FindLastTriangleIndexOfSection(MeshFaceMaterialIndices, SectionIndex);
 	const int32 endIndexOfSectionIndices = (endIndexOfSection + 1) * 3;
 
+	TArray<int32> trianglesToRemove;
+
 	// Copy triangles to the end the section
-	TArray<uint32>& indices = RawMesh.WedgeIndices;
-	int32 numIndices = indices.Num();
+	int32 numIndices = MeshIndices.Num();
+	int32 numTrianglesAdd = 0;
 	for (int32 i = 0; i < Triangles.Num(); ++i)
 	{
-		const int32 triangleIndex = Triangles[i];
-		CopyTriangleIndex(indices, triangleIndex * 3, endIndexOfSectionIndices);
-		CopyTriangleIndex(indices, triangleIndex * 3 + 1, endIndexOfSectionIndices + 1);
-		CopyTriangleIndex(indices, triangleIndex * 3 + 2, endIndexOfSectionIndices + 2);
+		int32 source = Triangles[i] * 3;
+		const int32 destination = endIndexOfSectionIndices + numTrianglesAdd * 3;
+		const bool bRequireSectionChange = (MeshFaceMaterialIndices[Triangles[i]] != SectionIndex);
 
-		check(indices[triangleIndex * 3] == indices[endIndexOfSectionIndices]);
-		check(indices[triangleIndex * 3+1] == indices[endIndexOfSectionIndices+1]);
-		check(indices[triangleIndex * 3+2] == indices[endIndexOfSectionIndices+2]);
+		if (bRequireSectionChange && source != destination)
+		{
+			const bool bIsDestinationBeforeSource = (destination < source);
+			const int32 offset = bIsDestinationBeforeSource ? 1 : 0;
+			CopyTriangleIndex(MeshIndices, source, destination);
+			CopyTriangleIndex(MeshIndices, source + offset + 1, destination + 1);
+			CopyTriangleIndex(MeshIndices, source + offset * 2 + 2, destination + 2);
+
+			trianglesToRemove.Add(source + offset * 3);
+			++numTrianglesAdd;
+		}
 	}
 
-	// Remove from the initial position
-	for (int32 i = Triangles.Num() - 1; i >= 0; --i)
+	for (int32 i = trianglesToRemove.Num() - 1; i >= 0; --i)
 	{
-		const int32 triangleIndex = Triangles[i];
-		indices.RemoveAt(triangleIndex * 3, 3, false);
+		MeshIndices.RemoveAt(trianglesToRemove[i], 3, false);
 	}
-	indices.Shrink();
-
-	// Check if the number of triangle has been altered
-	check(indices.Num() == numIndices);
-	// Check degenerated triangles
-	for (int32 i = 0; i < indices.Num(); i += 3)
-	{
-		check(indices[i] != indices[i + 1] && indices[i] != indices[i + 2]);
-	}
+	MeshIndices.Shrink();
 
 	// Copy face material indices
-	TArray<int32>& faceMaterialIndices = RawMesh.FaceMaterialIndices;
-	for (int32 i = 0; i < Triangles.Num(); i++)
+	trianglesToRemove.Empty();
+	int32 numChanges = 0;
+	for (int32 i = 0; i < Triangles.Num(); ++i)
 	{
-		faceMaterialIndices[Triangles[i]] = SectionIndex;
-		CopyTriangleIndex(faceMaterialIndices, Triangles[i], endIndexOfSection + 1);
+		const int32 source = Triangles[i];
+		const int32 destination = endIndexOfSection + 1 + numChanges;
+		const bool bRequireSectionChange = (MeshFaceMaterialIndices[source] != SectionIndex);
+
+		if (bRequireSectionChange)
+		{
+			MeshFaceMaterialIndices[source] = SectionIndex;
+			if (source != destination)
+			{
+				CopyTriangleIndex(MeshFaceMaterialIndices, source, destination);
+
+				const bool bIsDestinationBeforeSource = (destination < source);
+				const int32 offset = bIsDestinationBeforeSource ? 1 : 0;
+				ShiftIndicesIfGreaterThanValue(trianglesToRemove, destination, 1);
+				trianglesToRemove.Add(source + offset);
+
+				if (Triangles[i] > (uint32)destination)
+				{
+					for (int32 j = i + 1; j < Triangles.Num(); ++j)
+					{
+						++Triangles[j];
+					}
+				}
+				++numChanges;
+			}
+		}
 	}
 	// Remove old face material index
-	for (int32 i = Triangles.Num() - 1; i >= 0; --i)
+	for (int32 i = trianglesToRemove.Num() - 1; i >= 0; --i)
 	{
-		faceMaterialIndices.RemoveAt(Triangles[i]);
+		MeshFaceMaterialIndices.RemoveAt(trianglesToRemove[i]);
 	}
+}
 
-	// Move the triangles next to the end of the same face material
-	/*TArray<int32>& faceMaterialIndices = RawMesh.FaceMaterialIndices;
-	for (int32 i = 0; i < Triangles.Num(); i++)
+void FStaticMeshHelper::CleanUnusedMeshSections(UStaticMesh* StaticMesh, FRawMesh& RawMesh)
+{
+	CleanUnusedMeshSections(RawMesh, StaticMesh->SectionInfoMap, StaticMesh->StaticMaterials);
+}
+
+void FStaticMeshHelper::CleanUnusedMeshSections(FRawMesh& RawMesh, FMeshSectionInfoMap& SectionInfoMap, TArray<FStaticMaterial>& StaticMaterials)
+{
+	TArray<int32> missingSections;
+	FindUnusedSections(RawMesh.FaceMaterialIndices, missingSections);
+
+	const int32 lodIndex = 0;
+
+	if (missingSections.Num() > 0)
 	{
-		faceMaterialIndices[Triangles[i]] = SectionIndex;
-		MoveTriangleIndex(faceMaterialIndices, Triangles[i], endIndexOfSection + i);
-	}*/
+		RawMesh.CompactMaterialIndices();
+
+		for (int32 missingSectionIndex = missingSections.Num() - 1; missingSectionIndex >= 0; --missingSectionIndex)
+		{
+			const int32 initialNumberOfSections = SectionInfoMap.GetSectionNumber(lodIndex);
+
+			FMeshSectionInfo sectionInfo = SectionInfoMap.Get(lodIndex, missingSections[missingSectionIndex]);
+			int32 missingSectionMaterialIndex = sectionInfo.MaterialIndex;
+			StaticMaterials.RemoveAt(sectionInfo.MaterialIndex);
+
+			int32 sectionToDeleteIndex = missingSections[missingSectionIndex]; // FindSectionInfoMapIndexByMaterialIndex(StaticMesh->SectionInfoMap, missingSections[missingSectionIndex]);
+			if (sectionToDeleteIndex != INDEX_NONE)
+			{
+				SectionInfoMap.Remove(lodIndex, sectionToDeleteIndex);
+
+				for (int32 sectionIndex = 0; sectionIndex < initialNumberOfSections; ++sectionIndex)
+				{
+					if (SectionInfoMap.IsValidSection(lodIndex, sectionIndex))
+					{
+						sectionInfo = SectionInfoMap.Get(lodIndex, sectionIndex);
+						if (sectionInfo.MaterialIndex > missingSectionMaterialIndex)
+						{
+							--sectionInfo.MaterialIndex;
+						}
+
+						// If the current section is after the deleted one
+						if (sectionIndex > sectionToDeleteIndex)
+						{
+							// Shift the section
+							SectionInfoMap.Set(lodIndex, sectionIndex - 1, sectionInfo);
+							SectionInfoMap.Remove(lodIndex, sectionIndex);
+						}
+						else
+						{
+							SectionInfoMap.Set(lodIndex, sectionIndex, sectionInfo);
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 uint32 FStaticMeshHelper::FindHighestVertexIndice(FIndexArrayView IndexBuffer)
@@ -209,4 +287,58 @@ int32 FStaticMeshHelper::FindLastTriangleIndexOfSection(const TArray<int32>& Fac
 	}
 
 	return (FaceMaterialIndices.Num() - 1);
+}
+
+void FStaticMeshHelper::FindUnusedSections(const TArray<int32>& FaceMaterialIndices, TArray<int32>& OutMissingSections)
+{
+	int32 currentSection = 0;
+	int32 numItemInSection = 0;
+	for (int32 i = 0; i < FaceMaterialIndices.Num(); ++i)
+	{
+		if (currentSection != FaceMaterialIndices[i])
+		{
+			if (numItemInSection == 0)
+			{
+				OutMissingSections.Add(currentSection);
+			}
+
+			++currentSection;
+			--i; // Go backward
+			numItemInSection = 0;
+		}
+		else
+		{
+			++numItemInSection;
+		}
+	}
+
+	if (numItemInSection == 0)
+	{
+		OutMissingSections.Add(currentSection);
+	}
+}
+
+int32 FStaticMeshHelper::FindSectionInfoMapIndexByMaterialIndex(const FMeshSectionInfoMap& SectionInfoMap, const int32 MaterialIndex)
+{
+	const int32 lodIndex = 0;
+	for (int32 sectionIndex = 0; sectionIndex < SectionInfoMap.GetSectionNumber(lodIndex); ++sectionIndex)
+	{
+		FMeshSectionInfo sectionInfo = SectionInfoMap.Get(lodIndex, sectionIndex);
+		if (sectionInfo.MaterialIndex == MaterialIndex)
+		{
+			return (sectionIndex);
+		}
+	}
+	return (INDEX_NONE);
+}
+
+void FStaticMeshHelper::ShiftIndicesIfGreaterThanValue(TArray<int32>& Indices, int32 Value, int32 ShiftAmount)
+{
+	for (int32 i = 0; i < Indices.Num(); ++i)
+	{
+		if (Indices[i] > Value)
+		{
+			Indices[i] = ShiftAmount;
+		}
+	}
 }

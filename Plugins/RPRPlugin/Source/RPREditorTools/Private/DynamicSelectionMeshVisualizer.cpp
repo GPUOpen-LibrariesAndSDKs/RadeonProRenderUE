@@ -262,7 +262,7 @@ int32 UDynamicSelectionMeshVisualizerComponent::GetNumMaterials() const
 
 FPrimitiveSceneProxy* UDynamicSelectionMeshVisualizerComponent::CreateSceneProxy()
 {
-	if (MeshData.IsValid())
+	if (MeshData.IsValid() && MeshData->GetStaticMesh() != nullptr)
 	{
 		SceneProxy = new FDSMVisualizerProxy(this);
 	}

@@ -117,7 +117,7 @@ TSharedRef<SWidget> FRPRSectionsDetailCustomization::GenerateCustomMaterialWidge
 		;
 }
 
-FReply FRPRSectionsDetailCustomization::OnSelectedFacesAddedToSection(UStaticMesh* Mesh, int32 MaterialIndex)
+FReply FRPRSectionsDetailCustomization::OnSelectedFacesAddedToSection(UStaticMesh* Mesh, int32 SectionIndex)
 {
 	QUICK_SCOPE_CYCLE_COUNTER(AddSelectedFacesToSection);
 
@@ -139,9 +139,9 @@ FReply FRPRSectionsDetailCustomization::OnSelectedFacesAddedToSection(UStaticMes
 			}
 			slowTask.EnterProgressFrame(1.0f, LOCTEXT("AssignSelectedFace", "Assign selected faces to RawMesh"));
 			{
-				FMeshSectionInfo sectionInfo = Mesh->SectionInfoMap.Get(0, MaterialIndex);
 				const TArray<uint32>* triangles = FRPRSectionsSelectionManager::Get().GetSelectedTriangles(meshData);
-				FStaticMeshHelper::AssignFacesToSection(rawMesh, *triangles, MaterialIndex);
+				FStaticMeshHelper::AssignFacesToSection(rawMesh, *triangles, SectionIndex);
+				FStaticMeshHelper::CleanUnusedMeshSections(Mesh, rawMesh);
 			}
 			slowTask.EnterProgressFrame(1.0f, LOCTEXT("SaveRawMesh&RebuildStaticMesh", "Save RawMesh & Rebuild StaticMesh"));
 			{
@@ -149,6 +149,7 @@ FReply FRPRSectionsDetailCustomization::OnSelectedFacesAddedToSection(UStaticMes
 				Mesh->PreEditChange(nullptr);
 				Mesh->PostLoad();
 				Mesh->PostEditChange();
+				meshData->RebuildSections();
 			}
 		}
 	}	
