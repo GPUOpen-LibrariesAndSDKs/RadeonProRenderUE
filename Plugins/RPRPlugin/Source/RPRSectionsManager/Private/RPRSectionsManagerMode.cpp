@@ -86,10 +86,15 @@ bool FRPRSectionsManagerMode::InputKey(FEditorViewportClient* ViewportClient, FV
 	const bool bIsLeftButtonDown = (Key == EKeys::LeftMouseButton && Event != IE_Released) || Viewport->KeyState(EKeys::LeftMouseButton);
 	const bool bIsRightButtonDown = (Key == EKeys::RightMouseButton && Event != IE_Released) || Viewport->KeyState(EKeys::RightMouseButton);
 	const bool bIsCtrlButtonDown = IsCtrlDown(Viewport);
+	const bool bIsAltButtonDown = IsAltDown(Viewport);
 	const bool bIsWheelAxisChanged = (Key == EKeys::MouseScrollDown && Event != IE_Released) || (Key == EKeys::MouseScrollUp && Event != IE_Released);
 
 	const bool bUserWantsChangeBrushSize = bIsCtrlButtonDown && bIsWheelAxisChanged;
-	const bool bUserWantsSelect = bIsLeftButtonDown && !bIsRightButtonDown && !bUserWantsChangeBrushSize;
+
+	const bool bUserWantsSelect = 
+		bIsLeftButtonDown && 
+		!bIsRightButtonDown && !bIsAltButtonDown && 
+		!bUserWantsChangeBrushSize;
 	
 	if (bUserWantsSelect)
 	{

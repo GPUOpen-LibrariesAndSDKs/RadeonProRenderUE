@@ -119,85 +119,23 @@ void FStaticMeshHelper::CreateRawMeshFromStaticMesh(const UStaticMesh* StaticMes
 	}
 }
 
-void FStaticMeshHelper::AssignFacesToSection(FRawMesh& RawMesh, TArray<uint32> Triangles, int32 SectionIndex)
+void FStaticMeshHelper::AssignFacesToSection(FRawMesh& RawMesh, const TArray<uint32>& Triangles, int32 SectionIndex)
 {
 	AssignFacesToSection(RawMesh.FaceMaterialIndices, RawMesh.WedgeIndices, Triangles, SectionIndex);
 }
 
-void FStaticMeshHelper::AssignFacesToSection(TArray<int32>& MeshFaceMaterialIndices, TArray<uint32>& MeshIndices, TArray<uint32> Triangles, int32 SectionIndex)
+void FStaticMeshHelper::AssignFacesToSection(TArray<int32>& MeshFaceMaterialIndices, TArray<uint32>& MeshIndices, const TArray<uint32>& Triangles, int32 SectionIndex)
 {
 	QUICK_SCOPE_CYCLE_COUNTER(AssignFacesToSection);
 
-	const int32 endIndexOfSection = FindLastTriangleIndexOfSection(MeshFaceMaterialIndices, SectionIndex);
-	const int32 endIndexOfSectionIndices = (endIndexOfSection + 1) * 3;
+	// Assure that the triangles are sorted from 0 to X
+	// It is really important, since the next algorithms rely on it
+	TArray<uint32> sortedTriangles = Triangles;
+	sortedTriangles.Sort();
 
-	TArray<int32> trianglesToRemove;
-
-	// Copy triangles to the end the section
-	int32 numIndices = MeshIndices.Num();
-	int32 numTrianglesAdd = 0;
-	for (int32 i = 0; i < Triangles.Num(); ++i)
-	{
-		int32 source = Triangles[i] * 3;
-		const int32 destination = endIndexOfSectionIndices + numTrianglesAdd * 3;
-		const bool bRequireSectionChange = (MeshFaceMaterialIndices[Triangles[i]] != SectionIndex);
-
-		if (bRequireSectionChange && source != destination)
-		{
-			const bool bIsDestinationBeforeSource = (destination < source);
-			const int32 offset = bIsDestinationBeforeSource ? 1 : 0;
-			CopyTriangleIndex(MeshIndices, source, destination);
-			CopyTriangleIndex(MeshIndices, source + offset + 1, destination + 1);
-			CopyTriangleIndex(MeshIndices, source + offset * 2 + 2, destination + 2);
-
-			trianglesToRemove.Add(source + offset * 3);
-			++numTrianglesAdd;
-		}
-	}
-
-	for (int32 i = trianglesToRemove.Num() - 1; i >= 0; --i)
-	{
-		MeshIndices.RemoveAt(trianglesToRemove[i], 3, false);
-	}
-	MeshIndices.Shrink();
-
-	// Copy face material indices
-	trianglesToRemove.Empty();
-	int32 numChanges = 0;
-	for (int32 i = 0; i < Triangles.Num(); ++i)
-	{
-		const int32 source = Triangles[i];
-		const int32 destination = endIndexOfSection + 1 + numChanges;
-		const bool bRequireSectionChange = (MeshFaceMaterialIndices[source] != SectionIndex);
-
-		if (bRequireSectionChange)
-		{
-			MeshFaceMaterialIndices[source] = SectionIndex;
-			if (source != destination)
-			{
-				CopyTriangleIndex(MeshFaceMaterialIndices, source, destination);
-
-				const bool bIsDestinationBeforeSource = (destination < source);
-				const int32 offset = bIsDestinationBeforeSource ? 1 : 0;
-				ShiftIndicesIfGreaterThanValue(trianglesToRemove, destination, 1);
-				trianglesToRemove.Add(source + offset);
-
-				if (Triangles[i] > (uint32)destination)
-				{
-					for (int32 j = i + 1; j < Triangles.Num(); ++j)
-					{
-						++Triangles[j];
-					}
-				}
-				++numChanges;
-			}
-		}
-	}
-	// Remove old face material index
-	for (int32 i = trianglesToRemove.Num() - 1; i >= 0; --i)
-	{
-		MeshFaceMaterialIndices.RemoveAt(trianglesToRemove[i]);
-	}
+	TArray<FFaceAssignInfo> delta;
+	CreateFaceSelectionAssignationDelta(MeshFaceMaterialIndices, MeshIndices, sortedTriangles, SectionIndex, delta);
+	ApplyFaceSelectionAssignationDelta(delta, MeshFaceMaterialIndices, MeshIndices, SectionIndex);
 }
 
 void FStaticMeshHelper::CleanUnusedMeshSections(UStaticMesh* StaticMesh, FRawMesh& RawMesh)
@@ -339,6 +277,102 @@ void FStaticMeshHelper::ShiftIndicesIfGreaterThanValue(TArray<int32>& Indices, i
 		if (Indices[i] > Value)
 		{
 			Indices[i] = ShiftAmount;
+		}
+	}
+}
+
+void FStaticMeshHelper::CreateFaceSelectionAssignationDelta(
+	const TArray<int32>& FaceMaterialIndices, 
+	const TArray<uint32>& MeshIndices, 
+	const TArray<uint32>& Triangles, 
+	int32 SectionIndex, 
+	TArray<FFaceAssignInfo>& OutDelta)
+{
+	int32 triangleDestination = FindLastTriangleIndexOfSection(FaceMaterialIndices, SectionIndex) + 1;
+
+	for (int32 i = 0; i < Triangles.Num(); ++i)
+	{
+		const int32 currentTriangle = Triangles[i];
+		
+		const bool bIsTriangleHasCorrectSection = (FaceMaterialIndices[currentTriangle] == SectionIndex);
+		const bool bIsTriangleAlreadyOnDestination = (triangleDestination == currentTriangle);
+
+		const bool bRequiresShiftingSection = (!bIsTriangleHasCorrectSection && !bIsTriangleAlreadyOnDestination);
+		const bool bRequiresModification = (bRequiresShiftingSection || !bIsTriangleHasCorrectSection);
+
+		if (bRequiresModification)
+		{
+			FFaceAssignInfo assignInfo;
+			assignInfo.OriginalTriangleIndex = currentTriangle;
+
+			if (bRequiresShiftingSection)
+			{
+				assignInfo.MeshIndices.AddUninitialized(3);
+				assignInfo.MeshIndices[0] = MeshIndices[currentTriangle * 3];
+				assignInfo.MeshIndices[1] = MeshIndices[currentTriangle * 3 + 1];
+				assignInfo.MeshIndices[2] = MeshIndices[currentTriangle * 3 + 2];
+			}
+
+			OutDelta.Add(assignInfo);
+		}
+	}
+}
+
+void FStaticMeshHelper::ApplyFaceSelectionAssignationDelta(const TArray<FFaceAssignInfo>& Delta, TArray<int32>& FaceMaterialIndices, TArray<uint32>& MeshIndices, int32 SectionIndex)
+{
+	int32 triangleDestination = FindLastTriangleIndexOfSection(FaceMaterialIndices, SectionIndex) + 1;
+
+	// Delete triangles that are after the triangle destination
+	for (int32 i = Delta.Num() - 1; i >= 0; --i)
+	{
+		const FFaceAssignInfo& currentDelta = Delta[i];
+
+		if (currentDelta.OriginalTriangleIndex > triangleDestination)
+		{
+			if (currentDelta.MeshIndices.Num() > 0)
+			{
+				MeshIndices.RemoveAt(currentDelta.OriginalTriangleIndex * 3, 3, false);
+			}
+
+			FaceMaterialIndices.RemoveAt(currentDelta.OriginalTriangleIndex);
+		}
+	}
+
+	// Insert delta data
+	for (int32 i = Delta.Num() - 1; i >= 0; --i)
+	{
+		const FFaceAssignInfo& currentDelta = Delta[i];
+		
+		if (currentDelta.MeshIndices.Num() > 0)
+		{
+			MeshIndices.Insert(currentDelta.MeshIndices[2], triangleDestination * 3);
+			MeshIndices.Insert(currentDelta.MeshIndices[1], triangleDestination * 3);
+			MeshIndices.Insert(currentDelta.MeshIndices[0], triangleDestination * 3);
+		}
+
+		if (currentDelta.OriginalTriangleIndex == triangleDestination)
+		{
+			FaceMaterialIndices[triangleDestination] = SectionIndex;
+		}
+		else
+		{
+			FaceMaterialIndices.Insert(SectionIndex, triangleDestination);
+		}
+	}
+
+	// Delete triangles that are before the triangle destination
+	for (int32 i = Delta.Num() - 1; i >= 0; --i)
+	{
+		const FFaceAssignInfo& currentDelta = Delta[i];
+
+		if (currentDelta.OriginalTriangleIndex < triangleDestination)
+		{
+			if (currentDelta.MeshIndices.Num() > 0)
+			{
+				MeshIndices.RemoveAt(currentDelta.OriginalTriangleIndex * 3, 3, false);
+			}
+
+			FaceMaterialIndices.RemoveAt(currentDelta.OriginalTriangleIndex);
 		}
 	}
 }
