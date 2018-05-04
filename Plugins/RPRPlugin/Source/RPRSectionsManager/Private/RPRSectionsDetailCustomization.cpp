@@ -7,6 +7,8 @@
 #include "StaticMeshHelper.h"
 #include "ScopedSlowTask.h"
 #include "RenderingThread.h"
+#include "SImage.h"
+#include "SBox.h"
 
 #define LOCTEXT_NAMESPACE "RPRSectionsDetailCustomization"
 
@@ -45,6 +47,8 @@ void FRPRSectionsDetailCustomization::CustomizeDetails(IDetailLayoutBuilder& Det
 
 		AddStaticMeshName(materialsCategory, selectedMeshes[i].Get());
 		materialsCategory.AddCustomBuilder(MakeShareable(new FMaterialList(DetailBuilder, delegates, true, true, true)));
+		
+		CreateAddSectionButton(materialsCategory, selectedMeshes[i]);
 	}
 }
 
@@ -88,7 +92,14 @@ void FRPRSectionsDetailCustomization::ChangeMaterial(UStaticMesh* StaticMesh, cl
 	ChangedProperty = FindField<UProperty>(UStaticMesh::StaticClass(), GET_MEMBER_NAME_CHECKED(UStaticMesh, StaticMaterials));
 	check(ChangedProperty);
 
-	StaticMesh->StaticMaterials[MaterialIndex].MaterialInterface = Material;
+	if (!StaticMesh->StaticMaterials.IsValidIndex(MaterialIndex))
+	{
+		StaticMesh->StaticMaterials.Add(FStaticMaterial(Material));
+	}
+	else
+	{
+		StaticMesh->StaticMaterials[MaterialIndex].MaterialInterface = Material;
+	}
 
 	CallPostEditChange(StaticMesh, ChangedProperty);
 }
@@ -155,7 +166,6 @@ FReply FRPRSectionsDetailCustomization::OnSelectedFacesAddedToSection(UStaticMes
 	}	
 
 	FRPRSectionsSelectionManager::Get().ClearAllSelection();
-
 	return (FReply::Handled());
 }
 
@@ -163,6 +173,76 @@ bool FRPRSectionsDetailCustomization::IsAddSelectionToSectionButtonEnabled(UStat
 {
 	const FRPRMeshDataPtr meshData = FRPRSectionsSelectionManager::Get().FindMeshDataByStaticMesh(Mesh);
 	return (meshData.IsValid() ? FRPRSectionsSelectionManager::Get().HasSelectedTriangles(meshData) : false);
+}
+
+void FRPRSectionsDetailCustomization::CreateAddSectionButton(IDetailCategoryBuilder& CategoryBuilder, TWeakObjectPtr<UStaticMesh> StaticMesh)
+{
+	FDetailWidgetRow& row = CategoryBuilder.AddCustomRow(LOCTEXT("AddNewSection", "Add New Section"));
+	row.ValueContent()
+	.HAlign(HAlign_Right)
+	[
+		SNew(SBox)
+		.HAlign(HAlign_Right)
+		[
+			SNew(SButton)
+			.HAlign(HAlign_Right)
+			.OnClicked(this, &FRPRSectionsDetailCustomization::OnCreateNewSectionButtonClicked, StaticMesh.Get())
+			.ToolTipText(LOCTEXT("AddSectionTooltip", "Create a new section and assign the selected faces"))
+			.ButtonStyle(FEditorStyle::Get(), "HoverHintOnly")
+			.ContentPadding(4.0f)
+			.ForegroundColor(FSlateColor::UseForeground())
+			.IsEnabled(this, &FRPRSectionsDetailCustomization::IsAddSelectionToSectionButtonEnabled, StaticMesh.Get())
+			.IsFocusable(false)
+			[
+				SNew(SImage)
+				.Image(FEditorStyle::GetBrush("PropertyWindow.Button_AddToArray"))
+				.ColorAndOpacity(FSlateColor::UseForeground())
+			]
+		]
+	];
+}
+
+FReply FRPRSectionsDetailCustomization::OnCreateNewSectionButtonClicked(UStaticMesh* Mesh)
+{
+	QUICK_SCOPE_CYCLE_COUNTER(STAT_OnCreateNewSectionButtonClicked);
+
+	const FRPRMeshDataPtr meshData = FRPRSectionsSelectionManager::Get().FindMeshDataByStaticMesh(Mesh);
+	if (!meshData.IsValid())
+	{
+		return (FReply::Unhandled());
+	}
+
+	{
+		FScopedSlowTask slowTask(3.0f);
+		slowTask.MakeDialogDelayed(0.5f);
+		{
+			FRawMesh& rawMesh = meshData->GetRawMesh();
+
+			slowTask.EnterProgressFrame(1.0f, LOCTEXT("RebuildRawMeshFromStaticMesh", "Rebuild RawMesh from StaticMesh"));
+			{
+				FStaticMeshHelper::CreateRawMeshFromStaticMesh(Mesh, rawMesh);
+			}
+			slowTask.EnterProgressFrame(1.0f, LOCTEXT("AssignSelectedFace", "Assign selected faces to RawMesh"));
+			{
+				const TArray<uint32>* triangles = FRPRSectionsSelectionManager::Get().GetSelectedTriangles(meshData);
+				const int32 newSectionIndex = Mesh->GetNumSections(0);
+				FStaticMeshHelper::AssignFacesToSection(rawMesh, *triangles, newSectionIndex);
+				FStaticMeshHelper::CleanUnusedMeshSections(Mesh, rawMesh);
+			}
+			slowTask.EnterProgressFrame(1.0f, LOCTEXT("SaveRawMesh&RebuildStaticMesh", "Save RawMesh & Rebuild StaticMesh"));
+			{
+				meshData->ApplyRawMeshDatas();
+				Mesh->PreEditChange(nullptr);
+				Mesh->PostLoad();
+				Mesh->PostEditChange();
+				meshData->RebuildSections();
+			}
+		}
+	}
+
+	FRPRSectionsSelectionManager::Get().ClearAllSelection();
+
+	return (FReply::Handled());
 }
 
 void FRPRSectionsDetailCustomization::CallPostEditChange(UStaticMesh* StaticMesh, UProperty* PropertyChanged /*= nullptr*/)

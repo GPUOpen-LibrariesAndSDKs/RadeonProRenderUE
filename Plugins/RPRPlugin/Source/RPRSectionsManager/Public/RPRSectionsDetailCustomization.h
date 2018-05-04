@@ -33,6 +33,8 @@ private:
 	TSharedRef<SWidget> GenerateCustomMaterialWidgets(UMaterialInterface* Material, int32 MaterialIndex, TWeakObjectPtr<UStaticMesh> StaticMesh);
 	FReply	OnSelectedFacesAddedToSection(UStaticMesh* Mesh, int32 MaterialIndex);
 	bool	IsAddSelectionToSectionButtonEnabled(UStaticMesh* Mesh) const;
+	void	CreateAddSectionButton(IDetailCategoryBuilder& CategoryBuilder, TWeakObjectPtr<UStaticMesh> StaticMesh);
+	FReply	OnCreateNewSectionButtonClicked(UStaticMesh* StaticMesh);
 
 private:
 
