@@ -41,6 +41,7 @@ void FRPRSectionsManagerMode::SetupGetSelectedRPRMeshData(FGetRPRMeshData InGetS
 			meshSelectionInfo.MeshVisualizer = NewObject<UDynamicSelectionMeshVisualizerComponent>(meshData->GetPreview()->GetOwner());
 			{
 				meshSelectionInfo.MeshVisualizer->SetRPRMesh(meshData);
+				meshSelectionInfo.MeshVisualizer->SetMeshVertices(meshSelectionInfo.MeshAdapter->GetMeshVertices());
 				meshSelectionInfo.MeshVisualizer->RegisterComponent();
 			}
 			meshSelectionInfo.PostStaticMeshChangeDelegateHandle =
@@ -95,22 +96,18 @@ void FRPRSectionsManagerMode::Tick(FEditorViewportClient* ViewportClient, float 
 
 	if (bShouldEnableEraserMode)
 	{
-		UE_LOG(LogRPRSectionsManagerMode, Log, TEXT("Enter 'Eraser' mode"));
 		CurrentPaintMode = EPaintMode::Eraser;
 	}
 	else if (bPrepareForChangingBrushSize)
 	{
-		UE_LOG(LogRPRSectionsManagerMode, Log, TEXT("Enter 'Brush Resizer' mode"));
 		CurrentPaintMode = EPaintMode::BrushResizer;
 	}
 	else if (bShouldEnableSelectorMode)
 	{
-		UE_LOG(LogRPRSectionsManagerMode, Log, TEXT("Enter 'Selector' mode"));
 		CurrentPaintMode = EPaintMode::Selector;
 	}
 	else
 	{
-		UE_LOG(LogRPRSectionsManagerMode, Log, TEXT("Enter 'Idle' mode"));
 		CurrentPaintMode = EPaintMode::Idle;
 	}
 }
@@ -213,7 +210,7 @@ bool FRPRSectionsManagerMode::TrySelectPainting(FEditorViewportClient* InViewpor
 		FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[MeshDataPtr];
 		const TArray<uint32>& meshIndices = meshSelectionInfo.MeshAdapter->GetMeshIndices();
 		TArray<uint32>& registeredTriangles = meshSelectionInfo.TrianglesSelected;
-		TArray<uint16> newIndicesSelected;
+		TArray<uint32> newIndicesSelected;
 
 		GetNewRegisteredTrianglesAndIndices(Triangles, meshIndices, registeredTriangles, newIndicesSelected);
 
@@ -236,7 +233,7 @@ bool FRPRSectionsManagerMode::TryErasePainting(FEditorViewportClient* InViewport
 		FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[MeshDataPtr];
 		const TArray<uint32>& meshIndices = meshSelectionInfo.MeshAdapter->GetMeshIndices();
 
-		TArray<uint16> triangleIndices;
+		TArray<uint32> triangleIndices;
 		for (int32 i = 0; i < Triangles.Num(); ++i)
 		{
 			const int32 triangleIndexStart = Triangles[i] * 3;
@@ -351,7 +348,7 @@ void FRPRSectionsManagerMode::GetNewRegisteredTrianglesAndIndices(
 	const TArray<uint32>& NewTriangles, 
 	const TArray<uint32>& MeshIndices, 
 	TArray<uint32>& OutUniqueNewTriangles, 
-	TArray<uint16>& OutUniqueNewIndices) const
+	TArray<uint32>& OutUniqueNewIndices) const
 {
 	OutUniqueNewTriangles.Reserve(OutUniqueNewTriangles.Num() + NewTriangles.Num());
 	OutUniqueNewIndices.Empty(NewTriangles.Num() * 3);
@@ -471,6 +468,7 @@ void FRPRSectionsManagerMode::RenderSelectedVertices(FPrimitiveDrawInterface* PD
 		{
 			UStaticMesh* staticMesh = meshData->GetStaticMesh();
 			FPositionVertexBuffer& vertexBuffer = staticMesh->RenderData->LODResources[0].PositionVertexBuffer;
+			FVector first = vertexBuffer.VertexPosition(0);
 			FIndexArrayView indexBuffer = staticMesh->RenderData->LODResources[0].IndexBuffer.GetArrayView();
 			FVector boxSize = FVector::OneVector;
 			for (int32 i = 0; i < selectedTriangles->Num(); ++i)
@@ -478,7 +476,8 @@ void FRPRSectionsManagerMode::RenderSelectedVertices(FPrimitiveDrawInterface* PD
 				const int32 indexStart = (*selectedTriangles)[i] * 3;
 				for (int j = 0; j < 3; ++j)
 				{
-					FVector position = vertexBuffer.VertexPosition(indexBuffer[indexStart + j]);
+					int32 index = indexBuffer[indexStart + j];
+					FVector position = vertexBuffer.VertexPosition(index);
 					DrawWireBox(PDI, FTranslationMatrix(position), FBox(-boxSize, boxSize), FLinearColor::Green, SDPG_World);
 				}
 			}

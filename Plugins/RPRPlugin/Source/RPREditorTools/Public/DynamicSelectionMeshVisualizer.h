@@ -25,16 +25,18 @@ public:
 
 	void	SetRPRMesh(FRPRMeshDataPtr InMeshData);
 	FRPRMeshDataPtr	GetRPRMesh() const;
-	void	AddTriangles(const TArray<uint16>& InTrianglesIndices);
-	void	SetTriangles(const TArray<uint16>& InTrianglesIndices);
-	void	RemoveTriangles(const TArray<uint16>& InTrianglesIndices);
+	void	AddTriangles(const TArray<uint32>& InTrianglesIndices);
+	void	SetTriangles(const TArray<uint32>& InTrianglesIndices);
+	void	RemoveTriangles(const TArray<uint32>& InTrianglesIndices);
+
+	void	SetMeshVertices(const TArray<FVector>& VertexPositions);
 	
-	const TArray<uint16>&	GetCurrentTriangles() const;
+	const TArray<uint32>&	GetCurrentTriangles() const;
 	const TArray<FDynamicMeshVertex>&	GetVertexBufferCache() const;
 
 	void	ClearTriangles();
 
-	const TArray<uint16>& GetTriangles() const;
+	const TArray<uint32>& GetTriangles() const;
 
 public:
 
@@ -43,7 +45,7 @@ public:
 
 private:
 
-	void	AddTriangle_RenderThread(const TArray<uint16>& InitialTriangles, const TArray<uint16>& NewTriangles);
+	void	AddTriangle_RenderThread(const TArray<uint32>& InitialTriangles, const TArray<uint32>& NewTriangles);
 	void	LoadMeshDatas();
 	void	BuildVertexBufferCache();
 
@@ -55,7 +57,7 @@ private:
 	class FDSMVisualizerProxy*	SceneProxy;
 
 	FRPRMeshDataPtr MeshData;
-	TArray<uint16>	CurrentIndices;
+	TArray<uint32>	CurrentIndices;
 
 	TArray<FDynamicMeshVertex> VertexBufferCache;
 

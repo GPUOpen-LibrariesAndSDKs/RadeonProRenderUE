@@ -59,7 +59,7 @@ private:
 	bool			GetFaces(FEditorViewportClient* InViewportClient, FViewport* InViewport, TArray<uint32>& OutSelectedTriangles) const;
 	void			GetViewInfos(FEditorViewportClient* ViewportClient, FVector& OutOrigin, FVector& OutDirection) const;
 	TArray<uint32>	GetBrushIntersectTriangles(const FRPRMeshDataPtr MeshData, const FVector& CameraPosition) const;
-	void			GetNewRegisteredTrianglesAndIndices(const TArray<uint32>& NewTriangles, const TArray<uint32>& MeshIndices, TArray<uint32>& OutUniqueNewTriangles, TArray<uint16>& OutUniqueNewIndices) const;
+	void			GetNewRegisteredTrianglesAndIndices(const TArray<uint32>& NewTriangles, const TArray<uint32>& MeshIndices, TArray<uint32>& OutUniqueNewTriangles, TArray<uint32>& OutUniqueNewIndices) const;
 	void			RenderSelectedVertices(FPrimitiveDrawInterface* PDI);
 	FColor			GetBrushColorByMode() const;
 	bool			DoesUserWantsChangeBrushSize(FViewport* Viewport) const;
@@ -88,6 +88,9 @@ private:
 
 	bool bIsBrushOnMesh;
 	FHitResult LastHitResult;
+
+	TMap<FRPRMeshDataPtr, TArray<uint32>> MeshIndices1;
+	TArray<uint32> RenderMeshIndices;
 };
 
 #undef SELECTED_INDICES_ALLOCATOR_SIZE

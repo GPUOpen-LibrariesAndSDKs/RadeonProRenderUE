@@ -58,14 +58,14 @@ class FDSMIndexBuffer : public FIndexBuffer
 
 public:
 
-	TArray<uint16> Indices;
+	TArray<uint32> Indices;
 
 	virtual void InitRHI() override
 	{
 		FRHIResourceCreateInfo CreatInfo;
 		void* Buffer = nullptr;
-		int32 size = Indices.Num() * sizeof(uint16);
-		IndexBufferRHI = RHICreateAndLockIndexBuffer(sizeof(uint16), size, BUF_Static, CreatInfo, Buffer);
+		int32 size = Indices.Num() * sizeof(uint32);
+		IndexBufferRHI = RHICreateAndLockIndexBuffer(sizeof(uint32), size, BUF_Static, CreatInfo, Buffer);
 		{
 			FMemory::Memcpy(Buffer, Indices.GetData(), size);
 		}
@@ -113,7 +113,7 @@ public:
 		IndexBuffer.Indices = DSMVisualizer->GetTriangles();
 	}
 
-	void AddTriangles(const TArray<uint16>& Triangles, const TArray<uint16>& NewTriangles)
+	void AddTriangles(const TArray<uint32>& Triangles, const TArray<uint32>& NewTriangles)
 	{
 		check(NewTriangles.Num() % 3 == 0);
 	
@@ -228,8 +228,7 @@ void UDynamicSelectionMeshVisualizerComponent::BeginPlay()
 
 		const FRawMesh& rawMesh = meshData->GetRawMesh();
 		const TArray<uint32>& indices = rawMesh.WedgeIndices;
-		TArray<uint16> indices16(indices);
-		SetTriangles(indices16);
+		SetTriangles(indices);
 	}
 }
 
@@ -286,19 +285,19 @@ FRPRMeshDataPtr UDynamicSelectionMeshVisualizerComponent::GetRPRMesh() const
 	return (MeshData);
 }
 
-void UDynamicSelectionMeshVisualizerComponent::AddTriangles(const TArray<uint16>& InTriangles)
+void UDynamicSelectionMeshVisualizerComponent::AddTriangles(const TArray<uint32>& InTriangles)
 {
 	AddTriangle_RenderThread(CurrentIndices, InTriangles);
 	CurrentIndices.Append(InTriangles);
 }
 
-void UDynamicSelectionMeshVisualizerComponent::SetTriangles(const TArray<uint16>& InTriangles)
+void UDynamicSelectionMeshVisualizerComponent::SetTriangles(const TArray<uint32>& InTriangles)
 {
 	CurrentIndices = InTriangles;
 	MarkRenderStateDirty();
 }
 
-void UDynamicSelectionMeshVisualizerComponent::RemoveTriangles(const TArray<uint16>& InTrianglesIndices)
+void UDynamicSelectionMeshVisualizerComponent::RemoveTriangles(const TArray<uint32>& InTrianglesIndices)
 {
 	for (int32 i = 0; i < InTrianglesIndices.Num(); i += 3)
 	{
@@ -316,7 +315,18 @@ void UDynamicSelectionMeshVisualizerComponent::RemoveTriangles(const TArray<uint
 	MarkRenderStateDirty();
 }
 
-const TArray<uint16>& UDynamicSelectionMeshVisualizerComponent::GetCurrentTriangles() const
+void UDynamicSelectionMeshVisualizerComponent::SetMeshVertices(const TArray<FVector>& VertexPositions)
+{
+	VertexBufferCache.Empty(VertexPositions.Num());
+	for (int32 i = 0; i < VertexPositions.Num(); ++i)
+	{
+		VertexBufferCache.Emplace(VertexPositions[i]);
+	}
+	UpdateBounds();
+	MarkRenderStateDirty();
+}
+
+const TArray<uint32>& UDynamicSelectionMeshVisualizerComponent::GetCurrentTriangles() const
 {
 	return (CurrentIndices);
 }
@@ -330,20 +340,20 @@ void UDynamicSelectionMeshVisualizerComponent::ClearTriangles()
 {
 	CurrentIndices.Empty();
 }
-const TArray<uint16>& UDynamicSelectionMeshVisualizerComponent::GetTriangles() const
+const TArray<uint32>& UDynamicSelectionMeshVisualizerComponent::GetTriangles() const
 {
 	return (CurrentIndices);
 }
 
-void UDynamicSelectionMeshVisualizerComponent::AddTriangle_RenderThread(const TArray<uint16>& InitialTriangles, const TArray<uint16>& NewTriangles)
+void UDynamicSelectionMeshVisualizerComponent::AddTriangle_RenderThread(const TArray<uint32>& InitialTriangles, const TArray<uint32>& NewTriangles)
 {
 	if (SceneProxy && NewTriangles.Num() > 0)
 	{
 		ENQUEUE_UNIQUE_RENDER_COMMAND_THREEPARAMETER(
 			FUDynamicSelectionMeshVisualizer_AddTriangle_RenderThread,
 			FDSMVisualizerProxy*, SceneProxy, SceneProxy,
-			TArray<uint16>, InitialTriangles, InitialTriangles,
-			TArray<uint16>, NewTriangles, NewTriangles,
+			TArray<uint32>, InitialTriangles, InitialTriangles,
+			TArray<uint32>, NewTriangles, NewTriangles,
 			{
 				SceneProxy->AddTriangles(InitialTriangles, NewTriangles);
 			}
@@ -369,14 +379,24 @@ void UDynamicSelectionMeshVisualizerComponent::LoadMeshDatas()
 
 void UDynamicSelectionMeshVisualizerComponent::BuildVertexBufferCache()
 {
-	const FRawMesh& rawMesh = MeshData->GetRawMesh();
+	const UStaticMesh* mesh = MeshData->GetStaticMesh();
+	const FStaticMeshLODResources& lodResources = mesh->RenderData->LODResources[0];
+	auto& vertexBuffer = lodResources.PositionVertexBuffer;
+
+	VertexBufferCache.Empty(vertexBuffer.GetNumVertices());
+	for (uint32 i = 0; i < vertexBuffer.GetNumVertices(); ++i)
+	{
+		VertexBufferCache.Emplace(vertexBuffer.VertexPosition(i));
+	}
+
+	/*const FRawMesh& rawMesh = MeshData->GetRawMesh();
 	const TArray<FVector>& vertices = rawMesh.VertexPositions;
 
 	VertexBufferCache.Empty(vertices.Num());
 	for (int32 i = 0; i < vertices.Num(); ++i)
 	{
 		VertexBufferCache.Emplace(vertices[i]);
-	}
+	}*/
 }
 
 #undef INDEXBUFFER_SEGMENT_SIZE
