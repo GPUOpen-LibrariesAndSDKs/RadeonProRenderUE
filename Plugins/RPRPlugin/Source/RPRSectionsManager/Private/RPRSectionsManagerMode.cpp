@@ -6,6 +6,7 @@
 #include "Materials/Material.h"
 #include "RPRSectionsManagerModeSettings.h"
 #include "RPRSelectionManager.h"
+#include "RPRConstAway.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRSectionsManagerMode, Log, All)
 
@@ -87,6 +88,7 @@ bool FRPRSectionsManagerMode::InputKey(FEditorViewportClient* ViewportClient, FV
 	const bool bIsRightButtonDown = (Key == EKeys::RightMouseButton && Event != IE_Released) || Viewport->KeyState(EKeys::RightMouseButton);
 	const bool bIsCtrlButtonDown = IsCtrlDown(Viewport);
 	const bool bIsAltButtonDown = IsAltDown(Viewport);
+	const bool bIsShiftButtonDown = IsShiftDown(Viewport);
 	const bool bIsWheelAxisChanged = (Key == EKeys::MouseScrollDown && Event != IE_Released) || (Key == EKeys::MouseScrollUp && Event != IE_Released);
 
 	const bool bUserWantsChangeBrushSize = bIsCtrlButtonDown && bIsWheelAxisChanged;
@@ -95,17 +97,32 @@ bool FRPRSectionsManagerMode::InputKey(FEditorViewportClient* ViewportClient, FV
 		bIsLeftButtonDown && 
 		!bIsRightButtonDown && !bIsAltButtonDown && 
 		!bUserWantsChangeBrushSize;
+
+	const bool bUserWantsEraser =
+		bIsLeftButtonDown && bIsShiftButtonDown &&
+		!bIsRightButtonDown && !bIsAltButtonDown &&
+		!bUserWantsSelect && !bUserWantsChangeBrushSize;
 	
 	if (bUserWantsSelect)
 	{
-		if (TrySelectionPainting(ViewportClient, Viewport))
+		CurrentPaintMode = EPaintMode::Select;
+		if (TrySelectPainting(ViewportClient, Viewport))
+		{
+			bIsSelecting = true;
+			bHandled = true;
+		}
+	}
+	else if (bUserWantsEraser)
+	{
+		CurrentPaintMode = EPaintMode::Erase;
+		if (TryErasePainting(ViewportClient, Viewport))
 		{
 			bIsSelecting = true;
 			bHandled = true;
 		}
 	}
 
-	if (bIsSelecting && !bIsLeftButtonDown)
+	if (bIsSelecting && (!bUserWantsSelect || !bUserWantsEraser))
 	{
 		bIsSelecting = false;
 	}
@@ -141,19 +158,53 @@ bool FRPRSectionsManagerMode::InputAxis(FEditorViewportClient* InViewportClient,
 	return (true);
 }
 
-bool FRPRSectionsManagerMode::TrySelectionPainting(FEditorViewportClient* InViewportClient, FViewport* InViewport)
+bool FRPRSectionsManagerMode::TrySelectPainting(FEditorViewportClient* InViewportClient, FViewport* InViewport)
 {
-	FVector origin, direction;
-	GetViewInfos(InViewportClient, origin, direction);
-	return (TrySelectFaces(origin, direction));
+	return (TrySelectionPaintingAction(
+		InViewportClient,
+		InViewport,
+		FPaintAction::CreateLambda([this](FRPRMeshDataPtr MeshDataPtr, const TArray<uint32>& Triangles)
+	{
+
+		FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[MeshDataPtr];
+		const TArray<uint32>& meshIndices = meshSelectionInfo.MeshAdapter->GetMeshIndices();
+		TArray<uint32>& registeredTriangles = meshSelectionInfo.TrianglesSelected;
+		TArray<uint16> newIndicesSelected;
+
+		GetNewRegisteredTrianglesAndIndices(Triangles, meshIndices, registeredTriangles, newIndicesSelected);
+
+		UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;
+		visualizer->AddTriangles(newIndicesSelected);
+
+		FRPRSectionsSelectionManager::Get().SetSelection(MeshDataPtr, registeredTriangles);
+
+	})));
 }
 
-bool FRPRSectionsManagerMode::TrySelectFaces(const FVector& Origin, const FVector& Direction)
+bool FRPRSectionsManagerMode::TryErasePainting(FEditorViewportClient* InViewportClient, FViewport* InViewport)
+{
+	return (TrySelectionPaintingAction(
+		InViewportClient,
+		InViewport,
+		FPaintAction::CreateLambda([this](FRPRMeshDataPtr MeshDataPtr, const TArray<uint32>& Triangles)
+	{
+		FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[MeshDataPtr];
+		const TArray<uint32>& meshIndices = meshSelectionInfo.MeshAdapter->GetMeshIndices();
+		TArray<uint32>& registeredTriangles = meshSelectionInfo.TrianglesSelected;
+		TArray<uint16> newIndicesSelected;
+
+		GetNewRegisteredTrianglesAndIndices(Triangles, meshIndices, registeredTriangles, newIndicesSelected);
+
+		UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;
+		visualizer->AddTriangles(newIndicesSelected);
+
+		FRPRSectionsSelectionManager::Get().SetSelection(MeshDataPtr, registeredTriangles);
+	})));
+}
+
+bool FRPRSectionsManagerMode::TrySelectionPaintingAction(FEditorViewportClient* InViewportClient, FViewport* InViewport, FPaintAction Action)
 {
 	bool bHasSelected = false;
-
-	const FVector traceStart = Origin;
-	const FVector traceEnd = Origin + Direction * HALF_WORLD_MAX;
 
 	if (bIsBrushOnMesh)
 	{
@@ -164,22 +215,41 @@ bool FRPRSectionsManagerMode::TrySelectFaces(const FVector& Origin, const FVecto
 			return (false);
 		}
 
-		FRPRMeshDataPtr meshData = FindMeshDataByPreviewComponent(previewComponent);
-		
-		FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[meshData];
-		const TArray<uint32>& meshIndices = meshSelectionInfo.MeshAdapter->GetMeshIndices();
-		TArray<uint32>& registeredTriangles = meshSelectionInfo.TrianglesSelected;
-		TArray<uint16> newIndicesSelected;
-		
-		TArray<uint32> newTriangles = GetBrushIntersectTriangles(meshData, Origin);
-		GetNewRegisteredTrianglesAndIndices(newTriangles, meshIndices, registeredTriangles, newIndicesSelected);
+		TArray<uint32> newTriangles;
+	
+		if (GetFaces(InViewportClient, InViewport, newTriangles))
+		{
+			FRPRMeshDataPtr meshData = FindMeshDataByPreviewComponent(previewComponent);
+			Action.Execute(meshData, newTriangles);
 
-		UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;
-		visualizer->AddTriangles(newIndicesSelected);
+			bHasSelected = true;
+		}
+	}
 
-		FRPRSectionsSelectionManager::Get().SetSelection(meshData, registeredTriangles);
+	return (bHasSelected);
+}
 
-		UE_LOG(LogRPRSectionsManagerMode, Log, TEXT("%d triangles selected"), registeredTriangles.Num());
+bool FRPRSectionsManagerMode::GetFaces(FEditorViewportClient* InViewportClient, FViewport* InViewport, TArray<uint32>& OutSelectedTriangles) const
+{
+	bool bHasSelected = false;
+
+	FVector origin, direction;
+	GetViewInfos(InViewportClient, origin, direction);
+
+	const FVector traceStart = origin;
+	const FVector traceEnd = origin + direction * HALF_WORLD_MAX;
+
+	if (bIsBrushOnMesh)
+	{
+		auto previewComponent = Cast<URPRStaticMeshPreviewComponent>(LastHitResult.GetComponent());
+		if (previewComponent == nullptr)
+		{
+			// An internal and weird error occurs where the component type hit was not expected
+			return (false);
+		}
+
+		const FRPRMeshDataPtr meshData = FindMeshDataByPreviewComponent(previewComponent);
+		OutSelectedTriangles = GetBrushIntersectTriangles(meshData, origin);
 
 		bHasSelected = true;
 	}
@@ -204,7 +274,7 @@ void FRPRSectionsManagerMode::GetViewInfos(FEditorViewportClient* ViewportClient
 	OutDirection = CursorLocation.GetDirection();
 }
 
-TArray<uint32> FRPRSectionsManagerMode::GetBrushIntersectTriangles(FRPRMeshDataPtr MeshData, const FVector& CameraPosition) const
+TArray<uint32> FRPRSectionsManagerMode::GetBrushIntersectTriangles(const FRPRMeshDataPtr MeshData, const FVector& CameraPosition) const
 {
 	URPRSectionsManagerModeSettings* settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
 
@@ -256,7 +326,17 @@ bool FRPRSectionsManagerMode::CapturedMouseMove(FEditorViewportClient* InViewpor
 
 	if (bIsSelecting)
 	{
-		bHandled = TrySelectionPainting(InViewportClient, InViewport);
+		switch (CurrentPaintMode)
+		{
+		case FRPRSectionsManagerMode::EPaintMode::Select:
+			bHandled = TrySelectPainting(InViewportClient, InViewport);
+			break;
+		case FRPRSectionsManagerMode::EPaintMode::Erase:
+			bHandled = TryErasePainting(InViewportClient, InViewport);
+			break;
+		default:
+			break;
+		}
 	}
 
 	return (bHandled);
@@ -354,19 +434,6 @@ void FRPRSectionsManagerMode::RenderSelectedVertices(FPrimitiveDrawInterface* PD
 	}
 }
 
-FRPRMeshDataPtr FRPRSectionsManagerMode::FindMeshDataByPreviewComponent(const URPRStaticMeshPreviewComponent* PreviewComponent)
-{
-	for (auto it = MeshSelectionInfosMap.CreateIterator(); it; ++it)
-	{
-		FRPRMeshDataPtr meshData = it.Key();
-		if (meshData->GetPreview() == PreviewComponent)
-		{
-			return (meshData);
-		}
-	}
-	return (nullptr);
-}
-
 void FRPRSectionsManagerMode::OnStaticMeshChanged(FRPRMeshDataPtr MeshData)
 {
 	FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[MeshData];
@@ -380,4 +447,24 @@ void FRPRSectionsManagerMode::OnStaticMeshChanged(FRPRMeshDataPtr MeshData)
 
 	// Reset selection visualizer
 	meshSelectionInfo.MeshVisualizer->SetRPRMesh(MeshData);
+}
+
+
+FRPRMeshDataPtr FRPRSectionsManagerMode::FindMeshDataByPreviewComponent(const URPRStaticMeshPreviewComponent* PreviewComponent)
+{
+	const FRPRSectionsManagerMode* thisConst = this;
+	return (RPR::ConstRefAway(thisConst->FindMeshDataByPreviewComponent(PreviewComponent)));
+}
+
+const FRPRMeshDataPtr FRPRSectionsManagerMode::FindMeshDataByPreviewComponent(const URPRStaticMeshPreviewComponent* PreviewComponent) const
+{
+	for (auto it = MeshSelectionInfosMap.CreateConstIterator(); it; ++it)
+	{
+		const FRPRMeshDataPtr meshData = it.Key();
+		if (meshData->GetPreview() == PreviewComponent)
+		{
+			return (meshData);
+		}
+	}
+	return (nullptr);
 }

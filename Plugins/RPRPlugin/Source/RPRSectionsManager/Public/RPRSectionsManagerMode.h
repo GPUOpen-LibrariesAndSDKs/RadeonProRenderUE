@@ -12,9 +12,18 @@
 #define SELECTED_INDICES_ALLOCATOR_SIZE 512
 
 DECLARE_DELEGATE_RetVal(FRPRMeshDataContainerPtr, FGetRPRMeshData)
+DECLARE_DELEGATE_TwoParams(FPaintAction, FRPRMeshDataPtr /* MeshData */, const TArray<uint32>& /* Triangles */)
 
 class RPRSECTIONSMANAGER_API FRPRSectionsManagerMode : public FEdMode
 {
+private:
+
+	enum class EPaintMode : uint8
+	{
+		Select,
+		Erase
+	};
+
 public:
 	
 	static const FName	EM_SectionsManagerModeID;
@@ -42,14 +51,18 @@ public:
 private:
 
 	void			UpdateBrushPosition(FEditorViewportClient* InViewportClient);
-	bool			TrySelectionPainting(FEditorViewportClient* InViewportClient, FViewport* InViewport);
-	bool			TrySelectFaces(const FVector& Origin, const FVector& Direction);
+	bool			TrySelectPainting(FEditorViewportClient* InViewportClient, FViewport* InViewport);
+	bool			TryErasePainting(FEditorViewportClient* InViewportClient, FViewport* InViewport);
+	bool			TrySelectionPaintingAction(FEditorViewportClient* InViewportClient, FViewport* InViewport, FPaintAction Action);
+	bool			GetFaces(FEditorViewportClient* InViewportClient, FViewport* InViewport, TArray<uint32>& OutSelectedTriangles) const;
 	void			GetViewInfos(FEditorViewportClient* ViewportClient, FVector& OutOrigin, FVector& OutDirection) const;
-	TArray<uint32>	GetBrushIntersectTriangles(FRPRMeshDataPtr MeshData, const FVector& CameraPosition) const;
+	TArray<uint32>	GetBrushIntersectTriangles(const FRPRMeshDataPtr MeshData, const FVector& CameraPosition) const;
 	void			GetNewRegisteredTrianglesAndIndices(const TArray<uint32>& NewTriangles, const TArray<uint32>& MeshIndices, TArray<uint32>& OutUniqueNewTriangles, TArray<uint16>& OutUniqueNewIndices) const;
 	void			RenderSelectedVertices(FPrimitiveDrawInterface* PDI);
-	FRPRMeshDataPtr	FindMeshDataByPreviewComponent(const URPRStaticMeshPreviewComponent* PreviewComponent);
 	void			OnStaticMeshChanged(FRPRMeshDataPtr MeshData);
+
+	const FRPRMeshDataPtr	FindMeshDataByPreviewComponent(const URPRStaticMeshPreviewComponent* PreviewComponent) const;
+	FRPRMeshDataPtr			FindMeshDataByPreviewComponent(const URPRStaticMeshPreviewComponent* PreviewComponent);
 
 private:
 
@@ -65,6 +78,7 @@ private:
 	FGetRPRMeshData GetSelectedRPRMeshData;
 
 	bool bIsSelecting;
+	EPaintMode CurrentPaintMode;
 
 	FVector	BrushPosition;
 
