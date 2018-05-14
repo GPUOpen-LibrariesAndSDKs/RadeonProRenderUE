@@ -20,8 +20,10 @@ private:
 
 	enum class EPaintMode : uint8
 	{
-		Select,
-		Erase
+		Idle,
+		Selector,
+		Eraser,
+		BrushResizer
 	};
 
 public:
@@ -59,6 +61,8 @@ private:
 	TArray<uint32>	GetBrushIntersectTriangles(const FRPRMeshDataPtr MeshData, const FVector& CameraPosition) const;
 	void			GetNewRegisteredTrianglesAndIndices(const TArray<uint32>& NewTriangles, const TArray<uint32>& MeshIndices, TArray<uint32>& OutUniqueNewTriangles, TArray<uint16>& OutUniqueNewIndices) const;
 	void			RenderSelectedVertices(FPrimitiveDrawInterface* PDI);
+	FColor			GetBrushColorByMode() const;
+	bool			DoesUserWantsChangeBrushSize(FViewport* Viewport) const;
 	void			OnStaticMeshChanged(FRPRMeshDataPtr MeshData);
 
 	const FRPRMeshDataPtr	FindMeshDataByPreviewComponent(const URPRStaticMeshPreviewComponent* PreviewComponent) const;
@@ -77,7 +81,7 @@ private:
 	TMap<FRPRMeshDataPtr, FMeshSelectionInfo> MeshSelectionInfosMap;
 	FGetRPRMeshData GetSelectedRPRMeshData;
 
-	bool bIsSelecting;
+	bool bIsPainting;
 	EPaintMode CurrentPaintMode;
 
 	FVector	BrushPosition;

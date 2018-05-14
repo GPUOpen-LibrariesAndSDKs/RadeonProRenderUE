@@ -10,6 +10,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "StaticMeshResources.h"
 #include "ConstructorHelpers.h"
+#include "FaceAssignationHelper/FaceAssignationHelper.h"
 
 #define INDEXBUFFER_SEGMENT_SIZE 512
 
@@ -297,6 +298,24 @@ void UDynamicSelectionMeshVisualizerComponent::SetTriangles(const TArray<uint16>
 	MarkRenderStateDirty();
 }
 
+void UDynamicSelectionMeshVisualizerComponent::RemoveTriangles(const TArray<uint16>& InTrianglesIndices)
+{
+	for (int32 i = 0; i < InTrianglesIndices.Num(); i += 3)
+	{
+		for (int32 indiceIndex = 0 ; indiceIndex < CurrentIndices.Num() ; indiceIndex += 3)
+		{
+			if (InTrianglesIndices[i] == CurrentIndices[indiceIndex] &&
+				InTrianglesIndices[i + 1] == CurrentIndices[indiceIndex + 1] &&
+				InTrianglesIndices[i + 2] == CurrentIndices[indiceIndex + 2])
+			{
+				FFaceAssignationHelper::RemoveTriangleInfoFromArrayIfPossible(CurrentIndices, indiceIndex);
+				break;
+			}
+		}
+	}
+	MarkRenderStateDirty();
+}
+
 const TArray<uint16>& UDynamicSelectionMeshVisualizerComponent::GetCurrentTriangles() const
 {
 	return (CurrentIndices);
@@ -318,7 +337,7 @@ const TArray<uint16>& UDynamicSelectionMeshVisualizerComponent::GetTriangles() c
 
 void UDynamicSelectionMeshVisualizerComponent::AddTriangle_RenderThread(const TArray<uint16>& InitialTriangles, const TArray<uint16>& NewTriangles)
 {
-	if (SceneProxy)
+	if (SceneProxy && NewTriangles.Num() > 0)
 	{
 		ENQUEUE_UNIQUE_RENDER_COMMAND_THREEPARAMETER(
 			FUDynamicSelectionMeshVisualizer_AddTriangle_RenderThread,

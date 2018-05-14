@@ -13,12 +13,14 @@ DECLARE_LOG_CATEGORY_CLASS(LogRPRSectionsManagerMode, Log, All)
 const FName FRPRSectionsManagerMode::EM_SectionsManagerModeID(TEXT("EM_SectionsManager"));
 
 FRPRSectionsManagerMode::FRPRSectionsManagerMode()
-	: bIsSelecting(false)
+	: bIsPainting(false)
 	, bIsBrushOnMesh(false)
+	, CurrentPaintMode(EPaintMode::Idle)
 {}
 
 void FRPRSectionsManagerMode::Enter()
 {
+	CurrentPaintMode = EPaintMode::Idle;
 }
 
 void FRPRSectionsManagerMode::SetupGetSelectedRPRMeshData(FGetRPRMeshData InGetSelectedRPRMeshData)
@@ -78,6 +80,39 @@ void FRPRSectionsManagerMode::Tick(FEditorViewportClient* ViewportClient, float 
 		FRPRMeshDataPtr meshData = it.Key();
 		meshData->GetPreview()->SetVisibility(!settings->bShowOnlySelection);
 	}
+
+	FViewport* viewport = ViewportClient->Viewport;
+	const bool bIsLeftButtonDown = viewport->KeyState(EKeys::LeftMouseButton);
+	const bool bIsRightButtonDown = viewport->KeyState(EKeys::RightMouseButton);
+	const bool bIsCtrlButtonDown = IsCtrlDown(viewport);
+	const bool bIsAltButtonDown = IsAltDown(viewport);
+	const bool bIsShiftButtonDown = IsShiftDown(viewport);
+	
+	const bool bIsMovingCamera = bIsAltButtonDown || bIsRightButtonDown;
+	const bool bShouldEnableEraserMode = bIsShiftButtonDown && !bIsMovingCamera;
+	const bool bPrepareForChangingBrushSize = bIsCtrlButtonDown && !bIsMovingCamera;
+	const bool bShouldEnableSelectorMode = bIsLeftButtonDown && !bShouldEnableEraserMode && !bPrepareForChangingBrushSize;
+
+	if (bShouldEnableEraserMode)
+	{
+		UE_LOG(LogRPRSectionsManagerMode, Log, TEXT("Enter 'Eraser' mode"));
+		CurrentPaintMode = EPaintMode::Eraser;
+	}
+	else if (bPrepareForChangingBrushSize)
+	{
+		UE_LOG(LogRPRSectionsManagerMode, Log, TEXT("Enter 'Brush Resizer' mode"));
+		CurrentPaintMode = EPaintMode::BrushResizer;
+	}
+	else if (bShouldEnableSelectorMode)
+	{
+		UE_LOG(LogRPRSectionsManagerMode, Log, TEXT("Enter 'Selector' mode"));
+		CurrentPaintMode = EPaintMode::Selector;
+	}
+	else
+	{
+		UE_LOG(LogRPRSectionsManagerMode, Log, TEXT("Enter 'Idle' mode"));
+		CurrentPaintMode = EPaintMode::Idle;
+	}
 }
 
 bool FRPRSectionsManagerMode::InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event)
@@ -91,45 +126,50 @@ bool FRPRSectionsManagerMode::InputKey(FEditorViewportClient* ViewportClient, FV
 	const bool bIsShiftButtonDown = IsShiftDown(Viewport);
 	const bool bIsWheelAxisChanged = (Key == EKeys::MouseScrollDown && Event != IE_Released) || (Key == EKeys::MouseScrollUp && Event != IE_Released);
 
-	const bool bUserWantsChangeBrushSize = bIsCtrlButtonDown && bIsWheelAxisChanged;
+	const bool bUserWantsChangeBrushSize = DoesUserWantsChangeBrushSize(Viewport) && bIsWheelAxisChanged;
 
-	const bool bUserWantsSelect = 
-		bIsLeftButtonDown && 
-		!bIsRightButtonDown && !bIsAltButtonDown && 
-		!bUserWantsChangeBrushSize;
+	const bool bIsActivePainting =
+		bIsLeftButtonDown &&
+		!bIsRightButtonDown && !bIsAltButtonDown;
+
+	const bool bAreErasePaintingButtonUsed =
+		bIsShiftButtonDown && !bUserWantsChangeBrushSize;
 
 	const bool bUserWantsEraser =
-		bIsLeftButtonDown && bIsShiftButtonDown &&
-		!bIsRightButtonDown && !bIsAltButtonDown &&
-		!bUserWantsSelect && !bUserWantsChangeBrushSize;
+		bIsActivePainting && bAreErasePaintingButtonUsed;
+
+	const bool bUserWantsSelect = 
+		bIsActivePainting &&
+		!bUserWantsEraser && !bUserWantsChangeBrushSize;
 	
 	if (bUserWantsSelect)
 	{
-		CurrentPaintMode = EPaintMode::Select;
+		CurrentPaintMode = EPaintMode::Selector;
 		if (TrySelectPainting(ViewportClient, Viewport))
 		{
-			bIsSelecting = true;
+			bIsPainting = true;
 			bHandled = true;
 		}
 	}
 	else if (bUserWantsEraser)
 	{
-		CurrentPaintMode = EPaintMode::Erase;
+		CurrentPaintMode = EPaintMode::Eraser;
 		if (TryErasePainting(ViewportClient, Viewport))
 		{
-			bIsSelecting = true;
+			bIsPainting = true;
 			bHandled = true;
 		}
 	}
-
-	if (bIsSelecting && (!bUserWantsSelect || !bUserWantsEraser))
+	else if (bUserWantsChangeBrushSize)
 	{
-		bIsSelecting = false;
-	}
-
-	if (bUserWantsChangeBrushSize)
-	{
+		CurrentPaintMode = EPaintMode::BrushResizer;
 		bHandled = true;
+	}
+	
+	if (bIsPainting && !bHandled)
+	{
+		CurrentPaintMode = EPaintMode::Idle;
+		bIsPainting = false;
 	}
 
 	return (bHandled);
@@ -139,10 +179,9 @@ bool FRPRSectionsManagerMode::InputAxis(FEditorViewportClient* InViewportClient,
 {
 	bool bHandled = false;
 
-	const bool bIsCtrlButtonDown = IsCtrlDown(Viewport);
 	const bool bIsWheelAxisChanged = (Key == EKeys::MouseWheelAxis) || Viewport->KeyState(EKeys::MouseWheelAxis);
 
-	const bool bUserWantsChangeBrushSize = bIsCtrlButtonDown && bIsWheelAxisChanged;
+	const bool bUserWantsChangeBrushSize = DoesUserWantsChangeBrushSize(Viewport) && bIsWheelAxisChanged;
 
 	if (bUserWantsChangeBrushSize)
 	{
@@ -156,6 +195,11 @@ bool FRPRSectionsManagerMode::InputAxis(FEditorViewportClient* InViewportClient,
 		return (FEdMode::InputAxis(InViewportClient, Viewport, ControllerId, Key, Delta, DeltaTime));
 	}
 	return (true);
+}
+
+bool FRPRSectionsManagerMode::DoesUserWantsChangeBrushSize(FViewport* Viewport) const
+{
+	return (IsCtrlDown(Viewport));
 }
 
 bool FRPRSectionsManagerMode::TrySelectPainting(FEditorViewportClient* InViewportClient, FViewport* InViewport)
@@ -188,17 +232,25 @@ bool FRPRSectionsManagerMode::TryErasePainting(FEditorViewportClient* InViewport
 		InViewport,
 		FPaintAction::CreateLambda([this](FRPRMeshDataPtr MeshDataPtr, const TArray<uint32>& Triangles)
 	{
+
 		FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[MeshDataPtr];
 		const TArray<uint32>& meshIndices = meshSelectionInfo.MeshAdapter->GetMeshIndices();
-		TArray<uint32>& registeredTriangles = meshSelectionInfo.TrianglesSelected;
-		TArray<uint16> newIndicesSelected;
 
-		GetNewRegisteredTrianglesAndIndices(Triangles, meshIndices, registeredTriangles, newIndicesSelected);
+		TArray<uint16> triangleIndices;
+		for (int32 i = 0; i < Triangles.Num(); ++i)
+		{
+			const int32 triangleIndexStart = Triangles[i] * 3;
+			triangleIndices.Add(meshIndices[triangleIndexStart]);
+			triangleIndices.Add(meshIndices[triangleIndexStart + 1]);
+			triangleIndices.Add(meshIndices[triangleIndexStart + 2]);
+		}
 
 		UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;
-		visualizer->AddTriangles(newIndicesSelected);
+		visualizer->RemoveTriangles(triangleIndices);
 
-		FRPRSectionsSelectionManager::Get().SetSelection(MeshDataPtr, registeredTriangles);
+		FRPRSectionsSelectionManager::Get().RemoveFromSelection(MeshDataPtr, Triangles);
+		meshSelectionInfo.TrianglesSelected = *FRPRSectionsSelectionManager::Get().GetSelectedTriangles(MeshDataPtr);
+
 	})));
 }
 
@@ -324,14 +376,14 @@ bool FRPRSectionsManagerMode::CapturedMouseMove(FEditorViewportClient* InViewpor
 
 	UpdateBrushPosition(InViewportClient);
 
-	if (bIsSelecting)
+	if (bIsPainting)
 	{
 		switch (CurrentPaintMode)
 		{
-		case FRPRSectionsManagerMode::EPaintMode::Select:
+		case FRPRSectionsManagerMode::EPaintMode::Selector:
 			bHandled = TrySelectPainting(InViewportClient, InViewport);
 			break;
-		case FRPRSectionsManagerMode::EPaintMode::Erase:
+		case FRPRSectionsManagerMode::EPaintMode::Eraser:
 			bHandled = TryErasePainting(InViewportClient, InViewport);
 			break;
 		default:
@@ -401,7 +453,7 @@ void FRPRSectionsManagerMode::Render(const FSceneView* View, FViewport* Viewport
 		const int32 numSides = 12;
 		DrawWireSphere(PDI,
 			BrushPosition,
-			bIsSelecting ? FColor::Orange : FColor::Green,
+			GetBrushColorByMode(),
 			settings->BrushSize,
 			numSides,
 			SDPG_World
@@ -431,6 +483,24 @@ void FRPRSectionsManagerMode::RenderSelectedVertices(FPrimitiveDrawInterface* PD
 				}
 			}
 		}
+	}
+}
+
+FColor FRPRSectionsManagerMode::GetBrushColorByMode() const
+{
+	switch (CurrentPaintMode)
+	{
+	case EPaintMode::Selector:
+		return (FColor::Green);
+
+	case FRPRSectionsManagerMode::EPaintMode::Eraser:
+		return (FColor::Red);
+
+	case EPaintMode::BrushResizer:
+		return (FColor::Yellow);
+
+	default:
+		return (FColor::Orange);
 	}
 }
 

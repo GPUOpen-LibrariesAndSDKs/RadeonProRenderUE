@@ -48,6 +48,23 @@ void FRPRSectionsSelectionManager::AppendSelection(const FRPRMeshDataPtr MeshDat
 	OnSelectionChangedEvent.Broadcast();
 }
 
+void FRPRSectionsSelectionManager::RemoveFromSelection(const FRPRMeshDataPtr MeshData, const TArray<uint32>& Triangles)
+{
+	TArray<uint32>* selectedTriangles = SelectedTrianglesMap.Find(MeshData);
+	if (selectedTriangles != nullptr)
+	{
+		int32 numItemsRemoved = selectedTriangles->RemoveAll([&Triangles](uint32 selectedTriangle) 
+		{
+			return (Triangles.Contains(selectedTriangle));
+		});
+		
+		if (numItemsRemoved > 0)
+		{
+			OnSelectionChangedEvent.Broadcast();
+		}
+	}
+}
+
 void FRPRSectionsSelectionManager::ClearSelectionFor(const FRPRMeshDataPtr MeshData)
 {
 	SelectedTrianglesMap.Remove(MeshData);

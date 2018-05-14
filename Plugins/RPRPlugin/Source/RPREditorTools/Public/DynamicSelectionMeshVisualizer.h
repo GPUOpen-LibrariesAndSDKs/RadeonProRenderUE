@@ -25,8 +25,9 @@ public:
 
 	void	SetRPRMesh(FRPRMeshDataPtr InMeshData);
 	FRPRMeshDataPtr	GetRPRMesh() const;
-	void	AddTriangles(const TArray<uint16>& InTriangles);
-	void	SetTriangles(const TArray<uint16>& InTriangles);
+	void	AddTriangles(const TArray<uint16>& InTrianglesIndices);
+	void	SetTriangles(const TArray<uint16>& InTrianglesIndices);
+	void	RemoveTriangles(const TArray<uint16>& InTrianglesIndices);
 	
 	const TArray<uint16>&	GetCurrentTriangles() const;
 	const TArray<FDynamicMeshVertex>&	GetVertexBufferCache() const;

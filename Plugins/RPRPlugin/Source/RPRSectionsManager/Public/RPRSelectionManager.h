@@ -19,6 +19,7 @@ public:
 
 	void		SetSelection(const FRPRMeshDataPtr MeshData, const TArray<uint32>& Triangles);
 	void		AppendSelection(const FRPRMeshDataPtr MeshData, const TArray<uint32>& Triangles);
+	void		RemoveFromSelection(const FRPRMeshDataPtr MeshData, const TArray<uint32>& Triangles);
 	void		ClearSelectionFor(const FRPRMeshDataPtr MeshData);
 	void		ClearAllSelection();
 	bool		HasSelectedTriangles(const FRPRMeshDataPtr MeshData);
