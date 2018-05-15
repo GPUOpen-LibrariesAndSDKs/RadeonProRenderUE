@@ -250,13 +250,6 @@ bool FRPRSectionsManagerMode::TrySelectPainting(FEditorViewportClient* InViewpor
 			NotificationItem = FSlateNotificationManager::Get().AddNotification(Info);
 			NotificationItem->SetCompletionState(SNotificationItem::CS_Pending);
 		}
-
-		/*GetNewRegisteredTrianglesAndIndices(Triangles, meshIndices, registeredTriangles, newIndicesSelected);
-
-		UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;
-		visualizer->AddTriangles(newIndicesSelected);
-
-		FRPRSectionsSelectionManager::Get().SetSelection(MeshDataPtr, registeredTriangles);*/
 		
 	})));
 }

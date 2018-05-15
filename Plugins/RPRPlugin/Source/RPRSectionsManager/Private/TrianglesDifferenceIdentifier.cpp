@@ -96,7 +96,7 @@ void FTrianglesDifferenceIdentifier::FTriangleDiffAsyncTask::DoWork()
 	{
 		bIsInitialized = true;
 		TriangleOffset = RegisteredTriangles->Num();
-		RegisteredTriangles->AddUninitialized(NewTriangles->Num());
+		RegisteredTriangles->Reserve(RegisteredTriangles->Num() + NewTriangles->Num());
 		NewIndicesSelected.AddUninitialized(NewTriangles->Num() * 3);
 	}
 
@@ -109,11 +109,14 @@ void FTrianglesDifferenceIdentifier::FTriangleDiffAsyncTask::DoWork()
 	int32 start = NumTrianglesDone;
 	int32 end = FMath::Min(start + BlockOfWorkPerFrame, newTriangles.Num());
 
+	int32 index = 0;
+	int32 nearestIndex = 0;
 	for (int32 i = start; i < end; ++i)
 	{
-		if (!RegisteredTriangles->Contains(newTriangles[i]))
+		index = FindByDichotomy(*RegisteredTriangles, newTriangles[i], 0, RegisteredTriangles->Num(), nearestIndex);
+		if (index == INDEX_NONE)
 		{
-			(*RegisteredTriangles)[TriangleOffset + i] = newTriangles[i];
+			RegisteredTriangles->Insert(newTriangles[i], nearestIndex);
 
 			const int32 triangleIndexStart = newTriangles[i] * 3;
 			NewIndicesSelected[i * 3] = meshIndices[triangleIndexStart];
@@ -123,6 +126,42 @@ void FTrianglesDifferenceIdentifier::FTriangleDiffAsyncTask::DoWork()
 	}
 
 	NumTrianglesDone = end;
+}
+
+int32 FTrianglesDifferenceIdentifier::FTriangleDiffAsyncTask::FindByDichotomy(const TArray<uint32>& Array, uint32 Value, int32 Start, int32 End, int32& OutNearestIndex)
+{
+	if (Array.Num() == 0)
+	{
+		OutNearestIndex = 0;
+		return (INDEX_NONE);
+	}
+
+	int32 mid = Start + (End - Start) / 2;
+	OutNearestIndex = mid;
+
+	if (Start == mid)
+	{
+		if (Array.IsValidIndex(Start) && Array[Start] == Value)
+		{
+			return (Start);
+		}
+
+		++OutNearestIndex;
+		return (INDEX_NONE);
+	}
+
+	if (Array[mid] == Value)
+	{
+		return (mid);
+	}
+	else if (Array[mid] > Value)
+	{
+		return (FindByDichotomy(Array, Value, Start, mid, OutNearestIndex));
+	}
+	else
+	{
+		return (FindByDichotomy(Array, Value, mid, End, OutNearestIndex));
+	}
 }
 
 void FTrianglesDifferenceIdentifier::FTriangleDiffAsyncTask::Abandon()

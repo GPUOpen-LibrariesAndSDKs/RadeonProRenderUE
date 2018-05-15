@@ -15,7 +15,6 @@ public:
 	bool HasTasks() const;
 	void AbortAllTasks();
 
-
 private:
 
 	class FTriangleDiffAsyncTask
@@ -70,6 +69,8 @@ private:
 		{
 			RETURN_QUICK_DECLARE_CYCLE_STAT(TriangleDiffAsyncTask, STATGROUP_ThreadPoolAsyncTasks);
 		}
+
+		int32 FindByDichotomy(const TArray<uint32>& Array, uint32 Value, int32 Start, int32 End, int32& OutNearestIndex);
 
 	};
 
