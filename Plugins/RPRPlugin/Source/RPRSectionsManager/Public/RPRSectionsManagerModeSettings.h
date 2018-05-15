@@ -24,4 +24,10 @@ public:
 	UPROPERTY(EditAnywhere, AdvancedDisplay, Category = Brush)
 	bool	bShowOnlySelection;
 
+	UPROPERTY(EditAnywhere, AdvancedDisplay, Category = Brush)
+	bool	bUseMultithreadingForSelection;
+
+	UPROPERTY(EditAnywhere, AdvancedDisplay, Category = Brush)
+	int32	BlockOfWorkPerFrame;
+
 };

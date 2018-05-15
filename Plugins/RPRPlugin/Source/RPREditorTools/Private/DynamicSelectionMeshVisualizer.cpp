@@ -388,15 +388,6 @@ void UDynamicSelectionMeshVisualizerComponent::BuildVertexBufferCache()
 	{
 		VertexBufferCache.Emplace(vertexBuffer.VertexPosition(i));
 	}
-
-	/*const FRawMesh& rawMesh = MeshData->GetRawMesh();
-	const TArray<FVector>& vertices = rawMesh.VertexPositions;
-
-	VertexBufferCache.Empty(vertices.Num());
-	for (int32 i = 0; i < vertices.Num(); ++i)
-	{
-		VertexBufferCache.Emplace(vertices[i]);
-	}*/
 }
 
 #undef INDEXBUFFER_SEGMENT_SIZE

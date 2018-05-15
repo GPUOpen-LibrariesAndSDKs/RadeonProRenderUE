@@ -7,6 +7,9 @@
 #include "RPRSectionsManagerModeSettings.h"
 #include "RPRSelectionManager.h"
 #include "RPRConstAway.h"
+#include "NotificationManager.h"
+
+#define LOCTEXT_NAMESPACE "RPRSectionsManagerMode"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRSectionsManagerMode, Log, All)
 
@@ -41,7 +44,6 @@ void FRPRSectionsManagerMode::SetupGetSelectedRPRMeshData(FGetRPRMeshData InGetS
 			meshSelectionInfo.MeshVisualizer = NewObject<UDynamicSelectionMeshVisualizerComponent>(meshData->GetPreview()->GetOwner());
 			{
 				meshSelectionInfo.MeshVisualizer->SetRPRMesh(meshData);
-				meshSelectionInfo.MeshVisualizer->SetMeshVertices(meshSelectionInfo.MeshAdapter->GetMeshVertices());
 				meshSelectionInfo.MeshVisualizer->RegisterComponent();
 			}
 			meshSelectionInfo.PostStaticMeshChangeDelegateHandle =
@@ -52,6 +54,8 @@ void FRPRSectionsManagerMode::SetupGetSelectedRPRMeshData(FGetRPRMeshData InGetS
 
 void FRPRSectionsManagerMode::Exit()
 {
+	TrianglesDifferenceIdentifier.AbortAllTasks();
+
 	for (auto it(MeshSelectionInfosMap.CreateIterator()); it; ++it)
 	{
 		FRPRMeshDataPtr meshData = it.Key(); 
@@ -109,6 +113,26 @@ void FRPRSectionsManagerMode::Tick(FEditorViewportClient* ViewportClient, float 
 	else
 	{
 		CurrentPaintMode = EPaintMode::Idle;
+	}
+
+	if (TrianglesDifferenceIdentifier.HasTasks() &&
+		TrianglesDifferenceIdentifier.IsLastTaskCompleted())
+	{
+		const FRPRMeshDataPtr meshData = TrianglesDifferenceIdentifier.GetLastTaskRPRMeshData();
+		FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[meshData];
+
+		UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;
+		visualizer->AddTriangles(TrianglesDifferenceIdentifier.GetLastTaskResult());
+
+		FRPRSectionsSelectionManager::Get().SetSelection(meshData, meshSelectionInfo.TrianglesSelected);
+		TrianglesDifferenceIdentifier.DequeueCompletedTask();
+
+		if (!TrianglesDifferenceIdentifier.HasTasks() && NotificationItem.IsValid())
+		{
+			NotificationItem->SetCompletionState(SNotificationItem::CS_Success);
+			NotificationItem->ExpireAndFadeout();
+			NotificationItem.Reset();
+		}
 	}
 }
 
@@ -206,19 +230,34 @@ bool FRPRSectionsManagerMode::TrySelectPainting(FEditorViewportClient* InViewpor
 		InViewport,
 		FPaintAction::CreateLambda([this](FRPRMeshDataPtr MeshDataPtr, const TArray<uint32>& Triangles)
 	{
-
 		FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[MeshDataPtr];
 		const TArray<uint32>& meshIndices = meshSelectionInfo.MeshAdapter->GetMeshIndices();
-		TArray<uint32>& registeredTriangles = meshSelectionInfo.TrianglesSelected;
-		TArray<uint32> newIndicesSelected;
 
-		GetNewRegisteredTrianglesAndIndices(Triangles, meshIndices, registeredTriangles, newIndicesSelected);
+		TrianglesDifferenceIdentifier.EnqueueNewTask(
+			MeshDataPtr,
+			Triangles, 
+			&meshIndices, 
+			&meshSelectionInfo.TrianglesSelected
+		);
+
+		if (!NotificationItem.IsValid())
+		{
+			FNotificationInfo Info(LOCTEXT("SelectionCalculNotification", "Selection in progress..."));
+			Info.bFireAndForget = false;
+			Info.FadeInDuration = 1.5f;
+			Info.FadeOutDuration = 0.0f;
+			Info.ExpireDuration = 0.0f;
+			NotificationItem = FSlateNotificationManager::Get().AddNotification(Info);
+			NotificationItem->SetCompletionState(SNotificationItem::CS_Pending);
+		}
+
+		/*GetNewRegisteredTrianglesAndIndices(Triangles, meshIndices, registeredTriangles, newIndicesSelected);
 
 		UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;
 		visualizer->AddTriangles(newIndicesSelected);
 
-		FRPRSectionsSelectionManager::Get().SetSelection(MeshDataPtr, registeredTriangles);
-
+		FRPRSectionsSelectionManager::Get().SetSelection(MeshDataPtr, registeredTriangles);*/
+		
 	})));
 }
 
@@ -280,6 +319,8 @@ bool FRPRSectionsManagerMode::TrySelectionPaintingAction(FEditorViewportClient* 
 
 bool FRPRSectionsManagerMode::GetFaces(FEditorViewportClient* InViewportClient, FViewport* InViewport, TArray<uint32>& OutSelectedTriangles) const
 {
+	QUICK_SCOPE_CYCLE_COUNTER(STAT_RPRSectionsManagerMode_GetFaces);
+
 	bool bHasSelected = false;
 
 	FVector origin, direction;
@@ -342,29 +383,6 @@ TArray<uint32> FRPRSectionsManagerMode::GetBrushIntersectTriangles(const FRPRMes
 		ComponentScaleCameraPosition,
 		settings->bOnlyFrontFacing
 	);
-}
-
-void FRPRSectionsManagerMode::GetNewRegisteredTrianglesAndIndices(
-	const TArray<uint32>& NewTriangles, 
-	const TArray<uint32>& MeshIndices, 
-	TArray<uint32>& OutUniqueNewTriangles, 
-	TArray<uint32>& OutUniqueNewIndices) const
-{
-	OutUniqueNewTriangles.Reserve(OutUniqueNewTriangles.Num() + NewTriangles.Num());
-	OutUniqueNewIndices.Empty(NewTriangles.Num() * 3);
-
-	for (int32 i = 0; i < NewTriangles.Num(); ++i)
-	{
-		if (!OutUniqueNewTriangles.Contains(NewTriangles[i]))
-		{
-			OutUniqueNewTriangles.Add(NewTriangles[i]);
-
-			const int32 triangleIndexStart = NewTriangles[i] * 3;
-			OutUniqueNewIndices.Add(MeshIndices[triangleIndexStart]);
-			OutUniqueNewIndices.Add(MeshIndices[triangleIndexStart + 1]);
-			OutUniqueNewIndices.Add(MeshIndices[triangleIndexStart + 2]);
-		}
-	}
 }
 
 bool FRPRSectionsManagerMode::CapturedMouseMove(FEditorViewportClient* InViewportClient, FViewport* InViewport, int32 InMouseX, int32 InMouseY)
@@ -537,3 +555,5 @@ const FRPRMeshDataPtr FRPRSectionsManagerMode::FindMeshDataByPreviewComponent(co
 	}
 	return (nullptr);
 }
+
+#undef LOCTEXT_NAMESPACE
