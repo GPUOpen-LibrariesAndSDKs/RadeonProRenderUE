@@ -48,6 +48,9 @@ void FRPRSectionsManagerMode::SetupGetSelectedRPRMeshData(FGetRPRMeshData InGetS
 			}
 			meshSelectionInfo.PostStaticMeshChangeDelegateHandle =
 				meshData->OnPostStaticMeshChange.AddRaw(this, &FRPRSectionsManagerMode::OnStaticMeshChanged, meshData);
+
+			const uint32 numTriangles = meshSelectionInfo.MeshAdapter->GetMeshIndices().Num() / 3;
+			meshSelectionInfo.TriangleSelectionFlags = MakeShareable(new FTrianglesSelectionFlags(numTriangles));
 		}
 	}
 }
@@ -64,6 +67,7 @@ void FRPRSectionsManagerMode::Exit()
 		FMeshSelectionInfo& meshSelectionInfo = it.Value();
 		meshSelectionInfo.MeshVisualizer->DestroyComponent();
 		meshSelectionInfo.MeshVisualizer = nullptr;
+		meshSelectionInfo.TriangleSelectionFlags.Reset();
 
 		// Unsubscribe to the event
 		meshData->OnPostStaticMeshChange.Remove(meshSelectionInfo.PostStaticMeshChangeDelegateHandle);
@@ -79,7 +83,7 @@ void FRPRSectionsManagerMode::Tick(FEditorViewportClient* ViewportClient, float 
 {
 	FEdMode::Tick(ViewportClient, DeltaTime);
 
-	URPRSectionsManagerModeSettings* settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
+	const auto settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
 	for (auto it(MeshSelectionInfosMap.CreateIterator()); it; ++it)
 	{
 		FRPRMeshDataPtr meshData = it.Key();
@@ -233,22 +237,42 @@ bool FRPRSectionsManagerMode::TrySelectPainting(FEditorViewportClient* InViewpor
 		FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[MeshDataPtr];
 		const TArray<uint32>& meshIndices = meshSelectionInfo.MeshAdapter->GetMeshIndices();
 
-		TrianglesDifferenceIdentifier.EnqueueNewTask(
-			MeshDataPtr,
-			Triangles, 
-			&meshIndices, 
-			&meshSelectionInfo.TrianglesSelected
-		);
-
-		if (!NotificationItem.IsValid())
+		const auto settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
+		if (settings->bAsynchronousSelection)
 		{
-			FNotificationInfo Info(LOCTEXT("SelectionCalculNotification", "Selection in progress..."));
-			Info.bFireAndForget = false;
-			Info.FadeInDuration = 1.5f;
-			Info.FadeOutDuration = 0.0f;
-			Info.ExpireDuration = 0.0f;
-			NotificationItem = FSlateNotificationManager::Get().AddNotification(Info);
-			NotificationItem->SetCompletionState(SNotificationItem::CS_Pending);
+			TrianglesDifferenceIdentifier.EnqueueNewTask(
+				MeshDataPtr,
+				meshSelectionInfo.TriangleSelectionFlags,
+				Triangles,
+				&meshIndices,
+				&meshSelectionInfo.TrianglesSelected
+			);
+
+			if (!NotificationItem.IsValid())
+			{
+				FNotificationInfo Info(LOCTEXT("SelectionCalculNotification", "Selection in progress..."));
+				Info.bFireAndForget = false;
+				Info.FadeInDuration = 1.5f;
+				Info.FadeOutDuration = 0.0f;
+				Info.ExpireDuration = 0.0f;
+				NotificationItem = FSlateNotificationManager::Get().AddNotification(Info);
+				NotificationItem->SetCompletionState(SNotificationItem::CS_Pending);
+			}
+		}
+		else
+		{
+			TArray<uint32> newSelectedIndices = FTrianglesDifferenceIdentifier::ExecuteTask(
+				MeshDataPtr, 
+				meshSelectionInfo.TriangleSelectionFlags, 
+				Triangles, 
+				&meshIndices, 
+				&meshSelectionInfo.TrianglesSelected
+			);
+
+			UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;
+			visualizer->AddTriangles(newSelectedIndices);
+
+			FRPRSectionsSelectionManager::Get().SetSelection(MeshDataPtr, meshSelectionInfo.TrianglesSelected);
 		}
 		
 	})));
@@ -268,10 +292,15 @@ bool FRPRSectionsManagerMode::TryErasePainting(FEditorViewportClient* InViewport
 		TArray<uint32> triangleIndices;
 		for (int32 i = 0; i < Triangles.Num(); ++i)
 		{
-			const int32 triangleIndexStart = Triangles[i] * 3;
-			triangleIndices.Add(meshIndices[triangleIndexStart]);
-			triangleIndices.Add(meshIndices[triangleIndexStart + 1]);
-			triangleIndices.Add(meshIndices[triangleIndexStart + 2]);
+			if (meshSelectionInfo.TriangleSelectionFlags->IsTriangleUsed(Triangles[i]))
+			{
+				const int32 triangleIndexStart = Triangles[i] * 3;
+				triangleIndices.Add(meshIndices[triangleIndexStart]);
+				triangleIndices.Add(meshIndices[triangleIndexStart + 1]);
+				triangleIndices.Add(meshIndices[triangleIndexStart + 2]);
+
+				meshSelectionInfo.TriangleSelectionFlags->SetFlagAsUnused(Triangles[i]);
+			}
 		}
 
 		UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;

@@ -4,6 +4,6 @@ URPRSectionsManagerModeSettings::URPRSectionsManagerModeSettings()
 	: BrushSize(50.0f)
 	, bOnlyFrontFacing(true)
 	, IncrementalBrushSizeStep(5.0f)
-	, bUseMultithreadingForSelection(true)
-	, BlockOfWorkPerFrame(10000)
+	, bAsynchronousSelection(true)
+	, BlockOfWorkPerFrameForSelection(10000)
 {}

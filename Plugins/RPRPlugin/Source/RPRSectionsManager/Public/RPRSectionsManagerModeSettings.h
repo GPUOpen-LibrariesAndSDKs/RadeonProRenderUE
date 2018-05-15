@@ -24,10 +24,10 @@ public:
 	UPROPERTY(EditAnywhere, AdvancedDisplay, Category = Brush)
 	bool	bShowOnlySelection;
 
-	UPROPERTY(EditAnywhere, AdvancedDisplay, Category = Brush)
-	bool	bUseMultithreadingForSelection;
+	UPROPERTY(EditAnywhere, meta = (ToolTip = "It can take times to calculate the section selection. To not slow down your computer, you can use the async selection. However, it can takes few seconds before the operation ends."), AdvancedDisplay, Category = Brush)
+	bool	bAsynchronousSelection;
 
-	UPROPERTY(EditAnywhere, AdvancedDisplay, Category = Brush)
-	int32	BlockOfWorkPerFrame;
+	UPROPERTY(EditAnywhere, meta = (ToolTip = "Defines the quantity of work to do during the selection. Higher the number, faster the selection but can slow computer."), AdvancedDisplay, Category = Brush)
+	int32	BlockOfWorkPerFrameForSelection;
 
 };

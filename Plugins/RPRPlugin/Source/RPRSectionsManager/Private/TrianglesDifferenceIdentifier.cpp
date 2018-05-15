@@ -6,11 +6,17 @@ FTrianglesDifferenceIdentifier::~FTrianglesDifferenceIdentifier()
 	AbortAllTasks();
 }
 
-void FTrianglesDifferenceIdentifier::EnqueueNewTask(const FRPRMeshDataPtr MeshDataPtr, const TArray<uint32>& NewTriangles, const TArray<uint32>* MeshIndices, TArray<uint32>* InOutRegisteredTriangles)
+void FTrianglesDifferenceIdentifier::EnqueueNewTask(
+	const FRPRMeshDataPtr MeshDataPtr, 
+	TSharedPtr<FTrianglesSelectionFlags> TriangleSelectionFlags, 
+	const TArray<uint32>& NewTriangles, 
+	const TArray<uint32>* MeshIndices, 
+	TArray<uint32>* InOutRegisteredTriangles)
 {
 	auto newTask = 
 		new FAsyncTask<FTriangleDiffAsyncTask>(
 			MeshDataPtr,
+			TriangleSelectionFlags,
 			NewTriangles, 
 			MeshIndices,
 			InOutRegisteredTriangles
@@ -20,7 +26,15 @@ void FTrianglesDifferenceIdentifier::EnqueueNewTask(const FRPRMeshDataPtr MeshDa
 	Tasks.Enqueue(newTask);
 	if (bShouldStart)
 	{
-		newTask->StartBackgroundTask();
+		const auto settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
+		if (settings->bAsynchronousSelection)
+		{
+			newTask->StartBackgroundTask();
+		}
+		else
+		{
+			newTask->StartSynchronousTask();
+		}
 	}
 }
 
@@ -83,6 +97,18 @@ void FTrianglesDifferenceIdentifier::AbortAllTasks()
 	}
 }
 
+TArray<uint32> FTrianglesDifferenceIdentifier::ExecuteTask(
+	const FRPRMeshDataPtr MeshDataPtr, 
+	TSharedPtr<FTrianglesSelectionFlags> TriangleSelectionFlags, 
+	const TArray<uint32>& NewTriangles, 
+	const TArray<uint32>* MeshIndices, 
+	TArray<uint32>* InOutRegisteredTriangles)
+{
+	FTriangleDiffAsyncTask task(MeshDataPtr, TriangleSelectionFlags, NewTriangles, MeshIndices, InOutRegisteredTriangles);
+	task.DoWork();
+	return (task.NewIndicesSelected);
+}
+
 void FTrianglesDifferenceIdentifier::FTriangleDiffAsyncTask::DoWork()
 {
 	if (bIsCancelled)
@@ -101,9 +127,11 @@ void FTrianglesDifferenceIdentifier::FTriangleDiffAsyncTask::DoWork()
 	}
 
 	URPRSectionsManagerModeSettings* settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
-	const int32 BlockOfWorkPerFrame = settings->BlockOfWorkPerFrame;
+	const int32 BlockOfWorkPerFrame = settings->BlockOfWorkPerFrameForSelection;
 
-	const TArray<uint32>& newTriangles = *NewTriangles;
+	TArray<uint32> newTriangles = *NewTriangles;
+	newTriangles.Sort();
+
 	const TArray<uint32>& meshIndices = *MeshIndices;
 
 	int32 start = NumTrianglesDone;
@@ -113,9 +141,9 @@ void FTrianglesDifferenceIdentifier::FTriangleDiffAsyncTask::DoWork()
 	int32 nearestIndex = 0;
 	for (int32 i = start; i < end; ++i)
 	{
-		index = FindByDichotomy(*RegisteredTriangles, newTriangles[i], 0, RegisteredTriangles->Num(), nearestIndex);
-		if (index == INDEX_NONE)
+		if (!TriangleSelectionFlags->IsTriangleUsed(newTriangles[i]))
 		{
+			TriangleSelectionFlags->SetFlagAsUsed(newTriangles[i]);
 			RegisteredTriangles->Insert(newTriangles[i], nearestIndex);
 
 			const int32 triangleIndexStart = newTriangles[i] * 3;

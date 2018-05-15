@@ -10,6 +10,7 @@
 #include "RPRMeshDataContainer.h"
 #include "TrianglesDifferenceIdentifier.h"
 #include "SNotificationList.h"
+#include "TrianglesSelectionFlags.h"
 
 #define SELECTED_INDICES_ALLOCATOR_SIZE 512
 
@@ -77,6 +78,8 @@ private:
 		TArray<uint32> TrianglesSelected;
 		UDynamicSelectionMeshVisualizerComponent* MeshVisualizer;
 		FDelegateHandle PostStaticMeshChangeDelegateHandle;
+
+		TSharedPtr<FTrianglesSelectionFlags> TriangleSelectionFlags;
 	};
 
 	TMap<FRPRMeshDataPtr, FMeshSelectionInfo> MeshSelectionInfosMap;

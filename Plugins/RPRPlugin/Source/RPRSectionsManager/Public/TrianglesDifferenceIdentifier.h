@@ -1,19 +1,34 @@
 #pragma once
 #include "AsyncWork.h"
 #include "RPRMeshData.h"
+#include "TrianglesSelectionFlags.h"
 
 class FTrianglesDifferenceIdentifier
 {
 public:
 	virtual ~FTrianglesDifferenceIdentifier();
 
-	void EnqueueNewTask(const FRPRMeshDataPtr MeshDataPtr, const TArray<uint32>& NewTriangles, const TArray<uint32>* MeshIndices, TArray<uint32>* InOutRegisteredTriangles);
+	void EnqueueNewTask(
+		const FRPRMeshDataPtr MeshDataPtr, 
+		TSharedPtr<FTrianglesSelectionFlags> TriangleSelectionFlags, 
+		const TArray<uint32>& NewTriangles, 
+		const TArray<uint32>* MeshIndices, 
+		TArray<uint32>* InOutRegisteredTriangles
+	);
+
 	bool IsLastTaskCompleted() const;
 	const FRPRMeshDataPtr GetLastTaskRPRMeshData() const;
 	const TArray<uint32>& GetLastTaskResult() const;
 	void DequeueCompletedTask();
 	bool HasTasks() const;
 	void AbortAllTasks();
+
+	static TArray<uint32> ExecuteTask(
+		const FRPRMeshDataPtr MeshDataPtr,
+		TSharedPtr<FTrianglesSelectionFlags> TriangleSelectionFlags,
+		const TArray<uint32>& NewTriangles,
+		const TArray<uint32>* MeshIndices,
+		TArray<uint32>* InOutRegisteredTriangles);
 
 private:
 
@@ -24,6 +39,7 @@ private:
 	public:
 
 		FRPRMeshDataPtr MeshDataPtr;
+		TSharedPtr<FTrianglesSelectionFlags> TriangleSelectionFlags;
 		const TArray<uint32>* NewTriangles;
 		const TArray<uint32>* MeshIndices;
 		TArray<uint32>* RegisteredTriangles;
@@ -44,8 +60,9 @@ private:
 			, bIsCancelled(false)
 		{}
 
-		FTriangleDiffAsyncTask(FRPRMeshDataPtr meshDataPtr, const TArray<uint32>& newTriangles, const TArray<uint32>* meshIndices, TArray<uint32>* registeredTriangles)
+		FTriangleDiffAsyncTask(FRPRMeshDataPtr meshDataPtr, TSharedPtr<FTrianglesSelectionFlags> triangleSelectionFlags, const TArray<uint32>& newTriangles, const TArray<uint32>* meshIndices, TArray<uint32>* registeredTriangles)
 			: MeshDataPtr(meshDataPtr)
+			, TriangleSelectionFlags(triangleSelectionFlags)
 			, NewTriangles(new TArray<uint32>(newTriangles))
 			, MeshIndices(meshIndices)
 			, RegisteredTriangles(registeredTriangles)
