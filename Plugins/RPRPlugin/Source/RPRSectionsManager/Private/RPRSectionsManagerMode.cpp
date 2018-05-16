@@ -115,24 +115,24 @@ void FRPRSectionsManagerMode::Tick(FEditorViewportClient* ViewportClient, float 
 		CurrentPaintMode = EPaintMode::Idle;
 	}
 
-	//if (TrianglesDifferenceIdentifier.HasTasks() &&
-	//	TrianglesDifferenceIdentifier.IsLastTaskCompleted())
-	//{
-	//	const FRPRMeshDataPtr meshData = TrianglesDifferenceIdentifier.GetLastTaskRPRMeshData();
-	//	FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[meshData];
+	if (TrianglesDifferenceIdentifier.HasTasks() &&
+		TrianglesDifferenceIdentifier.IsLastTaskCompleted())
+	{
+		const FRPRMeshDataPtr meshData = TrianglesDifferenceIdentifier.GetLastTaskRPRMeshData();
+		FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[meshData];
 
-	//	UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;
-	//	visualizer->AddTriangles(TrianglesDifferenceIdentifier.GetLastTaskResult());
+		TrianglesDifferenceIdentifier.DequeueCompletedTask();
 
-	//	TrianglesDifferenceIdentifier.DequeueCompletedTask();
+		UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;
+		visualizer->UpdateIndicesRendering();
 
-	//	if (!TrianglesDifferenceIdentifier.HasTasks() && NotificationItem.IsValid())
-	//	{
-	//		NotificationItem->SetCompletionState(SNotificationItem::CS_Success);
-	//		NotificationItem->ExpireAndFadeout();
-	//		NotificationItem.Reset();
-	//	}
-	//}
+		if (!TrianglesDifferenceIdentifier.HasTasks() && NotificationItem.IsValid())
+		{
+			NotificationItem->SetCompletionState(SNotificationItem::CS_Success);
+			NotificationItem->ExpireAndFadeout();
+			NotificationItem.Reset();
+		}
+	}
 }
 
 bool FRPRSectionsManagerMode::InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event)
@@ -234,23 +234,23 @@ bool FRPRSectionsManagerMode::TrySelectPainting(FEditorViewportClient* InViewpor
 		FTrianglesSelectionFlags* selectionFlags = FRPRSectionsSelectionManager::Get().CreateOrGetTriangleSelection(MeshDataPtr);
 
 		UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;
-		visualizer->AddTriangles(Triangles);
+		visualizer->SelectTriangles(Triangles);
 
-		/*const auto settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
+		const auto settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
 		if (settings->bAsynchronousSelection)
 		{
 			TrianglesDifferenceIdentifier.EnqueueNewTask(
 				MeshDataPtr,
 				selectionFlags,
-				Triangles,
-				&meshIndices
+				visualizer,
+				Triangles
 			);
 
 			if (!NotificationItem.IsValid())
 			{
 				FNotificationInfo Info(LOCTEXT("SelectionCalculNotification", "Selection in progress..."));
 				Info.bFireAndForget = false;
-				Info.FadeInDuration = 1.5f;
+				Info.FadeInDuration = 0.0f;
 				Info.FadeOutDuration = 0.0f;
 				Info.ExpireDuration = 0.0f;
 				NotificationItem = FSlateNotificationManager::Get().AddNotification(Info);
@@ -258,14 +258,14 @@ bool FRPRSectionsManagerMode::TrySelectPainting(FEditorViewportClient* InViewpor
 			}
 		}
 		else
-		{*/
-			TArray<uint32> newSelectedIndices = FTrianglesDifferenceIdentifier::ExecuteTask(
+		{
+			FTrianglesDifferenceIdentifier::ExecuteTask(
 				MeshDataPtr,
 				selectionFlags,
-				Triangles,
-				&meshIndices
+				visualizer,
+				Triangles
 			);
-		//}
+		}
 		
 	})));
 }
@@ -290,11 +290,11 @@ bool FRPRSectionsManagerMode::TryErasePainting(FEditorViewportClient* InViewport
 				if (selectionFlags->IsTriangleUsed(Triangles[i]))
 				{
 					selectionFlags->SetFlagAsUnused(Triangles[i]);
-					visualizer->RemoveTriangle(Triangles[i]);
+					visualizer->DeselectTriangle(Triangles[i]);
 				}
 			}
 
-			visualizer->MarkRenderStateDirty();
+			visualizer->UpdateIndicesRendering();
 		}
 
 	})));

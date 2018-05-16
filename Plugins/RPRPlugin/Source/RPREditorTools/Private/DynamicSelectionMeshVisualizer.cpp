@@ -12,6 +12,13 @@
 #include "ConstructorHelpers.h"
 #include "FaceAssignationHelper/FaceAssignationHelper.h"
 
+DECLARE_CYCLE_STAT(TEXT("DSMV ~ SelectTriangles"), STAT_SelectTriangles, STATGROUP_DynamicSelectionMeshVisualizer);
+DECLARE_CYCLE_STAT(TEXT("DSMV ~ SelectTriangle"), STAT_SelectTriangle, STATGROUP_DynamicSelectionMeshVisualizer);
+DECLARE_CYCLE_STAT(TEXT("DSMV ~ SetTriangles"), STAT_SetTriangles, STATGROUP_DynamicSelectionMeshVisualizer);
+DECLARE_CYCLE_STAT(TEXT("DSMV ~ DeselectTriangles"), STAT_DeselectTriangles, STATGROUP_DynamicSelectionMeshVisualizer);
+DECLARE_CYCLE_STAT(TEXT("DSMV ~ DeselectTriangle"), STAT_DeselectTriangle, STATGROUP_DynamicSelectionMeshVisualizer);
+DECLARE_CYCLE_STAT(TEXT("DSMV ~ ClearTriangles"), STAT_ClearTriangles, STATGROUP_DynamicSelectionMeshVisualizer);
+
 #define INDEXBUFFER_SEGMENT_SIZE 512
 
 class FDSMVertexBuffer : public FVertexBuffer
@@ -120,6 +127,16 @@ public:
 		IndexBuffer.ReleaseResource();
 		IndexBuffer.Indices.Append(NewTriangles);
 		IndexBuffer.InitResource();
+	}
+
+	void UpdateIndices(UDynamicSelectionMeshVisualizerComponent* InComponent)
+	{
+		const TArray<uint32>& indices = InComponent->GetIndices();
+		uint32* buffer = (uint32*) RHILockIndexBuffer(IndexBuffer.IndexBufferRHI, 0, indices.Num() * sizeof(uint32), RLM_WriteOnly);
+		{
+			FMemory::BigBlockMemcpy(buffer, indices.GetData(), indices.Num() * sizeof(uint32));
+		}
+		RHIUnlockIndexBuffer(IndexBuffer.IndexBufferRHI);
 	}
 
 	virtual ~FDSMVisualizerProxy()
@@ -285,8 +302,10 @@ FRPRMeshDataPtr UDynamicSelectionMeshVisualizerComponent::GetRPRMesh() const
 	return (MeshData);
 }
 
-void UDynamicSelectionMeshVisualizerComponent::AddTriangles(const TArray<uint32>& InTriangles, bool bMarkRenderStateAsDirty)
+void UDynamicSelectionMeshVisualizerComponent::SelectTriangles(const TArray<uint32>& InTriangles, bool bMarkRenderStateAsDirty)
 {
+	SCOPE_CYCLE_COUNTER(STAT_SelectTriangles);
+
 	FIndexArrayView indexes = GetStaticMeshIndexView();
 	for (int32 i = 0; i < InTriangles.Num(); ++i)
 	{
@@ -298,31 +317,51 @@ void UDynamicSelectionMeshVisualizerComponent::AddTriangles(const TArray<uint32>
 
 	if (bMarkRenderStateAsDirty)
 	{
-		MarkRenderStateDirty();
+		UpdateIndices_RenderThread();
 	}
-	
-	// AddTriangle_RenderThread(InTriangles);
+}
+
+void UDynamicSelectionMeshVisualizerComponent::SelectTriangle(uint32 InTriangle, bool bMarkRenderStateAsDirty /*= true*/)
+{
+	SCOPE_CYCLE_COUNTER(STAT_SelectTriangle);
+
+	FIndexArrayView indexes = GetStaticMeshIndexView();
+	const int32 triangleStartIndex = InTriangle * 3;
+	IndicesCache[triangleStartIndex] = indexes[triangleStartIndex];
+	IndicesCache[triangleStartIndex + 1] = indexes[triangleStartIndex + 1];
+	IndicesCache[triangleStartIndex + 2] = indexes[triangleStartIndex + 2];
+
+	if (bMarkRenderStateAsDirty)
+	{
+		UpdateIndices_RenderThread();
+	}
 }
 
 void UDynamicSelectionMeshVisualizerComponent::SetTriangles(const TArray<uint32>& InTriangles)
 {
+	SCOPE_CYCLE_COUNTER(STAT_SetTriangles);
+
 	ClearTriangles(false);
-	AddTriangles(InTriangles, false);
-	MarkRenderStateDirty();
+	SelectTriangles(InTriangles, false);
+	UpdateIndices_RenderThread();
 }
 
-void UDynamicSelectionMeshVisualizerComponent::RemoveTriangles(const TArray<uint32>& InTriangles)
+void UDynamicSelectionMeshVisualizerComponent::DeselectTriangles(const TArray<uint32>& InTriangles)
 {
+	SCOPE_CYCLE_COUNTER(STAT_DeselectTriangles);
+
 	for (int32 i = 0; i < InTriangles.Num(); i += 3)
 	{
-		RemoveTriangle(InTriangles[i]);
+		DeselectTriangle(InTriangles[i]);
 	}
 
-	MarkRenderStateDirty();
+	UpdateIndices_RenderThread();
 }
 
-void UDynamicSelectionMeshVisualizerComponent::RemoveTriangle(uint32 Intriangle)
+void UDynamicSelectionMeshVisualizerComponent::DeselectTriangle(uint32 Intriangle)
 {
+	SCOPE_CYCLE_COUNTER(STAT_DeselectTriangles);
+
 	const int32 triangleStartIndex = Intriangle * 3;
 	IndicesCache[triangleStartIndex] = IndicesCache[triangleStartIndex + 1] = IndicesCache[triangleStartIndex + 2] = 0;
 }
@@ -338,7 +377,7 @@ void UDynamicSelectionMeshVisualizerComponent::SetMeshVertices(const TArray<FVec
 	MarkRenderStateDirty();
 }
 
-const TArray<uint32>& UDynamicSelectionMeshVisualizerComponent::GetCurrentTriangles() const
+const TArray<uint32>& UDynamicSelectionMeshVisualizerComponent::GetIndices() const
 {
 	return (IndicesCache);
 }
@@ -350,15 +389,18 @@ const TArray<FDynamicMeshVertex>& UDynamicSelectionMeshVisualizerComponent::GetV
 
 void UDynamicSelectionMeshVisualizerComponent::ClearTriangles(bool bMarkRenderStateAsDirty)
 {
+	SCOPE_CYCLE_COUNTER(STAT_ClearTriangles);
+
 	FMemory::Memzero(IndicesCache.GetData(), sizeof(uint32) * IndicesCache.Num());
 	if (bMarkRenderStateAsDirty)
 	{
-		MarkRenderStateDirty();
+		UpdateIndices_RenderThread();
 	}
 }
-const TArray<uint32>& UDynamicSelectionMeshVisualizerComponent::GetIndices() const
+
+void UDynamicSelectionMeshVisualizerComponent::UpdateIndicesRendering()
 {
-	return (IndicesCache);
+	UpdateIndices_RenderThread();
 }
 
 void UDynamicSelectionMeshVisualizerComponent::AddTriangle_RenderThread(const TArray<uint32>& InitialTriangles, const TArray<uint32>& NewTriangles)
@@ -372,6 +414,21 @@ void UDynamicSelectionMeshVisualizerComponent::AddTriangle_RenderThread(const TA
 			TArray<uint32>, NewTriangles, NewTriangles,
 			{
 				SceneProxy->AddTriangles(InitialTriangles, NewTriangles);
+			}
+		);
+	}
+}
+
+void UDynamicSelectionMeshVisualizerComponent::UpdateIndices_RenderThread()
+{
+	if (SceneProxy)
+	{
+		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
+			FUDynamicSelectionMeshVisualizer_AddTriangle_RenderThread,
+			FDSMVisualizerProxy*, SceneProxy, SceneProxy,
+			UDynamicSelectionMeshVisualizerComponent*, Component, this,
+			{
+				SceneProxy->UpdateIndices(Component);
 			}
 		);
 	}

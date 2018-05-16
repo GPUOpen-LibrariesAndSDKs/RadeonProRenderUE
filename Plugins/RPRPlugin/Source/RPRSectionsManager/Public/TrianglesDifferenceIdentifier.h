@@ -2,31 +2,31 @@
 #include "AsyncWork.h"
 #include "RPRMeshData.h"
 #include "TrianglesSelectionFlags.h"
+#include "DynamicSelectionMeshVisualizer.h"
 
 class FTrianglesDifferenceIdentifier
 {
 public:
 	virtual ~FTrianglesDifferenceIdentifier();
 
-	void EnqueueNewTask(
+	void EnqueueAsyncSelection(
 		const FRPRMeshDataPtr MeshDataPtr, 
 		FTrianglesSelectionFlags* SelectionFlags,
-		TArray<uint32>& NewTriangles, 
-		const TArray<uint32>* MeshIndices
+		UDynamicSelectionMeshVisualizerComponent* SelectionVisualizer,
+		TArray<uint32>& NewTriangles
 	);
 
 	bool IsLastTaskCompleted() const;
 	const FRPRMeshDataPtr GetLastTaskRPRMeshData() const;
-	const TArray<uint32>& GetLastTaskResult() const;
 	void DequeueCompletedTask();
 	bool HasTasks() const;
 	void AbortAllTasks();
 
-	static TArray<uint32> ExecuteTask(
+	static void ExecuteTask(
 		const FRPRMeshDataPtr MeshDataPtr,
 		FTrianglesSelectionFlags* SelectionFlags,
-		TArray<uint32>& NewTriangles,
-		const TArray<uint32>* MeshIndices);
+		UDynamicSelectionMeshVisualizerComponent* SelectionVisualizer,
+		TArray<uint32>& NewTriangles);
 
 private:
 
@@ -39,24 +39,24 @@ private:
 		FRPRMeshDataPtr MeshDataPtr;
 		FTrianglesSelectionFlags* SelectionFlags;
 		TArray<uint32> NewTriangles;
-		const TArray<uint32>* MeshIndices;
-		TArray<uint32> NewIndicesSelected;
+		UDynamicSelectionMeshVisualizerComponent* SelectionVisualizer;
 		int32 NumTrianglesDone;
 		bool bIsTaskCompleted;
 		bool bIsCancelled;
 
 		FTriangleDiffAsyncTask()
-			: MeshIndices(nullptr)
+			: SelectionFlags(nullptr)
+			, SelectionVisualizer(nullptr)
 			, NumTrianglesDone(0)
 			, bIsTaskCompleted(false)
 			, bIsCancelled(false)
 		{}
 
-		FTriangleDiffAsyncTask(FRPRMeshDataPtr meshDataPtr, FTrianglesSelectionFlags* selectionFlags, TArray<uint32>&& newTriangles, const TArray<uint32>* meshIndices)
+		FTriangleDiffAsyncTask(FRPRMeshDataPtr meshDataPtr, FTrianglesSelectionFlags* selectionFlags, UDynamicSelectionMeshVisualizerComponent* selectionVisualizer, TArray<uint32>&& newTriangles)
 			: MeshDataPtr(meshDataPtr)
 			, SelectionFlags(selectionFlags)
 			, NewTriangles(MoveTemp(newTriangles))
-			, MeshIndices(meshIndices)
+			, SelectionVisualizer(selectionVisualizer)
 			, NumTrianglesDone(0)
 			, bIsTaskCompleted(false)
 			, bIsCancelled(false)

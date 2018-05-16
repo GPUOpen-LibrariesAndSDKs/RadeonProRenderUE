@@ -4,6 +4,8 @@
 #include "DynamicMeshBuilder.h"
 #include "DynamicSelectionMeshVisualizer.generated.h"
 
+DECLARE_STATS_GROUP(TEXT("DynamicSelectionMeshVisualizerComponent"), STATGROUP_DynamicSelectionMeshVisualizer, STATCAT_Advanced);
+
 UCLASS(Blueprintable, ClassGroup = (Rendering, Common), editinlinenew, BlueprintType, meta = (BlueprintSpawnableComponent))
 class RPREDITORTOOLS_API UDynamicSelectionMeshVisualizerComponent : public UMeshComponent
 {
@@ -25,19 +27,19 @@ public:
 
 	void	SetRPRMesh(FRPRMeshDataPtr InMeshData);
 	FRPRMeshDataPtr	GetRPRMesh() const;
-	void	AddTriangles(const TArray<uint32>& InTriangles, bool bMarkRenderStateAsDirty = true);
+	void	SelectTriangles(const TArray<uint32>& InTriangles, bool bMarkRenderStateAsDirty = true);
+	void	SelectTriangle(uint32 InTriangle, bool bMarkRenderStateAsDirty = true);
 	void	SetTriangles(const TArray<uint32>& InTriangles);
-	void	RemoveTriangles(const TArray<uint32>& InTriangles);
-	void	RemoveTriangle(uint32 Intriangle);
+	void	DeselectTriangles(const TArray<uint32>& InTriangles);
+	void	DeselectTriangle(uint32 Intriangle);
 
 	void	SetMeshVertices(const TArray<FVector>& VertexPositions);
 	
-	const TArray<uint32>&	GetCurrentTriangles() const;
+	const TArray<uint32>& GetIndices() const;
 	const TArray<FDynamicMeshVertex>&	GetVertexBufferCache() const;
 
 	void	ClearTriangles(bool bMarkRenderStateAsDirty = true);
-
-	const TArray<uint32>& GetIndices() const;
+	void	UpdateIndicesRendering();
 
 public:
 
@@ -47,6 +49,7 @@ public:
 private:
 
 	void	AddTriangle_RenderThread(const TArray<uint32>& InitialTriangles, const TArray<uint32>& NewTriangles);
+	void	UpdateIndices_RenderThread();
 	void	LoadMeshDatas();
 	void	BuildVertexBufferCache();
 	void	InitializeIndexCache();

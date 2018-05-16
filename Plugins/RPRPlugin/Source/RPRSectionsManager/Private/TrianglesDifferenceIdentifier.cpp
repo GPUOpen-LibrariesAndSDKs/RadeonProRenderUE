@@ -9,8 +9,8 @@ FTrianglesDifferenceIdentifier::~FTrianglesDifferenceIdentifier()
 void FTrianglesDifferenceIdentifier::EnqueueNewTask(
 	const FRPRMeshDataPtr MeshDataPtr, 
 	FTrianglesSelectionFlags* SelectionFlags,
-	TArray<uint32>& NewTriangles, 
-	const TArray<uint32>* MeshIndices)
+	UDynamicSelectionMeshVisualizerComponent* SelectionVisualizer,
+	TArray<uint32>& NewTriangles)
 {
 	check(SelectionFlags);
 
@@ -18,8 +18,8 @@ void FTrianglesDifferenceIdentifier::EnqueueNewTask(
 		new FAsyncTask<FTriangleDiffAsyncTask>(
 			MeshDataPtr,
 			SelectionFlags,
-			MoveTemp(NewTriangles), 
-			MeshIndices);
+			SelectionVisualizer,
+			MoveTemp(NewTriangles));
 
 	bool bShouldStart = Tasks.IsEmpty();
 	Tasks.Enqueue(newTask);
@@ -49,13 +49,6 @@ const FRPRMeshDataPtr FTrianglesDifferenceIdentifier::GetLastTaskRPRMeshData() c
 	FAsyncTask<FTriangleDiffAsyncTask>* task;
 	check(Tasks.Peek(task));
 	return (task->GetTask().MeshDataPtr);
-}
-
-const TArray<uint32>& FTrianglesDifferenceIdentifier::GetLastTaskResult() const
-{
-	FAsyncTask<FTriangleDiffAsyncTask>* task;
-	check(Tasks.Peek(task));
-	return (task->GetTask().NewIndicesSelected);
 }
 
 void FTrianglesDifferenceIdentifier::DequeueCompletedTask()
@@ -96,16 +89,16 @@ void FTrianglesDifferenceIdentifier::AbortAllTasks()
 	}
 }
 
-TArray<uint32> FTrianglesDifferenceIdentifier::ExecuteTask(
+void FTrianglesDifferenceIdentifier::ExecuteTask(
 	const FRPRMeshDataPtr MeshDataPtr, 
 	FTrianglesSelectionFlags* SelectionFlags,
-	TArray<uint32>& NewTriangles, 
-	const TArray<uint32>* MeshIndices)
+	UDynamicSelectionMeshVisualizerComponent* SelectionVisualizer,
+	TArray<uint32>& NewTriangles)
 {
 	check(SelectionFlags);
-	FTriangleDiffAsyncTask task(MeshDataPtr, SelectionFlags, MoveTemp(NewTriangles), MeshIndices);
+	FTriangleDiffAsyncTask task(MeshDataPtr, SelectionFlags, SelectionVisualizer, MoveTemp(NewTriangles));
 	task.DoWork();
-	return (task.NewIndicesSelected);
+	SelectionVisualizer->UpdateIndicesRendering();
 }
 
 void FTrianglesDifferenceIdentifier::FTriangleDiffAsyncTask::DoWork()
@@ -120,8 +113,6 @@ void FTrianglesDifferenceIdentifier::FTriangleDiffAsyncTask::DoWork()
 	URPRSectionsManagerModeSettings* settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
 	const int32 BlockOfWorkPerFrame = settings->BlockOfWorkPerFrameForSelection;
 
-	const TArray<uint32>& meshIndices = *MeshIndices;
-
 	int32 start = NumTrianglesDone;
 	int32 end = FMath::Min(start + BlockOfWorkPerFrame, NewTriangles.Num());
 
@@ -131,12 +122,7 @@ void FTrianglesDifferenceIdentifier::FTriangleDiffAsyncTask::DoWork()
 		if (!SelectionFlags->IsTriangleUsed(newTriangleValue))
 		{
 			SelectionFlags->SetFlagAsUsed(newTriangleValue);
-
-			const int32 triangleIndexStart = newTriangleValue * 3;
-			const int32 index = NewIndicesSelected.AddUninitialized(3);
-			NewIndicesSelected[index] = meshIndices[triangleIndexStart];
-			NewIndicesSelected[index + 1] = meshIndices[triangleIndexStart + 1];
-			NewIndicesSelected[index + 2] = meshIndices[triangleIndexStart + 2];
+			SelectionVisualizer->SelectTriangle(newTriangleValue, false);
 		}
 	}
 
