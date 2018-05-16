@@ -15,7 +15,7 @@
 #define SELECTED_INDICES_ALLOCATOR_SIZE 512
 
 DECLARE_DELEGATE_RetVal(FRPRMeshDataContainerPtr, FGetRPRMeshData)
-DECLARE_DELEGATE_TwoParams(FPaintAction, FRPRMeshDataPtr /* MeshData */, const TArray<uint32>& /* Triangles */)
+DECLARE_DELEGATE_TwoParams(FPaintAction, FRPRMeshDataPtr /* MeshData */, TArray<uint32>& /* Triangles */)
 
 class RPRSECTIONSMANAGER_API FRPRSectionsManagerMode : public FEdMode
 {
@@ -75,11 +75,8 @@ private:
 	struct FMeshSelectionInfo
 	{
 		TSharedPtr<IMeshPaintGeometryAdapter> MeshAdapter;
-		TArray<uint32> TrianglesSelected;
 		UDynamicSelectionMeshVisualizerComponent* MeshVisualizer;
 		FDelegateHandle PostStaticMeshChangeDelegateHandle;
-
-		TSharedPtr<FTrianglesSelectionFlags> TriangleSelectionFlags;
 	};
 
 	TMap<FRPRMeshDataPtr, FMeshSelectionInfo> MeshSelectionInfosMap;

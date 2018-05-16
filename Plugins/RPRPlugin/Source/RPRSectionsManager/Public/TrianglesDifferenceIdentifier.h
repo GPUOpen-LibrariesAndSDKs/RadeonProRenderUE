@@ -10,10 +10,9 @@ public:
 
 	void EnqueueNewTask(
 		const FRPRMeshDataPtr MeshDataPtr, 
-		TSharedPtr<FTrianglesSelectionFlags> TriangleSelectionFlags, 
-		const TArray<uint32>& NewTriangles, 
-		const TArray<uint32>* MeshIndices, 
-		TArray<uint32>* InOutRegisteredTriangles
+		FTrianglesSelectionFlags* SelectionFlags,
+		TArray<uint32>& NewTriangles, 
+		const TArray<uint32>* MeshIndices
 	);
 
 	bool IsLastTaskCompleted() const;
@@ -25,10 +24,9 @@ public:
 
 	static TArray<uint32> ExecuteTask(
 		const FRPRMeshDataPtr MeshDataPtr,
-		TSharedPtr<FTrianglesSelectionFlags> TriangleSelectionFlags,
-		const TArray<uint32>& NewTriangles,
-		const TArray<uint32>* MeshIndices,
-		TArray<uint32>* InOutRegisteredTriangles);
+		FTrianglesSelectionFlags* SelectionFlags,
+		TArray<uint32>& NewTriangles,
+		const TArray<uint32>* MeshIndices);
 
 private:
 
@@ -39,44 +37,30 @@ private:
 	public:
 
 		FRPRMeshDataPtr MeshDataPtr;
-		TSharedPtr<FTrianglesSelectionFlags> TriangleSelectionFlags;
-		const TArray<uint32>* NewTriangles;
+		FTrianglesSelectionFlags* SelectionFlags;
+		TArray<uint32> NewTriangles;
 		const TArray<uint32>* MeshIndices;
-		TArray<uint32>* RegisteredTriangles;
 		TArray<uint32> NewIndicesSelected;
-		int32 TriangleOffset;
 		int32 NumTrianglesDone;
-		bool bIsInitialized;
 		bool bIsTaskCompleted;
 		bool bIsCancelled;
 
 		FTriangleDiffAsyncTask()
-			: NewTriangles(nullptr)
-			, MeshIndices(nullptr)
-			, TriangleOffset(0)
+			: MeshIndices(nullptr)
 			, NumTrianglesDone(0)
-			, bIsInitialized(false)
 			, bIsTaskCompleted(false)
 			, bIsCancelled(false)
 		{}
 
-		FTriangleDiffAsyncTask(FRPRMeshDataPtr meshDataPtr, TSharedPtr<FTrianglesSelectionFlags> triangleSelectionFlags, const TArray<uint32>& newTriangles, const TArray<uint32>* meshIndices, TArray<uint32>* registeredTriangles)
+		FTriangleDiffAsyncTask(FRPRMeshDataPtr meshDataPtr, FTrianglesSelectionFlags* selectionFlags, TArray<uint32>&& newTriangles, const TArray<uint32>* meshIndices)
 			: MeshDataPtr(meshDataPtr)
-			, TriangleSelectionFlags(triangleSelectionFlags)
-			, NewTriangles(new TArray<uint32>(newTriangles))
+			, SelectionFlags(selectionFlags)
+			, NewTriangles(MoveTemp(newTriangles))
 			, MeshIndices(meshIndices)
-			, RegisteredTriangles(registeredTriangles)
-			, TriangleOffset(0)
 			, NumTrianglesDone(0)
-			, bIsInitialized(false)
 			, bIsTaskCompleted(false)
 			, bIsCancelled(false)
 		{}
-
-		~FTriangleDiffAsyncTask()
-		{
-			delete NewTriangles;
-		}
 
 		void DoWork();
 		void Abandon();
@@ -86,8 +70,6 @@ private:
 		{
 			RETURN_QUICK_DECLARE_CYCLE_STAT(TriangleDiffAsyncTask, STATGROUP_ThreadPoolAsyncTasks);
 		}
-
-		int32 FindByDichotomy(const TArray<uint32>& Array, uint32 Value, int32 Start, int32 End, int32& OutNearestIndex);
 
 	};
 

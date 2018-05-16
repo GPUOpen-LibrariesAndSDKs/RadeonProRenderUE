@@ -48,9 +48,6 @@ void FRPRSectionsManagerMode::SetupGetSelectedRPRMeshData(FGetRPRMeshData InGetS
 			}
 			meshSelectionInfo.PostStaticMeshChangeDelegateHandle =
 				meshData->OnPostStaticMeshChange.AddRaw(this, &FRPRSectionsManagerMode::OnStaticMeshChanged, meshData);
-
-			const uint32 numTriangles = meshSelectionInfo.MeshAdapter->GetMeshIndices().Num() / 3;
-			meshSelectionInfo.TriangleSelectionFlags = MakeShareable(new FTrianglesSelectionFlags(numTriangles));
 		}
 	}
 }
@@ -67,7 +64,6 @@ void FRPRSectionsManagerMode::Exit()
 		FMeshSelectionInfo& meshSelectionInfo = it.Value();
 		meshSelectionInfo.MeshVisualizer->DestroyComponent();
 		meshSelectionInfo.MeshVisualizer = nullptr;
-		meshSelectionInfo.TriangleSelectionFlags.Reset();
 
 		// Unsubscribe to the event
 		meshData->OnPostStaticMeshChange.Remove(meshSelectionInfo.PostStaticMeshChangeDelegateHandle);
@@ -128,7 +124,6 @@ void FRPRSectionsManagerMode::Tick(FEditorViewportClient* ViewportClient, float 
 		UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;
 		visualizer->AddTriangles(TrianglesDifferenceIdentifier.GetLastTaskResult());
 
-		FRPRSectionsSelectionManager::Get().SetSelection(meshData, meshSelectionInfo.TrianglesSelected);
 		TrianglesDifferenceIdentifier.DequeueCompletedTask();
 
 		if (!TrianglesDifferenceIdentifier.HasTasks() && NotificationItem.IsValid())
@@ -232,20 +227,20 @@ bool FRPRSectionsManagerMode::TrySelectPainting(FEditorViewportClient* InViewpor
 	return (TrySelectionPaintingAction(
 		InViewportClient,
 		InViewport,
-		FPaintAction::CreateLambda([this](FRPRMeshDataPtr MeshDataPtr, const TArray<uint32>& Triangles)
+		FPaintAction::CreateLambda([this](FRPRMeshDataPtr MeshDataPtr, TArray<uint32>& Triangles)
 	{
 		FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[MeshDataPtr];
 		const TArray<uint32>& meshIndices = meshSelectionInfo.MeshAdapter->GetMeshIndices();
+		FTrianglesSelectionFlags* selectionFlags = FRPRSectionsSelectionManager::Get().CreateOrGetTriangleSelection(MeshDataPtr);
 
 		const auto settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
 		if (settings->bAsynchronousSelection)
 		{
 			TrianglesDifferenceIdentifier.EnqueueNewTask(
 				MeshDataPtr,
-				meshSelectionInfo.TriangleSelectionFlags,
+				selectionFlags,
 				Triangles,
-				&meshIndices,
-				&meshSelectionInfo.TrianglesSelected
+				&meshIndices
 			);
 
 			if (!NotificationItem.IsValid())
@@ -262,17 +257,14 @@ bool FRPRSectionsManagerMode::TrySelectPainting(FEditorViewportClient* InViewpor
 		else
 		{
 			TArray<uint32> newSelectedIndices = FTrianglesDifferenceIdentifier::ExecuteTask(
-				MeshDataPtr, 
-				meshSelectionInfo.TriangleSelectionFlags, 
-				Triangles, 
-				&meshIndices, 
-				&meshSelectionInfo.TrianglesSelected
+				MeshDataPtr,
+				selectionFlags,
+				Triangles,
+				&meshIndices
 			);
 
 			UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;
 			visualizer->AddTriangles(newSelectedIndices);
-
-			FRPRSectionsSelectionManager::Get().SetSelection(MeshDataPtr, meshSelectionInfo.TrianglesSelected);
 		}
 		
 	})));
@@ -283,31 +275,31 @@ bool FRPRSectionsManagerMode::TryErasePainting(FEditorViewportClient* InViewport
 	return (TrySelectionPaintingAction(
 		InViewportClient,
 		InViewport,
-		FPaintAction::CreateLambda([this](FRPRMeshDataPtr MeshDataPtr, const TArray<uint32>& Triangles)
+		FPaintAction::CreateLambda([this](FRPRMeshDataPtr MeshDataPtr, TArray<uint32>& Triangles)
 	{
 
-		FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[MeshDataPtr];
-		const TArray<uint32>& meshIndices = meshSelectionInfo.MeshAdapter->GetMeshIndices();
+		//FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[MeshDataPtr];
+		//const TArray<uint32>& meshIndices = meshSelectionInfo.MeshAdapter->GetMeshIndices();
 
-		TArray<uint32> triangleIndices;
-		for (int32 i = 0; i < Triangles.Num(); ++i)
-		{
-			if (meshSelectionInfo.TriangleSelectionFlags->IsTriangleUsed(Triangles[i]))
-			{
-				const int32 triangleIndexStart = Triangles[i] * 3;
-				triangleIndices.Add(meshIndices[triangleIndexStart]);
-				triangleIndices.Add(meshIndices[triangleIndexStart + 1]);
-				triangleIndices.Add(meshIndices[triangleIndexStart + 2]);
+		//TArray<uint32> triangleIndices;
+		//for (int32 i = 0; i < Triangles.Num(); ++i)
+		//{
+		//	if (meshSelectionInfo.TriangleSelectionFlags->IsTriangleUsed(Triangles[i]))
+		//	{
+		//		const int32 triangleIndexStart = Triangles[i] * 3;
+		//		triangleIndices.Add(meshIndices[triangleIndexStart]);
+		//		triangleIndices.Add(meshIndices[triangleIndexStart + 1]);
+		//		triangleIndices.Add(meshIndices[triangleIndexStart + 2]);
 
-				meshSelectionInfo.TriangleSelectionFlags->SetFlagAsUnused(Triangles[i]);
-			}
-		}
+		//		meshSelectionInfo.TriangleSelectionFlags->SetFlagAsUnused(Triangles[i]);
+		//	}
+		//}
 
-		UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;
-		visualizer->RemoveTriangles(triangleIndices);
+		//UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;
+		//visualizer->RemoveTriangles(triangleIndices);
 
-		FRPRSectionsSelectionManager::Get().RemoveFromSelection(MeshDataPtr, Triangles);
-		meshSelectionInfo.TrianglesSelected = *FRPRSectionsSelectionManager::Get().GetSelectedTriangles(MeshDataPtr);
+		//FRPRSectionsSelectionManager::Get().RemoveFromSelection(MeshDataPtr, Triangles);
+		//meshSelectionInfo.TrianglesSelected = *FRPRSectionsSelectionManager::Get().GetTriangleSelection(MeshDataPtr);
 
 	})));
 }
@@ -473,8 +465,9 @@ void FRPRSectionsManagerMode::SelectNone()
 	for (auto it(MeshSelectionInfosMap.CreateIterator()); it; ++it)
 	{
 		FMeshSelectionInfo& meshData = it.Value();
-		meshData.TrianglesSelected.Empty();
+		meshData.MeshVisualizer->ClearTriangles();
 	}
+	FRPRSectionsSelectionManager::Get().ClearAllSelection();
 }
 
 void FRPRSectionsManagerMode::Render(const FSceneView* View, FViewport* Viewport, FPrimitiveDrawInterface* PDI)
@@ -503,7 +496,7 @@ void FRPRSectionsManagerMode::RenderSelectedVertices(FPrimitiveDrawInterface* PD
 	for (auto it = MeshSelectionInfosMap.CreateIterator(); it; ++it)
 	{
 		FRPRMeshDataPtr meshData = it.Key();
-		const TArray<uint32>* selectedTriangles = FRPRSectionsSelectionManager::Get().GetSelectedTriangles(meshData);
+		const FTrianglesSelectionFlags* selectedTriangles = FRPRSectionsSelectionManager::Get().GetTriangleSelection(meshData);
 		if (selectedTriangles != nullptr)
 		{
 			UStaticMesh* staticMesh = meshData->GetStaticMesh();
@@ -513,12 +506,15 @@ void FRPRSectionsManagerMode::RenderSelectedVertices(FPrimitiveDrawInterface* PD
 			FVector boxSize = FVector::OneVector;
 			for (int32 i = 0; i < selectedTriangles->Num(); ++i)
 			{
-				const int32 indexStart = (*selectedTriangles)[i] * 3;
-				for (int j = 0; j < 3; ++j)
+				if (selectedTriangles->IsTriangleUsed(i))
 				{
-					int32 index = indexBuffer[indexStart + j];
-					FVector position = vertexBuffer.VertexPosition(index);
-					DrawWireBox(PDI, FTranslationMatrix(position), FBox(-boxSize, boxSize), FLinearColor::Green, SDPG_World);
+					const int32 indexStart = i * 3;
+					for (int j = 0; j < 3; ++j)
+					{
+						int32 index = indexBuffer[indexStart + j];
+						FVector position = vertexBuffer.VertexPosition(index);
+						DrawWireBox(PDI, FTranslationMatrix(position), FBox(-boxSize, boxSize), FLinearColor::Green, SDPG_World);
+					}
 				}
 			}
 		}
@@ -548,7 +544,7 @@ void FRPRSectionsManagerMode::OnStaticMeshChanged(FRPRMeshDataPtr MeshData)
 	FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[MeshData];
 
 	// Clear selection
-	meshSelectionInfo.TrianglesSelected.Empty();
+	FRPRSectionsSelectionManager::Get().ClearSelectionFor(MeshData);
 
 	// Rebuild adapter
 	const int32 lodIndex = 0;

@@ -124,13 +124,8 @@ void FStaticMeshHelper::AssignFacesToSection(FRawMesh& RawMesh, const TArray<uin
 {
 	QUICK_SCOPE_CYCLE_COUNTER(AssignFacesToSection);
 
-	// Assure that the triangles are sorted from 0 to X
-	// It is really important, since the next algorithms rely on it
-	TArray<uint32> sortedTriangles = Triangles;
-	sortedTriangles.Sort();
-
 	TArray<FFaceAssignInfo> delta;
-	CreateFaceSelectionAssignationDelta(RawMesh, sortedTriangles, SectionIndex, delta);
+	CreateFaceSelectionAssignationDelta(RawMesh, Triangles, SectionIndex, delta);
 	ApplyFaceSelectionAssignationDelta(delta, RawMesh, SectionIndex);
 }
 

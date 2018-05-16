@@ -3,12 +3,13 @@
 #include "RPRStaticMeshPreviewComponent.h"
 #include "Set.h"
 #include "RPRMeshData.h"
+#include "TrianglesSelectionFlags.h"
 
 class RPRSECTIONSMANAGER_API FRPRSectionsSelectionManager
 {
 public:
 
-	typedef TMap<const FRPRMeshDataPtr, TArray<uint32>> FSelectionMap;
+	typedef TMap<const FRPRMeshDataPtr, FTrianglesSelectionFlags> FSelectionMap;
 
 public:
 
@@ -23,13 +24,21 @@ public:
 	void		ClearSelectionFor(const FRPRMeshDataPtr MeshData);
 	void		ClearAllSelection();
 	bool		HasSelectedTriangles(const FRPRMeshDataPtr MeshData);
+	bool		IsTriangleSelected(const FRPRMeshDataPtr MeshData, uint32 Triangle) const;
 
-	const TArray<uint32>*		GetSelectedTriangles(const FRPRMeshDataPtr MeshData) const;
-	FSelectionMap::TIterator	GetSelectionIterator();
-	const FRPRMeshDataPtr		FindMeshDataByStaticMesh(UStaticMesh* StaticMesh) const;
+	FTrianglesSelectionFlags*			CreateOrGetTriangleSelection(const FRPRMeshDataPtr MeshData);
+
+	const FTrianglesSelectionFlags*		GetTriangleSelection(const FRPRMeshDataPtr MeshData) const;
+	FTrianglesSelectionFlags*			GetTriangleSelection(const FRPRMeshDataPtr MeshData);
+	FSelectionMap::TIterator			GetSelectionIterator();
+	const FRPRMeshDataPtr				FindMeshDataByStaticMesh(UStaticMesh* StaticMesh) const;
 
 	DECLARE_EVENT(FRPRSectionsSelectionManager, FOnSectionSelectionChanged)
 	FOnSectionSelectionChanged&	OnSectionSelectionChanged() { return OnSelectionChangedEvent; }
+
+private:
+
+	void		RegisterNewMeshEntry(const FRPRMeshDataPtr MeshDataPtr);
 
 private:
 

@@ -8,19 +8,18 @@ FTrianglesDifferenceIdentifier::~FTrianglesDifferenceIdentifier()
 
 void FTrianglesDifferenceIdentifier::EnqueueNewTask(
 	const FRPRMeshDataPtr MeshDataPtr, 
-	TSharedPtr<FTrianglesSelectionFlags> TriangleSelectionFlags, 
-	const TArray<uint32>& NewTriangles, 
-	const TArray<uint32>* MeshIndices, 
-	TArray<uint32>* InOutRegisteredTriangles)
+	FTrianglesSelectionFlags* SelectionFlags,
+	TArray<uint32>& NewTriangles, 
+	const TArray<uint32>* MeshIndices)
 {
+	check(SelectionFlags);
+
 	auto newTask = 
 		new FAsyncTask<FTriangleDiffAsyncTask>(
 			MeshDataPtr,
-			TriangleSelectionFlags,
-			NewTriangles, 
-			MeshIndices,
-			InOutRegisteredTriangles
-			);
+			SelectionFlags,
+			MoveTemp(NewTriangles), 
+			MeshIndices);
 
 	bool bShouldStart = Tasks.IsEmpty();
 	Tasks.Enqueue(newTask);
@@ -99,12 +98,12 @@ void FTrianglesDifferenceIdentifier::AbortAllTasks()
 
 TArray<uint32> FTrianglesDifferenceIdentifier::ExecuteTask(
 	const FRPRMeshDataPtr MeshDataPtr, 
-	TSharedPtr<FTrianglesSelectionFlags> TriangleSelectionFlags, 
-	const TArray<uint32>& NewTriangles, 
-	const TArray<uint32>* MeshIndices, 
-	TArray<uint32>* InOutRegisteredTriangles)
+	FTrianglesSelectionFlags* SelectionFlags,
+	TArray<uint32>& NewTriangles, 
+	const TArray<uint32>* MeshIndices)
 {
-	FTriangleDiffAsyncTask task(MeshDataPtr, TriangleSelectionFlags, NewTriangles, MeshIndices, InOutRegisteredTriangles);
+	check(SelectionFlags);
+	FTriangleDiffAsyncTask task(MeshDataPtr, SelectionFlags, MoveTemp(NewTriangles), MeshIndices);
 	task.DoWork();
 	return (task.NewIndicesSelected);
 }
@@ -118,78 +117,30 @@ void FTrianglesDifferenceIdentifier::FTriangleDiffAsyncTask::DoWork()
 
 	QUICK_SCOPE_CYCLE_COUNTER(STAT_RPRSectionsManagerMode_GetNewRegisteredTrianglesAndIndices);
 	
-	if (!bIsInitialized)
-	{
-		bIsInitialized = true;
-		TriangleOffset = RegisteredTriangles->Num();
-		RegisteredTriangles->Reserve(RegisteredTriangles->Num() + NewTriangles->Num());
-		NewIndicesSelected.AddUninitialized(NewTriangles->Num() * 3);
-	}
-
 	URPRSectionsManagerModeSettings* settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
 	const int32 BlockOfWorkPerFrame = settings->BlockOfWorkPerFrameForSelection;
-
-	TArray<uint32> newTriangles = *NewTriangles;
-	newTriangles.Sort();
 
 	const TArray<uint32>& meshIndices = *MeshIndices;
 
 	int32 start = NumTrianglesDone;
-	int32 end = FMath::Min(start + BlockOfWorkPerFrame, newTriangles.Num());
+	int32 end = FMath::Min(start + BlockOfWorkPerFrame, NewTriangles.Num());
 
-	int32 index = 0;
-	int32 nearestIndex = 0;
 	for (int32 i = start; i < end; ++i)
 	{
-		if (!TriangleSelectionFlags->IsTriangleUsed(newTriangles[i]))
+		const int32 newTriangleValue = NewTriangles[i];
+		if (!SelectionFlags->IsTriangleUsed(newTriangleValue))
 		{
-			TriangleSelectionFlags->SetFlagAsUsed(newTriangles[i]);
-			RegisteredTriangles->Insert(newTriangles[i], nearestIndex);
+			SelectionFlags->SetFlagAsUsed(newTriangleValue);
 
-			const int32 triangleIndexStart = newTriangles[i] * 3;
-			NewIndicesSelected[i * 3] = meshIndices[triangleIndexStart];
-			NewIndicesSelected[i * 3 + 1] = meshIndices[triangleIndexStart + 1];
-			NewIndicesSelected[i * 3 + 2] = meshIndices[triangleIndexStart + 2];
+			const int32 triangleIndexStart = newTriangleValue * 3;
+			const int32 index = NewIndicesSelected.AddUninitialized(3);
+			NewIndicesSelected[index] = meshIndices[triangleIndexStart];
+			NewIndicesSelected[index + 1] = meshIndices[triangleIndexStart + 1];
+			NewIndicesSelected[index + 2] = meshIndices[triangleIndexStart + 2];
 		}
 	}
 
 	NumTrianglesDone = end;
-}
-
-int32 FTrianglesDifferenceIdentifier::FTriangleDiffAsyncTask::FindByDichotomy(const TArray<uint32>& Array, uint32 Value, int32 Start, int32 End, int32& OutNearestIndex)
-{
-	if (Array.Num() == 0)
-	{
-		OutNearestIndex = 0;
-		return (INDEX_NONE);
-	}
-
-	int32 mid = Start + (End - Start) / 2;
-	OutNearestIndex = mid;
-
-	if (Start == mid)
-	{
-		if (Array.IsValidIndex(Start) && Array[Start] == Value)
-		{
-			return (Start);
-		}
-
-		++OutNearestIndex;
-		return (INDEX_NONE);
-	}
-
-	if (Array[mid] == Value)
-	{
-		return (mid);
-	}
-	else if (Array[mid] > Value)
-	{
-		return (FindByDichotomy(Array, Value, Start, mid, OutNearestIndex));
-	}
-	else
-	{
-		return (FindByDichotomy(Array, Value, mid, End, OutNearestIndex));
-	}
 }
 
 void FTrianglesDifferenceIdentifier::FTriangleDiffAsyncTask::Abandon()

@@ -150,8 +150,8 @@ FReply FRPRSectionsDetailCustomization::OnSelectedFacesAddedToSection(UStaticMes
 			}
 			slowTask.EnterProgressFrame(1.0f, LOCTEXT("AssignSelectedFace", "Assign selected faces to RawMesh"));
 			{
-				const TArray<uint32>* triangles = FRPRSectionsSelectionManager::Get().GetSelectedTriangles(meshData);
-				FStaticMeshHelper::AssignFacesToSection(rawMesh, *triangles, SectionIndex);
+				const FTrianglesSelectionFlags* selectionFlags = FRPRSectionsSelectionManager::Get().GetTriangleSelection(meshData);
+				FStaticMeshHelper::AssignFacesToSection(rawMesh, selectionFlags->GetSelectedTrianglesAsArray(), SectionIndex);
 				FStaticMeshHelper::CleanUnusedMeshSections(Mesh, rawMesh);
 			}
 			slowTask.EnterProgressFrame(1.0f, LOCTEXT("SaveRawMesh&RebuildStaticMesh", "Save RawMesh & Rebuild StaticMesh"));
@@ -224,9 +224,9 @@ FReply FRPRSectionsDetailCustomization::OnCreateNewSectionButtonClicked(UStaticM
 			}
 			slowTask.EnterProgressFrame(1.0f, LOCTEXT("AssignSelectedFace", "Assign selected faces to RawMesh"));
 			{
-				const TArray<uint32>* triangles = FRPRSectionsSelectionManager::Get().GetSelectedTriangles(meshData);
+				const FTrianglesSelectionFlags* selectionFlags = FRPRSectionsSelectionManager::Get().GetTriangleSelection(meshData);
 				const int32 newSectionIndex = Mesh->GetNumSections(0);
-				FStaticMeshHelper::AssignFacesToSection(rawMesh, *triangles, newSectionIndex);
+				FStaticMeshHelper::AssignFacesToSection(rawMesh, selectionFlags->GetSelectedTrianglesAsArray(), newSectionIndex);
 				FStaticMeshHelper::CleanUnusedMeshSections(Mesh, rawMesh);
 			}
 			slowTask.EnterProgressFrame(1.0f, LOCTEXT("SaveRawMesh&RebuildStaticMesh", "Save RawMesh & Rebuild StaticMesh"));
