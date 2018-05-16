@@ -275,31 +275,31 @@ bool FRPRSectionsManagerMode::TryErasePainting(FEditorViewportClient* InViewport
 	return (TrySelectionPaintingAction(
 		InViewportClient,
 		InViewport,
-		FPaintAction::CreateLambda([this](FRPRMeshDataPtr MeshDataPtr, TArray<uint32>& Triangles)
+		FPaintAction::CreateLambda([this](FRPRMeshDataPtr MeshDataPtr, const TArray<uint32>& Triangles)
 	{
+		FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[MeshDataPtr];
+		const TArray<uint32>& meshIndices = meshSelectionInfo.MeshAdapter->GetMeshIndices();
 
-		//FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[MeshDataPtr];
-		//const TArray<uint32>& meshIndices = meshSelectionInfo.MeshAdapter->GetMeshIndices();
+		FTrianglesSelectionFlags* selectionFlags = FRPRSectionsSelectionManager::Get().GetTriangleSelection(MeshDataPtr);
+		if (selectionFlags != nullptr)
+		{
+			TArray<uint32> triangleIndices;
+			for (int32 i = 0; i < Triangles.Num(); ++i)
+			{
+				if (selectionFlags->IsTriangleUsed(Triangles[i]))
+				{
+					selectionFlags->SetFlagAsUnused(Triangles[i]);
 
-		//TArray<uint32> triangleIndices;
-		//for (int32 i = 0; i < Triangles.Num(); ++i)
-		//{
-		//	if (meshSelectionInfo.TriangleSelectionFlags->IsTriangleUsed(Triangles[i]))
-		//	{
-		//		const int32 triangleIndexStart = Triangles[i] * 3;
-		//		triangleIndices.Add(meshIndices[triangleIndexStart]);
-		//		triangleIndices.Add(meshIndices[triangleIndexStart + 1]);
-		//		triangleIndices.Add(meshIndices[triangleIndexStart + 2]);
+					const int32 triangleIndexStart = Triangles[i] * 3;
+					triangleIndices.Add(meshIndices[triangleIndexStart]);
+					triangleIndices.Add(meshIndices[triangleIndexStart + 1]);
+					triangleIndices.Add(meshIndices[triangleIndexStart + 2]);
+				}
+			}
 
-		//		meshSelectionInfo.TriangleSelectionFlags->SetFlagAsUnused(Triangles[i]);
-		//	}
-		//}
-
-		//UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;
-		//visualizer->RemoveTriangles(triangleIndices);
-
-		//FRPRSectionsSelectionManager::Get().RemoveFromSelection(MeshDataPtr, Triangles);
-		//meshSelectionInfo.TrianglesSelected = *FRPRSectionsSelectionManager::Get().GetTriangleSelection(MeshDataPtr);
+			UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;
+			visualizer->RemoveTriangles(triangleIndices);
+		}
 
 	})));
 }
