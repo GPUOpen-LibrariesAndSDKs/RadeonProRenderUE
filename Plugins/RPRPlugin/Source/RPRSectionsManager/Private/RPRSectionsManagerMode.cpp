@@ -230,16 +230,13 @@ bool FRPRSectionsManagerMode::TrySelectPainting(FEditorViewportClient* InViewpor
 		FPaintAction::CreateLambda([this](FRPRMeshDataPtr MeshDataPtr, TArray<uint32>& Triangles)
 	{
 		FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[MeshDataPtr];
-		const TArray<uint32>& meshIndices = meshSelectionInfo.MeshAdapter->GetMeshIndices();
 		FTrianglesSelectionFlags* selectionFlags = FRPRSectionsSelectionManager::Get().CreateOrGetTriangleSelection(MeshDataPtr);
 
 		UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;
-		visualizer->SelectTriangles(Triangles);
-
 		const auto settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
 		if (settings->bAsynchronousSelection)
 		{
-			TrianglesDifferenceIdentifier.EnqueueNewTask(
+			TrianglesDifferenceIdentifier.EnqueueAsyncSelection(
 				MeshDataPtr,
 				selectionFlags,
 				visualizer,
@@ -259,7 +256,7 @@ bool FRPRSectionsManagerMode::TrySelectPainting(FEditorViewportClient* InViewpor
 		}
 		else
 		{
-			FTrianglesDifferenceIdentifier::ExecuteTask(
+			FTrianglesDifferenceIdentifier::SelectNewTriangles(
 				MeshDataPtr,
 				selectionFlags,
 				visualizer,
@@ -275,26 +272,43 @@ bool FRPRSectionsManagerMode::TryErasePainting(FEditorViewportClient* InViewport
 	return (TrySelectionPaintingAction(
 		InViewportClient,
 		InViewport,
-		FPaintAction::CreateLambda([this](FRPRMeshDataPtr MeshDataPtr, const TArray<uint32>& Triangles)
+		FPaintAction::CreateLambda([this](FRPRMeshDataPtr MeshDataPtr, TArray<uint32>& Triangles)
 	{
 		FMeshSelectionInfo& meshSelectionInfo = MeshSelectionInfosMap[MeshDataPtr];
-		const TArray<uint32>& meshIndices = meshSelectionInfo.MeshAdapter->GetMeshIndices();
-
 		FTrianglesSelectionFlags* selectionFlags = FRPRSectionsSelectionManager::Get().GetTriangleSelection(MeshDataPtr);
-		if (selectionFlags != nullptr)
+		UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;
+
+		const auto settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
+		if (settings->bAsynchronousSelection)
 		{
-			UDynamicSelectionMeshVisualizerComponent* visualizer = meshSelectionInfo.MeshVisualizer;
+			TrianglesDifferenceIdentifier.EnqueueAsyncDeselection(
+				MeshDataPtr,
+				selectionFlags,
+				visualizer,
+				Triangles
+			);
 
-			for (int32 i = 0; i < Triangles.Num(); ++i)
+			if (!NotificationItem.IsValid())
 			{
-				if (selectionFlags->IsTriangleUsed(Triangles[i]))
-				{
-					selectionFlags->SetFlagAsUnused(Triangles[i]);
-					visualizer->DeselectTriangle(Triangles[i]);
-				}
+				FNotificationInfo Info(LOCTEXT("SelectionCalculNotification", "Deselection in progress..."));
+				Info.bFireAndForget = false;
+				Info.FadeInDuration = 0.0f;
+				Info.FadeOutDuration = 0.0f;
+				Info.ExpireDuration = 0.0f;
+				NotificationItem = FSlateNotificationManager::Get().AddNotification(Info);
+				NotificationItem->SetCompletionState(SNotificationItem::CS_Pending);
 			}
-
-			visualizer->UpdateIndicesRendering();
+		}
+		else
+		{
+			const bool bShouldSelect = false;
+			FTrianglesDifferenceIdentifier::SelectNewTriangles(
+				MeshDataPtr,
+				selectionFlags,
+				visualizer,
+				Triangles,
+				bShouldSelect
+			);
 		}
 
 	})));

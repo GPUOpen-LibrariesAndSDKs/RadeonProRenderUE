@@ -6,35 +6,44 @@ FTrianglesDifferenceIdentifier::~FTrianglesDifferenceIdentifier()
 	AbortAllTasks();
 }
 
-void FTrianglesDifferenceIdentifier::EnqueueNewTask(
+void FTrianglesDifferenceIdentifier::EnqueueAsyncSelection(
 	const FRPRMeshDataPtr MeshDataPtr, 
 	FTrianglesSelectionFlags* SelectionFlags,
 	UDynamicSelectionMeshVisualizerComponent* SelectionVisualizer,
 	TArray<uint32>& NewTriangles)
 {
 	check(SelectionFlags);
+	check(SelectionVisualizer);
 
 	auto newTask = 
 		new FAsyncTask<FTriangleDiffAsyncTask>(
 			MeshDataPtr,
 			SelectionFlags,
 			SelectionVisualizer,
-			MoveTemp(NewTriangles));
+			MoveTemp(NewTriangles),
+			true);
 
-	bool bShouldStart = Tasks.IsEmpty();
-	Tasks.Enqueue(newTask);
-	if (bShouldStart)
-	{
-		const auto settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
-		if (settings->bAsynchronousSelection)
-		{
-			newTask->StartBackgroundTask();
-		}
-		else
-		{
-			newTask->StartSynchronousTask();
-		}
-	}
+	EnqueueTaskAndStartIfRequired(newTask);
+}
+
+void FTrianglesDifferenceIdentifier::EnqueueAsyncDeselection(
+	const FRPRMeshDataPtr MeshDataPtr, 
+	FTrianglesSelectionFlags* SelectionFlags, 
+	UDynamicSelectionMeshVisualizerComponent* SelectionVisualizer, 
+	TArray<uint32>& Triangles)
+{
+	check(SelectionFlags);
+	check(SelectionVisualizer);
+
+	auto newTask =
+		new FAsyncTask<FTriangleDiffAsyncTask>(
+			MeshDataPtr,
+			SelectionFlags,
+			SelectionVisualizer,
+			MoveTemp(Triangles),
+			false);
+
+	EnqueueTaskAndStartIfRequired(newTask);
 }
 
 bool FTrianglesDifferenceIdentifier::IsLastTaskCompleted() const
@@ -89,16 +98,35 @@ void FTrianglesDifferenceIdentifier::AbortAllTasks()
 	}
 }
 
-void FTrianglesDifferenceIdentifier::ExecuteTask(
+void FTrianglesDifferenceIdentifier::SelectNewTriangles(
 	const FRPRMeshDataPtr MeshDataPtr, 
 	FTrianglesSelectionFlags* SelectionFlags,
 	UDynamicSelectionMeshVisualizerComponent* SelectionVisualizer,
-	TArray<uint32>& NewTriangles)
+	TArray<uint32>& NewTriangles, bool bSelect)
 {
 	check(SelectionFlags);
-	FTriangleDiffAsyncTask task(MeshDataPtr, SelectionFlags, SelectionVisualizer, MoveTemp(NewTriangles));
+	FTriangleDiffAsyncTask task(MeshDataPtr, SelectionFlags, SelectionVisualizer, MoveTemp(NewTriangles), bSelect);
 	task.DoWork();
 	SelectionVisualizer->UpdateIndicesRendering();
+}
+
+
+void FTrianglesDifferenceIdentifier::EnqueueTaskAndStartIfRequired(FAsyncTask<FTriangleDiffAsyncTask>* Task)
+{
+	bool bShouldStart = Tasks.IsEmpty();
+	Tasks.Enqueue(Task);
+	if (bShouldStart)
+	{
+		const auto settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
+		if (settings->bAsynchronousSelection)
+		{
+			Task->StartBackgroundTask();
+		}
+		else
+		{
+			Task->StartSynchronousTask();
+		}
+	}
 }
 
 void FTrianglesDifferenceIdentifier::FTriangleDiffAsyncTask::DoWork()
@@ -109,21 +137,27 @@ void FTrianglesDifferenceIdentifier::FTriangleDiffAsyncTask::DoWork()
 	}
 
 	QUICK_SCOPE_CYCLE_COUNTER(STAT_RPRSectionsManagerMode_GetNewRegisteredTrianglesAndIndices);
-	
-	URPRSectionsManagerModeSettings* settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
+
+	auto settings = GetMutableDefault<URPRSectionsManagerModeSettings>();
 	const int32 BlockOfWorkPerFrame = settings->BlockOfWorkPerFrameForSelection;
 
 	int32 start = NumTrianglesDone;
 	int32 end = FMath::Min(start + BlockOfWorkPerFrame, NewTriangles.Num());
 
+	TFunction<void(uint32)> applyMethod;
+	
+	if (bIsSelecting)
+	{
+		applyMethod = [this](uint32 Triangle) { SelectTriangle(Triangle); };
+	}
+	else
+	{
+		applyMethod = [this](uint32 Triangle) { DeselectTriangle(Triangle); };
+	}
+
 	for (int32 i = start; i < end; ++i)
 	{
-		const int32 newTriangleValue = NewTriangles[i];
-		if (!SelectionFlags->IsTriangleUsed(newTriangleValue))
-		{
-			SelectionFlags->SetFlagAsUsed(newTriangleValue);
-			SelectionVisualizer->SelectTriangle(newTriangleValue, false);
-		}
+		applyMethod(NewTriangles[i]);
 	}
 
 	NumTrianglesDone = end;
@@ -132,4 +166,22 @@ void FTrianglesDifferenceIdentifier::FTriangleDiffAsyncTask::DoWork()
 void FTrianglesDifferenceIdentifier::FTriangleDiffAsyncTask::Abandon()
 {
 	bIsCancelled = true;
+}
+
+void FTrianglesDifferenceIdentifier::FTriangleDiffAsyncTask::SelectTriangle(uint32 TriangleValue)
+{
+	if (!SelectionFlags->IsTriangleUsed(TriangleValue))
+	{
+		SelectionFlags->SetFlagAsUsed(TriangleValue);
+		SelectionVisualizer->SelectTriangle(TriangleValue, false);
+	}
+}
+
+void FTrianglesDifferenceIdentifier::FTriangleDiffAsyncTask::DeselectTriangle(uint32 TriangleValue)
+{
+	if (SelectionFlags->IsTriangleUsed(TriangleValue))
+	{
+		SelectionFlags->SetFlagAsUnused(TriangleValue);
+		SelectionVisualizer->DeselectTriangle(TriangleValue);
+	}
 }
