@@ -140,7 +140,7 @@ FReply FRPRSectionsDetailCustomization::OnSelectedFacesAddedToSection(UStaticMes
 
 	{
 		FScopedSlowTask slowTask(3.0f);
-		slowTask.MakeDialogDelayed(0.5f);
+		slowTask.MakeDialog();
 		{
 			FRawMesh& rawMesh = meshData->GetRawMesh();
 
