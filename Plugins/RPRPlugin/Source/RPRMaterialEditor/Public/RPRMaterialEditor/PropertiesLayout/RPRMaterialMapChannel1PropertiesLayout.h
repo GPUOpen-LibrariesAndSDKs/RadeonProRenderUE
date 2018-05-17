@@ -1,13 +1,20 @@
 #pragma once
 #include "IPropertyTypeCustomization.h"
+#include "RPRMaterialMapBasePropertiesLayout.h"
 
-class FRPRMaterialMapChannel1PropertiesLayout : public IPropertyTypeCustomization
+class FRPRMaterialMapChannel1PropertiesLayout : public FRPRMaterialMapBasePropertiesLayout
 {
 public:
 
 	static TSharedRef<class IPropertyTypeCustomization>	MakeInstance();
 
-	virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
-	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override {}
+protected:
+
+	virtual TSharedPtr<IPropertyHandle> GetModePropertyHandle() const override;
+	virtual TSharedPtr<SWidget> GetConstantPropertyWidget() const override;
+
+private:
+
+	TSharedPtr<IPropertyHandle>	GetConstantPropertyHandle() const;
 
 };
