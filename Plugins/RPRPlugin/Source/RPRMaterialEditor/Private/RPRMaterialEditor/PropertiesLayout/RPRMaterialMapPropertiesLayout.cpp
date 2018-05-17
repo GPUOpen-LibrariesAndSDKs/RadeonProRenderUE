@@ -28,10 +28,13 @@ void FRPRMaterialMapPropertiesLayout::CustomizeHeader(TSharedRef<IPropertyHandle
 			PropertyHandle->CreatePropertyNameWidget()
 		]
 		.ValueContent()
+		.HAlign(HAlign_Fill)
+		.VAlign(VAlign_Center)
 		[
 			SNew(SHorizontalBox)
 			+SHorizontalBox::Slot()
 			.AutoWidth()
+			.HAlign(HAlign_Left)
 			.VAlign(VAlign_Center)
 			[
 				SNew(SComboBox<TSharedPtr<FString>>)
@@ -45,18 +48,20 @@ void FRPRMaterialMapPropertiesLayout::CustomizeHeader(TSharedRef<IPropertyHandle
 			]
 			+SHorizontalBox::Slot()
 			.AutoWidth()
+			.HAlign(HAlign_Left)
 			[
-				SNew(SWidgetSwitcher)
+				SNew(SWidgetSwitcher)				
 				.WidgetIndex(this, &FRPRMaterialMapPropertiesLayout::GetModeIndex)
 				+SWidgetSwitcher::Slot()
 				[
 					SNew(SColorBlock)
+					.Size(FVector2D(100, 16))
 					.Color(this, &FRPRMaterialMapPropertiesLayout::GetConstantColor)
 					.OnMouseButtonDown(this, &FRPRMaterialMapPropertiesLayout::HandleColorBlockClicked)
 				]
 				+SWidgetSwitcher::Slot()
 				[
-					GetTexturePropertyHandle()->CreatePropertyValueWidget(false)
+					GetTexturePropertyHandle()->CreatePropertyValueWidget(true)
 				]
 			]
 		];
@@ -137,11 +142,13 @@ void FRPRMaterialMapPropertiesLayout::SetConstantColor(const FLinearColor& Color
 	constantColorPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLinearColor, G))->SetValue(Color.G);
 	constantColorPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLinearColor, B))->SetValue(Color.B);
 	constantColorPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FLinearColor, A))->SetValue(Color.A);
+	constantColorPropertyHandle->NotifyFinishedChangingProperties();
 }
 
 FReply FRPRMaterialMapPropertiesLayout::HandleColorBlockClicked(const FGeometry& Geometry, const FPointerEvent& PointerEvent)
 {
 	FColorPickerArgs colorPickerArgs;
+	colorPickerArgs.InitialColorOverride = GetConstantColor();
 	colorPickerArgs.OnColorCommitted.BindRaw(this, &FRPRMaterialMapPropertiesLayout::HandleConstantColorPickChanged);
 	OpenColorPicker(colorPickerArgs);
 

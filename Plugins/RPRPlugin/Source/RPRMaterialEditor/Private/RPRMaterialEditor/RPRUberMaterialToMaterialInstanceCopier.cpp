@@ -1,91 +1,62 @@
 #include "RPRUberMaterialToMaterialInstanceCopier.h"
-#include "MaterialEditor/DEditorVectorParameterValue.h"
-#include "MaterialEditor/DEditorTextureParameterValue.h"
-#include "MaterialEditor/DEditorStaticSwitchParameterValue.h"
-#include "MaterialEditor/DEditorScalarParameterValue.h"
+#include "RPRUberMaterialParameters.h"
 #include "MaterialConstants.h"
+#include "Map.h"
+#include "IRPRMatParamCopier.h"
+#include "RPRMatParamCopier_MaterialMap.h"
+
+DECLARE_LOG_CATEGORY_CLASS(LogRPRUberMaterialToMaterialInstanceCopier, Log, All)
+
+#define GET_CLASS_NAME_CHECKED(ClassName) \
+	((void)sizeof(ClassName), TEXT(#ClassName))
 
 void FRPRUberMaterialToMaterialInstanceCopier::CopyParameters(const FRPRUberMaterialParameters& RPRUberMaterialParameters, 
 																UMaterialEditorInstanceConstant* RPRMaterialEditorInstance)
 {
-	// TODO : That's temporary! Must browse properties using reflection and not hard-coded!
+	DECLARE_DELEGATE_ThreeParams(FApplyMat, const FRPRUberMaterialParameters&, UStructProperty*, UMaterialEditorInstanceConstant*);
 
-	CopyRPRMaterialMap(RPRUberMaterialParameters, RPRMaterialEditorInstance, RPRUberMaterialParameters.Diffuse_Color, "Diffuse_Color");
-	CopyRPRMaterialMap(RPRUberMaterialParameters, RPRMaterialEditorInstance, RPRUberMaterialParameters.Diffuse_Weight, "Diffuse_Weight");
-	CopyRPRMaterialMap(RPRUberMaterialParameters, RPRMaterialEditorInstance, RPRUberMaterialParameters.Diffuse_Roughness, "Diffuse_Roughness");
-
-	CopyRPRMaterialMap(RPRUberMaterialParameters, RPRMaterialEditorInstance, RPRUberMaterialParameters.Reflection_Color, "Reflection_Color");
-	CopyRPRMaterialMap(RPRUberMaterialParameters, RPRMaterialEditorInstance, RPRUberMaterialParameters.Reflection_Weight, "Reflection_Weight");
-	CopyRPRMaterialMap(RPRUberMaterialParameters, RPRMaterialEditorInstance, RPRUberMaterialParameters.Reflection_Roughness, "Reflection_Roughness");
-	CopyRPRMaterialMap(RPRUberMaterialParameters, RPRMaterialEditorInstance, RPRUberMaterialParameters.Reflection_Metalness, "Reflection_Metalness");
-
-	CopyRPRMaterialMap(RPRUberMaterialParameters, RPRMaterialEditorInstance, RPRUberMaterialParameters.Normal, "Normal");
-	CopyRPRMaterialMap(RPRUberMaterialParameters, RPRMaterialEditorInstance, RPRUberMaterialParameters.Bump, "Bump");
-}
-
-void FRPRUberMaterialToMaterialInstanceCopier::CopyRPRMaterialMapBase(const FRPRUberMaterialParameters& RPRUberMaterialParameters,
-	UMaterialEditorInstanceConstant* RPRMaterialEditorInstance,
-	const FRPRMaterialBaseMap& MaterialMap, const FName& MaterialMapPropertyName)
-{
-	const FString mapParamName = GetPropertyXmlParamName(MaterialMapPropertyName, RPR::FEditorMaterialConstants::MaterialPropertyMapSection);
-	const FString useMapParamName = GetPropertyXmlParamName(MaterialMapPropertyName, RPR::FEditorMaterialConstants::MaterialPropertyUseMapSection);
-
-	SetParameterValueIfAvailable<UDEditorStaticSwitchParameterValue>(RPRMaterialEditorInstance, FParameterNameEqualsComparator(useMapParamName), (MaterialMap.Texture != nullptr));
-	SetParameterValueIfAvailable<UDEditorTextureParameterValue>(RPRMaterialEditorInstance, FParameterNameEqualsComparator(mapParamName), MaterialMap.Texture);
-}
-
-void FRPRUberMaterialToMaterialInstanceCopier::CopyRPRMaterialMap(const FRPRUberMaterialParameters& RPRUberMaterialParameters, 
-																	UMaterialEditorInstanceConstant* RPRMaterialEditorInstance, 
-																	const FRPRMaterialMap& MaterialMap, 
-																	const FName& MaterialMapPropertyName)
-{
-	CopyRPRMaterialMapBase(RPRUberMaterialParameters, RPRMaterialEditorInstance, MaterialMap, MaterialMapPropertyName);
-
-	const FString constantParamName = GetPropertyXmlParamName(MaterialMapPropertyName, RPR::FEditorMaterialConstants::MaterialPropertyConstantSection);
-
-	SetParameterValueIfAvailable<UDEditorVectorParameterValue>(RPRMaterialEditorInstance, FParameterNameEqualsComparator(constantParamName), MaterialMap.Constant);
-}
-
-void	 FRPRUberMaterialToMaterialInstanceCopier::CopyRPRMaterialMapChannel1(const FRPRUberMaterialParameters& RPRUberMaterialParameters,
-																				UMaterialEditorInstanceConstant* RPRMaterialEditorInstance, 
-																				const FRPRMaterialMapChannel1& MaterialMap, 
-																				const FName& MaterialMapPropertyName)
-{
-	CopyRPRMaterialMapBase(RPRUberMaterialParameters, RPRMaterialEditorInstance, MaterialMap, MaterialMapPropertyName);
-
-	const FString constantParamName = GetPropertyXmlParamName(MaterialMapPropertyName, RPR::FEditorMaterialConstants::MaterialPropertyConstantSection);
-	SetParameterValueIfAvailable<UDEditorScalarParameterValue>(RPRMaterialEditorInstance, FParameterNameEqualsComparator(constantParamName), MaterialMap.Constant);
-}
-
-FString FRPRUberMaterialToMaterialInstanceCopier::GetPropertyXmlParamName(const FName& MaterialMapPropertyName, const FName& SectionName)
-{
-	UProperty* materialMapProperty = FRPRUberMaterialParameters::StaticStruct()->FindPropertyByName(MaterialMapPropertyName);
-	FString xmlParamName = materialMapProperty->GetMetaData(RPR::FMaterialConstants::PropertyMetaDataXmlParamName);
-	return (CombinePropertyNameSection(xmlParamName, SectionName));
-}
-
-FString FRPRUberMaterialToMaterialInstanceCopier::CombinePropertyNameSectionInternal(const FString* SectionsArray, int32 NumSections)
-{
-	FString output;
-
-	for (int32 i = 0; i < NumSections; ++i)
+	static TMap<FName, IRPRMatParamCopierPtr> applyRouter;
+	
+	if (applyRouter.Num() == 0)
 	{
-		output.Append(SectionsArray[i]);
-		if (i + 1 < NumSections)
-		{
-			output.Append(RPR::FEditorMaterialConstants::MaterialPropertyNameSectionSeparatorString);
-		}
+		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialMap), MakeShareable(new FRPRMatParamCopier_MaterialMap));
 	}
 
-	return (output);
+	// TODO : That's temporary! Must browse properties using reflection and not hard-coded!
+
+	UStruct* uberMaterialParametersStruct = FRPRUberMaterialParameters::StaticStruct();
+	UStructProperty* property = FindNextStructProperty(uberMaterialParametersStruct->PropertyLink);
+	while (property != nullptr)
+	{
+		const FName propertyTypeName = *property->Struct->GetStructCPPName();
+		IRPRMatParamCopierPtr* applyFunc = applyRouter.Find(propertyTypeName);
+		if (applyFunc != nullptr)
+		{
+			(*applyFunc)->Apply(RPRUberMaterialParameters, property, RPRMaterialEditorInstance);
+		}
+		else
+		{
+			UE_LOG(LogRPRUberMaterialToMaterialInstanceCopier, Warning, TEXT("Class '%s' not supported!"), *propertyTypeName.ToString());
+		}
+
+		property = FindNextStructProperty(property->NextRef);
+	}
 }
 
-bool FRPRUberMaterialToMaterialInstanceCopier::FParameterNameStartWithComparator::DoesComparisonMatch(const FString& EditorParameterName) const
+UStructProperty* FRPRUberMaterialToMaterialInstanceCopier::FindNextStructProperty(UProperty* Property)
 {
-	return (EditorParameterName.StartsWith(ParamValue));
+	while (Property != nullptr)
+	{
+		UStructProperty* nextStructProperty = Cast<UStructProperty>(Property);
+		if (nextStructProperty != nullptr)
+		{
+			return (nextStructProperty);
+		}
+
+		Property = Property->NextRef;
+	}
+
+	return (nullptr);
 }
 
-bool FRPRUberMaterialToMaterialInstanceCopier::FParameterNameEqualsComparator::DoesComparisonMatch(const FString& EditorParameterName) const
-{
-	return (EditorParameterName == ParamValue);
-}
+#undef GET_CLASS_NAME_CHECKED
