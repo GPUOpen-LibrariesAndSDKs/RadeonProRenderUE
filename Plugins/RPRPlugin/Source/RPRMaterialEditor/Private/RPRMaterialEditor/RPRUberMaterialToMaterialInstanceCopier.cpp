@@ -4,6 +4,12 @@
 #include "Map.h"
 #include "IRPRMatParamCopier.h"
 #include "RPRMatParamCopier_MaterialMap.h"
+#include "RPRMatParamCopier_MaterialMapChannel1.h"
+#include "RPRMaterialBool.h"
+#include "RPRMaterialEnum.h"
+#include "RPRMatParamCopier_Enum.h"
+#include "RPRMatParamCopier_Bool.h"
+#include "RPRMaterialMapChannel1.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRUberMaterialToMaterialInstanceCopier, Log, All)
 
@@ -20,6 +26,9 @@ void FRPRUberMaterialToMaterialInstanceCopier::CopyParameters(const FRPRUberMate
 	if (applyRouter.Num() == 0)
 	{
 		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialMap), MakeShareable(new FRPRMatParamCopier_MaterialMap));
+		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialMapChannel1), MakeShareable(new FRPRMatParamCopier_MaterialMapChannel1));
+		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialBool), MakeShareable(new FRPRMatParamCopier_Bool));
+		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialEnum), MakeShareable(new FRPRMatParamCopier_Enum));
 	}
 
 	// TODO : That's temporary! Must browse properties using reflection and not hard-coded!
