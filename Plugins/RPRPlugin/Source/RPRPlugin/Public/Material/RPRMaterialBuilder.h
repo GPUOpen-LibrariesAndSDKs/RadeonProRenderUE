@@ -7,6 +7,9 @@
 
 namespace RPR
 {
+	/*
+	* Helper to assign a RPR material to a RPR shape
+	*/
 	class FMaterialBuilder : public FGCObject
 	{
 	public:

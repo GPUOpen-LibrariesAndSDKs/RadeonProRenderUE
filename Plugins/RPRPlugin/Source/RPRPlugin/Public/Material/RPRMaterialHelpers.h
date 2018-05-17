@@ -7,6 +7,9 @@
 
 namespace RPR
 {
+	/*
+	* Interface between the RPR material native functions and UE4
+	*/
 	class FMaterialHelpers
 	{
 	public:

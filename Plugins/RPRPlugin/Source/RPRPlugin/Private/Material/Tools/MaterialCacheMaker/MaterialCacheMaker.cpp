@@ -1,6 +1,5 @@
 #include "MaterialCacheMaker.h"
 #include "RPRHelpers.h"
-#include "MaterialConstants.h"
 #include "RPRMaterialHelpers.h"
 #include "Factory/ParameterFactory.h"
 #include "RPRXMaterialHelpers.h"
@@ -79,11 +78,6 @@ namespace RPRX
 		}
 
 		return (result);
-	}
-
-	const FString&		FMaterialCacheMaker::GetMetaDataXmlParam(UProperty* Property) const
-	{
-		return (Property->GetMetaData(RPR::FMaterialConstants::PropertyMetaDataXmlParamName));
 	}
 
 	bool FMaterialCacheMaker::CanParameterBeApplied(const RPRX::MaterialParameter::FArgs& Args) const

@@ -5,7 +5,6 @@
 #include "AssetToolsModule.h"
 #include "RPRSettings.h"
 #include "XmlNode.h"
-#include "MaterialConstants.h"
 #include "UberMaterialPropertyHelper.h"
 
 #define NODE_ATTRIBUTE_NAME TEXT("name")

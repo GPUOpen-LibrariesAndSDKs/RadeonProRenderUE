@@ -1,6 +1,5 @@
 #include "RPRUberMaterialToMaterialInstanceCopier.h"
 #include "RPRUberMaterialParameters.h"
-#include "MaterialConstants.h"
 #include "Map.h"
 #include "IRPRMatParamCopier.h"
 #include "RPRMatParamCopier_MaterialMap.h"

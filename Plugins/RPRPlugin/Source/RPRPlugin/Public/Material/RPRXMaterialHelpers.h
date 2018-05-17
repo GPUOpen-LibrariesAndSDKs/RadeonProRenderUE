@@ -9,6 +9,9 @@
 
 namespace RPRX
 {
+	/*
+	* Interface between RPRX materials native functions and UE4
+	*/
 	class FMaterialHelpers
 	{
 	public:

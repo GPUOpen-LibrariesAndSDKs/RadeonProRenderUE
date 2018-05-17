@@ -3,6 +3,10 @@
 #include "RadeonProRenderInterchange.h"
 #include "RprSupport.h"
 
+/*
+ * Use typedefs to associate native types with clearer names (and respecting the UE4 norm) 
+ */
+
 namespace RPR
 {
 	typedef rpr_int		FResult;

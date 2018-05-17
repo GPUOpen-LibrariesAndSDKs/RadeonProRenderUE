@@ -1,5 +1,4 @@
 #include "ParameterArgs.h"
-#include "MaterialConstants.h"
 #include "UberMaterialPropertyHelper.h"
 #include "UberMaterialPropertyHelper.h"
 
