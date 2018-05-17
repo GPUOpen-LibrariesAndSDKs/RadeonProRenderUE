@@ -4,6 +4,9 @@
 #include "RPRMaterialMapMode.h"
 #include "RPRMaterialMap.generated.h"
 
+/*
+* Represents a parameter that can be a map or a color
+*/
 USTRUCT(BlueprintType)
 struct RPRPLUGIN_API FRPRMaterialMap : public FRPRMaterialBaseMap
 {

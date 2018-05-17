@@ -5,6 +5,9 @@
 #include "UnrealString.h"
 #include "RPRMaterialBaseMap.generated.h"
 
+/*
+* Base class for parameters that represents a map
+*/
 USTRUCT(BlueprintType)
 struct RPRPLUGIN_API FRPRMaterialBaseMap : public FRPRUberMaterialParameterBase
 {

@@ -3,6 +3,13 @@
 #include "UnrealString.h"
 #include "RPRUberMaterialParameterBase.generated.h"
 
+/*
+* Base for all parameters used in the Uber material.
+* It contains extra datas to import datas from the .rprmat
+* and make links with the UE4 materials.
+* If you want to add a new type for the Uber material, 
+* you should start from here.
+*/
 USTRUCT(BlueprintType)
 struct RPRPLUGIN_API FRPRUberMaterialParameterBase
 {

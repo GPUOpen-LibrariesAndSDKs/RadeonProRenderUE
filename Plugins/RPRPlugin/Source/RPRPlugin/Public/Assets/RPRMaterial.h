@@ -4,6 +4,9 @@
 #include "RPRUberMaterialParameters.h"
 #include "RPRMaterial.generated.h"
 
+/*
+* Asset representing a RPR Uber material
+*/
 UCLASS(BlueprintType)
 class RPRPLUGIN_API URPRMaterial : public UMaterialInstanceConstant
 {

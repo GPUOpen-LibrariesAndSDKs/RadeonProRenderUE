@@ -9,11 +9,19 @@ enum class ERPRMaterialMapMode : uint8
 	Texture
 };
 
+
+#define GET_ENUM_NAME_CHECKED(EnumName) ((void)sizeof(EnumName), FName(TEXT(#EnumName)))
+
+/*
+* Make it possible to get the enum name using TNameOf<ERPRMaterialMapMode>::GetName()
+*/
 template<>
 struct TNameOf<ERPRMaterialMapMode>
 {
 	FORCEINLINE static TCHAR const* GetName()
 	{
-		return TEXT("ERPRMaterialMapMode");
+		return GET_ENUM_NAME_CHECKED(ERPRMaterialMapMode);
 	}
 };
+
+#undef GET_ENUM_NAME_CHECKED

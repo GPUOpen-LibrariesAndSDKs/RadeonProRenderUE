@@ -3,6 +3,9 @@
 #include "RPRUberMaterialParameterBase.h"
 #include "RPRMaterialEnum.generated.h"
 
+/*
+* Represents a parameter that is an enum
+*/
 USTRUCT(BlueprintType)
 struct RPRPLUGIN_API FRPRMaterialEnum : public FRPRUberMaterialParameterBase
 {

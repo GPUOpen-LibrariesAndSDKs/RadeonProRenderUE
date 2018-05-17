@@ -3,6 +3,9 @@
 #include "RPRUberMaterialParameterBase.h"
 #include "RPRMaterialBool.generated.h"
 
+/*
+* Represents a parameter that is a boolean
+*/
 USTRUCT(BlueprintType)
 struct RPRPLUGIN_API FRPRMaterialBool : public FRPRUberMaterialParameterBase
 {

@@ -5,6 +5,9 @@
 #include "RPRMaterialMapMode.h"
 #include "RPRMaterialMapChannel1.generated.h"
 
+/*
+* Represents a parameter that can be a map or a float
+*/
 USTRUCT(BlueprintType)
 struct RPRPLUGIN_API FRPRMaterialMapChannel1 : public FRPRMaterialBaseMap
 {
