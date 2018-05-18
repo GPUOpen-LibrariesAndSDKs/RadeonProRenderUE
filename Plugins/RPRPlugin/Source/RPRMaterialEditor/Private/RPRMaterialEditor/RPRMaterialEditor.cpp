@@ -77,7 +77,7 @@ void FRPRMaterialEditor::InitPropertyDetailsView(UMaterialInstanceConstant* Inst
 	MaterialEditorInstanceDetailView = propertyEditorModule.CreateDetailView(detailsViewArgs);
     MaterialEditorInstanceDetailView->RegisterInstancedCustomPropertyLayout(
         URPRMaterial::StaticClass(), 
-        FOnGetDetailCustomizationInstance::CreateStatic(FRPRMaterialCustomPropertyLayout::MakeInstance)
+        FOnGetDetailCustomizationInstance::CreateStatic(FRPRMaterialCustomPropertyLayout::MakeInstance, MaterialEditorInstance)
     );
 	MaterialEditorInstanceDetailView->SetObject(InstanceConstant);
 }

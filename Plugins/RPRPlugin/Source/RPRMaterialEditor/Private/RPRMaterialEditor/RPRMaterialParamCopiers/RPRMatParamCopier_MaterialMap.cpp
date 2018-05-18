@@ -12,6 +12,7 @@ void FRPRMatParamCopier_MaterialMap::Apply(const FRPRUberMaterialParameters& RPR
 	auto useMapParameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorStaticSwitchParameterValue>(RPRMaterialEditorInstance, useMapParameterName);
 	if (useMapParameter)
 	{
+        useMapParameter->bOverride = true;
 		useMapParameter->ParameterValue = (materialMap->Mode == ERPRMaterialMapMode::Texture);
 	}
 
@@ -19,6 +20,7 @@ void FRPRMatParamCopier_MaterialMap::Apply(const FRPRUberMaterialParameters& RPR
 	auto constantParameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorVectorParameterValue>(RPRMaterialEditorInstance, constantParameterName);
 	if (constantParameter)
 	{
+        constantParameter->bOverride = true;
 		constantParameter->ParameterValue = materialMap->Constant;
 	}
 }

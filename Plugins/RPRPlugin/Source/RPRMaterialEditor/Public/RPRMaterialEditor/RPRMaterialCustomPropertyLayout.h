@@ -4,18 +4,20 @@
 #include "NotifyHook.h"
 #include "PropertyHandle.h"
 #include "DetailCategoryBuilder.h"
-#include "Materials/MaterialInstanceConstant.h"
 #include "MaterialEditor/DEditorParameterValue.h"
+#include "RPRMaterialEditorInstanceConstant.h"
 
 class FRPRMaterialCustomPropertyLayout : public IDetailCustomization
 {
 public:
 
-    static TSharedRef<IDetailCustomization> MakeInstance();
+    static TSharedRef<IDetailCustomization> MakeInstance(URPRMaterialEditorInstanceConstant* MaterialEditorConstant);
 
     virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 
 private:
+
+    FRPRMaterialCustomPropertyLayout(URPRMaterialEditorInstanceConstant* InMaterialEditorConstant);
 
     void LoadTriPlanarSettings();
     void HideDefaultUberMaterialParameters(IDetailLayoutBuilder& DetailBuilder);
@@ -34,6 +36,7 @@ private:
 private:
 
     TArray<TWeakObjectPtr<UObject>> MaterialsBeingEdited;
+    URPRMaterialEditorInstanceConstant* MaterialEditorConstant;
     FTriPlanarSettings TriPlanarSettings;
 
 };

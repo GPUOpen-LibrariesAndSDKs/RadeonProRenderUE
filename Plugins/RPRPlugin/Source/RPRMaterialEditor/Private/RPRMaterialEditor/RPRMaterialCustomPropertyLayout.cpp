@@ -19,9 +19,9 @@
 
 #define LOCTEXT_NAMESPACE "RPRMaterialCustomPropertyLayout"
 
-TSharedRef<IDetailCustomization> FRPRMaterialCustomPropertyLayout::MakeInstance()
+TSharedRef<IDetailCustomization> FRPRMaterialCustomPropertyLayout::MakeInstance(URPRMaterialEditorInstanceConstant* MaterialEditorConstant)
 {
-    return (MakeShareable(new FRPRMaterialCustomPropertyLayout()));
+    return (MakeShareable(new FRPRMaterialCustomPropertyLayout(MaterialEditorConstant)));
 }
 
 void FRPRMaterialCustomPropertyLayout::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
@@ -33,6 +33,10 @@ void FRPRMaterialCustomPropertyLayout::CustomizeDetails(IDetailLayoutBuilder& De
     AddUberMaterialParameters(DetailBuilder);
     AddTriPlanarParameters(DetailBuilder);
 }
+
+FRPRMaterialCustomPropertyLayout::FRPRMaterialCustomPropertyLayout(URPRMaterialEditorInstanceConstant* InMaterialEditorConstant)
+    : MaterialEditorConstant(InMaterialEditorConstant)
+{}
 
 void FRPRMaterialCustomPropertyLayout::LoadTriPlanarSettings()
 {
@@ -131,7 +135,9 @@ void FRPRMaterialCustomPropertyLayout::OnTriPlanarValueChanged(UProperty* Proper
         {
             if (URPRMaterial* material = Cast<URPRMaterial>(MaterialsBeingEdited[i].Get()))
             {
-                FMaterialEditHelper::BindRouterAndExecute(material, router, true);
+                FMaterialEditHelper::BindRouterAndExecute(MaterialEditorConstant, router);
+                MaterialEditorConstant->CopyToSourceInstance();
+                material->PostEditChange();
             }
         }
     }
@@ -147,6 +153,7 @@ void FRPRMaterialCustomPropertyLayout::UpdateParam_UseTriPlanar(UDEditorParamete
     auto param = Cast<UDEditorStaticSwitchParameterValue>(ParameterValue);
     if (param)
     {
+        param->bOverride = true;
         param->ParameterValue = TriPlanarSettings.bUseTriPlanar;
     }
 }
@@ -156,6 +163,7 @@ void FRPRMaterialCustomPropertyLayout::UpdateParam_Scale(UDEditorParameterValue*
     auto param = Cast<UDEditorScalarParameterValue>(ParameterValue);
     if (param)
     {
+        param->bOverride = true;
         param->ParameterValue = TriPlanarSettings.Scale;
     }
 }
@@ -165,6 +173,7 @@ void FRPRMaterialCustomPropertyLayout::UpdateParam_Angle(UDEditorParameterValue*
     auto param = Cast<UDEditorScalarParameterValue>(ParameterValue);
     if (param)
     {
+        param->bOverride = true;
         param->ParameterValue = TriPlanarSettings.Angle;
     }
 }
