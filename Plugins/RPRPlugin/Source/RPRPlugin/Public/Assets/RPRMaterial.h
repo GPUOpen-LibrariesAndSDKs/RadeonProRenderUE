@@ -2,6 +2,7 @@
 
 #include "Materials/MaterialInstanceConstant.h"
 #include "RPRUberMaterialParameters.h"
+#include "TriPlanarSettings.h"
 #include "RPRMaterial.generated.h"
 
 /*
@@ -24,7 +25,6 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Material)
 	FRPRUberMaterialParameters	MaterialParameters;
-	
 
 #if WITH_EDITORONLY_DATA
 

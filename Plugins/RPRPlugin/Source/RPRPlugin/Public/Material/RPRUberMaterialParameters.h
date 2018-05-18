@@ -138,6 +138,8 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS")
 	FRPRMaterialBool		SSS_IsMultiScatter;
 
+
+
 	FRPRUberMaterialParameters();
 
 };

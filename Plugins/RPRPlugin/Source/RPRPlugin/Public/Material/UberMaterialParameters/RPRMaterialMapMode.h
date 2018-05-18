@@ -10,7 +10,7 @@ enum class ERPRMaterialMapMode : uint8
 };
 
 
-#define GET_ENUM_NAME_CHECKED(EnumName) ((void)sizeof(EnumName), FName(TEXT(#EnumName)))
+#define GET_ENUM_NAME_CHECKED(EnumName) ((void)sizeof(EnumName), TEXT(#EnumName))
 
 /*
 * Make it possible to get the enum name using TNameOf<ERPRMaterialMapMode>::GetName()

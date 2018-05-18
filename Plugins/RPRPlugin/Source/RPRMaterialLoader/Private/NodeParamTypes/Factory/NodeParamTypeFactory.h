@@ -6,7 +6,6 @@
 #include "DelegateCombinations.h"
 #include "Delegate.h"
 #include "UnrealTypeTraits.h"
-#include "RPRNameExpose.h"
 
 DECLARE_DELEGATE_RetVal(TSharedPtr<INodeParamType>, FNodeParamTypeCreator);
 

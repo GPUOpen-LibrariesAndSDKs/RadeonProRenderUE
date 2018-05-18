@@ -38,7 +38,7 @@ public class RPREditorTools : ModuleRules
             {
                 "Core",
                 "RawMesh",
-				
+				"RPRPlugin"
 				// ... add other public dependencies that you statically link with here ...
 			}
             );

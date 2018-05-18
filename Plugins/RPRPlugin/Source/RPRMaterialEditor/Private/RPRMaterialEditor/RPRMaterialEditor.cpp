@@ -10,21 +10,12 @@
 #include "CoreGlobals.h"
 #include "SDockTab.h"
 #include "Editor.h"
+#include "RPRMaterialCustomPropertyLayout.h"
 
 #define LOCTEXT_NAMESPACE "RPRMaterialEditor"
 
 const FName FRPRMaterialEditor::RPRMaterialInstanceEditorAppIdentifier(TEXT("RPRMaterialInstanceEditorApp"));
 const FName FRPRMaterialEditor::PropertiesTabId(TEXT("RPRMaterialInstanceEditorTab_Properties"));
-
-TMap<FName, FRPRMaterialEditor::FSetMaterialParameter> FRPRMaterialEditor::PropertyNameToSetMaterialParameterFunctionMapping;
-
-FRPRMaterialEditor::FRPRMaterialEditor()
-{
-	if (PropertyNameToSetMaterialParameterFunctionMapping.Num() == 0)
-	{
-		PropertyNameToSetMaterialParameterFunctionMapping.Add(GET_MEMBER_NAME_CHECKED(FRPRUberMaterialParameters, Diffuse_Color));
-	}
-}
 
 void FRPRMaterialEditor::InitRPRMaterialEditor(const EToolkitMode::Type Mode, const TSharedPtr<class IToolkitHost>& InitToolkitHost, UObject* ObjectToEdit)
 {
@@ -84,6 +75,10 @@ void FRPRMaterialEditor::InitPropertyDetailsView(UMaterialInstanceConstant* Inst
 	FPropertyEditorModule& propertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 	FDetailsViewArgs detailsViewArgs(false, false, true, FDetailsViewArgs::HideNameArea, true, this);
 	MaterialEditorInstanceDetailView = propertyEditorModule.CreateDetailView(detailsViewArgs);
+    MaterialEditorInstanceDetailView->RegisterInstancedCustomPropertyLayout(
+        URPRMaterial::StaticClass(), 
+        FOnGetDetailCustomizationInstance::CreateStatic(FRPRMaterialCustomPropertyLayout::MakeInstance)
+    );
 	MaterialEditorInstanceDetailView->SetObject(InstanceConstant);
 }
 
