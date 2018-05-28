@@ -1,5 +1,5 @@
 #include "RPRMaterialMapChannel1PropertiesLayout.h"
-#include "RPRMaterialMapChannel1.h"
+#include "RPRMaterialConstantOrMapChannel1.h"
 #include "SBox.h"
 
 TSharedRef<class IPropertyTypeCustomization> FRPRMaterialConstantOrMapChannel1PropertiesLayout::MakeInstance()
@@ -9,12 +9,12 @@ TSharedRef<class IPropertyTypeCustomization> FRPRMaterialConstantOrMapChannel1Pr
 
 TSharedPtr<IPropertyHandle> FRPRMaterialConstantOrMapChannel1PropertiesLayout::GetModePropertyHandle() const
 {
-	return (CurrentPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialMapChannel1, Mode)));
+	return (CurrentPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialConstantOrMapChannel1, Mode)));
 }
 
 TSharedPtr<IPropertyHandle> FRPRMaterialConstantOrMapChannel1PropertiesLayout::GetConstantPropertyHandle() const
 {
-	return (CurrentPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialMapChannel1, Constant)));
+	return (CurrentPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialConstantOrMapChannel1, Constant)));
 }
 
 TSharedPtr<SWidget> FRPRMaterialConstantOrMapChannel1PropertiesLayout::GetConstantPropertyWidget() const

@@ -1,21 +1,22 @@
 #pragma once
 
-#include "RPRMaterialXmlNodeParameter.h"
+#include "INodeParamType.h"
+#include "RPRMaterialMap.h"
 #include "RPRUberMaterialParameters.h"
-#include "NodeParamRPRMaterialMapBase/NodeParamRPRMaterialMapBase.h"
+#include "RPRMaterialXmlNodeParameter.h"
+#include "RPRMaterialNodeSerializationContext.h"
 
-class FNodeParamRPRMaterialMap : public FNodeParamRPRMaterialMapBase
+class FNodeParamRPRMaterialMap : public INodeParamType
 {
-
 public:
-	virtual void LoadRPRMaterialParameters(struct FRPRMaterialNodeSerializationContext& SerializationContext, 
-							class FRPRMaterialXmlNodeParameter& CurrentNodeParameter, class UProperty* Property) override;
+	virtual void LoadRPRMaterialParameters(
+		struct FRPRMaterialNodeSerializationContext& SerializationContext, 
+		class FRPRMaterialXmlNodeParameter& CurrentNodeParameter, 
+		class UProperty* Property) override;
 
-	virtual void LoadTextureFromConnectionInput(FRPRMaterialMap* InMaterialMap, 
-								FRPRMaterialNodeSerializationContext& SerializationContext, 
-								FRPRMaterialXmlNodeParameter& CurrentNodeParameter) override;
+protected:
+	virtual void	LoadTextureFromConnectionInput(FRPRMaterialMap* InMaterialMap, 
+							FRPRMaterialNodeSerializationContext& SerializationContext,
+							FRPRMaterialXmlNodeParameter& CurrentNodeParameter);
 
-private:
-
-	void	LoadColor(FRPRMaterialConstantOrMap* InMaterialMap, FRPRMaterialXmlNodeParameter& CurrentNodeParameter);
 };

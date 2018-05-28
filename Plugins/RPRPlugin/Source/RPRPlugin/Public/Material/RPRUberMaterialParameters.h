@@ -6,7 +6,7 @@
 #include "UnrealTypeTraits.h"
 #include "RPRMaterialParameterEnums.h"
 #include "RPRUBerMaterialParameterBase.h"
-#include "RPRMaterialMapChannel1.h"
+#include "RPRMaterialConstantOrMapChannel1.h"
 #include "RPRMaterialMap.h"
 #include "RPRMaterialConstantOrMap.h"
 #include "RPRMaterialBool.h"
@@ -38,7 +38,7 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	FRPRMaterialConstantOrMap			Reflection_Roughness;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
-	FRPRMaterialMapChannel1	Reflection_Anisotropy;
+	FRPRMaterialConstantOrMapChannel1	Reflection_Anisotropy;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
 	FRPRMaterialConstantOrMap			Reflection_AnisotropyRotation;
@@ -102,7 +102,7 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Transparency")
-	FRPRMaterialMapChannel1	Transparency;
+	FRPRMaterialConstantOrMapChannel1	Transparency;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Normal")
@@ -122,16 +122,16 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	FRPRMaterialConstantOrMap			SSS_Scatter_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS")
-	FRPRMaterialMapChannel1	SSS_Absorption_Distance;
+	FRPRMaterialConstantOrMapChannel1	SSS_Absorption_Distance;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS")
-	FRPRMaterialMapChannel1	SSS_Scatter_Distance;
+	FRPRMaterialConstantOrMapChannel1	SSS_Scatter_Distance;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS")
-	FRPRMaterialMapChannel1	SSS_Scatter_Direction;
+	FRPRMaterialConstantOrMapChannel1	SSS_Scatter_Direction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS")
-	FRPRMaterialMapChannel1	SSS_Weight;
+	FRPRMaterialConstantOrMapChannel1	SSS_Weight;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS")
 	FRPRMaterialConstantOrMap			SSS_SubSurface_Color;

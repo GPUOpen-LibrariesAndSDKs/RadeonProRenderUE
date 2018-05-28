@@ -3,13 +3,13 @@
 #include "UnrealString.h"
 #include "RPRMaterialMapMode.h"
 #include "RPRMaterialMap.h"
-#include "RPRMaterialMapChannel1.generated.h"
+#include "RPRMaterialConstantOrMapChannel1.generated.h"
 
 /*
 * Represents a parameter that can be a map or a float
 */
 USTRUCT(BlueprintType)
-struct RPRPLUGIN_API FRPRMaterialMapChannel1 : public FRPRMaterialMap
+struct RPRPLUGIN_API FRPRMaterialConstantOrMapChannel1 : public FRPRMaterialMap
 {
 	GENERATED_BODY()
 
@@ -20,7 +20,7 @@ struct RPRPLUGIN_API FRPRMaterialMapChannel1 : public FRPRMaterialMap
 	ERPRMaterialMapMode		Mode;
 
 
-	FRPRMaterialMapChannel1() {}
-	FRPRMaterialMapChannel1(const FString& InXmlParamName, uint32 InRprxParamID, float InConstantValue = 1.0f);
+	FRPRMaterialConstantOrMapChannel1() {}
+	FRPRMaterialConstantOrMapChannel1(const FString& InXmlParamName, uint32 InRprxParamID, float InConstantValue = 1.0f);
 
 };

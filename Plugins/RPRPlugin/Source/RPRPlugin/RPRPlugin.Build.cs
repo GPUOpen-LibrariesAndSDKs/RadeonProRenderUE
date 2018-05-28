@@ -48,8 +48,8 @@ public class RPRPlugin : ModuleRules
                 "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/Bool",
                 "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/Enum",
                 "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialMap",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialMapBase",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialMapChannel1",
+                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialConstantOrMap",
+                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialConstantOrMapChannel1",
             }
 			);
 

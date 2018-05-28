@@ -1,9 +1,10 @@
 #pragma once
-#include "IRPRMatParamCopier.h"
+#include "RPRMatParamCopier_MaterialMap.h"
 
-class FRPRMatParamCopier_MaterialBaseMap : public IRPRMatParamCopier
+class FRPRMatParamCopier_MaterialConstantOrMapChannel1 : public FRPRMatParamCopier_MaterialMap
 {
 public:
 
 	virtual void Apply(const FRPRUberMaterialParameters& RPRUberMaterialParameters, UStructProperty* Property, UMaterialEditorInstanceConstant* RPRMaterialEditorInstance) override;
+
 };

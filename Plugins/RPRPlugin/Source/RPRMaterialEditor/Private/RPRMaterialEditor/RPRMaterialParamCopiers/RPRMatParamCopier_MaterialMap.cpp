@@ -1,26 +1,16 @@
 #include "RPRMatParamCopier_MaterialMap.h"
-#include "MaterialEditor/DEditorStaticSwitchParameterValue.h"
-#include "MaterialEditor/DEditorVectorParameterValue.h"
+#include "MaterialEditor/DEditorTextureParameterValue.h"
+#include "RPRUberMaterialToMaterialInstanceCopier.h"
 
 void FRPRMatParamCopier_MaterialMap::Apply(const FRPRUberMaterialParameters& RPRUberMaterialParameters, UStructProperty* Property, UMaterialEditorInstanceConstant* RPRMaterialEditorInstance)
 {
-	FRPRMatParamCopier_MaterialBaseMap::Apply(RPRUberMaterialParameters, Property, RPRMaterialEditorInstance);
+	const FRPRMaterialMap* materialMap = Property->ContainerPtrToValuePtr<const FRPRMaterialMap>(&RPRUberMaterialParameters);
 
-	const FRPRMaterialConstantOrMap* materialMap = Property->ContainerPtrToValuePtr<const FRPRMaterialConstantOrMap>(&RPRUberMaterialParameters);
-
-	const FString useMapParameterName = FRPRMatParamCopierUtility::CombinePropertyNameSection(materialMap->GetXmlParamName(), RPR::FEditorMaterialConstants::MaterialPropertyUseMapSection);
-	auto useMapParameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorStaticSwitchParameterValue>(RPRMaterialEditorInstance, useMapParameterName);
-	if (useMapParameter)
+	const FString mapParameterName = FRPRMatParamCopierUtility::CombinePropertyNameSection(materialMap->GetXmlParamName(), RPR::FEditorMaterialConstants::MaterialPropertyMapSection);
+	auto mapParameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorTextureParameterValue>(RPRMaterialEditorInstance, mapParameterName);
+	if (mapParameter)
 	{
-        useMapParameter->bOverride = true;
-		useMapParameter->ParameterValue = (materialMap->Mode == ERPRMaterialMapMode::Texture);
-	}
-
-	const FString constantParameterName = FRPRMatParamCopierUtility::CombinePropertyNameSection(materialMap->GetXmlParamName(), RPR::FEditorMaterialConstants::MaterialPropertyConstantSection);
-	auto constantParameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorVectorParameterValue>(RPRMaterialEditorInstance, constantParameterName);
-	if (constantParameter)
-	{
-        constantParameter->bOverride = true;
-		constantParameter->ParameterValue = materialMap->Constant;
+        mapParameter->bOverride = true;
+		mapParameter->ParameterValue = materialMap->Texture;
 	}
 }

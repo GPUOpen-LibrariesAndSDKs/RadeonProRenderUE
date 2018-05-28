@@ -1,7 +1,7 @@
 #pragma once
-#include "RPRMatParamCopier_MaterialBaseMap.h"
+#include "RPRMatParamCopier_MaterialMap.h"
 
-class FRPRMatParamCopier_MaterialMapChannel1 : public FRPRMatParamCopier_MaterialBaseMap
+class FRPRMatParamCopier_MaterialConstantOrMap : public FRPRMatParamCopier_MaterialMap
 {
 public:
 

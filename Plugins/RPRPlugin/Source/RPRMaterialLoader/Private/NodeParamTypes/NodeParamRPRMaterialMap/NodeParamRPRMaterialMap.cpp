@@ -1,75 +1,26 @@
 #include "NodeParamRPRMaterialMap.h"
-#include "RPRMaterialXmlNodeParameter.h"
-#include "UnrealType.h"
-#include "RPRMaterialXmlNode.h"
-#include "RPRMaterialXmlGraph.h"
-#include "RPRUberMaterialParameters.h"
 #include "RPRMaterialXmlInputTextureNode.h"
 #include "RPRMaterialNodeSerializationContext.h"
+#include "RPRMaterialXmlGraph.h"
 
-DECLARE_LOG_CATEGORY_CLASS(LogNodeParamRPRMaterialMap, Log, All)
-
-void FNodeParamRPRMaterialMap::LoadRPRMaterialParameters(FRPRMaterialNodeSerializationContext& SerializationContext, 
-											FRPRMaterialXmlNodeParameter& CurrentNodeParameter, 
-											UProperty* Property)
+void FNodeParamRPRMaterialMap::LoadRPRMaterialParameters(FRPRMaterialNodeSerializationContext& SerializationContext, FRPRMaterialXmlNodeParameter& CurrentNodeParameter, UProperty* Property)
 {
-	FRPRMaterialConstantOrMap* rprMaterialMap = 
-		SerializationContext.GetDirectMaterialParameter<FRPRMaterialConstantOrMap>(Property);
+	FRPRMaterialMap* rprMaterialMap =
+		SerializationContext.GetDirectMaterialParameter<FRPRMaterialMap>(Property);
 
-
-	switch (CurrentNodeParameter.GetType())
-	{
-	case ERPRMaterialNodeParameterValueType::Connection:
-		LoadTextureFromConnectionInput(rprMaterialMap, SerializationContext, CurrentNodeParameter);
-		break;
-
-	case ERPRMaterialNodeParameterValueType::Float4:
-		LoadColor(rprMaterialMap, CurrentNodeParameter);
-		break;
-
-	default:
-		UE_LOG(LogNodeParamRPRMaterialMap, Warning, 
-			TEXT("Xml parameter type not supported by the node param 'RPRMaterialMap'"));
-		break;
-	}
+	LoadTextureFromConnectionInput(rprMaterialMap, SerializationContext, CurrentNodeParameter);
 }
 
-void FNodeParamRPRMaterialMap::LoadTextureFromConnectionInput(FRPRMaterialMap* InMaterialMap, FRPRMaterialNodeSerializationContext& SerializationContext, FRPRMaterialXmlNodeParameter& CurrentNodeParameter)
+void FNodeParamRPRMaterialMap::LoadTextureFromConnectionInput(FRPRMaterialMap* InMaterialMap,
+										FRPRMaterialNodeSerializationContext& SerializationContext,
+										FRPRMaterialXmlNodeParameter& CurrentNodeParameter)
 {
-	FNodeParamRPRMaterialMapBase::LoadTextureFromConnectionInput(InMaterialMap, SerializationContext, CurrentNodeParameter);
+	const FName inputNodeName = *CurrentNodeParameter.GetValue();
+	FRPRMaterialXmlInputTextureNodePtr node =
+		SerializationContext.MaterialXmlGraph->FindNodeByName<FRPRMaterialXmlInputTextureNode>(inputNodeName);
 
-	FRPRMaterialConstantOrMap* rprMaterialMap = StaticCast<FRPRMaterialConstantOrMap*>(InMaterialMap);
-	rprMaterialMap->Mode = (rprMaterialMap->Texture != nullptr ? ERPRMaterialMapMode::Texture : ERPRMaterialMapMode::Constant);
-}
-
-void FNodeParamRPRMaterialMap::LoadColor(FRPRMaterialConstantOrMap* InMaterialMap, FRPRMaterialXmlNodeParameter& CurrentNodeParameter)
-{
-	const FString& paramValueStr = CurrentNodeParameter.GetValue();
-
-	TArray<FString> individualFloatStrings;
-	int32 numElements = paramValueStr.ParseIntoArray(individualFloatStrings, TEXT(","));
-
-	if (numElements < 3)
+	if (node.IsValid())
 	{
-		UE_LOG(LogNodeParamRPRMaterialMap, Warning, 
-			TEXT("Couldn't parse float4 for %s ('%s')"), 
-			*CurrentNodeParameter.GetName().ToString(),
-			*paramValueStr);
-
-		return;
+		InMaterialMap->Texture = node->ImportTexture(SerializationContext);
 	}
-
-	FLinearColor& color = InMaterialMap->Constant;
-	int32 componentIndex = 0;
-	color.R = FCString::Atof(*individualFloatStrings[componentIndex++]);
-	color.G = FCString::Atof(*individualFloatStrings[componentIndex++]);
-	color.B = FCString::Atof(*individualFloatStrings[componentIndex++]);
-
-	if (numElements > 3)
-	{
-		color.A = FCString::Atof(*individualFloatStrings[componentIndex]);
-	}
-
-	InMaterialMap->Mode = ERPRMaterialMapMode::Constant;
 }
-

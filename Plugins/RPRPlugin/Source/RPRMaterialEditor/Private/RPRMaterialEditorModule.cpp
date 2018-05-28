@@ -77,7 +77,7 @@ void FRPRMaterialEditorModule::RegisterCustomPropertyLayouts()
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialConstantOrMapPropertiesLayout::MakeInstance)
 	);
 
-	propertyEditorModule.RegisterCustomPropertyTypeLayout(*FRPRMaterialMapChannel1::StaticStruct()->GetName(),
+	propertyEditorModule.RegisterCustomPropertyTypeLayout(*FRPRMaterialConstantOrMapChannel1::StaticStruct()->GetName(),
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialConstantOrMapChannel1PropertiesLayout::MakeInstance)
 	);
 }

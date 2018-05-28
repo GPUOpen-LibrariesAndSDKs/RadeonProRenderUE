@@ -1,15 +1,15 @@
-#include "NodeParamRPRMaterialMapChannel1.h"
+#include "NodeParamRPRMaterialConstantOrMapChannel1.h"
 #include "RPRMaterialXmlNodeParameter.h"
 #include "RPRMaterialNodeSerializationContext.h"
 #include "UnrealType.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogNodeParamRPRMaterialMapChannel1, Log, All)
 
-void FNodeParamRPRMaterialMapChannel1::LoadRPRMaterialParameters(FRPRMaterialNodeSerializationContext& SerializationContext, 
+void FNodeParamRPRMaterialConstantOrMapChannel1::LoadRPRMaterialParameters(FRPRMaterialNodeSerializationContext& SerializationContext, 
 	FRPRMaterialXmlNodeParameter& CurrentNodeParameter, UProperty* Property)
 {
-	FRPRMaterialMapChannel1* mapChannel1 = 
-		SerializationContext.GetDirectMaterialParameter<FRPRMaterialMapChannel1>(Property);
+	FRPRMaterialConstantOrMapChannel1* mapChannel1 = 
+		SerializationContext.GetDirectMaterialParameter<FRPRMaterialConstantOrMapChannel1>(Property);
 
 	switch (CurrentNodeParameter.GetType())
 	{
@@ -28,7 +28,7 @@ void FNodeParamRPRMaterialMapChannel1::LoadRPRMaterialParameters(FRPRMaterialNod
 	}
 }
 
-void FNodeParamRPRMaterialMapChannel1::LoadConstant(FRPRMaterialMapChannel1* MapChannel1, 
+void FNodeParamRPRMaterialConstantOrMapChannel1::LoadConstant(FRPRMaterialConstantOrMapChannel1* MapChannel1, 
 											FRPRMaterialXmlNodeParameter& CurrentNodeParameter)
 {
 	const FString& valueString = CurrentNodeParameter.GetValue();

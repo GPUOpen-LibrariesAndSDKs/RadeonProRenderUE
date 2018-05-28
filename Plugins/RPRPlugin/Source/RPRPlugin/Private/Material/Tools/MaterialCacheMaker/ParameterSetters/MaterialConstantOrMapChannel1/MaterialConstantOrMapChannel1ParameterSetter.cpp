@@ -1,13 +1,13 @@
-#include "MaterialMapChannel1ParameterSetter.h"
-#include "RPRMaterialMapChannel1.h"
+#include "MaterialConstantOrMapChannel1ParameterSetter.h"
+#include "RPRMaterialConstantOrMapChannel1.h"
 #include "RPRXMaterialHelpers.h"
 
 namespace RPRX
 {
 
-	void FMaterialMapChannel1ParameterSetter::ApplyParameterX(MaterialParameter::FArgs& SetterParameters)
+	void FMaterialConstantOrMapChannel1ParameterSetter::ApplyParameterX(MaterialParameter::FArgs& SetterParameters)
 	{
-		const FRPRMaterialMapChannel1* materialMap = SetterParameters.GetDirectParameter<FRPRMaterialMapChannel1>();
+		const FRPRMaterialConstantOrMapChannel1* materialMap = SetterParameters.GetDirectParameter<FRPRMaterialConstantOrMapChannel1>();
 
 		if (materialMap->Texture != nullptr)
 		{
