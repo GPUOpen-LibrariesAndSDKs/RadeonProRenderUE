@@ -9,6 +9,12 @@ FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(const FString& InXm
 	, RprxParamID(InRprxParamID)
 {}
 
+FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID, FCanUseParameter InCanUseParameter)
+	: XmlParamName(InXmlParamName)
+	, RprxParamID(InRprxParamID)
+	, CanUseParameterDelegate(InCanUseParameter)
+{}
+
 uint32 FRPRUberMaterialParameterBase::GetRprxParam() const
 {
 	return (RprxParamID);
@@ -28,3 +34,9 @@ FString FRPRUberMaterialParameterBase::GetPropertyTypeName(UProperty* Property) 
 {
 	return (Property->GetCPPType());
 }
+
+bool FRPRUberMaterialParameterBase::CanUseParameter() const
+{
+	return (CanUseParameterDelegate.IsBound() ? CanUseParameterDelegate.Execute(this) : true);
+}
+

@@ -7,8 +7,9 @@
 #include "RPRMaterialBoolPropertiesLayout.h"
 #include "RPRMaterialBool.h"
 #include "RPRMaterialEnumPropertiesLayout.h"
-#include "RPRMaterialMapPropertiesLayout.h"
+#include "RPRMaterialConstantOrMapPropertiesLayout.h"
 #include "RPRMaterialMapChannel1PropertiesLayout.h"
+#include "RPRMaterialMapPropertiesLayout.h"
 
 DEFINE_LOG_CATEGORY(LogRPRMaterialEditor)
 
@@ -79,6 +80,10 @@ void FRPRMaterialEditorModule::RegisterCustomPropertyLayouts()
 
 	propertyEditorModule.RegisterCustomPropertyTypeLayout(*FRPRMaterialConstantOrMapChannel1::StaticStruct()->GetName(),
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialConstantOrMapChannel1PropertiesLayout::MakeInstance)
+	);
+
+	propertyEditorModule.RegisterCustomPropertyTypeLayout(*FRPRMaterialMap::StaticStruct()->GetName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialMapPropertiesLayout::MakeInstance)
 	);
 }
 

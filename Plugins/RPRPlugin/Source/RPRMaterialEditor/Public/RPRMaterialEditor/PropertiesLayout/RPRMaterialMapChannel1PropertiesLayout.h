@@ -1,6 +1,6 @@
 #pragma once
 #include "IPropertyTypeCustomization.h"
-#include "RPRMaterialMapBasePropertiesLayout.h"
+#include "RPRMaterialConstantOrMapBasePropertiesLayout.h"
 
 class FRPRMaterialConstantOrMapChannel1PropertiesLayout : public FRPRMaterialConstantOrMapBasePropertiesLayout
 {

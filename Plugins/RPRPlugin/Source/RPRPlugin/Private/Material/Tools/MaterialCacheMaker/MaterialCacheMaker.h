@@ -25,7 +25,6 @@ namespace RPRX
 													UProperty* ParameterProperty, FMaterial& InOutMaterial);
 
 		const FString&	GetMetaDataXmlParam(UProperty* Property) const;
-		bool			CanParameterBeApplied(const struct RPRX::MaterialParameter::FArgs& Args) const;
 
 	private:
 

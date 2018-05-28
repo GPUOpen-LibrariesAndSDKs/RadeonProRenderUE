@@ -1,10 +1,10 @@
 #pragma once
-#include "IPropertyTypeCustomization.h"
 #include "SWidget.h"
 #include "RPRMaterialMapMode.h"
 #include "PropertyHandle.h"
+#include "RPRMaterialMapPropertiesLayout.h"
 
-class FRPRMaterialConstantOrMapBasePropertiesLayout : public IPropertyTypeCustomization
+class FRPRMaterialConstantOrMapBasePropertiesLayout : public FRPRMaterialMapPropertiesLayout
 {
 public:
 
@@ -17,8 +17,6 @@ protected:
 	virtual TSharedPtr<SWidget> GetConstantPropertyWidget() const = 0;
 
 private:
-
-	TSharedPtr<IPropertyHandle>	GetTexturePropertyHandle() const;
 
 	void FindMaterialModeEnumType();
 	void BuildModeAvailables();
@@ -33,10 +31,6 @@ private:
 
 	int32					FindModeIndex(TSharedPtr<FString> ModeString) const;
 
-protected:
-
-	TSharedPtr<IPropertyHandle>		CurrentPropertyHandle;
-	
 private:
 
 	TArray<TSharedPtr<FString>>		ModeAvailables;

@@ -1,4 +1,4 @@
-#include "RPRMaterialMapBasePropertiesLayout.h"
+#include "RPRMaterialConstantOrMapBasePropertiesLayout.h"
 #include "IDetailChildrenBuilder.h"
 #include "DetailWidgetRow.h"
 #include "SWidgetSwitcher.h"
@@ -49,15 +49,10 @@ void FRPRMaterialConstantOrMapBasePropertiesLayout::CustomizeHeader(TSharedRef<I
 				]
 				+SWidgetSwitcher::Slot()
 				[
-					GetTexturePropertyHandle()->CreatePropertyValueWidget(true)
+					GetTexturePropertyHandle()->CreatePropertyValueWidget()
 				]
 			]
 		];
-}
-
-TSharedPtr<IPropertyHandle> FRPRMaterialConstantOrMapBasePropertiesLayout::GetTexturePropertyHandle() const
-{
-	return (CurrentPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialMap, Texture)));
 }
 
 void FRPRMaterialConstantOrMapBasePropertiesLayout::FindMaterialModeEnumType()

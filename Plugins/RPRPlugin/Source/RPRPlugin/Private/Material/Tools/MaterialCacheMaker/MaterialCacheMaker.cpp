@@ -66,7 +66,7 @@ namespace RPRX
 			InOutMaterial
 		);
 
-		if (CanParameterBeApplied(materialCacheParametersSetterArgs))
+		if (materialCacheParametersSetterArgs.CanUseParam())
 		{
 			TSharedPtr<RPRX::IMaterialParameter> mapSetter =
 				RPRX::MaterialParameter::FFactory::Create(InParameterProperty);
@@ -79,25 +79,4 @@ namespace RPRX
 
 		return (result);
 	}
-
-	bool FMaterialCacheMaker::CanParameterBeApplied(const RPRX::MaterialParameter::FArgs& Args) const
-	{
-		const uint32 rprxParam = Args.GetRprxParam();
-
-		const bool bIsNormalProperty = (rprxParam == RPRX_UBER_MATERIAL_NORMAL);
-		const bool bNormalMapAvailable = (Args.Parameters.Normal.Texture != nullptr);
-
-		const bool bIsBumpProperty = (rprxParam == RPRX_UBER_MATERIAL_BUMP);
-		const bool bBumpMapAvailable = (Args.Parameters.Bump.Texture != nullptr);
-
-		const bool bIsDisplacementProperty = (rprxParam == RPRX_UBER_MATERIAL_DISPLACEMENT);
-		const bool bDisplacementMapAvailable = (Args.Parameters.Displacement.Texture != nullptr);
-
-		return (
-			(!bIsNormalProperty || bNormalMapAvailable) &&
-			(!bIsBumpProperty || bBumpMapAvailable) &&
-			(!bIsDisplacementProperty || bDisplacementMapAvailable)
-		);
-	}
-
 }

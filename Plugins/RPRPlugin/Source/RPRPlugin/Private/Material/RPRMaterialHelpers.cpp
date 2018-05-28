@@ -31,12 +31,21 @@ namespace RPR
 	RPR::FResult FMaterialHelpers::CreateImageNode(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, 
 															UTexture2D* Texture, FMaterialNode& OutMaterialNode)
 	{
+		OutMaterialNode = nullptr;
+
 		RPR::FResult result = CreateNode(MaterialSystem, EMaterialNodeType::ImageTexture, OutMaterialNode);
 		if (IsResultSuccess(result))
 		{
 			// TODO : Cache the image built
 			RPR::FImage image = BuildImage(Texture, RPRContext);
-			result = rprMaterialNodeSetInputImageData(OutMaterialNode, TCHAR_TO_ANSI(ImageDataInputName), image);
+			if (image == nullptr)
+			{
+				result = RPR_ERROR_INVALID_IMAGE;
+			}
+			else
+			{
+				result = rprMaterialNodeSetInputImageData(OutMaterialNode, TCHAR_TO_ANSI(ImageDataInputName), image);
+			}
 		}
 
 		return (result);

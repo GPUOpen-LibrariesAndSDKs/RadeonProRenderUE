@@ -1,33 +1,23 @@
 #pragma once
 #include "IPropertyTypeCustomization.h"
-#include "SWidget.h"
-#include "RPRMaterialMap.h"
-#include "RPRMaterialMapBasePropertiesLayout.h"
 
-class FRPRMaterialConstantOrMapPropertiesLayout : public FRPRMaterialConstantOrMapBasePropertiesLayout
+class FRPRMaterialMapPropertiesLayout : public IPropertyTypeCustomization
 {
 
 public:
 
 	static TSharedRef<IPropertyTypeCustomization>	MakeInstance();
 
+	virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
+	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override {}
+
 protected:
 
-	virtual TSharedPtr<IPropertyHandle>	GetModePropertyHandle() const override;
-	virtual TSharedPtr<SWidget> GetConstantPropertyWidget() const override;
+	TSharedPtr<IPropertyHandle> GetTexturePropertyHandle() const;
 
 
-private:
+protected:
 
-	TSharedPtr<IPropertyHandle>	GetConstantPropertyHandle() const;
-
-	FLinearColor			GetConstantColor() const;
-	void					SetConstantColor(const FLinearColor& Color);
-	FReply					HandleColorBlockClicked(const FGeometry& Geometry, const FPointerEvent& PointerEvent);
-	void					HandleConstantColorPickChanged(FLinearColor NewColor);
-
-private:
-
-	TAttribute<FLinearColor>		ConstantColorAttribute;
+	TSharedPtr<IPropertyHandle>		CurrentPropertyHandle;
 
 };

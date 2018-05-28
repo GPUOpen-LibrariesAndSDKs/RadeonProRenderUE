@@ -18,4 +18,5 @@ struct RPRPLUGIN_API FRPRMaterialMap : public FRPRUberMaterialParameterBase
 
 	FRPRMaterialMap() {}
 	FRPRMaterialMap(const FString& InXmlParamName, uint32 InRprxParamID);
+	FRPRMaterialMap(const FString& InXmlParamName, uint32 InRprxParamID, FCanUseParameter InCanUseParameter);
 };

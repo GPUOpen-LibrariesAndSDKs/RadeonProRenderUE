@@ -26,5 +26,11 @@ namespace RPRX
 			return (materialParameter->GetRprxParam());
 		}
 
+		bool FArgs::CanUseParam() const
+		{
+			const FRPRUberMaterialParameterBase* materialParameter = GetMaterialParameterBase();
+			return (materialParameter->CanUseParameter());
+		}
+
 	}
 }

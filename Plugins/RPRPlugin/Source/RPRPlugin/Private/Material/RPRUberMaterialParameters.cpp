@@ -1,5 +1,11 @@
 #include "RPRUberMaterialParameters.h"
 
+static bool CanUseOnlyIfMapIsSet(const FRPRUberMaterialParameterBase* parameter)
+{
+	const FRPRMaterialMap* materialMap = (const FRPRMaterialMap*)parameter;
+	return (materialMap->Texture != nullptr);
+}
+
 FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 	: Diffuse_Color(		TEXT("diffuse.color"),		RPRX_UBER_MATERIAL_DIFFUSE_COLOR, 1.0f)
 	, Diffuse_Weight(		TEXT("diffuse.weight"),		RPRX_UBER_MATERIAL_DIFFUSE_WEIGHT, 1.0f)
@@ -39,9 +45,9 @@ FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 
 	, Transparency(TEXT("transparency"), RPRX_UBER_MATERIAL_TRANSPARENCY, 0.0f)
 
-	, Normal(		TEXT("normal"),			RPRX_UBER_MATERIAL_NORMAL)
-	, Bump(			TEXT("bump"),			RPRX_UBER_MATERIAL_BUMP)
-	, Displacement(	TEXT("displacement"),	RPRX_UBER_MATERIAL_DISPLACEMENT)
+	, Normal(		TEXT("normal"),			RPRX_UBER_MATERIAL_NORMAL,			FCanUseParameter::CreateStatic(CanUseOnlyIfMapIsSet))
+	, Bump(			TEXT("bump"),			RPRX_UBER_MATERIAL_BUMP,			FCanUseParameter::CreateStatic(CanUseOnlyIfMapIsSet))
+	, Displacement(	TEXT("displacement"),	RPRX_UBER_MATERIAL_DISPLACEMENT,	FCanUseParameter::CreateStatic(CanUseOnlyIfMapIsSet))
 
 	, SSS_Absorption_Color(		TEXT("sss.absorptionColor"),		RPRX_UBER_MATERIAL_SSS_ABSORPTION_COLOR, 0.0f)
 	, SSS_Scatter_Color(		TEXT("sss.scatterColor"),			RPRX_UBER_MATERIAL_SSS_SCATTER_COLOR, 0.0f)

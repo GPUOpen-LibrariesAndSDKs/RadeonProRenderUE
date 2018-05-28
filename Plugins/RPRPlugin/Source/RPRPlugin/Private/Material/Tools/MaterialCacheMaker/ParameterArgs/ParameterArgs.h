@@ -25,6 +25,7 @@ namespace RPRX
 			const FRPRUberMaterialParameterBase*	GetMaterialParameterBase() const;
 
 			uint32		GetRprxParam() const;
+			bool		CanUseParam() const;
 		};
 
 		template<typename ParameterType>
