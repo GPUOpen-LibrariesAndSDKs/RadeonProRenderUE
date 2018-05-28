@@ -1,4 +1,4 @@
-#include "MaterialMapParameterSetter.h"
+#include "MaterialConstantOrMapParameterSetter.h"
 #include "RPRMaterialHelpers.h"
 #include "MaterialContext.h"
 #include "RPRMaterialMap.h"
@@ -7,9 +7,9 @@
 namespace RPRX
 {
 
-	void FMaterialMapParameterSetter::ApplyParameterX(MaterialParameter::FArgs& SetterParameters)
+	void FMaterialConstantOrMapParameterSetter::ApplyParameterX(MaterialParameter::FArgs& SetterParameters)
 	{
-		const FRPRMaterialMap* materialMap = SetterParameters.GetDirectParameter<FRPRMaterialMap>();
+		const FRPRMaterialConstantOrMap* materialMap = SetterParameters.GetDirectParameter<FRPRMaterialConstantOrMap>();
 
 		if (materialMap->Mode == ERPRMaterialMapMode::Texture)
 		{

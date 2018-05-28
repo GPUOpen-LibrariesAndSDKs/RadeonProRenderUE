@@ -73,12 +73,12 @@ void FRPRMaterialEditorModule::RegisterCustomPropertyLayouts()
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialEnumPropertiesLayout::MakeInstance)
 	);
 
-	propertyEditorModule.RegisterCustomPropertyTypeLayout(*FRPRMaterialMap::StaticStruct()->GetName(),
-		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialMapPropertiesLayout::MakeInstance)
+	propertyEditorModule.RegisterCustomPropertyTypeLayout(*FRPRMaterialConstantOrMap::StaticStruct()->GetName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialConstantOrMapPropertiesLayout::MakeInstance)
 	);
 
 	propertyEditorModule.RegisterCustomPropertyTypeLayout(*FRPRMaterialMapChannel1::StaticStruct()->GetName(),
-		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialMapChannel1PropertiesLayout::MakeInstance)
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialConstantOrMapChannel1PropertiesLayout::MakeInstance)
 	);
 }
 

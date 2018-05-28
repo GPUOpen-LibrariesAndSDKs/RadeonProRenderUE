@@ -19,7 +19,7 @@ TSharedPtr<INodeParamType> FNodeParamTypeFactory::CreateNewNodeParam(const FStri
 		#define ADD_TO_FACTORY_CHECK_CLASS(ClassCheck, NodeType) \
 			AddClassToFactory<ClassCheck, NodeType>(TEXT(#ClassCheck));
 		
-		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialMap, FNodeParamRPRMaterialMap);
+		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialConstantOrMap, FNodeParamRPRMaterialMap);
 		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialMapChannel1, FNodeParamRPRMaterialMapChannel1);
 		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialBool, FNodeParamRPRMaterialBool);
 		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialEnum, FNodeParamRPRMaterialEnum);

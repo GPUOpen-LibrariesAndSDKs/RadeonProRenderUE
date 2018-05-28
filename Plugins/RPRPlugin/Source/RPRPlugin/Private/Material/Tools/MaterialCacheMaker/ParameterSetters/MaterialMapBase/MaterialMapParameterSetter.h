@@ -5,10 +5,12 @@
 namespace RPRX
 {
 
-	class FMaterialMapBaseParameterSetter : public IMaterialParameter
+	class FMaterialMapParameterSetter : public IMaterialParameter
 	{
+		virtual void	ApplyParameterX(MaterialParameter::FArgs& SetterParameters);
+
 	protected:
-		bool	ShouldUseTexture(MaterialParameter::FArgs& SetterParameters) const;
+
 		bool	ApplyTextureParameter(MaterialParameter::FArgs& SetterParameters);
 	};
 

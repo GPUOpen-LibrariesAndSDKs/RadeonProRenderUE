@@ -3,7 +3,7 @@
 #include "RPRMaterialNodeSerializationContext.h"
 #include "RPRMaterialXmlGraph.h"
 
-void FNodeParamRPRMaterialMapBase::LoadTextureFromConnectionInput(FRPRMaterialBaseMap* InMaterialMap,
+void FNodeParamRPRMaterialMapBase::LoadTextureFromConnectionInput(FRPRMaterialMap* InMaterialMap,
 										FRPRMaterialNodeSerializationContext& SerializationContext,
 										FRPRMaterialXmlNodeParameter& CurrentNodeParameter)
 {

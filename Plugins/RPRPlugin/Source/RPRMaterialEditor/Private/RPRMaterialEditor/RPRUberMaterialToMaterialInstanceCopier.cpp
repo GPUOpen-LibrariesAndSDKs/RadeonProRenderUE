@@ -24,7 +24,7 @@ void FRPRUberMaterialToMaterialInstanceCopier::CopyParameters(const FRPRUberMate
 	
 	if (applyRouter.Num() == 0)
 	{
-		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialMap), MakeShareable(new FRPRMatParamCopier_MaterialMap));
+		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialConstantOrMap), MakeShareable(new FRPRMatParamCopier_MaterialMap));
 		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialMapChannel1), MakeShareable(new FRPRMatParamCopier_MaterialMapChannel1));
 		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialBool), MakeShareable(new FRPRMatParamCopier_Bool));
 		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialEnum), MakeShareable(new FRPRMatParamCopier_Enum));

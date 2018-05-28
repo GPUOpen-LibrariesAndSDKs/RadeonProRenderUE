@@ -2,22 +2,22 @@
 #include "RPRMaterialMapChannel1.h"
 #include "SBox.h"
 
-TSharedRef<class IPropertyTypeCustomization> FRPRMaterialMapChannel1PropertiesLayout::MakeInstance()
+TSharedRef<class IPropertyTypeCustomization> FRPRMaterialConstantOrMapChannel1PropertiesLayout::MakeInstance()
 {
-	return (MakeShareable(new FRPRMaterialMapChannel1PropertiesLayout));
+	return (MakeShareable(new FRPRMaterialConstantOrMapChannel1PropertiesLayout));
 }
 
-TSharedPtr<IPropertyHandle> FRPRMaterialMapChannel1PropertiesLayout::GetModePropertyHandle() const
+TSharedPtr<IPropertyHandle> FRPRMaterialConstantOrMapChannel1PropertiesLayout::GetModePropertyHandle() const
 {
 	return (CurrentPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialMapChannel1, Mode)));
 }
 
-TSharedPtr<IPropertyHandle> FRPRMaterialMapChannel1PropertiesLayout::GetConstantPropertyHandle() const
+TSharedPtr<IPropertyHandle> FRPRMaterialConstantOrMapChannel1PropertiesLayout::GetConstantPropertyHandle() const
 {
 	return (CurrentPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialMapChannel1, Constant)));
 }
 
-TSharedPtr<SWidget> FRPRMaterialMapChannel1PropertiesLayout::GetConstantPropertyWidget() const
+TSharedPtr<SWidget> FRPRMaterialConstantOrMapChannel1PropertiesLayout::GetConstantPropertyWidget() const
 {
 	return 
 		SNew(SBox)

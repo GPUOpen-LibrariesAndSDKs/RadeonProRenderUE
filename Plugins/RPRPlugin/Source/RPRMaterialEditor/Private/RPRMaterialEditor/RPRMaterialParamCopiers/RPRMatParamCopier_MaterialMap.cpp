@@ -6,7 +6,7 @@ void FRPRMatParamCopier_MaterialMap::Apply(const FRPRUberMaterialParameters& RPR
 {
 	FRPRMatParamCopier_MaterialBaseMap::Apply(RPRUberMaterialParameters, Property, RPRMaterialEditorInstance);
 
-	const FRPRMaterialMap* materialMap = Property->ContainerPtrToValuePtr<const FRPRMaterialMap>(&RPRUberMaterialParameters);
+	const FRPRMaterialConstantOrMap* materialMap = Property->ContainerPtrToValuePtr<const FRPRMaterialConstantOrMap>(&RPRUberMaterialParameters);
 
 	const FString useMapParameterName = FRPRMatParamCopierUtility::CombinePropertyNameSection(materialMap->GetXmlParamName(), RPR::FEditorMaterialConstants::MaterialPropertyUseMapSection);
 	auto useMapParameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorStaticSwitchParameterValue>(RPRMaterialEditorInstance, useMapParameterName);

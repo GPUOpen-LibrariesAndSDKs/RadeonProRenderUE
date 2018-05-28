@@ -1,11 +1,11 @@
 #pragma once
 
-#include "MaterialMapBaseParameterSetter.h"
+#include "MaterialMapParameterSetter.h"
 
 namespace RPRX
 {
 
-	class FMaterialMapParameterSetter : public FMaterialMapBaseParameterSetter
+	class FMaterialConstantOrMapParameterSetter : public FMaterialMapParameterSetter
 	{
 	public:
 		virtual void	ApplyParameterX(MaterialParameter::FArgs& SetterParameters);

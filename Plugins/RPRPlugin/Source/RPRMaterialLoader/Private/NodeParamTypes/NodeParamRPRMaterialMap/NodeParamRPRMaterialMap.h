@@ -11,11 +11,11 @@ public:
 	virtual void LoadRPRMaterialParameters(struct FRPRMaterialNodeSerializationContext& SerializationContext, 
 							class FRPRMaterialXmlNodeParameter& CurrentNodeParameter, class UProperty* Property) override;
 
-	virtual void LoadTextureFromConnectionInput(FRPRMaterialBaseMap* InMaterialMap, 
+	virtual void LoadTextureFromConnectionInput(FRPRMaterialMap* InMaterialMap, 
 								FRPRMaterialNodeSerializationContext& SerializationContext, 
 								FRPRMaterialXmlNodeParameter& CurrentNodeParameter) override;
 
 private:
 
-	void	LoadColor(FRPRMaterialMap* InMaterialMap, FRPRMaterialXmlNodeParameter& CurrentNodeParameter);
+	void	LoadColor(FRPRMaterialConstantOrMap* InMaterialMap, FRPRMaterialXmlNodeParameter& CurrentNodeParameter);
 };

@@ -1,5 +1,5 @@
-#include "MaterialMapBaseParameterSetter.h"
-#include "RPRMaterialBaseMap.h"
+#include "MaterialMapParameterSetter.h"
+#include "RPRMaterialMap.h"
 #include "RPRMaterialHelpers.h"
 #include "MaterialContext.h"
 #include "RPRTypedefs.h"
@@ -7,11 +7,17 @@
 
 namespace RPRX
 {
-	bool FMaterialMapBaseParameterSetter::ApplyTextureParameter(MaterialParameter::FArgs& SetterParameters)
+
+	void FMaterialMapParameterSetter::ApplyParameterX(MaterialParameter::FArgs& SetterParameters)
+	{
+		ApplyTextureParameter(SetterParameters);
+	}
+
+	bool FMaterialMapParameterSetter::ApplyTextureParameter(MaterialParameter::FArgs& SetterParameters)
 	{
 		RPR::FMaterialContext& materialContext = SetterParameters.MaterialContext;
 
-		const FRPRMaterialBaseMap* materialMap = SetterParameters.GetDirectParameter<FRPRMaterialBaseMap>();
+		const FRPRMaterialMap* materialMap = SetterParameters.GetDirectParameter<FRPRMaterialMap>();
 		if (materialMap->Texture != nullptr)
 		{
 			RPR::FMaterialNode imageMaterialNode = nullptr;

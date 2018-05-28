@@ -1,15 +1,15 @@
 #pragma once
 
-#include "RPRMaterialBaseMap.h"
 #include "UnrealString.h"
 #include "RPRMaterialMapMode.h"
+#include "RPRMaterialMap.h"
 #include "RPRMaterialMapChannel1.generated.h"
 
 /*
 * Represents a parameter that can be a map or a float
 */
 USTRUCT(BlueprintType)
-struct RPRPLUGIN_API FRPRMaterialMapChannel1 : public FRPRMaterialBaseMap
+struct RPRPLUGIN_API FRPRMaterialMapChannel1 : public FRPRMaterialMap
 {
 	GENERATED_BODY()
 

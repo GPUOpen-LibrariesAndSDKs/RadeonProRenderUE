@@ -2,6 +2,7 @@
 #include "UberMaterialPropertyHelper.h"
 
 #include "MaterialMapChannel1ParameterSetter.h"
+#include "MaterialConstantOrMapParameterSetter.h"
 #include "MaterialMapParameterSetter.h"
 #include "MaterialEnumParameterSetter.h"
 #include "MaterialBoolParameterSetter.h"
@@ -19,6 +20,7 @@ namespace RPRX
 			RegisterParameterSetter<ParameterSetterClass>(#ClassName);
 
 			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialMapChannel1, FMaterialMapChannel1ParameterSetter);
+			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialConstantOrMap, FMaterialConstantOrMapParameterSetter);
 			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialMap, FMaterialMapParameterSetter);
 			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialEnum, FMaterialEnumParameterSetter);
 			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialBool, FMaterialBoolParameterSetter);

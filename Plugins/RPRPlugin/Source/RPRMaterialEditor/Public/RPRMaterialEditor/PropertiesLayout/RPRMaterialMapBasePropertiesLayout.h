@@ -4,7 +4,7 @@
 #include "RPRMaterialMapMode.h"
 #include "PropertyHandle.h"
 
-class FRPRMaterialMapBasePropertiesLayout : public IPropertyTypeCustomization
+class FRPRMaterialConstantOrMapBasePropertiesLayout : public IPropertyTypeCustomization
 {
 public:
 

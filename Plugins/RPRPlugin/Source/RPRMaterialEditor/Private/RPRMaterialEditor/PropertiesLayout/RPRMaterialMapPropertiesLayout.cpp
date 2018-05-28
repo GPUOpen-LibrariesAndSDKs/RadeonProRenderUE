@@ -1,35 +1,35 @@
 #include "RPRMaterialMapPropertiesLayout.h"
-#include "RPRMaterialMap.h"
+#include "RPRMaterialConstantOrMap.h"
 #include "SColorBlock.h"
 #include "SColorPicker.h"
 
-TSharedRef<IPropertyTypeCustomization> FRPRMaterialMapPropertiesLayout::MakeInstance()
+TSharedRef<IPropertyTypeCustomization> FRPRMaterialConstantOrMapPropertiesLayout::MakeInstance()
 {
-	return (MakeShareable(new FRPRMaterialMapPropertiesLayout()));
+	return (MakeShareable(new FRPRMaterialConstantOrMapPropertiesLayout()));
 }
 
-TSharedPtr<IPropertyHandle> FRPRMaterialMapPropertiesLayout::GetModePropertyHandle() const
+TSharedPtr<IPropertyHandle> FRPRMaterialConstantOrMapPropertiesLayout::GetModePropertyHandle() const
 {
-	return (CurrentPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialMap, Mode)));
+	return (CurrentPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialConstantOrMap, Mode)));
 }
 
-TSharedPtr<IPropertyHandle> FRPRMaterialMapPropertiesLayout::GetConstantPropertyHandle() const
+TSharedPtr<IPropertyHandle> FRPRMaterialConstantOrMapPropertiesLayout::GetConstantPropertyHandle() const
 {
-	return (CurrentPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialMap, Constant)));
+	return (CurrentPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialConstantOrMap, Constant)));
 }
 
-TSharedPtr<SWidget> FRPRMaterialMapPropertiesLayout::GetConstantPropertyWidget() const
+TSharedPtr<SWidget> FRPRMaterialConstantOrMapPropertiesLayout::GetConstantPropertyWidget() const
 {
 	return
 		SNew(SColorBlock)
 		.Size(FVector2D(100, 16))
-		.Color(this, &FRPRMaterialMapPropertiesLayout::GetConstantColor)
-		.OnMouseButtonDown(this, &FRPRMaterialMapPropertiesLayout::HandleColorBlockClicked)
+		.Color(this, &FRPRMaterialConstantOrMapPropertiesLayout::GetConstantColor)
+		.OnMouseButtonDown(this, &FRPRMaterialConstantOrMapPropertiesLayout::HandleColorBlockClicked)
 		.ShowBackgroundForAlpha(true);
 }
 
 
-FLinearColor FRPRMaterialMapPropertiesLayout::GetConstantColor() const
+FLinearColor FRPRMaterialConstantOrMapPropertiesLayout::GetConstantColor() const
 {
 	FLinearColor color;
 	TSharedPtr<IPropertyHandle> constantColorPropertyHandle = GetConstantPropertyHandle();
@@ -42,7 +42,7 @@ FLinearColor FRPRMaterialMapPropertiesLayout::GetConstantColor() const
 	return (color);
 }
 
-void FRPRMaterialMapPropertiesLayout::SetConstantColor(const FLinearColor& Color)
+void FRPRMaterialConstantOrMapPropertiesLayout::SetConstantColor(const FLinearColor& Color)
 {
 	TSharedPtr<IPropertyHandle> constantColorPropertyHandle = GetConstantPropertyHandle();
 
@@ -53,17 +53,17 @@ void FRPRMaterialMapPropertiesLayout::SetConstantColor(const FLinearColor& Color
 	constantColorPropertyHandle->NotifyFinishedChangingProperties();
 }
 
-FReply FRPRMaterialMapPropertiesLayout::HandleColorBlockClicked(const FGeometry& Geometry, const FPointerEvent& PointerEvent)
+FReply FRPRMaterialConstantOrMapPropertiesLayout::HandleColorBlockClicked(const FGeometry& Geometry, const FPointerEvent& PointerEvent)
 {
 	FColorPickerArgs colorPickerArgs;
 	colorPickerArgs.InitialColorOverride = GetConstantColor();
-	colorPickerArgs.OnColorCommitted.BindRaw(this, &FRPRMaterialMapPropertiesLayout::HandleConstantColorPickChanged);
+	colorPickerArgs.OnColorCommitted.BindRaw(this, &FRPRMaterialConstantOrMapPropertiesLayout::HandleConstantColorPickChanged);
 	OpenColorPicker(colorPickerArgs);
 
 	return (FReply::Handled());
 }
 
-void FRPRMaterialMapPropertiesLayout::HandleConstantColorPickChanged(FLinearColor NewColor)
+void FRPRMaterialConstantOrMapPropertiesLayout::HandleConstantColorPickChanged(FLinearColor NewColor)
 {
 	SetConstantColor(NewColor);
 }

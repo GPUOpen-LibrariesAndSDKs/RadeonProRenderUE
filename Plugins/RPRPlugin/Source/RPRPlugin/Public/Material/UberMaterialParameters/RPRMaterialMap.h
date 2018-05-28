@@ -1,25 +1,21 @@
 #pragma once
 
-#include "RPRMaterialBaseMap.h"
-#include "RPRMaterialMapMode.h"
+#include "RPRUberMaterialParameterBase.h"
+#include "Engine/Texture2D.h"
+#include "UnrealString.h"
 #include "RPRMaterialMap.generated.h"
 
 /*
-* Represents a parameter that can be a map or a color
+* Base class for parameters that represents a map
 */
 USTRUCT(BlueprintType)
-struct RPRPLUGIN_API FRPRMaterialMap : public FRPRMaterialBaseMap
+struct RPRPLUGIN_API FRPRMaterialMap : public FRPRUberMaterialParameterBase
 {
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
-	FLinearColor			Constant;
+	UTexture2D*		Texture;
 
-	UPROPERTY(EditAnywhere, Category = Material)
-	ERPRMaterialMapMode		Mode;
-
-
-	FRPRMaterialMap();
-	FRPRMaterialMap(const FString& InXmlParamName, uint32 InRprxParamID, float UniformConstant = 1.0f);
-
+	FRPRMaterialMap() {}
+	FRPRMaterialMap(const FString& InXmlParamName, uint32 InRprxParamID);
 };

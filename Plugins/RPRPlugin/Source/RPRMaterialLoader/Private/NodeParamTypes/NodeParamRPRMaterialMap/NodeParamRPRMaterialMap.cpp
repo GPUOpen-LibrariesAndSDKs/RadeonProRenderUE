@@ -13,8 +13,8 @@ void FNodeParamRPRMaterialMap::LoadRPRMaterialParameters(FRPRMaterialNodeSeriali
 											FRPRMaterialXmlNodeParameter& CurrentNodeParameter, 
 											UProperty* Property)
 {
-	FRPRMaterialMap* rprMaterialMap = 
-		SerializationContext.GetDirectMaterialParameter<FRPRMaterialMap>(Property);
+	FRPRMaterialConstantOrMap* rprMaterialMap = 
+		SerializationContext.GetDirectMaterialParameter<FRPRMaterialConstantOrMap>(Property);
 
 
 	switch (CurrentNodeParameter.GetType())
@@ -34,15 +34,15 @@ void FNodeParamRPRMaterialMap::LoadRPRMaterialParameters(FRPRMaterialNodeSeriali
 	}
 }
 
-void FNodeParamRPRMaterialMap::LoadTextureFromConnectionInput(FRPRMaterialBaseMap* InMaterialMap, FRPRMaterialNodeSerializationContext& SerializationContext, FRPRMaterialXmlNodeParameter& CurrentNodeParameter)
+void FNodeParamRPRMaterialMap::LoadTextureFromConnectionInput(FRPRMaterialMap* InMaterialMap, FRPRMaterialNodeSerializationContext& SerializationContext, FRPRMaterialXmlNodeParameter& CurrentNodeParameter)
 {
 	FNodeParamRPRMaterialMapBase::LoadTextureFromConnectionInput(InMaterialMap, SerializationContext, CurrentNodeParameter);
 
-	FRPRMaterialMap* rprMaterialMap = StaticCast<FRPRMaterialMap*>(InMaterialMap);
+	FRPRMaterialConstantOrMap* rprMaterialMap = StaticCast<FRPRMaterialConstantOrMap*>(InMaterialMap);
 	rprMaterialMap->Mode = (rprMaterialMap->Texture != nullptr ? ERPRMaterialMapMode::Texture : ERPRMaterialMapMode::Constant);
 }
 
-void FNodeParamRPRMaterialMap::LoadColor(FRPRMaterialMap* InMaterialMap, FRPRMaterialXmlNodeParameter& CurrentNodeParameter)
+void FNodeParamRPRMaterialMap::LoadColor(FRPRMaterialConstantOrMap* InMaterialMap, FRPRMaterialXmlNodeParameter& CurrentNodeParameter)
 {
 	const FString& paramValueStr = CurrentNodeParameter.GetValue();
 
