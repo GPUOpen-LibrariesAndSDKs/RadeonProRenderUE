@@ -40,6 +40,7 @@ public class RPRPlugin : ModuleRules
 				SDKRoot + "RadeonProRender/inc",
 				SDKRoot + "RadeonProRenderInterchange/include",
 
+                "RPRPlugin/Private/Material",
                 "RPRPlugin/Private/Material/Tools/MaterialCacheMaker",
                 "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/Factory",
                 "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterArgs",

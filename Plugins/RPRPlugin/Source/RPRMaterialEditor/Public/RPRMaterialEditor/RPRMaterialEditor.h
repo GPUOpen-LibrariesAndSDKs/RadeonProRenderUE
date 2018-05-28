@@ -6,11 +6,8 @@
 #include "IDetailsView.h"
 #include "RPRMaterial.h"
 
-
 class FRPRMaterialEditor : public FAssetEditorToolkit, FGCObject, FNotifyHook
 {
-
-	DECLARE_DELEGATE_OneParam(FSetMaterialParameter, UProperty* /* PropertyChanged */);
 
 public:
 
@@ -18,8 +15,6 @@ public:
 	static const FName	PropertiesTabId;
 	
 public:
-
-	FRPRMaterialEditor();
 
 	void	InitRPRMaterialEditor(const EToolkitMode::Type Mode, const TSharedPtr<class IToolkitHost>& InitToolkitHost, UObject* ObjectToEdit);
 
@@ -45,17 +40,10 @@ private:
 
 	TSharedRef<SDockTab>	SpawnTab_Properties(const FSpawnTabArgs& Args);
 
-	static void	SetRPRMaterialMap(UProperty* Property);
-	static void SetRPRMaterialNormal(UProperty* Property);
-	static void SetRPRMaterialMapChannel1(UProperty* Property);
-	static void SetRPRRefractionMode(UProperty* Property);
-
 private:
 
 	URPRMaterial*						RPRMaterial;
 	URPRMaterialEditorInstanceConstant*	MaterialEditorInstance;
 	TSharedPtr<IDetailsView>			MaterialEditorInstanceDetailView;
-	
-	static TMap<FName, FSetMaterialParameter>	PropertyNameToSetMaterialParameterFunctionMapping;
 
 };

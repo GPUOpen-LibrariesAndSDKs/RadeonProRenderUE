@@ -6,9 +6,10 @@ void FRPRMatParamCopier_Bool::Apply(const FRPRUberMaterialParameters& RPRUberMat
 	const FRPRMaterialBool* materialBool = Property->ContainerPtrToValuePtr<const FRPRMaterialBool>(&RPRUberMaterialParameters);
 
 	const FString& boolParameterName = materialBool->GetXmlParamName();
-	auto boolParameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorStaticSwitchParameterValue>(RPRMaterialEditorInstance, boolParameterName);
-	if (boolParameter)
+	auto parameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorStaticSwitchParameterValue>(RPRMaterialEditorInstance, boolParameterName);
+	if (parameter)
 	{
-		boolParameter->ParameterValue = materialBool->bIsEnabled;
+        parameter->bOverride = true;
+		parameter->ParameterValue = materialBool->bIsEnabled;
 	}
 }

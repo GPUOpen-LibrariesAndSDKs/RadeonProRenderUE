@@ -10,6 +10,8 @@
 #include "SScaleBox.h"
 #include "SImage.h"
 #include "SBox.h"
+#include "TriPlanarSettings.h"
+#include "TriPlanarSettingsEditorLoader.h"
 
 #define LOCTEXT_NAMESPACE "SUVProjectionTriPlanar"
 
@@ -21,17 +23,9 @@ void SUVProjectionTriPlanar::Construct(const FArguments& InArgs)
 	InitUVProjection();
 }
 
-void SUVProjectionTriPlanar::AddReferencedObjects(FReferenceCollector& Collector)
-{
-	Collector.AddReferencedObject(Settings);
-}
-
 void SUVProjectionTriPlanar::OnSectionSelectionChanged()
 {
-	if (Settings)
-	{
-		TryLoadTriPlanarSettings();
-	}
+	TryLoadTriPlanarSettings();
 }
 
 TSharedRef<SWidget> SUVProjectionTriPlanar::GetAlgorithmSettingsWidget()
@@ -73,7 +67,7 @@ TSharedRef<SWidget> SUVProjectionTriPlanar::GetAlgorithmSettingsWidget()
 		+SVerticalBox::Slot()
 		.FillHeight(1.0f)
 		[
-			SettingsDetailsView.ToSharedRef()
+			SettingsDetailsView->GetWidget().ToSharedRef()
 		]
 	;
 }
@@ -108,7 +102,6 @@ bool SUVProjectionTriPlanar::RequiredManualApply() const
 
 void SUVProjectionTriPlanar::InitTriPlanarSettings()
 {
-	Settings = NewObject<UTriPlanarSettings>();
 	TryLoadTriPlanarSettings();
 
 	FPropertyEditorModule& propertyModule = FModuleManager::Get().LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
@@ -122,8 +115,9 @@ void SUVProjectionTriPlanar::InitTriPlanarSettings()
 		, /*const bool InSearchInitialKeyFocus =*/ false
 		, /*FName InViewIdentifier =*/ NAME_None
 	);
-	SettingsDetailsView = propertyModule.CreateDetailView(detailsViewArgs);
-	SettingsDetailsView->SetObject(Settings, true);
+
+    SettingsDetailsView = propertyModule.CreateStructureDetailView(detailsViewArgs, FStructureDetailsViewArgs(), nullptr);
+    SettingsDetailsView->SetStructureData(MakeShareable(new FStructOnScope(FTriPlanarSettings::StaticStruct(), (uint8*) &Settings)));
 }
 
 void SUVProjectionTriPlanar::TryLoadTriPlanarSettings()
@@ -136,7 +130,9 @@ void SUVProjectionTriPlanar::TryLoadTriPlanarSettings()
 		if (selectedMeshDatas->FindFirstSelectedSection(meshData, sectionIndex))
 		{
 			UMaterialInterface* materialInterface = meshData->GetStaticMesh()->GetMaterial(sectionIndex);
-			Settings->LoadFromMaterial(materialInterface);
+
+            FTriPlanarSettingsEditorLoader triPlanarSettingsHelper(&Settings);
+            triPlanarSettingsHelper.LoadFromMaterial(materialInterface);
 		}
 	}
 }
@@ -152,9 +148,9 @@ void SUVProjectionTriPlanar::UpdateAlgorithmSettings()
 	
 	FUVProjectionTriPlanarAlgo::FSettings algoSettings;
 	{
-		algoSettings.bApply = Settings->bUseTriPlanar;
-		algoSettings.Angle = Settings->Angle;
-		algoSettings.Scale = Settings->Scale;
+		algoSettings.bApply = Settings.bUseTriPlanar;
+		algoSettings.Angle = Settings.Angle;
+		algoSettings.Scale = Settings.Scale;
 	}
 
 	algo->SetSettings(algoSettings);

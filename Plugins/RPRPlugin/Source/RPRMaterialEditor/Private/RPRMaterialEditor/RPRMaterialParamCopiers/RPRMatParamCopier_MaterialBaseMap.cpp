@@ -10,6 +10,7 @@ void FRPRMatParamCopier_MaterialBaseMap::Apply(const FRPRUberMaterialParameters&
 	auto mapParameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorTextureParameterValue>(RPRMaterialEditorInstance, mapParameterName);
 	if (mapParameter)
 	{
+        mapParameter->bOverride = true;
 		mapParameter->ParameterValue = materialMap->Texture;
 	}
 }

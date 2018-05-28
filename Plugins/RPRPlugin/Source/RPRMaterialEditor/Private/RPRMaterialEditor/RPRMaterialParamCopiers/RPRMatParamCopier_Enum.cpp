@@ -10,6 +10,7 @@ void FRPRMatParamCopier_Enum::Apply(const FRPRUberMaterialParameters& RPRUberMat
 	auto parameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorScalarParameterValue>(RPRMaterialEditorInstance, parameterName);
 	if (parameter)
 	{
+        parameter->bOverride = true;
 		parameter->ParameterValue = (float) materialEnum->EnumValue;
 	}
 }

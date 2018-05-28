@@ -5,11 +5,12 @@
 #include "TriPlanarSettings.h"
 #include "IDetailsView.h"
 #include "NotifyHook.h"
+#include "IStructureDetailsView.h"
 
 /*
  * Widget displayed when the TriPlanar projection is selected
  */
-class SUVProjectionTriPlanar : public SUVProjectionBase, public FNotifyHook, public FGCObject
+class SUVProjectionTriPlanar : public SUVProjectionBase, public FNotifyHook
 {
 public:
 
@@ -23,7 +24,6 @@ public:
 
 	void	Construct(const FArguments& InArgs);
 		
-	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
 	virtual void OnSectionSelectionChanged() override;
 
 	/* FNotifyHook implementation */
@@ -49,7 +49,7 @@ private:
 
 private:
 
-	UTriPlanarSettings*			Settings;
-	TSharedPtr<IDetailsView>	SettingsDetailsView;
+	FTriPlanarSettings			        Settings;
+	TSharedPtr<IStructureDetailsView>	SettingsDetailsView;
 
 };
