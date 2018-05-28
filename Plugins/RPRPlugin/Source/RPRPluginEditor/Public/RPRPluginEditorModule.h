@@ -16,6 +16,7 @@ public:
 	virtual void ShutdownModule() override;
 
 	static const FString&	GetPluginName();
+
 	
 private:
 

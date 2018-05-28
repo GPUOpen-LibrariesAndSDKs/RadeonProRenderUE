@@ -2,8 +2,12 @@
 #include "ComponentReregisterContext.h"
 #include "Editor.h"
 #include "UObjectGlobals.h"
-#include "RPRMeshVertexPainter.h"
 #include "PreviewScene.h"
+#include "RawMesh.h"
+#include "StaticMeshHelper.h"
+#include "SceneViewport.h"
+#include "RPRStaticMeshPreviewComponent.h"
+#include "RPRStaticMeshPreview.h"
 
 SRPRStaticMeshEditorViewport::SRPRStaticMeshEditorViewport()
 	: PreviewScene(MakeShareable(new FAdvancedPreviewScene(FPreviewScene::ConstructionValues())))
@@ -14,51 +18,89 @@ SRPRStaticMeshEditorViewport::SRPRStaticMeshEditorViewport()
 void SRPRStaticMeshEditorViewport::Construct(const FArguments& InArgs)
 {
 	StaticMeshEditorPtr = InArgs._StaticMeshEditor;
-	StaticMesh = StaticMeshEditorPtr.Pin()->GetStaticMesh();
+	InitMeshDatas();
 
 	SEditorViewport::Construct(SEditorViewport::FArguments());
-
-	PreviewMeshComponent = NewObject<UStaticMeshComponent>((UObject*)GetTransientPackage(), FName(), RF_Transient);
-	SetPreviewMesh(StaticMesh);
-
-	PreviewMeshComponent->bDisplayVertexColors = true;
-	PreviewMeshComponent->MarkRenderStateDirty();
 
 	SetFloorToStaticMeshBottom();
 }
 
-void SRPRStaticMeshEditorViewport::SetFloorToStaticMeshBottom()
+void SRPRStaticMeshEditorViewport::RefreshSingleMeshUV(FRPRMeshDataPtr MeshDataPtr)
 {
-	PreviewScene->SetFloorOffset(-StaticMesh->ExtendedBounds.Origin.Z + StaticMesh->ExtendedBounds.BoxExtent.Z);
+	if (URPRStaticMeshPreviewComponent* preview = MeshDataPtr->GetPreview())
+	{
+		preview->MarkRenderStateDirty();
+	}
 }
 
-void SRPRStaticMeshEditorViewport::SetPreviewMesh(UStaticMesh* InStaticMesh)
+void SRPRStaticMeshEditorViewport::RefreshMeshUVs()
 {
-	FComponentReregisterContext ReregisterContext(PreviewMeshComponent);
-	PreviewMeshComponent->SetStaticMesh(InStaticMesh);
+	FRPRMeshDataContainerPtr meshDatas = StaticMeshEditorPtr.Pin()->GetMeshDatas();
 
-	AddComponent(PreviewMeshComponent);
+	if (meshDatas.IsValid())
+	{
+		for (int32 i = 0; i < meshDatas->Num(); ++i)
+		{
+			RefreshSingleMeshUV((*meshDatas)[i]);
+		}
+	}
+}
 
-	EditorViewportClient->SetPreviewMesh(InStaticMesh, PreviewMeshComponent);
+void SRPRStaticMeshEditorViewport::RefreshViewport()
+{
+	SceneViewport->Invalidate();
+}
+
+void SRPRStaticMeshEditorViewport::InitMeshDatas()
+{
+	FRPRMeshDataContainerPtr meshDatas = StaticMeshEditorPtr.Pin()->GetMeshDatas();
+
+	if (meshDatas.IsValid())
+	{
+		for (int32 i = 0; i < meshDatas->Num(); ++i)
+		{
+			CreatePreviewMeshAndAddToViewport((*meshDatas)[i]);
+
+			(*meshDatas)[i]->OnPostRawMeshChange.AddSP(this, &SRPRStaticMeshEditorViewport::RefreshSingleMeshUV, (*meshDatas)[i]);
+		}
+	}
+}
+
+void SRPRStaticMeshEditorViewport::SetFloorToStaticMeshBottom()
+{
+	FVector center, extents;
+	StaticMeshEditorPtr.Pin()->GetMeshesBounds(center, extents);
+	PreviewScene->SetFloorOffset(-center.Z + extents.Z);
+}
+
+void SRPRStaticMeshEditorViewport::CreatePreviewMeshAndAddToViewport(TSharedPtr<FRPRMeshData> MeshData)
+{
+	ARPRStaticMeshPreview* meshPreview = PreviewScene->GetWorld()->SpawnActor<ARPRStaticMeshPreview>();
+	URPRStaticMeshPreviewComponent* previewMeshComponent = meshPreview->GetPreviewComponent();
+	previewMeshComponent->SetStaticMesh(MeshData->GetStaticMesh());
+	
+	MeshData->AssignPreview(previewMeshComponent);
 }
 
 void SRPRStaticMeshEditorViewport::AddComponent(UActorComponent* InComponent)
 {
-	FTransform transform = FTransform::Identity;
-	PreviewScene->AddComponent(InComponent, transform);
-}
-
-void SRPRStaticMeshEditorViewport::PaintStaticMeshPreview(const TArray<FColor>& Colors)
-{
-	if (PreviewMeshComponent != nullptr)
+	FTransform transform;
+	USceneComponent* sceneComponent = Cast<USceneComponent>(InComponent);
+	if (sceneComponent)
 	{
-		FRPRMeshVertexPainter::PaintMesh(PreviewMeshComponent, Colors);
+		transform = sceneComponent->GetComponentTransform();
 	}
+	PreviewScene->AddComponent(InComponent, transform);
 }
 
 void SRPRStaticMeshEditorViewport::AddReferencedObjects(FReferenceCollector& Collector)
 {
-	Collector.AddReferencedObject(StaticMesh);
+	Collector.AddReferencedObjects(PreviewMeshComponents);
+
+	PreviewMeshComponents.RemoveAll([](URPRStaticMeshPreviewComponent* mesPreviewComponent)
+	{
+		return (mesPreviewComponent == nullptr);
+	});
 }
 
 TSharedRef<class SEditorViewport> SRPRStaticMeshEditorViewport::GetViewportWidget()
@@ -84,9 +126,7 @@ TSharedRef<FEditorViewportClient> SRPRStaticMeshEditorViewport::MakeEditorViewpo
 		new FRPRStaticMeshEditorViewportClient(
 			StaticMeshEditorPtr, 
 			SharedThis(this), 
-			PreviewScene.ToSharedRef(), 
-			StaticMesh, 
-			nullptr
+			PreviewScene.ToSharedRef()
 		)
 	);
 
@@ -94,7 +134,26 @@ TSharedRef<FEditorViewportClient> SRPRStaticMeshEditorViewport::MakeEditorViewpo
 	EditorViewportClient->SetRealtime(true);
 	EditorViewportClient->VisibilityDelegate.BindSP(this, &SRPRStaticMeshEditorViewport::IsVisible);
 
+	InitializeEditorViewportClientCamera();
+
 	return (EditorViewportClient.ToSharedRef());
+}
+
+void SRPRStaticMeshEditorViewport::InitializeEditorViewportClientCamera()
+{
+	FRPRMeshDataContainerPtr meshDataPtr = StaticMeshEditorPtr.Pin()->GetMeshDatas();
+
+	FBoxSphereBounds bounds;
+	meshDataPtr->GetMeshesBoxSphereBounds(bounds);
+
+	if (meshDataPtr->Num() == 1)
+	{
+		EditorViewportClient->InitializeCameraForStaticMesh((*meshDataPtr)[0]->GetStaticMesh());
+	}
+	else
+	{
+		EditorViewportClient->InitializeCameraFromBounds(bounds);
+	}
 }
 
 TSharedPtr<SWidget> SRPRStaticMeshEditorViewport::MakeViewportToolbar()

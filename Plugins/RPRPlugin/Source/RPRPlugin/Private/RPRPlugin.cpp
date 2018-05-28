@@ -6,7 +6,7 @@
 
 #if WITH_EDITOR
 #	include "Viewport/SRPRViewportTabContent.h"
-#	include "Viewport/RPREditorStyle.h"
+#	include "RPREditorStyle.h"
 #	include "Slate/SceneViewport.h"
 
 #	include "LevelEditor.h"

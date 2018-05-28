@@ -1,12 +1,8 @@
 #include "MaterialCacheMaker.h"
 #include "RPRHelpers.h"
-#include "MaterialConstants.h"
 #include "RPRMaterialHelpers.h"
-#include "ParameterFactory.h"
+#include "Factory/ParameterFactory.h"
 #include "RPRXMaterialHelpers.h"
-#include "MaterialParameter.h"
-
-#define RPRX_META_UNUSED_PARAMETER	TEXT("rprxUnusedParameter")
 
 namespace RPRX
 {
@@ -45,13 +41,10 @@ namespace RPRX
 		UProperty* currentProperty = parametersStruct->PropertyLink;
 		while (currentProperty != nullptr)
 		{
-			if (!currentProperty->HasMetaData(RPRX_META_UNUSED_PARAMETER))
+			result = Visitor.Execute(uberMaterialParameters, parametersStruct, currentProperty, OutMaterial);
+			if (RPR::IsResultFailed(result))
 			{
-				result = Visitor.Execute(uberMaterialParameters, parametersStruct, currentProperty, OutMaterial);
-				if (RPR::IsResultFailed(result))
-				{
-					return (result);
-				}
+				return (result);
 			}
 
 			currentProperty = currentProperty->PropertyLinkNext;
@@ -66,10 +59,7 @@ namespace RPRX
 	{
 		RPR::FResult result = RPR_SUCCESS;
 
-		const FString& name = GetMetaDataXmlParam(InParameterProperty);
-
 		RPRX::MaterialParameter::FArgs materialCacheParametersSetterArgs(
-			name,
 			InParameters,
 			InParameterProperty,
 			MaterialContext,
@@ -88,11 +78,6 @@ namespace RPRX
 		}
 
 		return (result);
-	}
-
-	const FString&		FMaterialCacheMaker::GetMetaDataXmlParam(UProperty* Property) const
-	{
-		return (Property->GetMetaData(RPR::FMaterialConstants::PropertyMetaDataXmlParamName));
 	}
 
 	bool FMaterialCacheMaker::CanParameterBeApplied(const RPRX::MaterialParameter::FArgs& Args) const

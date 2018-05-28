@@ -12,7 +12,7 @@ class SRPRStaticMeshEditorViewport : public SEditorViewport, public FGCObject, p
 {
 public:
 	SLATE_BEGIN_ARGS(SRPRStaticMeshEditorViewport)
-	: _StaticMeshEditor(nullptr)
+		: _StaticMeshEditor(nullptr)
 	{}
 
 		SLATE_ARGUMENT(FRPRStaticMeshEditorPtr, StaticMeshEditor)
@@ -22,13 +22,14 @@ public:
 	SRPRStaticMeshEditorViewport();
 
 	void Construct(const FArguments& InArgs);
+	void RefreshSingleMeshUV(FRPRMeshDataPtr MeshDataPtr);
+	void RefreshMeshUVs();
+	void RefreshViewport();
 
 	void SetFloorToStaticMeshBottom();
 
-	void SetPreviewMesh(UStaticMesh* InStaticMesh);
+	void CreatePreviewMeshAndAddToViewport(FRPRMeshDataPtr InMeshData);
 	void AddComponent(UActorComponent* InComponent);
-
-	void PaintStaticMeshPreview(const TArray<struct FColor>& Colors);
 
 	/* FGCObject Implementation */
 	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
@@ -39,7 +40,7 @@ public:
 	virtual void OnFloatingButtonClicked() override;
 
 	bool	IsVisible() const;
-
+	
 protected:
 
 	virtual TSharedRef<FEditorViewportClient>	MakeEditorViewportClient() override;
@@ -47,8 +48,13 @@ protected:
 
 private:
 
-	UStaticMesh*							StaticMesh;
-	UStaticMeshComponent*					PreviewMeshComponent;
+	void	InitMeshDatas();
+	void	InitializeEditorViewportClientCamera();
+	void	UpdatePreviewMaterials(FRPRMeshDataPtr MeshData);
+
+private:
+
+	TArray<class URPRStaticMeshPreviewComponent*>	PreviewMeshComponents;
 
 	TWeakPtr<FRPRStaticMeshEditor>			StaticMeshEditorPtr;
 	FRPRStaticMeshEditorViewportClientPtr	EditorViewportClient;

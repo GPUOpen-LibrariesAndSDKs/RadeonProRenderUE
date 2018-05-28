@@ -20,7 +20,19 @@
 			"LoadingPhase": "Default"
 		},
 		{
+			"Name": "RPREditorTools",
+			"Type": "Editor"
+		},
+		{
 			"Name": "RPRMaterialLoader",
+			"Type": "Editor"
+		},
+		{
+			"Name": "RPRSectionsManager",
+			"Type": "Editor"
+		},
+		{
+			"Name": "RPRMaterialEditor",
 			"Type": "Editor"
 		},
 		{
@@ -28,7 +40,31 @@
 			"Type": "Editor"
 		},
 		{
-			"Name": "RPRMaterialEditor",
+			"Name": "UVVisualizer",
+			"Type": "Editor"
+		},
+		{
+			"Name": "UVProjection_Planar",
+			"Type": "Editor"			
+		},
+		{
+			"Name": "UVProjection_Cubic",
+			"Type": "Editor"			
+		},
+		{
+			"Name": "UVProjection_Spherical",
+			"Type": "Editor"			
+		},
+		{
+			"Name": "UVProjection_Cylindrical",
+			"Type": "Editor"			
+		},
+		{
+			"Name": "UVProjection_TriPlanar",
+			"Type": "Editor"			
+		},
+		{
+			"Name": "Outliners",
 			"Type": "Editor"
 		}
 	]

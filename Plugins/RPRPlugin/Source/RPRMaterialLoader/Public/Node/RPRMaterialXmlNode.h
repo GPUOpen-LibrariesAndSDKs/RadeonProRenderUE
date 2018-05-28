@@ -31,12 +31,12 @@ public:
 
 protected:
 
-	UProperty*	FindPropertyByMetaDataXmlParamName(const UStruct* MaterialParameterStruct, const FName& ParameterName) const;
+	UProperty*	FindPropertyByXmlParamName(const FRPRUberMaterialParameters* UberMaterialParameters, 
+									const UStruct* MaterialParameterStruct, const FName& ParameterName) const;
 	
 private:
 
-	void		ParseParameters(const FXmlNode& Node);
-
+	void	ParseParameters(const FXmlNode& Node);
 
 protected:
 

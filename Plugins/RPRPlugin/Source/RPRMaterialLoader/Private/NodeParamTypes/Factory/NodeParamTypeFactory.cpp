@@ -4,8 +4,9 @@
 #include "IsClass.h"
 #include "SharedPointer.h"
 #include "NodeParamRPRMaterialMap/NodeParamRPRMaterialMap.h"
-#include "NodeParamUInt/NodeParamUInt.h"
-#include "NodeParamBool/NodeParamBool.h"
+#include "NodeParamRPRMaterialBool/NodeParamRPRMaterialBool.h"
+#include "NodeParamRPRMaterialEnum/NodeParamRPRMaterialEnum.h"
+#include "NodeParamRPRMaterialMapChannel1/NodeParamRPRMaterialMapChannel1.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogNodeParamTypeFactory, Log, All)
 
@@ -18,9 +19,10 @@ TSharedPtr<INodeParamType> FNodeParamTypeFactory::CreateNewNodeParam(const FStri
 		#define ADD_TO_FACTORY_CHECK_CLASS(ClassCheck, NodeType) \
 			AddClassToFactory<ClassCheck, NodeType>(TEXT(#ClassCheck));
 		
-		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialMap, FNodeParamRPRMaterialMap);
-		AddNativeTypeToFactory<uint8, FNodeParamUInt>();
-		AddNativeTypeToFactory<bool, FNodeParamBool>();
+		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialConstantOrMap, FNodeParamRPRMaterialMap);
+		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialMapChannel1, FNodeParamRPRMaterialMapChannel1);
+		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialBool, FNodeParamRPRMaterialBool);
+		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialEnum, FNodeParamRPRMaterialEnum);
 	}
 
 	FNodeParamTypeCreator* nodeParamTypeCreator = FactoryMap.Find(PropertyType);

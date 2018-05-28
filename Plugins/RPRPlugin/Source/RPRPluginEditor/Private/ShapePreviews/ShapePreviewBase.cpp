@@ -3,7 +3,7 @@
 #include "DrawDebugHelpers.h"
 
 UShapePreviewBase::UShapePreviewBase()
-	: ShapeColor(FColor::Yellow)
+	: ShapeColor(FColor(217, 119, 19, 150)) // Kind of orange
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }

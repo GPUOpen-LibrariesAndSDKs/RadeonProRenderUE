@@ -2,8 +2,12 @@
 
 #include "Materials/MaterialInstanceConstant.h"
 #include "RPRUberMaterialParameters.h"
+#include "TriPlanarSettings.h"
 #include "RPRMaterial.generated.h"
 
+/*
+* Asset representing a RPR Uber material
+*/
 UCLASS(BlueprintType)
 class RPRPLUGIN_API URPRMaterial : public UMaterialInstanceConstant
 {
@@ -21,7 +25,6 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Material)
 	FRPRUberMaterialParameters	MaterialParameters;
-	
 
 #if WITH_EDITORONLY_DATA
 

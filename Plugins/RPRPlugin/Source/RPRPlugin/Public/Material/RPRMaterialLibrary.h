@@ -5,6 +5,10 @@
 #include "MaterialContext.h"
 #include "Map.h"
 
+/*
+* Library of RPR materials.
+* Create native RPR material from FRPRMaterial and keep it in cache.
+*/
 class FRPRXMaterialLibrary
 {
 public:

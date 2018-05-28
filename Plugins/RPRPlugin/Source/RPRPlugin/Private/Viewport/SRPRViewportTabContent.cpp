@@ -11,11 +11,14 @@
 #include "Slate/SceneViewport.h"
 
 #include "Viewport/RPRViewportClient.h"
-#include "Viewport/RPREditorStyle.h"
+#include "RPREditorStyle.h"
 
 #include "Widgets/SViewport.h"
 #include "Widgets/Input/SComboBox.h"
 #include "Widgets/Input/SNumericEntryBox.h"
+#include <SSpacer.h>
+#include <SButton.h>
+#include <SlateIcon.h>
 
 #define LOCTEXT_NAMESPACE "SRPRViewportTabContent"
 

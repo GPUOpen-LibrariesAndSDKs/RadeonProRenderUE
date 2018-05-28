@@ -6,10 +6,10 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRPRMaterialEditor, All, All);
 
-class RPRMaterialEditorModule : public IModuleInterface
+class FRPRMaterialEditorModule : public IModuleInterface
 {
 public:
-	virtual ~RPRMaterialEditorModule() {}
+	virtual ~FRPRMaterialEditorModule() {}
 
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
@@ -21,6 +21,9 @@ private:
 
 	void	RegisterAssetTypeActions();
 	void	UnregisterAllAssetTypeActions();
+
+	void	RegisterCustomPropertyLayouts();
+	void	UnregisterCustomPropertyLayouts();
 
 private:
 

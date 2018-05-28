@@ -20,6 +20,8 @@ void FRPRStaticMeshEditorAssetContextMenu::ShowRPRStaticMeshEditor(TArray<FAsset
 {
 	FRPRPluginEditorModule& RPRPluginEditor = FModuleManager::LoadModuleChecked<FRPRPluginEditorModule>("RPRPluginEditor");
 
+	TArray<UStaticMesh*> staticMeshes;
+
 	for (int32 i = 0; i < SelectedAsset.Num(); ++i)
 	{
 		if (SelectedAsset[i].GetClass()->IsChildOf(UStaticMesh::StaticClass()))
@@ -27,9 +29,14 @@ void FRPRStaticMeshEditorAssetContextMenu::ShowRPRStaticMeshEditor(TArray<FAsset
 			UStaticMesh* staticMesh = Cast<UStaticMesh>(SelectedAsset[i].GetAsset());
 			if (staticMesh != nullptr)
 			{
-				FRPRStaticMeshEditor::CreateRPRStaticMeshEditor(staticMesh);
+				staticMeshes.Add(staticMesh);
 			}
 		}
+	}
+
+	if (staticMeshes.Num() > 0)
+	{
+		FRPRStaticMeshEditor::CreateRPRStaticMeshEditor(staticMeshes);
 	}
 }
 

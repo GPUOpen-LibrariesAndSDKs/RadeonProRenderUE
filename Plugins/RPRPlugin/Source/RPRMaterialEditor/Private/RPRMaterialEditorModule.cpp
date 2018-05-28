@@ -1,28 +1,39 @@
 #include "RPRMaterialEditorModule.h"
 #include "RPRMaterialAssetTypeActions.h"
 #include "IAssetTools.h"
+#include "PropertyEditorModule.h"
+#include "RPRMaterial.h"
+#include "RPRUberMaterialParameters.h"
+#include "RPRMaterialBoolPropertiesLayout.h"
+#include "RPRMaterialBool.h"
+#include "RPRMaterialEnumPropertiesLayout.h"
+#include "RPRMaterialMapPropertiesLayout.h"
+#include "RPRMaterialMapChannel1PropertiesLayout.h"
 
 DEFINE_LOG_CATEGORY(LogRPRMaterialEditor)
 
+#define CUSTOM_RPRMATERIALEDITOR_LAYOUT	TEXT("CustomRPRMaterialEditorLayout")
+
 #define LOCTEXT_NAMESPACE "RPRMaterialEditorModule"
 
-void RPRMaterialEditorModule::StartupModule()
+void FRPRMaterialEditorModule::StartupModule()
 {
 	RegisterAssetTypeActions();
+	RegisterCustomPropertyLayouts();
 }
 
-void RPRMaterialEditorModule::ShutdownModule()
+void FRPRMaterialEditorModule::ShutdownModule()
 {
 	UnregisterAllAssetTypeActions();
 }
 
-const FString& RPRMaterialEditorModule::GetPluginName()
+const FString& FRPRMaterialEditorModule::GetPluginName()
 {
 	static FString pluginName(TEXT("RPRPlugin"));
 	return (pluginName);
 }
 
-void RPRMaterialEditorModule::RegisterAssetTypeActions()
+void FRPRMaterialEditorModule::RegisterAssetTypeActions()
 {
 	IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
 
@@ -34,7 +45,7 @@ void RPRMaterialEditorModule::RegisterAssetTypeActions()
 	}
 }
 
-void RPRMaterialEditorModule::UnregisterAllAssetTypeActions()
+void FRPRMaterialEditorModule::UnregisterAllAssetTypeActions()
 {
 	if (FModuleManager::Get().IsModuleLoaded("AssetTools"))
 	{
@@ -50,6 +61,27 @@ void RPRMaterialEditorModule::UnregisterAllAssetTypeActions()
 	}
 }
 
+void FRPRMaterialEditorModule::RegisterCustomPropertyLayouts()
+{
+	FPropertyEditorModule& propertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+
+	propertyEditorModule.RegisterCustomPropertyTypeLayout(*FRPRMaterialBool::StaticStruct()->GetName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialBoolPropertiesLayout::MakeInstance)
+	);
+
+	propertyEditorModule.RegisterCustomPropertyTypeLayout(*FRPRMaterialEnum::StaticStruct()->GetName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialEnumPropertiesLayout::MakeInstance)
+	);
+
+	propertyEditorModule.RegisterCustomPropertyTypeLayout(*FRPRMaterialConstantOrMap::StaticStruct()->GetName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialConstantOrMapPropertiesLayout::MakeInstance)
+	);
+
+	propertyEditorModule.RegisterCustomPropertyTypeLayout(*FRPRMaterialMapChannel1::StaticStruct()->GetName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialConstantOrMapChannel1PropertiesLayout::MakeInstance)
+	);
+}
+
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(RPRMaterialEditorModule, RPRMaterialEditor);
+IMPLEMENT_MODULE(FRPRMaterialEditorModule, RPRMaterialEditor);

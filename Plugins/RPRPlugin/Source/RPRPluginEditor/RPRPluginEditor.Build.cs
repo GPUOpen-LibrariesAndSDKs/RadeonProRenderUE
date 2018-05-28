@@ -16,9 +16,11 @@ public class RPRPluginEditor : ModuleRules
         PublicIncludePaths.AddRange(
             new string[] {
                 "RPRPluginEditor/Public",
-                "RPRPlugin/Public"				
+                "RPRPlugin/Public",
 				// ... add public include paths required here ...
-			}
+
+                "RPRPlugin/Public/UVMappingEditor",
+            }
             );
 
 
@@ -31,22 +33,10 @@ public class RPRPluginEditor : ModuleRules
 
                 "RPRPluginEditor/Private/Material/",
                 "RPRPluginEditor/Private/Material/NodeParamTypes",
-
-                "RPRPluginEditor/Private/Tools",
-                "RPRPluginEditor/Private/Tools/RPRMeshVertexPainter",
-                "RPRPluginEditor/Private/Tools/IDetailsViewHelper",
-                "RPRPluginEditor/Private/Tools/UVFixer",
-                "RPRPluginEditor/Private/Tools/Algorithms/Utilities",
-                "RPRPluginEditor/Private/Tools/StaticMeshHelper",
                 
-                "RPRPluginEditor/Private/Tools/Math/PackVertexUV",
-                "RPRPluginEditor/Private/Tools/Math/RPRVectorTools",
-                "RPRPluginEditor/Private/Tools/Math/TransformablePlane",
-                "RPRPluginEditor/Private/Tools/Math/UVUtility",
-                "RPRPluginEditor/Private/Tools/Math/RPRMeshFace",
-                "RPRPluginEditor/Private/Tools/Math/RPRMeshFaces",
-
-                "RPRPluginEditor/Private/UVMappingEditor/Algorithms/Utilities/CubeProjectionFace",
+                "RPRPluginEditor/Private/Outliners",
+                "RPRPluginEditor/Private/Outliners/ObjectsOutliner",
+                "RPRPluginEditor/Private/Outliners/SceneOutliner",
 
                 "RPRPlugin/Private"
 				// ... add other private include paths required here ...
@@ -59,11 +49,9 @@ public class RPRPluginEditor : ModuleRules
             new string[]
             {
                 "Core", "RPRPlugin"
-				
 				// ... add other public dependencies that you statically link with here ...
 			}
             );
-
 
         PrivateDependencyModuleNames.AddRange(
             new string[]
@@ -75,14 +63,18 @@ public class RPRPluginEditor : ModuleRules
                 "UnrealEd",
                 "InputCore",
                 "EditorStyle",
-                "Slate",
                 "LevelEditor",
                 "Settings",
                 "StaticMeshEditor",
                 "PropertyEditor",
                 "AdvancedPreviewScene",
                 "RenderCore",
+                "RHI",
                 "RawMesh",
+                "RPREditorTools",
+                "UVVisualizer",
+                "RPRSectionsManager",
+                "Outliners"
 				// ... add private dependencies that you statically link with here ...	
 			}
         );

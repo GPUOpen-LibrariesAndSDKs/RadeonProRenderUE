@@ -38,7 +38,10 @@ bool FRPRMaterialXmlNodeParameter::ParseFromXml(const FXmlNode& Node)
 void FRPRMaterialXmlNodeParameter::LoadRPRMaterialParameters(FRPRMaterialNodeSerializationContext& SerializationContext, 
 																									UProperty* PropertyPtr)
 {
-	FString type = FUberMaterialPropertyHelper::GetPropertyTypeName(PropertyPtr);
+	const FRPRUberMaterialParameterBase* uberMaterialParameter =
+		FUberMaterialPropertyHelper::GetParameterBaseFromProperty(SerializationContext.MaterialParameters, PropertyPtr);
+
+	FString type = uberMaterialParameter->GetPropertyTypeName(PropertyPtr);
 	TSharedPtr<INodeParamType> nodeParam = FNodeParamTypeFactory::CreateNewNodeParam(type);
 	if (nodeParam.IsValid())
 	{

@@ -13,7 +13,7 @@ void FRPRMaterialXmlUberNode::LoadRPRMaterialParameters(FRPRMaterialNodeSerializ
 
 	for (FRPRMaterialXmlNodeParameter& parameter : Parameters)
 	{
-		UProperty* propertyPtr = FindPropertyByMetaDataXmlParamName(materialParametersStruct, parameter.GetName());
+		UProperty* propertyPtr = FindPropertyByXmlParamName(SerializationContext.MaterialParameters, materialParametersStruct, parameter.GetName());
 		if (propertyPtr != nullptr)
 		{
 			parameter.LoadRPRMaterialParameters(SerializationContext, propertyPtr);
