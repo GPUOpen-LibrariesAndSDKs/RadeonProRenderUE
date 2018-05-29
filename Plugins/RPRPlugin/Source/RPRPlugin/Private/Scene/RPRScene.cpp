@@ -32,6 +32,7 @@
 #include "RPRStats.h"
 #include "RPRHelpers.h"
 #include "RPRXHelpers.h"
+#include "RPRIHelpers.h"
 
 #define LOCTEXT_NAMESPACE "ARPRScene"
 namespace
@@ -880,7 +881,7 @@ void	ARPRScene::BeginDestroy()
 
 	if (m_RpriContext != NULL)
 	{
-		RPR::DeleteObject(m_RpriContext);
+		RPRI::DeleteContext(m_RpriContext);
 		m_RpriContext = NULL;
 	}
 	

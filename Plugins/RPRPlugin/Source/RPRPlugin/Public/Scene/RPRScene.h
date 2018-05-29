@@ -12,6 +12,7 @@
 #include "UMSControl.h"
 #include <RadeonProRenderInterchange.h>
 #include <map>
+#include "RPRITypedefs.h"
 #include "RPRScene.generated.h"
 
 /**
@@ -30,11 +31,11 @@ public:
 	UPROPERTY()
 	FString	LastSavedFilename;
 public:
-	rpr_context		m_RprContext;
-	rpr_scene		m_RprScene;
-	rpr_material_system	m_RprMaterialSystem;
-	rprx_context		m_RprSupportCtx;
-	rpriContext			m_RpriContext;
+	RPR::FContext	m_RprContext;
+	RPR::FScene		m_RprScene;
+	RPR::FMaterialSystem	m_RprMaterialSystem;
+	RPRX::FContext			m_RprSupportCtx;
+	RPRI::FContext			m_RpriContext;
 	std::map<std::string, rpriExportRprMaterialResult> m_MaterialCache;
 	rpr::MaterialLibrary m_materialLibrary;
 	rpr::UMSControl m_UMSControl;

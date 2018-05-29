@@ -12,6 +12,7 @@ namespace RPR
 
 	typedef rpr_context			FContext;
 	typedef rpr_material_system FMaterialSystem;
+	typedef rpr_scene			FScene;
 
 	typedef rpr_shape			FShape;
 	typedef rpr_image			FImage;

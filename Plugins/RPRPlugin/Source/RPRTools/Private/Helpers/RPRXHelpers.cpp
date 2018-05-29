@@ -1,4 +1,5 @@
 #include "RPRXHelpers.h"
+#include "RprSupport.h"
 
 namespace RPRX
 {
