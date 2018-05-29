@@ -5,6 +5,8 @@
 #include "TriPlanarSettings.h"
 #include "RPRMaterial.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FRPRMaterialChanged, class URPRMaterial*)
+
 /*
 * Asset representing a RPR Uber material
 */
@@ -28,8 +30,10 @@ public:
 
 #if WITH_EDITORONLY_DATA
 
-	bool	bShouldCacheBeRebuild;
+	FRPRMaterialChanged OnRPRMaterialChanged;
+	bool				bShouldCacheBeRebuild;
 
 #endif
+
 
 };

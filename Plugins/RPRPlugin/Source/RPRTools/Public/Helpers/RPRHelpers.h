@@ -4,6 +4,8 @@
 
 #include "RadeonProRender.h"
 #include "Math/mathutils.h"
+#include "RPRToolsModule.h"
+#include "RPRTypedefs.h"
 
 RPRTOOLS_API RadeonProRender::matrix BuildMatrixNoScale(const struct FTransform &transform);
 RPRTOOLS_API RadeonProRender::matrix BuildMatrixWithScale(const struct FTransform &transform);
@@ -24,5 +26,7 @@ namespace RPR
 	* Delete a native object.
 	* Use the native RPR function to delete object.
 	*/
-	RPRTOOLS_API void		DeleteObject(void* Object);
+	RPRTOOLS_API FResult		DeleteObject(void* Object);
+
+	RPRTOOLS_API FResult		SceneDetachShape(FScene Scene, FShape Shape);
 }

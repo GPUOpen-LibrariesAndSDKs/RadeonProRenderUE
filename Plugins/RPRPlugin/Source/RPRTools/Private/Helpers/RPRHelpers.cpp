@@ -47,17 +47,27 @@ RadeonProRender::matrix	BuildMatrixWithScale(const FTransform &transform)
 	return matrix;
 }
 
-bool RPR::IsResultSuccess(rpr_int Result)
+namespace RPR
 {
-	return (Result == RPR_SUCCESS);
-}
 
-bool RPR::IsResultFailed(rpr_int Result)
-{
-	return (!IsResultSuccess(Result));
-}
+	bool IsResultSuccess(rpr_int Result)
+	{
+		return (Result == RPR_SUCCESS);
+	}
 
-void RPR::DeleteObject(void* Object)
-{
-	rprObjectDelete(Object);
+	bool IsResultFailed(rpr_int Result)
+	{
+		return (!IsResultSuccess(Result));
+	}
+
+	FResult DeleteObject(void* Object)
+	{
+		return rprObjectDelete(Object);
+	}
+
+	FResult SceneDetachShape(FScene Scene, FShape Shape)
+	{
+		return rprSceneDetachShape(Scene, Shape);
+	}
+
 }

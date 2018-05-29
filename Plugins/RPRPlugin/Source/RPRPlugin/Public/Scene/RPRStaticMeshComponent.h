@@ -12,6 +12,11 @@
 #include "RPRMaterial.h"
 #include "RPRStaticMeshComponent.generated.h"
 
+enum
+{
+	PROPERTY_REBUILD_MATERIALS = 0x80
+};
+
 UCLASS(Transient)
 class URPRStaticMeshComponent : public URPRSceneComponent
 {
@@ -21,8 +26,10 @@ public:
 
 	virtual bool	Build() override;
 	virtual bool	RebuildTransforms() override;
+	bool			AreMaterialsDirty() const;
+	void			MarkMaterialsAsDirty();
 
-	static void		ClearCache(rpr_scene scene);
+	static void		ClearCache(RPR::FScene scene);
 private:
 	static TMap<UStaticMesh*, TArray<SRPRCachedMesh>>	Cache;
 	rpr_material_node CreateDefaultDummyShapeMaterial(uint32 iShape);
@@ -30,12 +37,21 @@ private:
 
 	TArray<SRPRCachedMesh>	GetMeshInstances(UStaticMesh *mesh);
 	bool					BuildMaterials();
-	void					BuildRPRMaterial(RPR::FShape& Shape, URPRMaterial* Material);
 
 	virtual void	TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
 	virtual void	ReleaseResources() override;
 	virtual bool	PostBuild() override;
+	virtual bool	RPRThread_Update() override;
+
+	void BuildRPRMaterial(RPR::FShape& Shape, URPRMaterial* Material);
+	bool ApplyRPRMaterialOnShape(RPR::FShape& Shape, URPRMaterial* Material);
+	void OnUsedMaterialChanged(URPRMaterial* Material);
+	void ClearMaterialChangedWatching();
+
 private:
 
 	TArray<SRPRShape>	m_Shapes;
+
+	TMap<URPRMaterial*, FDelegateHandle> m_OnMaterialChangedDelegateHandles;
+
 };

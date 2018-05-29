@@ -18,6 +18,7 @@ void URPRMaterial::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
 	if (memberProperty != nullptr && memberProperty->GetName() == GET_MEMBER_NAME_STRING_CHECKED(URPRMaterial, MaterialParameters))
 	{
 		bShouldCacheBeRebuild = true;
+		OnRPRMaterialChanged.Broadcast(this);
 	}
 }
 
