@@ -30,6 +30,8 @@
 #include "TextureResource.h"
 
 #include "RPRStats.h"
+#include "RPRHelpers.h"
+#include "RPRXHelpers.h"
 
 #define LOCTEXT_NAMESPACE "ARPRScene"
 namespace
@@ -485,12 +487,14 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		}
 
 		m_RenderTexture = m_Plugin->GetRenderTexture();
+		RPRImageManager = MakeShareable(new RPR::FImageManager(m_RprContext));
 
 		RPR::FMaterialContext materialContext;
 		materialContext.MaterialSystem = m_RprMaterialSystem;
 		materialContext.RPRContext = m_RprContext;
 		materialContext.RPRXContext = m_RprSupportCtx;
-		RPRXMaterialLibrary.Initialize(materialContext);
+		RPRXMaterialLibrary.Initialize(materialContext, RPRImageManager);
+
 
 		LoadMappings();
 
@@ -543,6 +547,7 @@ void	ARPRScene::Rebuild()
 
 	m_MaterialCache.clear();
 	RPRXMaterialLibrary.ClearCache();
+	RPRImageManager->ClearCache();
 
 	rprContextClearMemory(m_RprContext);
 	// NOTE: Right now, keeps mesh cache
@@ -863,31 +868,31 @@ void	ARPRScene::BeginDestroy()
 	RemoveSceneContent(true, true);
 	if (m_RprSupportCtx != NULL)
 	{
-		rprxDeleteContext(m_RprSupportCtx);
+		RPRX::DeleteContext(m_RprSupportCtx);
 		m_RprSupportCtx = NULL;
 	}
 
 	if (m_RprMaterialSystem != NULL)
 	{
-		rprObjectDelete(m_RprMaterialSystem);
+		RPR::DeleteObject(m_RprMaterialSystem);
 		m_RprMaterialSystem = NULL;
 	}
 
 	if (m_RpriContext != NULL)
 	{
-		rpriFreeContext(m_RpriContext);
+		RPR::DeleteObject(m_RpriContext);
 		m_RpriContext = NULL;
 	}
 	
 	if (m_RprScene != NULL)
 	{
-		rprObjectDelete(m_RprScene);
+		RPR::DeleteObject(m_RprScene);
 		m_RprScene = NULL;
 	}
 	if (m_RprContext != NULL)
 	{
 		//rprContextClearMemory(m_RprContext);
-		rprObjectDelete(m_RprContext);
+		RPR::DeleteObject(m_RprContext);
 		m_RprContext = NULL;
 	}
 }
@@ -901,6 +906,11 @@ FRPRXMaterialLibrary& ARPRScene::GetRPRMaterialLibrary()
 const FRPRXMaterialLibrary& ARPRScene::GetRPRMaterialLibrary() const
 {
 	return (RPRXMaterialLibrary);
+}
+
+RPR::FImageManagerPtr ARPRScene::GetImageManager() const
+{
+	return (RPRImageManager);
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -2,6 +2,9 @@
 
 using UnrealBuildTool;
 
+/// <summary>
+/// The editor version of the RPR Plugin module. Gathers the other editor module and use them.
+/// </summary>
 public class RPRPluginEditor : ModuleRules
 {
 	public RPRPluginEditor(ReadOnlyTargetRules Target) : base(Target)

@@ -18,12 +18,13 @@ namespace RPRX
 		RPR::FMaterialContext& materialContext = SetterParameters.MaterialContext;
 
 		const FRPRMaterialMap* materialMap = SetterParameters.GetDirectParameter<FRPRMaterialMap>();
-		if (materialMap->Texture != nullptr)
+		if (materialMap->Texture != nullptr && SetterParameters.ImageManager.IsValid())
 		{
 			RPR::FMaterialNode imageMaterialNode = nullptr;
 			RPR::FMaterialHelpers::CreateImageNode(
 				materialContext.RPRContext,
 				materialContext.MaterialSystem,
+				*SetterParameters.ImageManager.Get(),
 				materialMap->Texture,
 				imageMaterialNode
 			);

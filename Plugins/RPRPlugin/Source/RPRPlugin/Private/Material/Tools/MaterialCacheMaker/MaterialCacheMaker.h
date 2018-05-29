@@ -14,7 +14,7 @@ namespace RPRX
 	{
 	public:
 
-		FMaterialCacheMaker(RPR::FMaterialContext& InMaterialContent, const URPRMaterial* InRPRMaterial);
+		FMaterialCacheMaker(RPR::FMaterialContext& InMaterialContent, const URPRMaterial* InRPRMaterial, RPR::FImageManagerPtr InImageManager);
 
 		bool	CacheUberMaterial(RPRX::FMaterial& OutMaterial);
 
@@ -30,6 +30,7 @@ namespace RPRX
 
 		RPR::FMaterialContext&	MaterialContext;
 		const URPRMaterial*		RPRMaterial;
+		RPR::FImageManagerPtr	ImageManager;
 	};
 
 }

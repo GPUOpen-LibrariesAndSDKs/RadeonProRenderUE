@@ -4,6 +4,7 @@
 #include "UnrealString.h"
 #include "RPRTypedefs.h"
 #include "MaterialContext.h"
+#include "RPRImageManager.h"
 
 namespace RPRX
 {
@@ -15,8 +16,9 @@ namespace RPRX
 			const UProperty* Property;
 			RPR::FMaterialContext& MaterialContext;
 			FMaterial& Material;
+			RPR::FImageManagerPtr ImageManager;
 
-			FArgs(const FRPRUberMaterialParameters& InParameters, const UProperty* InProperty, 
+			FArgs(const FRPRUberMaterialParameters& InParameters, const UProperty* InProperty, RPR::FImageManagerPtr InImageManager,
 				RPR::FMaterialContext& InMaterialContext, FMaterial& InMaterial);
 
 			template<typename ParameterType>

@@ -5,26 +5,22 @@ using System.IO;
 using UnrealBuildTool;
 
 /// <summary>
-/// Main runtime plugin
+/// Primary runtime module on which any other module can depend.
+/// This module only provide tools that will *never* need other RPR dependencies.
 /// </summary>
-public class RPRPlugin : ModuleRules
+public class RPRTools : ModuleRules
 {
-	public RPRPlugin(ReadOnlyTargetRules Target) : base(Target)
+	public RPRTools(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicIncludePaths.AddRange(
 			new string[] {
-				"RPRPlugin/Public",
-                "RPRPlugin/Public/Enums",
-
-                "RPRPlugin/Public/Material",
-                "RPRPlugin/Public/Material/Tools",
-
-                "RPRPlugin/Public/Scene",
-                "RPRPlugin/Public/Scene/StaticMeshComponent",
-				// ... add public include paths required here ...
-			}
+				"RPRTools/Public",
+                "RPRTools/Public/Helpers",
+                "RPRTools/Public/Typedefs",
+                "RPRTools/Public/Enums",
+            }
 			);
 
 		//bFasterWithoutUnity = true;
@@ -37,22 +33,13 @@ public class RPRPlugin : ModuleRules
 
 		PrivateIncludePaths.AddRange(
 			new string[] {
-				"RPRPlugin/Private",
+                "RPRTools/Private",
 
                 SDKRoot + "RadeonProRender",
 				SDKRoot + "RadeonProRender/inc",
 				SDKRoot + "RadeonProRenderInterchange/include",
-
-                "RPRPlugin/Private/Material",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/Factory",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterArgs",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/Bool",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/Enum",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialMap",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialConstantOrMap",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialConstantOrMapChannel1",
+				
+				
             }
 			);
 
@@ -61,8 +48,6 @@ public class RPRPlugin : ModuleRules
 			new string[]
 			{
 				"Core",
-                "RPRTools",
-                "RPRImageManager",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -72,32 +57,10 @@ public class RPRPlugin : ModuleRules
 			new string[]
 			{
 				"CoreUObject",
-				"Engine",
-				"Slate",
-				"SlateCore",
-				"RenderCore",
-				"CinematicCamera",
-				"RHI",
+                "Engine",
 
 				// ... add private dependencies that you statically link with here ...	
 			});
-
-		if (Target.bBuildEditor == true)
-		{
-			//Definitions.Add("MY_WITH_EDITOR=1");
-			PrivateDependencyModuleNames.AddRange(
-				new string[]
-				{
-					"UnrealEd",
-					"InputCore",
-					"DesktopPlatform",
-					"WorkspaceMenuStructure",
-					"EditorStyle",
-					"Slate",
-					"LevelEditor",
-					"Settings",
-				});
-		}
 
 		bool forceRelease = false;
 		string libSuffix = ".lib";

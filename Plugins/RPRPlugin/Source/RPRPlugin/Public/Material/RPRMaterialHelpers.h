@@ -4,6 +4,7 @@
 #include "RPRTypedefs.h"
 #include "RPRHelpers.h"
 #include "RPREnums.h"
+#include "RPRImageManager.h"
 
 namespace RPR
 {
@@ -19,7 +20,7 @@ namespace RPR
 		static FResult	CreateNode(FMaterialSystem MaterialSystem, EMaterialNodeType NodeType, FMaterialNode& OutMaterialNode);
 		static FResult	DeleteNode(FMaterialNode& MaterialNode);
 
-		static FResult	CreateImageNode(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, 
+		static FResult	CreateImageNode(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
 													UTexture2D* Texture, FMaterialNode& MaterialNode);
 	};
 

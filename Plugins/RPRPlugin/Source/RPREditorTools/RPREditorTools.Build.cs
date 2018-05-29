@@ -2,6 +2,10 @@
 
 using UnrealBuildTool;
 
+/// <summary>
+/// Primary editor module on which any other module can depend.
+/// This module only provide tools that will *never* need other RPR dependencies.
+/// </summary>
 public class RPREditorTools : ModuleRules
 {
 	public RPREditorTools(ReadOnlyTargetRules Target) : base(Target)

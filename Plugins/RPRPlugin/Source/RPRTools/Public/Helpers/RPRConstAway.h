@@ -12,6 +12,8 @@ namespace RPR
 	*   const Class* thisConst = this;
 	*   return (ConstRefAway(thisConst->GetData());
 	* }
+	*
+	* YOU SHOULD NOT USE THAT FOR ANY OTHER REASON!
 	*/
 	template<typename T>
 	T& ConstRefAway(const T& item)

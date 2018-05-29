@@ -2,6 +2,9 @@
 
 using UnrealBuildTool;
 
+/// <summary>
+/// Provides the tools for the sections editing in the RPR Static Mesh Editor
+/// </summary>
 public class RPRSectionsManager : ModuleRules
 {
 	public RPRSectionsManager(ReadOnlyTargetRules Target) : base(Target)

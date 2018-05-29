@@ -7,9 +7,10 @@
 namespace RPRX
 {
 
-	FMaterialCacheMaker::FMaterialCacheMaker(RPR::FMaterialContext& InMaterialContext, const URPRMaterial* InRPRMaterial)
+	FMaterialCacheMaker::FMaterialCacheMaker(RPR::FMaterialContext& InMaterialContext, const URPRMaterial* InRPRMaterial, RPR::FImageManagerPtr InImageManager)
 		: MaterialContext(InMaterialContext)
 		, RPRMaterial(InRPRMaterial)
+		, ImageManager(InImageManager)
 	{}
 
 	bool FMaterialCacheMaker::CacheUberMaterial(RPRX::FMaterial& OutMaterial)
@@ -62,6 +63,7 @@ namespace RPRX
 		RPRX::MaterialParameter::FArgs materialCacheParametersSetterArgs(
 			InParameters,
 			InParameterProperty,
+			ImageManager,
 			MaterialContext,
 			InOutMaterial
 		);

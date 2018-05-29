@@ -28,7 +28,7 @@ namespace RPR
 		return (result);
 	}
 
-	RPR::FResult FMaterialHelpers::CreateImageNode(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, 
+	RPR::FResult FMaterialHelpers::CreateImageNode(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
 															UTexture2D* Texture, FMaterialNode& OutMaterialNode)
 	{
 		OutMaterialNode = nullptr;
@@ -36,8 +36,7 @@ namespace RPR
 		RPR::FResult result = CreateNode(MaterialSystem, EMaterialNodeType::ImageTexture, OutMaterialNode);
 		if (IsResultSuccess(result))
 		{
-			// TODO : Cache the image built
-			RPR::FImage image = BuildImage(Texture, RPRContext);
+			RPR::FImage image = ImageManager.LoadImageFromTexture(Texture);
 			if (image == nullptr)
 			{
 				result = RPR_ERROR_INVALID_IMAGE;

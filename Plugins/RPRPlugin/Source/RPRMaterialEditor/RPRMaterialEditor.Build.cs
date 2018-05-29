@@ -2,6 +2,9 @@
 
 using UnrealBuildTool;
 
+/// <summary>
+/// Module for all the RPRMaterial editor part (editor-only).
+/// </summary>
 public class RPRMaterialEditor : ModuleRules
 {
 	public RPRMaterialEditor(ReadOnlyTargetRules Target) : base(Target)

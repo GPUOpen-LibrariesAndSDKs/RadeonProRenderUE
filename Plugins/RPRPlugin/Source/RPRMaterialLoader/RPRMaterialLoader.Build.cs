@@ -2,6 +2,9 @@
 
 using UnrealBuildTool;
 
+/// <summary>
+/// Module allowing to import RPR materials
+/// </summary>
 public class RPRMaterialLoader : ModuleRules
 {
 	public RPRMaterialLoader(ReadOnlyTargetRules Target) : base(Target)

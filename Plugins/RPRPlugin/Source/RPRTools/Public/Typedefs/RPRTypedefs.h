@@ -15,6 +15,8 @@ namespace RPR
 
 	typedef rpr_shape			FShape;
 	typedef rpr_image			FImage;
+	typedef rpr_image_format	FImageFormat;
+	typedef rpr_image_desc		FImageDesc;
 
 	typedef void*						FMaterialRawDatas;
 	typedef rpr_material_node			FMaterialNode;

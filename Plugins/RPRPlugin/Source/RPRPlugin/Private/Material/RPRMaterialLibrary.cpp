@@ -13,9 +13,10 @@ FRPRXMaterialLibrary::FRPRXMaterialLibrary()
 	: bIsInitialized(false)
 {}
 
-void FRPRXMaterialLibrary::Initialize(const RPR::FMaterialContext& InMaterialContext)
+void FRPRXMaterialLibrary::Initialize(const RPR::FMaterialContext& InMaterialContext, RPR::FImageManagerPtr InImageManager)
 {
 	MaterialContext = InMaterialContext;
+	ImageManager = InImageManager;
 	bIsInitialized = true;
 }
 
@@ -122,7 +123,7 @@ const FExportMaterialResult* FRPRXMaterialLibrary::FindMaterialCache(const URPRM
 bool FRPRXMaterialLibrary::CacheMaterial(URPRMaterial* InMaterial, FExportMaterialResult& OutMaterial)
 {
 	RPRX::FMaterial newMaterial;
-	RPRX::FMaterialCacheMaker cacheMaker(MaterialContext, InMaterial);
+	RPRX::FMaterialCacheMaker cacheMaker(MaterialContext, InMaterial, ImageManager);
 	if (!cacheMaker.CacheUberMaterial(newMaterial))
 	{
 		return (false);

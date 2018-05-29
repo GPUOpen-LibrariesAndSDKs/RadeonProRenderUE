@@ -65,6 +65,8 @@ public:
 	class FRPRXMaterialLibrary&			GetRPRMaterialLibrary();
 	const class FRPRXMaterialLibrary&	GetRPRMaterialLibrary() const;
 
+	RPR::FImageManagerPtr				GetImageManager() const;
+
 private:
 	virtual void	BeginDestroy() override;
 	virtual void	Tick(float deltaTime) override;
@@ -106,5 +108,6 @@ private:
 	UPROPERTY(Transient)
 	class URPRViewportCameraComponent*		ViewportCameraComponent;
 
-	FRPRXMaterialLibrary					RPRXMaterialLibrary;
+	RPR::FImageManagerPtr	RPRImageManager;
+	FRPRXMaterialLibrary	RPRXMaterialLibrary;
 };

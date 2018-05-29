@@ -4,6 +4,7 @@
 #include "RPRMaterial.h"
 #include "MaterialContext.h"
 #include "Map.h"
+#include "RPRImageManager.h"
 
 /*
 * Library of RPR materials.
@@ -15,7 +16,7 @@ public:
 
 	FRPRXMaterialLibrary();
 
-	void	Initialize(const RPR::FMaterialContext& InMaterialContext);
+	void	Initialize(const RPR::FMaterialContext& InMaterialContext, RPR::FImageManagerPtr InImageManager);
 	bool	IsInitialized() const;
 	void	Close();
 
@@ -48,4 +49,5 @@ private:
 
 	bool bIsInitialized;
 	RPR::FMaterialContext MaterialContext;
+	RPR::FImageManagerPtr ImageManager;
 };

@@ -2,6 +2,9 @@
 
 using UnrealBuildTool;
 
+/// <summary>
+/// Provide outliner tools (editor)
+/// </summary>
 public class Outliners : ModuleRules
 {
 	public Outliners(ReadOnlyTargetRules Target) : base(Target)

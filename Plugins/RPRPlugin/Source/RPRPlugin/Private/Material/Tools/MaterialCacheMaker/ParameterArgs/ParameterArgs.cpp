@@ -7,12 +7,13 @@ namespace RPRX
 	namespace MaterialParameter
 	{
 
-		FArgs::FArgs(const FRPRUberMaterialParameters& InParameters, const UProperty* InProperty, 
+		FArgs::FArgs(const FRPRUberMaterialParameters& InParameters, const UProperty* InProperty, RPR::FImageManagerPtr InImageManager,
 			RPR::FMaterialContext& InMaterialContext, FMaterial& InMaterial)
 			: Parameters(InParameters)
 			, Property(InProperty)
 			, MaterialContext(InMaterialContext)
 			, Material(InMaterial)
+			, ImageManager(InImageManager)
 		{}
 
 		const FRPRUberMaterialParameterBase* FArgs::GetMaterialParameterBase() const

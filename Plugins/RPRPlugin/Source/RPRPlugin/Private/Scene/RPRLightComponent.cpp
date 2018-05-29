@@ -141,7 +141,7 @@ bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightCompone
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Skipped '%s', there is no specified cubemap"), *skyLightComponent->GetName());
 		return false;
 	}
-	m_RprImage = BuildCubeImage(skyLightComponent->Cubemap, Scene->m_RprContext);
+	m_RprImage = Scene->GetImageManager()->LoadCubeImageFromTexture(skyLightComponent->Cubemap);
 	if (m_RprImage == NULL)
 		return false;
 	const float	intensity = skyLightComponent->Intensity;
@@ -434,8 +434,7 @@ void	URPRLightComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 
 		if (m_RebuildFlags & PROPERTY_REBUILD_ENV_LIGHT_CUBEMAP)
 		{
-			m_PendingDelete = m_RprImage;
-			m_RprImage = BuildCubeImage(skyLightComponent->Cubemap, Scene->m_RprContext);
+			m_RprImage = Scene->GetImageManager()->LoadCubeImageFromTexture(skyLightComponent->Cubemap, true);
 		}
 	}
 
@@ -451,17 +450,12 @@ void	URPRLightComponent::ReleaseResources()
 		rprObjectDelete(m_RprLight);
 		m_RprLight = NULL;
 	}
-	if (m_RprImage != NULL)
-	{
-		check(Scene != NULL);
-		rprObjectDelete(m_RprImage);
-		m_RprImage = NULL;
-	}
 	if (m_PendingDelete != NULL)
 	{
 		check(Scene != NULL);
 		rprObjectDelete(m_PendingDelete);
 		m_PendingDelete = NULL;
 	}
+	m_RprImage = NULL;
 	Super::ReleaseResources();
 }

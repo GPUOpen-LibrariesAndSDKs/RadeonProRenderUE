@@ -4,27 +4,17 @@ using System; // Console.WriteLine("");
 using System.IO;
 using UnrealBuildTool;
 
-/// <summary>
-/// Main runtime plugin
-/// </summary>
-public class RPRPlugin : ModuleRules
+public class RPRImageManager : ModuleRules
 {
-	public RPRPlugin(ReadOnlyTargetRules Target) : base(Target)
+	public RPRImageManager(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicIncludePaths.AddRange(
 			new string[] {
-				"RPRPlugin/Public",
-                "RPRPlugin/Public/Enums",
-
-                "RPRPlugin/Public/Material",
-                "RPRPlugin/Public/Material/Tools",
-
-                "RPRPlugin/Public/Scene",
-                "RPRPlugin/Public/Scene/StaticMeshComponent",
-				// ... add public include paths required here ...
-			}
+				"RPRImagerManager/Public",
+                "RPRImagerManager/Public/Cache",
+            }
 			);
 
 		//bFasterWithoutUnity = true;
@@ -42,17 +32,8 @@ public class RPRPlugin : ModuleRules
                 SDKRoot + "RadeonProRender",
 				SDKRoot + "RadeonProRender/inc",
 				SDKRoot + "RadeonProRenderInterchange/include",
-
-                "RPRPlugin/Private/Material",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/Factory",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterArgs",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/Bool",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/Enum",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialMap",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialConstantOrMap",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialConstantOrMapChannel1",
+				
+				
             }
 			);
 
@@ -61,8 +42,7 @@ public class RPRPlugin : ModuleRules
 			new string[]
 			{
 				"Core",
-                "RPRTools",
-                "RPRImageManager",
+                "RPRTools"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -72,13 +52,7 @@ public class RPRPlugin : ModuleRules
 			new string[]
 			{
 				"CoreUObject",
-				"Engine",
-				"Slate",
-				"SlateCore",
-				"RenderCore",
-				"CinematicCamera",
-				"RHI",
-
+                "Engine"
 				// ... add private dependencies that you statically link with here ...	
 			});
 
@@ -88,14 +62,7 @@ public class RPRPlugin : ModuleRules
 			PrivateDependencyModuleNames.AddRange(
 				new string[]
 				{
-					"UnrealEd",
-					"InputCore",
-					"DesktopPlatform",
-					"WorkspaceMenuStructure",
-					"EditorStyle",
-					"Slate",
-					"LevelEditor",
-					"Settings",
+					"UnrealEd"
 				});
 		}
 
