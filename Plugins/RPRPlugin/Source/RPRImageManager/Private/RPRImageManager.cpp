@@ -2,6 +2,8 @@
 #include "RPRImageManagerModule.h"
 #include "Engine/TextureCube.h"
 #include "CubemapUnwrapUtils.h"
+#include "RPRHelpers.h"
+#include "RPRSettings.h"
 
 namespace RPR
 {
@@ -16,6 +18,16 @@ namespace RPR
 	}
 
 	FImage FImageManager::LoadImageFromTexture(UTexture2D* Texture, bool bRebuild)
+	{
+		FImage image = LoadImageFromTextureInternal(Texture, bRebuild);
+		if (image == nullptr)
+		{
+			image = TryLoadErrorTexture();
+		}
+		return (image);
+	}
+
+	RPR::FImage FImageManager::LoadImageFromTextureInternal(UTexture2D* Texture, bool bRebuild)
 	{
 		check(context != nullptr);
 		check(Texture != nullptr);
@@ -56,7 +68,7 @@ namespace RPR
 			return nullptr;
 		}
 		const void	*textureDataReadOnly = mipData.LockReadOnly();
-		if (textureDataReadOnly == NULL)
+		if (textureDataReadOnly == nullptr)
 		{
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't build image: empty mip data"));
 			return nullptr;
@@ -106,19 +118,19 @@ namespace RPR
 		if (!CubemapHelpers::GenerateLongLatUnwrap(Cast<UTextureCube>(Texture), srcData, srcSize, srcFormat))
 		{
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't build cubemap"));
-			return nullptr;
+			return TryLoadErrorTexture();
 		}
 		if (srcSize.X <= 0 || srcSize.Y <= 0)
 		{
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't build cubemap: empty texture"));
-			return nullptr;
+			return TryLoadErrorTexture();
 		}
 		uint32				componentSize;
 		FImageFormat	dstFormat;
 		if (!BuildRPRImageFormat(srcFormat, dstFormat, componentSize))
 		{
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't build cubemap: image format for '%s' not handled"), *Texture->GetName());
-			return nullptr;
+			return TryLoadErrorTexture();
 		}
 
 		FImageDesc	desc;
@@ -137,7 +149,7 @@ namespace RPR
 		if (RPR::IsResultFailed(rprContextCreateImage(context, dstFormat, &desc, rprData.GetData(), &image)))
 		{
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't create RPR image"));
-			return nullptr;
+			return TryLoadErrorTexture();
 		}
 
 		cache.Add(Texture, image);
@@ -228,6 +240,23 @@ namespace RPR
 			return (nullptr);
 		}
 		return (image != nullptr ? *image : nullptr);
+	}
+
+	RPR::FImage FImageManager::TryLoadErrorTexture()
+	{
+		URPRSettings* settings = GetMutableDefault<URPRSettings>();
+		if (settings == nullptr || !settings->bUseErrorTexture || settings->ErrorTexture.IsNull())
+		{
+			return (nullptr);
+		}
+
+		UTexture2D* texture = settings->ErrorTexture.LoadSynchronous();
+		RPR::FImage image = cache.Get(texture);
+		if (image == nullptr)
+		{
+			image = LoadImageFromTextureInternal(texture, false);
+		}
+		return (image);
 	}
 
 }

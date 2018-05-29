@@ -33,18 +33,16 @@ namespace RPR
 	{
 		OutMaterialNode = nullptr;
 
+		RPR::FImage image = ImageManager.LoadImageFromTexture(Texture);
+		if (image == nullptr)
+		{
+			return (RPR_ERROR_INVALID_IMAGE);
+		}
+
 		RPR::FResult result = CreateNode(MaterialSystem, EMaterialNodeType::ImageTexture, OutMaterialNode);
 		if (IsResultSuccess(result))
 		{
-			RPR::FImage image = ImageManager.LoadImageFromTexture(Texture);
-			if (image == nullptr)
-			{
-				result = RPR_ERROR_INVALID_IMAGE;
-			}
-			else
-			{
-				result = rprMaterialNodeSetInputImageData(OutMaterialNode, TCHAR_TO_ANSI(ImageDataInputName), image);
-			}
+			result = rprMaterialNodeSetInputImageData(OutMaterialNode, TCHAR_TO_ANSI(ImageDataInputName), image);
 		}
 
 		return (result);

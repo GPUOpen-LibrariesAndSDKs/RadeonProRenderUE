@@ -49,7 +49,7 @@ public class RPRMaterialEditor : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core", "RPRPlugin", "RPRMaterialLoader", "RPREditorTools"
+                "Core", "RPRPlugin", "RPRMaterialLoader", "RPREditorTools", "RPRTools"
 				
 				// ... add other public dependencies that you statically link with here ...
 			}

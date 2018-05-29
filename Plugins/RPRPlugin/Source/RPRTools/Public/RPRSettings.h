@@ -4,6 +4,7 @@
 
 #include "Materials/MaterialInterface.h"
 #include "SoftObjectPtr.h"
+#include "Engine/Texture2D.h"
 #include "RPRSettings.generated.h"
 
 UENUM()
@@ -15,8 +16,8 @@ enum	ERPRQualitySettings
 	High
 };
 
-UCLASS(MinimalAPI, Config=Engine, DefaultConfig)
-class URPRSettings : public UObject
+UCLASS(Config=Engine, DefaultConfig)
+class RPRTOOLS_API URPRSettings : public UObject
 {
 	GENERATED_UCLASS_BODY()
 public:
@@ -114,4 +115,10 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category = Materials)
 	FDirectoryPath	DefaultRootDirectoryForImportedTextures;
+
+	UPROPERTY(Config, EditAnywhere, meta = (Tooltip = "If checked, the error texture will be used when the texture cannot be loaded correctly in RPR."), Category = ImageManager)
+	bool		bUseErrorTexture;
+
+	UPROPERTY(Config, EditAnywhere, meta = (Tooltip = "The texture to use when the RPR plugin cannot load the texture correctly."), Category = ImageManager)
+	TSoftObjectPtr<UTexture2D>	ErrorTexture;
 };

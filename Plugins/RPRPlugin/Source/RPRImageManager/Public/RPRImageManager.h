@@ -4,6 +4,7 @@
 #include "PixelFormat.h"
 #include "Engine/Texture.h"
 #include "RPRImagesCache.h"
+#include "Engine/Texture2D.h"
 
 namespace RPR
 {
@@ -22,9 +23,11 @@ namespace RPR
 
 	private:
 
+		RPR::FImage LoadImageFromTextureInternal(UTexture2D* Texture, bool bRebuild);
 		bool BuildRPRImageFormat(EPixelFormat srcFormat, FImageFormat &outFormat, uint32 &outComponentSize);
 		void ConvertPixels(const void *textureData, TArray<uint8> &outData, EPixelFormat pixelFormat, uint32 pixelCount);
 		RPR::FImage	FindInCache(UTexture* Texture, bool bRebuild);
+		RPR::FImage	TryLoadErrorTexture();
 
 	private:
 

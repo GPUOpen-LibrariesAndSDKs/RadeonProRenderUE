@@ -20,6 +20,14 @@
 			"LoadingPhase": "Default"
 		},
 		{
+			"Name": "RPRTools",
+			"Type": "Runtime"
+		},
+		{
+			"Name": "RPRImageManager",
+			"Type": "Runtime"
+		},
+		{
 			"Name": "RPREditorTools",
 			"Type": "Editor"
 		},

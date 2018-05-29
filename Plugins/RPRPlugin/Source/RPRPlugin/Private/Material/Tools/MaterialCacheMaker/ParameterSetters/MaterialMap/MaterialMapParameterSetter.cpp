@@ -21,7 +21,7 @@ namespace RPRX
 		if (materialMap->Texture != nullptr && SetterParameters.ImageManager.IsValid())
 		{
 			RPR::FMaterialNode imageMaterialNode = nullptr;
-			RPR::FMaterialHelpers::CreateImageNode(
+			RPR::FResult imageNodeCreationResult = RPR::FMaterialHelpers::CreateImageNode(
 				materialContext.RPRContext,
 				materialContext.MaterialSystem,
 				*SetterParameters.ImageManager.Get(),
@@ -29,7 +29,7 @@ namespace RPRX
 				imageMaterialNode
 			);
 
-			if (imageMaterialNode != nullptr)
+			if (RPR::IsResultSuccess(imageNodeCreationResult))
 			{
 				FMaterialHelpers::SetMaterialParameterNode(
 					materialContext.RPRXContext,
