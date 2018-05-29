@@ -1,5 +1,7 @@
 #pragma once
 #include "IPropertyTypeCustomization.h"
+#include "SWidget.h"
+#include "Reply.h"
 
 class FRPRMaterialMapPropertiesLayout : public IPropertyTypeCustomization
 {
@@ -14,7 +16,11 @@ public:
 protected:
 
 	TSharedPtr<IPropertyHandle> GetTexturePropertyHandle() const;
-
+	TSharedRef<SWidget>			CreateCheckedTexturePropertyWidget() const;
+	EVisibility					GetTextureFormatFixerAreaVisibility() const;
+	FReply						OnFixTextureFormatButtonClicked();
+	UTexture2D*					GetTexture();
+	const UTexture2D*			GetTexture() const;
 
 protected:
 

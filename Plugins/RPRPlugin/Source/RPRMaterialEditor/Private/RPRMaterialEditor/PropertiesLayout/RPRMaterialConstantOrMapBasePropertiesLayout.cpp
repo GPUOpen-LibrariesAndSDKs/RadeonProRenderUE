@@ -49,7 +49,7 @@ void FRPRMaterialConstantOrMapBasePropertiesLayout::CustomizeHeader(TSharedRef<I
 				]
 				+SWidgetSwitcher::Slot()
 				[
-					GetTexturePropertyHandle()->CreatePropertyValueWidget()
+					CreateCheckedTexturePropertyWidget()
 				]
 			]
 		];

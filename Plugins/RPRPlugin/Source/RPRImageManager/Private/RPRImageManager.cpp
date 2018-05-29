@@ -161,6 +161,25 @@ namespace RPR
 		cache.ReleaseAll();
 	}
 
+	bool FImageManager::IsFormatSupported(EPixelFormat format)
+	{
+		switch (format)
+		{
+		case PF_A8R8G8B8:
+		case PF_B8G8R8A8:
+		case PF_FloatRGBA:
+			return (true);
+
+		default:
+			return (false);
+		}
+	}
+
+	EPixelFormat FImageManager::GetDefaultSupportedPixelFormat()
+	{
+		return (PF_B8G8R8A8);
+	}
+
 	bool	FImageManager::BuildRPRImageFormat(EPixelFormat srcFormat, FImageFormat &outFormat, uint32 &outComponentSize)
 	{
 		switch (srcFormat)

@@ -21,6 +21,9 @@ namespace RPR
 
 		void ClearCache();
 
+		static bool IsFormatSupported(EPixelFormat format);
+		static EPixelFormat GetDefaultSupportedPixelFormat();
+
 	private:
 
 		RPR::FImage LoadImageFromTextureInternal(UTexture2D* Texture, bool bRebuild);
