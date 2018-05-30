@@ -13,6 +13,7 @@
 #include <RadeonProRenderInterchange.h>
 #include <map>
 #include "RPRITypedefs.h"
+#include "ObjectScopedLocked.h"
 #include "RPRScene.generated.h"
 
 /**
@@ -63,8 +64,7 @@ public:
 	void	TriggerResize() { m_TriggerEndFrameResize = true; }
 	void	TriggerFrameRebuild() { m_TriggerEndFrameRebuild = true; }
 
-	class FRPRXMaterialLibrary&			GetRPRMaterialLibrary();
-	const class FRPRXMaterialLibrary&	GetRPRMaterialLibrary() const;
+	FObjectScopedLocked<class FRPRXMaterialLibrary>	GetRPRMaterialLibrary() const;
 
 	RPR::FImageManagerPtr				GetImageManager() const;
 

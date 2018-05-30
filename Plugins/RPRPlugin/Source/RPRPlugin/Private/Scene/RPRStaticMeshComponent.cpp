@@ -22,6 +22,7 @@
 #include "RPRStats.h"
 #include "Scene/RPRScene.h"
 #include "RPRMaterialBuilder.h"
+#include "Async.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
 
@@ -227,13 +228,13 @@ rpriExportRprMaterialResult URPRStaticMeshComponent::CreateXMLShapeMaterial(uint
 #endif
 	return rpriExportRprMaterialResult{ 0, xmlMaterial };
 }
+
 #pragma optimize("",off)
 bool	URPRStaticMeshComponent::BuildMaterials()
 {
 	const UStaticMeshComponent	*component = Cast<UStaticMeshComponent>(SrcComponent);
 	check(component != NULL);
-
-
+	
 	// Assign the materials on the instances: The cached geometry might be the same
 	// But materials can be overriden on a component basis
 	const uint32	shapeCount = m_Shapes.Num();
@@ -247,7 +248,6 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		const UMaterial		*parentMaterial = matInterface != NULL ? matInterface->GetMaterial() : NULL;
 		const char* materialName = matInterface != nullptr ? TCHAR_TO_ANSI(*matInterface->GetName()) : "";
 
-		FRPRXMaterialLibrary& rprMaterialLibrary = Scene->GetRPRMaterialLibrary();
 		if (matInterface->IsA<URPRMaterial>())
 		{
 			BuildRPRMaterial(shape, Cast<URPRMaterial>(matInterface));
@@ -400,14 +400,15 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 
 void URPRStaticMeshComponent::BuildRPRMaterial(RPR::FShape& Shape, URPRMaterial* Material)
 {
-	FRPRXMaterialLibrary& rprMaterialLibrary = Scene->GetRPRMaterialLibrary();
-	if (!rprMaterialLibrary.Contains(Material))
+	FObjectScopedLocked<FRPRXMaterialLibrary> rprMaterialLibrary = Scene->GetRPRMaterialLibrary();
+
+	if (!rprMaterialLibrary->Contains(Material))
 	{
-		rprMaterialLibrary.CacheAndRegisterMaterial(Material);
+		rprMaterialLibrary->CacheAndRegisterMaterial(Material);
 	}
 	else if (Material->bShouldCacheBeRebuild)
 	{
-		rprMaterialLibrary.RecacheMaterial(Material);
+		rprMaterialLibrary->RecacheMaterial(Material);
 	}
 
 	if (!m_OnMaterialChangedDelegateHandles.Contains(Material))
@@ -421,11 +422,11 @@ void URPRStaticMeshComponent::BuildRPRMaterial(RPR::FShape& Shape, URPRMaterial*
 
 bool URPRStaticMeshComponent::ApplyRPRMaterialOnShape(RPR::FShape& Shape, URPRMaterial* Material)
 {
-	FRPRXMaterialLibrary& rprMaterialLibrary = Scene->GetRPRMaterialLibrary();
+	auto rprMaterialLibrary = Scene->GetRPRMaterialLibrary();
 
 	uint32 materialType;
 	RPR::FMaterialRawDatas materialRawDatas;
-	if (!rprMaterialLibrary.TryGetMaterialRawDatas(Material, materialType, materialRawDatas))
+	if (!rprMaterialLibrary->TryGetMaterialRawDatas(Material, materialType, materialRawDatas))
 	{
 		UE_LOG(LogRPRStaticMeshComponent, Error, TEXT("Cannot get the material raw datas from the library."));
 		return (false);
@@ -688,45 +689,58 @@ bool	URPRStaticMeshComponent::PostBuild()
 
 bool URPRStaticMeshComponent::RPRThread_Update()
 {
-	return (AreMaterialsDirty() | Super::RPRThread_Update());
+	const bool bNeedRebuild = AreMaterialsDirty();
+
+	if (bNeedRebuild)
+	{
+		auto rprMaterialLibrary = Scene->GetRPRMaterialLibrary();
+		FScopeLock scLock(&m_RefreshLock);
+
+		URPRMaterial* material = nullptr;
+		while (m_dirtyMaterialsQueue.Dequeue(material))
+		{
+			rprMaterialLibrary->RecacheMaterial(material);
+
+			uint32 materialType;
+			RPR::FMaterialRawDatas materialRawDatas;
+			if (!rprMaterialLibrary->TryGetMaterialRawDatas(material, materialType, materialRawDatas))
+			{
+				continue;
+			}
+
+			// Bind the new material version to the shapes that are using this material
+			const UStaticMeshComponent	*component = Cast<UStaticMeshComponent>(SrcComponent);
+			check(component != NULL);
+
+			const uint32 shapeCount = m_Shapes.Num();
+			for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
+			{
+				RPR::FShape shape = m_Shapes[iShape].m_RprShape;
+
+				UMaterialInterface	*matInterface = component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
+				if (matInterface == material)
+				{
+					RPR::FMaterialBuilder materialBuilder(Scene);
+					materialBuilder.BindMaterialRawDatasToShape(materialType, materialRawDatas, shape);
+				}
+			}
+		}
+	}
+
+	return (bNeedRebuild | Super::RPRThread_Update());
 }
 
 void URPRStaticMeshComponent::OnUsedMaterialChanged(URPRMaterial* Material)
 {
-	FRPRXMaterialLibrary& rprMaterialLibrary = Scene->GetRPRMaterialLibrary();
-	if (rprMaterialLibrary.Contains(Material))
+	auto rprMaterialLibrary = Scene->GetRPRMaterialLibrary();
+
+	if (rprMaterialLibrary->Contains(Material))
 	{
-		rprMaterialLibrary.RecacheMaterial(Material);
-
-		uint32 materialType;
-		RPR::FMaterialRawDatas materialRawDatas;
-		if (!rprMaterialLibrary.TryGetMaterialRawDatas(Material, materialType, materialRawDatas))
+		rprMaterialLibrary->RecacheMaterial(Material);
 		{
-			return;
+			m_dirtyMaterialsQueue.Enqueue(Material);
+			MarkMaterialsAsDirty();
 		}
-
-		// Bind the new material version to the shapes that are using this material
-		const UStaticMeshComponent	*component = Cast<UStaticMeshComponent>(SrcComponent);
-		check(component != NULL);
-
-		m_RefreshLock.Lock();
-
-		const uint32 shapeCount = m_Shapes.Num();
-		for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
-		{
-			RPR::FShape shape = m_Shapes[iShape].m_RprShape;
-
-			UMaterialInterface	*matInterface = component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
-			if (matInterface == Material)
-			{
-				RPR::FMaterialBuilder materialBuilder(Scene);
-				materialBuilder.BindMaterialRawDatasToShape(materialType, materialRawDatas, shape);
-			}
-		}
-
-		m_RefreshLock.Unlock();
-
-		MarkMaterialsAsDirty();
 	}
 	else
 	{

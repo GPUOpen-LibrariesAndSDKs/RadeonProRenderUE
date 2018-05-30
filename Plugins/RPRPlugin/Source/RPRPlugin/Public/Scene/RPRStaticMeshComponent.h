@@ -10,6 +10,8 @@
 #include <RadeonProRenderInterchange.h>
 #include "SRPRShape.h"
 #include "RPRMaterial.h"
+#include "Queue.h"
+#include "Tuple.h"
 #include "RPRStaticMeshComponent.generated.h"
 
 enum
@@ -53,5 +55,7 @@ private:
 	TArray<SRPRShape>	m_Shapes;
 
 	TMap<URPRMaterial*, FDelegateHandle> m_OnMaterialChangedDelegateHandles;
+
+	TQueue<URPRMaterial*> m_dirtyMaterialsQueue;
 
 };

@@ -4,6 +4,7 @@
 #include "RPRMaterialHelpers.h"
 #include "RPRXMaterialHelpers.h"
 #include "Tools/MaterialCacheMaker/MaterialCacheMaker.h"
+#include "ScopeLock.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRMaterialLibrary, Log, All)
 
@@ -35,7 +36,7 @@ void FRPRXMaterialLibrary::Close()
 
 bool FRPRXMaterialLibrary::Contains(const URPRMaterial* InMaterial) const
 {
-	return (UEMaterialToRPRMaterialCaches.Contains(InMaterial));
+	return UEMaterialToRPRMaterialCaches.Contains(InMaterial);
 }
 
 bool FRPRXMaterialLibrary::CacheAndRegisterMaterial(URPRMaterial* InMaterial)
@@ -113,6 +114,11 @@ void FRPRXMaterialLibrary::ClearCache()
 		}
 		UEMaterialToRPRMaterialCaches.Empty();
 	}
+}
+
+FCriticalSection& FRPRXMaterialLibrary::GetCriticalSection()
+{
+	return (criticalSection);
 }
 
 const FExportMaterialResult* FRPRXMaterialLibrary::FindMaterialCache(const URPRMaterial* MaterialKey) const

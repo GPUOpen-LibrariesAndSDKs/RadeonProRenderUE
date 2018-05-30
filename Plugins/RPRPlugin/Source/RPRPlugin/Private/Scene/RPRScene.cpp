@@ -899,14 +899,9 @@ void	ARPRScene::BeginDestroy()
 }
 
 
-FRPRXMaterialLibrary& ARPRScene::GetRPRMaterialLibrary()
+FObjectScopedLocked<class FRPRXMaterialLibrary> ARPRScene::GetRPRMaterialLibrary() const
 {
-	return (RPRXMaterialLibrary);
-}
-
-const FRPRXMaterialLibrary& ARPRScene::GetRPRMaterialLibrary() const
-{
-	return (RPRXMaterialLibrary);
+	return (FObjectScopedLocked<FRPRXMaterialLibrary>(&RPRXMaterialLibrary));
 }
 
 RPR::FImageManagerPtr ARPRScene::GetImageManager() const

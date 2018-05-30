@@ -5,16 +5,19 @@
 #include "MaterialContext.h"
 #include "Map.h"
 #include "RPRImageManager.h"
+#include "CriticalSection.h"
+#include "IObjectScopedLockable.h"
 
 /*
 * Library of RPR materials.
 * Create native RPR material from FRPRMaterial and keep it in cache.
 */
-class FRPRXMaterialLibrary
+class FRPRXMaterialLibrary : public IObjectScopedLockable
 {
 public:
 
 	FRPRXMaterialLibrary();
+	virtual ~FRPRXMaterialLibrary() {}
 
 	void	Initialize(const RPR::FMaterialContext& InMaterialContext, RPR::FImageManagerPtr InImageManager);
 	bool	IsInitialized() const;
@@ -36,6 +39,8 @@ public:
 
 	void	ClearCache();
 
+	virtual FCriticalSection& GetCriticalSection() override;
+
 private:
 
 	const RPR::FExportMaterialResult*	FindMaterialCache(const URPRMaterial* MaterialKey) const;
@@ -50,4 +55,6 @@ private:
 	bool bIsInitialized;
 	RPR::FMaterialContext MaterialContext;
 	RPR::FImageManagerPtr ImageManager;
+
+	FCriticalSection criticalSection;
 };
