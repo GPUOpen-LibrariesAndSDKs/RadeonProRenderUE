@@ -22,20 +22,20 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	FRPRMaterialConstantOrMap			Diffuse_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Diffuse")
-	FRPRMaterialConstantOrMap			Diffuse_Weight;
+	FRPRMaterialConstantOrMapChannel1	Diffuse_Weight;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Diffuse")
-	FRPRMaterialConstantOrMap			Diffuse_Roughness;
+	FRPRMaterialConstantOrMapChannel1	Diffuse_Roughness;
 	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
 	FRPRMaterialConstantOrMap			Reflection_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
-	FRPRMaterialConstantOrMap			Reflection_Weight;
+	FRPRMaterialConstantOrMapChannel1	Reflection_Weight;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
-	FRPRMaterialConstantOrMap			Reflection_Roughness;
+	FRPRMaterialConstantOrMapChannel1	Reflection_Roughness;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
 	FRPRMaterialConstantOrMapChannel1	Reflection_Anisotropy;
@@ -57,10 +57,10 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	FRPRMaterialConstantOrMap			Refraction_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction")
-	FRPRMaterialConstantOrMap			Refraction_Weight;
+	FRPRMaterialConstantOrMapChannel1			Refraction_Weight;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction")
-	FRPRMaterialConstantOrMap			Refraction_Roughness;
+	FRPRMaterialConstantOrMapChannel1			Refraction_Roughness;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction")
 	FRPRMaterialConstantOrMap			Refraction_Ior;
@@ -76,10 +76,10 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	FRPRMaterialConstantOrMap			Coating_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
-	FRPRMaterialConstantOrMap			Coating_Weight;
+	FRPRMaterialConstantOrMapChannel1	Coating_Weight;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
-	FRPRMaterialConstantOrMap			Coating_Roughness;
+	FRPRMaterialConstantOrMapChannel1	Coating_Roughness;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
 	FRPRMaterialConstantOrMap			Coating_Metalness;
@@ -95,7 +95,7 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	FRPRMaterialConstantOrMap			Emission_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Emission")
-	FRPRMaterialConstantOrMap			Emission_Weight;
+	FRPRMaterialConstantOrMapChannel1	Emission_Weight;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Emission")
 	FRPRMaterialEnum					Emission_Mode;

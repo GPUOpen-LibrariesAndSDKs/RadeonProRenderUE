@@ -2,25 +2,28 @@
 #include "IPropertyTypeCustomization.h"
 #include "SlateTypes.h"
 #include "RPRMaterialBool.h"
+#include "RPRMaterialParameterBasePropertyLayout.h"
 
-class FRPRMaterialBoolPropertiesLayout : public IPropertyTypeCustomization
+class FRPRMaterialBoolPropertiesLayout : public FRPRMaterialParameterBasePropertyLayout
 {
 
 public:
 
 	static TSharedRef<IPropertyTypeCustomization>	MakeInstance();
+	
+protected:
 
-	virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
-	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override {}
+	virtual TSharedRef<SWidget> GetPropertyValueRowWidget() override;
 
 private:
 
-	void			OnCheckStateChanged(ECheckBoxState CheckboxState, TSharedRef<IPropertyHandle> PropertyHandle);
-	ECheckBoxState	IsChecked(TSharedRef<IPropertyHandle> PropertyHandle) const;
+	void			OnCheckStateChanged(ECheckBoxState CheckboxState);
+	ECheckBoxState	IsChecked() const;
 
-	bool			GetBoolValue(TSharedRef<IPropertyHandle> PropertyHandle) const;
-	void			SetBoolValue(TSharedRef<IPropertyHandle> PropertyHandle, bool Value);
+	bool			GetBoolValue() const;
+	void			SetBoolValue(bool Value);
 
-	TSharedPtr<IPropertyHandle>		GetIsEnabledPropertyHandle(TSharedRef<IPropertyHandle> PropertyHandle) const;
+	TSharedPtr<IPropertyHandle>		GetIsEnabledPropertyHandle() const;
+
 
 };

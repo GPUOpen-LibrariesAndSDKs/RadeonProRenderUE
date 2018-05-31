@@ -21,7 +21,7 @@ struct RPRPLUGIN_API FRPRMaterialEnum : public FRPRUberMaterialParameterBase
 	
 
 	FRPRMaterialEnum() {}
-	FRPRMaterialEnum(const FString& InXmlParamName, uint32 InRprxParamID);
+	FRPRMaterialEnum(const FString& InXmlParamName, uint32 InRprxParamID, EPreviewSupport InPreviewSupportMode);
 
 	template<typename TEnumType>
 	void	SetValue(TEnumType InEnumValue)
@@ -35,14 +35,14 @@ struct RPRPLUGIN_API FRPRMaterialEnum : public FRPRUberMaterialParameterBase
 	}
 
 	template<typename TEnumType>
-	static FRPRMaterialEnum Create(const FString& InXmlParamName, uint32 InRprxParamID, TEnumType InEnumValue);
+	static FRPRMaterialEnum Create(const FString& InXmlParamName, uint32 InRprxParamID, EPreviewSupport InPreviewSupportMode, TEnumType InEnumValue);
 
 };
 
 template<typename TEnumType>
-FRPRMaterialEnum FRPRMaterialEnum::Create(const FString& InXmlParamName, uint32 InRprxParamID, TEnumType InEnumValue)
+FRPRMaterialEnum FRPRMaterialEnum::Create(const FString& InXmlParamName, uint32 InRprxParamID, EPreviewSupport InPreviewSupportMode, TEnumType InEnumValue)
 {
-	FRPRMaterialEnum materialEnum(InXmlParamName, InRprxParamID);
+	FRPRMaterialEnum materialEnum(InXmlParamName, InRprxParamID, InPreviewSupportMode);
 	materialEnum.SetValue<TEnumType>(InEnumValue);
 
 	const TCHAR* enumTypeName = TNameOf<TEnumType>::GetName();

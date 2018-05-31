@@ -10,26 +10,19 @@ TSharedRef<class IPropertyTypeCustomization> FRPRMaterialEnumPropertiesLayout::M
 	return (MakeShareable(new FRPRMaterialEnumPropertiesLayout));
 }
 
-void FRPRMaterialEnumPropertiesLayout::CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils)
+TSharedRef<SWidget> FRPRMaterialEnumPropertiesLayout::GetPropertyValueRowWidget()
 {
-	UEnum* enumType = GetEnumTypeFromPropertyHandle(PropertyHandle);
+	UEnum* enumType = GetEnumTypeFromPropertyHandle();
 	GenerateEnumNames(enumType, EnumOptions);
 
-	HeaderRow
-		.NameContent()
+	return
+		SNew(SComboBox<TSharedPtr<FString>>)
+		.OptionsSource(&EnumOptions)
+		.OnGenerateWidget(this, &FRPRMaterialEnumPropertiesLayout::GenerateEnumWidget)
+		.OnSelectionChanged(this, &FRPRMaterialEnumPropertiesLayout::HandleEnumSelectionChanged)
 		[
-			PropertyHandle->CreatePropertyNameWidget()
-		]
-		.ValueContent()
-		[
-			SNew(SComboBox<TSharedPtr<FString>>)
-			.OptionsSource(&EnumOptions)
-			.OnGenerateWidget(this, &FRPRMaterialEnumPropertiesLayout::GenerateEnumWidget)
-			.OnSelectionChanged(this, &FRPRMaterialEnumPropertiesLayout::HandleEnumSelectionChanged, PropertyHandle)
-			[
-				SNew(STextBlock)
-				.Text(this, &FRPRMaterialEnumPropertiesLayout::GetSelectedEnumValue, PropertyHandle)
-			]
+			SNew(STextBlock)
+			.Text(this, &FRPRMaterialEnumPropertiesLayout::GetSelectedEnumValue)
 		];
 }
 
@@ -40,10 +33,10 @@ TSharedRef<SWidget> FRPRMaterialEnumPropertiesLayout::GenerateEnumWidget(TShared
 		.Text(FText::FromString(*InItem));
 }
 
-FText FRPRMaterialEnumPropertiesLayout::GetSelectedEnumValue(TSharedRef<IPropertyHandle> PropertyHandle) const
+FText FRPRMaterialEnumPropertiesLayout::GetSelectedEnumValue() const
 {
-	UEnum* enumType = GetEnumTypeFromPropertyHandle(PropertyHandle);
-	TSharedPtr<IPropertyHandle> enumValuePropertyHandle = GetEnumValuePropertyHandle(PropertyHandle);
+	UEnum* enumType = GetEnumTypeFromPropertyHandle();
+	TSharedPtr<IPropertyHandle> enumValuePropertyHandle = GetEnumValuePropertyHandle();
 	uint8 enumValue;
 	enumValuePropertyHandle->GetValue(enumValue);
 
@@ -52,13 +45,13 @@ FText FRPRMaterialEnumPropertiesLayout::GetSelectedEnumValue(TSharedRef<IPropert
 	return (FText::FromString(enumTypeStr));
 }
 
-void FRPRMaterialEnumPropertiesLayout::HandleEnumSelectionChanged(TSharedPtr<FString> Item, ESelectInfo::Type SelectInfo, TSharedRef<IPropertyHandle> PropertyHandle)
+void FRPRMaterialEnumPropertiesLayout::HandleEnumSelectionChanged(TSharedPtr<FString> Item, ESelectInfo::Type SelectInfo)
 {
 	for (uint8 i = 0; i < EnumOptions.Num(); ++i)
 	{
 		if (Item == EnumOptions[i])
 		{
-			TSharedPtr<IPropertyHandle> enumValuePropertyHandle = GetEnumValuePropertyHandle(PropertyHandle);
+			TSharedPtr<IPropertyHandle> enumValuePropertyHandle = GetEnumValuePropertyHandle();
 			enumValuePropertyHandle->SetValue(i);
 			break;
 		}
@@ -75,9 +68,9 @@ void FRPRMaterialEnumPropertiesLayout::GenerateEnumNames(UEnum* EnumType, TArray
 	}
 }
 
-UEnum* FRPRMaterialEnumPropertiesLayout::GetEnumTypeFromPropertyHandle(TSharedRef<IPropertyHandle> PropertyHandle) const
+UEnum* FRPRMaterialEnumPropertiesLayout::GetEnumTypeFromPropertyHandle() const
 {
-	TSharedPtr<IPropertyHandle> enumTypePropertyHandle = GetEnumTypePropertyHandle(PropertyHandle);
+	TSharedPtr<IPropertyHandle> enumTypePropertyHandle = GetEnumTypePropertyHandle();
 
 	UObject* enumTypeRaw;
 	enumTypePropertyHandle->GetValue(enumTypeRaw);
@@ -85,13 +78,13 @@ UEnum* FRPRMaterialEnumPropertiesLayout::GetEnumTypeFromPropertyHandle(TSharedRe
 	return (Cast<UEnum>(enumTypeRaw));
 }
 
-TSharedPtr<IPropertyHandle> FRPRMaterialEnumPropertiesLayout::GetEnumTypePropertyHandle(TSharedRef<IPropertyHandle> PropertyHandle) const
+TSharedPtr<IPropertyHandle> FRPRMaterialEnumPropertiesLayout::GetEnumTypePropertyHandle() const
 {
-	return PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialEnum, EnumType));
+	return CurrentPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialEnum, EnumType));
 }
 
-TSharedPtr<IPropertyHandle> FRPRMaterialEnumPropertiesLayout::GetEnumValuePropertyHandle(TSharedRef<IPropertyHandle> PropertyHandle) const
+TSharedPtr<IPropertyHandle> FRPRMaterialEnumPropertiesLayout::GetEnumValuePropertyHandle() const
 {
-	return PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialEnum, EnumValue));
+	return CurrentPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialEnum, EnumValue));
 }
 

@@ -2,18 +2,18 @@
 #include "IPropertyTypeCustomization.h"
 #include "SWidget.h"
 #include "Reply.h"
+#include "RPRMaterialParameterBasePropertyLayout.h"
 
-class FRPRMaterialMapPropertiesLayout : public IPropertyTypeCustomization
+class FRPRMaterialMapPropertiesLayout : public FRPRMaterialParameterBasePropertyLayout
 {
 
 public:
 
 	static TSharedRef<IPropertyTypeCustomization>	MakeInstance();
 
-	virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
-	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override {}
-
 protected:
+
+	virtual TSharedRef<SWidget> GetPropertyValueRowWidget() override;
 
 	TSharedPtr<IPropertyHandle> GetTexturePropertyHandle() const;
 	TSharedRef<SWidget>			CreateCheckedTexturePropertyWidget() const;
@@ -21,9 +21,5 @@ protected:
 	FReply						OnFixTextureFormatButtonClicked();
 	UTexture2D*					GetTexture();
 	const UTexture2D*			GetTexture() const;
-
-protected:
-
-	TSharedPtr<IPropertyHandle>		CurrentPropertyHandle;
 
 };

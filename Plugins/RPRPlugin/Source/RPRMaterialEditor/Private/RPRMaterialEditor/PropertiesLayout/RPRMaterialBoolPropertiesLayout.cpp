@@ -7,43 +7,36 @@ TSharedRef<IPropertyTypeCustomization> FRPRMaterialBoolPropertiesLayout::MakeIns
 	return (MakeShareable(new FRPRMaterialBoolPropertiesLayout()));
 }
 
-void FRPRMaterialBoolPropertiesLayout::CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils)
+TSharedRef<SWidget> FRPRMaterialBoolPropertiesLayout::GetPropertyValueRowWidget()
 {
-	HeaderRow
-		.NameContent()
-		[
-			PropertyHandle->CreatePropertyNameWidget()
-		]
-	.ValueContent()
-		[
-			SNew(SCheckBox)
-			.OnCheckStateChanged(this, &FRPRMaterialBoolPropertiesLayout::OnCheckStateChanged, PropertyHandle)
-			.IsChecked(this, &FRPRMaterialBoolPropertiesLayout::IsChecked, PropertyHandle)
-		];
+	return
+		SNew(SCheckBox)
+		.OnCheckStateChanged(this, &FRPRMaterialBoolPropertiesLayout::OnCheckStateChanged)
+		.IsChecked(this, &FRPRMaterialBoolPropertiesLayout::IsChecked);
 }
 
-void FRPRMaterialBoolPropertiesLayout::OnCheckStateChanged(ECheckBoxState CheckboxState, TSharedRef<IPropertyHandle> PropertyHandle)
+void FRPRMaterialBoolPropertiesLayout::OnCheckStateChanged(ECheckBoxState CheckboxState)
 {
 	TArray<UObject*> objects;
-	PropertyHandle->GetOuterObjects(objects);
+	CurrentPropertyHandle->GetOuterObjects(objects);
 
 	for (int32 i = 0; i < objects.Num(); ++i)
 	{
-		SetBoolValue(PropertyHandle, (CheckboxState == ECheckBoxState::Checked));
+		SetBoolValue(CheckboxState == ECheckBoxState::Checked);
 	}
 }
 
-ECheckBoxState FRPRMaterialBoolPropertiesLayout::IsChecked(TSharedRef<IPropertyHandle> PropertyHandle) const
+ECheckBoxState FRPRMaterialBoolPropertiesLayout::IsChecked() const
 {
 	TArray<UObject*> objects;
-	PropertyHandle->GetOuterObjects(objects);
+	CurrentPropertyHandle->GetOuterObjects(objects);
 
 	bool bIsInitialized = false;
 	bool bIsChecked = false;
 
 	for (int32 i = 0; i < objects.Num(); ++i)
 	{
-		bool parameterBoolValue = GetBoolValue(PropertyHandle);
+		bool parameterBoolValue = GetBoolValue();
 		if (!bIsInitialized)
 		{
 			bIsInitialized = true;
@@ -58,19 +51,19 @@ ECheckBoxState FRPRMaterialBoolPropertiesLayout::IsChecked(TSharedRef<IPropertyH
 	return (bIsChecked ? ECheckBoxState::Checked : ECheckBoxState::Unchecked);
 }
 
-bool FRPRMaterialBoolPropertiesLayout::GetBoolValue(TSharedRef<IPropertyHandle> PropertyHandle) const
+bool FRPRMaterialBoolPropertiesLayout::GetBoolValue() const
 {
 	bool value;
-	GetIsEnabledPropertyHandle(PropertyHandle)->GetValue(value);
+	GetIsEnabledPropertyHandle()->GetValue(value);
 	return (value);
 }
 
-void FRPRMaterialBoolPropertiesLayout::SetBoolValue(TSharedRef<IPropertyHandle> PropertyHandle, bool Value)
+void FRPRMaterialBoolPropertiesLayout::SetBoolValue(bool Value)
 {
-	GetIsEnabledPropertyHandle(PropertyHandle)->SetValue(Value);
+	GetIsEnabledPropertyHandle()->SetValue(Value);
 }
 
-TSharedPtr<IPropertyHandle> FRPRMaterialBoolPropertiesLayout::GetIsEnabledPropertyHandle(TSharedRef<IPropertyHandle> PropertyHandle) const
+TSharedPtr<IPropertyHandle> FRPRMaterialBoolPropertiesLayout::GetIsEnabledPropertyHandle() const
 {
-	return (PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialBool, bIsEnabled)));
+	return (CurrentPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialBool, bIsEnabled)));
 }

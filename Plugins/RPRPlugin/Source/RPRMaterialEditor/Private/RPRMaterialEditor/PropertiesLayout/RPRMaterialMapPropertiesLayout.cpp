@@ -14,28 +14,17 @@ TSharedRef<IPropertyTypeCustomization> FRPRMaterialMapPropertiesLayout::MakeInst
 	return (MakeShareable(new FRPRMaterialMapPropertiesLayout));
 }
 
-void FRPRMaterialMapPropertiesLayout::CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils)
+TSharedRef<SWidget> FRPRMaterialMapPropertiesLayout::GetPropertyValueRowWidget()
 {
-	CurrentPropertyHandle = PropertyHandle;
-
-	HeaderRow
-		.NameContent()
+	return
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		.HAlign(HAlign_Left)
 		[
-			PropertyHandle->CreatePropertyNameWidget()
-		]
-		.ValueContent()
-		.HAlign(HAlign_Fill)
-		[
-			SNew(SHorizontalBox)
-			+SHorizontalBox::Slot()
-			.AutoWidth()
-			.HAlign(HAlign_Left)
-			[
-				CreateCheckedTexturePropertyWidget()
-			]
+			CreateCheckedTexturePropertyWidget()
 		];
 }
-
 
 TSharedPtr<IPropertyHandle> FRPRMaterialMapPropertiesLayout::GetTexturePropertyHandle() const
 {

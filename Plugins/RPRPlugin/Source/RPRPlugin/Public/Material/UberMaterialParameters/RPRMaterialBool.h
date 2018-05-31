@@ -15,5 +15,5 @@ struct RPRPLUGIN_API FRPRMaterialBool : public FRPRUberMaterialParameterBase
 	bool	bIsEnabled;
 
 	FRPRMaterialBool() {}
-	FRPRMaterialBool(const FString& InXmlParamName, uint32 InRprxParamID, bool DefaultValue);
+	FRPRMaterialBool(const FString& InXmlParamName, uint32 InRprxParamID, EPreviewSupport InPreviewSupportMode, bool DefaultValue);
 };

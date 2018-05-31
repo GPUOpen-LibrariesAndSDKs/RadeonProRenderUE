@@ -5,6 +5,12 @@
 #include "RPRMaterialMap.h"
 #include "RPRMaterialConstantOrMapChannel1.generated.h"
 
+enum class ERPRMConstantOrMapC1InterpretationMode
+{
+	AsFloat,
+	AsFloat4
+};
+
 /*
 * Represents a parameter that can be a map or a float
 */
@@ -19,8 +25,9 @@ struct RPRPLUGIN_API FRPRMaterialConstantOrMapChannel1 : public FRPRMaterialMap
 	UPROPERTY(EditAnywhere, Category = Material)
 	ERPRMaterialMapMode		Mode;
 
+	ERPRMConstantOrMapC1InterpretationMode RPRInterpretationMode;
 
 	FRPRMaterialConstantOrMapChannel1() {}
-	FRPRMaterialConstantOrMapChannel1(const FString& InXmlParamName, uint32 InRprxParamID, float InConstantValue = 1.0f);
+	FRPRMaterialConstantOrMapChannel1(const FString& InXmlParamName, uint32 InRprxParamID, EPreviewSupport InPreviewSupportMode, float InConstantValue = 1.0f, ERPRMConstantOrMapC1InterpretationMode InMode = ERPRMConstantOrMapC1InterpretationMode::AsFloat);
 
 };

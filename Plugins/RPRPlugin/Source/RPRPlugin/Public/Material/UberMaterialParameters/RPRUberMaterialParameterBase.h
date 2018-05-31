@@ -5,6 +5,14 @@
 
 DECLARE_DELEGATE_RetVal_OneParam(bool, FCanUseParameter, const struct FRPRUberMaterialParameterBase*)
 
+// Use an enum instead of a bool so it is more readible when using the parameter
+UENUM()
+enum class EPreviewSupport : uint8
+{
+	NotSupported,
+	Supported
+};
+
 /*
 * Base for all parameters used in the Uber material.
 * It contains extra datas to import datas from the .rprmat
@@ -20,18 +28,24 @@ struct RPRPLUGIN_API FRPRUberMaterialParameterBase
 public:
 
 	FRPRUberMaterialParameterBase();
-	FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID);
-	FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID, FCanUseParameter InCanUseParameter);
+	FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID, EPreviewSupport InPreviewSupportMode);
+	FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID, EPreviewSupport InPreviewSupportMode, FCanUseParameter InCanUseParameter);
 
 	virtual ~FRPRUberMaterialParameterBase() {}
 
 	uint32			GetRprxParam() const;
 	const FString&	GetXmlParamName() const;
 	bool			CanUseParameter() const;
+	bool			IsPreviewSupported() const;
 
 	virtual FString	GetPropertyName(UProperty* Property) const;
 	virtual FString	GetPropertyTypeName(UProperty* Property) const;
-	
+
+public:
+
+	UPROPERTY(EditAnywhere)
+	EPreviewSupport PreviewSupportMode;
+
 private:
 
 	UPROPERTY()

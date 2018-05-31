@@ -1,29 +1,32 @@
 #pragma once
 #include "IPropertyTypeCustomization.h"
 #include "SWidget.h"
+#include "RPRMaterialParameterBasePropertyLayout.h"
 
-class FRPRMaterialEnumPropertiesLayout : public IPropertyTypeCustomization
+class FRPRMaterialEnumPropertiesLayout : public FRPRMaterialParameterBasePropertyLayout
 {
 
 public:
 	
 	static TSharedRef<class IPropertyTypeCustomization>	MakeInstance();
 
-	virtual void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
-	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override {}
+protected:
+
+	virtual TSharedRef<SWidget> GetPropertyValueRowWidget() override;
+
 
 private:
 
 	TSharedRef<SWidget>		GenerateEnumWidget(TSharedPtr<FString> InItem);
-	FText					GetSelectedEnumValue(TSharedRef<IPropertyHandle> PropertyHandle) const;
-	void					HandleEnumSelectionChanged(TSharedPtr<FString> Item, ESelectInfo::Type SelectInfo, TSharedRef<IPropertyHandle> PropertyHandle);
+	FText					GetSelectedEnumValue() const;
+	void					HandleEnumSelectionChanged(TSharedPtr<FString> Item, ESelectInfo::Type SelectInfo);
 
 	void					GenerateEnumNames(UEnum* Enum, TArray<TSharedPtr<FString>>& OutEnumNames) const;
 
-	UEnum*					GetEnumTypeFromPropertyHandle(TSharedRef<IPropertyHandle> PropertyHandle) const;
+	UEnum*					GetEnumTypeFromPropertyHandle() const;
 
-	TSharedPtr<IPropertyHandle>		GetEnumTypePropertyHandle(TSharedRef<IPropertyHandle> PropertyHandle) const;
-	TSharedPtr<IPropertyHandle>		GetEnumValuePropertyHandle(TSharedRef<IPropertyHandle> PropertyHandle) const;
+	TSharedPtr<IPropertyHandle>		GetEnumTypePropertyHandle() const;
+	TSharedPtr<IPropertyHandle>		GetEnumValuePropertyHandle() const;
 
 private:
 

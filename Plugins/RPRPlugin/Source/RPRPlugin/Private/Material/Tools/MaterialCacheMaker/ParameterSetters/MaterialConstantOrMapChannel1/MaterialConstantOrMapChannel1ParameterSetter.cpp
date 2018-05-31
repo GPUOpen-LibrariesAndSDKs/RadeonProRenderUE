@@ -9,20 +9,43 @@ namespace RPRX
 	{
 		const FRPRMaterialConstantOrMapChannel1* materialMap = SetterParameters.GetDirectParameter<FRPRMaterialConstantOrMapChannel1>();
 
-		if (materialMap->Texture != nullptr)
+		if (materialMap->Mode == ERPRMaterialMapMode::Texture)
 		{
-			ApplyTextureParameter(SetterParameters);
+			if (materialMap->Texture != nullptr)
+			{
+				ApplyTextureParameter(SetterParameters);
+			}
 		}
 		else
 		{
 			RPR::FMaterialContext& materialContext = SetterParameters.MaterialContext;
 
-			FMaterialHelpers::SetMaterialParameterFloat(
-				materialContext.RPRXContext,
-				SetterParameters.Material,
-				SetterParameters.GetRprxParam(),
-				materialMap->Constant
-			);
+			switch (materialMap->RPRInterpretationMode)
+			{
+			case ERPRMConstantOrMapC1InterpretationMode::AsFloat:
+				FMaterialHelpers::SetMaterialParameterFloat(
+					materialContext.RPRXContext,
+					SetterParameters.Material,
+					SetterParameters.GetRprxParam(),
+					materialMap->Constant
+				);
+				break;
+
+			case ERPRMConstantOrMapC1InterpretationMode::AsFloat4:
+				FMaterialHelpers::SetMaterialParameterFloats(
+					materialContext.RPRXContext,
+					SetterParameters.Material,
+					SetterParameters.GetRprxParam(),
+					materialMap->Constant,
+					materialMap->Constant,
+					materialMap->Constant,
+					materialMap->Constant
+				);
+				break;
+
+			default:
+				break;
+			}
 		}
 	}
 

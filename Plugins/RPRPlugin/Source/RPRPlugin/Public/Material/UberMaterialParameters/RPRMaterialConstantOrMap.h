@@ -20,6 +20,6 @@ struct RPRPLUGIN_API FRPRMaterialConstantOrMap : public FRPRMaterialMap
 
 
 	FRPRMaterialConstantOrMap();
-	FRPRMaterialConstantOrMap(const FString& InXmlParamName, uint32 InRprxParamID, float UniformConstant = 1.0f);
+	FRPRMaterialConstantOrMap(const FString& InXmlParamName, uint32 InRprxParamID, EPreviewSupport InPreviewSupportMode, float UniformConstant = 1.0f);
 
 };

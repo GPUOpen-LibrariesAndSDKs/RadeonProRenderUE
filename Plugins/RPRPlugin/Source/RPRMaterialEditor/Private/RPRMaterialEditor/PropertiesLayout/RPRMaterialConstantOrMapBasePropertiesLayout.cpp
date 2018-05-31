@@ -6,23 +6,13 @@
 #include "SComboBox.h"
 #include "RPRMaterialMap.h"
 
-void FRPRMaterialConstantOrMapBasePropertiesLayout::CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils)
+TSharedRef<SWidget> FRPRMaterialConstantOrMapBasePropertiesLayout::GetPropertyValueRowWidget()
 {
-	CurrentPropertyHandle = PropertyHandle;
-
 	FindMaterialModeEnumType();
 	BuildModeAvailables();
 
-	HeaderRow
-		.NameContent()
-		[
-			PropertyHandle->CreatePropertyNameWidget()
-		]
-		.ValueContent()
-		.HAlign(HAlign_Fill)
-		.VAlign(VAlign_Center)
-		[
-			SNew(SHorizontalBox)
+	return
+		SNew(SHorizontalBox)
 			+SHorizontalBox::Slot()
 			.AutoWidth()
 			.HAlign(HAlign_Left)
@@ -51,8 +41,7 @@ void FRPRMaterialConstantOrMapBasePropertiesLayout::CustomizeHeader(TSharedRef<I
 				[
 					CreateCheckedTexturePropertyWidget()
 				]
-			]
-		];
+			];
 }
 
 void FRPRMaterialConstantOrMapBasePropertiesLayout::FindMaterialModeEnumType()

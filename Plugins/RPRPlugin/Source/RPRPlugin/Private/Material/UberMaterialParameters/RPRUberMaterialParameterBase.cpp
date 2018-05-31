@@ -4,14 +4,16 @@ FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase()
 	: RprxParamID(INDEX_NONE)
 {}
 
-FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID)
+FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID, EPreviewSupport InPreviewSupportMode)
 	: XmlParamName(InXmlParamName)
 	, RprxParamID(InRprxParamID)
+	, PreviewSupportMode(InPreviewSupportMode)
 {}
 
-FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID, FCanUseParameter InCanUseParameter)
+FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID, EPreviewSupport InPreviewSupportMode, FCanUseParameter InCanUseParameter)
 	: XmlParamName(InXmlParamName)
 	, RprxParamID(InRprxParamID)
+	, PreviewSupportMode(InPreviewSupportMode)
 	, CanUseParameterDelegate(InCanUseParameter)
 {}
 
@@ -38,5 +40,10 @@ FString FRPRUberMaterialParameterBase::GetPropertyTypeName(UProperty* Property) 
 bool FRPRUberMaterialParameterBase::CanUseParameter() const
 {
 	return (CanUseParameterDelegate.IsBound() ? CanUseParameterDelegate.Execute(this) : true);
+}
+
+bool FRPRUberMaterialParameterBase::IsPreviewSupported() const
+{
+	return (PreviewSupportMode == EPreviewSupport::Supported);
 }
 
