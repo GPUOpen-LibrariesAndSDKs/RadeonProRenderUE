@@ -2,6 +2,7 @@
 #include "RPRHelpers.h"
 #include "RPREnums.h"
 #include "RPRScene.h"
+#include "RPRXHelpers.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRMaterialBuilder, Log, All)
 
@@ -35,7 +36,7 @@ namespace RPR
 			status = AttachMaterialToShape(Shape, MaterialRawDatas);
 			if (IsResultSuccess(status))
 			{
-				status = CommitMaterialX(MaterialRawDatas);
+				CommitMaterial(MaterialType, MaterialRawDatas);
 			}
 		}
 		break;
@@ -57,6 +58,15 @@ namespace RPR
 		return (status);
 	}
 
+	RPR::FResult FMaterialBuilder::CommitMaterial(uint32 MaterialType, FMaterialRawDatas MaterialRawDatas)
+	{
+		if (MaterialType == EMaterialType::MaterialX)
+		{
+			return (CommitMaterialX(MaterialRawDatas));
+		}
+		return (RPR_SUCCESS);
+	}
+
 	FResult FMaterialBuilder::SetMaterialOnShape(FShape& Shape, FMaterialRawDatas MaterialRawDatas)
 	{
 		FResult status = rprShapeSetMaterial(Shape, reinterpret_cast<RPRX::FMaterial>(MaterialRawDatas));
@@ -71,7 +81,7 @@ namespace RPR
 
 	FResult FMaterialBuilder::AttachMaterialToShape(FShape& Shape, FMaterialRawDatas MaterialRawDatas)
 	{
-		FResult status = rprxShapeAttachMaterial(Scene->m_RprSupportCtx, Shape, reinterpret_cast<RPRX::FMaterial>(MaterialRawDatas));
+		FResult status = RPRX::ShapeAttachMaterial(Scene->m_RprSupportCtx, Shape, reinterpret_cast<RPRX::FMaterial>(MaterialRawDatas));
 
 		if (IsResultFailed(status))
 		{
@@ -82,9 +92,8 @@ namespace RPR
 	}
 
 	FResult FMaterialBuilder::CommitMaterialX(FMaterialRawDatas MaterialRawDatas)
-	{
-		
-		FResult status = rprxMaterialCommit(Scene->m_RprSupportCtx, reinterpret_cast<RPRX::FMaterial>(MaterialRawDatas));
+	{		
+		FResult status = RPRX::MaterialCommit(Scene->m_RprSupportCtx, reinterpret_cast<RPRX::FMaterial>(MaterialRawDatas));
 
 		if (IsResultFailed(status))
 		{

@@ -55,11 +55,13 @@ bool FRPRXMaterialLibrary::CacheAndRegisterMaterial(URPRMaterial* InMaterial)
 
 bool FRPRXMaterialLibrary::RecacheMaterial(URPRMaterial* MaterialKey)
 {
-	FExportMaterialResult exportMaterialResult;
-	if (CacheMaterial(MaterialKey, exportMaterialResult))
+	uint32 materialType;
+	RPR::FMaterialRawDatas material;
+	if (TryGetMaterialRawDatas(MaterialKey, materialType, material))
 	{
-		UEMaterialToRPRMaterialCaches[MaterialKey] = exportMaterialResult;
-		return (true);
+		RPRX::FMaterialCacheMaker cacheMaker(MaterialContext, MaterialKey, ImageManager);
+		auto materialX = reinterpret_cast<RPRX::FMaterial>(material);
+		return (cacheMaker.UpdateUberMaterial(materialX));
 	}
 
 	return (false);

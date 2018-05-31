@@ -70,4 +70,9 @@ namespace RPR
 		return rprSceneDetachShape(Scene, Shape);
 	}
 
+	FResult ShapeSetMaterial(FShape Shape, RPR::FMaterialNode MaterialNode)
+	{
+		return (rprShapeSetMaterial(Shape, MaterialNode));
+	}
+
 }

@@ -15,21 +15,18 @@ namespace RPRX
 
 	bool FMaterialCacheMaker::CacheUberMaterial(RPRX::FMaterial& OutMaterial)
 	{
-		RPR::FResult result;
+		return 
+			RPR::IsResultSuccess(RPRX::FMaterialHelpers::CreateMaterial(MaterialContext.RPRXContext, EMaterialType::Uber, OutMaterial)) && 
+			UpdateUberMaterial(OutMaterial);
+	}
 
-		result = RPRX::FMaterialHelpers::CreateMaterial(MaterialContext.RPRXContext, EMaterialType::Uber, OutMaterial);
-		if (RPR::IsResultFailed(result))
-		{
-			return (false);
-		}
-
-		// Browse each property and set parameter
-		result = BrowseUberMaterialParameters(
-			FUberMaterialParametersPropertyVisitor::CreateRaw(this, &FMaterialCacheMaker::ApplyUberMaterialParameter),
-			OutMaterial
-		);
-
-		return (RPR::IsResultSuccess(result));
+	bool	FMaterialCacheMaker::UpdateUberMaterial(RPRX::FMaterial& InOutMaterial)
+	{
+		return RPR::IsResultSuccess(
+			BrowseUberMaterialParameters(
+				FUberMaterialParametersPropertyVisitor::CreateRaw(this, &FMaterialCacheMaker::ApplyUberMaterialParameter),
+				InOutMaterial
+			));
 	}
 
 	RPR::FResult FMaterialCacheMaker::BrowseUberMaterialParameters(FUberMaterialParametersPropertyVisitor Visitor, 

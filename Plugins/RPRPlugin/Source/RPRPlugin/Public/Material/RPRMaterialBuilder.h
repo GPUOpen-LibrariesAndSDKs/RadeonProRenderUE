@@ -19,6 +19,7 @@ namespace RPR
 		virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
 		
 		FResult	BindMaterialRawDatasToShape(uint32 MaterialType, FMaterialRawDatas MaterialRawDatas, FShape& Shape);
+		FResult CommitMaterial(uint32 MaterialType, FMaterialRawDatas MaterialRawDatas);
 		
 	private:
 

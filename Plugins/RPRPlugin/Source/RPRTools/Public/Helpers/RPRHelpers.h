@@ -29,4 +29,6 @@ namespace RPR
 	RPRTOOLS_API FResult		DeleteObject(void* Object);
 
 	RPRTOOLS_API FResult		SceneDetachShape(FScene Scene, FShape Shape);
+
+	RPRTOOLS_API FResult		ShapeSetMaterial(FShape Shape, RPR::FMaterialNode MaterialNode);
 }

@@ -703,26 +703,10 @@ bool URPRStaticMeshComponent::RPRThread_Update()
 
 			uint32 materialType;
 			RPR::FMaterialRawDatas materialRawDatas;
-			if (!rprMaterialLibrary->TryGetMaterialRawDatas(material, materialType, materialRawDatas))
+			if (rprMaterialLibrary->TryGetMaterialRawDatas(material, materialType, materialRawDatas))
 			{
-				continue;
-			}
-
-			// Bind the new material version to the shapes that are using this material
-			const UStaticMeshComponent	*component = Cast<UStaticMeshComponent>(SrcComponent);
-			check(component != NULL);
-
-			const uint32 shapeCount = m_Shapes.Num();
-			for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
-			{
-				RPR::FShape shape = m_Shapes[iShape].m_RprShape;
-
-				UMaterialInterface	*matInterface = component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
-				if (matInterface == material)
-				{
-					RPR::FMaterialBuilder materialBuilder(Scene);
-					materialBuilder.BindMaterialRawDatasToShape(materialType, materialRawDatas, shape);
-				}
+				RPR::FMaterialBuilder materialBuilder(Scene);
+				materialBuilder.CommitMaterial(materialType, reinterpret_cast<RPRX::FMaterial>(materialRawDatas));
 			}
 		}
 	}
@@ -736,11 +720,8 @@ void URPRStaticMeshComponent::OnUsedMaterialChanged(URPRMaterial* Material)
 
 	if (rprMaterialLibrary->Contains(Material))
 	{
-		rprMaterialLibrary->RecacheMaterial(Material);
-		{
-			m_dirtyMaterialsQueue.Enqueue(Material);
-			MarkMaterialsAsDirty();
-		}
+		m_dirtyMaterialsQueue.Enqueue(Material);
+		MarkMaterialsAsDirty();
 	}
 	else
 	{
