@@ -582,18 +582,17 @@ void	FRPRRendererWorker::ReleaseResources()
 {
 	if (m_RprFrameBuffer != NULL)
 	{
-		check(m_RprResolvedFrameBuffer != NULL);
-
 		rprFrameBufferClear(m_RprFrameBuffer);
-		rprFrameBufferClear(m_RprResolvedFrameBuffer);
-
 		rprObjectDelete(m_RprFrameBuffer);
-		rprObjectDelete(m_RprResolvedFrameBuffer);
-
 		m_RprFrameBuffer = NULL;
-		m_RprResolvedFrameBuffer = NULL;
 
 		rprContextSetAOV(m_RprContext, RPR_AOV_COLOR, NULL);
+	}
+	if (m_RprResolvedFrameBuffer != NULL)
+	{
+		rprFrameBufferClear(m_RprResolvedFrameBuffer);
+		rprObjectDelete(m_RprResolvedFrameBuffer);
+		m_RprResolvedFrameBuffer = NULL;
 	}
 	if (m_RprWhiteBalance != NULL)
 	{

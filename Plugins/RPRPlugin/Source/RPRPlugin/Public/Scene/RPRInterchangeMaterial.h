@@ -239,6 +239,7 @@ class UE4InterchangeMaterialGraph : public rpri::generic::IMaterialGraph
 {
 public:
 	UE4InterchangeMaterialGraph(UMaterialInterface const * _ue4MatInterface);
+	virtual ~UE4InterchangeMaterialGraph() {}
 
 	char const* GetId() const override;
 	char const* GetName() const override;
@@ -271,7 +272,7 @@ class UE4InterchangeImage : public rpri::generic::IImage
 public:
 	UE4InterchangeImage(UTexture* _ueTexture);
 
-	~UE4InterchangeImage() {};
+	virtual ~UE4InterchangeImage() {};
 
 	char const* GetId() const override;
 
@@ -310,6 +311,7 @@ class UE4InterchangeSampler : public rpri::generic::ISampler
 {
 public:
 	UE4InterchangeSampler(UTexture* _ueTexture);
+	virtual ~UE4InterchangeSampler() {}
 
 	char const * GetId() const override;
 
@@ -332,6 +334,7 @@ class UE4InterchangeTexture : public rpri::generic::ITexture
 public:
 	UE4InterchangeTexture(	UE4InterchangeSampler * _sampler,
 							UE4InterchangeImage * _image);
+	virtual ~UE4InterchangeTexture() {}
 
 	char const * GetId() const override;
 

@@ -35,20 +35,35 @@
 #include "RPRIHelpers.h"
 
 #define LOCTEXT_NAMESPACE "ARPRScene"
-namespace
-{
-	extern "C" void OutputDebugStringA(char const *);
-
-	void    rpriLogger(char const * _log)
-	{
-		OutputDebugStringA(_log);
-	}
-}
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRScene, Log, All);
 
 DEFINE_STAT(STAT_ProRender_UpdateScene);
 DEFINE_STAT(STAT_ProRender_CopyFramebuffer);
+
+namespace
+{
+	extern "C" void OutputDebugStringA(char const *);
+
+	void    rpriLoggerLog(char const * _log)
+	{
+		UE_LOG(LogRPRScene, Log, TEXT("%s"), ANSI_TO_TCHAR(_log));
+		OutputDebugStringA(_log);
+	}
+
+	void    rpriLoggerWarning(char const * _log)
+	{
+		UE_LOG(LogRPRScene, Warning, TEXT("%s"), ANSI_TO_TCHAR(_log));
+		OutputDebugStringA(_log);
+	}
+
+	void    rpriLoggerError(char const * _log)
+	{
+		UE_LOG(LogRPRScene, Error, TEXT("%s"), ANSI_TO_TCHAR(_log));
+		OutputDebugStringA(_log);
+	}
+}
+
 
 ARPRScene::ARPRScene()
 	: m_RprContext(NULL)
@@ -462,7 +477,7 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 
 		rpriAllocateContext(&m_RpriContext);
 		rpriErrorOptions(m_RpriContext, 5, false, false);
-		rpriSetLoggers(m_RpriContext, rpriLogger, rpriLogger, rpriLogger);
+		rpriSetLoggers(m_RpriContext, rpriLoggerLog, rpriLoggerWarning, rpriLoggerError);
 
 		// Not sure if material systems should be created on a per mesh level or per section
 		if (rprContextCreateMaterialSystem(m_RprContext, 0, &m_RprMaterialSystem) != RPR_SUCCESS)
