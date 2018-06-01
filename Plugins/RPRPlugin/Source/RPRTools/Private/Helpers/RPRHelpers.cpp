@@ -75,4 +75,9 @@ namespace RPR
 		return (rprShapeSetMaterial(Shape, MaterialNode));
 	}
 
+	FResult SceneClear(FScene Scene)
+	{
+		return (rprSceneClear(Scene));
+	}
+
 }

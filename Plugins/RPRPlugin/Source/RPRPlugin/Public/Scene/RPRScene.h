@@ -82,6 +82,7 @@ private:
 	bool	BuildViewportCamera();
 	uint32	GetContextCreationFlags(const FString &dllPath);
 	void	LoadMappings();
+	void	DestroyRPRActors(TArray<class ARPRActor*>& Actors);
 
 private:
 	bool	m_TriggerEndFrameResize;

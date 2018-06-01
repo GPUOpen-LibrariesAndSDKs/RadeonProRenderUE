@@ -17,10 +17,11 @@ namespace RPRX
 	{
 		RPR::FMaterialContext& materialContext = SetterParameters.MaterialContext;
 
+		RPR::FMaterialNode imageMaterialNode = nullptr;
+
 		const FRPRMaterialMap* materialMap = SetterParameters.GetDirectParameter<FRPRMaterialMap>();
 		if (materialMap->Texture != nullptr && SetterParameters.ImageManager.IsValid())
 		{
-			RPR::FMaterialNode imageMaterialNode = nullptr;
 			RPR::FResult imageNodeCreationResult = RPR::FMaterialHelpers::CreateImageNode(
 				materialContext.RPRContext,
 				materialContext.MaterialSystem,
@@ -29,19 +30,19 @@ namespace RPRX
 				imageMaterialNode
 			);
 
-			if (RPR::IsResultSuccess(imageNodeCreationResult))
+			if (RPR::IsResultFailed(imageNodeCreationResult))
 			{
-				FMaterialHelpers::SetMaterialParameterNode(
-					materialContext.RPRXContext,
-					SetterParameters.Material,
-					SetterParameters.GetRprxParam(),
-					imageMaterialNode
-				);
-
-				return (true);
+				return (false);
 			}
 		}
 
-		return (false);
+		FMaterialHelpers::SetMaterialParameterNode(
+			materialContext.RPRXContext,
+			SetterParameters.Material,
+			SetterParameters.GetRprxParam(),
+			imageMaterialNode
+		);
+
+		return (true);
 	}
 }

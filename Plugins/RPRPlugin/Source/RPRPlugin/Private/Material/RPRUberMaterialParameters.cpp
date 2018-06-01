@@ -38,16 +38,16 @@ FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 
 	, Coating_Mode(FRPRMaterialEnum::Create<ERPRReflectionMode>(TEXT("coating.mode"), RPRX_UBER_MATERIAL_COATING_MODE, EPreviewSupport::NotSupported, ERPRReflectionMode::PBR))
 
-	, Emission_Color(					TEXT("emission.color"),		RPRX_UBER_MATERIAL_EMISSION_COLOR,	EPreviewSupport::NotSupported, 1.0f)
-	, Emission_Weight(					TEXT("emission.weight"),	RPRX_UBER_MATERIAL_EMISSION_WEIGHT, EPreviewSupport::NotSupported, 0.0f, ERPRMConstantOrMapC1InterpretationMode::AsFloat4)
+	, Emission_Color(					TEXT("emission.color"),		RPRX_UBER_MATERIAL_EMISSION_COLOR,	EPreviewSupport::Supported, 1.0f)
+	, Emission_Weight(					TEXT("emission.weight"),	RPRX_UBER_MATERIAL_EMISSION_WEIGHT, EPreviewSupport::Supported, 0.0f, ERPRMConstantOrMapC1InterpretationMode::AsFloat4)
 
 	, Emission_Mode(FRPRMaterialEnum::Create<ERPREmissionMode>(TEXT("emission.mode"), RPRX_UBER_MATERIAL_EMISSION_MODE, EPreviewSupport::NotSupported, ERPREmissionMode::SingleSided))
 
 	, Transparency(TEXT("transparency"), RPRX_UBER_MATERIAL_TRANSPARENCY, EPreviewSupport::NotSupported, 0.0f)
 
-	, Normal(		TEXT("normal"),			RPRX_UBER_MATERIAL_NORMAL,			EPreviewSupport::NotSupported, FCanUseParameter::CreateStatic(CanUseOnlyIfMapIsSet))
-	, Bump(			TEXT("bump"),			RPRX_UBER_MATERIAL_BUMP,			EPreviewSupport::NotSupported, FCanUseParameter::CreateStatic(CanUseOnlyIfMapIsSet))
-	, Displacement(	TEXT("displacement"),	RPRX_UBER_MATERIAL_DISPLACEMENT,	EPreviewSupport::NotSupported, FCanUseParameter::CreateStatic(CanUseOnlyIfMapIsSet))
+	, Normal(		TEXT("normal"),			RPRX_UBER_MATERIAL_NORMAL,			EPreviewSupport::Supported)
+	, Bump(			TEXT("bump"),			RPRX_UBER_MATERIAL_BUMP,			EPreviewSupport::NotSupported)
+	, Displacement(	TEXT("displacement"),	RPRX_UBER_MATERIAL_DISPLACEMENT,	EPreviewSupport::NotSupported)
 
 	, SSS_Absorption_Color(		TEXT("sss.absorptionColor"),		RPRX_UBER_MATERIAL_SSS_ABSORPTION_COLOR,		EPreviewSupport::NotSupported, 0.0f)
 	, SSS_Scatter_Color(		TEXT("sss.scatterColor"),			RPRX_UBER_MATERIAL_SSS_SCATTER_COLOR,			EPreviewSupport::NotSupported, 0.0f)

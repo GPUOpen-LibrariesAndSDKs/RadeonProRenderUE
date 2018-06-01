@@ -12,6 +12,7 @@
 #include "Scene/RPRActor.h"
 
 #include "RPRStats.h"
+#include "RPRHelpers.h"
 
 DEFINE_STAT(STAT_ProRender_PreRender);
 DEFINE_STAT(STAT_ProRender_RebuildScene);
@@ -92,7 +93,7 @@ void	FRPRRendererWorker::SaveToFile(const FString &filename)
 	{
 		// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
 		m_RenderLock.Lock();
-		const bool	saved = rprFrameBufferSaveToFile(m_RprResolvedFrameBuffer, TCHAR_TO_ANSI(*filename)) == RPR_SUCCESS;
+		const bool saved = RPR::IsResultSuccess(rprFrameBufferSaveToFile(m_RprResolvedFrameBuffer, TCHAR_TO_ANSI(*filename)));
 		m_RenderLock.Unlock();
 
 		if (saved)

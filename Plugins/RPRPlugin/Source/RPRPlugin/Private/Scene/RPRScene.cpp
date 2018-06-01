@@ -66,17 +66,17 @@ namespace
 
 
 ARPRScene::ARPRScene()
-	: m_RprContext(NULL)
-	, m_RprScene(NULL)
-	, m_RpriContext(NULL)
-	, m_RprMaterialSystem(NULL)
-	, m_RprSupportCtx(NULL)
-	, m_ActiveCamera(NULL)
+	: m_RprContext(nullptr)
+	, m_RprScene(nullptr)
+	, m_RpriContext(nullptr)
+	, m_RprMaterialSystem(nullptr)
+	, m_RprSupportCtx(nullptr)
+	, m_ActiveCamera(nullptr)
 	, m_TriggerEndFrameResize(false)
 	, m_TriggerEndFrameRebuild(false)
-	, m_RendererWorker(NULL)
-	, m_Plugin(NULL)
-	, m_RenderTexture(NULL)
+	, m_RendererWorker(nullptr)
+	, m_Plugin(nullptr)
+	, m_RenderTexture(nullptr)
 	, m_NumDevices(0)
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -90,7 +90,7 @@ void	ARPRScene::FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames)
 {
 	UWorld	*world = GetWorld();
 
-	check(world != NULL);
+	check(world != nullptr);
 	for (TObjectIterator<UCameraComponent> it; it; ++it)
 	{
 		if (it->GetWorld() != world ||
@@ -98,7 +98,7 @@ void	ARPRScene::FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames)
 			it->IsPendingKill())
 			continue;
 		AActor	*parent = Cast<AActor>(it->GetOwner());
-		if (parent == NULL)
+		if (parent == nullptr)
 			continue;
 		outCameraNames.Add(MakeShared<FString>(parent->GetName()));
 	}
@@ -107,19 +107,19 @@ void	ARPRScene::FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames)
 
 void	ARPRScene::SetActiveCamera(const FString &cameraName)
 {
-	if (m_RprContext == NULL)
+	if (m_RprContext == nullptr)
 		return;
 
 	if (cameraName == kViewportCameraName)
 	{
-		if (ViewportCameraComponent != NULL)
+		if (ViewportCameraComponent != nullptr)
 			ViewportCameraComponent->SetAsActiveCamera();
 	}
 	else
 	{
 		for (int32 iCamera = 0; iCamera < Cameras.Num(); ++iCamera)
 		{
-			if (Cameras[iCamera] == NULL)
+			if (Cameras[iCamera] == nullptr)
 			{
 				Cameras.RemoveAt(iCamera--);
 				continue;
@@ -154,7 +154,7 @@ bool	ARPRScene::QueueBuildRPRActor(UWorld *world, USceneComponent *srcComponent,
 	{
 		for (int32 iObject = 0; iObject < SceneContent.Num(); ++iObject)
 		{
-			if (SceneContent[iObject] == NULL)
+			if (SceneContent[iObject] == nullptr)
 			{
 				SceneContent.RemoveAt(iObject--);
 				continue;
@@ -168,11 +168,11 @@ bool	ARPRScene::QueueBuildRPRActor(UWorld *world, USceneComponent *srcComponent,
 	params.ObjectFlags = RF_Public | RF_Transactional;
 
 	ARPRActor	*newActor = world->SpawnActor<ARPRActor>(ARPRActor::StaticClass(), params);
-	check(newActor != NULL);
+	check(newActor != nullptr);
 	newActor->SrcComponent = srcComponent;
 
 	URPRSceneComponent	*comp = NewObject<URPRSceneComponent>(newActor, typeClass);
-	check(comp != NULL);
+	check(comp != nullptr);
 	comp->SrcComponent = srcComponent;
 	comp->Scene = this;
 	newActor->SetRootComponent(comp);
@@ -187,7 +187,7 @@ bool	ARPRScene::QueueBuildRPRActor(UWorld *world, USceneComponent *srcComponent,
 
 void	ARPRScene::RemoveActor(ARPRActor *actor)
 {
-	check(actor->GetRootComponent() != NULL);
+	check(actor->GetRootComponent() != nullptr);
 
 	if (BuildQueue.Contains(actor))
 	{
@@ -195,7 +195,7 @@ void	ARPRScene::RemoveActor(ARPRActor *actor)
 		BuildQueue.Remove(actor);
 
 		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(actor->GetRootComponent());
-		check(comp != NULL);
+		check(comp != nullptr);
 
 		comp->ReleaseResources();
 		actor->GetRootComponent()->ConditionalBeginDestroy();
@@ -212,10 +212,10 @@ void	ARPRScene::RemoveActor(ARPRActor *actor)
 
 bool	ARPRScene::BuildViewportCamera()
 {
-	check(ViewportCameraComponent == NULL);
+	check(ViewportCameraComponent == nullptr);
 
 	ViewportCameraComponent = NewObject<URPRViewportCameraComponent>(this, URPRViewportCameraComponent::StaticClass());
-	check(ViewportCameraComponent != NULL);
+	check(ViewportCameraComponent != nullptr);
 
 	ViewportCameraComponent->Scene = this;
 	ViewportCameraComponent->SrcComponent = GetRootComponent();
@@ -226,7 +226,7 @@ bool	ARPRScene::BuildViewportCamera()
 	{
 		ViewportCameraComponent->ReleaseResources();
 		ViewportCameraComponent->ConditionalBeginDestroy();
-		ViewportCameraComponent = NULL;
+		ViewportCameraComponent = nullptr;
 		return false;
 	}
 	return true;
@@ -236,7 +236,7 @@ uint32	ARPRScene::BuildScene()
 {
 	UWorld	*world = GetWorld();
 
-	check(world != NULL);
+	check(world != nullptr);
 	uint32	unbuiltObjects = 0;
 	for (TObjectIterator<USceneComponent> it; it; ++it)
 	{
@@ -244,11 +244,11 @@ uint32	ARPRScene::BuildScene()
 			it->IsPendingKill() ||
 			!it->HasBeenCreated())
 			continue;
-		if (Cast<UStaticMeshComponent>(*it) != NULL)
+		if (Cast<UStaticMeshComponent>(*it) != nullptr)
 			unbuiltObjects += QueueBuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass(), false);
-		else if (Cast<ULightComponentBase>(*it) != NULL)
+		else if (Cast<ULightComponentBase>(*it) != nullptr)
 			unbuiltObjects += QueueBuildRPRActor(world, *it, URPRLightComponent::StaticClass(), false);
-		else if (Cast<UCameraComponent>(*it) != NULL)
+		else if (Cast<UCameraComponent>(*it) != nullptr)
 			unbuiltObjects += QueueBuildRPRActor(world, *it, URPRCameraComponent::StaticClass(), false);
 	}
 	return unbuiltObjects;
@@ -258,12 +258,12 @@ bool	ARPRScene::ResizeRenderTarget()
 {
 	check(IsInGameThread());
 
-	if (m_ActiveCamera == NULL ||
+	if (m_ActiveCamera == nullptr ||
 		!m_RendererWorker.IsValid() ||
-		m_RenderTexture == NULL)
+		m_RenderTexture == nullptr)
 		return false;
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
+	check(settings != nullptr);
 
 	const float	megapixels = settings->MegaPixelCount;
 	float		horizontalRatio = 0.0f;
@@ -272,7 +272,7 @@ bool	ARPRScene::ResizeRenderTarget()
 	else
 	{
 		const UCameraComponent	*camera = Cast<UCameraComponent>(m_ActiveCamera->SrcComponent);
-		if (camera == NULL) // The object should have been destroyed, but ok
+		if (camera == nullptr) // The object should have been destroyed, but ok
 			return false;
 		horizontalRatio = camera->AspectRatio;
 	}
@@ -299,7 +299,7 @@ void	ARPRScene::RefreshScene()
 	// We ll have to do that for runtime apps
 	// If this takes too much time, it might be better to have several lists for cameras/lights/objects
 	// to avoid finding in SceneComponents
-	check(world != NULL);
+	check(world != nullptr);
 	bool	objectAdded = false;
 	for (TObjectIterator<USceneComponent> it; it; ++it)
 	{
@@ -307,11 +307,11 @@ void	ARPRScene::RefreshScene()
 			it->IsPendingKill() ||
 			!it->HasBeenCreated())
 			continue;
-		if (Cast<UStaticMeshComponent>(*it) != NULL)
+		if (Cast<UStaticMeshComponent>(*it) != nullptr)
 			objectAdded |= QueueBuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass(), true);
-		else if (Cast<ULightComponentBase>(*it) != NULL)
+		else if (Cast<ULightComponentBase>(*it) != nullptr)
 			objectAdded |= QueueBuildRPRActor(world, *it, URPRLightComponent::StaticClass(), true);
-		else if (Cast<UCameraComponent>(*it) != NULL)
+		else if (Cast<UCameraComponent>(*it) != nullptr)
 			objectAdded |= QueueBuildRPRActor(world, *it, URPRCameraComponent::StaticClass(), true);
 	}
 }
@@ -319,7 +319,7 @@ void	ARPRScene::RefreshScene()
 uint32	ARPRScene::GetContextCreationFlags(const FString &dllPath)
 {
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
+	check(settings != nullptr);
 
 	rpr_creation_flags	maxCreationFlags = 0;
 	if (settings->bEnableCPU)
@@ -391,17 +391,17 @@ bool	ARPRScene::RPRThread_Rebuild()
 	bool			restartRender = false;
 	for (int32 iObject = 0; iObject < SceneContent.Num(); ++iObject)
 	{
-		if (SceneContent[iObject] == NULL)
+		if (SceneContent[iObject] == nullptr)
 		{
 			SceneContent.RemoveAt(iObject--);
 			continue;
 		}
 		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(SceneContent[iObject]->GetRootComponent());
-		check(comp != NULL);
+		check(comp != nullptr);
 
 		restartRender |= comp->RPRThread_Update();
 	}
-	if (ViewportCameraComponent != NULL)
+	if (ViewportCameraComponent != nullptr)
 		restartRender |= ViewportCameraComponent->RPRThread_Update();
 	return restartRender;
 }
@@ -412,7 +412,7 @@ void ARPRScene::LoadMappings()
 	m_UMSControl.Clear();
 
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
+	check(settings != nullptr);
 
 	// Set the master material mappings file.
 	m_materialLibrary.LoadMasterMappingFile(TCHAR_TO_ANSI(*(FPaths::ProjectDir() + "/Plugins/RPRPlugin/Content/MaterialMappings.xml")));
@@ -433,11 +433,11 @@ void ARPRScene::LoadMappings()
 void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 {
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
+	check(settings != nullptr);
 
-	if (m_RprContext == NULL)
+	if (m_RprContext == nullptr)
 	{
-		if (!ensure(m_Plugin->GetRenderTexture() != NULL))
+		if (!ensure(m_Plugin->GetRenderTexture() != nullptr))
 			return;
 
 		const FString	dllPath = FPaths::ProjectDir() + "/Binaries/Win64/Tahoe64.dll"; // To get from settings ?
@@ -458,7 +458,7 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		for (uint32 s = RPR_CREATION_FLAGS_ENABLE_GPU7; s; s >>= 1)
 			m_NumDevices += (creationFlags & s) != 0;
 
-		if (rprCreateContext(RPR_API_VERSION, &tahoePluginId, 1, creationFlags, NULL, TCHAR_TO_ANSI(*settings->RenderCachePath), &m_RprContext) != RPR_SUCCESS ||
+		if (rprCreateContext(RPR_API_VERSION, &tahoePluginId, 1, creationFlags, nullptr, TCHAR_TO_ANSI(*settings->RenderCachePath), &m_RprContext) != RPR_SUCCESS ||
 			rprContextSetParameter1u(m_RprContext, "aasamples", m_NumDevices) != RPR_SUCCESS ||
 			rprContextSetParameter1u(m_RprContext, "preview", 1) != RPR_SUCCESS ||
 			rprContextSetParameter1f(m_RprContext, "radianceclamp", (rpr_float)1.0f) != RPR_SUCCESS)
@@ -521,7 +521,7 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 
 	if (!m_RendererWorker.IsValid())
 	{
-		check(m_RprContext != NULL);
+		check(m_RprContext != nullptr);
 
 		SetTrace(settings->bTrace);
 
@@ -554,7 +554,7 @@ void	ARPRScene::Rebuild()
 				// Here, the renderer worker will pause itself at the next iteration
 				// So, wait for it
 	m_RendererWorker->EnsureCompletion();
-	m_RendererWorker = NULL; // TODO MAKE SURE TSharedPtr correctly deletes the renderer
+	m_RendererWorker = nullptr; // TODO MAKE SURE TSharedPtr correctly deletes the renderer
 
 	// Once the RPR thread is deleted, clean all scene resources
 	RemoveSceneContent(false, false);
@@ -578,7 +578,7 @@ void	ARPRScene::OnPause()
 
 void	ARPRScene::SetOrbit(bool orbit)
 {
-	if (m_ActiveCamera == NULL)
+	if (m_ActiveCamera == nullptr)
 		return;
 	if (m_ActiveCamera == ViewportCameraComponent)
 		ViewportCameraComponent->SetOrbit(orbit);
@@ -591,7 +591,7 @@ void	ARPRScene::SetOrbit(bool orbit)
 
 void	ARPRScene::StartOrbitting(const FIntPoint &mousePos)
 {
-	if (m_ActiveCamera == NULL)
+	if (m_ActiveCamera == nullptr)
 		return;
 	if (m_ActiveCamera == ViewportCameraComponent)
 		ViewportCameraComponent->StartOrbitting(mousePos);
@@ -604,10 +604,10 @@ void	ARPRScene::StartOrbitting(const FIntPoint &mousePos)
 
 void	ARPRScene::SetTrace(bool trace)
 {
-	if (m_RprContext == NULL)
+	if (m_RprContext == nullptr)
 		return;
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	if (settings == NULL)
+	if (settings == nullptr)
 		return;
 
 	FString	tracePath = settings->TraceFolder;
@@ -625,8 +625,8 @@ void	ARPRScene::SetTrace(bool trace)
 		m_RendererWorker->SetTrace(trace, tracePath);
 	else
 	{
-		if (rprContextSetParameterString(NULL, "tracingfolder", TCHAR_TO_ANSI(*tracePath)) != RPR_SUCCESS ||
-			rprContextSetParameter1u(NULL, "tracing", trace) != RPR_SUCCESS)
+		if (rprContextSetParameterString(nullptr, "tracingfolder", TCHAR_TO_ANSI(*tracePath)) != RPR_SUCCESS ||
+			rprContextSetParameter1u(nullptr, "tracing", trace) != RPR_SUCCESS)
 		{
 			UE_LOG(LogRPRScene, Warning, TEXT("Couldn't enable RPR trace."));
 			return;
@@ -648,7 +648,7 @@ void	ARPRScene::OnSave()
 	if (!m_RendererWorker.IsValid())
 		return; // Nothing to save
 	IDesktopPlatform	*desktopPlatform = FDesktopPlatformModule::Get();
-	if (desktopPlatform == NULL)
+	if (desktopPlatform == nullptr)
 		return;
 
 	static FString	kSaveDialogTitle = "Save Radeon ProRender Framebuffer";
@@ -661,7 +661,7 @@ void	ARPRScene::OnSave()
 
 	TArray<FString>		saveFilenames;
 	const bool	save = desktopPlatform->SaveFileDialog(
-		FSlateApplication::Get().FindBestParentWindowHandleForDialogs(NULL),
+		FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr),
 		kSaveDialogTitle,
 		*LastSavedExportPath,
 		*LastSavedFilename,
@@ -693,7 +693,7 @@ void	ARPRScene::CheckPendingKills()
 	for (int32 iKill = 0; iKill < PendingKillQueue.Num(); ++iKill)
 	{
 		AActor	*actor = PendingKillQueue[iKill];
-		if (actor == NULL)
+		if (actor == nullptr)
 		{
 			PendingKillQueue.RemoveAt(iKill);
 			break;
@@ -701,7 +701,7 @@ void	ARPRScene::CheckPendingKills()
 		if (canSafelyKill ||
 			m_RendererWorker->CanSafelyKill(PendingKillQueue[iKill]))
 		{
-			check(Cast<URPRSceneComponent>(actor->GetRootComponent()) != NULL);
+			check(Cast<URPRSceneComponent>(actor->GetRootComponent()) != nullptr);
 			actor->GetRootComponent()->ConditionalBeginDestroy();
 			actor->Destroy();
 			PendingKillQueue.RemoveAt(iKill);
@@ -713,8 +713,8 @@ void	ARPRScene::Tick(float deltaTime)
 {
 	SCOPE_CYCLE_COUNTER(STAT_ProRender_UpdateScene);
 	if (!m_RendererWorker.IsValid() ||
-		m_RenderTexture == NULL ||
-		m_RenderTexture->Resource == NULL ||
+		m_RenderTexture == nullptr ||
+		m_RenderTexture->Resource == nullptr ||
 		!m_Plugin->m_Viewport.IsValid())
 		return;
 
@@ -730,7 +730,7 @@ void	ARPRScene::Tick(float deltaTime)
 		TriggerFrameRebuild();
 
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
+	check(settings != nullptr);
 
 	if (settings->bSync)
 		RefreshScene();
@@ -776,43 +776,21 @@ void	ARPRScene::Tick(float deltaTime)
 void	ARPRScene::RemoveSceneContent(bool clearScene, bool clearCache)
 {
 	check(!m_RendererWorker.IsValid()); // RPR Thread HAS to be destroyed
-	for (int32 iObject = 0; iObject < SceneContent.Num(); ++iObject)
-	{
-		if (SceneContent[iObject] == NULL)
-			continue;
-		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(SceneContent[iObject]->GetRootComponent());
-		check(comp != NULL);
+	DestroyRPRActors(SceneContent);
+	DestroyRPRActors(BuildQueue);
 
-		comp->ReleaseResources();
-		comp->ConditionalBeginDestroy();
-
-		SceneContent[iObject]->Destroy();
-	}
-	SceneContent.Empty();
-	for (int32 iObject = 0; iObject < BuildQueue.Num(); ++iObject)
-	{
-		if (BuildQueue[iObject] == NULL)
-			continue;
-		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(BuildQueue[iObject]->GetRootComponent());
-		check(comp != NULL);
-
-		comp->ReleaseResources();
-		comp->ConditionalBeginDestroy();
-		BuildQueue[iObject]->Destroy();
-	}
-	BuildQueue.Empty();
-	if (ViewportCameraComponent != NULL)
+	if (ViewportCameraComponent != nullptr)
 	{
 		ViewportCameraComponent->ReleaseResources();
 		ViewportCameraComponent->ConditionalBeginDestroy();
-		ViewportCameraComponent = NULL;
+		ViewportCameraComponent = nullptr;
 	}
 	Cameras.Empty();
 
 	CheckPendingKills();
 	check(PendingKillQueue.Num() == 0);
 
-	if (m_RprScene != NULL)
+	if (m_RprScene != nullptr)
 	{
 		if (clearCache)
 		{
@@ -823,15 +801,7 @@ void	ARPRScene::RemoveSceneContent(bool clearScene, bool clearCache)
 				URPRStaticMeshComponent::ClearCache(m_RprScene);
 				for (auto&& mat : m_MaterialCache)
 				{
-					if (mat.second.type == 0)
-					{
-						rprObjectDelete(mat.second.data);
-
-					}
-					else
-					{
-						rprxMaterialDelete(m_RprSupportCtx, reinterpret_cast<rprx_material>(mat.second.data));
-					}
+					RPRI::DeleteMaterial(m_RprSupportCtx, mat.second);
 				}
 			}
 			catch (std::exception)
@@ -840,16 +810,38 @@ void	ARPRScene::RemoveSceneContent(bool clearScene, bool clearCache)
 			}
 			m_MaterialCache.clear();
 		}
+
 		if (clearScene)
-			rprSceneClear(m_RprScene);
+		{
+			RPR::SceneClear(m_RprScene);
+		}
 	}
+}
+
+void	ARPRScene::DestroyRPRActors(TArray<ARPRActor*>& Actors)
+{
+	for (int32 iObject = 0; iObject < Actors.Num(); ++iObject)
+	{
+		if (Actors[iObject] == nullptr)
+		{
+			continue;
+		}
+
+		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(Actors[iObject]->GetRootComponent());
+		check(comp != nullptr);
+
+		comp->ReleaseResources();
+		comp->ConditionalBeginDestroy();
+		Actors[iObject]->Destroy();
+	}
+	Actors.Empty();
 }
 
 void	ARPRScene::ImmediateRelease(URPRSceneComponent *component)
 {
 	ARPRActor	*actor = Cast<ARPRActor>(component->GetOwner());
 
-	check(component != NULL);
+	check(component != nullptr);
 	if (BuildQueue.Contains(actor))
 	{
 		// Can be deleted now
@@ -879,37 +871,37 @@ void	ARPRScene::BeginDestroy()
 	if (m_RendererWorker.IsValid())
 	{
 		m_RendererWorker->EnsureCompletion();
-		m_RendererWorker = NULL; // TODO MAKE SURE TSharedPtr correctly deletes the renderer
+		m_RendererWorker = nullptr; // TODO MAKE SURE TSharedPtr correctly deletes the renderer
 	}
 	RemoveSceneContent(true, true);
-	if (m_RprSupportCtx != NULL)
+	if (m_RprSupportCtx != nullptr)
 	{
 		RPRX::DeleteContext(m_RprSupportCtx);
-		m_RprSupportCtx = NULL;
+		m_RprSupportCtx = nullptr;
 	}
 
-	if (m_RprMaterialSystem != NULL)
+	if (m_RprMaterialSystem != nullptr)
 	{
 		RPR::DeleteObject(m_RprMaterialSystem);
-		m_RprMaterialSystem = NULL;
+		m_RprMaterialSystem = nullptr;
 	}
 
-	if (m_RpriContext != NULL)
+	if (m_RpriContext != nullptr)
 	{
 		RPRI::DeleteContext(m_RpriContext);
-		m_RpriContext = NULL;
+		m_RpriContext = nullptr;
 	}
 	
-	if (m_RprScene != NULL)
+	if (m_RprScene != nullptr)
 	{
 		RPR::DeleteObject(m_RprScene);
-		m_RprScene = NULL;
+		m_RprScene = nullptr;
 	}
-	if (m_RprContext != NULL)
+	if (m_RprContext != nullptr)
 	{
 		//rprContextClearMemory(m_RprContext);
 		RPR::DeleteObject(m_RprContext);
-		m_RprContext = NULL;
+		m_RprContext = nullptr;
 	}
 }
 

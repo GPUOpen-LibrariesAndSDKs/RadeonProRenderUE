@@ -21,5 +21,4 @@ namespace RPR
 
 	typedef void*						FMaterialRawDatas;
 	typedef rpr_material_node			FMaterialNode;
-	typedef rpriExportRprMaterialResult	FExportMaterialResult;
 }

@@ -16,7 +16,7 @@ void FRPRMatParamCopier_MaterialConstantOrMapChannel1::Apply(const FRPRUberMater
 	if (useMapParameter)
 	{
         useMapParameter->bOverride = true;
-		useMapParameter->ParameterValue = (materialMap->Mode == ERPRMaterialMapMode::Texture);
+		useMapParameter->ParameterValue = ShouldUseMap(RPRUberMaterialParameters, Property, RPRMaterialEditorInstance);
 	}
 
 	const FString constantParameterName = FRPRMatParamCopierUtility::CombinePropertyNameSection(materialMap->GetXmlParamName(), RPR::FEditorMaterialConstants::MaterialPropertyConstantSection);
@@ -49,4 +49,10 @@ void FRPRMatParamCopier_MaterialConstantOrMapChannel1::Apply(const FRPRUberMater
 		UE_LOG(LogRPRMatParamCopier_MaterialConstantOrMapChannel1, Warning, TEXT("Interpretation mode not supported (%#4) !"), (uint8) materialMap->RPRInterpretationMode);
 		break;
 	}
+}
+
+bool FRPRMatParamCopier_MaterialConstantOrMapChannel1::ShouldUseMap(const FRPRUberMaterialParameters& RPRUberMaterialParameters, UStructProperty* Property, UMaterialEditorInstanceConstant* RPRMaterialEditorInstance) const
+{
+	auto materialMap = Property->ContainerPtrToValuePtr<const FRPRMaterialConstantOrMapChannel1>(&RPRUberMaterialParameters);
+	return (materialMap->Mode == ERPRMaterialMapMode::Texture);
 }

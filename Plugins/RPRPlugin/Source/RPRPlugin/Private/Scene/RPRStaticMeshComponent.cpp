@@ -23,6 +23,7 @@
 #include "Scene/RPRScene.h"
 #include "RPRMaterialBuilder.h"
 #include "Async.h"
+#include "RPRXHelpers.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
 
@@ -46,7 +47,7 @@ TArray<SRPRCachedMesh>	URPRStaticMeshComponent::GetMeshInstances(UStaticMesh *me
 	const uint32	shapeCount = srcShapes.Num();
 	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 	{
-		rpr_shape	newShape = NULL;
+		rpr_shape	newShape = nullptr;
 		if (rprContextCreateInstance(Scene->m_RprContext, srcShapes[iShape].m_RprShape, &newShape) != RPR_SUCCESS)
 		{
 			for (int32 jShape = 0; jShape < instances.Num(); ++jShape)
@@ -67,7 +68,7 @@ TArray<SRPRCachedMesh>	URPRStaticMeshComponent::GetMeshInstances(UStaticMesh *me
 
 void	URPRStaticMeshComponent::ClearCache(RPR::FScene scene)
 {
-	check(scene != NULL);
+	check(scene != nullptr);
 
 	for (auto it = Cache.CreateIterator(); it; ++it)
 	{
@@ -76,7 +77,7 @@ void	URPRStaticMeshComponent::ClearCache(RPR::FScene scene)
 		const uint32 shapeCount = shapes.Num();
 		for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 		{
-			check(shapes[iShape].m_RprShape != NULL);
+			check(shapes[iShape].m_RprShape != nullptr);
 			RPR::SceneDetachShape(scene, shapes[iShape].m_RprShape);
 			RPR::DeleteObject(shapes[iShape].m_RprShape);
 		}
@@ -116,8 +117,8 @@ rpriExportRprMaterialResult URPRStaticMeshComponent::CreateXMLShapeMaterial(uint
 	const char* materialName = TCHAR_TO_ANSI(*matInterface->GetName());
 	rpr_shape					shape = m_Shapes[iShape].m_RprShape;
 	rpr_material_node material = nullptr;
-	const UMaterial				*parentMaterial = matInterface != NULL ? matInterface->GetMaterial() : NULL;
-	assert(parentMaterial != NULL);
+	const UMaterial				*parentMaterial = matInterface != nullptr ? matInterface->GetMaterial() : nullptr;
+	assert(parentMaterial != nullptr);
 
 #if 0
 	// We can only query the matInstance properties if this is actually a mat instance.
@@ -233,7 +234,7 @@ rpriExportRprMaterialResult URPRStaticMeshComponent::CreateXMLShapeMaterial(uint
 bool	URPRStaticMeshComponent::BuildMaterials()
 {
 	const UStaticMeshComponent	*component = Cast<UStaticMeshComponent>(SrcComponent);
-	check(component != NULL);
+	check(component != nullptr);
 	
 	// Assign the materials on the instances: The cached geometry might be the same
 	// But materials can be overriden on a component basis
@@ -243,9 +244,9 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		rpr_shape shape = m_Shapes[iShape].m_RprShape;
 		rpr_int status = RPR_SUCCESS;
 
-		// If we have a wrong index, it ll just return NULL, and fallback to a dummy material
+		// If we have a wrong index, it ll just return nullptr, and fallback to a dummy material
 		UMaterialInterface	*matInterface = component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
-		const UMaterial		*parentMaterial = matInterface != NULL ? matInterface->GetMaterial() : NULL;
+		const UMaterial		*parentMaterial = matInterface != nullptr ? matInterface->GetMaterial() : nullptr;
 		const char* materialName = matInterface != nullptr ? TCHAR_TO_ANSI(*matInterface->GetName()) : "";
 
 		if (matInterface->IsA<URPRMaterial>())
@@ -268,8 +269,8 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 			continue;
 		}
 
-		rpr_material_node	material = NULL;
-		if (parentMaterial == NULL)
+		rpr_material_node	material = nullptr;
+		if (parentMaterial == nullptr)
 		{
 			material = CreateDefaultDummyShapeMaterial(iShape);
 			Scene->m_MaterialCache[materialName] = rpriExportRprMaterialResult{ 0, material };
@@ -444,20 +445,20 @@ static bool const FLIP_UV_Y = true;
 
 bool	URPRStaticMeshComponent::Build()
 {
-	// Async load: SrcComponent can be null if it was deleted from the scene
-	if (Scene == NULL || !IsSrcComponentValid())
+	// Async load: SrcComponent can be nullptr if it was deleted from the scene
+	if (Scene == nullptr || !IsSrcComponentValid())
 		return false;
 
 	// TODO: Find a better way to cull unwanted geometry
 	// The issue here is we collect ALL static mesh components,
 	// including some geometry generated during play
 	// like the camera or pawn etc
-	//	if (Cast<AStaticMeshActor>(SrcComponent->GetOwner()) == NULL)
+	//	if (Cast<AStaticMeshActor>(SrcComponent->GetOwner()) == nullptr)
 	//		return false;
 	static const FName	kStripTag = "RPR_Strip";
 	const AActor		*actor = SrcComponent->GetOwner();
-	if (Cast<ACameraActor>(actor) != NULL ||
-		Cast<APawn>(actor) != NULL ||
+	if (Cast<ACameraActor>(actor) != nullptr ||
+		Cast<APawn>(actor) != nullptr ||
 		actor->ActorHasTag(kStripTag) ||
 		SrcComponent->ComponentHasTag(kStripTag))
 		return false;
@@ -468,10 +469,10 @@ bool	URPRStaticMeshComponent::Build()
 	// So the solution would be to build all static meshes data before packaging
 	// Placing that built data inside the static mesh UserData could be an option
 	UStaticMeshComponent	*staticMeshComponent = Cast<UStaticMeshComponent>(SrcComponent);
-	check(staticMeshComponent != NULL);
+	check(staticMeshComponent != nullptr);
 	UStaticMesh	*staticMesh = staticMeshComponent->GetStaticMesh();
-	if (staticMesh == NULL ||
-		staticMesh->RenderData == NULL ||
+	if (staticMesh == nullptr ||
+		staticMesh->RenderData == nullptr ||
 		staticMesh->RenderData->LODResources.Num() == 0)
 		return false;
 	TArray<FStaticMaterial>	const	   &staticMaterials = staticMesh->StaticMaterials;
@@ -555,7 +556,7 @@ bool	URPRStaticMeshComponent::Build()
 			for (uint32 iTriangle = 0; iTriangle < section.NumTriangles; ++iTriangle)
 				numFaceVertices[iTriangle] = 3;
 
-			rpr_shape	shape = NULL;
+			rpr_shape	shape = nullptr;
 
 			if (rprContextCreateMesh(Scene->m_RprContext,
 									 (rpr_float const *)positions.GetData(), positions.Num(), sizeof(float) * 3,
@@ -678,7 +679,7 @@ bool	URPRStaticMeshComponent::Build()
 
 bool	URPRStaticMeshComponent::PostBuild()
 {
-	if (Scene == NULL || !IsSrcComponentValid())
+	if (Scene == nullptr || !IsSrcComponentValid())
 		return false;
 
 	if (!BuildMaterials())
@@ -779,20 +780,20 @@ void	URPRStaticMeshComponent::ReleaseResources()
 {
 	if (m_Shapes.Num() > 0)
 	{
-		check(Scene != NULL);
+		check(Scene != nullptr);
 		uint32	shapeCount = m_Shapes.Num();
 		for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 		{
-			if (m_Shapes[iShape].m_RprxMaterial != NULL)
+			if (m_Shapes[iShape].m_RprxMaterial != nullptr)
 			{
-				check(m_Shapes[iShape].m_RprShape != NULL);
-				rprxShapeDetachMaterial(Scene->m_RprSupportCtx, m_Shapes[iShape].m_RprShape, m_Shapes[iShape].m_RprxMaterial);
+				check(m_Shapes[iShape].m_RprShape != nullptr);
+				RPRX::ShapeDetachMaterial(Scene->m_RprSupportCtx, m_Shapes[iShape].m_RprShape, m_Shapes[iShape].m_RprxMaterial);
 			}
 
-			if (m_Shapes[iShape].m_RprShape != NULL)
+			if (m_Shapes[iShape].m_RprShape != nullptr)
 			{
-				rprSceneDetachShape(Scene->m_RprScene, m_Shapes[iShape].m_RprShape);
-				rprObjectDelete(m_Shapes[iShape].m_RprShape);
+				RPR::SceneDetachShape(Scene->m_RprScene, m_Shapes[iShape].m_RprShape);
+				RPR::DeleteObject(m_Shapes[iShape].m_RprShape);
 			}
 		}
 		m_Shapes.Empty();

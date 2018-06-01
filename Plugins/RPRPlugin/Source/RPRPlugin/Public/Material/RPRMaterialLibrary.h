@@ -7,6 +7,7 @@
 #include "RPRImageManager.h"
 #include "CriticalSection.h"
 #include "IObjectScopedLockable.h"
+#include "RPRIHelpers.h"
 
 /*
 * Library of RPR materials.
@@ -43,14 +44,14 @@ public:
 
 private:
 
-	const RPR::FExportMaterialResult*	FindMaterialCache(const URPRMaterial* MaterialKey) const;
+	const RPRI::FExportMaterialResult*	FindMaterialCache(const URPRMaterial* MaterialKey) const;
 
-	bool	CacheMaterial(URPRMaterial* InMaterial, RPR::FExportMaterialResult& OutMaterial);
-	void	ReleaseRawMaterialDatas(RPR::FExportMaterialResult& Material);
+	bool	CacheMaterial(URPRMaterial* InMaterial, RPRI::FExportMaterialResult& OutMaterial);
+	void	ReleaseRawMaterialDatas(RPRI::FExportMaterialResult& Material);
 
 private:
 
-	TMap<const URPRMaterial*, RPR::FExportMaterialResult>	UEMaterialToRPRMaterialCaches;
+	TMap<const URPRMaterial*, RPRI::FExportMaterialResult>	UEMaterialToRPRMaterialCaches;
 
 	bool bIsInitialized;
 	RPR::FMaterialContext MaterialContext;
