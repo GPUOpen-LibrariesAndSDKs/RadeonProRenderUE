@@ -140,8 +140,24 @@ bool IsDeviceNameWhitelisted(const char* deviceName, RPR_TOOLS_OS os)
 	listOfKnownCompatibleDevices_partial.push_back("Radeon RX"); 
 	listOfKnownCompatibleDevices_partial.push_back("Radeon (TM) RX"); 
 	listOfKnownCompatibleDevices_partial.push_back("Radeon Vega Frontier Edition"); 
+	listOfKnownCompatibleDevices_partial.push_back("Vega 56"); 
+	listOfKnownCompatibleDevices_partial.push_back("Vega 64"); 
+	listOfKnownCompatibleDevices_partial.push_back("Vega 65"); 
 	listOfKnownCompatibleDevices_partial.push_back("Radeon Frontier"); 
 	listOfKnownCompatibleDevices_partial.push_back("Radeon(TM) Pro Duo");
+	listOfKnownCompatibleDevices_partial.push_back("Radeon Pro SSG");
+	listOfKnownCompatibleDevices_partial.push_back("Radeon Pro 450");
+	listOfKnownCompatibleDevices_partial.push_back("Radeon Pro 455");
+	listOfKnownCompatibleDevices_partial.push_back("Radeon Pro 460");
+	listOfKnownCompatibleDevices_partial.push_back("Radeon Pro 550");
+	listOfKnownCompatibleDevices_partial.push_back("Radeon Pro 555");
+	listOfKnownCompatibleDevices_partial.push_back("Radeon Pro 560");
+	listOfKnownCompatibleDevices_partial.push_back("Radeon Pro 570");
+	listOfKnownCompatibleDevices_partial.push_back("Radeon Pro 575");
+	listOfKnownCompatibleDevices_partial.push_back("Radeon Pro 580");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro D500");
+	listOfKnownCompatibleDevices_partial.push_back("FirePro D700");
+
 
 	// partial names - WxxxM
 	listOfKnownCompatibleDevices_partial.push_back("W4170M"); 
@@ -178,10 +194,15 @@ bool IsDeviceNameWhitelisted(const char* deviceName, RPR_TOOLS_OS os)
 
 #ifndef RADEONPRORENDERTOOLS_DONTUSERPR
 
-RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(const rpr_char* rendererDLL, RPR_TOOLS_DEVICE device, rpr_char const * cache_path, bool doWhiteListTest, RPR_TOOLS_OS os)
+RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(const rpr_char* rendererDLL, RPR_TOOLS_DEVICE device, rpr_char const * cache_path, bool doWhiteListTest, RPR_TOOLS_OS os, rpr_creation_flags additionalflags)
 {
-	
-    rpr_int status = RPR_SUCCESS;
+	rpr_int tahoePluginID = rprRegisterPlugin(rendererDLL);
+	return rprIsDeviceCompatible(tahoePluginID , device, cache_path, doWhiteListTest, os, additionalflags);
+}
+
+RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(rpr_int tahoePluginID , RPR_TOOLS_DEVICE device, rpr_char const * cache_path, bool doWhiteListTest, RPR_TOOLS_OS os, rpr_creation_flags additionalflags)
+{
+	rpr_int status = RPR_SUCCESS;
 
     rpr_context temporaryContext = 0;
 
@@ -195,7 +216,6 @@ RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(const rpr_char* rendererDLL, RPR_T
         rpr_context_info contextInfo = 0;
 	
 		{
-            rpr_int tahoePluginID = rprRegisterPlugin(rendererDLL);
 			if ( tahoePluginID == -1 ) { throw  RPRTC_INCOMPATIBLE_UNKNOWN; }
             rpr_int plugins[] = { tahoePluginID};
 			size_t pluginCount = sizeof(plugins) / sizeof(plugins[0]);
@@ -209,7 +229,17 @@ RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(const rpr_char* rendererDLL, RPR_T
 			else if ( device == RPRTD_GPU7 ) { flags = RPR_CREATION_FLAGS_ENABLE_GPU7; contextInfo = RPR_CONTEXT_GPU7_NAME;}
 			else if ( device == RPRTD_CPU )  { flags = RPR_CREATION_FLAGS_ENABLE_CPU;  contextInfo = RPR_CONTEXT_CPU_NAME;}
 			else { throw  RPRTC_INCOMPATIBLE_UNKNOWN; }
-			status = rprCreateContext(RPR_API_VERSION, plugins, pluginCount, flags, NULL, cache_path, &temporaryContext);
+			flags |= additionalflags;
+			
+			try
+			{ 
+				status = rprCreateContext(RPR_API_VERSION, plugins, pluginCount, flags, NULL, cache_path, &temporaryContext);
+			}
+			catch (...)
+			{ 
+				return RPRTC_INCOMPATIBLE_CONTEXT_ERROR; 
+			} 
+
 			if ( status != RPR_SUCCESS )
 			{
 				if ( status == RPR_ERROR_UNSUPPORTED )
@@ -225,28 +255,27 @@ RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(const rpr_char* rendererDLL, RPR_T
 	
 	
 		//step 2:
+		size_t size = 0;
+		status = rprContextGetInfo(temporaryContext,contextInfo,0,0,&size);
+		if ( status != RPR_SUCCESS ) { throw  RPRTC_INCOMPATIBLE_UNKNOWN; }
+
+		std::string deviceName;
+		deviceName.resize(size);
+		status = rprContextGetInfo(temporaryContext,contextInfo,size,&deviceName[0],0);
+		if ( status != RPR_SUCCESS ) { throw  RPRTC_INCOMPATIBLE_UNKNOWN; }
 		//we check that the device is in the list compatible devices.
 		if ( doWhiteListTest )
 		{
-			size_t size = 0;
-			status = rprContextGetInfo(temporaryContext,contextInfo,0,0,&size);
-			if ( status != RPR_SUCCESS ) { throw  RPRTC_INCOMPATIBLE_UNKNOWN; }
-
-			char* deviceName = new char[size];
-			status = rprContextGetInfo(temporaryContext,contextInfo,size,deviceName,0);
-			if ( status != RPR_SUCCESS ) { throw  RPRTC_INCOMPATIBLE_UNKNOWN; }
-		
-			if ( !IsDeviceNameWhitelisted(deviceName,os) )
+	
+			if ( !IsDeviceNameWhitelisted(deviceName.c_str(),os) )
 			{
 				throw RPRTC_INCOMPATIBLE_UNCERTIFIED;
 			}
-
-			delete[] deviceName; deviceName=nullptr;
 		}
-
-
-
-
+		{
+			if( strstr( deviceName.c_str(), "Intel" ) != 0 )
+				return  RPRTC_INCOMPATIBLE_CONTEXT_UNSUPPORTED;
+		}
 	}
 	catch(RPR_TOOLS_COMPATIBILITY i )
 	{
@@ -268,21 +297,26 @@ RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(const rpr_char* rendererDLL, RPR_T
 }
 
 
-
 void rprAreDevicesCompatible(const rpr_char* rendererDLL, rpr_char const * cache_path, bool doWhiteListTest, rpr_creation_flags devicesUsed,  rpr_creation_flags* devicesCompatibleOut, RPR_TOOLS_OS os)
+{
+	rpr_int tahoePluginID = rprRegisterPlugin(rendererDLL);
+	rprAreDevicesCompatible(tahoePluginID , cache_path, doWhiteListTest, devicesUsed, devicesCompatibleOut, os);
+}
+
+void rprAreDevicesCompatible(rpr_int tahoePluginID, rpr_char const * cache_path, bool doWhiteListTest, rpr_creation_flags devicesUsed,  rpr_creation_flags* devicesCompatibleOut, RPR_TOOLS_OS os)
 {
 	*devicesCompatibleOut = devicesUsed;
 
 	rpr_int compatibility = RPR_ERROR_INVALID_PARAMETER;
-	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU0 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU0,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU0; } }
-	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU1 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU1,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU1; } }
-	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU2 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU2,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU2; } }
-	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU3 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU3,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU3; } }
-	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU4 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU4,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU4; } }
-	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU5 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU5,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU5; } }
-	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU6 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU6,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU6; } }
-	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU7 ) { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_GPU7,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU7; } }
-	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_CPU )  { if ( rprIsDeviceCompatible(rendererDLL,RPRTD_CPU,cache_path,doWhiteListTest,os)  != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_CPU; } }
+	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU0 ) { if ( rprIsDeviceCompatible(tahoePluginID,RPRTD_GPU0,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU0; } }
+	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU1 ) { if ( rprIsDeviceCompatible(tahoePluginID,RPRTD_GPU1,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU1; } }
+	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU2 ) { if ( rprIsDeviceCompatible(tahoePluginID,RPRTD_GPU2,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU2; } }
+	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU3 ) { if ( rprIsDeviceCompatible(tahoePluginID,RPRTD_GPU3,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU3; } }
+	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU4 ) { if ( rprIsDeviceCompatible(tahoePluginID,RPRTD_GPU4,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU4; } }
+	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU5 ) { if ( rprIsDeviceCompatible(tahoePluginID,RPRTD_GPU5,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU5; } }
+	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU6 ) { if ( rprIsDeviceCompatible(tahoePluginID,RPRTD_GPU6,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU6; } }
+	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_GPU7 ) { if ( rprIsDeviceCompatible(tahoePluginID,RPRTD_GPU7,cache_path,doWhiteListTest,os) != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_GPU7; } }
+	if ( devicesUsed & RPR_CREATION_FLAGS_ENABLE_CPU )  { if ( rprIsDeviceCompatible(tahoePluginID,RPRTD_CPU,cache_path,doWhiteListTest,os)  != RPRTC_COMPATIBLE ) { *devicesCompatibleOut &= ~RPR_CREATION_FLAGS_ENABLE_CPU; } }
 
 	return;
 }

@@ -49,7 +49,9 @@ enum RPR_TOOLS_COMPATIBILITY
 };
 
 // 'rendererDLL' is the path to plugin DLL : example : "Tahoe64.dll"
-RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(const rpr_char* rendererDLL, RPR_TOOLS_DEVICE device, rpr_char const * cache_path, bool doWhiteListTest, RPR_TOOLS_OS os);
+// 'tahoePluginID' is the ID of a registered plugin from rprRegisterPlugin("Tahoe64.dll")
+RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(const rpr_char* rendererDLL, RPR_TOOLS_DEVICE device, rpr_char const * cache_path, bool doWhiteListTest, RPR_TOOLS_OS os, rpr_creation_flags additionalflags = 0);
+RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(rpr_int tahoePluginID      , RPR_TOOLS_DEVICE device, rpr_char const * cache_path, bool doWhiteListTest, RPR_TOOLS_OS os, rpr_creation_flags additionalflags = 0);
 
 
 // get the list of Compatible devices in 'devicesUsed'
@@ -57,12 +59,14 @@ RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(const rpr_char* rendererDLL, RPR_T
 // 'devicesUsed' input value.
 // 'devicesCompatibleOut' output value.
 // 'rendererDLL' is the path to plugin DLL : example : "Tahoe64.dll"
+// 'tahoePluginID' is the ID of a registered plugin from rprRegisterPlugin("Tahoe64.dll")
 //
 // example : devicesUsed=RPR_CREATION_FLAGS_ENABLE_GPU0|RPR_CREATION_FLAGS_ENABLE_GPU1|RPR_CREATION_FLAGS_ENABLE_GPU2
 //           if GPU1 is incompatible
 //           devicesCompatibleOut will be return with  RPR_CREATION_FLAGS_ENABLE_GPU0|RPR_CREATION_FLAGS_ENABLE_GPU2
 //
 void rprAreDevicesCompatible(const rpr_char* rendererDLL, rpr_char const * cache_path, bool doWhiteListTest, rpr_creation_flags devicesUsed,  rpr_creation_flags* devicesCompatibleOut, RPR_TOOLS_OS os);
+void rprAreDevicesCompatible(rpr_int tahoePluginID      , rpr_char const * cache_path, bool doWhiteListTest, rpr_creation_flags devicesUsed,  rpr_creation_flags* devicesCompatibleOut, RPR_TOOLS_OS os);
 
 #endif
 

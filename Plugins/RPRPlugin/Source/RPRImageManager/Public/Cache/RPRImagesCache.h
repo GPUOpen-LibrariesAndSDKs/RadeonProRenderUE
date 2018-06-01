@@ -3,7 +3,10 @@
 
 namespace RPR
 {
-
+	/*
+	* Cache for the RPR Image. 
+	* Once the image is added, the cache becomes owner of the image and will delete it when resources will be released.
+	*/
 	class FImagesCache
 	{
 	public:

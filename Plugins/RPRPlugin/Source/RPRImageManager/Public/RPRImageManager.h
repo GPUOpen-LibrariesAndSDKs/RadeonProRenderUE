@@ -9,6 +9,9 @@
 namespace RPR
 {
 
+	/*
+	* Load and cache the RPR images.
+	*/
 	class RPRIMAGEMANAGER_API FImageManager
 	{
 	public:

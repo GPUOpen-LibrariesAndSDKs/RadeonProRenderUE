@@ -80,7 +80,7 @@ private:
 	void	RefreshScene();
 	uint32	BuildScene();
 	bool	BuildViewportCamera();
-	uint32	GetContextCreationFlags(const FString &dllPath);
+	uint32	GetContextCreationFlags(const rpr_int TahoePluginId);
 	void	LoadMappings();
 	void	DestroyRPRActors(TArray<class ARPRActor*>& Actors);
 

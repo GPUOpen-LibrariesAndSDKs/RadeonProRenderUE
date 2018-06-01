@@ -316,7 +316,7 @@ void	ARPRScene::RefreshScene()
 	}
 }
 
-uint32	ARPRScene::GetContextCreationFlags(const FString &dllPath)
+uint32	ARPRScene::GetContextCreationFlags(const rpr_int TahoePluginId)
 {
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
 	check(settings != nullptr);
@@ -353,7 +353,7 @@ uint32	ARPRScene::GetContextCreationFlags(const FString &dllPath)
 		return 0; // incompatible
 #endif
 
-	rprAreDevicesCompatible(TCHAR_TO_ANSI(*dllPath), TCHAR_TO_ANSI(*settings->RenderCachePath), false, maxCreationFlags, &creationFlags, os);
+	rprAreDevicesCompatible(TahoePluginId, TCHAR_TO_ANSI(*settings->RenderCachePath), false, maxCreationFlags, &creationFlags, os);
 	if (creationFlags > 0)
 	{
 		if (creationFlags != RPR_CREATION_FLAGS_ENABLE_CPU)
@@ -447,7 +447,7 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 			UE_LOG(LogRPRScene, Error, TEXT("\"%s\" not registered by \"%s\" path."), "Tahoe64.dll", *dllPath);
 			return;
 		}
-		uint32	creationFlags = GetContextCreationFlags(dllPath);
+		uint32	creationFlags = GetContextCreationFlags(tahoePluginId);
 		if (creationFlags == 0)
 		{
 			UE_LOG(LogRPRScene, Error, TEXT("Couldn't find a compatible device"));

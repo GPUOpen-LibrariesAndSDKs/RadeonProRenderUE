@@ -25,6 +25,7 @@
 extern "C" {
 #endif
 
+
 #include "RadeonProRender.h"
 
 /* Error codes  */

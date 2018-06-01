@@ -13,6 +13,7 @@
 
 #include "RPRStats.h"
 #include "RPRHelpers.h"
+#include "RPRErrorsHelpers.h"
 
 DEFINE_STAT(STAT_ProRender_PreRender);
 DEFINE_STAT(STAT_ProRender_RebuildScene);
@@ -23,16 +24,16 @@ DEFINE_STAT(STAT_ProRender_Readback);
 DEFINE_LOG_CATEGORY_STATIC(LogRPRRenderer, Log, All);
 
 FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene rprScene, uint32 width, uint32 height, uint32 numDevices, ARPRScene *scene)
-:	m_RprFrameBuffer(NULL)
-,	m_RprResolvedFrameBuffer(NULL)
+:	m_RprFrameBuffer(nullptr)
+,	m_RprResolvedFrameBuffer(nullptr)
 ,	m_RprContext(context)
 ,	m_RprScene(rprScene)
 ,	m_Scene(scene)
-,	m_RprWhiteBalance(NULL)
-,	m_RprGammaCorrection(NULL)
-,	m_RprSimpleTonemap(NULL)
-,	m_RprPhotolinearTonemap(NULL)
-,	m_RprNormalization(NULL)
+,	m_RprWhiteBalance(nullptr)
+,	m_RprGammaCorrection(nullptr)
+,	m_RprSimpleTonemap(nullptr)
+,	m_RprPhotolinearTonemap(nullptr)
+,	m_RprNormalization(nullptr)
 ,	m_CurrentIteration(0)
 ,	m_PreviousRenderedIteration(0)
 ,	m_NumDevices(numDevices)
@@ -55,7 +56,7 @@ FRPRRendererWorker::~FRPRRendererWorker()
 	ReleaseResources();
 
 	delete m_Thread;
-	m_Thread = NULL;
+	m_Thread = nullptr;
 }
 
 void	FRPRRendererWorker::SetTrace(bool trace, const FString &tracePath)
@@ -76,8 +77,8 @@ void	FRPRRendererWorker::SaveToFile(const FString &filename)
 		// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
 		m_RenderLock.Lock();
 		const bool	saved = rprsExport(TCHAR_TO_ANSI(*filename), m_RprContext, m_RprScene,
-			0, NULL, NULL,
-			0, NULL, NULL) == RPR_SUCCESS;
+			0, nullptr, nullptr,
+			0, nullptr, nullptr) == RPR_SUCCESS;
 		m_RenderLock.Unlock();
 
 		if (saved)
@@ -124,8 +125,8 @@ bool	FRPRRendererWorker::ResizeFramebuffer(uint32 width, uint32 height)
 
 bool	FRPRRendererWorker::RestartRender()
 {
-	if (m_RprFrameBuffer == NULL ||
-		m_RprResolvedFrameBuffer == NULL)
+	if (m_RprFrameBuffer == nullptr ||
+		m_RprResolvedFrameBuffer == nullptr)
 		return false;
 	if (!m_PreRenderLock.TryLock())
 		return false;
@@ -148,13 +149,13 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 		// This is safe: RPR thread doesn't render if there are pending built objects
 		for (int32 iObject = 0; iObject < m_BuiltObjects.Num(); ++iObject)
 		{
-			if (m_BuiltObjects[iObject] == NULL)
+			if (m_BuiltObjects[iObject] == nullptr)
 			{
 				m_BuiltObjects.RemoveAt(iObject--);
 				continue;
 			}
 			URPRSceneComponent	*comp = Cast<URPRSceneComponent>(m_BuiltObjects[iObject]->GetRootComponent());
-			check(comp != NULL);
+			check(comp != nullptr);
 			if (comp->PostBuild())
 				outBuiltObjects.Add(m_BuiltObjects[iObject]);
 			else
@@ -169,7 +170,7 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 		const uint32	discardCount = m_DiscardObjects.Num();
 		for (uint32 iObject = 0; iObject < discardCount; ++iObject)
 		{
-			if (m_DiscardObjects[iObject] == NULL)
+			if (m_DiscardObjects[iObject] == nullptr)
 				continue;
 
 			outBuiltObjects.Add(m_DiscardObjects[iObject]);
@@ -188,7 +189,7 @@ void	FRPRRendererWorker::SyncQueue(TArray<ARPRActor*> &newBuildQueue, TArray<ARP
 
 void	FRPRRendererWorker::SetQualitySettings(ERPRQualitySettings qualitySettings)
 {
-	if (m_RprContext == NULL)
+	if (m_RprContext == nullptr)
 		return;
 
 	uint32	numRayBounces = 0;
@@ -240,7 +241,7 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 	SCOPE_CYCLE_COUNTER(STAT_ProRender_Readback);
 
 	size_t	totalByteCount = 0;
-	if (rprFrameBufferGetInfo(m_RprResolvedFrameBuffer, RPR_FRAMEBUFFER_DATA, 0, NULL, &totalByteCount) != RPR_SUCCESS)
+	if (rprFrameBufferGetInfo(m_RprResolvedFrameBuffer, RPR_FRAMEBUFFER_DATA, 0, nullptr, &totalByteCount) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't get framebuffer infos"));
 		return false;
@@ -253,7 +254,7 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 		return false;
 	}
 	// Get framebuffer data
-	if (rprFrameBufferGetInfo(m_RprResolvedFrameBuffer, RPR_FRAMEBUFFER_DATA, totalByteCount, m_SrcFramebufferData.GetData(), NULL) != RPR_SUCCESS)
+	if (rprFrameBufferGetInfo(m_RprResolvedFrameBuffer, RPR_FRAMEBUFFER_DATA, totalByteCount, m_SrcFramebufferData.GetData(), nullptr) != RPR_SUCCESS)
 	{
 		// No frame ready yet
 		return false;
@@ -284,11 +285,11 @@ void	FRPRRendererWorker::BuildQueuedObjects()
 		m_Plugin->NotifyObjectBuilt();
 
 		ARPRActor	*actor = m_BuildQueue[iObject];
-		if (actor == NULL)
+		if (actor == nullptr)
 			continue;
 
 		URPRSceneComponent	*component = Cast<URPRSceneComponent>(actor->GetRootComponent());
-		check(component != NULL);
+		check(component != nullptr);
 
 		// Even if build fails, keep the component around to avoid having the async load
 		// adding each frame the previous components it failed to build before
@@ -302,19 +303,19 @@ void	FRPRRendererWorker::BuildQueuedObjects()
 
 void	FRPRRendererWorker::ResizeFramebuffer()
 {
-	check(m_RprContext != NULL);
+	check(m_RprContext != nullptr);
 
 	m_DataLock.Lock();
 
-	if (m_RprFrameBuffer != NULL)
+	if (m_RprFrameBuffer != nullptr)
 	{
-		rprObjectDelete(m_RprFrameBuffer);
-		m_RprFrameBuffer = NULL;
+		RPR::DeleteObject(m_RprFrameBuffer);
+		m_RprFrameBuffer = nullptr;
 	}
-	if (m_RprResolvedFrameBuffer != NULL)
+	if (m_RprResolvedFrameBuffer != nullptr)
 	{
-		rprObjectDelete(m_RprResolvedFrameBuffer);
-		m_RprResolvedFrameBuffer = NULL;
+		RPR::DeleteObject(m_RprResolvedFrameBuffer);
+		m_RprResolvedFrameBuffer = nullptr;
 	}
 
 	m_RprFrameBufferFormat.num_components = 4;
@@ -327,13 +328,14 @@ void	FRPRRendererWorker::ResizeFramebuffer()
 	m_RenderData.SetNum(m_DstFramebufferData.Num());
 
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
+	check(settings != nullptr);
 
 	if (rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprFrameBuffer) != RPR_SUCCESS ||
 		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprResolvedFrameBuffer) != RPR_SUCCESS ||
 		rprContextSetAOV(m_RprContext, RPR_AOV_COLOR, m_RprFrameBuffer) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRRenderer, Error, TEXT("RPR FrameBuffer creation failed"));
+		RPR::Error::LogLastError(m_RprContext);
 	}
 	else
 	{
@@ -351,6 +353,7 @@ void	FRPRRendererWorker::ClearFramebuffer()
 		rprFrameBufferClear(m_RprResolvedFrameBuffer) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't clear framebuffer"));
+		RPR::Error::LogLastError(m_RprContext);
 	}
 	else
 	{
@@ -366,14 +369,14 @@ void	FRPRRendererWorker::ClearFramebuffer()
 void	FRPRRendererWorker::UpdatePostEffectSettings()
 {
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
+	check(settings != nullptr);
 
-	if (m_RprWhiteBalance == NULL)
+	if (m_RprWhiteBalance == nullptr)
 	{
-		check(m_RprGammaCorrection == NULL);
-		check(m_RprNormalization == NULL);
-		check(m_RprPhotolinearTonemap == NULL);
-		check(m_RprSimpleTonemap == NULL);
+		check(m_RprGammaCorrection == nullptr);
+		check(m_RprNormalization == nullptr);
+		check(m_RprPhotolinearTonemap == nullptr);
+		check(m_RprSimpleTonemap == nullptr);
 
 		if (rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_WHITE_BALANCE, &m_RprWhiteBalance) != RPR_SUCCESS ||
 			rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_GAMMA_CORRECTION, &m_RprGammaCorrection) != RPR_SUCCESS ||
@@ -388,14 +391,15 @@ void	FRPRRendererWorker::UpdatePostEffectSettings()
 			rprContextSetParameter1u(m_RprContext, "tonemapping.type", RPR_TONEMAPPING_OPERATOR_PHOTOLINEAR) != RPR_SUCCESS)
 		{
 			UE_LOG(LogRPRRenderer, Error, TEXT("RPR Post effects creation failed"));
+			RPR::Error::LogLastError(m_RprContext);
 			return;
 		}
 	}
-	check(m_RprWhiteBalance != NULL);
-	check(m_RprGammaCorrection != NULL);
-	check(m_RprNormalization != NULL);
-	check(m_RprPhotolinearTonemap != NULL);
-	check(m_RprSimpleTonemap != NULL);
+	check(m_RprWhiteBalance != nullptr);
+	check(m_RprGammaCorrection != nullptr);
+	check(m_RprNormalization != nullptr);
+	check(m_RprPhotolinearTonemap != nullptr);
+	check(m_RprSimpleTonemap != nullptr);
 
 	if (rprPostEffectSetParameter1f(m_RprWhiteBalance, "colortemp", settings->WhiteBalanceTemperature) != RPR_SUCCESS ||
 		rprPostEffectSetParameter1u(m_RprWhiteBalance, "colorspace", RPR_COLOR_SPACE_SRGB) != RPR_SUCCESS ||
@@ -407,6 +411,7 @@ void	FRPRRendererWorker::UpdatePostEffectSettings()
 		rprContextSetParameter1f(m_RprContext, "tonemapping.photolinear.fstop", settings->PhotolinearTonemapFStop) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRRenderer, Warning, TEXT("Couldn't apply post effect properties"));
+		RPR::Error::LogLastError(m_RprContext);
 	}
 }
 
@@ -415,11 +420,11 @@ void	FRPRRendererWorker::DestroyPendingKills()
 	const uint32	objectCount = m_KillQueue.Num();
 	for (uint32 iObject = 0; iObject < objectCount; ++iObject)
 	{
-		if (m_KillQueue[iObject] == NULL)
+		if (m_KillQueue[iObject] == nullptr)
 			continue;
 
 		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(m_KillQueue[iObject]->GetRootComponent());
-		check(comp != NULL);
+		check(comp != nullptr);
 
 		comp->ReleaseResources();
 	}
@@ -435,10 +440,11 @@ bool	FRPRRendererWorker::PreRenderLoop()
 
 	if (m_UpdateTrace)
 	{
-		if (rprContextSetParameterString(NULL, "tracingfolder", TCHAR_TO_ANSI(*m_TracePath)) != RPR_SUCCESS ||
-			rprContextSetParameter1u(NULL, "tracing", m_Trace) != RPR_SUCCESS)
+		if (rprContextSetParameterString(nullptr, "tracingfolder", TCHAR_TO_ANSI(*m_TracePath)) != RPR_SUCCESS ||
+			rprContextSetParameter1u(nullptr, "tracing", m_Trace) != RPR_SUCCESS)
 		{
 			UE_LOG(LogRPRRenderer, Warning, TEXT("Couldn't enable RPR trace."));
+			RPR::Error::LogLastError(m_RprContext);
 		}
 		else
 		{
@@ -477,7 +483,7 @@ bool	FRPRRendererWorker::PreRenderLoop()
 uint32	FRPRRendererWorker::Run()
 {
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != NULL);
+	check(settings != nullptr);
 
 	while (m_StopTaskCounter.GetValue() == 0)
 	{
@@ -500,6 +506,7 @@ uint32	FRPRRendererWorker::Run()
 				if (rprContextSetParameter1u(m_RprContext, "aasamples", sampleCount) != RPR_SUCCESS ||
 					rprContextRender(m_RprContext) != RPR_SUCCESS)
 				{
+					RPR::Error::LogLastError(m_RprContext);
 					m_RenderLock.Unlock();
 					UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't render iteration %d, stopping.."), m_CurrentIteration);
 					break;
@@ -509,6 +516,7 @@ uint32	FRPRRendererWorker::Run()
 				SCOPE_CYCLE_COUNTER(STAT_ProRender_Resolve);
 				if (rprContextResolveFrameBuffer(m_RprContext, m_RprFrameBuffer, m_RprResolvedFrameBuffer) != RPR_SUCCESS)
 				{
+					RPR::Error::LogLastError(m_RprContext);
 					m_RenderLock.Unlock();
 					UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't resolve framebuffer at iteration %d, stopping.."), m_CurrentIteration);
 				}
@@ -534,7 +542,7 @@ void	FRPRRendererWorker::Stop()
 
 void	FRPRRendererWorker::AddPendingKill(ARPRActor *actor)
 {
-	check(actor != NULL);
+	check(actor != nullptr);
 
 	m_PreRenderLock.Lock();
 	m_KillQueue.AddUnique(actor);
@@ -543,7 +551,7 @@ void	FRPRRendererWorker::AddPendingKill(ARPRActor *actor)
 
 void	FRPRRendererWorker::SafeRelease_Immediate(URPRSceneComponent *component)
 {
-	check(component != NULL);
+	check(component != nullptr);
 
 	ARPRActor	*actor = Cast<ARPRActor>(component->GetOwner());
 
@@ -581,26 +589,26 @@ bool	FRPRRendererWorker::Flush() const
 
 void	FRPRRendererWorker::ReleaseResources()
 {
-	if (m_RprFrameBuffer != NULL)
+	if (m_RprFrameBuffer != nullptr)
 	{
 		rprFrameBufferClear(m_RprFrameBuffer);
 		rprObjectDelete(m_RprFrameBuffer);
-		m_RprFrameBuffer = NULL;
+		m_RprFrameBuffer = nullptr;
 
-		rprContextSetAOV(m_RprContext, RPR_AOV_COLOR, NULL);
+		rprContextSetAOV(m_RprContext, RPR_AOV_COLOR, nullptr);
 	}
-	if (m_RprResolvedFrameBuffer != NULL)
+	if (m_RprResolvedFrameBuffer != nullptr)
 	{
 		rprFrameBufferClear(m_RprResolvedFrameBuffer);
 		rprObjectDelete(m_RprResolvedFrameBuffer);
-		m_RprResolvedFrameBuffer = NULL;
+		m_RprResolvedFrameBuffer = nullptr;
 	}
-	if (m_RprWhiteBalance != NULL)
+	if (m_RprWhiteBalance != nullptr)
 	{
-		check(m_RprGammaCorrection != NULL);
-		check(m_RprSimpleTonemap != NULL);
-		check(m_RprPhotolinearTonemap != NULL);
-		check(m_RprNormalization != NULL);
+		check(m_RprGammaCorrection != nullptr);
+		check(m_RprSimpleTonemap != nullptr);
+		check(m_RprPhotolinearTonemap != nullptr);
+		check(m_RprNormalization != nullptr);
 
 		rprContextDetachPostEffect(m_RprContext, m_RprNormalization);
 		rprContextDetachPostEffect(m_RprContext, m_RprSimpleTonemap);
@@ -614,28 +622,28 @@ void	FRPRRendererWorker::ReleaseResources()
 		rprObjectDelete(m_RprPhotolinearTonemap);
 		rprObjectDelete(m_RprNormalization);
 
-		m_RprWhiteBalance = NULL;
-		m_RprGammaCorrection = NULL;
-		m_RprSimpleTonemap = NULL;
-		m_RprPhotolinearTonemap = NULL;
-		m_RprNormalization = NULL;
+		m_RprWhiteBalance = nullptr;
+		m_RprGammaCorrection = nullptr;
+		m_RprSimpleTonemap = nullptr;
+		m_RprPhotolinearTonemap = nullptr;
+		m_RprNormalization = nullptr;
 	}
 	else
 	{
-		check(m_RprGammaCorrection == NULL);
-		check(m_RprSimpleTonemap == NULL);
-		check(m_RprPhotolinearTonemap == NULL);
-		check(m_RprNormalization == NULL);
+		check(m_RprGammaCorrection == nullptr);
+		check(m_RprSimpleTonemap == nullptr);
+		check(m_RprPhotolinearTonemap == nullptr);
+		check(m_RprNormalization == nullptr);
 	}
 	m_PreRenderLock.Lock();
 
 	const uint32	objectCount = m_BuildQueue.Num();
 	for (uint32 iObject = 0; iObject < objectCount; ++iObject)
 	{
-		if (m_BuildQueue[iObject] == NULL)
+		if (m_BuildQueue[iObject] == nullptr)
 			continue;
 		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(m_BuildQueue[iObject]->GetRootComponent());
-		check(comp != NULL);
+		check(comp != nullptr);
 
 		comp->ReleaseResources();
 		comp->ConditionalBeginDestroy();
@@ -645,10 +653,10 @@ void	FRPRRendererWorker::ReleaseResources()
 	const uint32	builtCount = m_BuiltObjects.Num();
 	for (uint32 iObject = 0; iObject < builtCount; ++iObject)
 	{
-		if (m_BuiltObjects[iObject] == NULL)
+		if (m_BuiltObjects[iObject] == nullptr)
 			continue;
 		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(m_BuiltObjects[iObject]->GetRootComponent());
-		check(comp != NULL);
+		check(comp != nullptr);
 
 		comp->ReleaseResources();
 		comp->ConditionalBeginDestroy();
@@ -658,10 +666,10 @@ void	FRPRRendererWorker::ReleaseResources()
 	const uint32	discardCount = m_DiscardObjects.Num();
 	for (uint32 iObject = 0; iObject < discardCount; ++iObject)
 	{
-		if (m_DiscardObjects[iObject] == NULL)
+		if (m_DiscardObjects[iObject] == nullptr)
 			continue;
 		URPRSceneComponent	*comp = Cast<URPRSceneComponent>(m_DiscardObjects[iObject]->GetRootComponent());
-		check(comp != NULL);
+		check(comp != nullptr);
 
 		comp->ReleaseResources();
 		comp->ConditionalBeginDestroy();
@@ -671,6 +679,6 @@ void	FRPRRendererWorker::ReleaseResources()
 	DestroyPendingKills();
 
 	m_PreRenderLock.Unlock();
-	m_RprContext = NULL;
-	m_RprScene = NULL;
+	m_RprContext = nullptr;
+	m_RprScene = nullptr;
 }

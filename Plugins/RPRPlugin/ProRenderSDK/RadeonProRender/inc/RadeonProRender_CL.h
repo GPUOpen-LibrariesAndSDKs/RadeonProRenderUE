@@ -25,6 +25,7 @@
 extern "C" {
 #endif
 
+
 #include "RadeonProRender.h"
 
 /* rpr_context_properties  */
