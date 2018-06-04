@@ -8,7 +8,8 @@
 
 namespace RPRX
 {
-	typedef rprx_context	FContext;
-	typedef rprx_material	FMaterial;
-	typedef rprx_parameter	FParameter;
+	typedef rprx_context		FContext;
+	typedef rprx_material		FMaterial;
+	typedef rprx_parameter		FParameter;
+	typedef rprx_parameter_type	FParameterType;
 }

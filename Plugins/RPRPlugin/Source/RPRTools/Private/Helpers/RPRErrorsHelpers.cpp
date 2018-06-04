@@ -16,7 +16,7 @@ namespace RPR
 
 			size_t sizeParamA = 0;
 			RPR::FResult result = rprContextGetInfo(Context, RPR_CONTEXT_LAST_ERROR_MESSAGE, 0, 0, &sizeParamA);
-			if (RPR::IsResultSuccess(result) && sizeParamA > 0)
+			if (RPR::IsResultSuccess(result) && sizeParamA > 1)
 			{
 				char* buffer = new char[sizeParamA];
 				result = rprContextGetInfo(Context, RPR_CONTEXT_LAST_ERROR_MESSAGE, sizeParamA, buffer, 0);

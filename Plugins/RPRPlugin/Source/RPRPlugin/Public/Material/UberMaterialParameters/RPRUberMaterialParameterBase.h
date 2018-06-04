@@ -5,12 +5,12 @@
 
 DECLARE_DELEGATE_RetVal_OneParam(bool, FCanUseParameter, const struct FRPRUberMaterialParameterBase*)
 
-// Use an enum instead of a bool so it is more readible when using the parameter
 UENUM()
-enum class EPreviewSupport : uint8
+enum class ESupportMode : uint8
 {
 	NotSupported,
-	Supported
+	PreviewNotSupported,
+	FullySupported
 };
 
 /*
@@ -28,8 +28,8 @@ struct RPRPLUGIN_API FRPRUberMaterialParameterBase
 public:
 
 	FRPRUberMaterialParameterBase();
-	FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID, EPreviewSupport InPreviewSupportMode);
-	FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID, EPreviewSupport InPreviewSupportMode, FCanUseParameter InCanUseParameter);
+	FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode);
+	FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, FCanUseParameter InCanUseParameter);
 
 	virtual ~FRPRUberMaterialParameterBase() {}
 
@@ -37,14 +37,19 @@ public:
 	const FString&	GetXmlParamName() const;
 	bool			CanUseParameter() const;
 	bool			IsPreviewSupported() const;
+	bool			IsPropertySupported() const;
+	void			SetAdditionalInfoText(const FText& Text);
 
 	virtual FString	GetPropertyName(UProperty* Property) const;
 	virtual FString	GetPropertyTypeName(UProperty* Property) const;
 
 public:
 
-	UPROPERTY(EditAnywhere)
-	EPreviewSupport PreviewSupportMode;
+	UPROPERTY(VisibleAnywhere)
+	ESupportMode SupportMode;
+
+	UPROPERTY(VisibleAnywhere)
+	FText		AdditionalInfoText;
 
 private:
 

@@ -44,7 +44,7 @@ struct RPRPLUGIN_API FRPRUberMaterialParameters
 	FRPRMaterialConstantOrMap			Reflection_AnisotropyRotation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
-	FRPRMaterialConstantOrMap			Reflection_Metalness;
+	FRPRMaterialConstantOrMapChannel1	Reflection_Metalness;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
 	FRPRMaterialEnum					Reflection_Mode;

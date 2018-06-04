@@ -28,6 +28,6 @@ struct RPRPLUGIN_API FRPRMaterialConstantOrMapChannel1 : public FRPRMaterialMap
 	ERPRMConstantOrMapC1InterpretationMode RPRInterpretationMode;
 
 	FRPRMaterialConstantOrMapChannel1() {}
-	FRPRMaterialConstantOrMapChannel1(const FString& InXmlParamName, uint32 InRprxParamID, EPreviewSupport InPreviewSupportMode, float InConstantValue = 1.0f, ERPRMConstantOrMapC1InterpretationMode InMode = ERPRMConstantOrMapC1InterpretationMode::AsFloat);
+	FRPRMaterialConstantOrMapChannel1(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, float InConstantValue = 1.0f, ERPRMConstantOrMapC1InterpretationMode InMode = ERPRMConstantOrMapC1InterpretationMode::AsFloat);
 
 };

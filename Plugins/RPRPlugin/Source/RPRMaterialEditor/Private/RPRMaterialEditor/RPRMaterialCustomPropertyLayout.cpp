@@ -70,7 +70,13 @@ void FRPRMaterialCustomPropertyLayout::AddUberMaterialParameters(IDetailLayoutBu
         for (uint32 i = 0; i < numChildren; ++i)
         {
             TSharedPtr<IPropertyHandle> childPropertyHandle = materialParametersPropertyHandle->GetChildHandle(i);
-            materialCategoryBuilder.AddProperty(childPropertyHandle);
+
+			// Hide property that are not supported right now
+			TSharedPtr<IPropertyHandle> supportModePropertyHandle = childPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRUberMaterialParameterBase, SupportMode), false);
+			if (IsPropertySupported(supportModePropertyHandle))
+			{
+				materialCategoryBuilder.AddProperty(childPropertyHandle);
+			}
         }
     }
 }
@@ -176,6 +182,18 @@ void FRPRMaterialCustomPropertyLayout::UpdateParam_Angle(UDEditorParameterValue*
         param->bOverride = true;
         param->ParameterValue = TriPlanarSettings.Angle;
     }
+}
+
+bool FRPRMaterialCustomPropertyLayout::IsPropertySupported(const TSharedPtr<IPropertyHandle> SupportModePropertyHandle)
+{
+	uint8 enumValue;
+	if (SupportModePropertyHandle.IsValid() && SupportModePropertyHandle->GetValue(enumValue) == FPropertyAccess::Success)
+	{
+		ESupportMode supportMode = (ESupportMode)enumValue;
+		return (supportMode != ESupportMode::NotSupported);
+	}
+
+	return (true);
 }
 
 #undef LOCTEXT_NAMESPACE

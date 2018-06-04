@@ -1,5 +1,7 @@
 #include "RPRUberMaterialParameters.h"
 
+#define LOCTEXT_NAMESPACE "RPRUberMaterialParameters"
+
 static bool CanUseOnlyIfMapIsSet(const FRPRUberMaterialParameterBase* parameter)
 {
 	const FRPRMaterialMap* materialMap = (const FRPRMaterialMap*)parameter;
@@ -7,54 +9,58 @@ static bool CanUseOnlyIfMapIsSet(const FRPRUberMaterialParameterBase* parameter)
 }
 
 FRPRUberMaterialParameters::FRPRUberMaterialParameters()
-	: Diffuse_Color(		TEXT("diffuse.color"),		RPRX_UBER_MATERIAL_DIFFUSE_COLOR,		EPreviewSupport::Supported, 1.0f)
-	, Diffuse_Weight(		TEXT("diffuse.weight"),		RPRX_UBER_MATERIAL_DIFFUSE_WEIGHT,		EPreviewSupport::Supported, 1.0f,	ERPRMConstantOrMapC1InterpretationMode::AsFloat4)
-	, Diffuse_Roughness(	TEXT("diffuse.roughness"),	RPRX_UBER_MATERIAL_DIFFUSE_ROUGHNESS,	EPreviewSupport::Supported, 0.0f,	ERPRMConstantOrMapC1InterpretationMode::AsFloat4)
+	: Diffuse_Color(		TEXT("diffuse.color"),		RPRX_UBER_MATERIAL_DIFFUSE_COLOR,		ESupportMode::FullySupported,	1.0f)
+	, Diffuse_Weight(		TEXT("diffuse.weight"),		RPRX_UBER_MATERIAL_DIFFUSE_WEIGHT,		ESupportMode::FullySupported,	1.0f,	ERPRMConstantOrMapC1InterpretationMode::AsFloat4)
+	, Diffuse_Roughness(	TEXT("diffuse.roughness"),	RPRX_UBER_MATERIAL_DIFFUSE_ROUGHNESS,	ESupportMode::NotSupported,		0.0f,	ERPRMConstantOrMapC1InterpretationMode::AsFloat4)
 
-	, Reflection_Color(						TEXT("reflection.color"),				RPRX_UBER_MATERIAL_REFLECTION_COLOR,				EPreviewSupport::NotSupported, 1.0f)
-	, Reflection_Weight(					TEXT("reflection.weight"),				RPRX_UBER_MATERIAL_REFLECTION_WEIGHT,				EPreviewSupport::NotSupported, 0.0f,	ERPRMConstantOrMapC1InterpretationMode::AsFloat4)
-	, Reflection_Roughness(					TEXT("reflection.roughness"),			RPRX_UBER_MATERIAL_REFLECTION_ROUGHNESS,			EPreviewSupport::NotSupported, 0.5f,	ERPRMConstantOrMapC1InterpretationMode::AsFloat4)
-	, Reflection_Anisotropy(				TEXT("reflection.anisotropy"),			RPRX_UBER_MATERIAL_REFLECTION_ANISOTROPY,			EPreviewSupport::NotSupported, 0.0f)
-	, Reflection_AnisotropyRotation(		TEXT("reflection.anisotropyRotation"),	RPRX_UBER_MATERIAL_REFLECTION_ANISOTROPY_ROTATION,	EPreviewSupport::NotSupported, 0.0f)
-	, Reflection_Metalness(					TEXT("reflection.metalness"),			RPRX_UBER_MATERIAL_REFLECTION_METALNESS,			EPreviewSupport::NotSupported, 1.0f)
+	, Reflection_Color(						TEXT("reflection.color"),				RPRX_UBER_MATERIAL_REFLECTION_COLOR,				ESupportMode::PreviewNotSupported,	1.0f)
+	, Reflection_Weight(					TEXT("reflection.weight"),				RPRX_UBER_MATERIAL_REFLECTION_WEIGHT,				ESupportMode::FullySupported,		0.0f,	ERPRMConstantOrMapC1InterpretationMode::AsFloat4)
+	, Reflection_Roughness(					TEXT("reflection.roughness"),			RPRX_UBER_MATERIAL_REFLECTION_ROUGHNESS,			ESupportMode::FullySupported,		0.5f,	ERPRMConstantOrMapC1InterpretationMode::AsFloat4)
+	, Reflection_Anisotropy(				TEXT("reflection.anisotropy"),			RPRX_UBER_MATERIAL_REFLECTION_ANISOTROPY,			ESupportMode::PreviewNotSupported,	0.0f)
+	, Reflection_AnisotropyRotation(		TEXT("reflection.anisotropyRotation"),	RPRX_UBER_MATERIAL_REFLECTION_ANISOTROPY_ROTATION,	ESupportMode::PreviewNotSupported,	0.0f)
+	, Reflection_Metalness(					TEXT("reflection.metalness"),			RPRX_UBER_MATERIAL_REFLECTION_METALNESS,			ESupportMode::FullySupported,		1.0f,	ERPRMConstantOrMapC1InterpretationMode::AsFloat4)
 
-	, Reflection_Mode(FRPRMaterialEnum::Create<ERPRReflectionMode>(TEXT("reflection.mode"), RPRX_UBER_MATERIAL_REFLECTION_MODE, EPreviewSupport::NotSupported, ERPRReflectionMode::PBR))
+	, Reflection_Mode(FRPRMaterialEnum::Create<ERPRReflectionMode>(TEXT("reflection.mode"), RPRX_UBER_MATERIAL_REFLECTION_MODE, ESupportMode::PreviewNotSupported, ERPRReflectionMode::PBR))
 
-	, Reflection_Ior(						TEXT("reflection.ior"),					RPRX_UBER_MATERIAL_REFLECTION_IOR, EPreviewSupport::NotSupported, 1.5f)
+	, Reflection_Ior(						TEXT("reflection.ior"),					RPRX_UBER_MATERIAL_REFLECTION_IOR, ESupportMode::PreviewNotSupported, 1.5f)
 
-	, Refraction_Color(						TEXT("refraction.color"),		RPRX_UBER_MATERIAL_REFRACTION_COLOR,			EPreviewSupport::NotSupported, 1.0f)
-	, Refraction_Weight(					TEXT("refraction.weight"),		RPRX_UBER_MATERIAL_REFRACTION_WEIGHT,			EPreviewSupport::NotSupported, 0.0f,		ERPRMConstantOrMapC1InterpretationMode::AsFloat4)
-	, Refraction_Roughness(					TEXT("refraction.roughness"),	RPRX_UBER_MATERIAL_REFRACTION_ROUGHNESS,		EPreviewSupport::NotSupported, 0.5f,	ERPRMConstantOrMapC1InterpretationMode::AsFloat4)
-	, Refraction_Ior(						TEXT("refraction.ior"),			RPRX_UBER_MATERIAL_REFRACTION_IOR,				EPreviewSupport::NotSupported, 1.5f)
-	, Refraction_IsThinSurface(				TEXT("refraction.thinSurface"), RPRX_UBER_MATERIAL_REFRACTION_THIN_SURFACE,		EPreviewSupport::NotSupported, false)
+	, Refraction_Color(						TEXT("refraction.color"),		RPRX_UBER_MATERIAL_REFRACTION_COLOR,			ESupportMode::PreviewNotSupported, 1.0f)
+	, Refraction_Weight(					TEXT("refraction.weight"),		RPRX_UBER_MATERIAL_REFRACTION_WEIGHT,			ESupportMode::PreviewNotSupported, 0.0f,		ERPRMConstantOrMapC1InterpretationMode::AsFloat4)
+	, Refraction_Roughness(					TEXT("refraction.roughness"),	RPRX_UBER_MATERIAL_REFRACTION_ROUGHNESS,		ESupportMode::PreviewNotSupported, 0.5f,	ERPRMConstantOrMapC1InterpretationMode::AsFloat4)
+	, Refraction_Ior(						TEXT("refraction.ior"),			RPRX_UBER_MATERIAL_REFRACTION_IOR,				ESupportMode::PreviewNotSupported, 1.5f)
+	, Refraction_IsThinSurface(				TEXT("refraction.thinSurface"), RPRX_UBER_MATERIAL_REFRACTION_THIN_SURFACE,		ESupportMode::PreviewNotSupported, false)
 
-	, Refraction_Mode(FRPRMaterialEnum::Create<ERPRRefractionMode>(TEXT("refraction.iorMode"), RPRX_UBER_MATERIAL_REFRACTION_IOR_MODE, EPreviewSupport::NotSupported, ERPRRefractionMode::Separate))
+	, Refraction_Mode(FRPRMaterialEnum::Create<ERPRRefractionMode>(TEXT("refraction.iorMode"), RPRX_UBER_MATERIAL_REFRACTION_IOR_MODE, ESupportMode::PreviewNotSupported, ERPRRefractionMode::Separate))
 
-	, Coating_Color(					TEXT("coating.color"),		RPRX_UBER_MATERIAL_COATING_COLOR,		EPreviewSupport::NotSupported, 1.0f)
-	, Coating_Weight(					TEXT("coating.weight"),		RPRX_UBER_MATERIAL_COATING_WEIGHT,		EPreviewSupport::NotSupported, 0.0f,	ERPRMConstantOrMapC1InterpretationMode::AsFloat4)
-	, Coating_Roughness(				TEXT("coating.roughness"),	RPRX_UBER_MATERIAL_COATING_ROUGHNESS,	EPreviewSupport::NotSupported, 0.5f,	ERPRMConstantOrMapC1InterpretationMode::AsFloat4)
-	, Coating_Metalness(				TEXT("coating.metalness"),	RPRX_UBER_MATERIAL_COATING_METALNESS,	EPreviewSupport::NotSupported, 1.0f)
-	, Coating_Ior(						TEXT("coating.ior"),		RPRX_UBER_MATERIAL_COATING_IOR,			EPreviewSupport::NotSupported, 1.5f)
+	, Coating_Color(					TEXT("coating.color"),		RPRX_UBER_MATERIAL_COATING_COLOR,		ESupportMode::PreviewNotSupported, 1.0f)
+	, Coating_Weight(					TEXT("coating.weight"),		RPRX_UBER_MATERIAL_COATING_WEIGHT,		ESupportMode::PreviewNotSupported, 0.0f,	ERPRMConstantOrMapC1InterpretationMode::AsFloat4)
+	, Coating_Roughness(				TEXT("coating.roughness"),	RPRX_UBER_MATERIAL_COATING_ROUGHNESS,	ESupportMode::PreviewNotSupported, 0.5f,	ERPRMConstantOrMapC1InterpretationMode::AsFloat4)
+	, Coating_Metalness(				TEXT("coating.metalness"),	RPRX_UBER_MATERIAL_COATING_METALNESS,	ESupportMode::PreviewNotSupported, 1.0f)
+	, Coating_Ior(						TEXT("coating.ior"),		RPRX_UBER_MATERIAL_COATING_IOR,			ESupportMode::PreviewNotSupported, 1.5f)
 
-	, Coating_Mode(FRPRMaterialEnum::Create<ERPRReflectionMode>(TEXT("coating.mode"), RPRX_UBER_MATERIAL_COATING_MODE, EPreviewSupport::NotSupported, ERPRReflectionMode::PBR))
+	, Coating_Mode(FRPRMaterialEnum::Create<ERPRReflectionMode>(TEXT("coating.mode"), RPRX_UBER_MATERIAL_COATING_MODE, ESupportMode::PreviewNotSupported, ERPRReflectionMode::PBR))
 
-	, Emission_Color(					TEXT("emission.color"),		RPRX_UBER_MATERIAL_EMISSION_COLOR,	EPreviewSupport::Supported, 1.0f)
-	, Emission_Weight(					TEXT("emission.weight"),	RPRX_UBER_MATERIAL_EMISSION_WEIGHT, EPreviewSupport::Supported, 0.0f, ERPRMConstantOrMapC1InterpretationMode::AsFloat4)
+	, Emission_Color(					TEXT("emission.color"),		RPRX_UBER_MATERIAL_EMISSION_COLOR,	ESupportMode::FullySupported, 1.0f)
+	, Emission_Weight(					TEXT("emission.weight"),	RPRX_UBER_MATERIAL_EMISSION_WEIGHT, ESupportMode::FullySupported, 0.0f, ERPRMConstantOrMapC1InterpretationMode::AsFloat4)
 
-	, Emission_Mode(FRPRMaterialEnum::Create<ERPREmissionMode>(TEXT("emission.mode"), RPRX_UBER_MATERIAL_EMISSION_MODE, EPreviewSupport::NotSupported, ERPREmissionMode::SingleSided))
+	, Emission_Mode(FRPRMaterialEnum::Create<ERPREmissionMode>(TEXT("emission.mode"), RPRX_UBER_MATERIAL_EMISSION_MODE, ESupportMode::PreviewNotSupported, ERPREmissionMode::SingleSided))
 
-	, Transparency(TEXT("transparency"), RPRX_UBER_MATERIAL_TRANSPARENCY, EPreviewSupport::NotSupported, 0.0f)
+	, Transparency(TEXT("transparency"), RPRX_UBER_MATERIAL_TRANSPARENCY, ESupportMode::PreviewNotSupported, 0.0f)
 
-	, Normal(		TEXT("normal"),			RPRX_UBER_MATERIAL_NORMAL,			EPreviewSupport::Supported)
-	, Bump(			TEXT("bump"),			RPRX_UBER_MATERIAL_BUMP,			EPreviewSupport::NotSupported)
-	, Displacement(	TEXT("displacement"),	RPRX_UBER_MATERIAL_DISPLACEMENT,	EPreviewSupport::NotSupported)
+	, Normal(		TEXT("normal"),			RPRX_UBER_MATERIAL_NORMAL,			ESupportMode::FullySupported)
+	, Bump(			TEXT("bump"),			RPRX_UBER_MATERIAL_BUMP,			ESupportMode::PreviewNotSupported)
+	, Displacement(	TEXT("displacement"),	RPRX_UBER_MATERIAL_DISPLACEMENT,	ESupportMode::PreviewNotSupported)
 
-	, SSS_Absorption_Color(		TEXT("sss.absorptionColor"),		RPRX_UBER_MATERIAL_SSS_ABSORPTION_COLOR,		EPreviewSupport::NotSupported, 0.0f)
-	, SSS_Scatter_Color(		TEXT("sss.scatterColor"),			RPRX_UBER_MATERIAL_SSS_SCATTER_COLOR,			EPreviewSupport::NotSupported, 0.0f)
-	, SSS_Absorption_Distance(	TEXT("sss.absorptionDistance"),		RPRX_UBER_MATERIAL_SSS_ABSORPTION_DISTANCE,		EPreviewSupport::NotSupported, 0.0f)
-	, SSS_Scatter_Distance(		TEXT("sss.scatterDistance"),		RPRX_UBER_MATERIAL_SSS_SCATTER_DISTANCE,		EPreviewSupport::NotSupported, 0.0f)
-	, SSS_Scatter_Direction(	TEXT("sss.scatterDirection"),		RPRX_UBER_MATERIAL_SSS_SCATTER_DIRECTION,		EPreviewSupport::NotSupported, 0.0f)
-	, SSS_Weight(				TEXT("sss.weight"),					RPRX_UBER_MATERIAL_SSS_WEIGHT,					EPreviewSupport::NotSupported, 0.0f)
-	, SSS_SubSurface_Color(		TEXT("sss.subsurfaceColor"),		RPRX_UBER_MATERIAL_SSS_SUBSURFACE_COLOR,		EPreviewSupport::NotSupported, 1.0f)
-	, SSS_IsMultiScatter(		TEXT("sss.multiScatter"),			RPRX_UBER_MATERIAL_SSS_MULTISCATTER,			EPreviewSupport::NotSupported, true)
-{}
+	, SSS_Absorption_Color(		TEXT("sss.absorptionColor"),		RPRX_UBER_MATERIAL_SSS_ABSORPTION_COLOR,		ESupportMode::PreviewNotSupported, 0.0f)
+	, SSS_Scatter_Color(		TEXT("sss.scatterColor"),			RPRX_UBER_MATERIAL_SSS_SCATTER_COLOR,			ESupportMode::PreviewNotSupported, 0.0f)
+	, SSS_Absorption_Distance(	TEXT("sss.absorptionDistance"),		RPRX_UBER_MATERIAL_SSS_ABSORPTION_DISTANCE,		ESupportMode::PreviewNotSupported, 0.0f)
+	, SSS_Scatter_Distance(		TEXT("sss.scatterDistance"),		RPRX_UBER_MATERIAL_SSS_SCATTER_DISTANCE,		ESupportMode::PreviewNotSupported, 0.0f)
+	, SSS_Scatter_Direction(	TEXT("sss.scatterDirection"),		RPRX_UBER_MATERIAL_SSS_SCATTER_DIRECTION,		ESupportMode::PreviewNotSupported, 0.0f)
+	, SSS_Weight(				TEXT("sss.weight"),					RPRX_UBER_MATERIAL_SSS_WEIGHT,					ESupportMode::PreviewNotSupported, 0.0f)
+	, SSS_SubSurface_Color(		TEXT("sss.subsurfaceColor"),		RPRX_UBER_MATERIAL_SSS_SUBSURFACE_COLOR,		ESupportMode::PreviewNotSupported, 1.0f)
+	, SSS_IsMultiScatter(		TEXT("sss.multiScatter"),			RPRX_UBER_MATERIAL_SSS_MULTISCATTER,			ESupportMode::PreviewNotSupported, true)
+{
+	
+}
+
+#undef LOCTEXT_NAMESPACE

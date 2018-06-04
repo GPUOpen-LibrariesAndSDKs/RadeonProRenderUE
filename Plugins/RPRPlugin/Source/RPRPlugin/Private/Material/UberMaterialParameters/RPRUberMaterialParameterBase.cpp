@@ -4,16 +4,16 @@ FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase()
 	: RprxParamID(INDEX_NONE)
 {}
 
-FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID, EPreviewSupport InPreviewSupportMode)
+FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode)
 	: XmlParamName(InXmlParamName)
 	, RprxParamID(InRprxParamID)
-	, PreviewSupportMode(InPreviewSupportMode)
+	, SupportMode(InPreviewSupportMode)
 {}
 
-FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID, EPreviewSupport InPreviewSupportMode, FCanUseParameter InCanUseParameter)
+FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, FCanUseParameter InCanUseParameter)
 	: XmlParamName(InXmlParamName)
 	, RprxParamID(InRprxParamID)
-	, PreviewSupportMode(InPreviewSupportMode)
+	, SupportMode(InPreviewSupportMode)
 	, CanUseParameterDelegate(InCanUseParameter)
 {}
 
@@ -44,6 +44,16 @@ bool FRPRUberMaterialParameterBase::CanUseParameter() const
 
 bool FRPRUberMaterialParameterBase::IsPreviewSupported() const
 {
-	return (PreviewSupportMode == EPreviewSupport::Supported);
+	return (SupportMode == ESupportMode::FullySupported);
+}
+
+bool FRPRUberMaterialParameterBase::IsPropertySupported() const
+{
+	return (SupportMode != ESupportMode::NotSupported);
+}
+
+void FRPRUberMaterialParameterBase::SetAdditionalInfoText(const FText& Text)
+{
+	AdditionalInfoText = Text;
 }
 

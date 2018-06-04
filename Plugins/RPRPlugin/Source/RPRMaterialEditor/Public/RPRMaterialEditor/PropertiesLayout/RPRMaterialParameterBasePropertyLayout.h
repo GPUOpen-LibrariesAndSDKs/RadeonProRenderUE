@@ -16,7 +16,11 @@ protected:
 
 private:
 
-	EVisibility		GetSupportLabelVisibility() const;
+	EVisibility		GetSupportIconVisibility() const;
+	EVisibility		GetInfoIconVisibility() const;
+	FText			GetInfoText() const;
+
+	TSharedPtr<IPropertyHandle>		GetInfoPropertyHandle() const;
 
 protected:
 

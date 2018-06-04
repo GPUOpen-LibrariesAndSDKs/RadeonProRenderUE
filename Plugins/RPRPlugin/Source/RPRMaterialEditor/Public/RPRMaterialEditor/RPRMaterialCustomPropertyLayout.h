@@ -33,6 +33,8 @@ private:
     void UpdateParam_Scale(UDEditorParameterValue* ParameterValue);
     void UpdateParam_Angle(UDEditorParameterValue* ParameterValue);
 
+	bool IsPropertySupported(const TSharedPtr<IPropertyHandle> SupportModePropertyHandle);
+
 private:
 
     TArray<TWeakObjectPtr<UObject>> MaterialsBeingEdited;

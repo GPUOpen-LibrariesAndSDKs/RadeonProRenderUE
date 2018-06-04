@@ -33,6 +33,13 @@ namespace RPRX
 
 		static RPR::FResult	SetMaterialParameterColor(FContext Context, FMaterial Material,
 												FParameter Parameter, const FLinearColor& Color);
+
+		static RPR::FResult GetMaterialParameterType(FContext Context, FMaterial Material, FParameter Parameter, FParameterType& OutParameterType);
+
+	private:
+		
+		static void			CheckParameterType(FContext Context, FMaterial Material, FParameter Parameter, FParameterType ExpectedParameterType);
+
 	};
 
 

@@ -39,20 +39,22 @@ FText FRPRMaterialEnumPropertiesLayout::GetSelectedEnumValue() const
 	TSharedPtr<IPropertyHandle> enumValuePropertyHandle = GetEnumValuePropertyHandle();
 	uint8 enumValue;
 	enumValuePropertyHandle->GetValue(enumValue);
-
-	FString enumTypeStr = enumType->GetNameStringByIndex(enumValue);
+	FString enumTypeStr = enumType->GetNameStringByValue(enumValue);
 
 	return (FText::FromString(enumTypeStr));
 }
 
 void FRPRMaterialEnumPropertiesLayout::HandleEnumSelectionChanged(TSharedPtr<FString> Item, ESelectInfo::Type SelectInfo)
 {
-	for (uint8 i = 0; i < EnumOptions.Num(); ++i)
+	UEnum* enumType = GetEnumTypeFromPropertyHandle();
+	for (uint8 enumIndex = 0; enumIndex < EnumOptions.Num(); ++enumIndex)
 	{
-		if (Item == EnumOptions[i])
+		if (Item == EnumOptions[enumIndex])
 		{
 			TSharedPtr<IPropertyHandle> enumValuePropertyHandle = GetEnumValuePropertyHandle();
-			enumValuePropertyHandle->SetValue(i);
+			uint8 enumValue = (uint8) enumType->GetValueByIndex(enumIndex);
+
+			enumValuePropertyHandle->SetValue(enumValue);
 			break;
 		}
 	}

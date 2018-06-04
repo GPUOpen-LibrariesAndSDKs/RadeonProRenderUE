@@ -3,6 +3,7 @@
 #include "RPREnums.h"
 #include "RPRScene.h"
 #include "RPRXHelpers.h"
+#include "RPRErrorsHelpers.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRMaterialBuilder, Log, All)
 
@@ -74,6 +75,7 @@ namespace RPR
 		if (IsResultFailed(status))
 		{
 			UE_LOG(LogRPRMaterialBuilder, Warning, TEXT("Couldn't set the material on the shape"));
+			RPR::Error::LogLastError(Scene->m_RprContext);
 		}
 
 		return (status);
@@ -86,6 +88,7 @@ namespace RPR
 		if (IsResultFailed(status))
 		{
 			UE_LOG(LogRPRMaterialBuilder, Warning, TEXT("Couldn't assign RPR material to the RPR shape"));
+			RPR::Error::LogLastError(Scene->m_RprContext);
 		}
 
 		return (status);
@@ -98,6 +101,7 @@ namespace RPR
 		if (IsResultFailed(status))
 		{
 			UE_LOG(LogRPRMaterialBuilder, Warning, TEXT("Couldn't commit RPR X material"));
+			RPR::Error::LogLastError(Scene->m_RprContext);
 		}
 
 		return (status);
