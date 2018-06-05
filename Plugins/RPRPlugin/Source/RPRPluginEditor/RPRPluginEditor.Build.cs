@@ -46,8 +46,6 @@ public class RPRPluginEditor : ModuleRules
 			}
             );
 
-        IncludeRPR_SDK();
-
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
@@ -81,33 +79,8 @@ public class RPRPluginEditor : ModuleRules
 				// ... add private dependencies that you statically link with here ...	
 			}
         );
-    }
 
-    void IncludeRPR_SDK()
-    {
-        string pluginRoot = ModuleDirectory + "/../..";
-        pluginRoot = System.IO.Path.GetFullPath(pluginRoot);
-        pluginRoot = Utils.CleanDirectorySeparators(pluginRoot, '/') + "/";
-
-        string SDKRoot = pluginRoot + "/ProRenderSDK/";
-
-        PrivateIncludePaths.AddRange(
-            new string[] {
-                "RPRPlugin/Private",
-                SDKRoot + "RadeonProRender",
-                SDKRoot + "RadeonProRender/inc",
-                SDKRoot + "RadeonProRenderInterchange/include"
-            }
-        );
-
-        // TODO: Modify this so it is multi platform or throw errors on non supported platforms
-        PublicAdditionalLibraries.AddRange(new string[]
-        {
-            SDKRoot + "RadeonProRender/libWin64/RadeonProRender64.lib",
-            SDKRoot + "RadeonProRender/libWin64/RprLoadStore64.lib",
-            SDKRoot + "RadeonProRender/libWin64/RprSupport64.lib",
-            SDKRoot + "RadeonProRender/libWin64/Tahoe64.lib",
-            SDKRoot + "RadeonProRenderInterchange/libWin64/RadeonProRenderInterchange64.lib"
-        });
+        RPRPlugin.AddRPRIncludes(ModuleDirectory, PrivateIncludePaths);
+        RPRPlugin.AddRPRStaticLibraries(ModuleDirectory, PublicAdditionalLibraries, Target);
     }
 }
