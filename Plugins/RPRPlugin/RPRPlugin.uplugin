@@ -1,79 +1,153 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.0",
+	"VersionName": "0.1",
 	"FriendlyName": "RPRPlugin",
 	"Description": "Radeon Pro Renderer plugin for Unreal Engine 4",
-	"Category": "Other",
-	"CreatedBy": "",
-	"CreatedByURL": "",
+	"Category": "Rendering",
+	"CreatedBy": "AMD Inc.",
+	"CreatedByURL": "https://pro.radeon.com/en/software/prorender/",
 	"DocsURL": "",
 	"MarketplaceURL": "",
-	"SupportURL": "",
+	"SupportURL": "https://support.amd.com/en-us",
 	"CanContainContent": true,
-	"IsBetaVersion": false,
+	"IsBetaVersion": true,
 	"Installed": false,
 	"Modules": [
 		{
 			"Name": "RPRPlugin",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms":
+			[
+				"Win64"
+			]
 		},
 		{
 			"Name": "RPRTools",
-			"Type": "Runtime"
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms":
+			[
+				"Win64"
+			]
 		},
 		{
 			"Name": "RPRImageManager",
-			"Type": "Runtime"
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms":
+			[
+				"Win64"
+			]
 		},
 		{
 			"Name": "RPREditorTools",
-			"Type": "Editor"
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms":
+			[
+				"Win64"
+			]
 		},
 		{
 			"Name": "RPRMaterialLoader",
-			"Type": "Editor"
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms":
+			[
+				"Win64"
+			]
 		},
 		{
 			"Name": "RPRSectionsManager",
-			"Type": "Editor"
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms":
+			[
+				"Win64"
+			]
 		},
 		{
 			"Name": "RPRMaterialEditor",
-			"Type": "Editor"
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms":
+			[
+				"Win64"
+			]
 		},
 		{
 			"Name": "RPRPluginEditor",
-			"Type": "Editor"
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms":
+			[
+				"Win64"
+			]
 		},
 		{
 			"Name": "UVVisualizer",
-			"Type": "Editor"
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms":
+			[
+				"Win64"
+			]
 		},
 		{
 			"Name": "UVProjection_Planar",
-			"Type": "Editor"			
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms":
+			[
+				"Win64"
+			]
 		},
 		{
 			"Name": "UVProjection_Cubic",
-			"Type": "Editor"			
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms":
+			[
+				"Win64"
+			]
 		},
 		{
 			"Name": "UVProjection_Spherical",
-			"Type": "Editor"			
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms":
+			[
+				"Win64"
+			]
 		},
 		{
 			"Name": "UVProjection_Cylindrical",
-			"Type": "Editor"			
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms":
+			[
+				"Win64"
+			]
 		},
 		{
 			"Name": "UVProjection_TriPlanar",
-			"Type": "Editor"			
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms":
+			[
+				"Win64"
+			]
 		},
 		{
 			"Name": "Outliners",
-			"Type": "Editor"
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms":
+			[
+				"Win64"
+			]
 		}
 	]
 }

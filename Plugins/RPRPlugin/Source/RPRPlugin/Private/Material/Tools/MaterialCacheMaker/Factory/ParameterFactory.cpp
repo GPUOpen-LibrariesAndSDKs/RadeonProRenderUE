@@ -1,8 +1,8 @@
 #include "ParameterFactory.h"
 #include "UberMaterialPropertyHelper.h"
 
-#include "MaterialConstantOrMapChannel1/MaterialConstantOrMapChannel1ParameterSetter.h"
-#include "MaterialConstantOrMapParameterSetter.h"
+#include "MaterialCoMChannel1/MaterialCoMChannel1ParameterSetter.h"
+#include "MaterialCoMParameterSetter.h"
 #include "MaterialMapParameterSetter.h"
 #include "MaterialEnumParameterSetter.h"
 #include "MaterialBoolParameterSetter.h"
@@ -19,8 +19,8 @@ namespace RPRX
 			static_assert(TIsClass<ClassName>::Value, "Class doesn't exist!");	\
 			RegisterParameterSetter<ParameterSetterClass>(#ClassName);
 
-			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialConstantOrMapChannel1, FMaterialConstantOrMapChannel1ParameterSetter);
-			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialConstantOrMap, FMaterialConstantOrMapParameterSetter);
+			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialCoMChannel1, FMaterialCoMChannel1ParameterSetter);
+			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialCoM, FMaterialCoMParameterSetter);
 			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialMap, FMaterialMapParameterSetter);
 			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialEnum, FMaterialEnumParameterSetter);
 			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialBool, FMaterialBoolParameterSetter);

@@ -7,7 +7,7 @@
 #include "RPRMaterialBoolPropertiesLayout.h"
 #include "RPRMaterialBool.h"
 #include "RPRMaterialEnumPropertiesLayout.h"
-#include "RPRMaterialConstantOrMapPropertiesLayout.h"
+#include "RPRMaterialCoMPropertiesLayout.h"
 #include "RPRMaterialMapChannel1PropertiesLayout.h"
 #include "RPRMaterialMapPropertiesLayout.h"
 
@@ -74,12 +74,12 @@ void FRPRMaterialEditorModule::RegisterCustomPropertyLayouts()
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialEnumPropertiesLayout::MakeInstance)
 	);
 
-	propertyEditorModule.RegisterCustomPropertyTypeLayout(*FRPRMaterialConstantOrMap::StaticStruct()->GetName(),
-		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialConstantOrMapPropertiesLayout::MakeInstance)
+	propertyEditorModule.RegisterCustomPropertyTypeLayout(*FRPRMaterialCoM::StaticStruct()->GetName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialCoMPropertiesLayout::MakeInstance)
 	);
 
-	propertyEditorModule.RegisterCustomPropertyTypeLayout(*FRPRMaterialConstantOrMapChannel1::StaticStruct()->GetName(),
-		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialConstantOrMapChannel1PropertiesLayout::MakeInstance)
+	propertyEditorModule.RegisterCustomPropertyTypeLayout(*FRPRMaterialCoMChannel1::StaticStruct()->GetName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialCoMChannel1PropertiesLayout::MakeInstance)
 	);
 
 	propertyEditorModule.RegisterCustomPropertyTypeLayout(*FRPRMaterialMap::StaticStruct()->GetName(),

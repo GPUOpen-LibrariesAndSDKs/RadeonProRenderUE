@@ -1,5 +1,7 @@
 #pragma once
 #include "RPRTypedefs.h"
+#include "Engine/Texture.h"
+#include "Map.h"
 
 namespace RPR
 {

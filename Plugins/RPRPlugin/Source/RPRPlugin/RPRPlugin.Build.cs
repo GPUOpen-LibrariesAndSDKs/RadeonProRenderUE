@@ -12,8 +12,9 @@ public class RPRPlugin : ModuleRules
 	public RPRPlugin(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+        bEnableExceptions = true;
 
-		PublicIncludePaths.AddRange(
+        PublicIncludePaths.AddRange(
 			new string[] {
 				"RPRPlugin/Public",
                 "RPRPlugin/Public/Enums",
@@ -51,8 +52,8 @@ public class RPRPlugin : ModuleRules
                 "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/Bool",
                 "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/Enum",
                 "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialMap",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialConstantOrMap",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialConstantOrMapChannel1",
+                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialCoM",
+                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialCoMChannel1",
             }
 			);
 

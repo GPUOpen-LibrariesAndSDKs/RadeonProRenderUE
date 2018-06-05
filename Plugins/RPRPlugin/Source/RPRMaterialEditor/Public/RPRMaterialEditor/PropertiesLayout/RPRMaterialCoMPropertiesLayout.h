@@ -2,9 +2,9 @@
 #include "IPropertyTypeCustomization.h"
 #include "SWidget.h"
 #include "RPRMaterialMap.h"
-#include "RPRMaterialConstantOrMapBasePropertiesLayout.h"
+#include "RPRMaterialCoMBasePropertiesLayout.h"
 
-class FRPRMaterialConstantOrMapPropertiesLayout : public FRPRMaterialConstantOrMapBasePropertiesLayout
+class FRPRMaterialCoMPropertiesLayout : public FRPRMaterialCoMBasePropertiesLayout
 {
 
 public:

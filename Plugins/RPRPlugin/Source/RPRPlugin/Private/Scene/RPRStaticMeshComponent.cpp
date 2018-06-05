@@ -407,14 +407,14 @@ void URPRStaticMeshComponent::BuildRPRMaterial(RPR::FShape& Shape, URPRMaterial*
 	{
 		rprMaterialLibrary->CacheAndRegisterMaterial(Material);
 	}
-	else if (Material->bShouldCacheBeRebuild)
+	else if (Material->IsMaterialDirty())
 	{
 		rprMaterialLibrary->RecacheMaterial(Material);
 	}
 
 	if (!m_OnMaterialChangedDelegateHandles.Contains(Material))
 	{
-		FDelegateHandle dlgHandle = Material->OnRPRMaterialChanged.AddUObject(this, &URPRStaticMeshComponent::OnUsedMaterialChanged);
+		FDelegateHandle dlgHandle = Material->OnRPRMaterialChanged().AddUObject(this, &URPRStaticMeshComponent::OnUsedMaterialChanged);
 		m_OnMaterialChangedDelegateHandles.Add(Material, dlgHandle);
 	}
 
@@ -727,7 +727,7 @@ void URPRStaticMeshComponent::OnUsedMaterialChanged(URPRMaterial* Material)
 	else
 	{
 		FDelegateHandle dlgHandle = m_OnMaterialChangedDelegateHandles.FindAndRemoveChecked(Material);
-		Material->OnRPRMaterialChanged.Remove(dlgHandle);
+		Material->OnRPRMaterialChanged().Remove(dlgHandle);
 	}
 }
 
@@ -736,7 +736,7 @@ void URPRStaticMeshComponent::ClearMaterialChangedWatching()
 	for (auto it(m_OnMaterialChangedDelegateHandles.CreateIterator()); it; ++it)
 	{
 		URPRMaterial* material = it.Key();
-		material->OnRPRMaterialChanged.Remove(it.Value());
+		material->OnRPRMaterialChanged().Remove(it.Value());
 	}
 	m_OnMaterialChangedDelegateHandles.Empty();
 }

@@ -1,15 +1,15 @@
-#include "RPRMatParamCopier_MaterialConstantOrMapChannel1.h"
+#include "RPRMatParamCopier_MaterialCoMChannel1.h"
 #include "MaterialEditor/DEditorStaticSwitchParameterValue.h"
 #include "MaterialEditor/DEditorScalarParameterValue.h"
 #include "MaterialEditor/DEditorVectorParameterValue.h"
 
-DEFINE_LOG_CATEGORY_STATIC(LogRPRMatParamCopier_MaterialConstantOrMapChannel1, Log, All)
+DEFINE_LOG_CATEGORY_STATIC(LogRPRMatParamCopier_MaterialCoMChannel1, Log, All)
 
-void FRPRMatParamCopier_MaterialConstantOrMapChannel1::Apply(const FRPRUberMaterialParameters& RPRUberMaterialParameters, UStructProperty* Property, UMaterialEditorInstanceConstant* RPRMaterialEditorInstance)
+void FRPRMatParamCopier_MaterialCoMChannel1::Apply(const FRPRUberMaterialParameters& RPRUberMaterialParameters, UStructProperty* Property, UMaterialEditorInstanceConstant* RPRMaterialEditorInstance)
 {
 	FRPRMatParamCopier_MaterialMap::Apply(RPRUberMaterialParameters, Property, RPRMaterialEditorInstance);
 
-	const FRPRMaterialConstantOrMapChannel1* materialMap = Property->ContainerPtrToValuePtr<const FRPRMaterialConstantOrMapChannel1>(&RPRUberMaterialParameters);
+	const FRPRMaterialCoMChannel1* materialMap = Property->ContainerPtrToValuePtr<const FRPRMaterialCoMChannel1>(&RPRUberMaterialParameters);
 
 	const FString useMapParameterName = FRPRMatParamCopierUtility::CombinePropertyNameSection(materialMap->GetXmlParamName(), RPR::FEditorMaterialConstants::MaterialPropertyUseMapSection);
 	auto useMapParameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorStaticSwitchParameterValue>(RPRMaterialEditorInstance, useMapParameterName);
@@ -46,13 +46,13 @@ void FRPRMatParamCopier_MaterialConstantOrMapChannel1::Apply(const FRPRUberMater
 	break;
 
 	default:
-		UE_LOG(LogRPRMatParamCopier_MaterialConstantOrMapChannel1, Warning, TEXT("Interpretation mode not supported (%#4) !"), (uint8) materialMap->RPRInterpretationMode);
+		UE_LOG(LogRPRMatParamCopier_MaterialCoMChannel1, Warning, TEXT("Interpretation mode not supported (%#4) !"), (uint8) materialMap->RPRInterpretationMode);
 		break;
 	}
 }
 
-bool FRPRMatParamCopier_MaterialConstantOrMapChannel1::ShouldUseMap(const FRPRUberMaterialParameters& RPRUberMaterialParameters, UStructProperty* Property, UMaterialEditorInstanceConstant* RPRMaterialEditorInstance) const
+bool FRPRMatParamCopier_MaterialCoMChannel1::ShouldUseMap(const FRPRUberMaterialParameters& RPRUberMaterialParameters, UStructProperty* Property, UMaterialEditorInstanceConstant* RPRMaterialEditorInstance) const
 {
-	auto materialMap = Property->ContainerPtrToValuePtr<const FRPRMaterialConstantOrMapChannel1>(&RPRUberMaterialParameters);
+	auto materialMap = Property->ContainerPtrToValuePtr<const FRPRMaterialCoMChannel1>(&RPRUberMaterialParameters);
 	return (materialMap->Mode == ERPRMaterialMapMode::Texture);
 }

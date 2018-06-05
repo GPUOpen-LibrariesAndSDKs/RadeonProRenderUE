@@ -4,7 +4,7 @@
 #include "RPRUberMaterialParameters.h"
 #include "NodeParamRPRMaterialMap/NodeParamRPRMaterialMap.h"
 
-class FNodeParamRPRMaterialConstantOrMap : public FNodeParamRPRMaterialMap
+class FNodeParamRPRMaterialCoM : public FNodeParamRPRMaterialMap
 {
 
 public:
@@ -19,5 +19,5 @@ protected:
 
 private:
 
-	void	LoadColor(FRPRMaterialConstantOrMap* InMaterialMap, FRPRMaterialXmlNodeParameter& CurrentNodeParameter);
+	void	LoadColor(FRPRMaterialCoM* InMaterialMap, FRPRMaterialXmlNodeParameter& CurrentNodeParameter);
 };

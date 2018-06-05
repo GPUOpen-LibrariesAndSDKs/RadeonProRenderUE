@@ -53,9 +53,7 @@ private:
 private:
 
 	TArray<SRPRShape>	m_Shapes;
-
-	TMap<URPRMaterial*, FDelegateHandle> m_OnMaterialChangedDelegateHandles;
-
 	TQueue<URPRMaterial*> m_dirtyMaterialsQueue;
 
+	TMap<URPRMaterial*, FDelegateHandle> m_OnMaterialChangedDelegateHandles;
 };

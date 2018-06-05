@@ -1,4 +1,4 @@
-#include "RPRMaterialConstantOrMapBasePropertiesLayout.h"
+#include "RPRMaterialCoMBasePropertiesLayout.h"
 #include "IDetailChildrenBuilder.h"
 #include "DetailWidgetRow.h"
 #include "SWidgetSwitcher.h"
@@ -6,7 +6,7 @@
 #include "SComboBox.h"
 #include "RPRMaterialMap.h"
 
-TSharedRef<SWidget> FRPRMaterialConstantOrMapBasePropertiesLayout::GetPropertyValueRowWidget()
+TSharedRef<SWidget> FRPRMaterialCoMBasePropertiesLayout::GetPropertyValueRowWidget()
 {
 	FindMaterialModeEnumType();
 	BuildModeAvailables();
@@ -20,11 +20,11 @@ TSharedRef<SWidget> FRPRMaterialConstantOrMapBasePropertiesLayout::GetPropertyVa
 			[
 				SNew(SComboBox<TSharedPtr<FString>>)
 				.OptionsSource(&ModeAvailables)
-				.OnGenerateWidget(this, &FRPRMaterialConstantOrMapBasePropertiesLayout::GenerateModeWidget)
-				.OnSelectionChanged(this, &FRPRMaterialConstantOrMapBasePropertiesLayout::HandleModeChanged)
+				.OnGenerateWidget(this, &FRPRMaterialCoMBasePropertiesLayout::GenerateModeWidget)
+				.OnSelectionChanged(this, &FRPRMaterialCoMBasePropertiesLayout::HandleModeChanged)
 				[
 					SNew(STextBlock)
-					.Text(this, &FRPRMaterialConstantOrMapBasePropertiesLayout::GetCurrentModeText)
+					.Text(this, &FRPRMaterialCoMBasePropertiesLayout::GetCurrentModeText)
 				]
 			]
 			+SHorizontalBox::Slot()
@@ -32,7 +32,7 @@ TSharedRef<SWidget> FRPRMaterialConstantOrMapBasePropertiesLayout::GetPropertyVa
 			.HAlign(HAlign_Left)
 			[
 				SNew(SWidgetSwitcher)
-				.WidgetIndex(this, &FRPRMaterialConstantOrMapBasePropertiesLayout::GetModeIndex)
+				.WidgetIndex(this, &FRPRMaterialCoMBasePropertiesLayout::GetModeIndex)
 				+SWidgetSwitcher::Slot()
 				[
 					GetConstantPropertyWidget().ToSharedRef()
@@ -44,12 +44,12 @@ TSharedRef<SWidget> FRPRMaterialConstantOrMapBasePropertiesLayout::GetPropertyVa
 			];
 }
 
-void FRPRMaterialConstantOrMapBasePropertiesLayout::FindMaterialModeEnumType()
+void FRPRMaterialCoMBasePropertiesLayout::FindMaterialModeEnumType()
 {
 	MaterialModeEnumType = FindObject<UEnum>(ANY_PACKAGE, TNameOf<ERPRMaterialMapMode>::GetName(), true);
 }
 
-void FRPRMaterialConstantOrMapBasePropertiesLayout::BuildModeAvailables()
+void FRPRMaterialCoMBasePropertiesLayout::BuildModeAvailables()
 {
 	const int32 numEnums = MaterialModeEnumType->NumEnums() - 1; // -1 to remove *_MAX value
 
@@ -61,44 +61,44 @@ void FRPRMaterialConstantOrMapBasePropertiesLayout::BuildModeAvailables()
 	}
 }
 
-TSharedRef<SWidget> FRPRMaterialConstantOrMapBasePropertiesLayout::GenerateModeWidget(TSharedPtr<FString> Item)
+TSharedRef<SWidget> FRPRMaterialCoMBasePropertiesLayout::GenerateModeWidget(TSharedPtr<FString> Item)
 {
 	return
 		SNew(STextBlock)
 		.Text(FText::FromString(*Item));
 }
 
-void FRPRMaterialConstantOrMapBasePropertiesLayout::HandleModeChanged(TSharedPtr<FString> Item, ESelectInfo::Type SelectInfo)
+void FRPRMaterialCoMBasePropertiesLayout::HandleModeChanged(TSharedPtr<FString> Item, ESelectInfo::Type SelectInfo)
 {
 	int32 itemIndex = FindModeIndex(Item);
 	SetMode(StaticCast<ERPRMaterialMapMode>(itemIndex));
 }
 
-FText FRPRMaterialConstantOrMapBasePropertiesLayout::GetCurrentModeText() const
+FText FRPRMaterialCoMBasePropertiesLayout::GetCurrentModeText() const
 {
 	ERPRMaterialMapMode currentMode = GetMode();
 	FString enumValueString = MaterialModeEnumType->GetNameStringByIndex(StaticCast<uint8>(currentMode));
 	return (FText::FromString(enumValueString));
 }
 
-int32 FRPRMaterialConstantOrMapBasePropertiesLayout::GetModeIndex() const
+int32 FRPRMaterialCoMBasePropertiesLayout::GetModeIndex() const
 {
 	return (StaticCast<int32>(GetMode()));
 }
 
-ERPRMaterialMapMode FRPRMaterialConstantOrMapBasePropertiesLayout::GetMode() const
+ERPRMaterialMapMode FRPRMaterialCoMBasePropertiesLayout::GetMode() const
 {
 	uint8 enumValue;
 	GetModePropertyHandle()->GetValue(enumValue);
 	return (StaticCast<ERPRMaterialMapMode>(enumValue));
 }
 
-void FRPRMaterialConstantOrMapBasePropertiesLayout::SetMode(ERPRMaterialMapMode Mode)
+void FRPRMaterialCoMBasePropertiesLayout::SetMode(ERPRMaterialMapMode Mode)
 {
 	GetModePropertyHandle()->SetValue(StaticCast<uint8>(Mode));
 }
 
-int32 FRPRMaterialConstantOrMapBasePropertiesLayout::FindModeIndex(TSharedPtr<FString> ModeString) const
+int32 FRPRMaterialCoMBasePropertiesLayout::FindModeIndex(TSharedPtr<FString> ModeString) const
 {
 	for (int32 i = 0; i < ModeAvailables.Num(); ++i)
 	{

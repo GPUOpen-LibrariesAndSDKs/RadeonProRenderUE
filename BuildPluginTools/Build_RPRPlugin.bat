@@ -1,0 +1,10 @@
+@echo off
+
+set ue4version=418
+
+echo Build...
+echo Use UnrealEngine : %UE4_Path%
+"%UE4_Path%\Engine\Build\BatchFiles\RunUAT.bat" BuildPlugin -Plugin="%CD%\..\Plugins\RPRPlugin\RPRPlugin.uplugin" -nop4 -utf8output -pak -distribution -compile -package="%CD%\PluginStaging_ALL\UE4_%ue4version%" -Rocket
+echo Build completed.
+
+pause

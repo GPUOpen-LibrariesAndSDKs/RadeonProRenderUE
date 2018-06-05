@@ -1,9 +1,7 @@
 #include "RPRMaterial.h"
 
 URPRMaterial::URPRMaterial()
-#if WITH_EDITOR
 	: bShouldCacheBeRebuild(true)
-#endif
 {
 
 }
@@ -17,9 +15,24 @@ void URPRMaterial::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
 	UProperty* memberProperty = PropertyChangedEvent.MemberProperty;
 	if (memberProperty != nullptr && memberProperty->GetName() == GET_MEMBER_NAME_STRING_CHECKED(URPRMaterial, MaterialParameters))
 	{
-		bShouldCacheBeRebuild = true;
-		OnRPRMaterialChanged.Broadcast(this);
+		MarkMaterialDirty();
 	}
 }
 
 #endif
+
+void URPRMaterial::MarkMaterialDirty()
+{
+	bShouldCacheBeRebuild = true;
+	OnRPRMaterialChangedEvent.Broadcast(this);
+}
+
+void URPRMaterial::ResetMaterialDirtyFlag()
+{
+	bShouldCacheBeRebuild = false;
+}
+
+bool URPRMaterial::IsMaterialDirty() const
+{
+	return (bShouldCacheBeRebuild);
+}

@@ -2,7 +2,7 @@
 
 #include "NodeParamRPRMaterialMap/NodeParamRPRMaterialMap.h"
 
-class FNodeParamRPRMaterialConstantOrMapChannel1 : public FNodeParamRPRMaterialMap
+class FNodeParamRPRMaterialCoMChannel1 : public FNodeParamRPRMaterialMap
 {
 
 public:
@@ -12,6 +12,6 @@ public:
 
 private:
 
-	void LoadConstant(FRPRMaterialConstantOrMapChannel1* MapChannel1, FRPRMaterialXmlNodeParameter& CurrentNodeParameter);
+	void LoadConstant(FRPRMaterialCoMChannel1* MapChannel1, FRPRMaterialXmlNodeParameter& CurrentNodeParameter);
 
 };

@@ -6,7 +6,7 @@
 namespace RPRX
 {
 
-	class FMaterialConstantOrMapChannel1ParameterSetter : public FMaterialMapParameterSetter
+	class FMaterialCoMChannel1ParameterSetter : public FMaterialMapParameterSetter
 	{
 	public:
 		virtual void	ApplyParameterX(MaterialParameter::FArgs& SetterParameters) override;

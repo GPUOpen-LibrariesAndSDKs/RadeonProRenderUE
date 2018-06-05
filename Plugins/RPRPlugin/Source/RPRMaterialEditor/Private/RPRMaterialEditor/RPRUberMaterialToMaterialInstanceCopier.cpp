@@ -2,13 +2,13 @@
 #include "RPRUberMaterialParameters.h"
 #include "Map.h"
 #include "IRPRMatParamCopier.h"
-#include "RPRMatParamCopier_MaterialConstantOrMap.h"
-#include "RPRMatParamCopier_MaterialConstantOrMapChannel1.h"
+#include "RPRMatParamCopier_MaterialCoM.h"
+#include "RPRMatParamCopier_MaterialCoMChannel1.h"
 #include "RPRMaterialBool.h"
 #include "RPRMaterialEnum.h"
 #include "RPRMatParamCopier_Enum.h"
 #include "RPRMatParamCopier_Bool.h"
-#include "RPRMaterialConstantOrMapChannel1.h"
+#include "RPRMaterialCoMChannel1.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRUberMaterialToMaterialInstanceCopier, Log, All)
 
@@ -24,8 +24,8 @@ void FRPRUberMaterialToMaterialInstanceCopier::CopyParameters(const FRPRUberMate
 	
 	if (applyRouter.Num() == 0)
 	{
-		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialConstantOrMap), MakeShareable(new FRPRMatParamCopier_MaterialConstantOrMap));
-		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialConstantOrMapChannel1), MakeShareable(new FRPRMatParamCopier_MaterialConstantOrMapChannel1));
+		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialCoM), MakeShareable(new FRPRMatParamCopier_MaterialCoM));
+		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialCoMChannel1), MakeShareable(new FRPRMatParamCopier_MaterialCoMChannel1));
 		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialMap), MakeShareable(new FRPRMatParamCopier_MaterialMap));
 		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialBool), MakeShareable(new FRPRMatParamCopier_Bool));
 		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialEnum), MakeShareable(new FRPRMatParamCopier_Enum));

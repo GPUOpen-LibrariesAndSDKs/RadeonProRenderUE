@@ -5,6 +5,7 @@
 #include "RPRXMaterialHelpers.h"
 #include "Tools/MaterialCacheMaker/MaterialCacheMaker.h"
 #include "ScopeLock.h"
+#include "RPRMaterial.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRMaterialLibrary, Log, All)
 
@@ -140,7 +141,7 @@ bool FRPRXMaterialLibrary::CacheMaterial(URPRMaterial* InMaterial, RPRI::FExport
 	OutMaterial.type = EMaterialType::MaterialX;
 	OutMaterial.data = newMaterial;
 
-	InMaterial->bShouldCacheBeRebuild = false;
+	InMaterial->ResetMaterialDirtyFlag();
 	return (true);
 }
 
