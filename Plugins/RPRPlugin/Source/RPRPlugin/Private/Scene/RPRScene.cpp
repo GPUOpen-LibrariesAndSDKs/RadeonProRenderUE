@@ -440,8 +440,15 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		if (!ensure(m_Plugin->GetRenderTexture() != nullptr))
 			return;
 
-		const FString	dllPath = FPaths::ProjectDir() + "/Binaries/Win64/Tahoe64.dll"; // To get from settings ?
-		rpr_int			tahoePluginId = rprRegisterPlugin(TCHAR_TO_ANSI(*dllPath)); // Seems to be mandatory
+		const FString dllDirectory = FRPRPluginModule::GetDLLsDirectory();
+		const FString dllPath = FPaths::Combine(dllDirectory, TEXT("Tahoe64.dll"));
+		if (!FPaths::FileExists(dllPath))
+		{
+			UE_LOG(LogRPRScene, Error, TEXT("DLL '%s' doesn't exist!"), *dllPath);
+			return;
+		}
+
+		rpr_int	tahoePluginId = rprRegisterPlugin(TCHAR_TO_ANSI(*dllPath)); // Seems to be mandatory
 		if (tahoePluginId == -1)
 		{
 			UE_LOG(LogRPRScene, Error, TEXT("\"%s\" not registered by \"%s\" path."), "Tahoe64.dll", *dllPath);

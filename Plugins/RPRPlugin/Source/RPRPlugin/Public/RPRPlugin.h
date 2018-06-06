@@ -18,6 +18,8 @@ public:
 	FRPRPluginModule();
 	~FRPRPluginModule();
 
+	static FString	GetDLLsDirectory();
+
 	virtual void	StartupModule() override;
 	virtual void	ShutdownModule() override;
 
@@ -45,6 +47,7 @@ public:
 
 	class UTexture2DDynamic		*GetRenderTexture() { return m_RenderTexture; }
 	class ARPRScene				*GetCurrentScene() const;
+
 public:
 	uint32		m_ObjectBeingBuilt;
 	uint32		m_ObjectsToBuild;
@@ -55,7 +58,9 @@ public:
 
 	TArray<TSharedPtr<FString>>			m_AvailableCameraNames;
 	TSharedPtr<class FSceneViewport>	m_Viewport;
+
 private:
+
 #if WITH_EDITOR
 	void					FillRPRMenu(class FMenuBuilder &menuBuilder);
 	void					CreateMenuBarExtension(class FMenuBarBuilder &menubarBuilder);
@@ -70,12 +75,18 @@ private:
 	void					OnWorldDestroyed(UWorld *inWorld);
 
 	void					CreateNewScene(UWorld *world);
+
+	void	PreloadDLLs();
+	void	UnloadDLLs();
+
 private:
+
 #if WITH_EDITOR
 	static FString			s_URLRadeonProRender;
 
 	TSharedPtr<FExtender>	m_Extender;
 #endif
+
 	class UTexture2DDynamic	*m_RenderTexture;
 
 	class UWorld			*m_GameWorld;
@@ -87,4 +98,8 @@ private:
 	bool					m_OrbitEnabled;
 
 	bool					m_Loaded;
+
+	using FDLLHandle = void*;
+	TArray<FString>			dllNames;
+	TArray<FDLLHandle>		dllHandles;
 };

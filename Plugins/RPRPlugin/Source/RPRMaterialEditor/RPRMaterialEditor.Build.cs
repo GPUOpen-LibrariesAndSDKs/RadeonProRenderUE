@@ -77,5 +77,6 @@ public class RPRMaterialEditor : ModuleRules
 
         RPRPlugin.AddRPRIncludes(ModuleDirectory, PrivateIncludePaths);
         RPRPlugin.AddRPRStaticLibraries(ModuleDirectory, PublicAdditionalLibraries, Target);
+        RPRPlugin.AddDynamicLibraries(ModuleDirectory, PublicLibraryPaths, RuntimeDependencies, PublicDelayLoadDLLs, Target);
     }
 }

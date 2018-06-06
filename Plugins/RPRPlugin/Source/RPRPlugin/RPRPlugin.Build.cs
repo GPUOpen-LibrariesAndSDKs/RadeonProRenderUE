@@ -80,9 +80,6 @@ public class RPRPlugin : ModuleRules
             }
 			);
 
-        AddRPRIncludes(ModuleDirectory, PrivateIncludePaths);
-
-
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
@@ -123,13 +120,15 @@ public class RPRPlugin : ModuleRules
 					"LevelEditor",
 					"Settings",
 				});
-		}
+        }
 
+        AddRPRIncludes(ModuleDirectory, PrivateIncludePaths);
         AddRPRStaticLibraries(ModuleDirectory, PublicAdditionalLibraries, Target);
-        CopyDynamicLibraries(SDKRoot, GetPluginRoot(ModuleDirectory), Target);
+        
+        AddDynamicLibraries(ModuleDirectory, PublicLibraryPaths, RuntimeDependencies, PublicDelayLoadDLLs, Target);
 	}
 
-    void    CopyDynamicLibraries(string SDKRoot, string pluginRoot, ReadOnlyTargetRules Target)
+    public static void AddDynamicLibraries(string ModuleDirectory, List<string> PublicLibraryPaths, RuntimeDependencyList RuntimeDependencies, List<string> PublicDelayLoadDLLs, ReadOnlyTargetRules Target)
     {
         string libExtension = GetDynamicLibraryExtensionByPlatform(Target.Platform);
 
@@ -140,57 +139,26 @@ public class RPRPlugin : ModuleRules
             return;
         }
 
-        // TODO: This WONT work when plugin is installed in the engine plugins folder, fix that
-        string gameBinDir = pluginRoot + "../../Binaries/" + Target.Platform.ToString() + "/";
-        if (!Directory.Exists(gameBinDir))
+        string SDKRoot = GetSDKRoot(ModuleDirectory);
+        string pluginRoot = GetPluginRoot(ModuleDirectory);
+
+        string libPath = string.Format("{0}RadeonProRender/bin{1}", SDKRoot, platformName);
+        if (!Directory.Exists(libPath))
         {
-            Directory.CreateDirectory(gameBinDir);
+            Console.WriteLine("Dynamic library directory doesn't exist ! " + libPath);
+            return;
         }
 
-        Console.WriteLine("Copy RPR dynamic libraries...");
-        int numCopies = 0;
+        PublicLibraryPaths.Add(libPath);
+
         for (int i = 0; i < DynamicLibraryNames.Length; ++i)
         {
             string filename = DynamicLibraryNames[i] + librarySuffix + libExtension;
-            string srcPath = string.Format("{0}RadeonProRender/bin{1}/{2}", SDKRoot, platformName, filename);
-            if (File.Exists(srcPath))
-            {
-                string dstPath = gameBinDir + DynamicLibraryNames[i] + librarySuffix + libExtension;
-                if (CopyFileIfRequired(srcPath, dstPath))
-                {
-                    ++numCopies;
-                }
-            }
-            else
-            {
-                Console.WriteLine("\tError: File '{0}' not found!", srcPath);
-            }
+            string srcPath = filename;
+            
+            // RuntimeDependencies.Add(new RuntimeDependency(srcPath));
+            PublicDelayLoadDLLs.Add(srcPath);
         }
-        Console.WriteLine("Copies completed ({0} files copied).", numCopies);
-    }
-
-    bool    CopyFileIfRequired(string srcPath, string dstPath)
-    {
-        bool bRequireCopy;
-
-        if (!File.Exists(dstPath))
-        {
-            bRequireCopy = true;
-        }
-        else
-        {
-            FileInfo srcFileInfo = new FileInfo(srcPath);
-            FileInfo dstFileInfo = new FileInfo(dstPath);
-            bRequireCopy = (dstFileInfo.LastWriteTime != srcFileInfo.LastWriteTime);
-        }
-
-        if (bRequireCopy)
-        {
-            Console.WriteLine("\tCopy '{0}' to '{1}'", srcPath, dstPath);
-            File.Copy(srcPath, dstPath, true);
-        }
-
-        return (bRequireCopy);
     }
 
     public static void AddRPRIncludes(string ModuleDirectory, List<string> Includes)
