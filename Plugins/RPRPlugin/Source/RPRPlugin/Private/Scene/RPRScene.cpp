@@ -437,93 +437,7 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 
 	if (m_RprContext == nullptr)
 	{
-		if (!ensure(m_Plugin->GetRenderTexture() != nullptr))
-			return;
-
-		const FString dllDirectory = FRPRPluginModule::GetDLLsDirectory();
-		const FString dllPath = FPaths::Combine(dllDirectory, TEXT("Tahoe64.dll"));
-		if (!FPaths::FileExists(dllPath))
-		{
-			UE_LOG(LogRPRScene, Error, TEXT("DLL '%s' doesn't exist!"), *dllPath);
-			return;
-		}
-
-		rpr_int	tahoePluginId = rprRegisterPlugin(TCHAR_TO_ANSI(*dllPath)); // Seems to be mandatory
-		if (tahoePluginId == -1)
-		{
-			UE_LOG(LogRPRScene, Error, TEXT("\"%s\" not registered by \"%s\" path."), "Tahoe64.dll", *dllPath);
-			return;
-		}
-		uint32	creationFlags = GetContextCreationFlags(tahoePluginId);
-		if (creationFlags == 0)
-		{
-			UE_LOG(LogRPRScene, Error, TEXT("Couldn't find a compatible device"));
-			return;
-		}
-
-		m_NumDevices = 0;
-		for (uint32 s = RPR_CREATION_FLAGS_ENABLE_GPU7; s; s >>= 1)
-			m_NumDevices += (creationFlags & s) != 0;
-
-		if (rprCreateContext(RPR_API_VERSION, &tahoePluginId, 1, creationFlags, nullptr, TCHAR_TO_ANSI(*settings->RenderCachePath), &m_RprContext) != RPR_SUCCESS ||
-			rprContextSetParameter1u(m_RprContext, "aasamples", m_NumDevices) != RPR_SUCCESS ||
-			rprContextSetParameter1u(m_RprContext, "preview", 1) != RPR_SUCCESS ||
-			rprContextSetParameter1f(m_RprContext, "radianceclamp", (rpr_float)1.0f) != RPR_SUCCESS)
-		{
-			UE_LOG(LogRPRScene, Error, TEXT("RPR Context creation failed: check your OpenCL runtime and driver versions."));
-			return;
-		}
-		if (rprContextSetActivePlugin(m_RprContext, tahoePluginId) != RPR_SUCCESS)
-		{
-			UE_LOG(LogRPRScene, Error, TEXT("RPR Context setup failed: Couldn't set tahoe plugin."));
-			return;
-		}
-#ifdef RPR_VERBOSE
-		UE_LOG(LogRPRScene, Log, TEXT("ProRender context initialized"));
-#endif
-
-		rpriAllocateContext(&m_RpriContext);
-		rpriErrorOptions(m_RpriContext, 5, false, false);
-		rpriSetLoggers(m_RpriContext, rpriLoggerLog, rpriLoggerWarning, rpriLoggerError);
-
-		// Not sure if material systems should be created on a per mesh level or per section
-		if (rprContextCreateMaterialSystem(m_RprContext, 0, &m_RprMaterialSystem) != RPR_SUCCESS)
-		{
-			UE_LOG(LogRPRScene, Warning, TEXT("Couldn't create RPR material system"));
-			return;
-		}
-		if (rprxCreateContext(m_RprMaterialSystem, RPRX_FLAGS_ENABLE_LOGGING, &m_RprSupportCtx) != RPR_SUCCESS)
-		{
-			UE_LOG(LogRPRScene, Warning, TEXT("Couldn't create RPR material X system"));
-			return;
-		}
-
-		if (rprContextCreateScene(m_RprContext, &m_RprScene) != RPR_SUCCESS)
-		{
-			UE_LOG(LogRPRScene, Error, TEXT("RPR Scene creation failed"));
-			return;
-		}
-		if (rprContextSetScene(m_RprContext, m_RprScene) != RPR_SUCCESS)
-		{
-			UE_LOG(LogRPRScene, Error, TEXT("RPR Scene setup failed"));
-			return;
-		}
-
-		m_RenderTexture = m_Plugin->GetRenderTexture();
-		RPRImageManager = MakeShareable(new RPR::FImageManager(m_RprContext));
-
-		RPR::FMaterialContext materialContext;
-		materialContext.MaterialSystem = m_RprMaterialSystem;
-		materialContext.RPRContext = m_RprContext;
-		materialContext.RPRXContext = m_RprSupportCtx;
-		RPRXMaterialLibrary.Initialize(materialContext, RPRImageManager);
-
-
-		LoadMappings();
-
-#ifdef RPR_VERBOSE
-		UE_LOG(LogRPRScene, Log, TEXT("ProRender scene created"));
-#endif
+		InitializeRPRRendering();
 	}
 
 	if (!m_RendererWorker.IsValid())
@@ -552,6 +466,99 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		m_RendererWorker->SetQualitySettings(settings->QualitySettings);
 	}
 	m_RendererWorker->SetPaused(false);
+}
+
+void	ARPRScene::InitializeRPRRendering()
+{
+	URPRSettings* settings = GetMutableDefault<URPRSettings>();
+
+	if (!ensure(m_Plugin->GetRenderTexture() != nullptr))
+		return;
+
+	const FString dllDirectory = FRPRPluginModule::GetDLLsDirectory();
+	const FString dllPath = FPaths::Combine(dllDirectory, TEXT("Tahoe64.dll"));
+	if (!FPaths::FileExists(dllPath))
+	{
+		UE_LOG(LogRPRScene, Error, TEXT("DLL '%s' doesn't exist!"), *dllPath);
+		return;
+	}
+
+	rpr_int	tahoePluginId = rprRegisterPlugin(TCHAR_TO_ANSI(*dllPath)); // Seems to be mandatory
+	if (tahoePluginId == -1)
+	{
+		UE_LOG(LogRPRScene, Error, TEXT("\"%s\" not registered by \"%s\" path."), "Tahoe64.dll", *dllPath);
+		return;
+	}
+	uint32	creationFlags = GetContextCreationFlags(tahoePluginId);
+	if (creationFlags == 0)
+	{
+		UE_LOG(LogRPRScene, Error, TEXT("Couldn't find a compatible device"));
+		return;
+	}
+
+	m_NumDevices = 0;
+	for (uint32 s = RPR_CREATION_FLAGS_ENABLE_GPU7; s; s >>= 1)
+		m_NumDevices += (creationFlags & s) != 0;
+
+	if (rprCreateContext(RPR_API_VERSION, &tahoePluginId, 1, creationFlags, nullptr, TCHAR_TO_ANSI(*settings->RenderCachePath), &m_RprContext) != RPR_SUCCESS ||
+		rprContextSetParameter1u(m_RprContext, "aasamples", m_NumDevices) != RPR_SUCCESS ||
+		rprContextSetParameter1u(m_RprContext, "preview", 1) != RPR_SUCCESS ||
+		rprContextSetParameter1f(m_RprContext, "radianceclamp", (rpr_float)1.0f) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRScene, Error, TEXT("RPR Context creation failed: check your OpenCL runtime and driver versions."));
+		return;
+	}
+	if (rprContextSetActivePlugin(m_RprContext, tahoePluginId) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRScene, Error, TEXT("RPR Context setup failed: Couldn't set tahoe plugin."));
+		return;
+	}
+#ifdef RPR_VERBOSE
+	UE_LOG(LogRPRScene, Log, TEXT("ProRender context initialized"));
+#endif
+
+	rpriAllocateContext(&m_RpriContext);
+	rpriErrorOptions(m_RpriContext, 5, false, false);
+	rpriSetLoggers(m_RpriContext, rpriLoggerLog, rpriLoggerWarning, rpriLoggerError);
+
+	// Not sure if material systems should be created on a per mesh level or per section
+	if (rprContextCreateMaterialSystem(m_RprContext, 0, &m_RprMaterialSystem) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRScene, Warning, TEXT("Couldn't create RPR material system"));
+		return;
+	}
+	if (rprxCreateContext(m_RprMaterialSystem, RPRX_FLAGS_ENABLE_LOGGING, &m_RprSupportCtx) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRScene, Warning, TEXT("Couldn't create RPR material X system"));
+		return;
+	}
+
+	if (rprContextCreateScene(m_RprContext, &m_RprScene) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRScene, Error, TEXT("RPR Scene creation failed"));
+		return;
+	}
+	if (rprContextSetScene(m_RprContext, m_RprScene) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRScene, Error, TEXT("RPR Scene setup failed"));
+		return;
+	}
+
+	m_RenderTexture = m_Plugin->GetRenderTexture();
+	RPRImageManager = MakeShareable(new RPR::FImageManager(m_RprContext));
+
+	RPR::FMaterialContext materialContext;
+	materialContext.MaterialSystem = m_RprMaterialSystem;
+	materialContext.RPRContext = m_RprContext;
+	materialContext.RPRXContext = m_RprSupportCtx;
+	RPRXMaterialLibrary.Initialize(materialContext, RPRImageManager);
+
+
+	LoadMappings();
+
+#ifdef RPR_VERBOSE
+	UE_LOG(LogRPRScene, Log, TEXT("ProRender scene created"));
+#endif
 }
 
 void	ARPRScene::Rebuild()

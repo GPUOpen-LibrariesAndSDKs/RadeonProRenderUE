@@ -83,6 +83,7 @@ private:
 	uint32	GetContextCreationFlags(const rpr_int TahoePluginId);
 	void	LoadMappings();
 	void	DestroyRPRActors(TArray<class ARPRActor*>& Actors);
+	void	InitializeRPRRendering();
 
 private:
 	bool	m_TriggerEndFrameResize;

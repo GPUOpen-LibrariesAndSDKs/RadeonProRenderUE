@@ -156,7 +156,6 @@ public class RPRPlugin : ModuleRules
             string filename = DynamicLibraryNames[i] + librarySuffix + libExtension;
             string srcPath = filename;
             
-            // RuntimeDependencies.Add(new RuntimeDependency(srcPath));
             PublicDelayLoadDLLs.Add(srcPath);
         }
     }
