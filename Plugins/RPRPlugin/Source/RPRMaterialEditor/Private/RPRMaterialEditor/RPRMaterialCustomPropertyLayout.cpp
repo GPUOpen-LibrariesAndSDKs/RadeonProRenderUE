@@ -184,7 +184,7 @@ void FRPRMaterialCustomPropertyLayout::UpdateParam_Angle(UDEditorParameterValue*
     }
 }
 
-bool FRPRMaterialCustomPropertyLayout::IsPropertySupported(const TSharedPtr<IPropertyHandle> SupportModePropertyHandle)
+bool FRPRMaterialCustomPropertyLayout::IsPropertySupported(const TSharedPtr<IPropertyHandle> SupportModePropertyHandle) const
 {
 	uint8 enumValue;
 	if (SupportModePropertyHandle.IsValid() && SupportModePropertyHandle->GetValue(enumValue) == FPropertyAccess::Success)

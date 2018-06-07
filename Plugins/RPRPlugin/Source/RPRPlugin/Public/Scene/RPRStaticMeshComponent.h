@@ -8,10 +8,11 @@
 #include "Scene/RPRSceneComponent.h"
 #include "RprSupport.h"
 #include <RadeonProRenderInterchange.h>
-#include "SRPRShape.h"
+#include "RPRShape.h"
 #include "RPRMaterial.h"
 #include "Queue.h"
 #include "Tuple.h"
+#include "RPRXTypedefs.h"
 #include "RPRStaticMeshComponent.generated.h"
 
 enum
@@ -23,7 +24,9 @@ UCLASS(Transient)
 class URPRStaticMeshComponent : public URPRSceneComponent
 {
 	GENERATED_BODY()
+
 public:
+
 	URPRStaticMeshComponent();
 
 	virtual bool	Build() override;
@@ -32,12 +35,13 @@ public:
 	void			MarkMaterialsAsDirty();
 
 	static void		ClearCache(RPR::FScene scene);
+
 private:
-	static TMap<UStaticMesh*, TArray<SRPRCachedMesh>>	Cache;
+
 	rpr_material_node CreateDefaultDummyShapeMaterial(uint32 iShape);
 	rpriExportRprMaterialResult CreateXMLShapeMaterial(uint32 iShape, class UMaterialInterface const * matInterface);
 
-	TArray<SRPRCachedMesh>	GetMeshInstances(UStaticMesh *mesh);
+	TArray<FRPRCachedMesh>	GetMeshInstances(UStaticMesh *mesh);
 	bool					BuildMaterials();
 
 	virtual void	TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
@@ -52,7 +56,9 @@ private:
 
 private:
 
-	TArray<SRPRShape>	m_Shapes;
+	static TMap<UStaticMesh*, TArray<FRPRCachedMesh>>	Cache;
+
+	TArray<FRPRShape>	m_Shapes;
 	TQueue<URPRMaterial*> m_dirtyMaterialsQueue;
 
 	TMap<URPRMaterial*, FDelegateHandle> m_OnMaterialChangedDelegateHandles;

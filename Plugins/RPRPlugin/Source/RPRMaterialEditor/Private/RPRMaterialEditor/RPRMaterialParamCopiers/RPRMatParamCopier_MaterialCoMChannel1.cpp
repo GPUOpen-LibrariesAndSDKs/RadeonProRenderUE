@@ -23,7 +23,7 @@ void FRPRMatParamCopier_MaterialCoMChannel1::Apply(const FRPRUberMaterialParamet
 
 	switch (materialMap->RPRInterpretationMode)
 	{
-	case ERPRMConstantOrMapC1InterpretationMode::AsFloat:
+	case ERPRMCoMapC1InterpretationMode::AsFloat:
 	{
 		auto constantParameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorScalarParameterValue>(RPRMaterialEditorInstance, constantParameterName);
 		if (constantParameter)
@@ -34,7 +34,7 @@ void FRPRMatParamCopier_MaterialCoMChannel1::Apply(const FRPRUberMaterialParamet
 	}
 	break;
 
-	case ERPRMConstantOrMapC1InterpretationMode::AsFloat4:
+	case ERPRMCoMapC1InterpretationMode::AsFloat4:
 	{
 		auto constantParameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorVectorParameterValue>(RPRMaterialEditorInstance, constantParameterName);
 		if (constantParameter)

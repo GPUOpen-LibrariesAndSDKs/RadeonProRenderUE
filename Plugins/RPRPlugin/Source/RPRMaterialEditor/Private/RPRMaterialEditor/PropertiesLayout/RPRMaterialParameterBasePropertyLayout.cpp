@@ -57,6 +57,21 @@ void FRPRMaterialParameterBasePropertyLayout::CustomizeHeader(TSharedRef<IProper
 		];
 }
 
+EVisibility FRPRMaterialParameterBasePropertyLayout::GetPropertyVisibility() const
+{
+	TArray<UObject*> objects;
+	CurrentPropertyHandle->GetOuterObjects(objects);
+
+	if (objects.Num() == 0)
+	{
+		return (EVisibility::Collapsed);
+	}
+
+	FRPRUberMaterialParameterBase* parameter = (FRPRUberMaterialParameterBase*)CurrentPropertyHandle->GetValueBaseAddress((uint8*)objects[0]);
+	return (parameter->CanUseParameter() ? EVisibility::Visible : EVisibility::Collapsed);
+}
+
+
 EVisibility FRPRMaterialParameterBasePropertyLayout::GetSupportIconVisibility() const
 {
 	EVisibility visibility = EVisibility::Collapsed;

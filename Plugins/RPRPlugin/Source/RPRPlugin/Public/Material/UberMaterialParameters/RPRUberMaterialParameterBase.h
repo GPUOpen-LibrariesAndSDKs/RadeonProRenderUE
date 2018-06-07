@@ -28,8 +28,11 @@ struct RPRPLUGIN_API FRPRUberMaterialParameterBase
 public:
 
 	FRPRUberMaterialParameterBase();
-	FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode);
-	FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, FCanUseParameter InCanUseParameter);
+	FRPRUberMaterialParameterBase(
+		const FString& InXmlParamName, 
+		uint32 InRprxParamID, 
+		ESupportMode InPreviewSupportMode, 
+		FCanUseParameter InCanUseParameter = FCanUseParameter());
 
 	virtual ~FRPRUberMaterialParameterBase() {}
 

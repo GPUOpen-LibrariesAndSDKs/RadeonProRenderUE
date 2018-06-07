@@ -13,35 +13,35 @@ TSharedRef<SWidget> FRPRMaterialCoMBasePropertiesLayout::GetPropertyValueRowWidg
 
 	return
 		SNew(SHorizontalBox)
-			+SHorizontalBox::Slot()
-			.AutoWidth()
-			.HAlign(HAlign_Left)
-			.VAlign(VAlign_Center)
+		+SHorizontalBox::Slot()
+		.AutoWidth()
+		.HAlign(HAlign_Left)
+		.VAlign(VAlign_Center)
+		[
+			SNew(SComboBox<TSharedPtr<FString>>)
+			.OptionsSource(&ModeAvailables)
+			.OnGenerateWidget(this, &FRPRMaterialCoMBasePropertiesLayout::GenerateModeWidget)
+			.OnSelectionChanged(this, &FRPRMaterialCoMBasePropertiesLayout::HandleModeChanged)
 			[
-				SNew(SComboBox<TSharedPtr<FString>>)
-				.OptionsSource(&ModeAvailables)
-				.OnGenerateWidget(this, &FRPRMaterialCoMBasePropertiesLayout::GenerateModeWidget)
-				.OnSelectionChanged(this, &FRPRMaterialCoMBasePropertiesLayout::HandleModeChanged)
-				[
-					SNew(STextBlock)
-					.Text(this, &FRPRMaterialCoMBasePropertiesLayout::GetCurrentModeText)
-				]
+				SNew(STextBlock)
+				.Text(this, &FRPRMaterialCoMBasePropertiesLayout::GetCurrentModeText)
 			]
-			+SHorizontalBox::Slot()
-			.AutoWidth()
-			.HAlign(HAlign_Left)
+		]
+		+SHorizontalBox::Slot()
+		.AutoWidth()
+		.HAlign(HAlign_Left)
+		[
+			SNew(SWidgetSwitcher)
+			.WidgetIndex(this, &FRPRMaterialCoMBasePropertiesLayout::GetModeIndex)
+			+SWidgetSwitcher::Slot()
 			[
-				SNew(SWidgetSwitcher)
-				.WidgetIndex(this, &FRPRMaterialCoMBasePropertiesLayout::GetModeIndex)
-				+SWidgetSwitcher::Slot()
-				[
-					GetConstantPropertyWidget().ToSharedRef()
-				]
-				+SWidgetSwitcher::Slot()
-				[
-					CreateCheckedTexturePropertyWidget()
-				]
-			];
+				GetConstantPropertyWidget().ToSharedRef()
+			]
+			+SWidgetSwitcher::Slot()
+			[
+				CreateCheckedTexturePropertyWidget()
+			]
+		];
 }
 
 void FRPRMaterialCoMBasePropertiesLayout::FindMaterialModeEnumType()

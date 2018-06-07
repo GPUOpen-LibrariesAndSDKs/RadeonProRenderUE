@@ -21,6 +21,11 @@ struct RPRPLUGIN_API FRPRMaterialCoM : public FRPRMaterialMap
 
 
 	FRPRMaterialCoM();
-	FRPRMaterialCoM(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, float UniformConstant = 1.0f);
+	FRPRMaterialCoM(
+		const FString& InXmlParamName, 
+		uint32 InRprxParamID, 
+		ESupportMode InPreviewSupportMode, 
+		float UniformConstant = 1.0f,
+		FCanUseParameter InCanUseParameter = FCanUseParameter());
 
 };

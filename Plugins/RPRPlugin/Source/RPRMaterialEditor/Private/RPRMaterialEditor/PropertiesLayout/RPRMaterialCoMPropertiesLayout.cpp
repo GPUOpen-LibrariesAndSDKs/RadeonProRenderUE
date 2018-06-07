@@ -25,7 +25,7 @@ TSharedPtr<SWidget> FRPRMaterialCoMPropertiesLayout::GetConstantPropertyWidget()
 		.Size(FVector2D(100, 16))
 		.Color(this, &FRPRMaterialCoMPropertiesLayout::GetConstantColor)
 		.OnMouseButtonDown(this, &FRPRMaterialCoMPropertiesLayout::HandleColorBlockClicked)
-		.ShowBackgroundForAlpha(true);
+		.ShowBackgroundForAlpha(false);
 }
 
 
@@ -57,6 +57,7 @@ FReply FRPRMaterialCoMPropertiesLayout::HandleColorBlockClicked(const FGeometry&
 {
 	FColorPickerArgs colorPickerArgs;
 	colorPickerArgs.InitialColorOverride = GetConstantColor();
+	colorPickerArgs.bUseAlpha = false;
 	colorPickerArgs.OnColorCommitted.BindRaw(this, &FRPRMaterialCoMPropertiesLayout::HandleConstantColorPickChanged);
 	OpenColorPicker(colorPickerArgs);
 

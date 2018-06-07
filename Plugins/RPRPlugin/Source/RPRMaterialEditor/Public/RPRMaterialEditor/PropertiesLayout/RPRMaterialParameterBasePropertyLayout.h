@@ -16,6 +16,7 @@ protected:
 
 private:
 
+	EVisibility		GetPropertyVisibility() const;
 	EVisibility		GetSupportIconVisibility() const;
 	EVisibility		GetInfoIconVisibility() const;
 	FText			GetInfoText() const;

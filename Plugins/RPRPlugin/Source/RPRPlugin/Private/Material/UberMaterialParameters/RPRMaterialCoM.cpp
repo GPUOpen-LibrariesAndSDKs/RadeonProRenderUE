@@ -1,7 +1,7 @@
 #include "RPRMaterialCoM.h"
 
-FRPRMaterialCoM::FRPRMaterialCoM(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, float UniformConstant)
-	: FRPRMaterialMap(InXmlParamName, InRprxParamID, InPreviewSupportMode)
+FRPRMaterialCoM::FRPRMaterialCoM(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, float UniformConstant, FCanUseParameter InCanUseParameter)
+	: FRPRMaterialMap(InXmlParamName, InRprxParamID, InPreviewSupportMode, InCanUseParameter)
 	, Constant(FLinearColor(UniformConstant, UniformConstant, UniformConstant, UniformConstant))
 	, Mode(ERPRMaterialMapMode::Constant)
 {

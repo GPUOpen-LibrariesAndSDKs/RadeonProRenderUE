@@ -22,7 +22,7 @@ namespace RPRX
 
 			switch (materialMap->RPRInterpretationMode)
 			{
-			case ERPRMConstantOrMapC1InterpretationMode::AsFloat:
+			case ERPRMCoMapC1InterpretationMode::AsFloat:
 				FMaterialHelpers::SetMaterialParameterFloat(
 					materialContext.RPRXContext,
 					SetterParameters.Material,
@@ -31,7 +31,7 @@ namespace RPRX
 				);
 				break;
 
-			case ERPRMConstantOrMapC1InterpretationMode::AsFloat4:
+			case ERPRMCoMapC1InterpretationMode::AsFloat4:
 				FMaterialHelpers::SetMaterialParameterFloats(
 					materialContext.RPRXContext,
 					SetterParameters.Material,

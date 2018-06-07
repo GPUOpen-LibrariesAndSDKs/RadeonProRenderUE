@@ -21,6 +21,7 @@ class RPRTOOLS_API URPRSettings : public UObject
 {
 	GENERATED_UCLASS_BODY()
 public:
+
 	/** Defines ProRender path for saving cached rendering data. */
 	UPROPERTY(Config, EditAnywhere, Category = General)
 	FString		RenderCachePath;

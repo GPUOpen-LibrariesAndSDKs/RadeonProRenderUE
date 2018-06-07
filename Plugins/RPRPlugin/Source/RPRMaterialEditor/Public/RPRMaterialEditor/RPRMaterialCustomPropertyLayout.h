@@ -33,7 +33,8 @@ private:
     void UpdateParam_Scale(UDEditorParameterValue* ParameterValue);
     void UpdateParam_Angle(UDEditorParameterValue* ParameterValue);
 
-	bool IsPropertySupported(const TSharedPtr<IPropertyHandle> SupportModePropertyHandle);
+	bool IsPropertySupported(const TSharedPtr<IPropertyHandle> SupportModePropertyHandle) const;
+	bool IsPropertyUsable(const TSharedPtr<IPropertyHandle> PropertyHandle) const;
 
 private:
 

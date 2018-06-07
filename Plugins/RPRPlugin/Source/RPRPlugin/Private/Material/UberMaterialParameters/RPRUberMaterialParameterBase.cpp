@@ -4,12 +4,6 @@ FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase()
 	: RprxParamID(INDEX_NONE)
 {}
 
-FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode)
-	: XmlParamName(InXmlParamName)
-	, RprxParamID(InRprxParamID)
-	, SupportMode(InPreviewSupportMode)
-{}
-
 FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, FCanUseParameter InCanUseParameter)
 	: XmlParamName(InXmlParamName)
 	, RprxParamID(InRprxParamID)

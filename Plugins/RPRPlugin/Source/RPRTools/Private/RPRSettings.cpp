@@ -27,9 +27,9 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 	, GammaCorrectionValue(1.0001f)
 	, SimpleTonemapExposure(0.0f)
 	, SimpleTonemapContrast(1.0f)
-	, PhotolinearTonemapSensitivity(40.0f)
-	, PhotolinearTonemapExposure(0.01f)
-	, PhotolinearTonemapFStop(2.0f)
+	, PhotolinearTonemapSensitivity(20.0f)
+	, PhotolinearTonemapExposure(0.1f)
+	, PhotolinearTonemapFStop(3.4f)
 	, bUseErrorTexture(true)
 {
 	DefaultRootDirectoryForImportedTextures.Path = TEXT("/Game/Textures");

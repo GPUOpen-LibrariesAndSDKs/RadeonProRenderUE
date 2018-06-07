@@ -17,6 +17,9 @@ struct RPRPLUGIN_API FRPRMaterialMap : public FRPRUberMaterialParameterBase
 	UTexture2D*		Texture;
 
 	FRPRMaterialMap() {}
-	FRPRMaterialMap(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode);
-	FRPRMaterialMap(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, FCanUseParameter InCanUseParameter);
+	FRPRMaterialMap(
+		const FString& InXmlParamName, 
+		uint32 InRprxParamID, 
+		ESupportMode InPreviewSupportMode, 
+		FCanUseParameter InCanUseParameter = FCanUseParameter());
 };

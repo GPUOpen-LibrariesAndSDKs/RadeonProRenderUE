@@ -84,6 +84,8 @@ private:
 	void	LoadMappings();
 	void	DestroyRPRActors(TArray<class ARPRActor*>& Actors);
 	void	InitializeRPRRendering();
+	void	DrawRPRBufferToViewport();
+	void	CopyRPRRenderBufferToViewportRenderTexture();
 
 private:
 	bool	m_TriggerEndFrameResize;

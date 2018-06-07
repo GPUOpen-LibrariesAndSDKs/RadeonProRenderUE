@@ -33,6 +33,7 @@
 #include "RPRHelpers.h"
 #include "RPRXHelpers.h"
 #include "RPRIHelpers.h"
+#include "RenderingThread.h"
 
 #define LOCTEXT_NAMESPACE "ARPRScene"
 
@@ -290,9 +291,12 @@ bool	ARPRScene::ResizeRenderTarget()
 
 void	ARPRScene::RefreshScene()
 {
-	// Dont queue other actors
+	// Don't queue other actors
 	if (BuildQueue.Num() > 0 || m_RendererWorker->IsBuildingObjects())
+	{
 		return;
+	}
+
 	UWorld	*world = GetWorld();
 
 	// No usable callback to get notified when a component is added outside the editor
@@ -307,12 +311,19 @@ void	ARPRScene::RefreshScene()
 			it->IsPendingKill() ||
 			!it->HasBeenCreated())
 			continue;
+		
 		if (Cast<UStaticMeshComponent>(*it) != nullptr)
+		{
 			objectAdded |= QueueBuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass(), true);
+		}
 		else if (Cast<ULightComponentBase>(*it) != nullptr)
+		{
 			objectAdded |= QueueBuildRPRActor(world, *it, URPRLightComponent::StaticClass(), true);
+		}
 		else if (Cast<UCameraComponent>(*it) != nullptr)
+		{
 			objectAdded |= QueueBuildRPRActor(world, *it, URPRCameraComponent::StaticClass(), true);
+		}
 	}
 }
 
@@ -747,44 +758,62 @@ void	ARPRScene::Tick(float deltaTime)
 	check(settings != nullptr);
 
 	if (settings->bSync)
+	{
 		RefreshScene();
+	}
 
 	if (m_TriggerEndFrameResize)
+	{
 		ResizeRenderTarget();
+	}
+
 	if (m_TriggerEndFrameRebuild)
 	{
 		// Restart render, skip frame copy
 		if (m_RendererWorker->RestartRender()) // Trylock, might fail
+		{
 			m_TriggerEndFrameRebuild = false;
+		}
 	}
 	else if (m_RendererWorker->Flush())
 	{
-		SCOPE_CYCLE_COUNTER(STAT_ProRender_CopyFramebuffer);
-
-		m_RendererWorker->m_DataLock.Lock();
-		const uint8	*textureData = m_RendererWorker->GetFramebufferData();
-		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
-			UpdateDynamicTextureCode,
-			UTexture2DDynamic*, renderTexture, m_RenderTexture,
-			const uint8*, textureData, textureData,
-			{
-				FUpdateTextureRegion2D	region;
-				region.SrcX = 0;
-				region.SrcY = 0;
-				region.DestX = 0;
-				region.DestY = 0;
-				region.Width = renderTexture->SizeX;
-				region.Height = renderTexture->SizeY;
-
-				const uint32	pitch = region.Width * sizeof(uint8) * 4;
-				FRHITexture2D	*resource = (FRHITexture2D*)renderTexture->Resource->TextureRHI.GetReference();
-				RHIUpdateTexture2D(resource, 0, region, pitch, textureData);
-			});
-		FlushRenderingCommands();
-		m_RendererWorker->m_DataLock.Unlock();
-
-		m_Plugin->m_Viewport->Draw();
+		DrawRPRBufferToViewport();
 	}
+}
+
+void ARPRScene::DrawRPRBufferToViewport()
+{
+	CopyRPRRenderBufferToViewportRenderTexture();
+	m_Plugin->m_Viewport->Draw();
+}
+
+void ARPRScene::CopyRPRRenderBufferToViewportRenderTexture()
+{
+	SCOPE_CYCLE_COUNTER(STAT_ProRender_CopyFramebuffer);
+
+	m_RendererWorker->m_DataLock.Lock();
+	const uint8	*textureData = m_RendererWorker->GetFramebufferData();
+	ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
+		UpdateDynamicTextureCode,
+		UTexture2DDynamic*, renderTexture, m_RenderTexture,
+		const uint8*, textureData, textureData,
+		{
+			FUpdateTextureRegion2D	region;
+			region.SrcX = 0;
+			region.SrcY = 0;
+			region.DestX = 0;
+			region.DestY = 0;
+			region.Width = renderTexture->SizeX;
+			region.Height = renderTexture->SizeY;
+
+			const uint32	pitch = region.Width * sizeof(uint8) * 4;
+			FRHITexture2D	*resource = (FRHITexture2D*)renderTexture->Resource->TextureRHI.GetReference();
+			RHIUpdateTexture2D(resource, 0, region, pitch, textureData);
+		}
+	);
+
+	FlushRenderingCommands();
+	m_RendererWorker->m_DataLock.Unlock();
 }
 
 void	ARPRScene::RemoveSceneContent(bool clearScene, bool clearCache)

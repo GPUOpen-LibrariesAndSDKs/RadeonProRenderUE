@@ -1,7 +1,7 @@
 #pragma once
 
 #include "RPRTypedefs.h"
-#include "SRPRShape.h"
+#include "RPRShape.h"
 #include "GCObject.h"
 #include "RPRScene.h"
 

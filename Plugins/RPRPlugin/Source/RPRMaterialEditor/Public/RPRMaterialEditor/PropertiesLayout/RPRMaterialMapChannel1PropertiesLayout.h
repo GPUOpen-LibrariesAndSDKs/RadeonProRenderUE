@@ -15,6 +15,9 @@ protected:
 
 private:
 
-	TSharedPtr<IPropertyHandle>	GetConstantPropertyHandle() const;
+	TSharedPtr<IPropertyHandle>			GetConstantPropertyHandle() const;
+
+	TOptional<float>	GetConstantValue() const;
+	void				OnConstantValueChanged(float NewValue);
 
 };
