@@ -9,7 +9,7 @@ FRPRMaterialCoMChannel1::FRPRMaterialCoMChannel1(
 	ERPRMCoMapC1InterpretationMode InMode, 
 	FCanUseParameter InCanUseParameter)
 	: FRPRMaterialMap(InXmlParamName, InRprxParamID, InPreviewSupportMode, InCanUseParameter)
-	, Constant(1.0f)
+	, Constant(InConstantValue)
 	, Mode(ERPRMaterialMapMode::Constant)
 	, RPRInterpretationMode(InMode)
 {

@@ -122,4 +122,9 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, meta = (Tooltip = "The texture to use when the RPR plugin cannot load the texture correctly."), Category = ImageManager)
 	TSoftObjectPtr<UTexture2D>	ErrorTexture;
+
+public:
+
+	void	TryLoadUberMaterialFromDefaultLocation();
+
 };

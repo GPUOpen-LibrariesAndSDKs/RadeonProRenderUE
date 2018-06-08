@@ -15,7 +15,6 @@ namespace RPRX
 
 	RPR::FResult FMaterialHelpers::SetMaterialParameterNode(FContext Context, FMaterial Material, FParameter Parameter, RPR::FMaterialNode MaterialNode)
 	{
-		CheckParameterType(Context, Material, Parameter, RPRX_PARAMETER_TYPE_NODE);
 		return (rprxMaterialSetParameterN(Context, Material, Parameter, MaterialNode));
 	}
 

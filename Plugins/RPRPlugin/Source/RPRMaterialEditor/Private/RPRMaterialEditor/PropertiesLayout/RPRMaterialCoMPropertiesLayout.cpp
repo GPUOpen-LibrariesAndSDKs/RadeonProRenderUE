@@ -28,7 +28,6 @@ TSharedPtr<SWidget> FRPRMaterialCoMPropertiesLayout::GetConstantPropertyWidget()
 		.ShowBackgroundForAlpha(false);
 }
 
-
 FLinearColor FRPRMaterialCoMPropertiesLayout::GetConstantColor() const
 {
 	FLinearColor color;

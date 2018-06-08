@@ -21,9 +21,13 @@ void FNodeParamRPRMaterialCoMChannel1::LoadRPRMaterialParameters(FRPRMaterialNod
 		LoadConstant(mapChannel1, CurrentNodeParameter);
 		break;
 
+	case ERPRMaterialNodeParameterValueType::Float4:
+		LoadConstant4(mapChannel1, CurrentNodeParameter);
+		break;
+
 		default:
 			UE_LOG(LogNodeParamRPRMaterialMapChannel1, Warning,
-				TEXT("Xml parameter type not supported by the node param 'RPRMaterialMapChannel1'"));
+				TEXT("Xml parameter type not supported by the node param 'FNodeParamRPRMaterialCoMChannel1'"));
 			break;
 	}
 }
@@ -33,4 +37,18 @@ void FNodeParamRPRMaterialCoMChannel1::LoadConstant(FRPRMaterialCoMChannel1* Map
 {
 	const FString& valueString = CurrentNodeParameter.GetValue();
 	MapChannel1->Constant = FCString::Atof(*valueString);
+}
+
+void FNodeParamRPRMaterialCoMChannel1::LoadConstant4(FRPRMaterialCoMChannel1* MapChannel1, FRPRMaterialXmlNodeParameter& CurrentNodeParameter)
+{
+	FString float4Value = CurrentNodeParameter.GetValue();
+	FString left, right;
+	if (!float4Value.Split(TEXT(","), &left, &right))
+	{
+		UE_LOG(LogNodeParamRPRMaterialMapChannel1, Warning,
+			TEXT("Error parsing float4 '%s' for the node '%s'"), *float4Value, *CurrentNodeParameter.GetName().ToString());
+		return;
+	}
+
+	MapChannel1->Constant = FCString::Atof(*left);
 }
