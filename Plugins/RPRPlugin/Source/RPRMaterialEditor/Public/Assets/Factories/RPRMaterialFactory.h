@@ -10,6 +10,8 @@ class URPRMaterialFactory : public UFactory
 	GENERATED_UCLASS_BODY()
 
 public:
+
+	virtual bool		CanCreateNew() const;
 	
 	virtual UObject*	FactoryCreateFile(UClass* InClass, UObject* InParent, 
 											FName InName, EObjectFlags Flags, 

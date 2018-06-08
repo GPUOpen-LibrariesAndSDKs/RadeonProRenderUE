@@ -16,7 +16,6 @@ DECLARE_LOG_CATEGORY_CLASS(LogRPRMaterialFactory, Log, All)
 URPRMaterialFactory::URPRMaterialFactory(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	bCreateNew = true;
 	bEditAfterNew = true;
 	bText = true;
 	bEditorImport = true;
@@ -26,6 +25,11 @@ URPRMaterialFactory::URPRMaterialFactory(const FObjectInitializer& ObjectInitial
 	Formats.Add(TEXT("rprmat;Radeon Pro Render Material"));
 }
 
+
+bool URPRMaterialFactory::CanCreateNew() const
+{
+	return CurrentFilename.IsEmpty();
+}
 
 UObject* URPRMaterialFactory::FactoryCreateFile(UClass* InClass, UObject* InParent, 
 												FName InName, EObjectFlags Flags, 
@@ -43,7 +47,7 @@ UObject* URPRMaterialFactory::FactoryCreateFile(UClass* InClass, UObject* InPare
 	}
 
 	UMaterialInterface* uberMaterial = TryLoadUberMaterial(Warn);
-	if (uberMaterial)
+	if (uberMaterial == nullptr)
 	{
 		bOutOperationCanceled = true;
 		return (nullptr);
