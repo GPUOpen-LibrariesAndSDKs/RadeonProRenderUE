@@ -1,6 +1,7 @@
 #include "RPRMatParamCopierUtility.h"
 #include "RPREditorMaterialConstants.h"
 #include "MaterialEditor/DEditorParameterValue.h"
+#include "RPRCpMaterialEditor.h"
 
 FString FRPRMatParamCopierUtility::CombinePropertyNameSectionInternal(const FString* SectionsArray, int32 NumSections)
 {
@@ -26,7 +27,7 @@ UDEditorParameterValue* FRPRMatParamCopierUtility::FindEditorParameterValue(UMat
 	TArray<UDEditorParameterValue*>& parameterValues = parameterGroup.Parameters;
 	for (int32 i = 0; i < parameterValues.Num(); ++i)
 	{
-		if (parameterValues[i]->ParameterName == *PropertyName)
+		if (FRPRCpMaterialEditor::GetUDEditorParameterName(parameterValues[i]) == *PropertyName)
 		{
 			return (parameterValues[i]);
 		}

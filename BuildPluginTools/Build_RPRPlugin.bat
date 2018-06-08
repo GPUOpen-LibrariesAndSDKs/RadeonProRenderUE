@@ -1,6 +1,6 @@
 @echo off
 
-set ue4version=418
+set ue4version=419
 
 echo Build...
 echo Use UnrealEngine UE4_PATH environment variable : %UE4_Path%

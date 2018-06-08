@@ -6,6 +6,7 @@
 #include "DynamicMeshBuilder.h"
 #include "ConstructorHelpers.h"
 #include "SceneManagement.h"
+#include "Runtime/Launch/Resources/Version.h"
 
 class FUVMeshVertexBuffer : public FVertexBuffer
 {
@@ -373,6 +374,16 @@ public:
 	{
 		return (FPrimitiveSceneProxy::GetAllocatedSize());
 	}
+
+#if ENGINE_MINOR_VERSION >= 19
+
+	ENGINE_API virtual SIZE_T GetTypeHash() const override
+	{
+		static size_t UniquePointer;
+		return reinterpret_cast<size_t>(&UniquePointer);
+	}
+
+#endif
 
 private:
 

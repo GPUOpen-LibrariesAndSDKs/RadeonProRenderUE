@@ -10,7 +10,9 @@
 #include "Components/StaticMeshComponent.h"
 #include "StaticMeshResources.h"
 #include "ConstructorHelpers.h"
+#include "Runtime/Launch/Resources/Version.h"
 #include "FaceAssignationHelper/FaceAssignationHelper.h"
+#include "RPRCpStaticMesh.h"
 
 DECLARE_CYCLE_STAT(TEXT("DSMV ~ SelectTriangles"), STAT_SelectTriangles, STATGROUP_DynamicSelectionMeshVisualizer);
 DECLARE_CYCLE_STAT(TEXT("DSMV ~ SelectTriangle"), STAT_SelectTriangle, STATGROUP_DynamicSelectionMeshVisualizer);
@@ -110,7 +112,7 @@ public:
 		FRPRMeshDataPtr meshData = DSMVisualizer->GetRPRMesh();
 		UStaticMesh* staticMesh = meshData->GetStaticMesh();
 
-		FPositionVertexBuffer& positionVertexBuffer = staticMesh->RenderData->LODResources[0].PositionVertexBuffer;
+		FPositionVertexBuffer& positionVertexBuffer = FRPRCpStaticMesh::GetPositionVertexBuffer(staticMesh->RenderData->LODResources[0]);
 		VertexBuffer.Vertices.Empty(positionVertexBuffer.GetNumVertices());
 		for (int32 vertexIndex = 0; vertexIndex < (int32)positionVertexBuffer.GetNumVertices(); ++vertexIndex)
 		{
@@ -213,6 +215,16 @@ public:
 	{
 		return (!MaterialRelevance.bDisableDepthTest && !ShouldRenderCustomDepth());
 	}
+
+#if ENGINE_MINOR_VERSION >= 19
+
+	ENGINE_API virtual SIZE_T GetTypeHash() const override
+	{
+		static size_t UniquePointer;
+		return reinterpret_cast<size_t>(&UniquePointer);
+	}
+
+#endif
 
 private:
 
@@ -455,7 +467,7 @@ void UDynamicSelectionMeshVisualizerComponent::BuildVertexBufferCache()
 {
 	const UStaticMesh* mesh = MeshData->GetStaticMesh();
 	const FStaticMeshLODResources& lodResources = mesh->RenderData->LODResources[0];
-	auto& vertexBuffer = lodResources.PositionVertexBuffer;
+	FPositionVertexBuffer& vertexBuffer = FRPRCpStaticMesh::GetPositionVertexBuffer(lodResources);
 
 	VertexBufferCache.Empty(vertexBuffer.GetNumVertices());
 	for (uint32 i = 0; i < vertexBuffer.GetNumVertices(); ++i)

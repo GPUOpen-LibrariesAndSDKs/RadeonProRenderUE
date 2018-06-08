@@ -3,6 +3,7 @@
 #include "Engine/StaticMesh.h"
 #include "StaticMeshVertexBuffer.h"
 #include "StaticMeshVertexData.h"
+#include "RPRCpStaticMesh.h"
 
 DECLARE_LOG_CATEGORY_CLASS(RPRStaticMeshPreviewComponentLog, Log, All)
 
@@ -16,9 +17,12 @@ public:
 		: FStaticMeshSceneProxy(InComponent, false)
 	{
 		FStaticMeshLODResources& lod = RenderData->LODResources[0];
-		FStaticMeshVertexBuffer& vertexBuffer = lod.VertexBuffer;
+		FStaticMeshVertexBuffer& vertexBuffer = FRPRCpStaticMesh::GetStaticMeshVertexBuffer(lod);
 
 		SetSelectedSections(InComponent->SelectedSections);
+
+		/*vertexBuffer.GetTexCoordSize()
+		vertexBuffer.GetTexCoordData()*/
 
 		SELECT_STATIC_MESH_VERTEX_TYPE(
 			vertexBuffer.GetUseHighPrecisionTangentBasis(),
@@ -62,7 +66,7 @@ public:
 		SCOPE_CYCLE_COUNTER(STAT_TransformUV);
 
 		FStaticMeshLODResources& lod = RenderData->LODResources[0];
-		FStaticMeshVertexBuffer& vertexBuffer = lod.VertexBuffer;
+		FStaticMeshVertexBuffer& vertexBuffer = FRPRCpStaticMesh::GetStaticMeshVertexBuffer(lod);
 
 		bool bUseHighPrecisionTangentBasis = vertexBuffer.GetUseHighPrecisionTangentBasis();
 		bool bUseFullPrecisionUVs = vertexBuffer.GetUseFullPrecisionUVs();
@@ -161,12 +165,12 @@ URPRStaticMeshPreviewComponent::URPRStaticMeshPreviewComponent()
 
 FPrimitiveSceneProxy* URPRStaticMeshPreviewComponent::CreateSceneProxy()
 {
-	if (GetStaticMesh() == NULL
-		|| GetStaticMesh()->RenderData == NULL
+	if (GetStaticMesh() == nullptr
+		|| GetStaticMesh()->RenderData == nullptr
 		|| GetStaticMesh()->RenderData->LODResources.Num() == 0
-		|| GetStaticMesh()->RenderData->LODResources[0].VertexBuffer.GetNumVertices() == 0)
+		|| FRPRCpStaticMesh::GetStaticMeshVertexBuffer(GetStaticMesh()->RenderData->LODResources[0]).GetNumVertices() == 0)
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	SceneProxy = new FRPRStaticMeshPreviewProxy(this);

@@ -1,6 +1,7 @@
 #include "MaterialEditHelper.h"
 #include "Materials/MaterialInstanceConstant.h"
 #include "MaterialEditor/MaterialEditorInstanceConstant.h"
+#include "Compatibility/Public/RPRCpMaterialEditor.h"
 
 bool FMaterialEditHelper::OnEachMaterialParameter(UMaterialInterface* Material, FMaterialParameterBrowseDelegate Delegate, bool bUpdateMaterial)
 {
@@ -55,7 +56,7 @@ void FMaterialEditHelper::BindRouterAndExecute(UMaterialEditorInstanceConstant* 
 {
 	OnEachMaterialParameter(MaterialEditorInstance, FMaterialParameterBrowseDelegate::CreateLambda([&Router](UDEditorParameterValue* ParameterValue)
 	{
-		if (const FMaterialParameterBrowseDelegate* func = Router.Find(ParameterValue->ParameterName))
+		if (const FMaterialParameterBrowseDelegate* func = Router.Find(FRPRCpMaterialEditor::GetUDEditorParameterName(ParameterValue)))
 		{
 			func->Execute(ParameterValue);
 		}

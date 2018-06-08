@@ -8,6 +8,7 @@
 #include "RPRSelectionManager.h"
 #include "RPRConstAway.h"
 #include "NotificationManager.h"
+#include "Compatibility/Public/RPRCpStaticMesh.h"
 
 #define LOCTEXT_NAMESPACE "RPRSectionsManagerMode"
 
@@ -510,7 +511,7 @@ void FRPRSectionsManagerMode::RenderSelectedVertices(FPrimitiveDrawInterface* PD
 		if (selectedTriangles != nullptr)
 		{
 			UStaticMesh* staticMesh = meshData->GetStaticMesh();
-			FPositionVertexBuffer& vertexBuffer = staticMesh->RenderData->LODResources[0].PositionVertexBuffer;
+			FPositionVertexBuffer& vertexBuffer = FRPRCpStaticMesh::GetPositionVertexBuffer(staticMesh->RenderData->LODResources[0]);
 			FVector first = vertexBuffer.VertexPosition(0);
 			FIndexArrayView indexBuffer = staticMesh->RenderData->LODResources[0].IndexBuffer.GetArrayView();
 			FVector boxSize = FVector::OneVector;

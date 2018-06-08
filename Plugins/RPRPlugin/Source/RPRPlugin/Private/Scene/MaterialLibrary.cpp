@@ -4,6 +4,8 @@
 #include <experimental/filesystem>
 #include <CoreMinimal.h>
 #include <Engine/Texture.h>
+#include "RPRCpMaterialEditor.h"
+
 namespace fs = std::experimental::filesystem;
 
 namespace rpr
@@ -263,12 +265,19 @@ namespace rpr
 
 		// It is only valid to get the replacement parameters for a materialInstance (and not a UEMaterial) for now.
 		const UMaterialInstance *materialInstance = Cast<UMaterialInstance>(ueMaterialInterfaceObject);
-		if (materialInstance != NULL) {
+		if (materialInstance != nullptr)
+		{
 			for (auto& param : materialInstance->ScalarParameterValues)
-				scalarReplacementParameters.emplace(std::string(TCHAR_TO_ANSI(*param.ParameterName.GetPlainNameString())), param.ParameterValue);
+			{
+				const FName& parameterName = FRPRCpMaterialEditor::GetUDEditorParameterName(param);
+				scalarReplacementParameters.emplace(std::string(TCHAR_TO_ANSI(*parameterName.GetPlainNameString())), parameterName);
+			}
 
 			for (auto& param : materialInstance->VectorParameterValues)
-				vectorReplacementParameters.emplace(std::string(TCHAR_TO_ANSI(*param.ParameterName.GetPlainNameString())), param.ParameterValue);
+			{
+				const FName& parameterName = FRPRCpMaterialEditor::GetUDEditorParameterName(param);
+				vectorReplacementParameters.emplace(std::string(TCHAR_TO_ANSI(*parameterName.GetPlainNameString())), parameterName);
+			}
 		}
 
 		std::unordered_map<std::string, UTexture*> textureReplacements;
@@ -395,7 +404,7 @@ namespace rpr
                 if (node.type == "UBER")
                 {
                     // Create the new uber material.
-                    rprx_material uberMaterial = NULL;
+                    rprx_material uberMaterial = nullptr;
                     rpr_int result = rprxCreateMaterial(uberMatContext, RPRX_MATERIAL_UBER, &uberMaterial);
 					if (result != RPR_SUCCESS) 
 					{

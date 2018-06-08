@@ -24,6 +24,15 @@
 			]
 		},
 		{
+			"Name": "RPRCompatibility",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms":
+			[
+				"Win64"
+			]
+		},
+		{
 			"Name": "RPRTools",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
