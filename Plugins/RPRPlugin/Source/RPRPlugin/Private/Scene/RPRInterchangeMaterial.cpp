@@ -26,6 +26,7 @@
 #include <sstream>
 #include <cassert>
 #include "Materials/MaterialExpressionTextureCoordinate.h"
+#include "RPRCpMaterial.h"
 
 // all texture dimesion greater than this will be reduced by 2
 #define DIMENSION_LIMIT 8192
@@ -527,7 +528,7 @@ UE4InterchangeMaterialNode::UE4InterchangeMaterialNode(
 		// do the inputs 
 		for (int i = 0; i < _expression->GetInputs().Num(); ++i)
 		{
-			FName fname = expression->GetInputName(i);
+			FName fname = FRPRCpMaterial::GetMaterialExpressionInputName(expression, i);
 			FExpressionInput* input = _expression->GetInput(i);
 			if (input == nullptr)
 				continue;

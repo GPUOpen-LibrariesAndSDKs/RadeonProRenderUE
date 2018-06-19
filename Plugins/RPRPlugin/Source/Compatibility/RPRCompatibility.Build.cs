@@ -31,7 +31,6 @@ public class RPRCompatibility : ModuleRules
             new string[]
             {
                 "Core"
-				
 				// ... add other public dependencies that you statically link with here ...
 			}
             );
@@ -41,7 +40,8 @@ public class RPRCompatibility : ModuleRules
             new string[]
             {
                 "CoreUObject",
-                "Engine"
+                "Engine",
+				"RHI",
 				// ... add private dependencies that you statically link with here ...	
 			}
         );
