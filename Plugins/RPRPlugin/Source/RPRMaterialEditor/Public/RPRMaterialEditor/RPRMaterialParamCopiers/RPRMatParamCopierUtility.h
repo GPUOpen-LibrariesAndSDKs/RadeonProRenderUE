@@ -1,5 +1,7 @@
 #pragma once
+#include "RPRCompatibility.h"
 #include "MaterialEditor/MaterialEditorInstanceConstant.h"
+#include "MaterialEditor/DEditorParameterValue.h"
 
 class FRPRMatParamCopierUtility
 {
@@ -19,7 +21,7 @@ public:
 private:
 
 	static FString	CombinePropertyNameSectionInternal(const FString* SectionsArray, int32 NumSections);
-
+	
 };
 
 template<typename... TSection>

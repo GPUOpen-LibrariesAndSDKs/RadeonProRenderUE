@@ -254,8 +254,8 @@ namespace rpri {
 
 
 			// optional 'bulk' texture conversion, false if not supported  
-			virtual bool GetBulk2DAsFloats(float * _dest) const { return false; }
-			virtual bool GetBulk2DAsUint8s(uint8_t * _dest) const { return false; }
+			virtual bool GetBulk2DAsFloats(float * /*_dest*/) const { return false; }
+			virtual bool GetBulk2DAsUint8s(uint8_t * /*_dest*/) const { return false; }
 
 			static constexpr size_t GetComponentBitWidth(ComponentFormat _format)
 			{

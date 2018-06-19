@@ -2,12 +2,17 @@
 
 FPositionVertexBuffer& FRPRCpStaticMesh::GetPositionVertexBuffer(const FStaticMeshLODResources& StaticMeshLODResource)
 {
-	return (const_cast<FPositionVertexBuffer&>(GetPositionVertexBufferConst()));
+	return (const_cast<FPositionVertexBuffer&>(GetPositionVertexBufferConst(StaticMeshLODResource)));
 }
 
 FStaticMeshVertexBuffer& FRPRCpStaticMesh::GetStaticMeshVertexBuffer(const FStaticMeshLODResources& StaticMeshLODResource)
 {
-	return (const_cast<FPositionVertexBuffer&>(GetStaticMeshVertexBuffer()));
+	return (const_cast<FStaticMeshVertexBuffer&>(GetStaticMeshVertexBufferConst(StaticMeshLODResource)));
+}
+
+FColorVertexBuffer& FRPRCpStaticMesh::GetColorVertexBuffer(const FStaticMeshLODResources& StaticMeshLODResource)
+{
+	return (const_cast<FColorVertexBuffer&>(GetColorVertexBufferConst(StaticMeshLODResource)));
 }
 
 
@@ -24,6 +29,10 @@ const FStaticMeshVertexBuffer& FRPRCpStaticMesh::GetStaticMeshVertexBufferConst(
 	return (StaticMeshLODResource.StaticMeshVertexBuffer);
 }
 
+const FColorVertexBuffer& FRPRCpStaticMesh::GetColorVertexBufferConst(const FStaticMeshLODResources& StaticMeshLODResource)
+{
+	return (StaticMeshLODResource.ColorVertexBuffer);
+}
 
 #elif ENGINE_MINOR_VERSION >= 19
 
@@ -38,5 +47,9 @@ const FStaticMeshVertexBuffer& FRPRCpStaticMesh::GetStaticMeshVertexBufferConst(
 	return (StaticMeshLODResource.VertexBuffers.StaticMeshVertexBuffer);
 }
 
+const FColorVertexBuffer& FRPRCpStaticMesh::GetColorVertexBufferConst(const FStaticMeshLODResources& StaticMeshLODResource)
+{
+	return (StaticMeshLODResource.VertexBuffers.ColorVertexBuffer);
+}
 
 #endif

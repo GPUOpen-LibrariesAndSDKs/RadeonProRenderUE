@@ -9,6 +9,20 @@ DECLARE_LOG_CATEGORY_CLASS(RPRStaticMeshPreviewComponentLog, Log, All)
 
 DECLARE_CYCLE_STAT(TEXT("RPRStaticMeshPreviewComponent ~ Transform UV"), STAT_TransformUV, STATGROUP_RPRStaticMeshPreviewComponent)
 
+#define SELECT_UV_TYPE(useFullPrecisionUVs, code) \
+{ \
+	if (useFullPrecisionUVs) \
+	{ \
+		typedef TStaticMeshVertexUVsDatum<typename TStaticMeshVertexUVsTypeSelector<EStaticMeshVertexUVType::HighPrecision>::UVsTypeT> UVType; \
+		code \
+	} \
+	else \
+	{ \
+		typedef TStaticMeshVertexUVsDatum<typename TStaticMeshVertexUVsTypeSelector<EStaticMeshVertexUVType::Default>::UVsTypeT> UVType; \
+		code \
+	} \
+}
+
 class FRPRStaticMeshPreviewProxy : public FStaticMeshSceneProxy
 {
 public:
@@ -16,49 +30,48 @@ public:
 	FRPRStaticMeshPreviewProxy(URPRStaticMeshPreviewComponent* InComponent)
 		: FStaticMeshSceneProxy(InComponent, false)
 	{
-		FStaticMeshLODResources& lod = RenderData->LODResources[0];
-		FStaticMeshVertexBuffer& vertexBuffer = FRPRCpStaticMesh::GetStaticMeshVertexBuffer(lod);
-
 		SetSelectedSections(InComponent->SelectedSections);
-
-		/*vertexBuffer.GetTexCoordSize()
-		vertexBuffer.GetTexCoordData()*/
-
-		SELECT_STATIC_MESH_VERTEX_TYPE(
-			vertexBuffer.GetUseHighPrecisionTangentBasis(),
-			vertexBuffer.GetUseFullPrecisionUVs(),
-			vertexBuffer.GetNumTexCoords(),
-			{
-				int32 sizeofVertexBuffer = sizeof(VertexType);
-				int32 sizeToCopy = vertexBuffer.GetNumVertices() * sizeofVertexBuffer;
-				InitialData = new uint8[sizeToCopy];
-				FMemory::Memcpy(InitialData, vertexBuffer.GetRawVertexData(), sizeToCopy);
-			}
-		);
+		SaveInitialDatas();
 	}
 
 	void	SetNewUVs(const TArray<FVector2D>& UV, int32 UVChannel)
 	{
 		FStaticMeshLODResources& lod = RenderData->LODResources[0];
-		FStaticMeshVertexBuffer& vertexBuffer = lod.VertexBuffer;
+		FStaticMeshVertexBuffer& vertexBuffer = FRPRCpStaticMesh::GetStaticMeshVertexBuffer(lod);
+		
+		SELECT_UV_TYPE(vertexBuffer.GetUseFullPrecisionUVs(),
+		{
+			const uint32 numVertices = vertexBuffer.GetNumVertices();
+			const int32 stride = sizeof(UVType) * vertexBuffer.GetNumTexCoords();
 
-		SELECT_STATIC_MESH_VERTEX_TYPE(
-			vertexBuffer.GetUseHighPrecisionTangentBasis(),
-			vertexBuffer.GetUseFullPrecisionUVs(),
-			vertexBuffer.GetNumTexCoords(),
+			uint8* uvRawBuffer = (uint8*)RHILockVertexBuffer(vertexBuffer.TexCoordVertexBuffer.VertexBufferRHI, 0, vertexBuffer.GetTexCoordSize(), RLM_WriteOnly);
 			{
-				int32 sizeofVertexBuffer = sizeof(VertexType);
-				VertexType* staticMeshVertexBuffer = (VertexType*)RHILockVertexBuffer(vertexBuffer.VertexBufferRHI, 0, vertexBuffer.GetNumVertices() * sizeofVertexBuffer, RLM_WriteOnly);
+				for (uint32 vertexIndex = 0; vertexIndex < numVertices && vertexIndex < (uint32)UV.Num(); ++vertexIndex)
 				{
-					for (uint32 i = 0; i < vertexBuffer.GetNumVertices() && i < (uint32)UV.Num(); ++i)
-					{
-						staticMeshVertexBuffer[i].SetUV(UVChannel, UV[i]);
-					}
+					UVType* uvBuffer = reinterpret_cast<UVType*>(uvRawBuffer + (vertexIndex * stride));
+					uvBuffer[UVChannel].SetUV(UV[vertexIndex]);
 				}
 			}
-		);
+			RHIUnlockVertexBuffer(vertexBuffer.TexCoordVertexBuffer.VertexBufferRHI);
+		});
 
-		RHIUnlockVertexBuffer(vertexBuffer.VertexBufferRHI);
+		//SELECT_STATIC_MESH_VERTEX_TYPE(
+		//	vertexBuffer.GetUseHighPrecisionTangentBasis(),
+		//	vertexBuffer.GetUseFullPrecisionUVs(),
+		//	vertexBuffer.GetNumTexCoords(),
+		//	{
+		//		int32 sizeofVertexBuffer = sizeof(VertexType);
+		//		VertexType* staticMeshVertexBuffer = (VertexType*)RHILockVertexBuffer(vertexBuffer.VertexBufferRHI, 0, vertexBuffer.GetNumVertices() * sizeofVertexBuffer, RLM_WriteOnly);
+		//		{
+		//			for (uint32 i = 0; i < vertexBuffer.GetNumVertices() && i < (uint32)UV.Num(); ++i)
+		//			{
+		//				staticMeshVertexBuffer[i].SetUV(UVChannel, UV[i]);
+		//			}
+		//		}
+		//	}
+		//);
+
+		// RHIUnlockVertexBuffer(vertexBuffer.VertexBufferRHI);
 	}
 
 	void TransformUV(const FTransform2D& NewTransform, int32 UVChannel)
@@ -68,10 +81,29 @@ public:
 		FStaticMeshLODResources& lod = RenderData->LODResources[0];
 		FStaticMeshVertexBuffer& vertexBuffer = FRPRCpStaticMesh::GetStaticMeshVertexBuffer(lod);
 
-		bool bUseHighPrecisionTangentBasis = vertexBuffer.GetUseHighPrecisionTangentBasis();
-		bool bUseFullPrecisionUVs = vertexBuffer.GetUseFullPrecisionUVs();
+		SELECT_UV_TYPE(vertexBuffer.GetUseFullPrecisionUVs(),
+		{
+			const uint32 numVertices = vertexBuffer.GetNumVertices();
+			const int32 stride = sizeof(UVType) * vertexBuffer.GetNumTexCoords();
 
-		SELECT_STATIC_MESH_VERTEX_TYPE(
+			uint8* staticMeshVertexBuffer = (uint8*)RHILockVertexBuffer(vertexBuffer.TexCoordVertexBuffer.VertexBufferRHI, 0, vertexBuffer.GetTexCoordSize(), RLM_WriteOnly);
+			{
+				for (uint32 vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
+				{
+					UVType* initialUVBuffer = reinterpret_cast<UVType*>(InitialData + (vertexIndex * stride));
+					FVector2D initialUV = initialUVBuffer[UVChannel].GetUV();
+
+					FVector2D newUV = NewTransform.TransformPoint(initialUV);
+
+					UVType* dstUVBuffer = reinterpret_cast<UVType*>(staticMeshVertexBuffer + (vertexIndex * stride));
+					dstUVBuffer[UVChannel].SetUV(newUV);
+				}
+			}
+		});
+
+		RHIUnlockVertexBuffer(vertexBuffer.TexCoordVertexBuffer.VertexBufferRHI);
+
+		/*SELECT_STATIC_MESH_VERTEX_TYPE(
 			vertexBuffer.GetUseHighPrecisionTangentBasis(),
 			vertexBuffer.GetUseFullPrecisionUVs(),
 			vertexBuffer.GetNumTexCoords(),
@@ -90,37 +122,37 @@ public:
 					}
 				}
 			}
-		);
+		);*/
 
-		RHIUnlockVertexBuffer(vertexBuffer.VertexBufferRHI);
+		// RHIUnlockVertexBuffer(vertexBuffer.VertexBufferRHI);
 	}
 
 	// Code based on FStaticMeshVertexBuffer::GetVertexUV - but use raw datas (uint8*) as input
-	FVector2D GetUV(int32 Stride, bool bUseHighPrecisionTangentBasis, bool bUseFullPrecisionUVs, uint8* Datas, int32 VertexIndex)
-	{
-		if (bUseHighPrecisionTangentBasis)
-		{
-			if (bUseFullPrecisionUVs)
-			{
-				return reinterpret_cast<TStaticMeshFullVertex<EStaticMeshVertexTangentBasisType::HighPrecision, EStaticMeshVertexUVType::HighPrecision, MAX_STATIC_TEXCOORDS>*>(Datas + VertexIndex * Stride)->GetUV(0);
-			}
-			else
-			{
-				return reinterpret_cast<TStaticMeshFullVertex<EStaticMeshVertexTangentBasisType::HighPrecision, EStaticMeshVertexUVType::Default, MAX_STATIC_TEXCOORDS>*>(Datas + VertexIndex * Stride)->GetUV(0);
-			}
-		}
-		else
-		{
-			if (bUseFullPrecisionUVs)
-			{
-				return reinterpret_cast<TStaticMeshFullVertex<EStaticMeshVertexTangentBasisType::Default, EStaticMeshVertexUVType::HighPrecision, MAX_STATIC_TEXCOORDS>*>(Datas + VertexIndex * Stride)->GetUV(0);
-			}
-			else
-			{
-				return reinterpret_cast<TStaticMeshFullVertex<EStaticMeshVertexTangentBasisType::Default, EStaticMeshVertexUVType::Default, MAX_STATIC_TEXCOORDS>*>(Datas + VertexIndex * Stride)->GetUV(0);
-			}
-		}
-	}
+	//FVector2D GetUV(int32 Stride, bool bUseHighPrecisionTangentBasis, bool bUseFullPrecisionUVs, uint8* Datas, int32 VertexIndex)
+	//{
+	//	if (bUseHighPrecisionTangentBasis)
+	//	{
+	//		if (bUseFullPrecisionUVs)
+	//		{
+	//			return reinterpret_cast<TStaticMeshFullVertex<EStaticMeshVertexTangentBasisType::HighPrecision, EStaticMeshVertexUVType::HighPrecision, MAX_STATIC_TEXCOORDS>*>(Datas + VertexIndex * Stride)->GetUV(0);
+	//		}
+	//		else
+	//		{
+	//			return reinterpret_cast<TStaticMeshFullVertex<EStaticMeshVertexTangentBasisType::HighPrecision, EStaticMeshVertexUVType::Default, MAX_STATIC_TEXCOORDS>*>(Datas + VertexIndex * Stride)->GetUV(0);
+	//		}
+	//	}
+	//	else
+	//	{
+	//		if (bUseFullPrecisionUVs)
+	//		{
+	//			return reinterpret_cast<TStaticMeshFullVertex<EStaticMeshVertexTangentBasisType::Default, EStaticMeshVertexUVType::HighPrecision, MAX_STATIC_TEXCOORDS>*>(Datas + VertexIndex * Stride)->GetUV(0);
+	//		}
+	//		else
+	//		{
+	//			return reinterpret_cast<TStaticMeshFullVertex<EStaticMeshVertexTangentBasisType::Default, EStaticMeshVertexUVType::Default, MAX_STATIC_TEXCOORDS>*>(Datas + VertexIndex * Stride)->GetUV(0);
+	//		}
+	//	}
+	//}
 
 	void	SetSelectedSections(const TArray<int32>& InSelectedSections)
 	{
@@ -149,6 +181,29 @@ public:
 				bAllowPreCulledIndices,
 				OutMeshBatch
 			);
+	}
+
+private:
+		
+	void	SaveInitialDatas()
+	{
+		FStaticMeshLODResources& lod = RenderData->LODResources[0];
+		FStaticMeshVertexBuffer& vertexBuffer = FRPRCpStaticMesh::GetStaticMeshVertexBuffer(lod);
+		
+		InitialData = new uint8[vertexBuffer.GetTexCoordSize()];
+		FMemory::Memcpy(InitialData, vertexBuffer.GetTexCoordData(), vertexBuffer.GetTexCoordSize());
+
+		/*SELECT_STATIC_MESH_VERTEX_TYPE(
+			vertexBuffer.GetUseHighPrecisionTangentBasis(),
+			vertexBuffer.GetUseFullPrecisionUVs(),
+			vertexBuffer.GetNumTexCoords(),
+			{
+				int32 sizeofVertexBuffer = sizeof(VertexType);
+				int32 sizeToCopy = vertexBuffer.GetNumVertices() * sizeofVertexBuffer;
+				InitialData = new uint8[sizeToCopy];
+				FMemory::Memcpy(InitialData, vertexBuffer.GetRawVertexData(), sizeToCopy);
+			}
+		);*/
 	}
 
 private:
@@ -181,22 +236,6 @@ void URPRStaticMeshPreviewComponent::BeginDestroy()
 {
 	SceneProxy = nullptr;
 	Super::BeginDestroy();
-}
-
-void URPRStaticMeshPreviewComponent::UpdateUV(const TArray<FVector2D>& UVs, int32 UVChannel)
-{
-	if (SceneProxy)
-	{
-		ENQUEUE_UNIQUE_RENDER_COMMAND_THREEPARAMETER(
-			FRPRStaticMeshPreviewComponent_UpdateUV,
-			FRPRStaticMeshPreviewProxy*, SceneProxy, SceneProxy,
-			TArray<FVector2D>, UVs, UVs,
-			int32, UVChannel, UVChannel,
-			{
-				SceneProxy->SetNewUVs(UVs, UVChannel);
-			}
-		);
-	}
 }
 
 void URPRStaticMeshPreviewComponent::TransformUV(const FTransform2D& NewTransform2D, int32 UVChannel)

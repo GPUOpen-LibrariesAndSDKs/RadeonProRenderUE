@@ -7,10 +7,10 @@ public class RPRCompatibility : ModuleRules
 	public RPRCompatibility(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-        DefineIncludesAndDependencies();
+        DefineIncludesAndDependencies(Target);
     }
 
-    void DefineIncludesAndDependencies()
+    void DefineIncludesAndDependencies(ReadOnlyTargetRules Target)
     {
         PublicIncludePaths.AddRange(
             new string[] {
@@ -45,6 +45,16 @@ public class RPRCompatibility : ModuleRules
 				// ... add private dependencies that you statically link with here ...	
 			}
         );
+
+        if (Target.bBuildEditor)
+        {
+            PublicDependencyModuleNames.AddRange(
+                new string[]
+                {
+                    "UnrealEd"
+                }
+            );
+        }
     }
     
 }

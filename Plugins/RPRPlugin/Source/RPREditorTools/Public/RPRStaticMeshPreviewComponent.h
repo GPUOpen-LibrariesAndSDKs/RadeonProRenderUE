@@ -21,9 +21,6 @@ public:
 	virtual void BeginDestroy() override;
 
 	UFUNCTION(BlueprintCallable, Category = UV)
-	void	UpdateUV(const TArray<FVector2D>& UVs, int32 UVChannel);
-
-	UFUNCTION(BlueprintCallable, Category = UV)
 	void	TransformUV(const FTransform& NewTransform, int32 UVChannel);
 
 	void	TransformUV(const FTransform2D& NewTransform2D, int32 UVChannel);

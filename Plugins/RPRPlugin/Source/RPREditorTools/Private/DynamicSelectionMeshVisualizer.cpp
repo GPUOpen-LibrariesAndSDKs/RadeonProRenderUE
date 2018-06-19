@@ -45,6 +45,18 @@ class FDSMVertexFactory : public FLocalVertexFactory
 {
 public:
 
+#if ENGINE_MINOR_VERSION == 18
+
+	FDSMVertexFactory(ERHIFeatureLevel::Type) {}
+
+
+#elif ENGINE_MINOR_VERSION >= 19
+	FDSMVertexFactory(ERHIFeatureLevel::Type InFeatureLevel)
+		: FLocalVertexFactory(InFeatureLevel, "FDSMVisualizerProxy")
+	{}
+
+#endif
+
 	void Init(const FDSMVertexBuffer* VertexBuffer)
 	{
 		FDataType NewData;
@@ -92,6 +104,7 @@ public:
 		: FPrimitiveSceneProxy(InComponent)
 		, MaterialRenderProxy(nullptr)
 		, MaterialRelevance(InComponent->GetMaterialRelevance(GetScene().GetFeatureLevel()))
+		, VertexFactory(GetScene().GetFeatureLevel())
 	{
 		UMaterialInterface* material = InComponent->GetMaterial(0);
 		if (material)
@@ -218,7 +231,7 @@ public:
 
 #if ENGINE_MINOR_VERSION >= 19
 
-	ENGINE_API virtual SIZE_T GetTypeHash() const override
+	virtual SIZE_T GetTypeHash() const override
 	{
 		static size_t UniquePointer;
 		return reinterpret_cast<size_t>(&UniquePointer);

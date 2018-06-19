@@ -35,8 +35,11 @@ public class RPRSectionsManager : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core", "RPREditorTools", "MeshPaint"
-				
+                "Core",
+                "MeshPaint",
+                "RPREditorTools",
+                "RPRCompatibility",
+                "UnrealEd",
 				// ... add other public dependencies that you statically link with here ...
 			}
             );

@@ -527,7 +527,7 @@ UE4InterchangeMaterialNode::UE4InterchangeMaterialNode(
 		// do the inputs 
 		for (int i = 0; i < _expression->GetInputs().Num(); ++i)
 		{
-			auto fname = FName(*expression->GetInputName(i));
+			FName fname = expression->GetInputName(i);
 			FExpressionInput* input = _expression->GetInput(i);
 			if (input == nullptr)
 				continue;
@@ -1126,15 +1126,15 @@ UE4InterchangeMaterialGraph::UE4InterchangeMaterialGraph(
 	UEInterchangeCollection collection;
 	collection.ue4MatInterface = ue4MatInterface;
 
-	std::string name = TCHAR_TO_ANSI(*ue4MatInterface->GetName());
+	std::string matName = TCHAR_TO_ANSI(*ue4MatInterface->GetName());
 
 	// Interchange treats the destination PBR object as a node
 	if(ue4Mat->MaterialAttributes.Expression != NULL)
 	{
-		rootNode = UE4InterchangePBRNode::New(collection, name + "PBRMaterial", ue4Mat->MaterialAttributes);
+		rootNode = UE4InterchangePBRNode::New(collection, matName + "PBRMaterial", ue4Mat->MaterialAttributes);
 	}
 	{
-		rootNode = UE4InterchangePBRNode::New(collection, name + "PBRMaterial", ue4Mat);
+		rootNode = UE4InterchangePBRNode::New(collection, matName + "PBRMaterial", ue4Mat);
 	}
 
 	for(auto && value : collection.valueStorage)

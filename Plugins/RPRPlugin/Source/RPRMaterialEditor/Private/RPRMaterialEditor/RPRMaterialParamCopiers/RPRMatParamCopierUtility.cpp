@@ -21,13 +21,12 @@ FString FRPRMatParamCopierUtility::CombinePropertyNameSectionInternal(const FStr
 
 UDEditorParameterValue* FRPRMatParamCopierUtility::FindEditorParameterValue(UMaterialEditorInstanceConstant* MaterialEditorInstance, const FString& PropertyName)
 {
-	FName noneGroupName = TEXT("None");
-	FEditorParameterGroup& parameterGroup = MaterialEditorInstance->GetParameterGroup(noneGroupName);
+	FEditorParameterGroup& parameterGroup = MaterialEditorInstance->ParameterGroups[0];
 
 	TArray<UDEditorParameterValue*>& parameterValues = parameterGroup.Parameters;
 	for (int32 i = 0; i < parameterValues.Num(); ++i)
 	{
-		if (FRPRCpMaterialEditor::GetUDEditorParameterName(parameterValues[i]) == *PropertyName)
+		if (FRPRCpMaterialEditor::GetDEditorParameterName(*parameterValues[i]) == *PropertyName)
 		{
 			return (parameterValues[i]);
 		}

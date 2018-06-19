@@ -24,6 +24,7 @@
 #include "RPRMaterialBuilder.h"
 #include "Async.h"
 #include "RPRXHelpers.h"
+#include "RPRCpStaticMesh.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
 
@@ -490,8 +491,8 @@ bool	URPRStaticMeshComponent::Build()
 	if (true/*shapes.Num() == 0*/) // No mesh in cache ?
 	{
 		FIndexArrayView					srcIndices = lodRes.IndexBuffer.GetArrayView();
-		const FStaticMeshVertexBuffer	&srcVertices = lodRes.VertexBuffer;
-		const FPositionVertexBuffer		&srcPositions = lodRes.PositionVertexBuffer;
+		const FStaticMeshVertexBuffer	&srcVertices = FRPRCpStaticMesh::GetStaticMeshVertexBufferConst(lodRes);
+		const FPositionVertexBuffer		&srcPositions = FRPRCpStaticMesh::GetPositionVertexBufferConst(lodRes);
 		const uint32					uvCount = srcVertices.GetNumTexCoords();
 
 		// Guess: we need to create several RprObject

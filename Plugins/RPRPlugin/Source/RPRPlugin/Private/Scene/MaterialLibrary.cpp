@@ -5,6 +5,7 @@
 #include <CoreMinimal.h>
 #include <Engine/Texture.h>
 #include "RPRCpMaterialEditor.h"
+#include "Materials/MaterialInstance.h"
 
 namespace fs = std::experimental::filesystem;
 
@@ -269,14 +270,14 @@ namespace rpr
 		{
 			for (auto& param : materialInstance->ScalarParameterValues)
 			{
-				const FName& parameterName = FRPRCpMaterialEditor::GetUDEditorParameterName(param);
-				scalarReplacementParameters.emplace(std::string(TCHAR_TO_ANSI(*parameterName.GetPlainNameString())), parameterName);
+				const FName& parameterName = FRPRCpMaterialEditor::GetDEditorParameterName<FScalarParameterValue>(param);
+				scalarReplacementParameters.emplace(std::string(TCHAR_TO_ANSI(*parameterName.GetPlainNameString())), param.ParameterValue);
 			}
 
 			for (auto& param : materialInstance->VectorParameterValues)
 			{
-				const FName& parameterName = FRPRCpMaterialEditor::GetUDEditorParameterName(param);
-				vectorReplacementParameters.emplace(std::string(TCHAR_TO_ANSI(*parameterName.GetPlainNameString())), parameterName);
+				const FName& parameterName = FRPRCpMaterialEditor::GetDEditorParameterName<FVectorParameterValue>(param);
+				vectorReplacementParameters.emplace(std::string(TCHAR_TO_ANSI(*parameterName.GetPlainNameString())), param.ParameterValue);
 			}
 		}
 

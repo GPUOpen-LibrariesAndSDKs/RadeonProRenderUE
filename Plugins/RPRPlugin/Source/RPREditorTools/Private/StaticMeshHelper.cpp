@@ -1,6 +1,7 @@
 #include "StaticMeshHelper.h"
 #include "StaticMeshResources.h"
 #include "FaceAssignationHelper.h"
+#include "RPRCpStaticMesh.h"
 
 void FStaticMeshHelper::LoadRawMeshFromStaticMesh(class UStaticMesh* StaticMesh, struct FRawMesh& OutRawMesh, int32 SourceModelIdx /*= 0*/)
 {
@@ -56,8 +57,8 @@ void FStaticMeshHelper::CreateRawMeshFromStaticMesh(const UStaticMesh* StaticMes
 	FStaticMeshLODResources& lodResources = StaticMesh->RenderData->LODResources[lodIndex];
 
 	FIndexArrayView indexBuffer = lodResources.IndexBuffer.GetArrayView();
-	FStaticMeshVertexBuffer& vertexBuffer = lodResources.VertexBuffer;
-	FColorVertexBuffer& colorVertexBuffer = lodResources.ColorVertexBuffer;
+	FStaticMeshVertexBuffer& vertexBuffer = FRPRCpStaticMesh::GetStaticMeshVertexBuffer(lodResources);
+	FColorVertexBuffer& colorVertexBuffer = FRPRCpStaticMesh::GetColorVertexBuffer(lodResources);
 	OutRawMesh.WedgeIndices.Empty(indexBuffer.Num());
 	OutRawMesh.WedgeTexCoords[0].Empty(indexBuffer.Num());
 	OutRawMesh.WedgeTangentX.Empty(indexBuffer.Num());
@@ -91,7 +92,7 @@ void FStaticMeshHelper::CreateRawMeshFromStaticMesh(const UStaticMesh* StaticMes
 		OutRawMesh.WedgeColors.Empty();
 	}
 
-	const FPositionVertexBuffer& positionVertexBuffer = lodResources.PositionVertexBuffer;
+	const FPositionVertexBuffer& positionVertexBuffer = FRPRCpStaticMesh::GetPositionVertexBufferConst(lodResources);
 	const uint32 highestVertexIndex = FindHighestVertexIndice(indexBuffer);
 	OutRawMesh.VertexPositions.Empty(highestVertexIndex + 1);
 	for (uint32 i = 0; i < highestVertexIndex + 1; ++i)

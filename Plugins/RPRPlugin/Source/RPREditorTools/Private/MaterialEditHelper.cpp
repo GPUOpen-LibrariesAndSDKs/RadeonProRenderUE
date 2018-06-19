@@ -1,7 +1,8 @@
 #include "MaterialEditHelper.h"
 #include "Materials/MaterialInstanceConstant.h"
 #include "MaterialEditor/MaterialEditorInstanceConstant.h"
-#include "Compatibility/Public/RPRCpMaterialEditor.h"
+#include "RPRCpMaterialEditor.h"
+#include "MaterialEditor/DEditorParameterValue.h"
 
 bool FMaterialEditHelper::OnEachMaterialParameter(UMaterialInterface* Material, FMaterialParameterBrowseDelegate Delegate, bool bUpdateMaterial)
 {
@@ -24,8 +25,7 @@ bool FMaterialEditHelper::OnEachMaterialParameter(UMaterialInterface* Material, 
 
 void FMaterialEditHelper::OnEachMaterialParameter(UMaterialEditorInstanceConstant* MaterialEditorInstance, FMaterialParameterBrowseDelegate Delegate)
 {
-	FName noneName(NAME_None);
-	FEditorParameterGroup& parameterGroup = MaterialEditorInstance->GetParameterGroup(noneName);
+	FEditorParameterGroup& parameterGroup = MaterialEditorInstance->ParameterGroups[0];
 	TArray<UDEditorParameterValue*>& parameters = parameterGroup.Parameters;
 	for (int32 i = 0; i < parameters.Num(); ++i)
 	{
@@ -56,7 +56,7 @@ void FMaterialEditHelper::BindRouterAndExecute(UMaterialEditorInstanceConstant* 
 {
 	OnEachMaterialParameter(MaterialEditorInstance, FMaterialParameterBrowseDelegate::CreateLambda([&Router](UDEditorParameterValue* ParameterValue)
 	{
-		if (const FMaterialParameterBrowseDelegate* func = Router.Find(FRPRCpMaterialEditor::GetUDEditorParameterName(ParameterValue)))
+		if (const FMaterialParameterBrowseDelegate* func = Router.Find(FRPRCpMaterialEditor::GetDEditorParameterName<UDEditorParameterValue>(*ParameterValue)))
 		{
 			func->Execute(ParameterValue);
 		}

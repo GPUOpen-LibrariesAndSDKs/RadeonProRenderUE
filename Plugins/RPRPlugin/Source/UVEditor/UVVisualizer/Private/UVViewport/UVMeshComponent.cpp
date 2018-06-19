@@ -29,6 +29,18 @@ class FUVMeshVertexFactory : public FLocalVertexFactory
 {
 public:
 
+#if ENGINE_MINOR_VERSION == 18
+	
+	FUVMeshVertexFactory(ERHIFeatureLevel::Type InFeatureLevel) {}
+
+#elif ENGINE_MINOR_VERSION >= 19
+
+	FUVMeshVertexFactory(ERHIFeatureLevel::Type InFeatureLevel)
+		: FLocalVertexFactory(InFeatureLevel, "FUVMeshVertexFactory")
+	{}
+
+#endif
+
 	void Init(const FUVMeshVertexBuffer* VertexBuffer)
 	{
 		FDataType NewData;
@@ -74,6 +86,7 @@ public:
 		, MaterialRenderProxy(nullptr)
 		, bCenterUVs(InComponent->bCenterUVs)
 		, bAreResourcesInitialized(false)
+		, VertexFactory(GetScene().GetFeatureLevel())
 	{
 		bWillEverBeLit = false;
 		bCastStaticShadow = false;
@@ -251,7 +264,7 @@ public:
 		}
 	}
 
-	virtual void DrawStaticElements(FStaticPrimitiveDrawInterface* PDI)
+	virtual void DrawStaticElements(FStaticPrimitiveDrawInterface* PDI) override
 	{
 		if (VertexBuffer.Vertices.Num() > 0)
 		{
@@ -377,7 +390,7 @@ public:
 
 #if ENGINE_MINOR_VERSION >= 19
 
-	ENGINE_API virtual SIZE_T GetTypeHash() const override
+	virtual SIZE_T GetTypeHash() const override
 	{
 		static size_t UniquePointer;
 		return reinterpret_cast<size_t>(&UniquePointer);
