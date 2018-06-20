@@ -1,7 +1,7 @@
 #include "TriPlanarMaterialEnabler.h"
 #include "MaterialEditor/DEditorParameterValue.h"
 #include "MaterialEditor/DEditorStaticSwitchParameterValue.h"
-#include "RPRCpMaterialEditor.h"
+#include "RPRCpMaterial.h"
 
 const FName FTriPlanarMaterialEnabler::MaterialParameterName_UseTriPlanar(TEXT("UseTriPlanar"));
 const FName FTriPlanarMaterialEnabler::MaterialParameterName_TextureAngle(TEXT("TriPlanar_TextureAngle"));
@@ -41,7 +41,7 @@ bool FTriPlanarMaterialEnabler::Enable(UMaterialEditorInstanceConstant* Material
 	for (int32 parameterIndex = 0; parameterIndex < parameterValues.Num(); ++parameterIndex)
 	{
 		UDEditorParameterValue* parameterValue = parameterValues[parameterIndex];
-		if (FRPRCpMaterialEditor::GetDEditorParameterName(*parameterValue) == MaterialParameterName_UseTriPlanar)
+		if (FRPRCpMaterial::GetParameterName(*parameterValue) == MaterialParameterName_UseTriPlanar)
 		{
 			UDEditorStaticSwitchParameterValue* staticSwitch = Cast<UDEditorStaticSwitchParameterValue>(parameterValue);
 			if (staticSwitch)
