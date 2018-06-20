@@ -41,9 +41,13 @@ public:
 		m_PreviousRenderedIteration = m_CurrentIteration;
 		return m_RenderData.GetData();
 	}
+
 public:
+
 	FCriticalSection	m_DataLock;
+
 private:
+
 	void		UpdatePostEffectSettings();
 	bool		BuildFramebufferData();
 	void		ReleaseResources();
@@ -52,7 +56,9 @@ private:
 	void		ClearFramebuffer();
 	void		DestroyPendingKills();
 	bool		PreRenderLoop();
+
 private:
+
 	FRunnableThread				*m_Thread;
 	FThreadSafeCounter			m_StopTaskCounter;
 	FCriticalSection			m_RenderLock;
@@ -99,3 +105,5 @@ private:
 	TArray<class ARPRActor*>	m_DiscardObjects;
 	TArray<class ARPRActor*>	m_KillQueue;
 };
+
+typedef TSharedPtr<FRPRRendererWorker>	FRPRRendererWorkerPtr;
