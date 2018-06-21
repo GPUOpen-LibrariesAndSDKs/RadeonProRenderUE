@@ -55,8 +55,7 @@ public class RPR_SDK : ModuleRules
             {
                  "Core",
             });
-
-        // AddRPRIncludes(PrivateIncludePaths);
+        
         AddRPRIncludes(PublicIncludePaths);
 
         AddRPRStaticLibraries(Target);
@@ -94,16 +93,12 @@ public class RPR_SDK : ModuleRules
 
     public void AddRPRIncludes(List<string> IncludePaths)
     {
-        string moduleDir = ModuleDirectory.Replace("\\", "/") + "/";
-
         IncludePaths.AddRange(new string[] {
-            moduleDir + SDKDirectory + "RprTools",
-            moduleDir + SDKDirectory + "RadeonProRender",
-            moduleDir + SDKDirectory + "RadeonProRender/inc",
-            moduleDir + SDKDirectory + "RadeonProRenderInterchange/include",
+            ModuleDirectory + "/" + SDKDirectory + "RprTools",
+            ModuleDirectory + "/" + SDKDirectory + "RadeonProRender",
+            ModuleDirectory + "/" + SDKDirectory + "RadeonProRender/inc",
+            ModuleDirectory + "/" + SDKDirectory + "RadeonProRenderInterchange/include",
         });
-
-        Console.WriteLine("Add : " + (moduleDir + SDKDirectory + "RadeonProRender/inc"));
     }
 
     public void AddRPRStaticLibraries(ReadOnlyTargetRules Target)
