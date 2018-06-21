@@ -193,7 +193,7 @@ public class RPRPlugin : ModuleRules
         PublicAdditionalLibraries.Add(string.Format("{0}RadeonProRenderInterchange/lib{1}/RadeonProRenderInterchange{2}{3}", SDKRoot, platformName, librarySuffix, libExtension));
     }
 
-    static string GetStaticLibraryExtensionByPlatform(UnrealTargetPlatform Platform)
+    public static string GetStaticLibraryExtensionByPlatform(UnrealTargetPlatform Platform)
     {
         switch (Platform)
         {
@@ -211,7 +211,7 @@ public class RPRPlugin : ModuleRules
         }
     }
 
-    static string GetDynamicLibraryExtensionByPlatform(UnrealTargetPlatform Platform)
+    public static string GetDynamicLibraryExtensionByPlatform(UnrealTargetPlatform Platform)
     {
         switch (Platform)
         {
@@ -229,7 +229,7 @@ public class RPRPlugin : ModuleRules
         }
     }
 
-    static bool GetPlatformDatas(UnrealTargetPlatform Platform, out string platformName, out string librarySuffix)
+    public static bool GetPlatformDatas(UnrealTargetPlatform Platform, out string platformName, out string librarySuffix)
     {
         switch (Platform)
         {
