@@ -16,6 +16,10 @@ public:
 	void	Render();
 
 private:
+
+	void	ConfigureRPRIContext();
+
+private:
 	
 	FRPRRenderUnitPtr		CurrentRenderUnit;
 	FRPRCameraController	ActiveCameraController;

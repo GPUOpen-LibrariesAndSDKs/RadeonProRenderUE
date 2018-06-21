@@ -12,4 +12,6 @@ namespace RPRX
 	typedef rprx_material		FMaterial;
 	typedef rprx_parameter		FParameter;
 	typedef rprx_parameter_type	FParameterType;
+
+	typedef rpr_uint	FContextCreationFlags;
 }

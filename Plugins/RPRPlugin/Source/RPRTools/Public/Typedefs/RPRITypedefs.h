@@ -5,4 +5,5 @@ namespace RPRI
 {
 	typedef rpriContext	FContext;
 	typedef rpriExportRprMaterialResult	FExportMaterialResult;
+	typedef rpriLogCallback	FRPRILogCallback;
 }

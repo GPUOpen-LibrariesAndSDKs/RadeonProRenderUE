@@ -25,6 +25,9 @@ private:
 	bool	InitializeRenderTexture();
 	bool	InitializeRPRRendering();
 	bool	InitializeContext();
+	bool	InitializeRPRIContext();
+	bool	InitializeMaterialSystem();
+	bool	InitializeRPRXContext();
 	bool	InitializeContextParameters();
 	bool	LoadTahoeDLL();
 

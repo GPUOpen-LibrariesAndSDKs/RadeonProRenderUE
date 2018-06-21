@@ -7,9 +7,9 @@
 namespace RPRI
 {
 
-	void DeleteContext(FContext context)
+	void DeleteContext(FContext Context)
 	{
-		rpriFreeContext(context);
+		rpriFreeContext(Context);
 	}
 
 	void DeleteMaterial(RPRX::FContext rprxContext, FExportMaterialResult ExportMaterialResult)
@@ -22,6 +22,21 @@ namespace RPRI
 		{
 			RPRX::FMaterialHelpers::DeleteMaterial(rprxContext, reinterpret_cast<RPRX::FMaterial>(ExportMaterialResult.data));
 		}
+	}
+
+	bool AllocateContext(FContext& OutContext)
+	{
+		return (rpriAllocateContext(&OutContext) == RPRI_TRUE);
+	}
+
+	bool SetErrorOptions(FContext Context, uint32 InfoVerbosity, bool bShouldBreakOnError, bool bShouldAbortOnError)
+	{
+		return (rpriErrorOptions(Context, InfoVerbosity, bShouldBreakOnError, bShouldAbortOnError) == RPRI_TRUE);
+	}
+
+	bool SetLoggers(FContext Context, FRPRILogCallback InfoCallback, FRPRILogCallback WarningCallback, FRPRILogCallback ErrorCallback)
+	{
+		return (rpriSetLoggers(Context, InfoCallback, WarningCallback, ErrorCallback) == RPRI_TRUE);
 	}
 
 }

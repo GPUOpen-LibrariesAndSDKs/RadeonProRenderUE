@@ -920,7 +920,7 @@ void	ARPRScene::BeginDestroy()
 	RemoveSceneContent(true, true);
 	if (m_RprSupportCtx != nullptr)
 	{
-		RPRX::DeleteContext(m_RprSupportCtx);
+		RPRX::Context::Delete(m_RprSupportCtx);
 		m_RprSupportCtx = nullptr;
 	}
 

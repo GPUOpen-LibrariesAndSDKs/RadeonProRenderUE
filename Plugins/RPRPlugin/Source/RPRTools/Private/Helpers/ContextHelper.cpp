@@ -36,5 +36,13 @@ namespace RPR
 			}
 		}
 
+		namespace MaterialSystem
+		{
+			FResult MaterialSystem::Create(RPR::FContext Context, RPR::FMaterialSystemType Type, RPR::FMaterialSystem& OutMaterialSystem)
+			{
+				return (rprContextCreateMaterialSystem(Context, Type, &OutMaterialSystem));
+			}
+		}
+
 	}
 }

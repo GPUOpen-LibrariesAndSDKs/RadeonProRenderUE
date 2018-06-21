@@ -65,8 +65,30 @@ bool FRPRRenderSystemResources::InitializeRPRRendering()
 		return (false);
 	}
 
+	if (!InitializeRPRIContext())
+	{
+		UE_LOG(LogRPRRenderSystemResources, Error, TEXT("Cannot initialize RPRI context"));
+		DestroyRPRContext();
+		return (false);
+	}
 
+	if (!InitializeMaterialSystem())
+	{
+		UE_LOG(LogRPRRenderSystemResources, Error, TEXT("Cannot initialize RPR material system"));
+		DestroyRPRContext();
+		DestroyRPRIContext();
+		return (false);
+	}
 
+	if (!InitializeRPRXContext())
+	{
+		UE_LOG(LogRPRRenderSystemResources, Error, TEXT("Cannot initialize RPRX context"));
+		DestroyMaterialSystem();
+		DestroyRPRContext();
+		DestroyRPRIContext();
+		return (false);
+	}
+	
 	return (true);
 }
 
@@ -235,6 +257,39 @@ int32 FRPRRenderSystemResources::CountCompatibleDevices(RPR::FCreationFlags Crea
 	return (numDevicesCompatible);
 }
 
+bool FRPRRenderSystemResources::InitializeRPRIContext()
+{
+	if (!RPRI::AllocateContext(RPRIContext))
+	{
+		UE_LOG(LogRPRRenderSystemResources, Error, TEXT("Cannot allocate RPRI context"));
+		return (false);
+	}
+	return (true);
+}
+
+bool FRPRRenderSystemResources::InitializeMaterialSystem()
+{
+	RPR::FResult result = RPR::Context::MaterialSystem::Create(RPRContext, 0, RPRMaterialSystem);
+	if (!RPR::IsResultFailed(result))
+	{
+		UE_LOG(LogRPRRenderSystemResources, Error, TEXT("Cannot create RPR material system"));
+		return (false);
+	}
+	return (true);
+}
+
+bool FRPRRenderSystemResources::InitializeRPRXContext()
+{
+	RPR::FResult result = RPRX::Context::Create(RPRMaterialSystem, RPRX_FLAGS_ENABLE_LOGGING, &RPRXSupportCtx);
+	if (!RPR::IsResultFailed(result))
+	{
+		UE_LOG(LogRPRRenderSystemResources, Error, TEXT("Cannot create RPRX context (%#4)"), result);
+		return (false);
+	}
+
+	return (true);
+}
+
 void FRPRRenderSystemResources::Shutdown()
 {
 	NumDevicesCompatible = 0;
@@ -281,7 +336,7 @@ void FRPRRenderSystemResources::DestroyRPRXSupportContext()
 {
 	if (RPRXSupportCtx != nullptr)
 	{
-		RPRX::DeleteContext(RPRXSupportCtx);
+		RPRX::Delete(RPRXSupportCtx);
 		RPRXSupportCtx = nullptr;
 	}
 }

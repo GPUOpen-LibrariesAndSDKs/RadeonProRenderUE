@@ -32,5 +32,10 @@ namespace RPR
 			RPRTOOLS_API FResult	Set1u(FContext Context, const FString& ParamName, uint32 Value);
 			RPRTOOLS_API FResult	Set1f(FContext Context, const FString& ParamName, float Value);
 		}
+
+		namespace MaterialSystem
+		{
+			RPRTOOLS_API FResult	Create(RPR::FContext Context, RPR::FMaterialSystemType Type, RPR::FMaterialSystem& OutMaterialSystem);
+		}
 	}
 }

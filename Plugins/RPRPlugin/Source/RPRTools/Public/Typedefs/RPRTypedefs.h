@@ -25,4 +25,6 @@ namespace RPR
 
 	typedef void*						FMaterialRawDatas;
 	typedef rpr_material_node			FMaterialNode;
+
+	typedef rpr_material_system_type	FMaterialSystemType;
 }
