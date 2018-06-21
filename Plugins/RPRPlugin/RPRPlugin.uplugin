@@ -60,6 +60,15 @@
 			]
 		},
 		{
+			"Name": "RPR_GLTF",
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms":
+			[
+				"Win64"
+			]
+		},
+		{
 			"Name": "RPRMaterialLoader",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
