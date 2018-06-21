@@ -60,6 +60,7 @@ public class RPR_GLTF : ModuleRules
             {
                 "Core",
                 "RPRTools",
+                "RPR_SDK",
 				// ... add other public dependencies that you statically link with here ...
 			}
             );
@@ -74,20 +75,16 @@ public class RPR_GLTF : ModuleRules
 				// ... add private dependencies that you statically link with here ...	
 			}
         );
-
-        RPRPlugin.AddRPRIncludes(ModuleDirectory, PrivateIncludePaths);
-        RPRPlugin.AddRPRStaticLibraries(ModuleDirectory, PublicAdditionalLibraries, Target);
-        RPRPlugin.AddDynamicLibraries(ModuleDirectory, PublicLibraryPaths, RuntimeDependencies, PublicDelayLoadDLLs, Target);
     }
 
     void DefineIncludesAndDependenciesForThirdParty(ReadOnlyTargetRules Target)
     {
         string gltfBinDir = Path.Combine(ThirdPartyBinDirectory, Target.Platform.ToString());
         
-        string gltfStaLib = Path.Combine(gltfBinDir, "ProRenderGLTF" + RPRPlugin.GetStaticLibraryExtensionByPlatform(Target.Platform));
+        string gltfStaLib = Path.Combine(gltfBinDir, "ProRenderGLTF" + RPR_SDK.GetStaticLibraryExtensionByPlatform(Target.Platform));
         PublicAdditionalLibraries.Add(gltfStaLib);
 
-        string gltfDynLib = "ProRenderGLTF" + RPRPlugin.GetDynamicLibraryExtensionByPlatform(Target.Platform);
+        string gltfDynLib = "ProRenderGLTF" + RPR_SDK.GetDynamicLibraryExtensionByPlatform(Target.Platform);
         PublicLibraryPaths.Add(gltfBinDir);
         PublicDelayLoadDLLs.Add(gltfDynLib);
 

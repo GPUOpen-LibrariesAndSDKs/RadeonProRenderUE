@@ -679,6 +679,4 @@ void	FRPRRendererWorker::ReleaseResources()
 	DestroyPendingKills();
 
 	m_PreRenderLock.Unlock();
-	m_RprContext = nullptr;
-	m_RprScene = nullptr;
 }

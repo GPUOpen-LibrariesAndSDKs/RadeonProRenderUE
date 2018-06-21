@@ -2,7 +2,7 @@
 
 #include "RPRScene.h"
 
-#include "_SDK/RprTools.h"
+#include "RprTools.h"
 
 #include "Scene/RPRActor.h"
 #include "Scene/RPRLightComponent.h"
@@ -34,6 +34,7 @@
 #include "RPRXHelpers.h"
 #include "RPRIHelpers.h"
 #include "RenderingThread.h"
+#include "RPR_SDKModule.h"
 
 #define LOCTEXT_NAMESPACE "ARPRScene"
 
@@ -486,7 +487,7 @@ void	ARPRScene::InitializeRPRRendering()
 	if (!ensure(m_Plugin->GetRenderTexture() != nullptr))
 		return;
 
-	const FString dllDirectory = FRPRPluginModule::GetDLLsDirectory();
+	const FString dllDirectory = FRPR_SDKModule::GetDLLsDirectory();
 	const FString dllPath = FPaths::Combine(dllDirectory, TEXT("Tahoe64.dll"));
 	if (!FPaths::FileExists(dllPath))
 	{

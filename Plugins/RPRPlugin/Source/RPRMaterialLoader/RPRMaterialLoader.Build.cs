@@ -39,6 +39,7 @@ public class RPRMaterialLoader : ModuleRules
             new string[]
             {
                 "Core",
+                "RPR_SDK",
                 "RPRPlugin",
                 "RPRTools",
 			}
@@ -55,10 +56,6 @@ public class RPRMaterialLoader : ModuleRules
                 "RPRMaterialEditor",
 			}
         );
-
-        RPRPlugin.AddRPRIncludes(ModuleDirectory, PrivateIncludePaths);
-        RPRPlugin.AddRPRStaticLibraries(ModuleDirectory, PublicAdditionalLibraries, Target);
-        RPRPlugin.AddDynamicLibraries(ModuleDirectory, PublicLibraryPaths, RuntimeDependencies, PublicDelayLoadDLLs, Target);
     }
 }
 

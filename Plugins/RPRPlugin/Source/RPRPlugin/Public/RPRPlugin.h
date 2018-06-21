@@ -76,9 +76,6 @@ private:
 
 	void					CreateNewScene(UWorld *world);
 
-	void	PreloadDLLs();
-	void	UnloadDLLs();
-
 private:
 
 #if WITH_EDITOR
@@ -99,7 +96,4 @@ private:
 
 	bool					m_Loaded;
 
-	using FDLLHandle = void*;
-	TArray<FString>			dllNames;
-	TArray<FDLLHandle>		dllHandles;
 };

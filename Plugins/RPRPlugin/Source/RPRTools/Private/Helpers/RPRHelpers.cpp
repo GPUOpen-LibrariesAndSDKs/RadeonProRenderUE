@@ -6,6 +6,7 @@
 #include "Engine/TextureCube.h"
 #include "CubemapUnwrapUtils.h"
 #include "RprSupport.h"
+#include "RprTools.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRHelpers, Log, All);
 
@@ -80,4 +81,14 @@ namespace RPR
 		return (rprSceneClear(Scene));
 	}
 
+	FResult RegisterPlugin(const FString& DllPath)
+	{
+		return rprRegisterPlugin(TCHAR_TO_ANSI(*DllPath));
+	}
+
+	bool AreDevicesCompatible(FPluginId PluginId, const FString& RenderCachePath, bool bDoWhiteListTest, FCreationFlags DevicesUsed, FCreationFlags& OutDevicesCompatible, RPR_TOOLS_OS ToolsOS)
+	{
+		rprAreDevicesCompatible(PluginId, TCHAR_TO_ANSI(*RenderCachePath), bDoWhiteListTest, DevicesUsed, &OutDevicesCompatible, ToolsOS);
+		return (OutDevicesCompatible > 0);
+	}
 }

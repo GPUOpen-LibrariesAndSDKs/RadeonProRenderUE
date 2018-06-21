@@ -15,6 +15,15 @@
 	"Installed": false,
 	"Modules": [
 		{
+			"Name": "RPR_SDK",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms":
+			[
+				"Win64"
+			]
+		},
+		{
 			"Name": "RPRPlugin",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",

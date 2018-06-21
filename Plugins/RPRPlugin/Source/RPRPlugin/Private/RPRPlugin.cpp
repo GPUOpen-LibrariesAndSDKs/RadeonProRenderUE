@@ -52,21 +52,12 @@ FRPRPluginModule::FRPRPluginModule()
 ,	m_CleanViewport(false)
 ,	m_Loaded(false)
 {
-	dllNames.Add(TEXT("Tahoe64.dll"));
-	dllNames.Add(TEXT("RadeonProRender64.dll"));
-	dllNames.Add(TEXT("RprLoadStore64.dll"));
-	dllNames.Add(TEXT("RprSupport64.dll"));
+
 }
 
 FRPRPluginModule::~FRPRPluginModule()
 {
 
-}
-
-FString FRPRPluginModule::GetDLLsDirectory()
-{
-	checkf(PLATFORM_64BITS | PLATFORM_WINDOWS, TEXT("Only Windows 64bits supported."));
-	return FPaths::ConvertRelativePathToFull(FPaths::ProjectPluginsDir() + "RPRPlugin/ProRenderSDK/RadeonProRender/binWin64");
 }
 
 ARPRScene	*FRPRPluginModule::GetCurrentScene() const
@@ -224,32 +215,6 @@ void	FRPRPluginModule::CreateNewScene(UWorld *world)
 	RefreshCameraList();
 }
 
-void FRPRPluginModule::PreloadDLLs()
-{
-	const FString dllDirectory = GetDLLsDirectory();
-
-	FPlatformProcess::PushDllDirectory(*dllDirectory);
-	{
-		for (int32 i = 0; i < dllNames.Num(); ++i)
-		{
-			FDLLHandle handle = FPlatformProcess::GetDllHandle(*dllNames[i]);
-			checkf(handle, TEXT("Cannot load dll '%s'!"), *dllNames[i]);
-
-			dllHandles.Add(handle);
-		}
-	}
-	FPlatformProcess::PopDllDirectory(*dllDirectory);
-}
-
-void FRPRPluginModule::UnloadDLLs()
-{
-	for (int32 i = 0; i < dllHandles.Num(); ++i)
-	{
-		FPlatformProcess::FreeDllHandle(dllHandles[i]);
-	}
-	dllHandles.Empty();
-}
-
 void	FRPRPluginModule::Reset()
 {
 	// Reset properties
@@ -273,9 +238,11 @@ void	FRPRPluginModule::OnWorldAdded(UWorld *inWorld)
 {
 	if (inWorld == NULL)
 		return;
+
 	if (inWorld == m_EditorWorld ||
 		inWorld == m_GameWorld)
 		return;
+
 	ARPRScene	*existingScene = GetCurrentScene();
 	UWorld		*world = m_GameWorld != NULL ? m_GameWorld : m_EditorWorld;
 
@@ -388,8 +355,6 @@ void	FRPRPluginModule::StartupModule()
 
 	m_Loaded = true;
 
-	PreloadDLLs();
-
 	// This one for PIE world creation
 	FWorldDelegates::OnPostWorldInitialization.AddRaw(this, &FRPRPluginModule::OnWorldInitialized);
 	FWorldDelegates::OnPreWorldFinishDestroy.AddRaw(this, &FRPRPluginModule::OnWorldDestroyed);
@@ -460,8 +425,6 @@ void	FRPRPluginModule::ShutdownModule()
 
 	// UE seem to automatically delete the resource
 	m_RenderTexture = NULL;
-
-	UnloadDLLs();
 }
 
 #undef LOCTEXT_NAMESPACE

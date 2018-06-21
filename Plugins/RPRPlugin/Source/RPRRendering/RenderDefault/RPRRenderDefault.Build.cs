@@ -35,6 +35,7 @@ public class RPRRenderDefaultModule : ModuleRules
             new string[]
             {
                 "Core",
+                "RPRRenderCore"
 				// ... add other public dependencies that you statically link with here ...
 			}
             );

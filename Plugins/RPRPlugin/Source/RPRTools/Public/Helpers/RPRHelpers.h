@@ -6,6 +6,7 @@
 #include "Math/mathutils.h"
 #include "RPRToolsModule.h"
 #include "RPRTypedefs.h"
+#include "RprTools.h"
 
 RPRTOOLS_API RadeonProRender::matrix BuildMatrixNoScale(const struct FTransform &transform);
 RPRTOOLS_API RadeonProRender::matrix BuildMatrixWithScale(const struct FTransform &transform);
@@ -33,4 +34,16 @@ namespace RPR
 	RPRTOOLS_API FResult		ShapeSetMaterial(FShape Shape, RPR::FMaterialNode MaterialNode);
 
 	RPRTOOLS_API FResult		SceneClear(RPR::FScene Scene);
+
+	RPRTOOLS_API FResult		RegisterPlugin(const FString& DllPath);
+
+	RPRTOOLS_API bool			AreDevicesCompatible(
+		RPR::FPluginId PluginId, 
+		const FString& RenderCachePath, 
+		bool bDoWhiteListTest, 
+		RPR::FCreationFlags DevicesUsed, 
+		RPR::FCreationFlags& OutDevicesCompatible, 
+		RPR_TOOLS_OS ToolsOS
+	);
+
 }

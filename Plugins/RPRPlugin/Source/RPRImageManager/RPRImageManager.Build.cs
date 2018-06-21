@@ -28,7 +28,8 @@ public class RPRImageManager : ModuleRules
 			new string[]
 			{
 				"Core",
-                "RPRTools"
+                "RPRTools",
+                "RPR_SDK"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -51,9 +52,5 @@ public class RPRImageManager : ModuleRules
 					"UnrealEd"
 				});
         }
-
-        RPRPlugin.AddRPRIncludes(ModuleDirectory, PrivateIncludePaths);
-        RPRPlugin.AddRPRStaticLibraries(ModuleDirectory, PublicAdditionalLibraries, Target);
-        RPRPlugin.AddDynamicLibraries(ModuleDirectory, PublicLibraryPaths, RuntimeDependencies, PublicDelayLoadDLLs, Target);
 	}
 }

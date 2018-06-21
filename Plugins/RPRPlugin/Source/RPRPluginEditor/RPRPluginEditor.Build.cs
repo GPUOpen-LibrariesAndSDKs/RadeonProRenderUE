@@ -49,7 +49,9 @@ public class RPRPluginEditor : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core", "RPRPlugin"
+                "Core",
+                "RPR_SDK",
+                "RPRPlugin",
 				// ... add other public dependencies that you statically link with here ...
 			}
             );
@@ -80,8 +82,5 @@ public class RPRPluginEditor : ModuleRules
 			}
         );
 
-        RPRPlugin.AddRPRIncludes(ModuleDirectory, PrivateIncludePaths);
-        RPRPlugin.AddRPRStaticLibraries(ModuleDirectory, PublicAdditionalLibraries, Target);
-        RPRPlugin.AddDynamicLibraries(ModuleDirectory, PublicLibraryPaths, RuntimeDependencies, PublicDelayLoadDLLs, Target);
     }
 }

@@ -47,7 +47,13 @@ public class RPRMaterialEditor : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core", "RPRPlugin", "RPRMaterialLoader", "RPREditorTools", "RPRTools", "RPRImageManager"
+                "Core",
+                "RPR_SDK",
+                "RPRPlugin",
+                "RPRMaterialLoader",
+                "RPREditorTools",
+                "RPRTools",
+                "RPRImageManager"
 				
 				// ... add other public dependencies that you statically link with here ...
 			}
@@ -74,9 +80,5 @@ public class RPRMaterialEditor : ModuleRules
 				// ... add private dependencies that you statically link with here ...	
 			}
         );
-
-        RPRPlugin.AddRPRIncludes(ModuleDirectory, PrivateIncludePaths);
-        RPRPlugin.AddRPRStaticLibraries(ModuleDirectory, PublicAdditionalLibraries, Target);
-        RPRPlugin.AddDynamicLibraries(ModuleDirectory, PublicLibraryPaths, RuntimeDependencies, PublicDelayLoadDLLs, Target);
     }
 }

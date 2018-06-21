@@ -8,7 +8,27 @@ class FRPRRenderUnit
 {
 public:
 
+	FRPRRenderUnit();
+
+	void			Initialize();
+	void			Shutdown();
+
+
 	virtual FName	GetName() = 0;
+
+protected:
+
+	virtual void	OnInitialize() = 0;
+	virtual void	OnShutdown() = 0;
+
+private:
+
+	void			DeleteScene();
+
+private:
+
+	RPR::FScene		RPRScene;
+	bool			bIsInitialized;
 
 };
 

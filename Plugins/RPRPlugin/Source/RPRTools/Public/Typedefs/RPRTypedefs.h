@@ -10,6 +10,10 @@ namespace RPR
 {
 	typedef rpr_int		FResult;
 
+	typedef rpr_int					FPluginId;
+	typedef rpr_creation_flags		FCreationFlags;
+	typedef rpr_context_properties	FContextProperties;
+
 	typedef rpr_context			FContext;
 	typedef rpr_material_system FMaterialSystem;
 	typedef rpr_scene			FScene;
