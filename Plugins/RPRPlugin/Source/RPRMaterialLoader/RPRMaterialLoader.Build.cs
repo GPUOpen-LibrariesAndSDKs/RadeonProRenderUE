@@ -42,7 +42,8 @@ public class RPRMaterialLoader : ModuleRules
                 "RPR_SDK",
                 "RPRPlugin",
                 "RPRTools",
-			}
+                "RPRGraphParser",
+            }
             );
 
 

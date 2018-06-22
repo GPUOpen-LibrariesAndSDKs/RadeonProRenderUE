@@ -18,163 +18,114 @@
 			"Name": "RPR_SDK",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms":
-			[
-				"Win64"
-			]
+			"WhitelistPlatforms": [ "Win64"]
+		},
+		{
+			"Name": "RPR_Json",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
 		},
 		{
 			"Name": "RPRPlugin",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms":
-			[
-				"Win64"
-			]
+			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
 			"Name": "RPRCompatibility",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms":
-			[
-				"Win64"
-			]
+			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
 			"Name": "RPRTools",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms":
-			[
-				"Win64"
-			]
+			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
 			"Name": "RPRImageManager",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms":
-			[
-				"Win64"
-			]
+			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
 			"Name": "RPREditorTools",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms":
-			[
-				"Win64"
-			]
+			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
 			"Name": "RPR_GLTF",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms":
-			[
-				"Win64"
-			]
+			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
 			"Name": "RPRMaterialLoader",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms":
-			[
-				"Win64"
-			]
+			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
 			"Name": "RPRSectionsManager",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms":
-			[
-				"Win64"
-			]
+			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
 			"Name": "RPRMaterialEditor",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms":
-			[
-				"Win64"
-			]
+			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
 			"Name": "RPRPluginEditor",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms":
-			[
-				"Win64"
-			]
+			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
 			"Name": "UVVisualizer",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms":
-			[
-				"Win64"
-			]
+			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
 			"Name": "UVProjection_Planar",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms":
-			[
-				"Win64"
-			]
+			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
 			"Name": "UVProjection_Cubic",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms":
-			[
-				"Win64"
-			]
+			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
 			"Name": "UVProjection_Spherical",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms":
-			[
-				"Win64"
-			]
+			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
 			"Name": "UVProjection_Cylindrical",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms":
-			[
-				"Win64"
-			]
+			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
 			"Name": "UVProjection_TriPlanar",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms":
-			[
-				"Win64"
-			]
+			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
 			"Name": "Outliners",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms":
-			[
-				"Win64"
-			]
+			"WhitelistPlatforms": [ "Win64" ]
 		}
 	]
 }
