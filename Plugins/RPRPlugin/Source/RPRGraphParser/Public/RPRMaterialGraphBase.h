@@ -1,20 +1,12 @@
 #pragma once
 
-#include "NameTypes.h"
-#include "Array.h"
-#include "RPRMaterialXmlNode.h"
-#include "RPRMaterialXmlUberNode.h"
-
-/*
- * Load the datas required for a RPR Material by creating a graph from a Xml file
- */
-class RPRMATERIALLOADER_API FRPRMaterialXmlGraph : public FRPRMaterialGraphBase
+template<typename TParsedElementType>
+class FRPRMaterialGraphBase
 {
 public:
 
-	bool	ParseFromXmlFile(const FString& Filename);
-	bool	ParseFromXml(const class FXmlNode& Node);
-	void	LoadRPRMaterialParameters(FRPRMaterialNodeSerializationContext& SerializationContext);
+	virtual bool	Parse(const TParsedElementType& Element) = 0;
+	virtual void	Load(FRPRMaterialGraphSerializationContext& SerializationContext) = 0;
 
 	const FName&							GetName() const;
 	FRPRMaterialXmlUberNodePtr				GetUberMaterial() const;
@@ -35,13 +27,14 @@ public:
 		return (nullptr);
 	}
 
-private:
+protected:
 
-	void	ParseNodes(const class FXmlNode& Node);
-
-private:
-	
-	FName Name;
-	TArray<FRPRMaterialXmlNodePtr> Nodes;
+	FName	Name;
 
 };
+
+template<typename TParsedElementType>
+const FName& FRPRMaterialGraphBase<TParsedElementType>::GetName() const
+{
+	return (Name);
+}

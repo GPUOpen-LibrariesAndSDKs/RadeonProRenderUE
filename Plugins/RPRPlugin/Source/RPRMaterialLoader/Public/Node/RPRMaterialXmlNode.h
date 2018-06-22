@@ -7,16 +7,18 @@
 #include "Engine/Texture2D.h"
 #include "Containers/Map.h"
 
-enum class ERPRMaterialNodeType
+class FRPRMaterialXmlNode : public FRPRMaterialNodeWithChildrenBase<GLTF::FRPRMaterial>
 {
-	Unsupported,
-	Uber,
-	InputTexture
-};
+public:
+	
+	enum class ERPRMaterialNodeType
+	{
+		Unsupported,
+		Uber,
+		InputTexture
+	};
 
 
-class FRPRMaterialXmlNode
-{
 public:
 
 	virtual ~FRPRMaterialXmlNode() {}
