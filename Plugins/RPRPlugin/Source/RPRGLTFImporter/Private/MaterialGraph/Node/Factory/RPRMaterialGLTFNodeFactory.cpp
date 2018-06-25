@@ -12,19 +12,19 @@
 
 TSharedPtr<FRPRMaterialGLTFNode> FRPRMaterialGLTFNodeFactory::CreateNodeFromGLTFNode(const GLTF::FRPRNode& Node)
 {
-    ERPRMaterialNodeType NodeType = FRPRMaterialGLTFNodeTypeParser::ParseTypeFromGLTF(Node);
+	FRPRMaterialGLTFNode::ERPRMaterialNodeType NodeType = FRPRMaterialGLTFNodeTypeParser::ParseTypeFromGLTF(Node);
 
     TSharedPtr<FRPRMaterialGLTFNode> MaterialNode = nullptr;
 
     switch (NodeType)
     {
-    case ERPRMaterialNodeType::Uber:
+    case FRPRMaterialGLTFNode::ERPRMaterialNodeType::Uber:
         MaterialNode = MakeShareable(new FRPRMaterialGLTFUberNode());
         break;
-    case ERPRMaterialNodeType::NormalMap:
+    case FRPRMaterialGLTFNode::ERPRMaterialNodeType::NormalMap:
         MaterialNode = MakeShareable(new FRPRMaterialGLTFNormalMapNode());
         break;
-    case ERPRMaterialNodeType::ImageTexture:
+    case FRPRMaterialGLTFNode::ERPRMaterialNodeType::ImageTexture:
         MaterialNode = MakeShareable(new FRPRMaterialGLTFImageTextureNode());
         break;
     default:

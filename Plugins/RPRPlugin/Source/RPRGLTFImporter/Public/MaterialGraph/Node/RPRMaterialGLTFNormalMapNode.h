@@ -4,6 +4,7 @@
 
 #include "RPRMaterialGLTFNode.h"
 #include "Templates/SharedPointer.h"
+#include "RPRMaterialGraphSerializationContext.h"
 
 class FRPRMaterialGLTFNormalMapNode : public FRPRMaterialGLTFNode
 {
@@ -11,7 +12,7 @@ public:
 
     virtual ERPRMaterialNodeType GetNodeType() const override;
 
-    UTexture2D* ImportNormal(FRPRMaterialGLTFSerializationContext& SerializationContext);
+    UTexture2D* ImportNormal(FRPRMaterialGraphSerializationContext& SerializationContext);
 
 };
 

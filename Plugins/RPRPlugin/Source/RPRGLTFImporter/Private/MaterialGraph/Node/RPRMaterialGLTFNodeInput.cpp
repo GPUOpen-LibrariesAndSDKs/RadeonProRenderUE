@@ -4,7 +4,6 @@
 
 #include "GLTF.h"
 #include "INodeParamType.h"
-#include "Factory/NodeParamTypeFactory.h"
 #include "RPRUberMaterialParameters.h"
 #include "UberMaterialPropertyHelper.h"
 
@@ -24,11 +23,10 @@ FRPRMaterialGLTFNodeInput::FRPRMaterialGLTFNodeInput()
 }
 
 
-bool FRPRMaterialGLTFNodeInput::Parse(const GLTF::FRPRMaterial& InMaterial, int32 InNodeIndex)
+bool FRPRMaterialGLTFNodeInput::ParseFromGLTF(const GLTF::FRPRMaterial& InMaterial, int32 InNodeIndex, int InInputIndex)
 {
-	Parent->
     const GLTF::FRPRNode& GLTFNode = InMaterial.nodes[InNodeIndex];
-    const GLTF::FRPRInput& GLTFInput = GLTFNode.inputs[InNodeIndex];
+    const GLTF::FRPRInput& GLTFInput = GLTFNode.inputs[InInputIndex];
     Name = GLTFInput.name.c_str();
     Type = ParseType(GLTFInput.type);
 
@@ -113,11 +111,14 @@ void FRPRMaterialGLTFNodeInput::LoadRPRMaterialParameters(FRPRMaterialGraphSeria
     const FRPRUberMaterialParameterBase* UberMatParams =
         FUberMaterialPropertyHelper::GetParameterBaseFromProperty(SerializationContext.MaterialParameters, PropertyPtr);
 
-    FString Type = UberMatParams->GetPropertyTypeName(PropertyPtr);
-    TSharedPtr<INodeParamType> NodeParam = FNodeParamTypeFactory::CreateNewNodeParam(Type);
+    FString type = UberMatParams->GetPropertyTypeName(PropertyPtr);
+
+	// TODO : Reimplement factory
+	TSharedPtr<INodeParamType> NodeParam = nullptr; // FNodeParamTypeFactory::CreateNewNodeParam(type);
     if (NodeParam.IsValid())
     {
-        NodeParam->LoadRPRMaterialParameters(SerializationContext, *this, PropertyPtr);
+		// TODO : Re-implement node param loading for GLTF
+        // NodeParam->LoadRPRMaterialParameters(SerializationContext, *this, PropertyPtr);
     }
 }
 
@@ -153,6 +154,16 @@ void FRPRMaterialGLTFNodeInput::GetValue(int32& OutInt) const
 {
     check(Type == ERPRMaterialNodeInputValueType::UInt && "NodeInput does not contain an integer value.");
     OutInt = IntValue;
+}
+
+FRPRMaterialGLTFNode::ERPRMaterialNodeType FRPRMaterialGLTFNodeInput::GetNodeType() const
+{
+	return FRPRMaterialGLTFNode::ERPRMaterialNodeType::Input;
+}
+
+bool FRPRMaterialGLTFNodeInput::Parse(const GLTF::FRPRMaterial& InMaterial, int32 NodeIndex)
+{
+	return (false);
 }
 
 ERPRMaterialNodeInputValueType FRPRMaterialGLTFNodeInput::ParseType(GLTF::ERPRInputValueType ValueType)

@@ -4,11 +4,12 @@
 
 #include "GLTFTypedefs.h"
 #include "Enums/RPRMaterialNodeInputValueType.h"
-#include "RPRMaterialGLTFSerializationContext.h"
 #include "NameTypes.h"
 #include "Math/Vector4.h"
 #include "Containers/Map.h"
 #include "Containers/UnrealString.h"
+#include "RPRMaterialGraphSerializationContext.h"
+#include "RPRMaterialGLTFNode.h"
 
 /*
 * Represents a node input in the glTF RPR material structure.
@@ -19,14 +20,18 @@
 *   "value": 2
 * }
 */
-class FRPRMaterialGLTFNodeInput
+class FRPRMaterialGLTFNodeInput : public FRPRMaterialGLTFNode
 {
 public:
 
     FRPRMaterialGLTFNodeInput();
+	virtual ~FRPRMaterialGLTFNodeInput() {}
+
+	virtual FRPRMaterialGLTFNode::ERPRMaterialNodeType GetNodeType() const override;
+	virtual bool Parse(const GLTF::FRPRMaterial& InMaterial, int32 NodeIndex);
 
     bool ParseFromGLTF(const GLTF::FRPRMaterial& InMaterial, int InNodeIndex, int InInputIndex);
-    void LoadRPRMaterialParameters(FRPRMaterialGLTFSerializationContext& SerializationContext, UProperty* PropertyPtr);
+    void LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext, UProperty* PropertyPtr);
 
     /** Get the name of this input. */
     const FName& GetName() const;
@@ -45,6 +50,7 @@ public:
 
     /** Get the value of this input as an integer. */
     void GetValue(int32& OutInt) const;
+
 
 private:
 
@@ -73,3 +79,5 @@ private:
     static TMap<GLTF::ERPRInputValueType, ERPRMaterialNodeInputValueType> GLTFTypeEnumToUETypeEnumMap;
 
 };
+
+using FRPRMaterialGLTFNodeInputPtr = TSharedPtr<FRPRMaterialGLTFNodeInput>;

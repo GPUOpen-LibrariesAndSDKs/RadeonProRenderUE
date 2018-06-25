@@ -27,8 +27,8 @@ namespace GLTF
 	typedef amd::AMD_RPR_Material FRPRMaterial;
 	typedef amd::Node FRPRNode;
 	typedef amd::Input FRPRInput;
-	typedef amd::Node::Type ERPRNodeType;
-	typedef amd::Input::Type ERPRInputValueType;
+	typedef amd::NodeType ERPRNodeType;
+	typedef amd::InputType ERPRInputValueType;
 
     // Forward declare for FBufferCache
     class FBufferCache;

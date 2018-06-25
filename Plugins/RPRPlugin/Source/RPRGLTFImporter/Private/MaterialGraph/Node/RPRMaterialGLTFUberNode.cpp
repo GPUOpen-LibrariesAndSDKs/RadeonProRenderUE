@@ -2,24 +2,26 @@
 
 #include "RPRMaterialGLTFUberNode.h"
 
-ERPRMaterialNodeType FRPRMaterialGLTFUberNode::GetNodeType() const
+FRPRMaterialGLTFNode::ERPRMaterialNodeType FRPRMaterialGLTFUberNode::GetNodeType() const
 {
-    return ERPRMaterialNodeType::Uber;
+    return FRPRMaterialGLTFNode::ERPRMaterialNodeType::Uber;
 }
 
-void FRPRMaterialGLTFUberNode::LoadRPRMaterialParameters(FRPRMaterialGLTFSerializationContext& SerializationContext)
+void FRPRMaterialGLTFUberNode::LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext)
 {
     UStruct* MaterialParametersStruct = FRPRUberMaterialParameters::StaticStruct();
 
-    for (FRPRMaterialGLTFNodeInput& Input : Inputs)
+    for (TSharedPtr<FRPRMaterialNode<GLTF::FRPRMaterial, amd::Node>> Child : Children)
     {
-        UProperty* Property = FindPropertyByGLTFInputName(
+		FRPRMaterialGLTFNodeInputPtr input = StaticCastSharedPtr<FRPRMaterialGLTFNodeInput>(Child);
+        UProperty* Property = FindPropertyParameterByName(
             SerializationContext.MaterialParameters,
             MaterialParametersStruct,
-            Input.GetName());
+			input->GetName());
+
         if (Property != nullptr)
         {
-            Input.LoadRPRMaterialParameters(SerializationContext, Property);
+			input->LoadRPRMaterialParameters(SerializationContext, Property);
         }
     }
 }

@@ -4,6 +4,7 @@
 
 #include "RPRMaterialGLTFNodeFactory.h"
 #include "GLTF.h"
+#include "RPRMaterialGLTFNode.h"
 
 bool FRPRMaterialGLTFGraph::Parse(const GLTF::FRPRMaterial& InMaterial)
 {
@@ -28,12 +29,12 @@ bool FRPRMaterialGLTFGraph::Parse(const GLTF::FRPRMaterial& InMaterial)
 void FRPRMaterialGLTFGraph::Load(FRPRMaterialGraphSerializationContext& SerializationContext)
 {
     // Only supporting Uber material at this time
-    FRPRMaterialGLTFUberNodePtr Material = GetUberMaterial();
-    if (!Material.IsValid())
+	auto node = GetUberNode();
+    if (!node.IsValid())
     {
         UE_LOG(LogRPRGLTFImporter, Error, TEXT("FRPRMaterialGLTFGraph::LoadRPRMaterialParameters: Currently only supports Uber material."));
     }
-    Material->LoadRPRMaterialParameters(SerializationContext);
+    node->LoadRPRMaterialParameters(SerializationContext);
 }
 
 bool FRPRMaterialGLTFGraph::IsUberNode(FRPRMaterialGLTFNodePtr Node) const

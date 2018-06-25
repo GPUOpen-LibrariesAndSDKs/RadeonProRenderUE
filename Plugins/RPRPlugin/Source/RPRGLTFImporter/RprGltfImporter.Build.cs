@@ -19,6 +19,8 @@ public class RPRGLTFImporter : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[] {
                 "Core",
+                "RPR_GLTF",
+                "RPRGraphParser"
         });
 
         PrivateDependencyModuleNames.AddRange(

@@ -14,7 +14,7 @@ ERPRMaterialNodeType FRPRMaterialGLTFNormalMapNode::GetNodeType() const
     return ERPRMaterialNodeType::NormalMap;
 }
 
-UTexture2D* FRPRMaterialGLTFNormalMapNode::ImportNormal(FRPRMaterialGLTFSerializationContext& SerializationContext)
+UTexture2D* FRPRMaterialGLTFNormalMapNode::ImportNormal(FRPRMaterialGraphSerializationContext& SerializationContext)
 {
     FRPRMaterialGLTFNodeInput* ColorInput = nullptr;
     for (int i = 0; i < Inputs.Num(); ++i)

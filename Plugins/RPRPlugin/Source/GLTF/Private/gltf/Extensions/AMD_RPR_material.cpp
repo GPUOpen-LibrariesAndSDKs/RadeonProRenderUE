@@ -61,7 +61,7 @@ namespace amd
     	if (json.find("type") != json.end()) object.type = static_cast<decltype(object.type)>(typeFromString.at(json.at("type").get<std::string>()));
         if (json.find("value") != json.end())
         {
-            if (object.type == Input::Type::FLOAT4) object.value.array = json.at("value").get<decltype(object.value.array)>();
+            if (object.type == amd::InputType::FLOAT4) object.value.array = json.at("value").get<decltype(object.value.array)>();
             else object.value.integer = json.at("value").get<decltype(object.value.integer)>();
         }
     }
@@ -77,7 +77,7 @@ namespace amd
 			  "RPRBUFFER"
 		};
     	json.emplace("type", typeToString[static_cast<int>(object.type)]);
-        if (object.type == Input::Type::FLOAT4) json.emplace("value", object.value.array);
+        if (object.type == amd::InputType::FLOAT4) json.emplace("value", object.value.array);
         else json.emplace("value", object.value.integer);
     }
     

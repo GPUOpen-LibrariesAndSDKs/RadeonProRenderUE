@@ -5,16 +5,16 @@
 #include "GLTFTypedefs.h"
 #include "AMD_RPR_material.h"
 #include "RPRMaterialGLTFNodeInput.h"
-#include "RPRMaterialGLTFSerializationContext.h"
 #include "NameTypes.h"
 #include "Containers/Array.h"
 #include "Templates/SharedPointer.h"
 #include "Nodes/RPRMaterialNodeWithChildrenBase.h"
+#include "AMD_RPR_material.h"
 
 /*
 * Represents a material node in the glTF RPR material structure.
 */
-class FRPRMaterialGLTFNode : public FRPRMaterialNodeWithChildrenBase<GLTF::FRPRMaterial, amd::BaseNode>
+class FRPRMaterialGLTFNode : public FRPRMaterialNodeWithChildrenBase<GLTF::FRPRMaterial, amd::Node>
 {
 public:
 	

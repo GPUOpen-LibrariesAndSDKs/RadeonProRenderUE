@@ -25,10 +25,10 @@ bool FRPRMaterialGLTFNode::Parse(const GLTF::FRPRMaterial& InMaterial, int32 Nod
     for (int InputIndex = 0; InputIndex < GLTFInputs.size(); ++InputIndex)
     {
         FRPRMaterialGLTFNodeInputPtr NodeInput = MakeShareable(new FRPRMaterialGLTFNodeInput());
-		NodeInput->SetParent(AsShared());
-        if (NodeInput->Parse(InMaterial, NodeIndex))
+        if (NodeInput->ParseFromGLTF(InMaterial, NodeIndex, InputIndex))
         {
-            Children.Add(NodeInput);
+			// TODO : Make NodeInput inherit from Node so it can be added as a child
+            //Children.Add(NodeInput);
         }
     }
 

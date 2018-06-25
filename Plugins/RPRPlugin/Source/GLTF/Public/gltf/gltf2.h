@@ -464,5 +464,9 @@ namespace gltf
     // Exports a gltf file to disk.
     bool Export(const std::string& filename, const glTF& gltf);
 
+	void from_json(const nlohmann::json& json, glTF& object);
+	void to_json(nlohmann::json& json, const glTF& object);
+
+
 
 } // End namespace gltf

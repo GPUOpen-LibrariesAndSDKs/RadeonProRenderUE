@@ -2,27 +2,27 @@
 
 #include "RPRMaterialGLTFNodeTypeParser.h"
 
-TMap<GLTF::ERPRNodeType, ERPRMaterialNodeType> FRPRMaterialGLTFNodeTypeParser::GLTFTypeEnumToUETypeEnumMap;
+TMap<GLTF::ERPRNodeType, FRPRMaterialGLTFNode::ERPRMaterialNodeType> FRPRMaterialGLTFNodeTypeParser::GLTFTypeEnumToUETypeEnumMap;
 
 void FRPRMaterialGLTFNodeTypeParser::InitializeParserMapping()
 {
-    GLTFTypeEnumToUETypeEnumMap.Add(GLTF::ERPRNodeType::UBER, ERPRMaterialNodeType::Uber);
-    GLTFTypeEnumToUETypeEnumMap.Add(GLTF::ERPRNodeType::NORMAL_MAP, ERPRMaterialNodeType::NormalMap);
-    GLTFTypeEnumToUETypeEnumMap.Add(GLTF::ERPRNodeType::IMAGE_TEXTURE, ERPRMaterialNodeType::ImageTexture);
+    GLTFTypeEnumToUETypeEnumMap.Add(GLTF::ERPRNodeType::UBER, FRPRMaterialGLTFNode::ERPRMaterialNodeType::Uber);
+    GLTFTypeEnumToUETypeEnumMap.Add(GLTF::ERPRNodeType::NORMAL_MAP, FRPRMaterialGLTFNode::ERPRMaterialNodeType::NormalMap);
+    GLTFTypeEnumToUETypeEnumMap.Add(GLTF::ERPRNodeType::IMAGE_TEXTURE, FRPRMaterialGLTFNode::ERPRMaterialNodeType::ImageTexture);
 }
 
-ERPRMaterialNodeType FRPRMaterialGLTFNodeTypeParser::ParseTypeFromGLTF(const GLTF::FRPRNode& Node)
+FRPRMaterialGLTFNode::ERPRMaterialNodeType FRPRMaterialGLTFNodeTypeParser::ParseTypeFromGLTF(const GLTF::FRPRNode& Node)
 {
     if (GLTFTypeEnumToUETypeEnumMap.Num() == 0)
     {
         InitializeParserMapping();
     }
 
-    const ERPRMaterialNodeType* NodeType = GLTFTypeEnumToUETypeEnumMap.Find(Node.type);
+    const FRPRMaterialGLTFNode::ERPRMaterialNodeType* NodeType = GLTFTypeEnumToUETypeEnumMap.Find(Node.type);
     if (NodeType != nullptr)
     {
         return *NodeType;
     }
 
-    return ERPRMaterialNodeType::Unsupported;
+    return FRPRMaterialGLTFNode::ERPRMaterialNodeType::Unsupported;
 }

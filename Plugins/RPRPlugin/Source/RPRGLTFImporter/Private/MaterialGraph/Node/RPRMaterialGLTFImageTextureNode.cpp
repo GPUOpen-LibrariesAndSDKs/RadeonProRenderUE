@@ -6,24 +6,26 @@
 #include "AssetToolsModule.h"
 
 #include "RPRGLTFImporterModule.h"
+#include "RPRMaterialGraphSerializationContext.h"
+#include "RPRSettings.h"
 
-ERPRMaterialNodeType FRPRMaterialGLTFImageTextureNode::GetNodeType() const
+FRPRMaterialGLTFNode::ERPRMaterialNodeType FRPRMaterialGLTFImageTextureNode::GetNodeType() const
 {
-    return ERPRMaterialNodeType::ImageTexture;
+    return FRPRMaterialGLTFNode::ERPRMaterialNodeType::ImageTexture;
 }
 
-UTexture2D* FRPRMaterialGLTFImageTextureNode::ImportTexture(FRPRMaterialGLTFSerializationContext& SerializationContext)
+UTexture2D* FRPRMaterialGLTFImageTextureNode::ImportTexture(FRPRMaterialGraphSerializationContext& SerializationContext)
 {
-    FRPRMaterialGLTFNodeInput* DataInput = nullptr;
-    for (int i = 0; i < Inputs.Num(); ++i)
+    FRPRMaterialGLTFNodeInputPtr DataInput = nullptr;
+    for (int i = 0; i < Children.Num(); ++i)
     {
-        if (Inputs[i].GetName() == TEXT("data"))
+        if (Children[i]->GetName() == TEXT("data"))
         {
-            DataInput = &Inputs[i];
+            DataInput = StaticCastSharedPtr<FRPRMaterialGLTFNodeInput>(Children[i]);
             break;
         }
     }
-    if (DataInput == nullptr)
+    if (!DataInput.IsValid())
     {
         UE_LOG(LogRPRGLTFImporter, Error, TEXT("FRPRMaterialGLTFImageTextureNode::ImportTexture: ImageTexture has no data input?"));
         return nullptr;
@@ -45,8 +47,8 @@ UTexture2D* FRPRMaterialGLTFImageTextureNode::ImportTexture(FRPRMaterialGLTFSeri
     TArray<FString> AbsoluteTexturePaths;
     AbsoluteTexturePaths.Add(AbsoluteTexturePath);
 
-    // TODO: Replace /Game/Textures with configurable default from Settings
-    FString DestinationAssetPath = FPaths::Combine(TEXT("/Game/Textures"), FPaths::GetPath(RelativeTexturePath));
+	URPRSettings* rprSettings = GetMutableDefault<URPRSettings>();
+    FString DestinationAssetPath = FPaths::Combine(rprSettings->DefaultRootDirectoryForImportedTextures.Path, FPaths::GetPath(RelativeTexturePath));
     FString AvailableTexturePath = FPaths::Combine(DestinationAssetPath, FPaths::GetBaseFilename(RelativeTexturePath));
     if (UTexture2D* ExistingTexture = TryLoadingTextureIfAvailable(AvailableTexturePath))
     {

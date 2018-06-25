@@ -4,6 +4,7 @@
 
 #include "RPRMaterialGLTFNode.h"
 #include "Templates/SharedPointer.h"
+#include "RPRMaterialGraphSerializationContext.h"
 
 class UTexture2D;
 
@@ -13,7 +14,7 @@ public:
 
     virtual ERPRMaterialNodeType GetNodeType() const override;
 
-    UTexture2D* ImportTexture(FRPRMaterialGLTFSerializationContext& SerializationContext);
+    UTexture2D* ImportTexture(FRPRMaterialGraphSerializationContext& SerializationContext);
 
 private:
 

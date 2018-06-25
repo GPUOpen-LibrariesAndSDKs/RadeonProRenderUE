@@ -43,6 +43,8 @@ public class RPR_GLTF : ModuleRules
         PublicIncludePaths.AddRange(
             new string[] {
                 "GLTF/Public",
+                "GLTF/Public/gltf",
+                "GLTF/Public/gltf/Extensions",
 				// ... add public include paths required here ...
 			}
             );
@@ -50,7 +52,9 @@ public class RPR_GLTF : ModuleRules
 
         PrivateIncludePaths.AddRange(
             new string[] {
-                "GLTF/Private"
+                "GLTF/Private",
+                "GLTF/Private/gltf",
+                "GLTF/Private/gltf/Extensions",
 				// ... add other private include paths required here ...
 			}
             );
@@ -61,6 +65,7 @@ public class RPR_GLTF : ModuleRules
                 "Core",
                 "RPRTools",
                 "RPR_SDK",
+                "RPR_Json",
 				// ... add other public dependencies that you statically link with here ...
 			}
             );

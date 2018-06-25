@@ -15,8 +15,8 @@ public:
 	using FRPRMaterialNodeTyped = FRPRMaterialNode<TParsedElement, TRawNodeType>;
 	using FRPRMaterialNodeTypedPtr = TSharedPtr<FRPRMaterialNodeTyped>;
 
+	FRPRMaterialNode();
 	virtual ~FRPRMaterialNode() {}
-
 
 	virtual bool	Parse(const TParsedElement& Element, int32 NodeIndex) = 0;
 	
@@ -34,13 +34,17 @@ protected:
 protected:
 
 	FName						Name;
-	TRawNodeType*				RawNode;
+	const TRawNodeType*			RawNode;
 	FRPRMaterialNodeTypedPtr	Parent;
 };
 
+template<typename TParsedElement, typename TRawNodeType>
+FRPRMaterialNode<TParsedElement, TRawNodeType>::FRPRMaterialNode()
+	: RawNode(nullptr)
+{}
 
 template<typename T, typename U>
-using FRPRMaterialNodeBasePtr = TSharedPtr<FRPRMaterialNode<T, U>>;
+using FRPRMaterialNodePtr = TSharedPtr<FRPRMaterialNode<T, U>>;
 
 
 template<typename T, typename U>
@@ -56,7 +60,7 @@ const FName& FRPRMaterialNode<T, U>::GetName() const
 }
 
 template<typename T, typename U>
-const TArray<FRPRMaterialNodeBasePtr<T, U>>* FRPRMaterialNode<T, U>::GetChildren() const
+const TArray<FRPRMaterialNodePtr<T, U>>* FRPRMaterialNode<T, U>::GetChildren() const
 {
 	return (nullptr);
 }

@@ -12,13 +12,13 @@ public:
 		return (Children.Num() > 0);
 	}
 
-	virtual const TArray<FRPRMaterialNodeBasePtr<TParsedElement, TRawNodeType>>* GetChildren() const override
+	virtual const TArray<FRPRMaterialNodePtr<TParsedElement, TRawNodeType>>* GetChildren() const override
 	{
 		return (&Children);
 	}
 
-private:
+protected:
 
-	TArray<FRPRMaterialNodeBasePtr<TParsedElement, TRawNodeType>> Children;
+	TArray<FRPRMaterialNodePtr<TParsedElement, TRawNodeType>> Children;
 
 };

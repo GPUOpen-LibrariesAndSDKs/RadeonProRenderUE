@@ -15,12 +15,12 @@
 #include "GLTF.h"
 
 #include "RPRMaterialGLTFGraph.h"
-#include "RPRMaterialGLTFSerializationContext.h"
 #include "RPRUberMaterialParameters.h"
 
 #include "RPRGLTFMaterialExpressionsHelper.h"
 
 #include "RPRGLTFImporterModule.h"
+#include "RPRMaterialGraphSerializationContext.h"
 
 #define LOCTEXT_NAMESPACE "UGLTFMaterialTranslationFactoryRPR"
 
@@ -67,7 +67,7 @@ UObject* UGLTFMaterialTranslationFactoryRPR::FactoryCreateNew(UClass* InClass, U
     FRPRMaterialGraphSerializationContext SerializationContext;
     SerializationContext.ImportedFilePath = GLTF->Settings->FilePathInOS;
     SerializationContext.MaterialParameters = &UberMaterialParams;
-    SerializationContext.MaterialXmlGraph = &MaterialGLTFGraph;
+    SerializationContext.MaterialGraph = &MaterialGLTFGraph;
     // Begin parsing the glTF graph into UberMaterialParameters
     MaterialGLTFGraph.Load(SerializationContext);
 
