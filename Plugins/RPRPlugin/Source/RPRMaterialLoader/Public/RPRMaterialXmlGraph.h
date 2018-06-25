@@ -4,44 +4,23 @@
 #include "Array.h"
 #include "RPRMaterialXmlNode.h"
 #include "RPRMaterialXmlUberNode.h"
+#include "RPRMaterialGraph.h"
 
 /*
  * Load the datas required for a RPR Material by creating a graph from a Xml file
  */
-class RPRMATERIALLOADER_API FRPRMaterialXmlGraph : public FRPRMaterialGraphBase
+class RPRMATERIALLOADER_API FRPRMaterialXmlGraph : public FRPRMaterialGraph<FXmlNode, FRPRMaterialXmlNode>
 {
 public:
 
 	bool	ParseFromXmlFile(const FString& Filename);
-	bool	ParseFromXml(const class FXmlNode& Node);
-	void	LoadRPRMaterialParameters(FRPRMaterialNodeSerializationContext& SerializationContext);
 
-	const FName&							GetName() const;
-	FRPRMaterialXmlUberNodePtr				GetUberMaterial() const;
-	FRPRMaterialXmlNodePtr					GetFirstMaterial();
-	const FRPRMaterialXmlNodePtr			GetFirstMaterial() const;
-	const TArray<FRPRMaterialXmlNodePtr>&	GetMaterials() const;
-
-	FRPRMaterialXmlNodePtr		FindNodeByName(const FName& NodeName);
-
-	template<typename NodeType>
-	TSharedPtr<NodeType>		FindNodeByName(const FName& NodeName)
-	{
-		FRPRMaterialXmlNodePtr nodePtr = FindNodeByName(NodeName);
-		if (nodePtr.IsValid())
-		{
-			return (StaticCastSharedPtr<NodeType>(nodePtr));
-		}
-		return (nullptr);
-	}
+	virtual bool	Parse(const class FXmlNode& Node);
+	virtual void	Load(FRPRMaterialGraphSerializationContext& SerializationContext);	
+	virtual bool	IsUberNode(FRPRMaterialXmlNodePtr Node) const override;
 
 private:
 
 	void	ParseNodes(const class FXmlNode& Node);
-
-private:
-	
-	FName Name;
-	TArray<FRPRMaterialXmlNodePtr> Nodes;
 
 };

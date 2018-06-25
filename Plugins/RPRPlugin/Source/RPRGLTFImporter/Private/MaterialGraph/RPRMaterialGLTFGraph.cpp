@@ -36,54 +36,7 @@ void FRPRMaterialGLTFGraph::Load(FRPRMaterialGraphSerializationContext& Serializ
     Material->LoadRPRMaterialParameters(SerializationContext);
 }
 
-const FName& FRPRMaterialGLTFGraph::GetName() const
+bool FRPRMaterialGLTFGraph::IsUberNode(FRPRMaterialGLTFNodePtr Node) const
 {
-    return Name;
-}
-
-FRPRMaterialGLTFUberNodePtr FRPRMaterialGLTFGraph::GetUberMaterial() const
-{
-    for (int i = 0; i < Nodes.Num(); ++i)
-    {
-        if (Nodes[i]->GetNodeType() == ERPRMaterialNodeType::Uber)
-        {
-            return StaticCastSharedPtr<FRPRMaterialGLTFUberNode>(Nodes[i]);
-        }
-    }
-    return nullptr;
-}
-
-FRPRMaterialGLTFNodePtr FRPRMaterialGLTFGraph::GetFirstMaterial()
-{
-    if (Nodes.Num() > 0)
-    {
-        return Nodes[0];
-    }
-    return nullptr;
-}
-
-const FRPRMaterialGLTFNodePtr FRPRMaterialGLTFGraph::GetFirstMaterial() const
-{
-    if (Nodes.Num() > 0)
-    {
-        return Nodes[0];
-    }
-    return nullptr;
-}
-
-const TArray<FRPRMaterialGLTFNodePtr>& FRPRMaterialGLTFGraph::GetMaterials() const
-{
-    return Nodes;
-}
-
-FRPRMaterialGLTFNodePtr FRPRMaterialGLTFGraph::FindNodeByName(const FName& NodeName)
-{
-    for (int i = 0; i < Nodes.Num(); ++i)
-    {
-        if (Nodes[i]->GetName() == NodeName)
-        {
-            return Nodes[i];
-        }
-    }
-    return nullptr;
+	return (Node->GetNodeType() == FRPRMaterialGLTFNode::ERPRMaterialNodeType::Uber);
 }

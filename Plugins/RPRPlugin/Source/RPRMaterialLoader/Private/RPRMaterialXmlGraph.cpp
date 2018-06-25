@@ -27,10 +27,10 @@ bool FRPRMaterialXmlGraph::ParseFromXmlFile(const FString& Filename)
 		return (false);
 	}
 
-	return (ParseFromXml(*materialNode));
+	return (Parse(*materialNode));
 }
 
-bool FRPRMaterialXmlGraph::ParseFromXml(const FXmlNode& Node)
+bool FRPRMaterialXmlGraph::Parse(const FXmlNode& Node)
 {
 	Name = *Node.GetAttribute(NODE_ATTRIBUTE_NAME);
 	ParseNodes(Node);
@@ -38,66 +38,19 @@ bool FRPRMaterialXmlGraph::ParseFromXml(const FXmlNode& Node)
 	return (Name.IsValid() && Nodes.Num() > 0);
 }
 
-void FRPRMaterialXmlGraph::LoadRPRMaterialParameters(FRPRMaterialNodeSerializationContext& SerializationContext)
+void FRPRMaterialXmlGraph::Load(FRPRMaterialGraphSerializationContext& SerializationContext)
 {
-	FRPRMaterialXmlUberNodePtr material = GetUberMaterial();
-	if (material.IsValid())
+	FRPRMaterialXmlNodePtr node = GetUberNode();
+	if (node.IsValid())
 	{
-		material->LoadRPRMaterialParameters(SerializationContext);
+		FRPRMaterialXmlUberNodePtr uberNodePtr = StaticCastSharedPtr<FRPRMaterialXmlUberNode>(node);
+		uberNodePtr->LoadRPRMaterialParameters(SerializationContext);
 	}
 }
 
-FRPRMaterialXmlNodePtr FRPRMaterialXmlGraph::FindNodeByName(const FName& NodeName)
+bool FRPRMaterialXmlGraph::IsUberNode(FRPRMaterialXmlNodePtr Node) const
 {
-	for (int32 i = 0; i < Nodes.Num(); ++i)
-	{
-		if (Nodes[i]->GetName() == NodeName)
-		{
-			return (Nodes[i]);
-		}
-	}
-	return (nullptr);
-}
-
-const FName& FRPRMaterialXmlGraph::GetName() const
-{
-	return (Name);
-}
-
-FRPRMaterialXmlUberNodePtr FRPRMaterialXmlGraph::GetUberMaterial() const
-{
-	for (int32 i = 0; i < Nodes.Num(); ++i)
-	{
-		if (Nodes[i]->GetNodeType() == ERPRMaterialNodeType::Uber)
-		{
-			return (StaticCastSharedPtr<FRPRMaterialXmlUberNode>(Nodes[i]));
-		}
-	}
-	return (nullptr);
-}
-
-FRPRMaterialXmlNodePtr FRPRMaterialXmlGraph::GetFirstMaterial()
-{
-	if (Nodes.Num() > 0)
-	{
-		return (Nodes[0]);
-	}
-
-	return (nullptr);
-}
-
-const FRPRMaterialXmlNodePtr FRPRMaterialXmlGraph::GetFirstMaterial() const
-{
-	if (Nodes.Num() > 0)
-	{
-		return (Nodes[0]);
-	}
-
-	return (nullptr);
-}
-const TArray<FRPRMaterialXmlNodePtr>& FRPRMaterialXmlGraph::GetMaterials() const
-{
-	return (Nodes);
+	return (Node->GetNodeType() == FRPRMaterialXmlNode::ERPRMaterialNodeType::Uber);
 }
 
 void FRPRMaterialXmlGraph::ParseNodes(const class FXmlNode& Node)
