@@ -5,7 +5,7 @@ void FRPRMatParamCopier_Bool::Apply(const FRPRUberMaterialParameters& RPRUberMat
 {
 	const FRPRMaterialBool* materialBool = Property->ContainerPtrToValuePtr<const FRPRMaterialBool>(&RPRUberMaterialParameters);
 
-	const FString& boolParameterName = materialBool->GetXmlParamName();
+	const FString& boolParameterName = materialBool->GetParameterName();
 	auto parameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorStaticSwitchParameterValue>(RPRMaterialEditorInstance, boolParameterName);
 	if (parameter)
 	{

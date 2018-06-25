@@ -11,7 +11,7 @@ void FRPRMatParamCopier_MaterialCoMChannel1::Apply(const FRPRUberMaterialParamet
 
 	const FRPRMaterialCoMChannel1* materialMap = Property->ContainerPtrToValuePtr<const FRPRMaterialCoMChannel1>(&RPRUberMaterialParameters);
 
-	const FString useMapParameterName = FRPRMatParamCopierUtility::CombinePropertyNameSection(materialMap->GetXmlParamName(), RPR::FEditorMaterialConstants::MaterialPropertyUseMapSection);
+	const FString useMapParameterName = FRPRMatParamCopierUtility::CombinePropertyNameSection(materialMap->GetParameterName(), RPR::FEditorMaterialConstants::MaterialPropertyUseMapSection);
 	auto useMapParameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorStaticSwitchParameterValue>(RPRMaterialEditorInstance, useMapParameterName);
 	if (useMapParameter)
 	{
@@ -19,7 +19,7 @@ void FRPRMatParamCopier_MaterialCoMChannel1::Apply(const FRPRUberMaterialParamet
 		useMapParameter->ParameterValue = ShouldUseMap(RPRUberMaterialParameters, Property, RPRMaterialEditorInstance);
 	}
 
-	const FString constantParameterName = FRPRMatParamCopierUtility::CombinePropertyNameSection(materialMap->GetXmlParamName(), RPR::FEditorMaterialConstants::MaterialPropertyConstantSection);
+	const FString constantParameterName = FRPRMatParamCopierUtility::CombinePropertyNameSection(materialMap->GetParameterName(), RPR::FEditorMaterialConstants::MaterialPropertyConstantSection);
 
 	switch (materialMap->RPRInterpretationMode)
 	{

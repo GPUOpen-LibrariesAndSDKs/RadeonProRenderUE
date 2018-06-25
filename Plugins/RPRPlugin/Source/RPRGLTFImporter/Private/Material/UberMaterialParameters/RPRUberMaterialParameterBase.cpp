@@ -16,9 +16,9 @@ uint32 FRPRUberMaterialParameterBase::GetRprxParam() const
 	return (RprxParamID);
 }
 
-const FString& FRPRUberMaterialParameterBase::GetXmlParamName() const
+const FString& FRPRUberMaterialParameterBase::GetParameterName() const
 {
-	return (XmlParamName);
+	return (ParamName);
 }
 
 FString FRPRUberMaterialParameterBase::GetPropertyName(UProperty* Property) const

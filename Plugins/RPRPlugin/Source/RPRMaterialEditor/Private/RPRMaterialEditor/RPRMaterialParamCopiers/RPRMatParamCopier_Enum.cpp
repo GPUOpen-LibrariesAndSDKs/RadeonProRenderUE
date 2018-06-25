@@ -6,7 +6,7 @@ void FRPRMatParamCopier_Enum::Apply(const FRPRUberMaterialParameters& RPRUberMat
 {
 	const FRPRMaterialEnum* materialEnum = Property->ContainerPtrToValuePtr<const FRPRMaterialEnum>(&RPRUberMaterialParameters);
 
-	const FString& parameterName = materialEnum->GetXmlParamName();
+	const FString& parameterName = materialEnum->GetParameterName();
 	auto parameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorScalarParameterValue>(RPRMaterialEditorInstance, parameterName);
 	if (parameter)
 	{

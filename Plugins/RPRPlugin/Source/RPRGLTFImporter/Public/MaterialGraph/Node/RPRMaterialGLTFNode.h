@@ -3,6 +3,7 @@
 #pragma once
 
 #include "GLTFTypedefs.h"
+#include "AMD_RPR_material.h"
 #include "RPRMaterialGLTFNodeInput.h"
 #include "RPRMaterialGLTFSerializationContext.h"
 #include "NameTypes.h"
@@ -13,7 +14,7 @@
 /*
 * Represents a material node in the glTF RPR material structure.
 */
-class FRPRMaterialGLTFNode : public FRPRMaterialNodeWithChildrenBase<GLTF::FRPRMaterial>
+class FRPRMaterialGLTFNode : public FRPRMaterialNodeWithChildrenBase<GLTF::FRPRMaterial, amd::BaseNode>
 {
 public:
 	
@@ -22,7 +23,8 @@ public:
 		Unsupported,
 		Uber,
 		NormalMap,
-		ImageTexture
+		ImageTexture,
+		Input
 	};
 
 

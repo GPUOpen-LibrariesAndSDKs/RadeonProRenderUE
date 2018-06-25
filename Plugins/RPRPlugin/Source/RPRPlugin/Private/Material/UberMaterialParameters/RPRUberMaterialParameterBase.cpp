@@ -4,8 +4,8 @@ FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase()
 	: RprxParamID(INDEX_NONE)
 {}
 
-FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, FCanUseParameter InCanUseParameter)
-	: XmlParamName(InXmlParamName)
+FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(const FString& InParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, FCanUseParameter InCanUseParameter)
+	: ParamName(InParamName)
 	, RprxParamID(InRprxParamID)
 	, SupportMode(InPreviewSupportMode)
 	, CanUseParameterDelegate(InCanUseParameter)
@@ -16,9 +16,9 @@ uint32 FRPRUberMaterialParameterBase::GetRprxParam() const
 	return (RprxParamID);
 }
 
-const FString& FRPRUberMaterialParameterBase::GetXmlParamName() const
+const FString& FRPRUberMaterialParameterBase::GetParameterName() const
 {
-	return (XmlParamName);
+	return (ParamName);
 }
 
 FString FRPRUberMaterialParameterBase::GetPropertyName(UProperty* Property) const

@@ -2,7 +2,7 @@
 #include "RPRMaterialNodeBase.h"
 
 template<typename TParsedElement>
-class FRPRMaterialNodeWithChildrenBase : public FRPRMaterialNodeBase<TParsedElement>
+class FRPRMaterialNodeWithChildrenBase : public FRPRMaterialNode<TParsedElement>
 {
 
 public:

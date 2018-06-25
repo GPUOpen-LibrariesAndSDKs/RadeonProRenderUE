@@ -7,7 +7,7 @@ void FRPRMatParamCopier_MaterialCoM::Apply(const FRPRUberMaterialParameters& RPR
 
 	const FRPRMaterialCoM* materialMap = Property->ContainerPtrToValuePtr<const FRPRMaterialCoM>(&RPRUberMaterialParameters);
 
-	const FString constantParameterName = FRPRMatParamCopierUtility::CombinePropertyNameSection(materialMap->GetXmlParamName(), RPR::FEditorMaterialConstants::MaterialPropertyConstantSection);
+	const FString constantParameterName = FRPRMatParamCopierUtility::CombinePropertyNameSection(materialMap->GetParameterName(), RPR::FEditorMaterialConstants::MaterialPropertyConstantSection);
 	auto constantParameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorVectorParameterValue>(RPRMaterialEditorInstance, constantParameterName);
 	if (constantParameter)
 	{

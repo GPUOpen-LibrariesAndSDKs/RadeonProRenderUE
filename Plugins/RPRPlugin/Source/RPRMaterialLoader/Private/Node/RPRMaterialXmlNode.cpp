@@ -10,7 +10,7 @@
 #define NODE_ATTRIBUTE_NAME TEXT("name")
 #define NODE_ATTRIBUTE_TAG	TEXT("tag")
 
-bool FRPRMaterialXmlNode::ParseFromXml(const FXmlNode& Node)
+bool FRPRMaterialXmlNode::Parse(const FXmlNode& Node, int32 NodeIndex)
 {
 	Name = *Node.GetAttribute(NODE_ATTRIBUTE_NAME);
 	Tag = *Node.GetAttribute(NODE_ATTRIBUTE_TAG);
@@ -31,37 +31,6 @@ void FRPRMaterialXmlNode::ParseParameters(const FXmlNode& Node)
 			Parameters.Add(nodeParameter);
 		}
 	}
-}
-
-UProperty* FRPRMaterialXmlNode::FindPropertyByXmlParamName(const FRPRUberMaterialParameters* UberMaterialParameters, 
-									const UStruct* MaterialParameterStruct, const FName& ParameterName) const
-{
-	FString parameterNameStr = ParameterName.ToString();
-
-	UProperty* propertyPtr = MaterialParameterStruct->PropertyLink;
-	while (propertyPtr != nullptr)
-	{
-		if (FUberMaterialPropertyHelper::IsPropertyValidUberParameterProperty(propertyPtr))
-		{
-			const FRPRUberMaterialParameterBase* uberMaterialParameterBase =
-				FUberMaterialPropertyHelper::GetParameterBaseFromProperty(UberMaterialParameters, propertyPtr);
-
-			const FString& xmlParamName = uberMaterialParameterBase->GetXmlParamName();
-			if (xmlParamName.Compare(parameterNameStr, ESearchCase::IgnoreCase) == 0)
-			{
-				return (propertyPtr);
-			}
-		}
-
-		propertyPtr = propertyPtr->PropertyLinkNext;
-	}
-
-	return (nullptr);
-}
-
-const FName& FRPRMaterialXmlNode::GetName() const
-{
-	return (Name);
 }
 
 const FName& FRPRMaterialXmlNode::GetTag() const

@@ -1,13 +1,10 @@
 #pragma once
 
-#include "NameTypes.h"
-#include "UnrealString.h"
+#include "Nodes/RPRMaterialNodeWithChildrenBase.h"
+#include "XmlNode.h"
 #include "RPRMaterialXmlNodeParameter.h"
-#include "RPRMaterialNodeSerializationContext.h"
-#include "Engine/Texture2D.h"
-#include "Containers/Map.h"
 
-class FRPRMaterialXmlNode : public FRPRMaterialNodeWithChildrenBase<GLTF::FRPRMaterial>
+class FRPRMaterialXmlNode : public FRPRMaterialNodeBase<FXmlNode, FXmlNode>
 {
 public:
 	
@@ -23,28 +20,20 @@ public:
 
 	virtual ~FRPRMaterialXmlNode() {}
 
-	virtual bool	ParseFromXml(const class FXmlNode& Node);
+	virtual bool	Parse(const class FXmlNode& Node, int32 NodeIndex);
 	
 	virtual ERPRMaterialNodeType	GetNodeType() const = 0;
 	
-	const FName&	GetName() const;
 	const FName&	GetTag() const;
-
-
-protected:
-
-	UProperty*	FindPropertyByXmlParamName(const FRPRUberMaterialParameters* UberMaterialParameters, 
-									const UStruct* MaterialParameterStruct, const FName& ParameterName) const;
 	
+
 private:
 
 	void	ParseParameters(const FXmlNode& Node);
 
 protected:
 
-	FName								Name;
-	FName								Tag;
-
+	FName									Tag;
 	TArray<FRPRMaterialXmlNodeParameter>	Parameters;
 
 };

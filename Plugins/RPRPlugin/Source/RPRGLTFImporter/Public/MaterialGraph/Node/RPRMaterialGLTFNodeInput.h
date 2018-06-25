@@ -19,14 +19,14 @@
 *   "value": 2
 * }
 */
-class FRPRMaterialGLTFNodeInput : public FRPRMaterialNodeBase<GLTF::FRPRMaterial, GLTF::FRPRNode>
+class FRPRMaterialGLTFNodeInput
 {
 public:
 
     FRPRMaterialGLTFNodeInput();
 
-    bool Parse(const GLTF::FRPRMaterial& InMaterial, int32 InNodeIndex);
-    void LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext, UProperty* PropertyPtr);
+    bool ParseFromGLTF(const GLTF::FRPRMaterial& InMaterial, int InNodeIndex, int InInputIndex);
+    void LoadRPRMaterialParameters(FRPRMaterialGLTFSerializationContext& SerializationContext, UProperty* PropertyPtr);
 
     /** Get the name of this input. */
     const FName& GetName() const;
@@ -52,6 +52,12 @@ private:
 
 private:
 
+    /** The user-defined name of this node input in the glTF RPR material graph. */
+    FName Name;
+
+    /** The name of the node that this input belongs to. */
+    FName NodeName;
+
     /** The type of value this input contains. */
     ERPRMaterialNodeInputValueType Type;
 
@@ -67,5 +73,3 @@ private:
     static TMap<GLTF::ERPRInputValueType, ERPRMaterialNodeInputValueType> GLTFTypeEnumToUETypeEnumMap;
 
 };
-
-typedef TSharedPtr<FRPRMaterialGLTFNodeInput> FRPRMaterialGLTFNodeInputPtr;

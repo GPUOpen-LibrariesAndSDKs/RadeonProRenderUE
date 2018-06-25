@@ -5,64 +5,64 @@
 * Represents a material node in a RPR material graph.
 */
 template<typename TParsedElement, typename TRawNodeType>
-class FRPRMaterialNodeBase : public TSharedFromThis<FRPRMaterialNodeBase>
+class FRPRMaterialNode : public TSharedFromThis<FRPRMaterialNode>
 {
 public:
 
-	virtual ~FRPRMaterialNodeBase() {}
+	virtual ~FRPRMaterialNode() {}
 
 
 	virtual bool	Parse(const TParsedElement& Element, int32 NodeIndex) = 0;
 	
-	void			SetParent(TSharedPtr<FRPRMaterialNodeBase<TParsedElement, TRawNodeType>> InParent);
+	void			SetParent(TSharedPtr<FRPRMaterialNode<TParsedElement, TRawNodeType>> InParent);
 	const FName&	GetName() const;
 	virtual bool	HasChildren() const;
 
-	virtual const TArray<TSharedPtr<FRPRMaterialNodeBase, TRawNodeType>>* GetChildren() const;
+	virtual const TArray<TSharedPtr<FRPRMaterialNode, TRawNodeType>>* GetChildren() const;
 	
 protected:
 
-	UProperty*	FindPropertyByName(const FRPRUberMaterialParameters* UberMaterialParameters,
+	UProperty*	FindPropertyParameterByName(const FRPRUberMaterialParameters* UberMaterialParameters,
 		const UStruct* MaterialParameterStruct, const FName& ParameterName) const;
 
 protected:
 
 	FName			Name;
-	TSharedPtr<FRPRMaterialNodeBase<TParsedElement, TRawNodeType>> Parent;
 	TRawNodeType*	RawNode;
+	TSharedPtr<FRPRMaterialNode<TParsedElement, TRawNodeType>> Parent;
 };
 
 
 template<typename T, typename U>
-typedef TSharedPtr<FRPRMaterialNodeBase<T, U>> FRPRMaterialNodeBasePtr;
+typedef TSharedPtr<FRPRMaterialNode<T, U>> FRPRMaterialNodeBasePtr;
 
 
 template<typename T, typename U>
-void FRPRMaterialNodeBase<T, U>::SetParent(TSharedPtr<FRPRMaterialNodeBase<T, U>> InParent)
+void FRPRMaterialNode<T, U>::SetParent(TSharedPtr<FRPRMaterialNode<T, U>> InParent)
 {
 	Parent = InParent;
 }
 
 template<typename T, typename U>
-const FName& FRPRMaterialNodeBase<T, U>::GetName() const
+const FName& FRPRMaterialNode<T, U>::GetName() const
 {
 	return (Name);
 }
 
 template<typename T, typename U>
-const TArray<FRPRMaterialNodeBasePtr>* FRPRMaterialNodeBase<T, U>::GetChildren() const
+const TArray<FRPRMaterialNodeBasePtr>* FRPRMaterialNode<T, U>::GetChildren() const
 {
 	return (nullptr);
 }
 
 template<typename T, typename U>
-bool FRPRMaterialNodeBase<T, U>::HasChildren() const
+bool FRPRMaterialNode<T, U>::HasChildren() const
 {
 	return (Children.Num() > 0);
 }
 
 template<typename T, typename U>
-UProperty* FRPRMaterialNodeBase<T, U>::FindPropertyByName(const FRPRUberMaterialParameters* UberMaterialParameters, const UStruct* MaterialParameterStruct, const FName& InName) const
+UProperty* FRPRMaterialNode<T, U>::FindPropertyParameterByName(const FRPRUberMaterialParameters* UberMaterialParameters, const UStruct* MaterialParameterStruct, const FName& InName) const
 {
 	FString InNameStr = InName.ToString();
 
@@ -74,7 +74,7 @@ UProperty* FRPRMaterialNodeBase<T, U>::FindPropertyByName(const FRPRUberMaterial
 			const FRPRUberMaterialParameterBase* UberMaterialParameterBase =
 				FUberMaterialPropertyHelper::GetParameterBaseFromProperty(UberMaterialParameters, Property);
 
-			const FString& name = UberMaterialParameterBase->GetParamName();
+			const FString& name = UberMaterialParameterBase->GetParameterName();
 
 			if (name.Compare(InNameStr, ESearchCase::IgnoreCase) == 0)
 			{

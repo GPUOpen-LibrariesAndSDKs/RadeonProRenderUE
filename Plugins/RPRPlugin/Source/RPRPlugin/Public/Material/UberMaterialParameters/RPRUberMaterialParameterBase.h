@@ -29,7 +29,7 @@ public:
 
 	FRPRUberMaterialParameterBase();
 	FRPRUberMaterialParameterBase(
-		const FString& InXmlParamName, 
+		const FString& InParamName, 
 		uint32 InRprxParamID, 
 		ESupportMode InPreviewSupportMode, 
 		FCanUseParameter InCanUseParameter = FCanUseParameter());
@@ -37,7 +37,7 @@ public:
 	virtual ~FRPRUberMaterialParameterBase() {}
 
 	uint32			GetRprxParam() const;
-	const FString&	GetXmlParamName() const;
+	const FString&	GetParameterName() const;
 	bool			CanUseParameter() const;
 	bool			IsPreviewSupported() const;
 	bool			IsPropertySupported() const;
@@ -60,7 +60,7 @@ private:
 	uint32		RprxParamID;
 
 	UPROPERTY()
-	FString		XmlParamName;
+	FString		ParamName;
 
 	FCanUseParameter CanUseParameterDelegate;
 };

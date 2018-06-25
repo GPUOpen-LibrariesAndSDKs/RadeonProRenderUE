@@ -10,7 +10,7 @@ class FRPRMaterialGraphSerializationContext
 {
 	FString	ImportedFilePath;
 
-	class FRPRMaterialGraphBase*		MaterialGraph;
+	class FRPRMaterialGraph*		MaterialGraph;
 	struct FRPRUberMaterialParameters*	MaterialParameters;
 
 	template<typename T>
