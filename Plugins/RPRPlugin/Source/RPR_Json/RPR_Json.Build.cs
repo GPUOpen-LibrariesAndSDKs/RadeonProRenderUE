@@ -18,5 +18,7 @@ public class RPR_Json : ModuleRules
             new string[] {
                 ModuleDirectory + "/" + ThirdPartyDirectory + "json/include",
             });
+
+        PrivateDependencyModuleNames.Add("Core");
     }
 }
