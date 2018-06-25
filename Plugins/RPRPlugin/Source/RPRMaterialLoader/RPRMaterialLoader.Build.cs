@@ -43,6 +43,7 @@ public class RPRMaterialLoader : ModuleRules
                 "RPRPlugin",
                 "RPRTools",
                 "RPRGraphParser",
+                "XmlParser",
             }
             );
 
@@ -53,7 +54,6 @@ public class RPRMaterialLoader : ModuleRules
                 "CoreUObject",
                 "Engine",
                 "PropertyEditor",
-                "XmlParser",
                 "RPRMaterialEditor",
 			}
         );

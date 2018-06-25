@@ -19,7 +19,7 @@ public:
 	FRPRMaterialXmlNodeParameter();
 
 	bool	ParseFromXml(const class FXmlNode& Node);
-	void	LoadRPRMaterialParameters(struct FRPRMaterialNodeSerializationContext& SerializationContext, UProperty* PropertyPtr);
+	void	LoadRPRMaterialParameters(struct FRPRMaterialGraphSerializationContext& SerializationContext, UProperty* PropertyPtr);
 	
 	const FName&	GetName() const;
 	const FString&	GetValue() const;

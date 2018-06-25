@@ -1,10 +1,10 @@
 #include "NodeParamRPRMaterialBool.h"
 #include "RPRMaterialXmlNodeParameter.h"
 #include "UnrealType.h"
-#include "RPRMaterialNodeSerializationContext.h"
 #include "RPRUberMaterialParameters.h"
+#include "RPRMaterialGraphSerializationContext.h"
 
-void FNodeParamRPRMaterialBool::LoadRPRMaterialParameters(FRPRMaterialNodeSerializationContext& SerializationContext,
+void FNodeParamRPRMaterialBool::LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext,
 															FRPRMaterialXmlNodeParameter& CurrentNodeParameter, 
 															UProperty* Property)
 {

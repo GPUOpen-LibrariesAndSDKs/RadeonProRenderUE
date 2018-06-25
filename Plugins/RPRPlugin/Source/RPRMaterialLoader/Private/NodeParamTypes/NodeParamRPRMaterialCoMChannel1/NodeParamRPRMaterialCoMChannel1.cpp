@@ -1,11 +1,11 @@
 #include "NodeParamRPRMaterialCoMChannel1.h"
 #include "RPRMaterialXmlNodeParameter.h"
-#include "RPRMaterialNodeSerializationContext.h"
+#include "RPRMaterialGraphSerializationContext.h"
 #include "UnrealType.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogNodeParamRPRMaterialMapChannel1, Log, All)
 
-void FNodeParamRPRMaterialCoMChannel1::LoadRPRMaterialParameters(FRPRMaterialNodeSerializationContext& SerializationContext, 
+void FNodeParamRPRMaterialCoMChannel1::LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext, 
 	FRPRMaterialXmlNodeParameter& CurrentNodeParameter, UProperty* Property)
 {
 	FRPRMaterialCoMChannel1* mapChannel1 = 

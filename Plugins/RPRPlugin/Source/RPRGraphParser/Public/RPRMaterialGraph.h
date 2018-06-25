@@ -1,8 +1,15 @@
 #pragma once
 #include "RPRMaterialGraphSerializationContext.h"
 
+class IRPRMaterialGraph
+{
+public:
+	virtual const FName&	GetName() const = 0;
+	virtual void			Load(FRPRMaterialGraphSerializationContext& SerializationContext) = 0;
+};
+
 template<typename TParsedElementType, typename TNodeGraph>
-class FRPRMaterialGraph
+class FRPRMaterialGraph : public IRPRMaterialGraph
 {
 public:
 
@@ -10,12 +17,12 @@ public:
 
 public:
 
-	virtual bool	Parse(const TParsedElementType& Element) = 0;
-	virtual void	Load(FRPRMaterialGraphSerializationContext& SerializationContext) = 0;
+	virtual ~FRPRMaterialGraph() {}
 
+	virtual bool	Parse(const TParsedElementType& Element) = 0;
 	virtual bool	IsUberNode(TNodeGraphPtr Node) const = 0;
 
-	const FName&					GetName() const;
+	virtual const FName&			GetName() const;
 	TNodeGraphPtr					GetUberNode() const;
 	TNodeGraphPtr					GetFirstNode();
 	const TNodeGraphPtr				GetFirstNode() const;
@@ -46,8 +53,8 @@ template<typename T, typename U>
 using FRPRMaterialGraphPtr = TSharedPtr<FRPRMaterialGraph<T, U>>;
 
 
-template<typename TParsedElementType, typename TNodeGraph>
-TNodeGraphPtr FRPRMaterialGraph<TParsedElementType, TNodeGraph>::GetUberNode() const
+template<typename T, typename U>
+TSharedPtr<U>							FRPRMaterialGraph<T, U>::GetUberNode() const
 {
 	for (int32 i = 0; i < Nodes.Num(); ++i)
 	{
@@ -59,29 +66,28 @@ TNodeGraphPtr FRPRMaterialGraph<TParsedElementType, TNodeGraph>::GetUberNode() c
 	return (nullptr);
 }
 
-template<typename TParsedElementType, typename TNodeGraph>
-const TNodeGraphPtr FRPRMaterialGraph<TParsedElementType, TNodeGraph>::GetFirstNode() const
+template<typename T, typename U>
+const TSharedPtr<U>						FRPRMaterialGraph<T, U>::GetFirstNode() const
 {
 	check(Nodes.Num() > 0);
 	return (Nodes[0]);
 }
 
-template<typename TParsedElementType, typename TNodeGraph>
-TNodeGraphPtr FRPRMaterialGraph<TParsedElementType, TNodeGraph>::GetFirstNode()
+template<typename T, typename U>
+TSharedPtr<U>							FRPRMaterialGraph<T, U>::GetFirstNode()
 {
 	check(Nodes.Num() > 0);
 	return (Nodes[0]);
 }
 
-template<typename TParsedElementType, typename TNodeGraph>
-const TArray<TNodeGraphPtr>& FRPRMaterialGraph<TParsedElementType, TNodeGraph>::GetNodes() const
+template<typename T, typename U>
+const TArray<TSharedPtr<U>>&			FRPRMaterialGraph<T, U>::GetNodes() const
 {
 	return (Nodes);
 }
 
-
-template<typename TParsedElementType, typename TNodeGraph>
-TNodeGraphPtr				FRPRMaterialGraph<TParsedElementType, TNodeGraph>::FindNodeByName(const FName& NodeName)
+template<typename T, typename U>
+TSharedPtr<U>							FRPRMaterialGraph<T, U>::FindNodeByName(const FName& NodeName)
 {
 	for (int32 i = 0; i < Nodes.Num(); ++i)
 	{
@@ -93,8 +99,8 @@ TNodeGraphPtr				FRPRMaterialGraph<TParsedElementType, TNodeGraph>::FindNodeByNa
 	return (nullptr);
 }
 
-template<typename TParsedElementType>
-const FName& FRPRMaterialGraph<TParsedElementType>::GetName() const
+template<typename T, typename U>
+const FName&							FRPRMaterialGraph<T, U>::GetName() const
 {
 	return (Name);
 }

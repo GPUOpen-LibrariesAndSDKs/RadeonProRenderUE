@@ -8,17 +8,17 @@
 
 TSharedPtr<FRPRMaterialXmlNode> FRPRMaterialXmlNodeFactory::CreateNodeFromXmlNode(const class FXmlNode& Node)
 {
-	ERPRMaterialNodeType nodeType = FRPRMaterialXmlNodeTypeParser::ParseTypeFromXml(Node);
+	FRPRMaterialXmlNode::ERPRMaterialNodeType nodeType = FRPRMaterialXmlNodeTypeParser::ParseTypeFromXml(Node);
 
 	TSharedPtr<FRPRMaterialXmlNode> materialNode;
 
 	switch (nodeType)
 	{
-	case ERPRMaterialNodeType::Uber:
+	case FRPRMaterialXmlNode::ERPRMaterialNodeType::Uber:
 		materialNode = MakeShareable(new FRPRMaterialXmlUberNode());
 		break;
 
-	case ERPRMaterialNodeType::InputTexture:
+	case FRPRMaterialXmlNode::ERPRMaterialNodeType::InputTexture:
 		materialNode = MakeShareable(new FRPRMaterialXmlInputTextureNode());
 		break;
 

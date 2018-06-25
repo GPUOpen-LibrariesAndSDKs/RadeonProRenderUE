@@ -1,10 +1,11 @@
 #pragma once
 
 #include "Nodes/RPRMaterialNodeWithChildrenBase.h"
-#include "XmlNode.h"
 #include "RPRMaterialXmlNodeParameter.h"
+#include "Nodes/RPRMaterialNodeBase.h"
+#include "XmlNode.h"
 
-class FRPRMaterialXmlNode : public FRPRMaterialNodeBase<FXmlNode, FXmlNode>
+class FRPRMaterialXmlNode : public FRPRMaterialNode<FXmlNode, FXmlNode>
 {
 public:
 	
@@ -20,7 +21,7 @@ public:
 
 	virtual ~FRPRMaterialXmlNode() {}
 
-	virtual bool	Parse(const class FXmlNode& Node, int32 NodeIndex);
+	virtual bool	Parse(const class FXmlNode& Node, int32 NodeIndex) override;
 	
 	virtual ERPRMaterialNodeType	GetNodeType() const = 0;
 	

@@ -151,12 +151,12 @@ UMaterialInterface* URPRMaterialFactory::TryLoadUberMaterial(FFeedbackContext* W
 
 void URPRMaterialFactory::LoadRPRMaterialParameters(URPRMaterial* RPRMaterial, FRPRMaterialXmlGraph& MaterialXmlGraph, const FString& Filename)
 {
-	FRPRMaterialNodeSerializationContext serializationContext;
+	FRPRMaterialGraphSerializationContext serializationContext;
 	serializationContext.ImportedFilePath = Filename;
 	serializationContext.MaterialParameters = &RPRMaterial->MaterialParameters;
-	serializationContext.MaterialXmlGraph = &MaterialXmlGraph;
+	serializationContext.MaterialGraph = &MaterialXmlGraph;
 
-	MaterialXmlGraph.LoadRPRMaterialParameters(serializationContext);
+	MaterialXmlGraph.Load(serializationContext);
 }
 
 void URPRMaterialFactory::CopyRPRMaterialParameterToMaterialInstance(class URPRMaterial* RPRMaterial)

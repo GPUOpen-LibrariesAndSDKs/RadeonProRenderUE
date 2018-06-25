@@ -1,9 +1,10 @@
 #include "NodeParamRPRMaterialEnum.h"
 #include "UnrealType.h"
 #include "RPRMaterialXmlNodeParameter.h"
-#include "RPRMaterialNodeSerializationContext.h"
+#include "RPRMaterialGraphSerializationContext.h"
+#include "RPRMaterialEnum.h"
 
-void FNodeParamRPRMaterialEnum::LoadRPRMaterialParameters(FRPRMaterialNodeSerializationContext& SerializationContext, 
+void FNodeParamRPRMaterialEnum::LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext, 
 															FRPRMaterialXmlNodeParameter& CurrentNodeParameter, 
 															UProperty* Property)
 {

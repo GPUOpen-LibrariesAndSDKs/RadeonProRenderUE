@@ -9,7 +9,7 @@ public:
 
 	virtual ERPRMaterialNodeType GetNodeType() const override;
 
-	void	LoadRPRMaterialParameters(FRPRMaterialNodeSerializationContext& SerializationContext);
+	void	LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext);
 
 };
 

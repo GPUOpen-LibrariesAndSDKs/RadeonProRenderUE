@@ -5,11 +5,11 @@
 #include "RPRMaterialXmlGraph.h"
 #include "RPRUberMaterialParameters.h"
 #include "RPRMaterialXmlInputTextureNode.h"
-#include "RPRMaterialNodeSerializationContext.h"
+#include "RPRMaterialGraphSerializationContext.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogNodeParamRPRMaterialMap, Log, All)
 
-void FNodeParamRPRMaterialCoM::LoadRPRMaterialParameters(FRPRMaterialNodeSerializationContext& SerializationContext,
+void FNodeParamRPRMaterialCoM::LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext,
 											FRPRMaterialXmlNodeParameter& CurrentNodeParameter, 
 											UProperty* Property)
 {
@@ -33,7 +33,7 @@ void FNodeParamRPRMaterialCoM::LoadRPRMaterialParameters(FRPRMaterialNodeSeriali
 	}
 }
 
-void FNodeParamRPRMaterialCoM::LoadTextureFromConnectionInput(FRPRMaterialMap* InMaterialMap, FRPRMaterialNodeSerializationContext& SerializationContext, FRPRMaterialXmlNodeParameter& CurrentNodeParameter)
+void FNodeParamRPRMaterialCoM::LoadTextureFromConnectionInput(FRPRMaterialMap* InMaterialMap, FRPRMaterialGraphSerializationContext& SerializationContext, FRPRMaterialXmlNodeParameter& CurrentNodeParameter)
 {
 	FNodeParamRPRMaterialMap::LoadTextureFromConnectionInput(InMaterialMap, SerializationContext, CurrentNodeParameter);
 

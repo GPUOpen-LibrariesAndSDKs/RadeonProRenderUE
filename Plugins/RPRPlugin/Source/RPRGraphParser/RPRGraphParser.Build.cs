@@ -29,6 +29,7 @@ public class RPRGraphParser : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
+                "RPRPlugin"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

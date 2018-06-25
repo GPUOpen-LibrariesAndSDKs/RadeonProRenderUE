@@ -1,24 +1,30 @@
 #pragma once
 #include "CoreMinimal.h"
+#include "RPRUberMaterialParameters.h"
+#include "UberMaterialPropertyHelper.h"
+#include "RPRUberMaterialParameterBase.h"
 
 /*
 * Represents a material node in a RPR material graph.
 */
 template<typename TParsedElement, typename TRawNodeType>
-class FRPRMaterialNode : public TSharedFromThis<FRPRMaterialNode>
+class FRPRMaterialNode : public TSharedFromThis<FRPRMaterialNode<TParsedElement, TRawNodeType>>
 {
 public:
+
+	using FRPRMaterialNodeTyped = FRPRMaterialNode<TParsedElement, TRawNodeType>;
+	using FRPRMaterialNodeTypedPtr = TSharedPtr<FRPRMaterialNodeTyped>;
 
 	virtual ~FRPRMaterialNode() {}
 
 
 	virtual bool	Parse(const TParsedElement& Element, int32 NodeIndex) = 0;
 	
-	void			SetParent(TSharedPtr<FRPRMaterialNode<TParsedElement, TRawNodeType>> InParent);
+	void			SetParent(FRPRMaterialNodeTypedPtr InParent);
 	const FName&	GetName() const;
 	virtual bool	HasChildren() const;
 
-	virtual const TArray<TSharedPtr<FRPRMaterialNode, TRawNodeType>>* GetChildren() const;
+	virtual const TArray<FRPRMaterialNodeTypedPtr>* GetChildren() const;
 	
 protected:
 
@@ -27,14 +33,14 @@ protected:
 
 protected:
 
-	FName			Name;
-	TRawNodeType*	RawNode;
-	TSharedPtr<FRPRMaterialNode<TParsedElement, TRawNodeType>> Parent;
+	FName						Name;
+	TRawNodeType*				RawNode;
+	FRPRMaterialNodeTypedPtr	Parent;
 };
 
 
 template<typename T, typename U>
-typedef TSharedPtr<FRPRMaterialNode<T, U>> FRPRMaterialNodeBasePtr;
+using FRPRMaterialNodeBasePtr = TSharedPtr<FRPRMaterialNode<T, U>>;
 
 
 template<typename T, typename U>
@@ -50,7 +56,7 @@ const FName& FRPRMaterialNode<T, U>::GetName() const
 }
 
 template<typename T, typename U>
-const TArray<FRPRMaterialNodeBasePtr>* FRPRMaterialNode<T, U>::GetChildren() const
+const TArray<FRPRMaterialNodeBasePtr<T, U>>* FRPRMaterialNode<T, U>::GetChildren() const
 {
 	return (nullptr);
 }
@@ -58,7 +64,7 @@ const TArray<FRPRMaterialNodeBasePtr>* FRPRMaterialNode<T, U>::GetChildren() con
 template<typename T, typename U>
 bool FRPRMaterialNode<T, U>::HasChildren() const
 {
-	return (Children.Num() > 0);
+	return (false);
 }
 
 template<typename T, typename U>
@@ -66,7 +72,6 @@ UProperty* FRPRMaterialNode<T, U>::FindPropertyParameterByName(const FRPRUberMat
 {
 	FString InNameStr = InName.ToString();
 
-	UProperty* Property = MaterialParameterStruct->PropertyLink;
 	for (UProperty* Property = MaterialParameterStruct->PropertyLink; Property != nullptr; Property = Property->PropertyLinkNext)
 	{
 		if (FUberMaterialPropertyHelper::IsPropertyValidUberParameterProperty(Property))

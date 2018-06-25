@@ -13,6 +13,8 @@ class RPRMATERIALLOADER_API FRPRMaterialXmlGraph : public FRPRMaterialGraph<FXml
 {
 public:
 
+	virtual ~FRPRMaterialXmlGraph() {}
+
 	bool	ParseFromXmlFile(const FString& Filename);
 
 	virtual bool	Parse(const class FXmlNode& Node);

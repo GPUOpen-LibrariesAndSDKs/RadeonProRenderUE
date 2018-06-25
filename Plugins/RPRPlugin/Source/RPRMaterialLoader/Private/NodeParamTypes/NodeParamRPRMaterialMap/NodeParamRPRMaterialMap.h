@@ -4,19 +4,19 @@
 #include "RPRMaterialMap.h"
 #include "RPRUberMaterialParameters.h"
 #include "RPRMaterialXmlNodeParameter.h"
-#include "RPRMaterialNodeSerializationContext.h"
+#include "RPRMaterialGraphSerializationContext.h"
 
 class FNodeParamRPRMaterialMap : public INodeParamType
 {
 public:
 	virtual void LoadRPRMaterialParameters(
-		struct FRPRMaterialNodeSerializationContext& SerializationContext, 
+		struct FRPRMaterialGraphSerializationContext& SerializationContext, 
 		class FRPRMaterialXmlNodeParameter& CurrentNodeParameter, 
 		class UProperty* Property) override;
 
 protected:
 	virtual void	LoadTextureFromConnectionInput(FRPRMaterialMap* InMaterialMap, 
-							FRPRMaterialNodeSerializationContext& SerializationContext,
+							FRPRMaterialGraphSerializationContext& SerializationContext,
 							FRPRMaterialXmlNodeParameter& CurrentNodeParameter);
 
 };

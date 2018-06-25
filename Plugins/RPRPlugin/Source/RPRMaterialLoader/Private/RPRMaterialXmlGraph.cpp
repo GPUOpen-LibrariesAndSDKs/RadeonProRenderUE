@@ -59,7 +59,7 @@ void FRPRMaterialXmlGraph::ParseNodes(const class FXmlNode& Node)
 	for (int32 i = 0; i < children.Num(); ++i)
 	{
 		FRPRMaterialXmlNodePtr materialNode = FRPRMaterialXmlNodeFactory::CreateNodeFromXmlNode(*children[i]);
-		if (materialNode->ParseFromXml(*children[i]))
+		if (materialNode->Parse(*children[i], i))
 		{
 			Nodes.Add(materialNode);
 		}

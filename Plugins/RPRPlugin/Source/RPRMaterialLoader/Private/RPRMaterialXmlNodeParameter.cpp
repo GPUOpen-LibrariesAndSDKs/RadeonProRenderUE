@@ -1,11 +1,11 @@
 #include "RPRMaterialXmlNodeParameter.h"
-#include "RPRMaterialNodeSerializationContext.h"
 #include "Factory/NodeParamTypeFactory.h"
 #include "RPRUberMaterialParameters.h"
 #include "RPRMaterialXmlGraph.h"
 #include "INodeParamType.h"
 #include "XmlNode.h"
 #include "UberMaterialPropertyHelper.h"
+#include "RPRMaterialGraphSerializationContext.h"
 
 #define NODE_ATTRIBUTE_NAME		TEXT("name")
 #define NODE_ATTRIBUTE_TYPE		TEXT("type")
@@ -35,7 +35,7 @@ bool FRPRMaterialXmlNodeParameter::ParseFromXml(const FXmlNode& Node)
 	return (!Name.IsNone() && Type != ERPRMaterialNodeParameterValueType::Unsupported && !Value.IsEmpty());
 }
 
-void FRPRMaterialXmlNodeParameter::LoadRPRMaterialParameters(FRPRMaterialNodeSerializationContext& SerializationContext, 
+void FRPRMaterialXmlNodeParameter::LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext, 
 																									UProperty* PropertyPtr)
 {
 	const FRPRUberMaterialParameterBase* uberMaterialParameter =

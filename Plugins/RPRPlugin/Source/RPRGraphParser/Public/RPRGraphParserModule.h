@@ -7,7 +7,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRPRGraphParser, All, All);
 
-class RPRGraphParserModule : public IModuleInterface
+class FRPRGraphParserModule : public IModuleInterface
 {
 public:
 	virtual void	StartupModule() override;

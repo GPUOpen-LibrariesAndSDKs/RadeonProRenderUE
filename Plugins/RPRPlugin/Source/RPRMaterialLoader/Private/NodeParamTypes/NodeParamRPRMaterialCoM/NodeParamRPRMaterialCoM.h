@@ -8,13 +8,13 @@ class FNodeParamRPRMaterialCoM : public FNodeParamRPRMaterialMap
 {
 
 public:
-	virtual void LoadRPRMaterialParameters(struct FRPRMaterialNodeSerializationContext& SerializationContext, 
+	virtual void LoadRPRMaterialParameters(struct FRPRMaterialGraphSerializationContext& SerializationContext, 
 							class FRPRMaterialXmlNodeParameter& CurrentNodeParameter, class UProperty* Property) override;
 
 protected:
 
 	virtual void LoadTextureFromConnectionInput(FRPRMaterialMap* InMaterialMap, 
-								FRPRMaterialNodeSerializationContext& SerializationContext, 
+								FRPRMaterialGraphSerializationContext& SerializationContext, 
 								FRPRMaterialXmlNodeParameter& CurrentNodeParameter) override;
 
 private:

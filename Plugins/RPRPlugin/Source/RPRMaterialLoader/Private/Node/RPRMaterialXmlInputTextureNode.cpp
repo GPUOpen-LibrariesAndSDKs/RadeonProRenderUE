@@ -2,15 +2,16 @@
 #include "RPRSettings.h"
 #include "AssetToolsModule.h"
 #include "ModuleManager.h"
+#include "RPRMaterialGraphSerializationContext.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRMaterialXmlInputTextureNode, Log, All)
 
-ERPRMaterialNodeType FRPRMaterialXmlInputTextureNode::GetNodeType() const
+FRPRMaterialXmlNode::ERPRMaterialNodeType FRPRMaterialXmlInputTextureNode::GetNodeType() const
 {
 	return (ERPRMaterialNodeType::InputTexture);
 }
 
-UTexture2D* FRPRMaterialXmlInputTextureNode::ImportTexture(FRPRMaterialNodeSerializationContext& SerializationContext)
+UTexture2D* FRPRMaterialXmlInputTextureNode::ImportTexture(FRPRMaterialGraphSerializationContext& SerializationContext)
 {
 	const FString& relativeTexturePath = Parameters[0].GetValue();
 	const FString importMaterialDirectory = FPaths::GetPath(SerializationContext.ImportedFilePath);
