@@ -7,7 +7,7 @@
 
 namespace GLTF
 {
-	class FBufferCache
+	class RPR_GLTF_API FBufferCache
 	{
 	public:
 

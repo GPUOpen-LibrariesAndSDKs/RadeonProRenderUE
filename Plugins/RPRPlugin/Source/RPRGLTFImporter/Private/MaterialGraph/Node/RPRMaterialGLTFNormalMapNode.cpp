@@ -8,24 +8,26 @@
 #include "RPRMaterialGLTFGraph.h"
 
 #include "RPRGLTFImporterModule.h"
+#include "RPRMaterialGLTFNode.h"
+#include "RPRMaterialGLTFNodeInput.h"
 
-ERPRMaterialNodeType FRPRMaterialGLTFNormalMapNode::GetNodeType() const
+FRPRMaterialGLTFNode::ERPRMaterialNodeType FRPRMaterialGLTFNormalMapNode::GetNodeType() const
 {
-    return ERPRMaterialNodeType::NormalMap;
+    return FRPRMaterialGLTFNode::ERPRMaterialNodeType::NormalMap;
 }
 
 UTexture2D* FRPRMaterialGLTFNormalMapNode::ImportNormal(FRPRMaterialGraphSerializationContext& SerializationContext)
 {
-    FRPRMaterialGLTFNodeInput* ColorInput = nullptr;
-    for (int i = 0; i < Inputs.Num(); ++i)
+    FRPRMaterialGLTFNodeInputPtr ColorInput;
+    for (int i = 0; i < Children.Num(); ++i)
     {
-        if (Inputs[i].GetName() == TEXT("color"))
+        if (Children[i]->GetName() == TEXT("color"))
         {
-            ColorInput = &Inputs[i];
+            ColorInput = StaticCastSharedPtr<FRPRMaterialGLTFNodeInput>(Children[i]);
             break;
         }
     }
-    if (ColorInput == nullptr)
+    if (!ColorInput.IsValid())
     {
         UE_LOG(LogRPRGLTFImporter, Error, TEXT("FRPRMaterialGLTFNormalMapNode::ImportNormal: NormalMap has no color input?"));
         return nullptr;
@@ -33,7 +35,7 @@ UTexture2D* FRPRMaterialGLTFNormalMapNode::ImportNormal(FRPRMaterialGraphSeriali
 
     FString InputNodeName;
     ColorInput->GetValue(InputNodeName);
-    FRPRMaterialGLTFNodePtr ColorInputNode = SerializationContext.MaterialGLTFGraph->FindNodeByName(*InputNodeName);
+    FRPRMaterialGLTFNodePtr ColorInputNode = SerializationContext.GetMaterialGraph<FRPRMaterialGLTFGraph>()->FindNodeByName(*InputNodeName);
     if (!ColorInputNode.IsValid())
     {
         UE_LOG(LogRPRGLTFImporter, Error, TEXT("FRPRMaterialGLTFNormalMapNode::ImportNormal: NormalMap color input doesn't point to a node?"));

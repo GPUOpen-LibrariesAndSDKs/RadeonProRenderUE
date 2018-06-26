@@ -161,8 +161,8 @@ bool URPRGLTFImportFactory::LoadGLTFData(const FString& InFilename, TSharedPtr<G
     nlohmann::json json;
     json = nlohmann::json::parse(FileBuffer.c_str());
 
-	gltf::glTF gltfObj = json;
-    TSharedPtr<GLTF::FData> GLTFData = MakeShareable(new gltf::glTF(gltfObj));
+	gltf::glTFAssetData gltfObj = json;
+    TSharedPtr<GLTF::FData> GLTFData = MakeShareable(new gltf::glTFAssetData(gltfObj));
     if (GLTFData.IsValid())
     {
         // Parse the extensions that are used by this file

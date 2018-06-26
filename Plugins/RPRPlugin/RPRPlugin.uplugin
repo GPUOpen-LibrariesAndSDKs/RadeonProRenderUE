@@ -63,7 +63,7 @@
 		},
 		{
 			"Name": "RPR_GLTF",
-			"Type": "Editor",
+			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"WhitelistPlatforms": [ "Win64" ]
 		},

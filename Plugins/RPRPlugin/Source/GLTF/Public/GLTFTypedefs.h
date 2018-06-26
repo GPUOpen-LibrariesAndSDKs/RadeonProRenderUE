@@ -9,7 +9,7 @@
 namespace GLTF
 {
 	//~ glTF typedefs
-	typedef gltf::glTF FData;
+	typedef gltf::glTFAssetData FData;
 	typedef gltf::Scene FScene;
 	typedef gltf::Node FNode;
 	typedef gltf::Material FMaterial;

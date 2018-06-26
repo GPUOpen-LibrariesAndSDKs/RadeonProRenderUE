@@ -1,6 +1,7 @@
 //~ RPR copyright
 
 #include "RPRMaterialGLTFNode.h"
+#include "RPRMaterialGLTFNodeInput.h"
 
 #include "GLTF.h"
 #include "Tools/UberMaterialPropertyHelper.h"

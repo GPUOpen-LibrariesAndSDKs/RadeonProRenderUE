@@ -3,13 +3,13 @@
 #pragma once
 
 #include "GLTFTypedefs.h"
+#include "RPRMaterialGLTFNode.h"
 #include "Enums/RPRMaterialNodeInputValueType.h"
 #include "NameTypes.h"
 #include "Math/Vector4.h"
 #include "Containers/Map.h"
 #include "Containers/UnrealString.h"
 #include "RPRMaterialGraphSerializationContext.h"
-#include "RPRMaterialGLTFNode.h"
 
 /*
 * Represents a node input in the glTF RPR material structure.
@@ -28,7 +28,7 @@ public:
 	virtual ~FRPRMaterialGLTFNodeInput() {}
 
 	virtual FRPRMaterialGLTFNode::ERPRMaterialNodeType GetNodeType() const override;
-	virtual bool Parse(const GLTF::FRPRMaterial& InMaterial, int32 NodeIndex);
+	virtual bool Parse(const GLTF::FRPRMaterial& InMaterial, int32 NodeIndex) override;
 
     bool ParseFromGLTF(const GLTF::FRPRMaterial& InMaterial, int InNodeIndex, int InInputIndex);
     void LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext, UProperty* PropertyPtr);

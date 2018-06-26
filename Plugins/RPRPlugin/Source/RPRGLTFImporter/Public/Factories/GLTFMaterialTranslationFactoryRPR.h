@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Factories/IGLTFMaterialTranslationFactory.h"
 #include "GLTFTypedefs.h"
+#include "RPRMaterialCoM.h"
+#include "RPRMaterialCoMChannel1.h"
 #include "GLTFMaterialTranslationFactoryRPR.generated.h"
 
 //~ Forward declares
@@ -33,7 +35,8 @@ private:
     void TranslateRPRUberMaterialParameters(const FRPRUberMaterialParameters& InUberMatParams);
 
     /** Create and set up an expression node for a RPRMaterialMap based on its mode. */
-    UMaterialExpression* CreateMapExpression(const FRPRMaterialMap& InMap);
+    UMaterialExpression* CreateMapExpression(const FRPRMaterialCoM& InMap);
+	UMaterialExpression* CreateMapExpression(const FRPRMaterialCoMChannel1& InMap);
 
 private:
 

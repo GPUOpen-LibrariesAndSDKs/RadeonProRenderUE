@@ -90,10 +90,10 @@ namespace amd
     };
 
     // Parses the specified glTF extension json string.
-    bool ImportExtension(gltf::Extension& extensions, AMD_RPR_Material& ext);
+    bool RPR_GLTF_API ImportExtension(gltf::Extension& extensions, AMD_RPR_Material& ext);
 
     // Serializes the specified glTF extension to a json string.
-    bool ExportExtension(const AMD_RPR_Material& ext, gltf::Extension& extensions);
+    bool RPR_GLTF_API ExportExtension(const AMD_RPR_Material& ext, gltf::Extension& extensions);
 
 	
 	// List of all uber material parameters to import.

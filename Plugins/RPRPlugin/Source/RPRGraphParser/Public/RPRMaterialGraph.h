@@ -22,7 +22,7 @@ public:
 	virtual bool	Parse(const TParsedElementType& Element) = 0;
 	virtual bool	IsUberNode(TNodeGraphPtr Node) const = 0;
 
-	virtual const FName&			GetName() const;
+	const FName&					GetName() const override;
 	TNodeGraphPtr					GetUberNode() const;
 	TNodeGraphPtr					GetFirstNode();
 	const TNodeGraphPtr				GetFirstNode() const;
@@ -33,7 +33,7 @@ public:
 	template<typename NodeType>
 	TSharedPtr<NodeType>		FindNodeByName(const FName& NodeName)
 	{
-		FRPRMaterialXmlNodePtr nodePtr = FindNodeByName(NodeName);
+		TNodeGraphPtr nodePtr = FindNodeByName(NodeName);
 		if (nodePtr.IsValid())
 		{
 			return (StaticCastSharedPtr<NodeType>(nodePtr));

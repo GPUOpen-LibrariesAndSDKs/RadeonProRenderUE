@@ -12,6 +12,8 @@
 #include <json.hpp>
 #pragma warning(pop)
 
+#include "RPR_GLTFModule.h"
+
 namespace gltf
 {
     // Attribute semantic property name declarations. These are not provided by the glTF schema files.
@@ -434,7 +436,7 @@ namespace gltf
     };
 
     // The root object for a glTF asset.
-    struct glTF : glTFProperty
+    struct glTFAssetData : glTFProperty
     {
         std::vector<std::string> extensionsUsed; // Names of glTF extensions used somewhere in this asset.
         std::vector<std::string> extensionsRequired; // Names of glTF extensions required to properly load this asset.
@@ -459,14 +461,12 @@ namespace gltf
     };
 
     // Imports a gltf 2.0 file from disk.
-    bool Import(const std::string& filename, glTF& gltf);
+    bool Import(const std::string& filename, glTFAssetData& gltf);
 
     // Exports a gltf file to disk.
-    bool Export(const std::string& filename, const glTF& gltf);
+    bool Export(const std::string& filename, const glTFAssetData& gltf);
 
-	void from_json(const nlohmann::json& json, glTF& object);
-	void to_json(nlohmann::json& json, const glTF& object);
-
-
+	RPR_GLTF_API void from_json(const nlohmann::json& json, gltf::glTFAssetData& object);
+	RPR_GLTF_API void to_json(nlohmann::json& json, const gltf::glTFAssetData& object);
 
 } // End namespace gltf

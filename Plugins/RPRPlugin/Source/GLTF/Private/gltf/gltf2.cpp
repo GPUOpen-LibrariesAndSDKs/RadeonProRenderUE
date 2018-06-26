@@ -670,56 +670,8 @@ namespace gltf
     	json.emplace("alphaCutoff", object.alphaCutoff);
     	json.emplace("doubleSided", object.doubleSided);
     }
-    
-    void from_json(const nlohmann::json& json, glTF& object)
-    {
-    	if (json.find("extensionsUsed") != json.end()) object.extensionsUsed = json.at("extensionsUsed").get<decltype(object.extensionsUsed)>();
-    	if (json.find("extensionsRequired") != json.end()) object.extensionsRequired = json.at("extensionsRequired").get<decltype(object.extensionsRequired)>();
-    	if (json.find("accessors") != json.end()) object.accessors = json.at("accessors").get<decltype(object.accessors)>();
-    	if (json.find("animations") != json.end()) object.animations = json.at("animations").get<decltype(object.animations)>();
-    	if (json.find("asset") != json.end()) object.asset = json.at("asset").get<decltype(object.asset)>();
-    	if (json.find("buffers") != json.end()) object.buffers = json.at("buffers").get<decltype(object.buffers)>();
-    	if (json.find("bufferViews") != json.end()) object.bufferViews = json.at("bufferViews").get<decltype(object.bufferViews)>();
-    	if (json.find("cameras") != json.end()) object.cameras = json.at("cameras").get<decltype(object.cameras)>();
-    	if (json.find("images") != json.end()) object.images = json.at("images").get<decltype(object.images)>();
-		if (json.find("AMD_RPR_buffers") != json.end()) object.rprBuffers = json.at("AMD_RPR_buffers").get<decltype(object.rprBuffers)>();
-    	if (json.find("materials") != json.end()) object.materials = json.at("materials").get<decltype(object.materials)>();
-    	if (json.find("meshes") != json.end()) object.meshes = json.at("meshes").get<decltype(object.meshes)>();
-    	if (json.find("nodes") != json.end()) object.nodes = json.at("nodes").get<decltype(object.nodes)>();
-    	if (json.find("samplers") != json.end()) object.samplers = json.at("samplers").get<decltype(object.samplers)>();
-    	if (json.find("scene") != json.end()) object.scene = json.at("scene").get<decltype(object.scene)>();
-    	if (json.find("scenes") != json.end()) object.scenes = json.at("scenes").get<decltype(object.scenes)>();
-    	if (json.find("skins") != json.end()) object.skins = json.at("skins").get<decltype(object.skins)>();
-    	if (json.find("textures") != json.end()) object.textures = json.at("textures").get<decltype(object.textures)>();
-    	if (json.find("extensions") != json.end()) object.extensions = json.at("extensions").get<decltype(object.extensions)>();
-    	if (json.find("extras") != json.end()) object.extras = json.at("extras").get<decltype(object.extras)>();
-    }
-    
-    void to_json(nlohmann::json& json, const glTF& object)
-    {
-    	if (object.extensionsUsed.size() > 0) json.emplace("extensionsUsed", object.extensionsUsed);
-    	if (object.extensionsRequired.size() > 0) json.emplace("extensionsRequired", object.extensionsRequired);
-    	if (object.accessors.size() > 0) json.emplace("accessors", object.accessors);
-    	if (object.animations.size() > 0) json.emplace("animations", object.animations);
-    	json.emplace("asset", object.asset);
-    	if (object.buffers.size() > 0) json.emplace("buffers", object.buffers);
-    	if (object.bufferViews.size() > 0) json.emplace("bufferViews", object.bufferViews);
-    	if (object.cameras.size() > 0) json.emplace("cameras", object.cameras);
-    	if (object.images.size() > 0) json.emplace("images", object.images);
-		if (object.rprBuffers.size() > 0) json.emplace("AMD_RPR_buffers", object.rprBuffers);
-    	if (object.materials.size() > 0) json.emplace("materials", object.materials);
-    	if (object.meshes.size() > 0) json.emplace("meshes", object.meshes);
-    	if (object.nodes.size() > 0) json.emplace("nodes", object.nodes);
-    	if (object.samplers.size() > 0) json.emplace("samplers", object.samplers);
-    	if (object.scene != -1) json.emplace("scene", object.scene);
-    	if (object.scenes.size() > 0) json.emplace("scenes", object.scenes);
-    	if (object.skins.size() > 0) json.emplace("skins", object.skins);
-    	if (object.textures.size() > 0) json.emplace("textures", object.textures);
-    	if (object.extensions.size() > 0) json.emplace("extensions", object.extensions);
-    	if (object.extras.size() > 0) json.emplace("extras", object.extras);
-    }
 
-    bool Import(const std::string& filename, glTF& gltf)
+    bool Import(const std::string& filename, glTFAssetData& gltf)
     {
         // Open the file on disk for reading
         std::ifstream file(filename);
@@ -740,7 +692,7 @@ namespace gltf
         return true;
     }
 
-    bool Export(const std::string& filename, const glTF& gltf)
+    bool Export(const std::string& filename, const glTFAssetData& gltf)
     {
         // Open the file on disk for writing.
         std::ofstream file(filename);
@@ -757,4 +709,53 @@ namespace gltf
         // Return success.
         return true;
     }
+
+	void from_json(const nlohmann::json& json, glTFAssetData& object)
+	{
+		if (json.find("extensionsUsed") != json.end()) object.extensionsUsed = json.at("extensionsUsed").get<decltype(object.extensionsUsed)>();
+		if (json.find("extensionsRequired") != json.end()) object.extensionsRequired = json.at("extensionsRequired").get<decltype(object.extensionsRequired)>();
+		if (json.find("accessors") != json.end()) object.accessors = json.at("accessors").get<decltype(object.accessors)>();
+		if (json.find("animations") != json.end()) object.animations = json.at("animations").get<decltype(object.animations)>();
+		if (json.find("asset") != json.end()) object.asset = json.at("asset").get<decltype(object.asset)>();
+		if (json.find("buffers") != json.end()) object.buffers = json.at("buffers").get<decltype(object.buffers)>();
+		if (json.find("bufferViews") != json.end()) object.bufferViews = json.at("bufferViews").get<decltype(object.bufferViews)>();
+		if (json.find("cameras") != json.end()) object.cameras = json.at("cameras").get<decltype(object.cameras)>();
+		if (json.find("images") != json.end()) object.images = json.at("images").get<decltype(object.images)>();
+		if (json.find("AMD_RPR_buffers") != json.end()) object.rprBuffers = json.at("AMD_RPR_buffers").get<decltype(object.rprBuffers)>();
+		if (json.find("materials") != json.end()) object.materials = json.at("materials").get<decltype(object.materials)>();
+		if (json.find("meshes") != json.end()) object.meshes = json.at("meshes").get<decltype(object.meshes)>();
+		if (json.find("nodes") != json.end()) object.nodes = json.at("nodes").get<decltype(object.nodes)>();
+		if (json.find("samplers") != json.end()) object.samplers = json.at("samplers").get<decltype(object.samplers)>();
+		if (json.find("scene") != json.end()) object.scene = json.at("scene").get<decltype(object.scene)>();
+		if (json.find("scenes") != json.end()) object.scenes = json.at("scenes").get<decltype(object.scenes)>();
+		if (json.find("skins") != json.end()) object.skins = json.at("skins").get<decltype(object.skins)>();
+		if (json.find("textures") != json.end()) object.textures = json.at("textures").get<decltype(object.textures)>();
+		if (json.find("extensions") != json.end()) object.extensions = json.at("extensions").get<decltype(object.extensions)>();
+		if (json.find("extras") != json.end()) object.extras = json.at("extras").get<decltype(object.extras)>();
+	}
+
+	void to_json(nlohmann::json& json, const glTFAssetData& object)
+	{
+		if (object.extensionsUsed.size() > 0) json.emplace("extensionsUsed", object.extensionsUsed);
+		if (object.extensionsRequired.size() > 0) json.emplace("extensionsRequired", object.extensionsRequired);
+		if (object.accessors.size() > 0) json.emplace("accessors", object.accessors);
+		if (object.animations.size() > 0) json.emplace("animations", object.animations);
+		json.emplace("asset", object.asset);
+		if (object.buffers.size() > 0) json.emplace("buffers", object.buffers);
+		if (object.bufferViews.size() > 0) json.emplace("bufferViews", object.bufferViews);
+		if (object.cameras.size() > 0) json.emplace("cameras", object.cameras);
+		if (object.images.size() > 0) json.emplace("images", object.images);
+		if (object.rprBuffers.size() > 0) json.emplace("AMD_RPR_buffers", object.rprBuffers);
+		if (object.materials.size() > 0) json.emplace("materials", object.materials);
+		if (object.meshes.size() > 0) json.emplace("meshes", object.meshes);
+		if (object.nodes.size() > 0) json.emplace("nodes", object.nodes);
+		if (object.samplers.size() > 0) json.emplace("samplers", object.samplers);
+		if (object.scene != -1) json.emplace("scene", object.scene);
+		if (object.scenes.size() > 0) json.emplace("scenes", object.scenes);
+		if (object.skins.size() > 0) json.emplace("skins", object.skins);
+		if (object.textures.size() > 0) json.emplace("textures", object.textures);
+		if (object.extensions.size() > 0) json.emplace("extensions", object.extensions);
+		if (object.extras.size() > 0) json.emplace("extras", object.extras);
+	}
+
 } // End namespace gltf

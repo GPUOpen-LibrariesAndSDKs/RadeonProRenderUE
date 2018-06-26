@@ -8,6 +8,7 @@
 #include "RPRGLTFImporterModule.h"
 #include "RPRMaterialGraphSerializationContext.h"
 #include "RPRSettings.h"
+#include "RPRMaterialGLTFNodeInput.h"
 
 FRPRMaterialGLTFNode::ERPRMaterialNodeType FRPRMaterialGLTFImageTextureNode::GetNodeType() const
 {
@@ -16,7 +17,7 @@ FRPRMaterialGLTFNode::ERPRMaterialNodeType FRPRMaterialGLTFImageTextureNode::Get
 
 UTexture2D* FRPRMaterialGLTFImageTextureNode::ImportTexture(FRPRMaterialGraphSerializationContext& SerializationContext)
 {
-    FRPRMaterialGLTFNodeInputPtr DataInput = nullptr;
+    FRPRMaterialGLTFNodeInputPtr DataInput;
     for (int i = 0; i < Children.Num(); ++i)
     {
         if (Children[i]->GetName() == TEXT("data"))

@@ -2,7 +2,7 @@
 #include "RPRTypedefs.h"
 #include "RPRXTypedefs.h"
 
-class FRPR_GLTF_Tools
+class RPR_GLTF_API FRPR_GLTF_Tools
 {
 public:
 

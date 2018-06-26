@@ -55,7 +55,7 @@ UObject* UGLTFMaterialTranslationFactoryRPR::FactoryCreateNew(UClass* InClass, U
 
     // Parse glTF structures into a graph hierarchy
     FRPRMaterialGLTFGraph MaterialGLTFGraph;
-    if (!MaterialGLTFGraph.ParseFromGLTF(GLTFRPRMaterial))
+    if (!MaterialGLTFGraph.Parse(GLTFRPRMaterial))
     {
         UE_LOG(LogRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactoryRPR::FactoryCreateNew: Could not parse the AMD_RPR_material structures."));
         return nullptr;
@@ -138,7 +138,7 @@ void UGLTFMaterialTranslationFactoryRPR::TranslateRPRUberMaterialParameters(cons
     /** Uber Coating layer (ignored if SSS layer exists) */
     const auto& Coating_Weight = InUberMatParams.Coating_Weight;
     bool bUseCoatingLayer = !bUseSSSLayer
-        && ((Coating_Weight.Mode == ERPRMaterialMapMode::Constant && Coating_Weight.Constant != FLinearColor::Transparent)
+        && ((Coating_Weight.Mode == ERPRMaterialMapMode::Constant && Coating_Weight.Constant > 0.f)
             || Coating_Weight.Mode == ERPRMaterialMapMode::Texture);
     if (bUseCoatingLayer)
     {
@@ -177,7 +177,7 @@ void UGLTFMaterialTranslationFactoryRPR::TranslateRPRUberMaterialParameters(cons
     const auto& Reflection_Weight = InUberMatParams.Reflection_Weight;
     const auto& Reflection_Roughness = InUberMatParams.Reflection_Roughness;
     // If diffuse weight is 0, use reflection parameters for base
-    if (Diffuse_Weight.Mode == ERPRMaterialMapMode::Constant && Diffuse_Weight.Constant == FLinearColor::Transparent)
+    if (Diffuse_Weight.Mode == ERPRMaterialMapMode::Constant && Diffuse_Weight.Constant > 0.f)
     {
         auto BaseColorExp = CreateMapExpression(Reflection_Color);
         Material->BaseColor.Expression = BaseColorExp;
@@ -189,7 +189,7 @@ void UGLTFMaterialTranslationFactoryRPR::TranslateRPRUberMaterialParameters(cons
         Material->Specular.Expression = SpecularExp;
     }
     // If reflection weight is 0, use diffuse parameters for base
-    else if (Reflection_Weight.Mode == ERPRMaterialMapMode::Constant && Reflection_Weight.Constant == FLinearColor::Transparent)
+    else if (Reflection_Weight.Mode == ERPRMaterialMapMode::Constant && Reflection_Weight.Constant > 0.f)
     {
         auto BaseColorExp = CreateMapExpression(Diffuse_Color);
         Material->BaseColor.Expression = BaseColorExp;
@@ -222,7 +222,7 @@ void UGLTFMaterialTranslationFactoryRPR::TranslateRPRUberMaterialParameters(cons
     /** Uber Emission layer */
     const auto& Emission_Weight = InUberMatParams.Emission_Weight;
     bool bUseEmissionLayer =
-        (Emission_Weight.Mode == ERPRMaterialMapMode::Constant && Emission_Weight.Constant != FLinearColor::Transparent)
+        (Emission_Weight.Mode == ERPRMaterialMapMode::Constant && Emission_Weight.Constant > 0.f)
         || Emission_Weight.Mode == ERPRMaterialMapMode::Texture;
     if (bUseEmissionLayer)
     {
@@ -236,7 +236,7 @@ void UGLTFMaterialTranslationFactoryRPR::TranslateRPRUberMaterialParameters(cons
 
     /** Uber Normal layer */
     const auto& Normal = InUberMatParams.Normal;
-    bool bUseNormalLayer = Normal.Mode == ERPRMaterialMapMode::Texture;
+    bool bUseNormalLayer = Normal.Texture != nullptr;
     if (bUseNormalLayer)
     {
         // Set Normal expression
@@ -247,7 +247,7 @@ void UGLTFMaterialTranslationFactoryRPR::TranslateRPRUberMaterialParameters(cons
 
     /** Uber Displacement layer */
     const auto& Displacement = InUberMatParams.Displacement;
-    bool bUseDisplacementLayer = Displacement.Mode == ERPRMaterialMapMode::Texture;
+    bool bUseDisplacementLayer = Displacement.Texture != nullptr;
     if (bUseDisplacementLayer)
     {
         // WorldDisplacement requires Tessellation
@@ -262,11 +262,18 @@ void UGLTFMaterialTranslationFactoryRPR::TranslateRPRUberMaterialParameters(cons
     // which then we would use that for the UVs of all the other texture samples used in the material graph
 }
 
-UMaterialExpression* UGLTFMaterialTranslationFactoryRPR::CreateMapExpression(const FRPRMaterialMap& InMap)
+UMaterialExpression* UGLTFMaterialTranslationFactoryRPR::CreateMapExpression(const FRPRMaterialCoM& InMap)
 {
     return InMap.Mode == ERPRMaterialMapMode::Constant
         ? StaticCast<UMaterialExpression*>(CreateVec4Expression(InMap.Constant))
         : StaticCast<UMaterialExpression*>(CreateTextureSampleExpression(InMap.Texture));
+}
+
+UMaterialExpression* UGLTFMaterialTranslationFactoryRPR::CreateMapExpression(const FRPRMaterialCoMChannel1& InMap)
+{
+	return InMap.Mode == ERPRMaterialMapMode::Constant
+		? StaticCast<UMaterialExpression*>(CreateScalarExpression(InMap.Constant))
+		: StaticCast<UMaterialExpression*>(CreateTextureSampleExpression(InMap.Texture));
 }
 
 #undef LOCTEXT_NAMESPACE

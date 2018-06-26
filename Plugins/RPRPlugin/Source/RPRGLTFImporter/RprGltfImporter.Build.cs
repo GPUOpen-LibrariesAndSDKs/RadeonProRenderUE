@@ -20,7 +20,9 @@ public class RPRGLTFImporter : ModuleRules
             new string[] {
                 "Core",
                 "RPR_GLTF",
-                "RPRGraphParser"
+                "RPRGraphParser",
+                "RPRPlugin",
+                "RPRTools",
         });
 
         PrivateDependencyModuleNames.AddRange(

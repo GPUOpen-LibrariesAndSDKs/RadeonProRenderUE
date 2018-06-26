@@ -55,7 +55,7 @@ bool FRPRMaterialXmlGraph::IsUberNode(FRPRMaterialXmlNodePtr Node) const
 
 void FRPRMaterialXmlGraph::ParseNodes(const class FXmlNode& Node)
 {
-	const TArray<FXmlNode*> children = Node.GetChildrenNodes();
+	const TArray<FXmlNode*>& children = Node.GetChildrenNodes();
 	for (int32 i = 0; i < children.Num(); ++i)
 	{
 		FRPRMaterialXmlNodePtr materialNode = FRPRMaterialXmlNodeFactory::CreateNodeFromXmlNode(*children[i]);

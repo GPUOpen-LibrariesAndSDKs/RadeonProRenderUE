@@ -4,7 +4,6 @@
 
 #include "GLTFTypedefs.h"
 #include "AMD_RPR_material.h"
-#include "RPRMaterialGLTFNodeInput.h"
 #include "NameTypes.h"
 #include "Containers/Array.h"
 #include "Templates/SharedPointer.h"

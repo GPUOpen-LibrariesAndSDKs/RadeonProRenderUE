@@ -5,10 +5,12 @@
 #include "GLTFTypedefs.h"
 #include "GLTFBufferCache.h"
 #include "GLTFSettings.h"
+#include "gltf2.h"
 #include "Templates/SharedPointer.h"
+#include "RPR_GLTFModule.h"
 
 /** Helper structure to contain all imported glTF information. */
-struct FGLTF
+struct RPR_GLTF_API FGLTF
 {
 	/** The parsed glTF structure. */
 	TSharedRef<GLTF::FData> Data;

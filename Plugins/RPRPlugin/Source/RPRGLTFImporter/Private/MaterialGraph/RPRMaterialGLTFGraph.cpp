@@ -5,6 +5,9 @@
 #include "RPRMaterialGLTFNodeFactory.h"
 #include "GLTF.h"
 #include "RPRMaterialGLTFNode.h"
+#include "RPRMaterialGLTFUberNode.h"
+
+DECLARE_LOG_CATEGORY_CLASS(LogRPRMaterialGLTFGraph, Log, All)
 
 bool FRPRMaterialGLTFGraph::Parse(const GLTF::FRPRMaterial& InMaterial)
 {
@@ -16,7 +19,7 @@ bool FRPRMaterialGLTFGraph::Parse(const GLTF::FRPRMaterial& InMaterial)
         FRPRMaterialGLTFNodePtr MaterialNode = FRPRMaterialGLTFNodeFactory::CreateNodeFromGLTFNode(GLTFNodes[NodeIndex]);
         if (MaterialNode.IsValid())
         {
-            if (MaterialNode->ParseFromGLTF(InMaterial, NodeIndex))
+            if (MaterialNode->Parse(InMaterial, NodeIndex))
             {
                 Nodes.Add(MaterialNode);
             }
@@ -32,9 +35,12 @@ void FRPRMaterialGLTFGraph::Load(FRPRMaterialGraphSerializationContext& Serializ
 	auto node = GetUberNode();
     if (!node.IsValid())
     {
-        UE_LOG(LogRPRGLTFImporter, Error, TEXT("FRPRMaterialGLTFGraph::LoadRPRMaterialParameters: Currently only supports Uber material."));
+        UE_LOG(LogRPRMaterialGLTFGraph, Error, TEXT("FRPRMaterialGLTFGraph::LoadRPRMaterialParameters: Currently only supports Uber material."));
+		return;
     }
-    node->LoadRPRMaterialParameters(SerializationContext);
+
+	FRPRMaterialGLTFUberNodePtr uberNodePtr = StaticCastSharedPtr<FRPRMaterialGLTFUberNode>(node);
+    uberNodePtr->LoadRPRMaterialParameters(SerializationContext);
 }
 
 bool FRPRMaterialGLTFGraph::IsUberNode(FRPRMaterialGLTFNodePtr Node) const
