@@ -50,7 +50,7 @@ void FRPRMaterialXmlGraph::Load(FRPRMaterialGraphSerializationContext& Serializa
 
 bool FRPRMaterialXmlGraph::IsUberNode(FRPRMaterialXmlNodePtr Node) const
 {
-	return (Node->GetNodeType() == FRPRMaterialXmlNode::ERPRMaterialNodeType::Uber);
+	return (Node->GetNodeType() == RPRMaterialXml::ERPRMaterialNodeType::Uber);
 }
 
 void FRPRMaterialXmlGraph::ParseNodes(const class FXmlNode& Node)

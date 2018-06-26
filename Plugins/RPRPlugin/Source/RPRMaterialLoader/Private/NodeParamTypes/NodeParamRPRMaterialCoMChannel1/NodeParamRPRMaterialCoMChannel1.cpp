@@ -11,7 +11,7 @@ void FNodeParamRPRMaterialCoMChannel1::LoadRPRMaterialParameters(FRPRMaterialGra
 	FRPRMaterialCoMChannel1* mapChannel1 = 
 		SerializationContext.GetDirectMaterialParameter<FRPRMaterialCoMChannel1>(Property);
 
-	switch (CurrentNodeParameter.GetType())
+	switch (CurrentNodeParameter.GetParameterType())
 	{
 	case ERPRMaterialNodeParameterValueType::Connection:
 		LoadTextureFromConnectionInput(mapChannel1, SerializationContext, CurrentNodeParameter);

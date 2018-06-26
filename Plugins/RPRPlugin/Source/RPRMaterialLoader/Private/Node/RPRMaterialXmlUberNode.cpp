@@ -1,10 +1,11 @@
 #include "RPRMaterialXmlUberNode.h"
 #include "RPRUberMaterialParameters.h"
 #include "RPRMaterialGraphSerializationContext.h"
+#include "RPRMaterialXmlNodeParameter.h"
 
-FRPRMaterialXmlNode::ERPRMaterialNodeType FRPRMaterialXmlUberNode::GetNodeType() const
+RPRMaterialXml::ERPRMaterialNodeType FRPRMaterialXmlUberNode::GetNodeType() const
 {
-	return (ERPRMaterialNodeType::Uber);
+	return (RPRMaterialXml::ERPRMaterialNodeType::Uber);
 }
 
 void FRPRMaterialXmlUberNode::LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext)
@@ -12,12 +13,20 @@ void FRPRMaterialXmlUberNode::LoadRPRMaterialParameters(FRPRMaterialGraphSeriali
 	// For each Xml node, find the associated property (thanks to meta specifier) and load the value into the URPRMaterial
 	UStruct* materialParametersStruct = FRPRUberMaterialParameters::StaticStruct();
 
-	for (FRPRMaterialXmlNodeParameter& parameter : Parameters)
+	for (IRPRMaterialNodePtr& child : Children)
 	{
-		UProperty* propertyPtr = FindPropertyParameterByName(SerializationContext.MaterialParameters, materialParametersStruct, parameter.GetName());
+		UProperty* propertyPtr = FindPropertyParameterByName(
+			SerializationContext.MaterialParameters, 
+			materialParametersStruct, 
+			child->GetName());
+
 		if (propertyPtr != nullptr)
 		{
-			parameter.LoadRPRMaterialParameters(SerializationContext, propertyPtr);
+			FRPRMaterialXmlNodeParameterPtr parameterNode = StaticCastSharedPtr<FRPRMaterialXmlNodeParameter>(child);
+			if (parameterNode.IsValid())
+			{
+				parameterNode->LoadRPRMaterialParameters(SerializationContext, propertyPtr);
+			}
 		}
 	}
 }

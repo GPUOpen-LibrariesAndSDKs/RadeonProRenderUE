@@ -6,7 +6,7 @@ class FRPRMaterialXmlNodeTypeParser
 {
 public:
 
-	static FRPRMaterialXmlNode::ERPRMaterialNodeType	ParseTypeFromXml(const FXmlNode& Node);
+	static RPRMaterialXml::ERPRMaterialNodeType	ParseTypeFromXml(const FXmlNode& Node);
 
 private:
 
@@ -14,5 +14,5 @@ private:
 
 private:
 
-	static TMap<FString, FRPRMaterialXmlNode::ERPRMaterialNodeType>	TypeStringToTypeEnumMap;
+	static TMap<FString, RPRMaterialXml::ERPRMaterialNodeType>	TypeStringToTypeEnumMap;
 };

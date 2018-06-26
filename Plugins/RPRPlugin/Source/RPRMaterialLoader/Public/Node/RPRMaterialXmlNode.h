@@ -6,15 +6,6 @@
 
 class FRPRMaterialXmlNode : public FRPRMaterialNode<FXmlNode>
 {
-public:
-	
-	enum class ERPRMaterialNodeType
-	{
-		Unsupported,
-		Uber,
-		InputTexture
-	};
-
 
 public:
 
@@ -22,7 +13,7 @@ public:
 
 	virtual bool	Parse(const class FXmlNode& Node, int32 NodeIndex) override;
 	
-	virtual ERPRMaterialNodeType	GetNodeType() const = 0;
+	virtual RPRMaterialXml::ERPRMaterialNodeType	GetNodeType() const = 0;
 	
 	const FName&	GetTag() const;
 	
@@ -33,8 +24,7 @@ private:
 
 protected:
 
-	FName									Tag;
-	TArray<FRPRMaterialXmlNodeParameter>	Parameters;
+	FName	Tag;
 
 };
 

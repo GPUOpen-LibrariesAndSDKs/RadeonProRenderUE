@@ -26,13 +26,13 @@ FRPRMaterialXmlNodeParameter::FRPRMaterialXmlNodeParameter()
 	}
 }
 
-bool FRPRMaterialXmlNodeParameter::ParseFromXml(const FXmlNode& Node)
+bool FRPRMaterialXmlNodeParameter::Parse(const FXmlNode& Node, int32 NodeIndex)
 {
 	Name = *Node.GetAttribute(NODE_ATTRIBUTE_NAME);
 	Value = Node.GetAttribute(NODE_ATTRIBUTE_VALUE);
-	Type = ParseType(Node.GetAttribute(NODE_ATTRIBUTE_TYPE));
+	ParameterType = ParseType(Node.GetAttribute(NODE_ATTRIBUTE_TYPE));
 
-	return (!Name.IsNone() && Type != ERPRMaterialNodeParameterValueType::Unsupported && !Value.IsEmpty());
+	return (!Name.IsNone() && ParameterType != ERPRMaterialNodeParameterValueType::Unsupported && !Value.IsEmpty());
 }
 
 void FRPRMaterialXmlNodeParameter::LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext, 
@@ -62,17 +62,17 @@ ERPRMaterialNodeParameterValueType FRPRMaterialXmlNodeParameter::ParseType(const
 	return (vt);
 }
 
-const FName& FRPRMaterialXmlNodeParameter::GetName() const
-{
-	return (Name);
-}
-
 const FString& FRPRMaterialXmlNodeParameter::GetValue() const
 {
 	return (Value);
 }
 
-ERPRMaterialNodeParameterValueType FRPRMaterialXmlNodeParameter::GetType() const
+ERPRMaterialNodeParameterValueType FRPRMaterialXmlNodeParameter::GetParameterType() const
 {
-	return (Type);
+	return (ParameterType);
+}
+
+RPRMaterialXml::ERPRMaterialNodeType FRPRMaterialXmlNodeParameter::GetNodeType() const
+{
+	return RPRMaterialXml::ERPRMaterialNodeType::Parameter;
 }

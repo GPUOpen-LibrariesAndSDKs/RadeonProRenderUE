@@ -9,7 +9,7 @@ class FRPRMaterialXmlInputTextureNode : public FRPRMaterialXmlNode
 {
 public:
 	
-	virtual ERPRMaterialNodeType GetNodeType() const override;
+	virtual RPRMaterialXml::ERPRMaterialNodeType GetNodeType() const override;
 	
 	UTexture2D*	ImportTexture(FRPRMaterialGraphSerializationContext& SerializationContext);
 	

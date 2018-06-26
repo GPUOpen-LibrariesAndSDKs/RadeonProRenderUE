@@ -4,6 +4,7 @@
 #include "NameTypes.h"
 #include "Containers/Map.h"
 #include "UnrealString.h"
+#include "RPRMaterialXmlBaseNode.h"
 
 /*
  * Represents a parameter node in the RPR Material xml file.
@@ -12,30 +13,32 @@
  * or :
  * <param name="diffuse.color" type="float4" value="1, 0, 0, 1" />
  */
-class FRPRMaterialXmlNodeParameter
+class FRPRMaterialXmlNodeParameter : public FRPRMaterialXmlBaseNode
 {
 public:
 	
 	FRPRMaterialXmlNodeParameter();
 
-	bool	ParseFromXml(const class FXmlNode& Node);
+	bool	Parse(const class FXmlNode& Node, int32 NodeIndex) override;
 	void	LoadRPRMaterialParameters(struct FRPRMaterialGraphSerializationContext& SerializationContext, UProperty* PropertyPtr);
 	
-	const FName&	GetName() const;
 	const FString&	GetValue() const;
-	ERPRMaterialNodeParameterValueType	GetType() const;
+	ERPRMaterialNodeParameterValueType	GetParameterType() const;
 	
+	virtual RPRMaterialXml::ERPRMaterialNodeType GetNodeType() const override;
+
 private:
 
 	static ERPRMaterialNodeParameterValueType	ParseType(const FString& TypeValue);
 
 private:
 
-	FName	Name;
 	FString	Value;
 
-	ERPRMaterialNodeParameterValueType	Type;
+	ERPRMaterialNodeParameterValueType	ParameterType;
 
 	static TMap<FString, ERPRMaterialNodeParameterValueType>	TypeStringToTypeEnumMap;
 
 };
+
+using FRPRMaterialXmlNodeParameterPtr = TSharedPtr<FRPRMaterialXmlNodeParameter>;

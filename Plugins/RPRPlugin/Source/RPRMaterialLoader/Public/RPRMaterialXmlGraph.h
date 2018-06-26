@@ -17,8 +17,8 @@ public:
 
 	bool	ParseFromXmlFile(const FString& Filename);
 
-	virtual bool	Parse(const class FXmlNode& Node);
-	virtual void	Load(FRPRMaterialGraphSerializationContext& SerializationContext);	
+	virtual bool	Parse(const class FXmlNode& Node) override;
+	virtual void	Load(FRPRMaterialGraphSerializationContext& SerializationContext) override;
 	virtual bool	IsUberNode(FRPRMaterialXmlNodePtr Node) const override;
 
 private:

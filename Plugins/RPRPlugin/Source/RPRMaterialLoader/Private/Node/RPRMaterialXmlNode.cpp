@@ -22,13 +22,13 @@ bool FRPRMaterialXmlNode::Parse(const FXmlNode& Node, int32 NodeIndex)
 void FRPRMaterialXmlNode::ParseParameters(const FXmlNode& Node)
 {
 	const TArray<FXmlNode*>& children = Node.GetChildrenNodes();
-	Parameters.Empty(children.Num());
+	Children.Empty(children.Num());
 	for (int32 i = 0; i < children.Num(); ++i)
 	{
-		FRPRMaterialXmlNodeParameter nodeParameter;
-		if (nodeParameter.ParseFromXml(*children[i]))
+		FRPRMaterialXmlNodeParameterPtr nodeParameter = MakeShareable(new FRPRMaterialXmlNodeParameter());
+		if (nodeParameter->Parse(*children[i], i))
 		{
-			Parameters.Add(nodeParameter);
+			Children.Add(nodeParameter);
 		}
 	}
 }
