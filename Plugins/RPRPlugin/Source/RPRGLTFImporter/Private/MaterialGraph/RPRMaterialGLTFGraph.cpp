@@ -19,7 +19,7 @@ bool FRPRMaterialGLTFGraph::Parse(const GLTF::FRPRMaterial& InMaterial)
         FRPRMaterialGLTFNodePtr MaterialNode = FRPRMaterialGLTFNodeFactory::CreateNodeFromGLTFNode(GLTFNodes[NodeIndex]);
         if (MaterialNode.IsValid())
         {
-            if (MaterialNode->Parse(InMaterial, NodeIndex))
+            if (MaterialNode->Parse(GLTFNodes[NodeIndex], NodeIndex))
             {
                 Nodes.Add(MaterialNode);
             }
@@ -45,5 +45,5 @@ void FRPRMaterialGLTFGraph::Load(FRPRMaterialGraphSerializationContext& Serializ
 
 bool FRPRMaterialGLTFGraph::IsUberNode(FRPRMaterialGLTFNodePtr Node) const
 {
-	return (Node->GetNodeType() == FRPRMaterialGLTFNode::ERPRMaterialNodeType::Uber);
+	return (Node->GetNodeType() == RPRMaterialGLTF::ERPRMaterialNodeType::Uber);
 }

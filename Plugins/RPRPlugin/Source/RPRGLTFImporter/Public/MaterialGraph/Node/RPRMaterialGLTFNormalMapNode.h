@@ -10,7 +10,7 @@ class FRPRMaterialGLTFNormalMapNode : public FRPRMaterialGLTFNode
 {
 public:
 
-    virtual ERPRMaterialNodeType GetNodeType() const override;
+    virtual RPRMaterialGLTF::ERPRMaterialNodeType GetNodeType() const override;
 
     UTexture2D* ImportNormal(FRPRMaterialGraphSerializationContext& SerializationContext);
 

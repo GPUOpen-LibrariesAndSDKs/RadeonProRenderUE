@@ -13,11 +13,11 @@
 class FRPRMaterialGLTFNodeTypeParser
 {
 public:
-    static FRPRMaterialGLTFNode::ERPRMaterialNodeType ParseTypeFromGLTF(const GLTF::FRPRNode& Node);
+    static RPRMaterialGLTF::ERPRMaterialNodeType ParseTypeFromGLTF(const GLTF::FRPRNode& Node);
 
 private:
     static void InitializeParserMapping();
 
 private:
-    static TMap<GLTF::ERPRNodeType, FRPRMaterialGLTFNode::ERPRMaterialNodeType> GLTFTypeEnumToUETypeEnumMap;
+    static TMap<GLTF::ERPRNodeType, RPRMaterialGLTF::ERPRMaterialNodeType> GLTFTypeEnumToUETypeEnumMap;
 };

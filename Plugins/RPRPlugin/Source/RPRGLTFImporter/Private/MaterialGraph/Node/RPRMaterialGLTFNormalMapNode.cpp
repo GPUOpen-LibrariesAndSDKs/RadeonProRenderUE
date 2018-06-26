@@ -11,9 +11,9 @@
 #include "RPRMaterialGLTFNode.h"
 #include "RPRMaterialGLTFNodeInput.h"
 
-FRPRMaterialGLTFNode::ERPRMaterialNodeType FRPRMaterialGLTFNormalMapNode::GetNodeType() const
+RPRMaterialGLTF::ERPRMaterialNodeType FRPRMaterialGLTFNormalMapNode::GetNodeType() const
 {
-    return FRPRMaterialGLTFNode::ERPRMaterialNodeType::NormalMap;
+    return RPRMaterialGLTF::ERPRMaterialNodeType::NormalMap;
 }
 
 UTexture2D* FRPRMaterialGLTFNormalMapNode::ImportNormal(FRPRMaterialGraphSerializationContext& SerializationContext)

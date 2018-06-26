@@ -30,6 +30,9 @@ namespace GLTF
 	typedef amd::NodeType ERPRNodeType;
 	typedef amd::InputType ERPRInputValueType;
 
+	template<typename TNodeType>
+	using FRPRBaseNode = amd::BaseNode<TNodeType>;
+
     // Forward declare for FBufferCache
     class FBufferCache;
 }

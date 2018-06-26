@@ -10,9 +10,9 @@
 #include "RPRSettings.h"
 #include "RPRMaterialGLTFNodeInput.h"
 
-FRPRMaterialGLTFNode::ERPRMaterialNodeType FRPRMaterialGLTFImageTextureNode::GetNodeType() const
+RPRMaterialGLTF::ERPRMaterialNodeType FRPRMaterialGLTFImageTextureNode::GetNodeType() const
 {
-    return FRPRMaterialGLTFNode::ERPRMaterialNodeType::ImageTexture;
+    return RPRMaterialGLTF::ERPRMaterialNodeType::ImageTexture;
 }
 
 UTexture2D* FRPRMaterialGLTFImageTextureNode::ImportTexture(FRPRMaterialGraphSerializationContext& SerializationContext)

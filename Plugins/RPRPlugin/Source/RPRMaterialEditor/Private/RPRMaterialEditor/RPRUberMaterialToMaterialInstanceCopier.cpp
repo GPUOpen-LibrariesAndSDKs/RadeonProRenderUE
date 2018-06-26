@@ -31,8 +31,6 @@ void FRPRUberMaterialToMaterialInstanceCopier::CopyParameters(const FRPRUberMate
 		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialEnum), MakeShareable(new FRPRMatParamCopier_Enum));
 	}
 
-	// TODO : That's temporary! Must browse properties using reflection and not hard-coded!
-
 	UStruct* uberMaterialParametersStruct = FRPRUberMaterialParameters::StaticStruct();
 	UStructProperty* property = FindNextStructProperty(uberMaterialParametersStruct->PropertyLink);
 	while (property != nullptr)

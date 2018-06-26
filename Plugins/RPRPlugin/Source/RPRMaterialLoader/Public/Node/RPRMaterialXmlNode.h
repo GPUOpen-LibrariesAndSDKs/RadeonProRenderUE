@@ -1,11 +1,10 @@
 #pragma once
 
-#include "Nodes/RPRMaterialNodeWithChildrenBase.h"
 #include "RPRMaterialXmlNodeParameter.h"
-#include "Nodes/RPRMaterialNodeBase.h"
+#include "Nodes/RPRMaterialNode.h"
 #include "XmlNode.h"
 
-class FRPRMaterialXmlNode : public FRPRMaterialNode<FXmlNode, FXmlNode>
+class FRPRMaterialXmlNode : public FRPRMaterialNode<FXmlNode>
 {
 public:
 	

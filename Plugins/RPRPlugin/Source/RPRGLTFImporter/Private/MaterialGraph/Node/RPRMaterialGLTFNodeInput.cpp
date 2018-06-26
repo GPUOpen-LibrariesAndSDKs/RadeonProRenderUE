@@ -8,6 +8,7 @@
 #include "UberMaterialPropertyHelper.h"
 
 #include "RPRGLTFImporterModule.h"
+#include "Helpers/GLTFNodeHelper.h"
 
 TMap<GLTF::ERPRInputValueType, ERPRMaterialNodeInputValueType> FRPRMaterialGLTFNodeInput::GLTFTypeEnumToUETypeEnumMap;
 
@@ -22,88 +23,72 @@ FRPRMaterialGLTFNodeInput::FRPRMaterialGLTFNodeInput()
     }
 }
 
-
-bool FRPRMaterialGLTFNodeInput::ParseFromGLTF(const GLTF::FRPRMaterial& InMaterial, int32 InNodeIndex, int InInputIndex)
+bool FRPRMaterialGLTFNodeInput::Parse(const amd::Input& Node, int32 NodeIndex)
 {
-    const GLTF::FRPRNode& GLTFNode = InMaterial.nodes[InNodeIndex];
-    const GLTF::FRPRInput& GLTFInput = GLTFNode.inputs[InInputIndex];
-    Name = GLTFInput.name.c_str();
-    Type = ParseType(GLTFInput.type);
+	Name = FGLTFNodeHelper::GetNodeNameOfDefault(Node, NodeIndex);
+	RawNode = &Node;
+	InputType = ParseType(Node.type);
 
-    // Duplicated code but less cumbersome than passing the FGLTFNode
-    if (GLTFNode.name.size() > 0)
-    {
-        NodeName = GLTFNode.name.c_str();
-    }
-    else
-    {
-        NodeName = *FString::FromInt(InNodeIndex);
-    }
+	FGLTFPtr TheGLTF;
+	if (!FRPRGLTFImporterModule::GetGLTF(TheGLTF))
+	{
+		UE_LOG(LogRPRGLTFImporter, Error, TEXT("FRPRMaterialGLTFNodeInput::Parse: glTF context is not valid."));
+		return false;
+	}
 
-    FGLTFPtr TheGLTF;
-    if (!FRPRGLTFImporterModule::GetGLTF(TheGLTF))
-    {
-        UE_LOG(LogRPRGLTFImporter, Error, TEXT("FRPRMaterialGLTFNodeInput::ParseFromGLTF: glTF context is not valid."));
-        return false;
-    }
+	bool bValueIsValid = false;
+	switch (InputType)
+	{
+		case ERPRMaterialNodeInputValueType::Node:
+		{
+			int32 inputNodeIndex = Node.value.integer;
+			IRPRMaterialNodePtr parentPtr = GetParent();
+			const TArray<IRPRMaterialNodePtr> children = parentPtr->GetChildren();
+			if (inputNodeIndex >= 0 && inputNodeIndex < children.Num())
+			{
+				const IRPRMaterialNodePtr inputNodePtr = children[inputNodeIndex];
+				if (inputNodePtr.IsValid())
+				{
+					FString InputNodeName = inputNodePtr->GetName().ToString();
+					StringValue = InputNodeName;
+					bValueIsValid = !StringValue.IsEmpty();
+				}
+			}
+		}
+		break;
+		case ERPRMaterialNodeInputValueType::Float4:
+		{
+			Vec4Value = FVector4(Node.value.array[0], Node.value.array[1], Node.value.array[2], Node.value.array[3]);
+			bValueIsValid = true;
+		}
+		break;
+		case ERPRMaterialNodeInputValueType::UInt:
+		{
+			int InputIntValue = Node.value.integer;
+			if (InputIntValue >= 0)
+			{
+				IntValue = Node.value.integer;
+				bValueIsValid = true;
+			}
+		}
+		break;
+		case ERPRMaterialNodeInputValueType::Image:
+		{
+			int InputImageIndex = Node.value.integer;
+			if (InputImageIndex >= 0 && InputImageIndex < TheGLTF->Data->images.size())
+			{
+				const GLTF::FImage& Image = TheGLTF->Data->images[InputImageIndex];
+				if (Image.uri.empty())
+				{
+					StringValue = Image.uri.c_str();
+					bValueIsValid = !StringValue.IsEmpty();
+				}
+			}
+		}
+		break;
+	}
 
-    bool bValueIsValid = false;
-    switch (Type)
-    {
-    case ERPRMaterialNodeInputValueType::Node:
-    {
-        int InputNodeIndex = GLTFInput.value.integer;
-        if (InputNodeIndex >= 0 && InputNodeIndex < InMaterial.nodes.size())
-        {
-            const GLTF::FRPRNode& InputNode = InMaterial.nodes[InputNodeIndex];
-            FString InputNodeName;
-            // Again, if node doesn't have a name, use its index as the name for search purposes
-            if (InputNode.name.size() > 0)
-            {
-                InputNodeName = InputNode.name.c_str();
-            }
-            else
-            {
-                InputNodeName = *FString::FromInt(InputNodeIndex);
-            }
-            StringValue = InputNodeName;
-            bValueIsValid = !StringValue.IsEmpty();
-        }
-    }
-    break;
-    case ERPRMaterialNodeInputValueType::Float4:
-    {
-        Vec4Value = FVector4(GLTFInput.value.array[0], GLTFInput.value.array[1], GLTFInput.value.array[2], GLTFInput.value.array[3]);
-        bValueIsValid = true;
-    }
-    break;
-    case ERPRMaterialNodeInputValueType::UInt:
-    {
-        int InputIntValue = GLTFInput.value.integer;
-        if (InputIntValue >= 0)
-        {
-            IntValue = GLTFInput.value.integer;
-            bValueIsValid = true;
-        }
-    }
-    break;
-    case ERPRMaterialNodeInputValueType::Image:
-    {
-        int InputImageIndex = GLTFInput.value.integer;
-        if (InputImageIndex >= 0 && InputImageIndex < TheGLTF->Data->images.size())
-        {
-            const GLTF::FImage& Image = TheGLTF->Data->images[InputImageIndex];
-            if (Image.uri.size() > 0)
-            {
-                StringValue = Image.uri.c_str();
-                bValueIsValid = !StringValue.IsEmpty();
-            }
-        }
-    }
-    break;
-    }
-
-    return (Name.IsValid() && NodeName.IsValid() && Type != ERPRMaterialNodeInputValueType::Unsupported && bValueIsValid);
+	return (Name.IsValid() && InputType != ERPRMaterialNodeInputValueType::Unsupported && bValueIsValid);
 }
 
 void FRPRMaterialGLTFNodeInput::LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext, UProperty* PropertyPtr)
@@ -122,48 +107,33 @@ void FRPRMaterialGLTFNodeInput::LoadRPRMaterialParameters(FRPRMaterialGraphSeria
     }
 }
 
-const FName& FRPRMaterialGLTFNodeInput::GetName() const
+RPRMaterialGLTF::ERPRMaterialNodeType FRPRMaterialGLTFNodeInput::GetNodeType() const
 {
-    return Name;
+	return RPRMaterialGLTF::ERPRMaterialNodeType::Input;
 }
 
-const FName& FRPRMaterialGLTFNodeInput::GetNodeName() const
+ERPRMaterialNodeInputValueType FRPRMaterialGLTFNodeInput::GetInputType() const
 {
-    return NodeName;
-}
-
-ERPRMaterialNodeInputValueType FRPRMaterialGLTFNodeInput::GetType() const
-{
-    return Type;
+    return InputType;
 }
 
 void FRPRMaterialGLTFNodeInput::GetValue(FString& OutString) const
 {
-    check((Type == ERPRMaterialNodeInputValueType::Node || Type == ERPRMaterialNodeInputValueType::Image)
+    check((InputType == ERPRMaterialNodeInputValueType::Node || InputType == ERPRMaterialNodeInputValueType::Image)
         && "NodeInput does not contain a string (node connection, file path) value.");
     OutString = StringValue;
 }
 
 void FRPRMaterialGLTFNodeInput::GetValue(FVector4& OutVec4) const
 {
-    check(Type == ERPRMaterialNodeInputValueType::Float4 && "NodeInput does not contain a float4 value.");
+    check(InputType == ERPRMaterialNodeInputValueType::Float4 && "NodeInput does not contain a float4 value.");
     OutVec4 = Vec4Value;
 }
 
 void FRPRMaterialGLTFNodeInput::GetValue(int32& OutInt) const
 {
-    check(Type == ERPRMaterialNodeInputValueType::UInt && "NodeInput does not contain an integer value.");
+    check(InputType == ERPRMaterialNodeInputValueType::UInt && "NodeInput does not contain an integer value.");
     OutInt = IntValue;
-}
-
-FRPRMaterialGLTFNode::ERPRMaterialNodeType FRPRMaterialGLTFNodeInput::GetNodeType() const
-{
-	return FRPRMaterialGLTFNode::ERPRMaterialNodeType::Input;
-}
-
-bool FRPRMaterialGLTFNodeInput::Parse(const GLTF::FRPRMaterial& InMaterial, int32 NodeIndex)
-{
-	return (false);
 }
 
 ERPRMaterialNodeInputValueType FRPRMaterialGLTFNodeInput::ParseType(GLTF::ERPRInputValueType ValueType)
