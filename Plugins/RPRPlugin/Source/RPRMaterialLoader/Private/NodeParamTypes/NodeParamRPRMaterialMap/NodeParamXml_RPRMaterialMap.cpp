@@ -1,8 +1,8 @@
-#include "NodeParamRPRMaterialMap.h"
+#include "NodeParamXml_RPRMaterialMap.h"
 #include "RPRMaterialXmlInputTextureNode.h"
 #include "RPRMaterialXmlGraph.h"
 
-void FNodeParamRPRMaterialMap::LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext, FRPRMaterialXmlNodeParameter& CurrentNodeParameter, UProperty* Property)
+void FNodeParamXml_RPRMaterialMap::LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext, FRPRMaterialXmlNodeParameterPtr CurrentNodeParameter, UProperty* Property)
 {
 	FRPRMaterialMap* rprMaterialMap =
 		SerializationContext.GetDirectMaterialParameter<FRPRMaterialMap>(Property);
@@ -10,11 +10,11 @@ void FNodeParamRPRMaterialMap::LoadRPRMaterialParameters(FRPRMaterialGraphSerial
 	LoadTextureFromConnectionInput(rprMaterialMap, SerializationContext, CurrentNodeParameter);
 }
 
-void FNodeParamRPRMaterialMap::LoadTextureFromConnectionInput(FRPRMaterialMap* InMaterialMap,
+void FNodeParamXml_RPRMaterialMap::LoadTextureFromConnectionInput(FRPRMaterialMap* InMaterialMap,
 										FRPRMaterialGraphSerializationContext& SerializationContext,
-										FRPRMaterialXmlNodeParameter& CurrentNodeParameter)
+										FRPRMaterialXmlNodeParameterPtr CurrentNodeParameter)
 {
-	const FName inputNodeName = *CurrentNodeParameter.GetValue();
+	const FName inputNodeName = *CurrentNodeParameter->GetValue();
 	FRPRMaterialXmlInputTextureNodePtr node =
 		SerializationContext.GetMaterialGraph<FRPRMaterialXmlGraph>()->FindNodeByName<FRPRMaterialXmlInputTextureNode>(inputNodeName);
 

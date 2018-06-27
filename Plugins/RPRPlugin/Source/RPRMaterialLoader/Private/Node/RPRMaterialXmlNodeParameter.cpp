@@ -45,7 +45,7 @@ void FRPRMaterialXmlNodeParameter::LoadRPRMaterialParameters(FRPRMaterialGraphSe
 	TSharedPtr<INodeParamType> nodeParam = FNodeParamTypeFactory::CreateNewNodeParam(type);
 	if (nodeParam.IsValid())
 	{
-		nodeParam->LoadRPRMaterialParameters(SerializationContext, *this, PropertyPtr);
+		nodeParam->LoadRPRMaterialParameters(SerializationContext, AsShared(), PropertyPtr);
 	}
 }
 

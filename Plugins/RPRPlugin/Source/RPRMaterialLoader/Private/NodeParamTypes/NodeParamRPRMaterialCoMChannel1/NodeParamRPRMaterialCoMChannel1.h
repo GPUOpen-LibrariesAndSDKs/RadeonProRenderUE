@@ -1,18 +1,18 @@
 #pragma once
 
-#include "NodeParamRPRMaterialMap/NodeParamRPRMaterialMap.h"
+#include "NodeParamRPRMaterialMap/NodeParamXml_RPRMaterialMap.h"
 
-class FNodeParamRPRMaterialCoMChannel1 : public FNodeParamRPRMaterialMap
+class FNodeParamXml_RPRMaterialCoMChannel1 : public FNodeParamXml_RPRMaterialMap
 {
 
-public:
+protected:
 	
-	virtual void LoadRPRMaterialParameters(struct FRPRMaterialGraphSerializationContext& SerializationContext, 
-		class FRPRMaterialXmlNodeParameter& CurrentNodeParameter, class UProperty* Property) override;
+	virtual void LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext, 
+		FRPRMaterialXmlNodeParameterPtr CurrentNodeParameter, UProperty* Property) override;
 
 private:
 
-	void LoadConstant(FRPRMaterialCoMChannel1* MapChannel1, FRPRMaterialXmlNodeParameter& CurrentNodeParameter);
-	void LoadConstant4(FRPRMaterialCoMChannel1* MapChannel1, FRPRMaterialXmlNodeParameter& CurrentNodeParameter);
+	void LoadConstant(FRPRMaterialCoMChannel1* MapChannel1, FRPRMaterialXmlNodeParameterPtr CurrentNodeParameter);
+	void LoadConstant4(FRPRMaterialCoMChannel1* MapChannel1, FRPRMaterialXmlNodeParameterPtr CurrentNodeParameter);
 
 };

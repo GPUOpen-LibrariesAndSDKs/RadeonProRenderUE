@@ -3,10 +3,10 @@
 #include "RPRUberMaterialParameters.h"
 #include "IsClass.h"
 #include "SharedPointer.h"
-#include "NodeParamRPRMaterialMap/NodeParamRPRMaterialMap.h"
-#include "NodeParamRPRMaterialCoM/NodeParamRPRMaterialCoM.h"
-#include "NodeParamRPRMaterialBool/NodeParamRPRMaterialBool.h"
-#include "NodeParamRPRMaterialEnum/NodeParamRPRMaterialEnum.h"
+#include "NodeParamRPRMaterialMap/NodeParamXml_RPRMaterialMap.h"
+#include "NodeParamRPRMaterialCoM/NodeParamXml_RPRMaterialCoM.h"
+#include "NodeParamRPRMaterialBool/NodeParamXml_RPRMaterialBool.h"
+#include "NodeParamRPRMaterialEnum/NodeParamXml_RPRMaterialEnum.h"
 #include "NodeParamRPRMaterialCoMChannel1/NodeParamRPRMaterialCoMChannel1.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogNodeParamTypeFactory, Log, All)
@@ -20,11 +20,11 @@ TSharedPtr<INodeParamType> FNodeParamTypeFactory::CreateNewNodeParam(const FStri
 		#define ADD_TO_FACTORY_CHECK_CLASS(ClassCheck, NodeType) \
 			AddClassToFactory<ClassCheck, NodeType>(TEXT(#ClassCheck));
 		
-		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialMap, FNodeParamRPRMaterialMap);
-		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialCoMChannel1, FNodeParamRPRMaterialCoMChannel1);
-		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialCoM, FNodeParamRPRMaterialCoM);
-		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialBool, FNodeParamRPRMaterialBool);
-		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialEnum, FNodeParamRPRMaterialEnum);
+		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialMap, FNodeParamXml_RPRMaterialMap);
+		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialCoMChannel1, FNodeParamXml_RPRMaterialCoMChannel1);
+		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialCoM, FNodeParamXml_RPRMaterialCoM);
+		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialBool, FNodeParamXml_RPRMaterialBool);
+		ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialEnum, FNodeParamXml_RPRMaterialEnum);
 	}
 
 	FNodeParamTypeCreator* nodeParamTypeCreator = FactoryMap.Find(PropertyType);

@@ -1,4 +1,4 @@
-#include "NodeParamRPRMaterialCoM.h"
+#include "NodeParamXml_RPRMaterialCoM.h"
 #include "RPRMaterialXmlNodeParameter.h"
 #include "UnrealType.h"
 #include "RPRMaterialXmlNode.h"
@@ -9,14 +9,14 @@
 
 DECLARE_LOG_CATEGORY_CLASS(LogNodeParamRPRMaterialMap, Log, All)
 
-void FNodeParamRPRMaterialCoM::LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext,
-											FRPRMaterialXmlNodeParameter& CurrentNodeParameter, 
+void FNodeParamXml_RPRMaterialCoM::LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext,
+											FRPRMaterialXmlNodeParameterPtr CurrentNodeParameter, 
 											UProperty* Property)
 {
 	FRPRMaterialCoM* rprMaterialMap = 
 		SerializationContext.GetDirectMaterialParameter<FRPRMaterialCoM>(Property);
 
-	switch (CurrentNodeParameter.GetParameterType())
+	switch (CurrentNodeParameter->GetParameterType())
 	{
 	case ERPRMaterialNodeParameterValueType::Connection:
 		LoadTextureFromConnectionInput(rprMaterialMap, SerializationContext, CurrentNodeParameter);
@@ -33,17 +33,17 @@ void FNodeParamRPRMaterialCoM::LoadRPRMaterialParameters(FRPRMaterialGraphSerial
 	}
 }
 
-void FNodeParamRPRMaterialCoM::LoadTextureFromConnectionInput(FRPRMaterialMap* InMaterialMap, FRPRMaterialGraphSerializationContext& SerializationContext, FRPRMaterialXmlNodeParameter& CurrentNodeParameter)
+void FNodeParamXml_RPRMaterialCoM::LoadTextureFromConnectionInput(FRPRMaterialMap* InMaterialMap, FRPRMaterialGraphSerializationContext& SerializationContext, FRPRMaterialXmlNodeParameterPtr CurrentNodeParameter)
 {
-	FNodeParamRPRMaterialMap::LoadTextureFromConnectionInput(InMaterialMap, SerializationContext, CurrentNodeParameter);
+	FNodeParamXml_RPRMaterialMap::LoadTextureFromConnectionInput(InMaterialMap, SerializationContext, CurrentNodeParameter);
 
 	FRPRMaterialCoM* rprMaterialMap = StaticCast<FRPRMaterialCoM*>(InMaterialMap);
 	rprMaterialMap->Mode = (rprMaterialMap->Texture != nullptr ? ERPRMaterialMapMode::Texture : ERPRMaterialMapMode::Constant);
 }
 
-void FNodeParamRPRMaterialCoM::LoadColor(FRPRMaterialCoM* InMaterialMap, FRPRMaterialXmlNodeParameter& CurrentNodeParameter)
+void FNodeParamXml_RPRMaterialCoM::LoadColor(FRPRMaterialCoM* InMaterialMap, FRPRMaterialXmlNodeParameterPtr CurrentNodeParameter)
 {
-	const FString& paramValueStr = CurrentNodeParameter.GetValue();
+	const FString& paramValueStr = CurrentNodeParameter->GetValue();
 
 	TArray<FString> individualFloatStrings;
 	int32 numElements = paramValueStr.ParseIntoArray(individualFloatStrings, TEXT(","));
@@ -52,7 +52,7 @@ void FNodeParamRPRMaterialCoM::LoadColor(FRPRMaterialCoM* InMaterialMap, FRPRMat
 	{
 		UE_LOG(LogNodeParamRPRMaterialMap, Warning, 
 			TEXT("Couldn't parse float4 for %s ('%s')"), 
-			*CurrentNodeParameter.GetName().ToString(),
+			*CurrentNodeParameter->GetName().ToString(),
 			*paramValueStr);
 
 		return;

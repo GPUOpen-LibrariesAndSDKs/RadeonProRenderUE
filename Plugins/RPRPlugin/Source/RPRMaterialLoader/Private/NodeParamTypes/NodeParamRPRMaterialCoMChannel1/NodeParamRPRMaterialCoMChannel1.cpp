@@ -5,13 +5,13 @@
 
 DECLARE_LOG_CATEGORY_CLASS(LogNodeParamRPRMaterialMapChannel1, Log, All)
 
-void FNodeParamRPRMaterialCoMChannel1::LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext, 
-	FRPRMaterialXmlNodeParameter& CurrentNodeParameter, UProperty* Property)
+void FNodeParamXml_RPRMaterialCoMChannel1::LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext, 
+	FRPRMaterialXmlNodeParameterPtr CurrentNodeParameter, UProperty* Property)
 {
 	FRPRMaterialCoMChannel1* mapChannel1 = 
 		SerializationContext.GetDirectMaterialParameter<FRPRMaterialCoMChannel1>(Property);
 
-	switch (CurrentNodeParameter.GetParameterType())
+	switch (CurrentNodeParameter->GetParameterType())
 	{
 	case ERPRMaterialNodeParameterValueType::Connection:
 		LoadTextureFromConnectionInput(mapChannel1, SerializationContext, CurrentNodeParameter);
@@ -32,21 +32,20 @@ void FNodeParamRPRMaterialCoMChannel1::LoadRPRMaterialParameters(FRPRMaterialGra
 	}
 }
 
-void FNodeParamRPRMaterialCoMChannel1::LoadConstant(FRPRMaterialCoMChannel1* MapChannel1, 
-											FRPRMaterialXmlNodeParameter& CurrentNodeParameter)
+void FNodeParamXml_RPRMaterialCoMChannel1::LoadConstant(FRPRMaterialCoMChannel1* MapChannel1, FRPRMaterialXmlNodeParameterPtr CurrentNodeParameter)
 {
-	const FString& valueString = CurrentNodeParameter.GetValue();
+	const FString& valueString = CurrentNodeParameter->GetValue();
 	MapChannel1->Constant = FCString::Atof(*valueString);
 }
 
-void FNodeParamRPRMaterialCoMChannel1::LoadConstant4(FRPRMaterialCoMChannel1* MapChannel1, FRPRMaterialXmlNodeParameter& CurrentNodeParameter)
+void FNodeParamXml_RPRMaterialCoMChannel1::LoadConstant4(FRPRMaterialCoMChannel1* MapChannel1, FRPRMaterialXmlNodeParameterPtr CurrentNodeParameter)
 {
-	FString float4Value = CurrentNodeParameter.GetValue();
+	FString float4Value = CurrentNodeParameter->GetValue();
 	FString left, right;
 	if (!float4Value.Split(TEXT(","), &left, &right))
 	{
 		UE_LOG(LogNodeParamRPRMaterialMapChannel1, Warning,
-			TEXT("Error parsing float4 '%s' for the node '%s'"), *float4Value, *CurrentNodeParameter.GetName().ToString());
+			TEXT("Error parsing float4 '%s' for the node '%s'"), *float4Value, *CurrentNodeParameter->GetName().ToString());
 		return;
 	}
 
