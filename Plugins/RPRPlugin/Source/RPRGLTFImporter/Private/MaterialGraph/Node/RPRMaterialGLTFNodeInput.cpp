@@ -9,6 +9,7 @@
 
 #include "RPRGLTFImporterModule.h"
 #include "Helpers/GLTFNodeHelper.h"
+#include "Factory/NodeParamTypeGLTFFactory.h"
 
 TMap<GLTF::ERPRInputValueType, ERPRMaterialGLTFNodeInputValueType> FRPRMaterialGLTFNodeInput::GLTFTypeEnumToUETypeEnumMap;
 
@@ -98,12 +99,10 @@ void FRPRMaterialGLTFNodeInput::LoadRPRMaterialParameters(FRPRMaterialGraphSeria
 
     FString type = UberMatParams->GetPropertyTypeName(PropertyPtr);
 
-	// TODO : Reimplement factory
-	TSharedPtr<INodeParamType> NodeParam = nullptr; // FNodeParamTypeFactory::CreateNewNodeParam(type);
+	TSharedPtr<INodeParamType> NodeParam = FNodeParamTypeGLTFFactory::Get()->CreateNewNodeParam(type);
     if (NodeParam.IsValid())
     {
-		// TODO : Re-implement node param loading for GLTF
-        // NodeParam->LoadRPRMaterialParameters(SerializationContext, *this, PropertyPtr);
+        NodeParam->LoadRPRMaterialParameters(SerializationContext, AsShared(), PropertyPtr);
     }
 }
 

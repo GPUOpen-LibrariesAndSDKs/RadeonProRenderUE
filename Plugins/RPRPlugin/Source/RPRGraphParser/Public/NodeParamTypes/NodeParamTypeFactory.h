@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Enums/RPRMaterialNodeParameterValueType.h"
 #include "SharedPointer.h"
 #include "INodeParamType.h"
 #include "DelegateCombinations.h"
@@ -9,28 +8,36 @@
 
 DECLARE_DELEGATE_RetVal(TSharedPtr<INodeParamType>, FNodeParamTypeCreator);
 
-class FNodeParamTypeFactory
+#define ADD_TO_NODE_PARAM_FACTORY_CHECK_CLASS(ClassCheck, NodeType) \
+			AddClassToFactory<ClassCheck, NodeType>(TEXT(#ClassCheck));
+
+class RPRGRAPHPARSER_API FNodeParamTypeFactory
 {
 public:
 
-	static TSharedPtr<INodeParamType>	CreateNewNodeParam(const FString& PropertyType);
+	virtual ~FNodeParamTypeFactory() {}
 
-private:
+	TSharedPtr<INodeParamType>		CreateNewNodeParam(const FString& PropertyType);
+
+protected:
+
 
 	template<typename ClassType, typename NodeType>
-	static void	AddClassToFactory(const FString& ClassName);
-
-	template<typename Type, typename NodeType>
-	static void AddNativeTypeToFactory();
-
-	template<typename NodeType>
-	static FNodeParamTypeCreator	MakeCreator();
-
-	static void	AddToFactory(const FString& Key, FNodeParamTypeCreator Value);
+	void	AddClassToFactory(const FString& ClassName);
 
 private:
 
-	static TMap<FString, FNodeParamTypeCreator>	FactoryMap;
+	template<typename Type, typename NodeType>
+	void AddNativeTypeToFactory();
+
+	template<typename NodeType>
+	FNodeParamTypeCreator	MakeCreator();
+
+	void	AddToFactory(const FString& Key, FNodeParamTypeCreator Value);
+
+private:
+
+	TMap<FString, FNodeParamTypeCreator> FactoryMap;
 
 };
 
@@ -51,8 +58,8 @@ void FNodeParamTypeFactory::AddNativeTypeToFactory()
 template<typename NodeType>
 FNodeParamTypeCreator FNodeParamTypeFactory::MakeCreator()
 {
-	return (FNodeParamTypeCreator::CreateLambda([]() 
-	{ 
-		return MakeShareable(new NodeType()); 
+	return (FNodeParamTypeCreator::CreateLambda([] ()
+	{
+		return MakeShareable(new NodeType());
 	}));
 }

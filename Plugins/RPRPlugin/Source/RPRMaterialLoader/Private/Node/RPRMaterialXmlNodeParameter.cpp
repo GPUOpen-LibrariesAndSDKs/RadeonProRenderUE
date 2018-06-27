@@ -1,11 +1,11 @@
 #include "RPRMaterialXmlNodeParameter.h"
-#include "Factory/NodeParamTypeFactory.h"
 #include "RPRUberMaterialParameters.h"
 #include "RPRMaterialXmlGraph.h"
 #include "INodeParamType.h"
 #include "XmlNode.h"
 #include "UberMaterialPropertyHelper.h"
 #include "RPRMaterialGraphSerializationContext.h"
+#include "Factory/NodeParamTypeXmlFactory.h"
 
 #define NODE_ATTRIBUTE_NAME		TEXT("name")
 #define NODE_ATTRIBUTE_TYPE		TEXT("type")
@@ -42,7 +42,7 @@ void FRPRMaterialXmlNodeParameter::LoadRPRMaterialParameters(FRPRMaterialGraphSe
 		FUberMaterialPropertyHelper::GetParameterBaseFromProperty(SerializationContext.MaterialParameters, PropertyPtr);
 
 	FString type = uberMaterialParameter->GetPropertyTypeName(PropertyPtr);
-	TSharedPtr<INodeParamType> nodeParam = FNodeParamTypeFactory::CreateNewNodeParam(type);
+	TSharedPtr<INodeParamType> nodeParam = FNodeParamTypeXmlFactory::Get()->CreateNewNodeParam(type);
 	if (nodeParam.IsValid())
 	{
 		nodeParam->LoadRPRMaterialParameters(SerializationContext, AsShared(), PropertyPtr);
