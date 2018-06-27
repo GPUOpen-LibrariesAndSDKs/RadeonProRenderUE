@@ -2,7 +2,7 @@
 
 #pragma once
 
-enum class ERPRMaterialNodeInputValueType
+enum class ERPRMaterialGLTFNodeInputValueType
 {
     Unsupported,
     Node,

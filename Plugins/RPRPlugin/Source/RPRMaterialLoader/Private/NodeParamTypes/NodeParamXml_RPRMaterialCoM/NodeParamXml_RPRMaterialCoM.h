@@ -2,7 +2,7 @@
 
 #include "RPRMaterialXmlNodeParameter.h"
 #include "RPRUberMaterialParameters.h"
-#include "NodeParamRPRMaterialMap/NodeParamXml_RPRMaterialMap.h"
+#include "NodeParamXml_RPRMaterialMap/NodeParamXml_RPRMaterialMap.h"
 
 class FNodeParamXml_RPRMaterialCoM : public FNodeParamXml_RPRMaterialMap
 {

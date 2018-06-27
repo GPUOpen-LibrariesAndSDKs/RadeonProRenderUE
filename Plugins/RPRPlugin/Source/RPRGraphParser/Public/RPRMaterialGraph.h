@@ -4,8 +4,8 @@
 class IRPRMaterialGraph
 {
 public:
-	virtual const FName&	GetName() const = 0;
-	virtual void			Load(FRPRMaterialGraphSerializationContext& SerializationContext) = 0;
+	virtual const FName&		GetName() const = 0;
+	virtual void				Load(FRPRMaterialGraphSerializationContext& SerializationContext) = 0;
 };
 
 template<typename TParsedElementType, typename TNodeGraph>

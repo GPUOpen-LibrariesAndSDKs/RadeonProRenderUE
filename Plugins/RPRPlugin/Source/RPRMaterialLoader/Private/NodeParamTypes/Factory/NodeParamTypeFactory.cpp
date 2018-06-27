@@ -3,11 +3,11 @@
 #include "RPRUberMaterialParameters.h"
 #include "IsClass.h"
 #include "SharedPointer.h"
-#include "NodeParamRPRMaterialMap/NodeParamXml_RPRMaterialMap.h"
-#include "NodeParamRPRMaterialCoM/NodeParamXml_RPRMaterialCoM.h"
-#include "NodeParamRPRMaterialBool/NodeParamXml_RPRMaterialBool.h"
-#include "NodeParamRPRMaterialEnum/NodeParamXml_RPRMaterialEnum.h"
-#include "NodeParamRPRMaterialCoMChannel1/NodeParamRPRMaterialCoMChannel1.h"
+#include "NodeParamXml_RPRMaterialMap/NodeParamXml_RPRMaterialMap.h"
+#include "NodeParamXml_RPRMaterialCoM/NodeParamXml_RPRMaterialCoM.h"
+#include "NodeParamXml_RPRMaterialBool/NodeParamXml_RPRMaterialBool.h"
+#include "NodeParamXml_RPRMaterialEnum/NodeParamXml_RPRMaterialEnum.h"
+#include "NodeParamXml_RPRMaterialCoMChannel1/NodeParamRPRMaterialCoMChannel1.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogNodeParamTypeFactory, Log, All)
 

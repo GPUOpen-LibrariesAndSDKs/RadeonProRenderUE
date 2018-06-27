@@ -10,16 +10,16 @@
 #include "RPRGLTFImporterModule.h"
 #include "Helpers/GLTFNodeHelper.h"
 
-TMap<GLTF::ERPRInputValueType, ERPRMaterialNodeInputValueType> FRPRMaterialGLTFNodeInput::GLTFTypeEnumToUETypeEnumMap;
+TMap<GLTF::ERPRInputValueType, ERPRMaterialGLTFNodeInputValueType> FRPRMaterialGLTFNodeInput::GLTFTypeEnumToUETypeEnumMap;
 
 FRPRMaterialGLTFNodeInput::FRPRMaterialGLTFNodeInput()
 {
     if (GLTFTypeEnumToUETypeEnumMap.Num() == 0)
     {
-        GLTFTypeEnumToUETypeEnumMap.Add(GLTF::ERPRInputValueType::NODE, ERPRMaterialNodeInputValueType::Node);
-        GLTFTypeEnumToUETypeEnumMap.Add(GLTF::ERPRInputValueType::FLOAT4, ERPRMaterialNodeInputValueType::Float4);
-        GLTFTypeEnumToUETypeEnumMap.Add(GLTF::ERPRInputValueType::UINT, ERPRMaterialNodeInputValueType::UInt);
-        GLTFTypeEnumToUETypeEnumMap.Add(GLTF::ERPRInputValueType::IMAGE, ERPRMaterialNodeInputValueType::Image);
+        GLTFTypeEnumToUETypeEnumMap.Add(GLTF::ERPRInputValueType::NODE, ERPRMaterialGLTFNodeInputValueType::Node);
+        GLTFTypeEnumToUETypeEnumMap.Add(GLTF::ERPRInputValueType::FLOAT4, ERPRMaterialGLTFNodeInputValueType::Float4);
+        GLTFTypeEnumToUETypeEnumMap.Add(GLTF::ERPRInputValueType::UINT, ERPRMaterialGLTFNodeInputValueType::UInt);
+        GLTFTypeEnumToUETypeEnumMap.Add(GLTF::ERPRInputValueType::IMAGE, ERPRMaterialGLTFNodeInputValueType::Image);
     }
 }
 
@@ -39,7 +39,7 @@ bool FRPRMaterialGLTFNodeInput::Parse(const amd::Input& Node, int32 NodeIndex)
 	bool bValueIsValid = false;
 	switch (InputType)
 	{
-		case ERPRMaterialNodeInputValueType::Node:
+		case ERPRMaterialGLTFNodeInputValueType::Node:
 		{
 			int32 inputNodeIndex = Node.value.integer;
 			IRPRMaterialNodePtr parentPtr = GetParent();
@@ -56,13 +56,13 @@ bool FRPRMaterialGLTFNodeInput::Parse(const amd::Input& Node, int32 NodeIndex)
 			}
 		}
 		break;
-		case ERPRMaterialNodeInputValueType::Float4:
+		case ERPRMaterialGLTFNodeInputValueType::Float4:
 		{
 			Vec4Value = FVector4(Node.value.array[0], Node.value.array[1], Node.value.array[2], Node.value.array[3]);
 			bValueIsValid = true;
 		}
 		break;
-		case ERPRMaterialNodeInputValueType::UInt:
+		case ERPRMaterialGLTFNodeInputValueType::UInt:
 		{
 			int InputIntValue = Node.value.integer;
 			if (InputIntValue >= 0)
@@ -72,7 +72,7 @@ bool FRPRMaterialGLTFNodeInput::Parse(const amd::Input& Node, int32 NodeIndex)
 			}
 		}
 		break;
-		case ERPRMaterialNodeInputValueType::Image:
+		case ERPRMaterialGLTFNodeInputValueType::Image:
 		{
 			int InputImageIndex = Node.value.integer;
 			if (InputImageIndex >= 0 && InputImageIndex < TheGLTF->Data->images.size())
@@ -88,7 +88,7 @@ bool FRPRMaterialGLTFNodeInput::Parse(const amd::Input& Node, int32 NodeIndex)
 		break;
 	}
 
-	return (Name.IsValid() && InputType != ERPRMaterialNodeInputValueType::Unsupported && bValueIsValid);
+	return (Name.IsValid() && InputType != ERPRMaterialGLTFNodeInputValueType::Unsupported && bValueIsValid);
 }
 
 void FRPRMaterialGLTFNodeInput::LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext, UProperty* PropertyPtr)
@@ -112,36 +112,36 @@ RPRMaterialGLTF::ERPRMaterialNodeType FRPRMaterialGLTFNodeInput::GetNodeType() c
 	return RPRMaterialGLTF::ERPRMaterialNodeType::Input;
 }
 
-ERPRMaterialNodeInputValueType FRPRMaterialGLTFNodeInput::GetInputType() const
+ERPRMaterialGLTFNodeInputValueType FRPRMaterialGLTFNodeInput::GetInputType() const
 {
     return InputType;
 }
 
 void FRPRMaterialGLTFNodeInput::GetValue(FString& OutString) const
 {
-    check((InputType == ERPRMaterialNodeInputValueType::Node || InputType == ERPRMaterialNodeInputValueType::Image)
+    check((InputType == ERPRMaterialGLTFNodeInputValueType::Node || InputType == ERPRMaterialGLTFNodeInputValueType::Image)
         && "NodeInput does not contain a string (node connection, file path) value.");
     OutString = StringValue;
 }
 
 void FRPRMaterialGLTFNodeInput::GetValue(FVector4& OutVec4) const
 {
-    check(InputType == ERPRMaterialNodeInputValueType::Float4 && "NodeInput does not contain a float4 value.");
+    check(InputType == ERPRMaterialGLTFNodeInputValueType::Float4 && "NodeInput does not contain a float4 value.");
     OutVec4 = Vec4Value;
 }
 
 void FRPRMaterialGLTFNodeInput::GetValue(int32& OutInt) const
 {
-    check(InputType == ERPRMaterialNodeInputValueType::UInt && "NodeInput does not contain an integer value.");
+    check(InputType == ERPRMaterialGLTFNodeInputValueType::UInt && "NodeInput does not contain an integer value.");
     OutInt = IntValue;
 }
 
-ERPRMaterialNodeInputValueType FRPRMaterialGLTFNodeInput::ParseType(GLTF::ERPRInputValueType ValueType)
+ERPRMaterialGLTFNodeInputValueType FRPRMaterialGLTFNodeInput::ParseType(GLTF::ERPRInputValueType ValueType)
 {
-    const ERPRMaterialNodeInputValueType* VT = GLTFTypeEnumToUETypeEnumMap.Find(ValueType);
+    const ERPRMaterialGLTFNodeInputValueType* VT = GLTFTypeEnumToUETypeEnumMap.Find(ValueType);
     if (VT != nullptr)
     {
         return *VT;
     }
-    return ERPRMaterialNodeInputValueType::Unsupported;
+    return ERPRMaterialGLTFNodeInputValueType::Unsupported;
 }

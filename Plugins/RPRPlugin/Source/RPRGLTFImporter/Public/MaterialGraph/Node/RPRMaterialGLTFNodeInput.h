@@ -35,7 +35,7 @@ public:
     void LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext, UProperty* PropertyPtr);
 
     /** Get the value type of this input. */
-    ERPRMaterialNodeInputValueType GetInputType() const;
+    ERPRMaterialGLTFNodeInputValueType GetInputType() const;
 
     /** Get the value of this input as a string. */
     void GetValue(FString& OutString) const;
@@ -49,11 +49,11 @@ public:
 
 private:
 
-    static ERPRMaterialNodeInputValueType ParseType(GLTF::ERPRInputValueType ValueType);
+    static ERPRMaterialGLTFNodeInputValueType ParseType(GLTF::ERPRInputValueType ValueType);
 
 private:
 
-	ERPRMaterialNodeInputValueType InputType;
+	ERPRMaterialGLTFNodeInputValueType InputType;
 
     /** The string value of this node input. */
     FString StringValue;
@@ -64,7 +64,7 @@ private:
     /** The integer value of this node input. */
     int32 IntValue;
 
-    static TMap<GLTF::ERPRInputValueType, ERPRMaterialNodeInputValueType> GLTFTypeEnumToUETypeEnumMap;
+    static TMap<GLTF::ERPRInputValueType, ERPRMaterialGLTFNodeInputValueType> GLTFTypeEnumToUETypeEnumMap;
 
 };
 

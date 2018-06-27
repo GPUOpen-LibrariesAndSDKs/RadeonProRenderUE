@@ -1,6 +1,5 @@
 #pragma once
-
-#include "NodeParamRPRMaterialMap/NodeParamXml_RPRMaterialMap.h"
+#include "NodeParamXml_RPRMaterialMap/NodeParamXml_RPRMaterialMap.h"
 
 class FNodeParamXml_RPRMaterialCoMChannel1 : public FNodeParamXml_RPRMaterialMap
 {
