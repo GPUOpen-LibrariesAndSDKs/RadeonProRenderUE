@@ -38,7 +38,7 @@
 			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
-			"Name": "RPRGLTFImporter",
+			"Name": "GLTFImporter",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"WhitelistPlatforms": [ "Win64" ]
@@ -68,7 +68,7 @@
 			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
-			"Name": "RPRMaterialLoader",
+			"Name": "RPRMaterialImporter",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
 			"WhitelistPlatforms": [ "Win64" ]
