@@ -1,0 +1,51 @@
+﻿<Window x:Class="LicenseAdd.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LicenseAdd"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="250.833" Width="608.667" Closed="Window_Closed">
+    <Grid>
+        <Border Margin="10">
+            <Grid>
+                <Grid Margin="1,0,-1,35">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="42*"/>
+                        <RowDefinition Height="36*"/>
+                        <RowDefinition Height="41*"/>
+                        <RowDefinition Height="46*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="117*"/>
+                        <ColumnDefinition Width="464*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label x:Name="label" Content="Filters" VerticalAlignment="Center" Height="26" Margin="0,8"/>
+                    <TextBox x:Name="UIFilters" Grid.Column="1" TextWrapping="Wrap" Text="*.h,*.cpp,*.cs" VerticalAlignment="Center" Margin="0,8"/>
+                    <Label Content="Sources" Grid.Row="1" VerticalAlignment="Center" Height="26" Margin="0,5" />
+                    <Grid Grid.Row="1" Grid.Column="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="291*"/>
+                            <ColumnDefinition Width="95*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="UISourceDir" TextWrapping="Wrap" Text="" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <Button x:Name="UIBrowseSourcesButton" Content="Browse..." Grid.Column="1" Margin="1,0,0,0" Click="UIBrowseSourcesButton_Click"/>
+                    </Grid>
+                    <Grid Grid.Row="2" Grid.Column="1" Margin="0,8,0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="291*"/>
+                            <ColumnDefinition Width="95*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="UICopyrightDir" TextWrapping="Wrap" Text="" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <Button x:Name="UIBrowseCopyrightButton" Content="Browse..." Grid.Column="1" Margin="1,0,0,0" Click="UIBrowseCopyrightButton_Click" />
+                    </Grid>
+                    <Label x:Name="label1" Content="Copyright" Grid.Row="2" Margin="0" VerticalAlignment="Center"/>
+                    <Label x:Name="label1_Copy" Content="Excluded" Grid.Row="3" Margin="0" VerticalAlignment="Center"/>
+                    <TextBox x:Name="UIExcluded" Grid.Column="1" TextWrapping="Wrap" Text="ThirdParty,tinyxml" VerticalAlignment="Center" Margin="0,10" Grid.Row="3"/>
+                </Grid>
+                <Button x:Name="UIAddLicense" Content="Add license" Click="UIAddLicense_Click" VerticalAlignment="Bottom" Margin="0,0,0,10" />
+            </Grid>
+        </Border>
+
+    </Grid>
+</Window>
