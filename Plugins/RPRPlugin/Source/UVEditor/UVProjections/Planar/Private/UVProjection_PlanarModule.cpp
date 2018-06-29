@@ -20,6 +20,7 @@
 #include "SUVProjectionTypeEntry.h"
 #include "UVProjectionFactory.h"
 #include "SUVProjectionPlanar.h"
+#include "EditorStyleSet.h"
 
 #define LOCTEXT_NAMESPACE "UVProjection_PlanarModule"
 

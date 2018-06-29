@@ -18,6 +18,7 @@
 ********************************************************************/
 #pragma once
 #include "UnrealTypeTraits.h"
+#include "RprSupport.h"
 
 UENUM(BlueprintType)
 enum class ERPRReflectionMode : uint8

@@ -32,7 +32,7 @@ extern "C" {
 #endif
 
 
-#define RPR_API_VERSION 0x010029700 
+#define RPR_API_VERSION 0x010030200 
 
 /*rpr_status*/
 #define RPR_SUCCESS 0 
@@ -176,9 +176,10 @@ extern "C" {
 #define RPR_CONTEXT_SINGLE_LEVEL_BVH_ENABLED 0x13E 
 #define RPR_CONTEXT_TRANSPARENT_BACKGROUND 0x13F 
 #define RPR_CONTEXT_MAX_DEPTH_SHADOW 0x140 
+#define RPR_CONTEXT_API_VERSION 0x141 
 
 /* last of the RPR_CONTEXT_* */
-#define RPR_CONTEXT_MAX 0x141 
+#define RPR_CONTEXT_MAX 0x142 
 
 /*rpr_camera_info*/
 #define RPR_CAMERA_TRANSFORM 0x201 
@@ -282,6 +283,7 @@ extern "C" {
 /*rpr_light_info*/
 #define RPR_LIGHT_TYPE 0x801 
 #define RPR_LIGHT_TRANSFORM 0x803 
+#define RPR_LIGHT_GROUP_ID 0x805 
 
     
 #define RPR_POINT_LIGHT_RADIANT_POWER 0x804 
@@ -415,11 +417,12 @@ extern "C" {
 #define RPR_MATERIAL_NODE_MICROFACET_ANISOTROPIC_REFLECTION 0x1E 
 #define RPR_MATERIAL_NODE_MICROFACET_ANISOTROPIC_REFRACTION 0x1F 
 #define RPR_MATERIAL_NODE_TWOSIDED 0x20 
-#define RPR_MATERIAL_NODE_UV_PROJECT 0x21 
+#define RPR_MATERIAL_NODE_UV_PROCEDURAL 0x21 
 #define RPR_MATERIAL_NODE_MICROFACET_BECKMANN 0x22 
 #define RPR_MATERIAL_NODE_PHONG 0x23 
 #define RPR_MATERIAL_NODE_BUFFER_SAMPLER 0x24 
 #define RPR_MATERIAL_NODE_UV_TRIPLANAR 0x25 
+#define RPR_MATERIAL_NODE_AO_MAP 0x26 
 /*rpr_material_node_input*/
 #define RPR_MATERIAL_INPUT_COLOR 0x0 
 #define RPR_MATERIAL_INPUT_COLOR0 0x1 
@@ -454,7 +457,10 @@ extern "C" {
 #define RPR_MATERIAL_INPUT_XAXIS 0x1e 
 #define RPR_MATERIAL_INPUT_THRESHOLD 0x1f 
 #define RPR_MATERIAL_INPUT_OFFSET 0x20 
-#define RPR_MATERIAL_INPUT_MAX 0x21 
+#define RPR_MATERIAL_INPUT_UV_TYPE 0x21 
+#define RPR_MATERIAL_INPUT_RADIUS 0x22 
+#define RPR_MATERIAL_INPUT_SIDE 0x23 
+#define RPR_MATERIAL_INPUT_MAX 0x24 
 /*rpr_material_node_input*/
 #define RPR_MATERIAL_STANDARD_INPUT_DIFFUSE_COLOR 0x112 
 #define RPR_MATERIAL_STANDARD_INPUT_DIFFUSE_NORMAL 0x113 
@@ -518,6 +524,7 @@ extern "C" {
 #define RPR_MATERIAL_NODE_OP_MAT_MUL 0x1d 
 #define RPR_MATERIAL_NODE_OP_SELECT_W 0x1e 
 #define RPR_MATERIAL_NODE_OP_DOT4 0x1f 
+#define RPR_MATERIAL_NODE_OP_LOG 0x20 
 /*rpr_material_node_lookup_value*/
 #define RPR_MATERIAL_NODE_LOOKUP_UV 0x0 
 #define RPR_MATERIAL_NODE_LOOKUP_N 0x1 
@@ -525,6 +532,11 @@ extern "C" {
 #define RPR_MATERIAL_NODE_LOOKUP_INVEC 0x3 
 #define RPR_MATERIAL_NODE_LOOKUP_OUTVEC 0x4 
 #define RPR_MATERIAL_NODE_LOOKUP_UV1 0x5 
+/*rpr_material_node_uvtype_value*/
+#define RPR_MATERIAL_NODE_UVTYPE_PLANAR 0x0 
+#define RPR_MATERIAL_NODE_UVTYPE_CYLINDICAL 0x1 
+#define RPR_MATERIAL_NODE_UVTYPE_SPHERICAL 0x2 
+#define RPR_MATERIAL_NODE_UVTYPE_PROJECT 0x3 
 /*rpr_post_effect_info*/
 #define RPR_POST_EFFECT_TYPE 0x0 
 #define RPR_POST_EFFECT_WHITE_BALANCE_COLOR_SPACE 0x4 
@@ -556,7 +568,11 @@ extern "C" {
 #define RPR_AOV_INDIRECT_REFLECT 0x14 
 #define RPR_AOV_REFRACT 0x15 
 #define RPR_AOV_VOLUME 0x16 
-#define RPR_AOV_MAX 0x17 
+#define RPR_AOV_LIGHT_GROUP0 0x17 
+#define RPR_AOV_LIGHT_GROUP1 0x18 
+#define RPR_AOV_LIGHT_GROUP2 0x19 
+#define RPR_AOV_LIGHT_GROUP3 0x1a 
+#define RPR_AOV_MAX 0x1b 
 /*rpr_post_effect_type*/
 #define RPR_POST_EFFECT_TONE_MAP 0x0 
 #define RPR_POST_EFFECT_WHITE_BALANCE 0x1 
@@ -723,6 +739,7 @@ typedef rpr_uint rpr_color_space;
 typedef rpr_uint rpr_environment_override;
 typedef rpr_uint rpr_subdiv_boundary_interfop_type;
 typedef rpr_uint rpr_material_node_lookup_value;
+typedef rpr_uint rpr_material_node_uvtype_value;
 typedef rpr_uint rpr_image_wrap_type;
 typedef rpr_uint rpr_image_filter_type;
 typedef rpr_uint rpr_material_node_arithmetic_operation;
@@ -1706,6 +1723,16 @@ extern RPR_API_ENTRY rpr_int rprShapeSetShadow(rpr_shape shape, rpr_bool casts_s
 extern RPR_API_ENTRY rpr_int rprLightSetTransform(rpr_light light, rpr_bool transpose, rpr_float const * transform);
 
 
+    /** @brief Set light group ID. This parameter can be used with RPR_AOV_LIGHT_GROUP0, RPR_AOV_LIGHT_GROUP1, RPR_AOV_LIGHT_GROUP2, RPR_AOV_LIGHT_GROUP3
+    *
+    *  @param  light       The light to set transform for
+    *  @param  groupId     -1 to remove the group.  or a value between 0 and 3.
+    *  @return             RPR_SUCCESS in case of success, error code otherwise
+    */
+  
+extern RPR_API_ENTRY rpr_int rprLightSetGroupId(rpr_light light, rpr_uint groupId);
+
+
     /** @brief Query information about a shape
     *
     *  The workflow is usually two-step: query with the data == NULL to get the required buffer size,
@@ -2523,7 +2550,7 @@ extern RPR_API_ENTRY rpr_int rprHeteroVolumeSetEmission(rpr_hetero_volume hetero
 extern RPR_API_ENTRY rpr_int rprHeteroVolumeSetAlbedo(rpr_hetero_volume heteroVolume, rpr_float r, rpr_float g, rpr_float b);
 extern RPR_API_ENTRY rpr_int rprHeteroVolumeSetFilter(rpr_hetero_volume heteroVolume, rpr_hetero_volume_filter filter);
 /***************compatibility part***************/
-#define FR_API_VERSION 0x010029700 
+#define FR_API_VERSION 0x010030200 
 #define FR_SUCCESS 0 
 #define FR_ERROR_COMPUTE_API_NOT_SUPPORTED -1 
 #define FR_ERROR_OUT_OF_SYSTEM_MEMORY -2 
@@ -2654,7 +2681,8 @@ extern RPR_API_ENTRY rpr_int rprHeteroVolumeSetFilter(rpr_hetero_volume heteroVo
 #define FR_CONTEXT_SINGLE_LEVEL_BVH_ENABLED 0x13E 
 #define FR_CONTEXT_TRANSPARENT_BACKGROUND 0x13F 
 #define FR_CONTEXT_MAX_DEPTH_SHADOW 0x140 
-#define FR_CONTEXT_MAX 0x141 
+#define FR_CONTEXT_API_VERSION 0x141 
+#define FR_CONTEXT_MAX 0x142 
 #define FR_CAMERA_TRANSFORM 0x201 
 #define FR_CAMERA_FSTOP 0x202 
 #define FR_CAMERA_APERTURE_BLADES 0x203 
@@ -2749,6 +2777,7 @@ extern RPR_API_ENTRY rpr_int rprHeteroVolumeSetFilter(rpr_hetero_volume heteroVo
 #define FR_LUT_DATA 0x851 
 #define FR_LIGHT_TYPE 0x801 
 #define FR_LIGHT_TRANSFORM 0x803 
+#define FR_LIGHT_GROUP_ID 0x805 
 #define FR_POINT_LIGHT_RADIANT_POWER 0x804 
 #define FR_DIRECTIONAL_LIGHT_RADIANT_POWER 0x808 
 #define FR_DIRECTIONAL_LIGHT_SHADOW_SOFTNESS 0x809 
@@ -2853,11 +2882,12 @@ extern RPR_API_ENTRY rpr_int rprHeteroVolumeSetFilter(rpr_hetero_volume heteroVo
 #define FR_MATERIAL_NODE_MICROFACET_ANISOTROPIC_REFLECTION 0x1E 
 #define FR_MATERIAL_NODE_MICROFACET_ANISOTROPIC_REFRACTION 0x1F 
 #define FR_MATERIAL_NODE_TWOSIDED 0x20 
-#define FR_MATERIAL_NODE_UV_PROJECT 0x21 
+#define FR_MATERIAL_NODE_UV_PROCEDURAL 0x21 
 #define FR_MATERIAL_NODE_MICROFACET_BECKMANN 0x22 
 #define FR_MATERIAL_NODE_PHONG 0x23 
 #define FR_MATERIAL_NODE_BUFFER_SAMPLER 0x24 
 #define FR_MATERIAL_NODE_UV_TRIPLANAR 0x25 
+#define FR_MATERIAL_NODE_AO_MAP 0x26 
 #define FR_MATERIAL_INPUT_COLOR 0x0 
 #define FR_MATERIAL_INPUT_COLOR0 0x1 
 #define FR_MATERIAL_INPUT_COLOR1 0x2 
@@ -2891,7 +2921,10 @@ extern RPR_API_ENTRY rpr_int rprHeteroVolumeSetFilter(rpr_hetero_volume heteroVo
 #define FR_MATERIAL_INPUT_XAXIS 0x1e 
 #define FR_MATERIAL_INPUT_THRESHOLD 0x1f 
 #define FR_MATERIAL_INPUT_OFFSET 0x20 
-#define FR_MATERIAL_INPUT_MAX 0x21 
+#define FR_MATERIAL_INPUT_UV_TYPE 0x21 
+#define FR_MATERIAL_INPUT_RADIUS 0x22 
+#define FR_MATERIAL_INPUT_SIDE 0x23 
+#define FR_MATERIAL_INPUT_MAX 0x24 
 #define FR_MATERIAL_STANDARD_INPUT_DIFFUSE_COLOR 0x112 
 #define FR_MATERIAL_STANDARD_INPUT_DIFFUSE_NORMAL 0x113 
 #define FR_MATERIAL_STANDARD_INPUT_GLOSSY_COLOR 0x114 
@@ -2953,12 +2986,17 @@ extern RPR_API_ENTRY rpr_int rprHeteroVolumeSetFilter(rpr_hetero_volume heteroVo
 #define FR_MATERIAL_NODE_OP_MAT_MUL 0x1d 
 #define FR_MATERIAL_NODE_OP_SELECT_W 0x1e 
 #define FR_MATERIAL_NODE_OP_DOT4 0x1f 
+#define FR_MATERIAL_NODE_OP_LOG 0x20 
 #define FR_MATERIAL_NODE_LOOKUP_UV 0x0 
 #define FR_MATERIAL_NODE_LOOKUP_N 0x1 
 #define FR_MATERIAL_NODE_LOOKUP_P 0x2 
 #define FR_MATERIAL_NODE_LOOKUP_INVEC 0x3 
 #define FR_MATERIAL_NODE_LOOKUP_OUTVEC 0x4 
 #define FR_MATERIAL_NODE_LOOKUP_UV1 0x5 
+#define FR_MATERIAL_NODE_UVTYPE_PLANAR 0x0 
+#define FR_MATERIAL_NODE_UVTYPE_CYLINDICAL 0x1 
+#define FR_MATERIAL_NODE_UVTYPE_SPHERICAL 0x2 
+#define FR_MATERIAL_NODE_UVTYPE_PROJECT 0x3 
 #define FR_POST_EFFECT_TYPE 0x0 
 #define FR_POST_EFFECT_WHITE_BALANCE_COLOR_SPACE 0x4 
 #define FR_POST_EFFECT_WHITE_BALANCE_COLOR_TEMPERATURE 0x5 
@@ -2988,7 +3026,11 @@ extern RPR_API_ENTRY rpr_int rprHeteroVolumeSetFilter(rpr_hetero_volume heteroVo
 #define FR_AOV_INDIRECT_REFLECT 0x14 
 #define FR_AOV_REFRACT 0x15 
 #define FR_AOV_VOLUME 0x16 
-#define FR_AOV_MAX 0x17 
+#define FR_AOV_LIGHT_GROUP0 0x17 
+#define FR_AOV_LIGHT_GROUP1 0x18 
+#define FR_AOV_LIGHT_GROUP2 0x19 
+#define FR_AOV_LIGHT_GROUP3 0x1a 
+#define FR_AOV_MAX 0x1b 
 #define FR_POST_EFFECT_TONE_MAP 0x0 
 #define FR_POST_EFFECT_WHITE_BALANCE 0x1 
 #define FR_POST_EFFECT_SIMPLE_TONEMAP 0x2 
@@ -3133,6 +3175,7 @@ typedef rpr_color_space fr_color_space;
 typedef rpr_environment_override fr_environment_override;
 typedef rpr_subdiv_boundary_interfop_type fr_subdiv_boundary_interfop_type;
 typedef rpr_material_node_lookup_value fr_material_node_lookup_value;
+typedef rpr_material_node_uvtype_value fr_material_node_uvtype_value;
 typedef rpr_image_wrap_type fr_image_wrap_type;
 typedef rpr_image_filter_type fr_image_filter_type;
 typedef rpr_material_node_arithmetic_operation fr_material_node_arithmetic_operation;
@@ -3226,6 +3269,7 @@ extern RPR_API_ENTRY fr_int frShapeSetVisibilityInSpecular(fr_shape shape, fr_bo
 extern RPR_API_ENTRY fr_int frShapeSetShadowCatcher(fr_shape shape, fr_bool shadowCatcher);
 extern RPR_API_ENTRY fr_int frShapeSetShadow(fr_shape shape, fr_bool casts_shadow);
 extern RPR_API_ENTRY fr_int frLightSetTransform(fr_light light, fr_bool transpose, fr_float const * transform);
+extern RPR_API_ENTRY fr_int frLightSetGroupId(fr_light light, fr_uint groupId);
 extern RPR_API_ENTRY fr_int frShapeGetInfo(fr_shape arg0, fr_shape_info arg1, size_t arg2, void * arg3, size_t * arg4);
 extern RPR_API_ENTRY fr_int frMeshGetInfo(fr_shape mesh, fr_mesh_info mesh_info, size_t size, void * data, size_t * size_ret);
 extern RPR_API_ENTRY fr_int frHeteroVolumeGetInfo(fr_hetero_volume heteroVol, fr_hetero_volume_parameter heteroVol_info, size_t size, void * data, size_t * size_ret);
