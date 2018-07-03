@@ -206,88 +206,69 @@ RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(rpr_int tahoePluginID , RPR_TOOLS_
 
     rpr_context temporaryContext = 0;
 
-	try 
-	{
-
-		//step 1:
-		//we try to create a context with this device :
-		//the frCreateContext we check that the GPU is OpenCL compatible, and exist.
-        rpr_creation_flags flags = 0;
-        rpr_context_info contextInfo = 0;
+	//step 1:
+	//we try to create a context with this device :
+	//the frCreateContext we check that the GPU is OpenCL compatible, and exist.
+    rpr_creation_flags flags = 0;
+    rpr_context_info contextInfo = 0;
 	
-		{
-			if ( tahoePluginID == -1 ) { throw  RPRTC_INCOMPATIBLE_UNKNOWN; }
-            rpr_int plugins[] = { tahoePluginID};
-			size_t pluginCount = sizeof(plugins) / sizeof(plugins[0]);
-				 if ( device == RPRTD_GPU0 ) { flags = RPR_CREATION_FLAGS_ENABLE_GPU0; contextInfo = RPR_CONTEXT_GPU0_NAME; }
-			else if ( device == RPRTD_GPU1 ) { flags = RPR_CREATION_FLAGS_ENABLE_GPU1; contextInfo = RPR_CONTEXT_GPU1_NAME;}
-			else if ( device == RPRTD_GPU2 ) { flags = RPR_CREATION_FLAGS_ENABLE_GPU2; contextInfo = RPR_CONTEXT_GPU2_NAME;}
-			else if ( device == RPRTD_GPU3 ) { flags = RPR_CREATION_FLAGS_ENABLE_GPU3; contextInfo = RPR_CONTEXT_GPU3_NAME;}
-			else if ( device == RPRTD_GPU4 ) { flags = RPR_CREATION_FLAGS_ENABLE_GPU4; contextInfo = RPR_CONTEXT_GPU4_NAME;}
-			else if ( device == RPRTD_GPU5 ) { flags = RPR_CREATION_FLAGS_ENABLE_GPU5; contextInfo = RPR_CONTEXT_GPU5_NAME;}
-			else if ( device == RPRTD_GPU6 ) { flags = RPR_CREATION_FLAGS_ENABLE_GPU6; contextInfo = RPR_CONTEXT_GPU6_NAME;}
-			else if ( device == RPRTD_GPU7 ) { flags = RPR_CREATION_FLAGS_ENABLE_GPU7; contextInfo = RPR_CONTEXT_GPU7_NAME;}
-			else if ( device == RPRTD_CPU )  { flags = RPR_CREATION_FLAGS_ENABLE_CPU;  contextInfo = RPR_CONTEXT_CPU_NAME;}
-			else { throw  RPRTC_INCOMPATIBLE_UNKNOWN; }
-			flags |= additionalflags;
+	if ( tahoePluginID == -1 ) { throw  RPRTC_INCOMPATIBLE_UNKNOWN; }
+    rpr_int plugins[] = { tahoePluginID};
+	size_t pluginCount = sizeof(plugins) / sizeof(plugins[0]);
+			if ( device == RPRTD_GPU0 ) { flags = RPR_CREATION_FLAGS_ENABLE_GPU0; contextInfo = RPR_CONTEXT_GPU0_NAME; }
+	else if ( device == RPRTD_GPU1 ) { flags = RPR_CREATION_FLAGS_ENABLE_GPU1; contextInfo = RPR_CONTEXT_GPU1_NAME;}
+	else if ( device == RPRTD_GPU2 ) { flags = RPR_CREATION_FLAGS_ENABLE_GPU2; contextInfo = RPR_CONTEXT_GPU2_NAME;}
+	else if ( device == RPRTD_GPU3 ) { flags = RPR_CREATION_FLAGS_ENABLE_GPU3; contextInfo = RPR_CONTEXT_GPU3_NAME;}
+	else if ( device == RPRTD_GPU4 ) { flags = RPR_CREATION_FLAGS_ENABLE_GPU4; contextInfo = RPR_CONTEXT_GPU4_NAME;}
+	else if ( device == RPRTD_GPU5 ) { flags = RPR_CREATION_FLAGS_ENABLE_GPU5; contextInfo = RPR_CONTEXT_GPU5_NAME;}
+	else if ( device == RPRTD_GPU6 ) { flags = RPR_CREATION_FLAGS_ENABLE_GPU6; contextInfo = RPR_CONTEXT_GPU6_NAME;}
+	else if ( device == RPRTD_GPU7 ) { flags = RPR_CREATION_FLAGS_ENABLE_GPU7; contextInfo = RPR_CONTEXT_GPU7_NAME;}
+	else if ( device == RPRTD_CPU )  { flags = RPR_CREATION_FLAGS_ENABLE_CPU;  contextInfo = RPR_CONTEXT_CPU_NAME;}
+	else { throw  RPRTC_INCOMPATIBLE_UNKNOWN; }
+	flags |= additionalflags;
 			
-			try
-			{ 
-				status = rprCreateContext(RPR_API_VERSION, plugins, pluginCount, flags, NULL, cache_path, &temporaryContext);
-			}
-			catch (...)
-			{ 
-				return RPRTC_INCOMPATIBLE_CONTEXT_ERROR; 
-			} 
+	status = rprCreateContext(RPR_API_VERSION, plugins, pluginCount, flags, NULL, cache_path, &temporaryContext);
+	if (status != RPR_SUCCESS)
+	{
+		return (RPRTC_INCOMPATIBLE_CONTEXT_UNSUPPORTED);
+	}
+	
+	//step 2:
+	size_t size = 0;
+	status = rprContextGetInfo(temporaryContext,contextInfo,0,0,&size);
+	if (status != RPR_SUCCESS)
+	{
+		rprObjectDelete(temporaryContext); temporaryContext = NULL;
+		return (RPRTC_INCOMPATIBLE_CONTEXT_UNSUPPORTED);
+	}
 
-			if ( status != RPR_SUCCESS )
-			{
-				if ( status == RPR_ERROR_UNSUPPORTED )
-				{
-					throw  RPRTC_INCOMPATIBLE_CONTEXT_UNSUPPORTED;
-				}
-				else
-				{
-					throw  RPRTC_INCOMPATIBLE_CONTEXT_ERROR;
-				}
-			}
-		}
-	
-	
-		//step 2:
-		size_t size = 0;
-		status = rprContextGetInfo(temporaryContext,contextInfo,0,0,&size);
-		if ( status != RPR_SUCCESS ) { throw  RPRTC_INCOMPATIBLE_UNKNOWN; }
+	std::string deviceName;
+	deviceName.resize(size);
+	status = rprContextGetInfo(temporaryContext,contextInfo,size,&deviceName[0],0);
+	if (status != RPR_SUCCESS)
+	{
+		rprObjectDelete(temporaryContext); temporaryContext = NULL;
+		return (RPRTC_INCOMPATIBLE_CONTEXT_UNSUPPORTED);
+	}
 
-		std::string deviceName;
-		deviceName.resize(size);
-		status = rprContextGetInfo(temporaryContext,contextInfo,size,&deviceName[0],0);
-		if ( status != RPR_SUCCESS ) { throw  RPRTC_INCOMPATIBLE_UNKNOWN; }
-		//we check that the device is in the list compatible devices.
-		if ( doWhiteListTest )
+	//we check that the device is in the list compatible devices.
+	if ( doWhiteListTest )
+	{	
+		if ( !IsDeviceNameWhitelisted(deviceName.c_str(),os) )
 		{
-	
-			if ( !IsDeviceNameWhitelisted(deviceName.c_str(),os) )
-			{
-				throw RPRTC_INCOMPATIBLE_UNCERTIFIED;
-			}
-		}
-		{
-			if( strstr( deviceName.c_str(), "Intel" ) != 0 )
-				return  RPRTC_INCOMPATIBLE_CONTEXT_UNSUPPORTED;
+			rprObjectDelete(temporaryContext); temporaryContext = NULL;
+			return RPRTC_INCOMPATIBLE_UNCERTIFIED;
 		}
 	}
-	catch(RPR_TOOLS_COMPATIBILITY i )
 	{
-		if ( temporaryContext )
+		if (strstr(deviceName.c_str(), "Intel") != 0)
 		{
-			status = rprObjectDelete(temporaryContext); temporaryContext = NULL;
-			if ( status != RPR_SUCCESS ) { return RPRTC_INCOMPATIBLE_UNKNOWN; }
+			rprObjectDelete(temporaryContext); temporaryContext = NULL;
+			return  RPRTC_INCOMPATIBLE_CONTEXT_UNSUPPORTED;
 		}
-        return i;
-  }
+	}
 
-	if ( temporaryContext )
+	if ( temporaryContext != nullptr)
 	{
 		status = rprObjectDelete(temporaryContext); temporaryContext = NULL;
 		if (status != RPR_SUCCESS ) { return RPRTC_INCOMPATIBLE_UNKNOWN; }

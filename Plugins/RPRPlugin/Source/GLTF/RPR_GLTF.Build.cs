@@ -24,28 +24,16 @@ using System.IO;
 public class RPR_GLTF : ModuleRules
 {
     public string ThirdPartyDirectory
-    {
-        get
-        {
-            return (Path.Combine(ModuleDirectory, "ThirdParty"));
-        }
-    }
+    { get { return (Path.Combine(ModuleDirectory, "../../ThirdParty")); }}
+
+    public string GLTFDirectory
+    { get { return (Path.Combine(ThirdPartyDirectory, "gltf")); }}
 
     public string ThirdPartyBinDirectory
-    {
-        get
-        {
-            return (Path.Combine(ThirdPartyDirectory, "Binaries"));
-        }
-    }
+    { get { return (Path.Combine(GLTFDirectory, "Binaries")); }}
 
     public string ThirdPartyIncludesDirectory
-    {
-        get
-        {
-            return (Path.Combine(ThirdPartyDirectory, "Includes"));
-        }
-    }
+    { get { return (Path.Combine(GLTFDirectory, "Includes")); }}
 
 
     public RPR_GLTF(ReadOnlyTargetRules Target) : base(Target)

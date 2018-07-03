@@ -46,7 +46,7 @@ public class RPR_SDK : ModuleRules
     };
 
     public string ThirdPartyDirectory
-    { get { return ("ThirdParty/"); } }
+    { get { return ("../../ThirdParty/"); } }
 
     public string SDKDirectory
     { get { return (ThirdPartyDirectory + "ProRenderSDK/"); } }

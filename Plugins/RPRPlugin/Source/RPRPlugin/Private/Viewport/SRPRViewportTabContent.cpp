@@ -39,6 +39,8 @@
 
 #define LOCTEXT_NAMESPACE "SRPRViewportTabContent"
 
+DECLARE_LOG_CATEGORY_CLASS(LogSRPRViewportTabContent, Log, All)
+
 SRPRViewportTabContent::~SRPRViewportTabContent()
 {
 	// TODO make sure the viewport client is destroyed
@@ -65,6 +67,9 @@ FReply	SRPRViewportTabContent::OnToggleRender()
 {
 	m_Plugin->m_RPRPaused = !m_Plugin->m_RPRPaused;
 	m_Plugin->m_CleanViewport = false;
+
+	UE_LOG(LogSRPRViewportTabContent, Verbose, TEXT("Toggle rendering : %s"), m_Plugin->m_RPRPaused ? TEXT("true") : TEXT("false"));
+
 	ARPRScene	*scene = m_Plugin->GetCurrentScene();
 	if (scene != NULL)
 	{
@@ -74,6 +79,10 @@ FReply	SRPRViewportTabContent::OnToggleRender()
 		else
 			scene->OnPause();
 	}
+	else
+	{
+		UE_LOG(LogSRPRViewportTabContent, Error, TEXT("RPR Scene invalid! Cannot start render"));
+	}
 	return FReply::Handled();
 }
 
@@ -81,6 +90,8 @@ FReply	SRPRViewportTabContent::OnToggleSync()
 {
 	m_Settings->bSync = !m_Settings->bSync;
 	m_Settings->SaveConfig();
+
+	UE_LOG(LogSRPRViewportTabContent, Verbose, TEXT("Toggle sync : %s"), m_Settings->bSync ? TEXT("true") : TEXT("false"));
 	return FReply::Handled();
 }
 
@@ -111,6 +122,8 @@ FReply	SRPRViewportTabContent::OnSave()
 
 FReply	SRPRViewportTabContent::OnRebuild()
 {
+	UE_LOG(LogSRPRViewportTabContent, Verbose, TEXT("Rebuild RPR scene"));
+
 	m_Plugin->Rebuild();
 	return FReply::Handled();
 }

@@ -21,6 +21,12 @@
 #include "PlatformProcess.h"
 #include "Paths.h"
 
+FString FRPR_SDKModule::GetDLLsDirectory()
+{
+	checkf(PLATFORM_64BITS & PLATFORM_WINDOWS, TEXT("Only Windows 64bits supported."));
+	return FPaths::ConvertRelativePathToFull(FPaths::ProjectPluginsDir() + "RPRPlugin/ThirdParty/ProRenderSDK/RadeonProRender/binWin64");
+}
+
 void FRPR_SDKModule::StartupModule()
 {
 	TArray<FString> dllNames;
@@ -61,12 +67,6 @@ void FRPR_SDKModule::UnloadDLLs()
 		FPlatformProcess::FreeDllHandle(dllHandles[i]);
 	}
 	dllHandles.Empty();
-}
-
-FString FRPR_SDKModule::GetDLLsDirectory()
-{
-	checkf(PLATFORM_64BITS & PLATFORM_WINDOWS, TEXT("Only Windows 64bits supported."));
-	return FPaths::ConvertRelativePathToFull(FPaths::ProjectPluginsDir() + "RPRPlugin/Source/SDK/ThirdParty/ProRenderSDK/RadeonProRender/binWin64");
 }
 
 IMPLEMENT_MODULE(FRPR_SDKModule, RPR_SDKModule)

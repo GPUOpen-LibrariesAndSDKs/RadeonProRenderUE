@@ -32,6 +32,12 @@
 			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
+			"Name": "RPRGraphParser",
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [ "Win64" ]
+		},
+		{
 			"Name": "RPRCompatibility",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
@@ -39,7 +45,7 @@
 		},
 		{
 			"Name": "GLTFImporter",
-			"Type": "Runtime",
+			"Type": "Editor",
 			"LoadingPhase": "Default",
 			"WhitelistPlatforms": [ "Win64" ]
 		},

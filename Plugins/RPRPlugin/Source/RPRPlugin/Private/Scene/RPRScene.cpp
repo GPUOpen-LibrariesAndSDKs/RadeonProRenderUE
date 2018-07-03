@@ -253,6 +253,8 @@ bool	ARPRScene::BuildViewportCamera()
 
 uint32	ARPRScene::BuildScene()
 {
+	UE_LOG(LogRPRScene, Verbose, TEXT("Build RPR scene"));
+
 	UWorld	*world = GetWorld();
 
 	check(world != nullptr);
@@ -412,6 +414,11 @@ uint32	ARPRScene::GetContextCreationFlags(const rpr_int TahoePluginId)
 
 		UE_LOG(LogRPRScene, Log, TEXT("%s"), *usedDevices);
 	}
+	else
+	{
+		UE_LOG(LogRPRScene, Error, TEXT("No compatible device!"));
+	}
+
 	return creationFlags;
 }
 
@@ -461,6 +468,8 @@ void ARPRScene::LoadMappings()
 
 void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 {
+	UE_LOG(LogRPRScene, VeryVerbose, TEXT("Render RPR scene"));
+
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
 	check(settings != nullptr);
 
@@ -499,6 +508,8 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 
 void	ARPRScene::InitializeRPRRendering()
 {
+	UE_LOG(LogRPRScene, Verbose, TEXT("Initialize RPR rendering..."));
+
 	URPRSettings* settings = GetMutableDefault<URPRSettings>();
 
 	if (!ensure(m_Plugin->GetRenderTexture() != nullptr))
@@ -512,12 +523,17 @@ void	ARPRScene::InitializeRPRRendering()
 		return;
 	}
 
+	UE_LOG(LogRPRScene, VeryVerbose, TEXT("DLL '%s' access checked"), *dllPath);
+
 	rpr_int	tahoePluginId = rprRegisterPlugin(TCHAR_TO_ANSI(*dllPath)); // Seems to be mandatory
 	if (tahoePluginId == -1)
 	{
 		UE_LOG(LogRPRScene, Error, TEXT("\"%s\" not registered by \"%s\" path."), "Tahoe64.dll", *dllPath);
 		return;
 	}
+
+	UE_LOG(LogRPRScene, Log, TEXT("Plugin registered"));
+
 	uint32	creationFlags = GetContextCreationFlags(tahoePluginId);
 	if (creationFlags == 0)
 	{
@@ -537,14 +553,16 @@ void	ARPRScene::InitializeRPRRendering()
 		UE_LOG(LogRPRScene, Error, TEXT("RPR Context creation failed: check your OpenCL runtime and driver versions."));
 		return;
 	}
+
+	UE_LOG(LogRPRScene, Verbose, TEXT("RPR context created"));
+
 	if (rprContextSetActivePlugin(m_RprContext, tahoePluginId) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRScene, Error, TEXT("RPR Context setup failed: Couldn't set tahoe plugin."));
 		return;
 	}
-#ifdef RPR_VERBOSE
-	UE_LOG(LogRPRScene, Log, TEXT("ProRender context initialized"));
-#endif
+
+	UE_LOG(LogRPRScene, VeryVerbose, TEXT("RPR context active"));
 
 	rpriAllocateContext(&m_RpriContext);
 	rpriErrorOptions(m_RpriContext, 5, false, false);
@@ -581,13 +599,10 @@ void	ARPRScene::InitializeRPRRendering()
 	materialContext.RPRContext = m_RprContext;
 	materialContext.RPRXContext = m_RprSupportCtx;
 	RPRXMaterialLibrary.Initialize(materialContext, RPRImageManager);
-
-
+	
 	LoadMappings();
-
-#ifdef RPR_VERBOSE
-	UE_LOG(LogRPRScene, Log, TEXT("ProRender scene created"));
-#endif
+	
+	UE_LOG(LogRPRScene, Verbose, TEXT("RPR rendering fully initialized"));
 }
 
 void	ARPRScene::Rebuild()
@@ -614,6 +629,8 @@ void	ARPRScene::Rebuild()
 
 void	ARPRScene::OnPause()
 {
+	UE_LOG(LogRPRScene, VeryVerbose, TEXT("Pause RPR rendering"));
+
 	if (!m_RendererWorker.IsValid())
 		return;
 	m_RendererWorker->SetPaused(true);
