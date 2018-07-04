@@ -51,14 +51,6 @@ public:
 	/** Defines ProRender maximum number of iteration. */
 	UPROPERTY(Config, EditAnywhere, Category = General)
 	uint32		MaximumRenderIterations;
-    
-    /** Defines additional search paths for RPR xml material textures */
-    UPROPERTY(Config, EditAnywhere, Category = General)
-    FString     MaterialsSearchPaths;
-
-    /** Defines additional search paths for RPR xml material textures */
-    UPROPERTY(Config, EditAnywhere, Category = General)
-    FString     ImageSearchPaths;
 
 	/** Enables GPU1 usage */
 	UPROPERTY(Config, EditAnywhere, Category = Devices)
