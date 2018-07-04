@@ -453,12 +453,6 @@ void ARPRScene::LoadMappings()
 	// Set the master material mappings file.
 	m_materialLibrary.LoadMasterMappingFile(TCHAR_TO_ANSI(*(FPaths::ProjectDir() + "/Plugins/RPRPlugin/Content/MaterialMappings.xml")));
 
-	// Add material search paths to material library.
-	m_materialLibrary.AddMaterialSearchPaths(TCHAR_TO_ANSI(*settings->MaterialsSearchPaths));
-
-	// Add image search paths to material library.
-	m_materialLibrary.AddImageSearchPaths(TCHAR_TO_ANSI(*settings->ImageSearchPaths));
-
 	// Initialize material library for UE material to RPR replacement.	 
 	m_materialLibrary.AddDirectory(TCHAR_TO_ANSI(*(FPaths::ProjectDir() + "/Plugins/RPRPlugin/Content/Materials")));
 
