@@ -30,9 +30,9 @@ public class UVProjection_Spherical : ModuleRules
 
     void DefineIncludesAndDependencies()
     {
-        PublicIncludePaths.AddRange(
+        PrivateIncludePaths.AddRange(
             new string[] {
-                "UVProjections/Spherical/Public",
+                "UVEditor/UVProjections/Spherical/Public",
 				// ... add public include paths required here ...
 			}
             );
@@ -40,7 +40,7 @@ public class UVProjection_Spherical : ModuleRules
 
         PrivateIncludePaths.AddRange(
             new string[] {
-                "UVProjections/Spherical/Private"
+                "UVEditor/UVProjections/Spherical/Private"
 				// ... add other private include paths required here ...
 			}
             );

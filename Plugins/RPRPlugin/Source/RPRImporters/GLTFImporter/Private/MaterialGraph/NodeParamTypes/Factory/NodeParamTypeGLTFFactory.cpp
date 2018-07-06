@@ -23,11 +23,11 @@
 #include "Templates/IsClass.h"
 #include "Templates/SharedPointer.h"
 
-#include "NodeParamGLTF_RPRMaterialMap/NodeParamGTLF_RPRMaterialMap.h"
-#include "NodeParamGLTF_RPRMaterialCoMChannel1/NodeParamGLTF_RPRMaterialCoMChannel1.h"
-#include "NodeParamGLTF_RPRMaterialBool/NodeParamGLTF_RPRMaterialBool.h"
-#include "NodeParamGLTF_RPRMaterialEnum/NodeParamGLTF_RPRMaterialEnum.h"
-#include "NodeParamGLTF_RPRMaterialCoM/NodeParamGTLF_RPRMaterialCoM.h"
+#include "Map/NodeParamGTLF_RPRMaterialMap.h"
+#include "CoMChannel1/NodeParamGLTF_RPRMaterialCoMChannel1.h"
+#include "Bool/NodeParamGLTF_RPRMaterialBool.h"
+#include "Enum/NodeParamGLTF_RPRMaterialEnum.h"
+#include "CoM/NodeParamGTLF_RPRMaterialCoM.h"
 
 TSharedPtr<FNodeParamTypeGLTFFactory> FNodeParamTypeGLTFFactory::Instance;
 

@@ -26,7 +26,9 @@
 
 #pragma warning(push)
 #pragma warning(disable: 4628)
-#include <json.hpp>
+#pragma warning(disable: 4652)
+#pragma warning(disable: 4651)
+#include "json.hpp"
 #pragma warning(pop)
 
 #include "RPR_GLTFModule.h"

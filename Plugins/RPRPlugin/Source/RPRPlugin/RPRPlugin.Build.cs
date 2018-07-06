@@ -33,11 +33,11 @@ public class RPRPlugin : ModuleRules
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
         bEnableExceptions = true;
 
-        PublicIncludePaths.AddRange(
+        PrivateIncludePaths.AddRange(
 			new string[] {
 				"RPRPlugin/Public",
-                "RPRPlugin/Public/SDK",
                 "RPRPlugin/Public/Enums",
+                "RPRPlugin/Public/Assets",
 
                 "RPRPlugin/Public/Material",
                 "RPRPlugin/Public/Material/Tools",

@@ -24,7 +24,7 @@
 #include "RPRMaterialGLTFImageTextureNode.h"
 #include "RPRMaterialGLTFGraph.h"
 
-#include "GLTFImporterModule.h"
+#include "RPRGLTFImporterModule.h"
 #include "RPRMaterialGLTFNode.h"
 #include "RPRMaterialGLTFNodeInput.h"
 
@@ -46,7 +46,7 @@ UTexture2D* FRPRMaterialGLTFNormalMapNode::ImportNormal(FRPRMaterialGraphSeriali
     }
     if (!ColorInput.IsValid())
     {
-        UE_LOG(LogRPRGLTFImporter, Error, TEXT("FRPRMaterialGLTFNormalMapNode::ImportNormal: NormalMap has no color input?"));
+        UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("FRPRMaterialGLTFNormalMapNode::ImportNormal: NormalMap has no color input?"));
         return nullptr;
     }
 
@@ -55,7 +55,7 @@ UTexture2D* FRPRMaterialGLTFNormalMapNode::ImportNormal(FRPRMaterialGraphSeriali
     FRPRMaterialGLTFNodePtr ColorInputNode = SerializationContext.GetMaterialGraph<FRPRMaterialGLTFGraph>()->FindNodeByName(*InputNodeName);
     if (!ColorInputNode.IsValid())
     {
-        UE_LOG(LogRPRGLTFImporter, Error, TEXT("FRPRMaterialGLTFNormalMapNode::ImportNormal: NormalMap color input doesn't point to a node?"));
+        UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("FRPRMaterialGLTFNormalMapNode::ImportNormal: NormalMap color input doesn't point to a node?"));
         return nullptr;
     }
 

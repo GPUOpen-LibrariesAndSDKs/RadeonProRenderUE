@@ -27,7 +27,7 @@
 #include "UnrealTypeTraits.h"
 #include "NodeParamTypeFactory.h"
 
-class GLTFIMPORTER_API FNodeParamTypeGLTFFactory : public FNodeParamTypeFactory
+class RPRGLTFImporter_API FNodeParamTypeGLTFFactory : public FNodeParamTypeFactory
 {
 
 public:

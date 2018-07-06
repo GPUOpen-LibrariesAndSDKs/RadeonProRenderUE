@@ -22,7 +22,7 @@
 #include "Engine/Texture2D.h"
 #include "AssetToolsModule.h"
 
-#include "GLTFImporterModule.h"
+#include "RPRGLTFImporterModule.h"
 #include "RPRMaterialGraphSerializationContext.h"
 #include "RPRSettings.h"
 #include "RPRMaterialGLTFNodeInput.h"
@@ -45,7 +45,7 @@ UTexture2D* FRPRMaterialGLTFImageTextureNode::ImportTexture(FRPRMaterialGraphSer
     }
     if (!DataInput.IsValid())
     {
-        UE_LOG(LogRPRGLTFImporter, Error, TEXT("FRPRMaterialGLTFImageTextureNode::ImportTexture: ImageTexture has no data input?"));
+        UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("FRPRMaterialGLTFImageTextureNode::ImportTexture: ImageTexture has no data input?"));
         return nullptr;
     }
 
@@ -56,7 +56,7 @@ UTexture2D* FRPRMaterialGLTFImageTextureNode::ImportTexture(FRPRMaterialGraphSer
 
     if (!FPaths::FileExists(AbsoluteTexturePath))
     {
-        UE_LOG(LogRPRGLTFImporter, Error,
+        UE_LOG(LogRPRRPRGLTFImporter, Error,
             TEXT("FRPRMaterialGLTFImageTextureNode::ImportTexture: Cannot import image texture from node '%s'. Path '%s' is invalid. Full path is '%s'"),
             *Name.ToString(), *RelativeTexturePath, *AbsoluteTexturePath);
         return nullptr;
@@ -78,7 +78,7 @@ UTexture2D* FRPRMaterialGLTFImageTextureNode::ImportTexture(FRPRMaterialGraphSer
     TArray<UObject*> ImportedAssets = AssetToolsModule.Get().ImportAssets(AbsoluteTexturePaths, DestinationAssetPath);
     if (ImportedAssets.Num() == 0)
     {
-        UE_LOG(LogRPRGLTFImporter, Error, TEXT("FRPRMaterialGLTFImageTextureNode::ImportTexture: Texture import cancelled."));
+        UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("FRPRMaterialGLTFImageTextureNode::ImportTexture: Texture import cancelled."));
         return nullptr;
     }
 

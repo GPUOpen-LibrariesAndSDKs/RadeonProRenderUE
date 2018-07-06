@@ -36,7 +36,7 @@
 
 #include "RPRGLTFMaterialExpressionsHelper.h"
 
-#include "GLTFImporterModule.h"
+#include "RPRGLTFImporterModule.h"
 
 #define LOCTEXT_NAMESPACE "UGLTFMaterialTranslationFactory"
 
@@ -54,7 +54,7 @@ UObject* UGLTFMaterialTranslationFactory::FactoryCreateNew(UClass* InClass, UObj
 {
     if (!GLTF.IsValid())
     {
-        UE_LOG(LogRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactory::FactoryCreateNew: Not initialized with glTF structures."));
+        UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactory::FactoryCreateNew: Not initialized with glTF structures."));
         return nullptr;
     }
 
@@ -62,7 +62,7 @@ UObject* UGLTFMaterialTranslationFactory::FactoryCreateNew(UClass* InClass, UObj
     UMaterial* NewMaterial = (UMaterial*)MaterialFactory->FactoryCreateNew(UMaterial::StaticClass(), InParent, InName, InFlags, nullptr, InWarn);
     if (!IsValid(NewMaterial))
     {
-        UE_LOG(LogRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactory::FactoryCreateNew: Error creating UMaterial."));
+        UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactory::FactoryCreateNew: Error creating UMaterial."));
         return nullptr;
     }
 
@@ -88,14 +88,14 @@ UObject* UGLTFMaterialTranslationFactory::FactoryCreateNew(UClass* InClass, UObj
 bool UGLTFMaterialTranslationFactory::InitFromGLTF(const GLTF::FMaterial& InGLTFMaterial)
 {
     FGLTFPtr TheGLTF;
-    if (!FGLTFImporterModule::GetGLTF(TheGLTF))
+    if (!FRPRGLTFImporterModule::GetGLTF(TheGLTF))
     {
-        UE_LOG(LogRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactory::InitFromGLTF: glTF context is not valid."));
+        UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactory::InitFromGLTF: glTF context is not valid."));
         return false;
     }
     if (!IsValid(TheGLTF->Settings))
     {
-        UE_LOG(LogRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactory::InitFromGLTF: glTF import options are not set."));
+        UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactory::InitFromGLTF: glTF import options are not set."));
         return false;
     }
 
@@ -423,7 +423,7 @@ UTexture* UGLTFMaterialTranslationFactory::CreateTexture(int InTextureIndex)
 {
     if (!(InTextureIndex >= 0 && InTextureIndex < GLTF->Data->textures.size()))
     {
-        UE_LOG(LogRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactory::CreateTexture: glTF texture index out of bounds."));
+        UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactory::CreateTexture: glTF texture index out of bounds."));
         return nullptr;
     }
 
@@ -432,7 +432,7 @@ UTexture* UGLTFMaterialTranslationFactory::CreateTexture(int InTextureIndex)
 
     if (!(ImageIndex >= 0 && ImageIndex < GLTF->Data->images.size()))
     {
-        UE_LOG(LogRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactory::CreateTexture: glTF image index out of bounds."));
+        UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactory::CreateTexture: glTF image index out of bounds."));
         return nullptr;
     }
 
@@ -462,7 +462,7 @@ UTexture* UGLTFMaterialTranslationFactory::CreateTexture(int InTextureIndex)
             TArray<uint8> TextureData;
             if (!FBase64::Decode(TextureBase64Str, TextureData))
             {
-                UE_LOG(LogRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactory::CreateTexture: Could not decode embedded texture %d"), GLTFTexture.source);
+                UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactory::CreateTexture: Could not decode embedded texture %d"), GLTFTexture.source);
                 return nullptr;
             }
             FString Type = TextureUri.Mid(TextureUri.Find("data:image/") + FString("data:image/").Len(), 3);

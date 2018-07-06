@@ -26,6 +26,7 @@
 #include "MultiBox/MultiBoxExtender.h"
 #include "CoreMinimal.h"
 #include "ModuleManager.h"
+#include "SDockTab.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRPRPlugin, All, All);
 

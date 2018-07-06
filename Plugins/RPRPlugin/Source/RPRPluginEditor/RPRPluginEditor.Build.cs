@@ -33,13 +33,9 @@ public class RPRPluginEditor : ModuleRules
 
     void DefineIncludesAndDependencies()
     {
-        PublicIncludePaths.AddRange(
+        PrivateIncludePaths.AddRange(
             new string[] {
                 "RPRPluginEditor/Public",
-                "RPRPlugin/Public",
-				// ... add public include paths required here ...
-
-                "RPRPlugin/Public/UVMappingEditor",
             }
             );
 
@@ -47,18 +43,7 @@ public class RPRPluginEditor : ModuleRules
         PrivateIncludePaths.AddRange(
             new string[] {
                 "RPRPluginEditor/Private",
-
                 "RPRPluginEditor/Private/ShapePreviews",
-                "RPRPluginEditor/Private/RPRViewport",
-
-                "RPRPluginEditor/Private/Material/",
-                "RPRPluginEditor/Private/Material/NodeParamTypes",
-                
-                "RPRPluginEditor/Private/Outliners",
-                "RPRPluginEditor/Private/Outliners/ObjectsOutliner",
-                "RPRPluginEditor/Private/Outliners/SceneOutliner",
-
-                "RPRPlugin/Private"
 				// ... add other private include paths required here ...
 			}
             );

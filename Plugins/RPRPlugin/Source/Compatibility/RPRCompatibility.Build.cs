@@ -29,7 +29,7 @@ public class RPRCompatibility : ModuleRules
 
     void DefineIncludesAndDependencies(ReadOnlyTargetRules Target)
     {
-        PublicIncludePaths.AddRange(
+        PrivateIncludePaths.AddRange(
             new string[] {
                 "Compatibility/Public",
 				// ... add public include paths required here ...

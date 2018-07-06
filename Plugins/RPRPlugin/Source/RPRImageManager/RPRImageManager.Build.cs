@@ -27,10 +27,10 @@ public class RPRImageManager : ModuleRules
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicIncludePaths.AddRange(
+        PrivateIncludePaths.AddRange(
 			new string[] {
-				"RPRImagerManager/Public",
-                "RPRImagerManager/Public/Cache",
+				"RPRImageManager/Public",
+                "RPRImageManager/Public/Cache",
             }
 			);
 

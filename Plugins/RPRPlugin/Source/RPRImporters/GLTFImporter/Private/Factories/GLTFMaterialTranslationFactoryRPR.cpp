@@ -36,7 +36,7 @@
 
 #include "RPRGLTFMaterialExpressionsHelper.h"
 
-#include "GLTFImporterModule.h"
+#include "RPRGLTFImporterModule.h"
 #include "RPRMaterialGraphSerializationContext.h"
 
 #define LOCTEXT_NAMESPACE "UGLTFMaterialTranslationFactoryRPR"
@@ -55,7 +55,7 @@ UObject* UGLTFMaterialTranslationFactoryRPR::FactoryCreateNew(UClass* InClass, U
 {
     if (!GLTF.IsValid())
     {
-        UE_LOG(LogRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactoryRPR::FactoryCreateNew: Not initialized with AMD_RPR_material structures."));
+        UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactoryRPR::FactoryCreateNew: Not initialized with AMD_RPR_material structures."));
         return nullptr;
     }
 
@@ -64,7 +64,7 @@ UObject* UGLTFMaterialTranslationFactoryRPR::FactoryCreateNew(UClass* InClass, U
     UMaterial* NewMaterial = (UMaterial*)MaterialFactory->FactoryCreateNew(UMaterial::StaticClass(), InParent, InName, InFlags, nullptr, InWarn);
     if (!IsValid(NewMaterial))
     {
-        UE_LOG(LogRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactoryRPR::FactoryCreateNew: Error creating UMaterial."));
+        UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactoryRPR::FactoryCreateNew: Error creating UMaterial."));
         return nullptr;
     }
 
@@ -74,7 +74,7 @@ UObject* UGLTFMaterialTranslationFactoryRPR::FactoryCreateNew(UClass* InClass, U
     FRPRMaterialGLTFGraph MaterialGLTFGraph;
     if (!MaterialGLTFGraph.Parse(GLTFRPRMaterial))
     {
-        UE_LOG(LogRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactoryRPR::FactoryCreateNew: Could not parse the AMD_RPR_material structures."));
+        UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactoryRPR::FactoryCreateNew: Could not parse the AMD_RPR_material structures."));
         return nullptr;
     }
 
@@ -110,14 +110,14 @@ UObject* UGLTFMaterialTranslationFactoryRPR::FactoryCreateNew(UClass* InClass, U
 bool UGLTFMaterialTranslationFactoryRPR::InitFromGLTF(const GLTF::FMaterial& InGLTFMaterial)
 {
     FGLTFPtr TheGLTF;
-    if (!FGLTFImporterModule::GetGLTF(TheGLTF))
+    if (!FRPRGLTFImporterModule::GetGLTF(TheGLTF))
     {
-        UE_LOG(LogRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactoryRPR::InitFromGLTF: glTF context is not valid."));
+        UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactoryRPR::InitFromGLTF: glTF context is not valid."));
         return false;
     }
     if (!IsValid(TheGLTF->Settings))
     {
-        UE_LOG(LogRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactoryRPR::InitFromGLTF: glTF import options are not set."));
+        UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("UGLTFMaterialTranslationFactoryRPR::InitFromGLTF: glTF import options are not set."));
         return false;
     }
 

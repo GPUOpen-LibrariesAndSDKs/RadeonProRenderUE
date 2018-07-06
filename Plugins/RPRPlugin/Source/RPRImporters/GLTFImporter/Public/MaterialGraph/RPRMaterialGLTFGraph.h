@@ -27,7 +27,7 @@
 /*
 * Load the data required for a RPR Material by creating a graph from a glTF RPR material structure.
 */
-class GLTFIMPORTER_API FRPRMaterialGLTFGraph : public FRPRMaterialGraph<GLTF::FRPRMaterial, FRPRMaterialGLTFNode>
+class RPRGLTFImporter_API FRPRMaterialGLTFGraph : public FRPRMaterialGraph<GLTF::FRPRMaterial, FRPRMaterialGLTFNode>
 {
 public:
 

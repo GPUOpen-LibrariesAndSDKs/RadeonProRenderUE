@@ -33,7 +33,7 @@ public class Outliners : ModuleRules
 
     void DefineIncludesAndDependencies()
     {
-        PublicIncludePaths.AddRange(
+        PrivateIncludePaths.AddRange(
             new string[] {
                 "Outliners/Public",
 				// ... add public include paths required here ...

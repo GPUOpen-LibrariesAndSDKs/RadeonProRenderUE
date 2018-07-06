@@ -25,7 +25,7 @@
 #include "RPRMaterialGLTFNode.h"
 #include "RPRMaterialGLTFNodeTypeParser.h"
 
-#include "GLTFImporterModule.h"
+#include "RPRGLTFImporterModule.h"
 
 TSharedPtr<FRPRMaterialGLTFNode> FRPRMaterialGLTFNodeFactory::CreateNodeFromGLTFNode(const GLTF::FRPRNode& Node)
 {
@@ -45,7 +45,7 @@ TSharedPtr<FRPRMaterialGLTFNode> FRPRMaterialGLTFNodeFactory::CreateNodeFromGLTF
         MaterialNode = MakeShareable(new FRPRMaterialGLTFImageTextureNode());
         break;
     default:
-        UE_LOG(LogRPRGLTFImporter, Warning, TEXT("FRPRMaterialGLTFNodeFactory::CreateNodeFromGLTFNode: RPR Material node type %d is unsupported."), (uint32)Node.type);
+        UE_LOG(LogRPRRPRGLTFImporter, Warning, TEXT("FRPRMaterialGLTFNodeFactory::CreateNodeFromGLTFNode: RPR Material node type %d is unsupported."), (uint32)Node.type);
     }
 
     return MaterialNode;

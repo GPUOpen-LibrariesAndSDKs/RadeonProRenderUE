@@ -18,11 +18,11 @@
 ********************************************************************/
 #include "NodeParamTypeXmlFactory.h"
 
-#include "NodeParamXml_RPRMaterialMap/NodeParamXml_RPRMaterialMap.h"
-#include "NodeParamXml_RPRMaterialCoM/NodeParamXml_RPRMaterialCoM.h"
-#include "NodeParamXml_RPRMaterialCoMChannel1/NodeParamRPRMaterialCoMChannel1.h"
-#include "NodeParamXml_RPRMaterialBool/NodeParamXml_RPRMaterialBool.h"
-#include "NodeParamXml_RPRMaterialEnum/NodeParamXml_RPRMaterialEnum.h"
+#include "Map/NodeParamXml_RPRMaterialMap.h"
+#include "CoM/NodeParamXml_RPRMaterialCoM.h"
+#include "CoMChannel1/NodeParamRPRMaterialCoMChannel1.h"
+#include "Bool/NodeParamXml_RPRMaterialBool.h"
+#include "Enum/NodeParamXml_RPRMaterialEnum.h"
 
 TSharedPtr<FNodeParamTypeXmlFactory> FNodeParamTypeXmlFactory::Instance;
 

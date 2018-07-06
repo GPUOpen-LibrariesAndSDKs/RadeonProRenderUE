@@ -47,7 +47,7 @@
 
 #include "GLTF.h"
 
-#include "GLTFImporterModule.h"
+#include "RPRGLTFImporterModule.h"
 
 #define LOCTEXT_NAMESPACE "URPRGLTFImportFactory"
 
@@ -88,7 +88,7 @@ UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InPa
     TSharedPtr<GLTF::FData> GLTFData = nullptr;
     if (!LoadGLTFData(InFilename, GLTFData))
     {
-        UE_LOG(LogRPRGLTFImporter, Error, TEXT("URPRGLTFImportFactory::FactoryCreateFile: Failed to load glTF file '%s'."), *InFilename);
+        UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("URPRGLTFImportFactory::FactoryCreateFile: Failed to load glTF file '%s'."), *InFilename);
         return nullptr;
     }
 
@@ -100,7 +100,7 @@ UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InPa
     if (!SGLTFImportWindow::Open(InFilename, InParent->GetPathName(), Settings))
     {
         bOutOperationCanceled = true;
-        UE_LOG(LogRPRGLTFImporter, Log, TEXT("URPRGLTFImportFactory::FactoryCreateFile: Import of glTF file '%s' cancelled."), *InFilename);
+        UE_LOG(LogRPRRPRGLTFImporter, Log, TEXT("URPRGLTFImportFactory::FactoryCreateFile: Import of glTF file '%s' cancelled."), *InFilename);
         return nullptr;
     }
 
@@ -108,7 +108,7 @@ UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InPa
     TSharedPtr<GLTF::FBufferCache> GLTFBuffers = nullptr;
     if (!LoadGLTFBuffers(FPaths::GetPath(InFilename), GLTFData, GLTFBuffers))
     {
-        UE_LOG(LogRPRGLTFImporter, Error, TEXT("URPRGLTFImportFactory::FactoryCreateFile: Failed to load buffer files for '%s'."), *InFilename);
+        UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("URPRGLTFImportFactory::FactoryCreateFile: Failed to load buffer files for '%s'."), *InFilename);
         return nullptr;
     }
 
@@ -116,11 +116,11 @@ UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InPa
     GLTF = FGLTFPtr(new FGLTF(GLTFData.ToSharedRef(), GLTFBuffers.ToSharedRef(), Settings));
     if (!GLTF.IsValid())
     {
-        UE_LOG(LogRPRGLTFImporter, Error, TEXT("URPRGLTFImportFactory::FactoryCreateFile: glTF context is not valid."));
+        UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("URPRGLTFImportFactory::FactoryCreateFile: glTF context is not valid."));
         return nullptr;
     }
     // Give ownership of the glTF context to the ImporterModule
-    FGLTFImporterModule::Get().SetGLTF(GLTF);
+    FRPRGLTFImporterModule::Get().SetGLTF(GLTF);
 
     FlushRenderingCommands();
 
@@ -148,7 +148,7 @@ UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InPa
 
     // Destroy the glTF context
     GLTF.Reset();
-    FGLTFImporterModule::Get().SetGLTF(nullptr);
+    FRPRGLTFImporterModule::Get().SetGLTF(nullptr);
 
     UObject* ImportedObject = nullptr;
     if (AllImportedObjects.Num() > 0)
@@ -165,7 +165,7 @@ bool URPRGLTFImportFactory::LoadGLTFData(const FString& InFilename, TSharedPtr<G
     FString Data;
     if (!FFileHelper::LoadFileToString(Data, *InFilename))
     {
-        UE_LOG(LogRPRGLTFImporter, Error, TEXT("URPRGLTFImportFactory::LoadGLTFData: Failed to load glTF file '%s' to string."), *InFilename);
+        UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("URPRGLTFImportFactory::LoadGLTFData: Failed to load glTF file '%s' to string."), *InFilename);
         return false;
     }
 
@@ -190,17 +190,17 @@ bool URPRGLTFImportFactory::LoadGLTFData(const FString& InFilename, TSharedPtr<G
             FString Extension(ext.c_str());
             if (SupportedExtensions.Contains(Extension))
             {
-                UE_LOG(LogRPRGLTFImporter, Log, TEXT("URPRGLTFImportFactory::LoadGLTFData: glTF file '%s' uses supported extension '%s'."), *InFilename, *Extension);
+                UE_LOG(LogRPRRPRGLTFImporter, Log, TEXT("URPRGLTFImportFactory::LoadGLTFData: glTF file '%s' uses supported extension '%s'."), *InFilename, *Extension);
             }
             else
             {
                 UsesUnsupportedExtensions = true;
-                UE_LOG(LogRPRGLTFImporter, Warning, TEXT("URPRGLTFImportFactory::LoadGLTFData: glTF file '%s' uses unsupported extension '%s'."), *InFilename, *Extension);
+                UE_LOG(LogRPRRPRGLTFImporter, Warning, TEXT("URPRGLTFImportFactory::LoadGLTFData: glTF file '%s' uses unsupported extension '%s'."), *InFilename, *Extension);
             }
         }
         if (UsesUnsupportedExtensions)
         {
-            UE_LOG(LogRPRGLTFImporter, Warning, TEXT("URPRGLTFImportFactory::LoadGLTFData: glTF file '%s' uses extensions that the importer does not support, see Output Log for details."), *InFilename);
+            UE_LOG(LogRPRRPRGLTFImporter, Warning, TEXT("URPRGLTFImportFactory::LoadGLTFData: glTF file '%s' uses extensions that the importer does not support, see Output Log for details."), *InFilename);
         }
         // Set outbound glTF asset
         OutGLTFData = GLTFData;
@@ -246,7 +246,7 @@ UStaticMesh* URPRGLTFImportFactory::CreateStaticMesh(int InMeshIndex)
 
         if (Points.Num() <= 0)
         {
-            UE_LOG(LogRPRGLTFImporter, Warning, TEXT("URPRGLTFImportFactory::CreateStaticMesh: glTF Mesh Primitive has no vertices."));
+            UE_LOG(LogRPRRPRGLTFImporter, Warning, TEXT("URPRGLTFImportFactory::CreateStaticMesh: glTF Mesh Primitive has no vertices."));
             break;
         }
 
@@ -334,7 +334,7 @@ UStaticMesh* URPRGLTFImportFactory::CreateStaticMesh(int InMeshIndex)
         SrcModel.RawMeshBulkData->SaveRawMesh(NewRawMesh);
         if (!NewRawMesh.IsValid())
         {
-            UE_LOG(LogRPRGLTFImporter, Warning, TEXT("URPRGLTFImportFactory::CreateStaticMesh: Invalid FRawMesh for glTF mesh '%s'"), *StaticMeshName.ToString());
+            UE_LOG(LogRPRRPRGLTFImporter, Warning, TEXT("URPRGLTFImportFactory::CreateStaticMesh: Invalid FRawMesh for glTF mesh '%s'"), *StaticMeshName.ToString());
         }
         NewRawMesh.CompactMaterialIndices();
 
@@ -355,7 +355,7 @@ UStaticMesh* URPRGLTFImportFactory::CreateStaticMesh(int InMeshIndex)
         StaticMesh->Build(false, &BuildErrors);
         for (auto err : BuildErrors)
         {
-            UE_LOG(LogRPRGLTFImporter, Error, TEXT("URPRGLTFImportFactory::CreateStaticMesh: BuildError: %s"), *err.ToString());
+            UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("URPRGLTFImportFactory::CreateStaticMesh: BuildError: %s"), *err.ToString());
         }
         // After build, clean up section info map
         FMeshSectionInfoMap OldSectionInfoMap = StaticMesh->SectionInfoMap;

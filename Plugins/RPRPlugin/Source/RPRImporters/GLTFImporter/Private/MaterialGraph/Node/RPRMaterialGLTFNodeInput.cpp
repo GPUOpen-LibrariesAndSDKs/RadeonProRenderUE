@@ -24,7 +24,7 @@
 #include "RPRUberMaterialParameters.h"
 #include "UberMaterialPropertyHelper.h"
 
-#include "GLTFImporterModule.h"
+#include "RPRGLTFImporterModule.h"
 #include "Helpers/GLTFNodeHelper.h"
 #include "Factory/NodeParamTypeGLTFFactory.h"
 
@@ -48,9 +48,9 @@ bool FRPRMaterialGLTFNodeInput::Parse(const amd::Input& Node, int32 NodeIndex)
 	InputType = ParseType(Node.type);
 
 	FGLTFPtr TheGLTF;
-	if (!FGLTFImporterModule::GetGLTF(TheGLTF))
+	if (!FRPRGLTFImporterModule::GetGLTF(TheGLTF))
 	{
-		UE_LOG(LogRPRGLTFImporter, Error, TEXT("FRPRMaterialGLTFNodeInput::Parse: glTF context is not valid."));
+		UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("FRPRMaterialGLTFNodeInput::Parse: glTF context is not valid."));
 		return false;
 	}
 

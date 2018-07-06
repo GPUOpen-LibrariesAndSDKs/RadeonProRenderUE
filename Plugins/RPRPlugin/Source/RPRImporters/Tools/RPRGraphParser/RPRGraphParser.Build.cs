@@ -31,7 +31,7 @@ public class RPRGraphParser : ModuleRules
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicIncludePaths.AddRange(
+        PrivateIncludePaths.AddRange(
 			new string[] {
                 "RPRImporters/Tools/RPRGraphParser/Public",
             }
