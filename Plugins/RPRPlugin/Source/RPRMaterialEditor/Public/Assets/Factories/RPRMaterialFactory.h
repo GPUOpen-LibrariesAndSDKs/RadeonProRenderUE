@@ -23,7 +23,7 @@
 #include "RPRMaterialFactory.generated.h"
 
 UCLASS()
-class URPRMaterialFactory : public UFactory
+class RPRMATERIALEDITOR_API URPRMaterialFactory : public UFactory
 {
 	GENERATED_UCLASS_BODY()
 
@@ -47,12 +47,12 @@ public:
 	virtual FName		GetNewAssetThumbnailOverride() const;
 
 	static bool			LoadRPRMaterialFromXmlFile(class URPRMaterial* RPRMaterial, const FString& Filename);
+	static void			CopyRPRMaterialParameterToMaterialInstance(class URPRMaterial* RPRMaterial);
 
 private:
 
 	UMaterialInterface*	TryLoadUberMaterial(FFeedbackContext* Warn);
 	static void			LoadRPRMaterialParameters(class URPRMaterial* RPRMaterial, class FRPRMaterialXmlGraph& MaterialGraph, const FString& Filename);
-	static void			CopyRPRMaterialParameterToMaterialInstance(class URPRMaterial* RPRMaterial);
 
 	static class URPRMaterialEditorInstanceConstant*	CreateMaterialEditorInstanceConstantFrom(class URPRMaterial* RPRMaterial);
 };

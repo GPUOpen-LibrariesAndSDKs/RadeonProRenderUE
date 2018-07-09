@@ -67,7 +67,7 @@ protected:
     GLTF::FMaterial GLTFMaterial;
 
     /** The UE4 material to translate to. */
-    UMaterial* Material;
+	UMaterialInterface* Material;
 
     /** The next Y-position to place a material expression node in the graph. */
     int32 MaterialNodeY;

@@ -1,0 +1,510 @@
+{
+    "accessors": [
+        {
+            "bufferView": 0,
+            "byteOffset": 0,
+            "componentType": 5125,
+            "count": 5070,
+            "name": "",
+            "normalized": false,
+            "type": "SCALAR"
+        },
+        {
+            "bufferView": 1,
+            "byteOffset": 0,
+            "componentType": 5126,
+            "count": 5070,
+            "max": [
+                10.1812381744385,
+                12.4749221801758,
+                14.8133535385132
+            ],
+            "min": [
+                -10.1812496185303,
+                -13.1820764541626,
+                -0.124539002776146
+            ],
+            "name": "",
+            "normalized": false,
+            "type": "VEC3"
+        },
+        {
+            "bufferView": 2,
+            "byteOffset": 0,
+            "componentType": 5126,
+            "count": 5070,
+            "max": [
+                0.999303460121155,
+                0.998646557331085,
+                0.999930202960968
+            ],
+            "min": [
+                -0.998957753181458,
+                -0.998482584953308,
+                -0.999531030654907
+            ],
+            "name": "",
+            "normalized": false,
+            "type": "VEC3"
+        },
+        {
+            "bufferView": 3,
+            "byteOffset": 0,
+            "componentType": 5126,
+            "count": 5070,
+            "max": [
+                0.999548971652985,
+                0.978339016437531
+            ],
+            "min": [
+                0.0,
+                0.0321860015392303
+            ],
+            "name": "",
+            "normalized": false,
+            "type": "VEC2"
+        }
+    ],
+    "asset": {
+        "copyright": "Advanced Micro Devices Copyright 2017",
+        "generator": "Radeon ProRender GLTF Library",
+        "minVersion": "2.0",
+        "version": "2.0"
+    },
+    "bufferViews": [
+        {
+            "buffer": 0,
+            "byteLength": 20280,
+            "byteOffset": 0,
+            "name": "",
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteLength": 60840,
+            "byteOffset": 20280,
+            "byteStride": 12,
+            "name": "",
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 60840,
+            "byteOffset": 81120,
+            "byteStride": 12,
+            "name": "",
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteLength": 40560,
+            "byteOffset": 141960,
+            "byteStride": 8,
+            "name": "",
+            "target": 34962
+        }
+    ],
+    "buffers": [
+        {
+            "byteLength": 182520,
+            "name": "",
+            "uri": "autoBuffersCollector_0.bin"
+        }
+    ],
+    "cameras": [
+        {
+            "extensions": {
+                "AMD_RPR_camera": {
+                    "apertureBlades": 0,
+                    "cameraMode": 1,
+                    "exposure": 0.0,
+                    "focalLength": 35.0,
+                    "focalTilt": 0.0,
+                    "focusDistance": 1.0,
+                    "fstop": 3.40282346638529e+38,
+                    "ipd": 0.063000001013279,
+                    "orthoHeight": 1.0,
+                    "orthoWidth": 1.0,
+                    "position": [
+                        20.0,
+                        20.0,
+                        20.0
+                    ],
+                    "up": [
+                        0.0,
+                        1.0,
+                        0.0
+                    ]
+                }
+            },
+            "name": "",
+            "perspective": {
+                "aspectRatio": 1.0,
+                "yfov": 1.0471967458725,
+                "zfar": 100000.0,
+                "znear": 0.00999999977648258
+            },
+            "type": "perspective"
+        }
+    ],
+    "extensions": {
+        "AMD_RPR_material": {
+            "nodes": [
+                {
+                    "inputs": [
+                        {
+                            "name": "color",
+                            "type": "NODE",
+                            "value": 1
+                        },
+                        {
+                            "name": "normal",
+                            "type": "NODE",
+                            "value": 2
+                        },
+                        {
+                            "name": "roughness",
+                            "type": "FLOAT4",
+                            "value": [
+                                0.5,
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "ior",
+                            "type": "FLOAT4",
+                            "value": [
+                                1.29999995231628,
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        }
+                    ],
+                    "type": "MICROFACET"
+                },
+                {
+                    "inputs": [
+                        {
+                            "name": "uv",
+                            "type": "NODE",
+                            "value": -1
+                        },
+                        {
+                            "name": "data",
+                            "type": "IMAGE",
+                            "value": 1
+                        }
+                    ],
+                    "type": "IMAGE_TEXTURE"
+                },
+                {
+                    "inputs": [
+                        {
+                            "name": "color",
+                            "type": "NODE",
+                            "value": 3
+                        },
+                        {
+                            "name": "bumpscale",
+                            "type": "NODE",
+                            "value": -1
+                        }
+                    ],
+                    "type": "NORMAL_MAP"
+                },
+                {
+                    "inputs": [
+                        {
+                            "name": "uv",
+                            "type": "NODE",
+                            "value": -1
+                        },
+                        {
+                            "name": "data",
+                            "type": "IMAGE",
+                            "value": 2
+                        }
+                    ],
+                    "type": "IMAGE_TEXTURE"
+                }
+            ]
+        },
+        "AMD_RPR_post_effects": null
+    },
+    "extensionsUsed": [
+        "AMD_RPR_post_effects",
+        "AMD_RPR_camera",
+        "AMD_RPR_lights",
+        "AMD_RPR_material",
+        "AMD_RPR_heteroVolumes"
+    ],
+    "extras": {
+        "rpr.context.parameters": {
+            "RPR_API_VERSION": 268632576,
+            "aacellsize": 1,
+            "aasamples": 1,
+            "aoraylength": 5.0,
+            "clippingplane": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "cputhreadlimit": 128,
+            "displaygamma": 1.0,
+            "framecount": 4294967295,
+            "imagefilter.blackmanharris.radius": 2.0,
+            "imagefilter.box.radius": 1.0,
+            "imagefilter.gaussian.radius": 2.0,
+            "imagefilter.lanczos.radius": 2.0,
+            "imagefilter.mitchell.radius": 2.0,
+            "imagefilter.triangle.radius": 1.5,
+            "imagefilter.type": 0,
+            "maxRecursion": 2,
+            "maxdepth.diffuse": 65535,
+            "maxdepth.glossy": 65535,
+            "maxdepth.refraction": 4095,
+            "maxdepth.refraction.glossy": 65535,
+            "maxdepth.shadow": 2,
+            "ooctexcache": 0,
+            "pdfThreshold": 0.00499999988824129,
+            "preview": 0,
+            "radianceclamp": 3.40282346638529e+38,
+            "raycastepsilon": 9.99999974737875e-05,
+            "renderlayermask": 4294967295,
+            "roughnessCap": 0.0,
+            "singlelevelbvh": 0,
+            "stacksize": 64,
+            "stage": 1,
+            "texturecompression": 0,
+            "texturegamma": 1.0,
+            "tonemapping.exponential.intensity": 1.0,
+            "tonemapping.linear.scale": 1.0,
+            "tonemapping.photolinear.exposure": 0.00100000004749745,
+            "tonemapping.photolinear.fstop": 2.79999995231628,
+            "tonemapping.photolinear.sensitivity": 100.0,
+            "tonemapping.reinhard02.burn": 3.75,
+            "tonemapping.reinhard02.postscale": 1.20000004768372,
+            "tonemapping.reinhard02.prescale": 1.0,
+            "tonemapping.type": 0,
+            "transparentbackground": 0,
+            "xflip": 0,
+            "yflip": 1
+        },
+        "rpr.debuginfo": {
+            "GLTF_EXPORTER_VERSION": 11,
+            "RPR_API_VERSION": "0x0000000010030200"
+        }
+    },
+    "images": [
+        {
+            "extras": {
+                "rpr.image.parameters": {
+                    "filter": 2,
+                    "gamma": -1.0,
+                    "mipmapEnabled": 0,
+                    "wrap": 1
+                }
+            },
+            "mimeType": "image/hdr",
+            "name": "../Resources/Textures/Apartment.hdr",
+            "uri": "light0_environment_image0.hdr"
+        },
+        {
+            "extras": {
+                "rpr.image.parameters": {
+                    "filter": 2,
+                    "gamma": -1.0,
+                    "mipmapEnabled": 0,
+                    "wrap": 1
+                }
+            },
+            "mimeType": "image/png",
+            "name": "../Resources/Obj/headcrab_diffuse.png",
+            "uri": "_data_image1.png"
+        },
+        {
+            "extras": {
+                "rpr.image.parameters": {
+                    "filter": 2,
+                    "gamma": -1.0,
+                    "mipmapEnabled": 0,
+                    "wrap": 1
+                }
+            },
+            "mimeType": "image/png",
+            "name": "../Resources/Obj/headcrab_normal.png",
+            "uri": "_data_image2.png"
+        }
+    ],
+    "materials": [
+        {
+            "alphaMode": "OPAQUE",
+            "doubleSided": true,
+            "extensions": {
+                "AMD_RPR_material": {
+                    "materialNodeIndex": 0
+                }
+            },
+            "name": "",
+            "pbrMetallicRoughness": {
+                "baseColorTexture": {
+                    "index": 1,
+                    "texCoord": 0
+                },
+                "metallicFactor": 0.0,
+                "roughnessFactor": 1.0
+            }
+        }
+    ],
+    "meshes": [
+        {
+            "name": "",
+            "primitives": [
+                {
+                    "attributes": {
+                        "NORMAL": 2,
+                        "POSITION": 1,
+                        "TEXCOORD_0": 3
+                    },
+                    "indices": 0,
+                    "material": 0,
+                    "mode": 4
+                }
+            ]
+        }
+    ],
+    "nodes": [
+        {
+            "camera": 0,
+            "matrix": [
+                0.70710676908493,
+                -0.0,
+                -0.70710676908493,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.577350199222565,
+                0.577350199222565,
+                0.577350199222565,
+                0.0,
+                20.0,
+                20.0,
+                20.0,
+                1.0
+            ],
+            "name": ""
+        },
+        {
+            "extras": {
+                "rpr.shape.parameters": {
+                    "angularMotion": [
+                        0.0,
+                        1.0,
+                        0.0,
+                        0.0
+                    ],
+                    "displacementScale": [
+                        0.0,
+                        1.0
+                    ],
+                    "layerMask": 4294967295,
+                    "linearMotion": [
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "objectGroupID": 0,
+                    "shadow": 1,
+                    "shadowCatcher": 0,
+                    "subdivisionBoundaryInterop": 2,
+                    "subdivisionCreaseWeight": 0.0,
+                    "subdivisionFactor": 0,
+                    "visibility": 1,
+                    "visibilityInSpecular": 1,
+                    "visibilityPrimaryOnly": 1
+                }
+            },
+            "matrix": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                -4.37113882867379e-08,
+                -1.0,
+                0.0,
+                0.0,
+                1.0,
+                -4.37113882867379e-08,
+                0.0,
+                0.0,
+                -5.0,
+                0.0,
+                1.0
+            ],
+            "mesh": 0,
+            "name": ""
+        }
+    ],
+    "samplers": [
+        {
+            "magFilter": 9729,
+            "minFilter": 9986,
+            "name": "default_sampler",
+            "wrapS": 10497,
+            "wrapT": 10497
+        }
+    ],
+    "scene": 0,
+    "scenes": [
+        {
+            "extensions": {
+                "AMD_RPR_heteroVolumes": null,
+                "AMD_RPR_lights": {
+                    "lights": [
+                        {
+                            "environment": {
+                                "image": 0,
+                                "intensityScale": 2.0
+                            },
+                            "name": "",
+                            "type": "ENVIRONMENT"
+                        }
+                    ]
+                }
+            },
+            "extras": {
+                "rpr.scene.parameters": null
+            },
+            "name": "",
+            "nodes": [
+                0,
+                1
+            ]
+        }
+    ],
+    "textures": [
+        {
+            "name": "../Resources/Textures/Apartment.hdr",
+            "sampler": 0,
+            "source": 0
+        },
+        {
+            "name": "../Resources/Obj/headcrab_diffuse.png",
+            "sampler": 0,
+            "source": 1
+        },
+        {
+            "name": "../Resources/Obj/headcrab_normal.png",
+            "sampler": 0,
+            "source": 2
+        }
+    ]
+}

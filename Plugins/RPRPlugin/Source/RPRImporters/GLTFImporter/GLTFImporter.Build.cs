@@ -57,6 +57,7 @@ public class GLTFImporter : ModuleRules
                 "RenderCore",
                 "RawMesh",
                 "UnrealEd",
+                "RPRMaterialEditor"
         });
 		
 		string PluginDir = Path.GetFullPath(Path.Combine(ModuleDirectory, "..", ".."));

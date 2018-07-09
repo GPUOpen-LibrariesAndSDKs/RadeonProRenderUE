@@ -73,10 +73,10 @@ UObject* UGLTFMaterialTranslationFactory::FactoryCreateNew(UClass* InClass, UObj
     Material->PostEditChange();
     FGlobalComponentReregisterContext RecreateComponents;
 
-    if (!Material->MaterialGraph)
+    if (!NewMaterial->MaterialGraph)
     {
-        Material->MaterialGraph = CastChecked<UMaterialGraph>(FBlueprintEditorUtils::CreateNewGraph(Material, NAME_None, UMaterialGraph::StaticClass(), UMaterialGraphSchema::StaticClass()));
-        Material->MaterialGraph->Material = Material;
+		NewMaterial->MaterialGraph = CastChecked<UMaterialGraph>(FBlueprintEditorUtils::CreateNewGraph(Material, NAME_None, UMaterialGraph::StaticClass(), UMaterialGraphSchema::StaticClass()));
+		NewMaterial->MaterialGraph->Material = NewMaterial;
     }
 
     FAssetRegistryModule::AssetCreated(Material);
@@ -106,8 +106,10 @@ bool UGLTFMaterialTranslationFactory::InitFromGLTF(const GLTF::FMaterial& InGLTF
 
 void UGLTFMaterialTranslationFactory::TranslateMaterial()
 {
-    Material->TwoSided = GLTF->Settings->TwoSidedMaterials && GLTFMaterial.doubleSided;
-    Material->SetShadingModel(MSM_DefaultLit);
+	UMaterial* material = Cast<UMaterial>(Material);
+
+	material->TwoSided = GLTF->Settings->TwoSidedMaterials && GLTFMaterial.doubleSided;
+    material->SetShadingModel(MSM_DefaultLit);
 
     // TODO: Use the inherited MaterialExpression helpers
     { /** BaseColor */
@@ -125,7 +127,7 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
                 TexSam->Texture = BaseColorTexture;
                 TexSam->MaterialExpressionEditorX = -400;
                 TexSam->MaterialExpressionEditorY = MaterialNodeY;
-                Material->Expressions.Add(TexSam);
+                material->Expressions.Add(TexSam);
                 MaterialNodeY += MaterialNodeStepY;
 
                 FVector4 BaseColorFactor = FVector4(GLTFPbrMetallicRoughness.baseColorFactor[0], GLTFPbrMetallicRoughness.baseColorFactor[1], GLTFPbrMetallicRoughness.baseColorFactor[2], GLTFPbrMetallicRoughness.baseColorFactor[3]);
@@ -136,7 +138,7 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
                     Vec4->Constant = FLinearColor(BaseColorFactor);
                     Vec4->MaterialExpressionEditorX = -400;
                     Vec4->MaterialExpressionEditorY = MaterialNodeY;
-                    Material->Expressions.Add(Vec4);
+                    material->Expressions.Add(Vec4);
                     MaterialNodeY += MaterialNodeStepY;
 
                     auto Mul = NewObject<UMaterialExpressionMultiply>(Material);
@@ -144,7 +146,7 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
                     Mul->B.Expression = Vec4;
                     Mul->MaterialExpressionEditorX = -400;
                     Mul->MaterialExpressionEditorY = MaterialNodeY;
-                    Material->Expressions.Add(Mul);
+                    material->Expressions.Add(Mul);
                     MaterialNodeY += MaterialNodeStepY;
                     MatExp = Mul;
                 }
@@ -159,12 +161,12 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
             Vec3->Constant = FLinearColor(FVector(GLTFPbrMetallicRoughness.baseColorFactor[0], GLTFPbrMetallicRoughness.baseColorFactor[1], GLTFPbrMetallicRoughness.baseColorFactor[2]));
             Vec3->MaterialExpressionEditorX = -400;
             Vec3->MaterialExpressionEditorY = MaterialNodeY;
-            Material->Expressions.Add(Vec3);
+            material->Expressions.Add(Vec3);
             MaterialNodeY += MaterialNodeStepY;
             MatExp = Vec3;
         }
         if (MatExp)
-            Material->BaseColor.Expression = MatExp;
+            material->BaseColor.Expression = MatExp;
     }
     { /** MetallicRoughness */
         const auto& GLTFPbrMetallicRoughness = GLTFMaterial.pbrMetallicRoughness;
@@ -182,7 +184,7 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
                 TexSam->Texture = MetallicRoughnessTexture;
                 TexSam->MaterialExpressionEditorX = -400;
                 TexSam->MaterialExpressionEditorY = MaterialNodeY;
-                Material->Expressions.Add(TexSam);
+                material->Expressions.Add(TexSam);
                 MaterialNodeY += MaterialNodeStepY;
             }
         }
@@ -194,7 +196,7 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
             Metal->R = MetalFactor;
             Metal->MaterialExpressionEditorX = -400;
             Metal->MaterialExpressionEditorY = MaterialNodeY;
-            Material->Expressions.Add(Metal);
+            material->Expressions.Add(Metal);
             MaterialNodeY += MaterialNodeStepY;
 
             // If there is a texture sample, multiply it by this
@@ -206,7 +208,7 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
                 Mul->B.Expression = Metal;
                 Mul->MaterialExpressionEditorX = -400;
                 Mul->MaterialExpressionEditorY = MaterialNodeY;
-                Material->Expressions.Add(Mul);
+                material->Expressions.Add(Mul);
                 MaterialNodeY += MaterialNodeStepY;
                 MatExpMetal = Mul;
             }
@@ -216,7 +218,7 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
         else if (TexSam)
         {
             MatExpMetal = TexSam;
-            Material->Metallic.OutputIndex = 3; // Blue channel
+            material->Metallic.OutputIndex = 3; // Blue channel
         }
         float RoughFactor = GLTFPbrMetallicRoughness.roughnessFactor;
         if (RoughFactor > 0.0f)
@@ -225,7 +227,7 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
             Rough->R = RoughFactor;
             Rough->MaterialExpressionEditorX = -400;
             Rough->MaterialExpressionEditorY = MaterialNodeY;
-            Material->Expressions.Add(Rough);
+            material->Expressions.Add(Rough);
             MaterialNodeY += MaterialNodeStepY;
 
             // If there is a texture sample, multiply it by this
@@ -237,7 +239,7 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
                 Mul->B.Expression = Rough;
                 Mul->MaterialExpressionEditorX = -400;
                 Mul->MaterialExpressionEditorY = MaterialNodeY;
-                Material->Expressions.Add(Mul);
+                material->Expressions.Add(Mul);
                 MaterialNodeY += MaterialNodeStepY;
                 MatExpRough = Mul;
             }
@@ -247,12 +249,12 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
         else if (TexSam)
         {
             MatExpRough = TexSam;
-            Material->Roughness.OutputIndex = 2; // Green channel
+            material->Roughness.OutputIndex = 2; // Green channel
         }
         if (MatExpMetal)
-            Material->Metallic.Expression = MatExpMetal;
+            material->Metallic.Expression = MatExpMetal;
         if (MatExpRough)
-            Material->Roughness.Expression = MatExpRough;
+            material->Roughness.Expression = MatExpRough;
     }
     { /** Normal Map */
         const auto& GLTFNormalTexInfo = GLTFMaterial.normalTexture;
@@ -268,7 +270,7 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
                 TexSam->SamplerType = EMaterialSamplerType::SAMPLERTYPE_LinearColor;
                 TexSam->MaterialExpressionEditorX = -400;
                 TexSam->MaterialExpressionEditorY = MaterialNodeY;
-                Material->Expressions.Add(TexSam);
+                material->Expressions.Add(TexSam);
                 MaterialNodeY += MaterialNodeStepY;
 
                 float NormalScale = GLTFNormalTexInfo.scale;
@@ -279,7 +281,7 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
                     Scale->R = NormalScale;
                     Scale->MaterialExpressionEditorX = -400;
                     Scale->MaterialExpressionEditorY = MaterialNodeY;
-                    Material->Expressions.Add(Scale);
+                    material->Expressions.Add(Scale);
                     MaterialNodeY += MaterialNodeStepY;
 
                     auto Mul = NewObject<UMaterialExpressionMultiply>(Material);
@@ -287,14 +289,14 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
                     Mul->B.Expression = Scale;
                     Mul->MaterialExpressionEditorX = -400;
                     Mul->MaterialExpressionEditorY = MaterialNodeY;
-                    Material->Expressions.Add(Mul);
+                    material->Expressions.Add(Mul);
                     MaterialNodeY += MaterialNodeStepY;
                     MatExp = Mul;
                 }
                 else
                     MatExp = TexSam;
                 if (MatExp)
-                    Material->Normal.Expression = MatExp;
+                    material->Normal.Expression = MatExp;
             }
         }
     }
@@ -312,7 +314,7 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
                 TexSam->SamplerType = EMaterialSamplerType::SAMPLERTYPE_Grayscale;
                 TexSam->MaterialExpressionEditorX = -400;
                 TexSam->MaterialExpressionEditorY = MaterialNodeY;
-                Material->Expressions.Add(TexSam);
+                material->Expressions.Add(TexSam);
                 MaterialNodeY += MaterialNodeStepY;
 
                 float OcclusionStrength = GLTFOcclusionTexInfo.strength;
@@ -324,7 +326,7 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
                     Strength->R = OcclusionStrength;
                     Strength->MaterialExpressionEditorX = -400;
                     Strength->MaterialExpressionEditorY = MaterialNodeY;
-                    Material->Expressions.Add(Strength);
+                    material->Expressions.Add(Strength);
                     MaterialNodeY += MaterialNodeStepY;
 
                     auto Mul = NewObject<UMaterialExpressionMultiply>(Material);
@@ -333,7 +335,7 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
                     Mul->B.Expression = Strength;
                     Mul->MaterialExpressionEditorX = -400;
                     Mul->MaterialExpressionEditorY = MaterialNodeY;
-                    Material->Expressions.Add(Mul);
+                    material->Expressions.Add(Mul);
                     MaterialNodeY += MaterialNodeStepY;
                     MatExp = Mul;
                 }
@@ -341,9 +343,9 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
                     MatExp = TexSam;
                 if (MatExp)
                 {
-                    Material->AmbientOcclusion.Expression = MatExp;
+                    material->AmbientOcclusion.Expression = MatExp;
                     if (!NeedsMultiply) // Hook up Texture Sample red pin if no multiply node is used
-                        Material->AmbientOcclusion.OutputIndex = 1; // Red channel
+                        material->AmbientOcclusion.OutputIndex = 1; // Red channel
                 }
             }
         }
@@ -361,7 +363,7 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
                 TexSam->Texture = EmissiveTexture;
                 TexSam->MaterialExpressionEditorX = -400;
                 TexSam->MaterialExpressionEditorY = MaterialNodeY;
-                Material->Expressions.Add(TexSam);
+                material->Expressions.Add(TexSam);
                 MaterialNodeY += MaterialNodeStepY;
 
                 FVector EmissiveColorFactor = FVector(GLTFMaterial.emissiveFactor[0], GLTFMaterial.emissiveFactor[1], GLTFMaterial.emissiveFactor[2]);
@@ -372,7 +374,7 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
                     Vec3->Constant = FLinearColor(EmissiveColorFactor);
                     Vec3->MaterialExpressionEditorX = -400;
                     Vec3->MaterialExpressionEditorY = MaterialNodeY;
-                    Material->Expressions.Add(Vec3);
+                    material->Expressions.Add(Vec3);
                     MaterialNodeY += MaterialNodeStepY;
 
                     auto Mul = NewObject<UMaterialExpressionMultiply>(Material);
@@ -380,14 +382,14 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
                     Mul->B.Expression = Vec3;
                     Mul->MaterialExpressionEditorX = -400;
                     Mul->MaterialExpressionEditorY = MaterialNodeY;
-                    Material->Expressions.Add(Mul);
+                    material->Expressions.Add(Mul);
                     MaterialNodeY += MaterialNodeStepY;
                     MatExp = Mul;
                 }
                 else
                     MatExp = TexSam;
                 if (MatExp)
-                    Material->EmissiveColor.Expression = MatExp;
+                    material->EmissiveColor.Expression = MatExp;
             }
         }
     }
@@ -396,10 +398,10 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
         switch (AlphaMode)
         {
         case GLTF::FMaterial::AlphaMode::OPAQUE:
-            Material->BlendMode = BLEND_Opaque;
+            material->BlendMode = BLEND_Opaque;
             break;
         case GLTF::FMaterial::AlphaMode::MASK:
-            Material->BlendMode = BLEND_Masked;
+            material->BlendMode = BLEND_Masked;
             {
                 // In masked mode, use AlphaCutoff as Opacity Mask. If the alpha value of the material is
                 // greater than or equal to this, it is fully opaque, otherwise it is fully transparent
@@ -407,13 +409,13 @@ void UGLTFMaterialTranslationFactory::TranslateMaterial()
                 AlphaCutoff->R = GLTFMaterial.alphaCutoff;
                 AlphaCutoff->MaterialExpressionEditorX = -400;
                 AlphaCutoff->MaterialExpressionEditorY = MaterialNodeY;
-                Material->Expressions.Add(AlphaCutoff);
-                Material->OpacityMask.Expression = AlphaCutoff;
+                material->Expressions.Add(AlphaCutoff);
+                material->OpacityMask.Expression = AlphaCutoff;
                 MaterialNodeY += MaterialNodeStepY;
             }
             break;
         case GLTF::FMaterial::AlphaMode::BLEND:
-            Material->BlendMode = BLEND_Translucent;
+            material->BlendMode = BLEND_Translucent;
             break;
         }
     }

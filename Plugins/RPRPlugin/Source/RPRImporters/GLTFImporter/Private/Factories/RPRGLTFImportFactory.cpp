@@ -387,7 +387,7 @@ UStaticMesh* URPRGLTFImportFactory::CreateStaticMesh(int InMeshIndex)
 UMaterialInterface* URPRGLTFImportFactory::CreateMaterial(int InMaterialIndex)
 {
     GLTF::FMaterial& GLTFMaterial = GLTF->Data->materials.at(InMaterialIndex);
-    UMaterial* Material = nullptr;
+	UMaterialInterface* Material = nullptr;
     if (Material == nullptr)
     {
         // Check for the AMD_RPR_material extension
@@ -426,7 +426,7 @@ UMaterialInterface* URPRGLTFImportFactory::CreateMaterial(int InMaterialIndex)
         }
         if (GLTFMaterialFactory->InitFromGLTF(GLTFMaterial))
         {
-            Material = StaticCast<UMaterial*>(GLTFMaterialFactory->FactoryCreateNew(UMaterial::StaticClass(), Package, MaterialName, RF_Public | RF_Standalone, nullptr, GWarn));
+            Material = StaticCast<UMaterialInterface*>(GLTFMaterialFactory->FactoryCreateNew(UMaterial::StaticClass(), Package, MaterialName, RF_Public | RF_Standalone, nullptr, GWarn));
         }
     }
     return Material;
