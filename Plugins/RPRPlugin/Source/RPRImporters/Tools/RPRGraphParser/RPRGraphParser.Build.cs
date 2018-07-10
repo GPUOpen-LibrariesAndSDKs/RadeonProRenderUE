@@ -34,6 +34,8 @@ public class RPRGraphParser : ModuleRules
         PrivateIncludePaths.AddRange(
 			new string[] {
                 "RPRImporters/Tools/RPRGraphParser/Public",
+                "RPRImporters/Tools/RPRGraphParser/Public/Nodes",
+                "RPRImporters/Tools/RPRGraphParser/Public/NodeParamTypes",
             }
 			);
 

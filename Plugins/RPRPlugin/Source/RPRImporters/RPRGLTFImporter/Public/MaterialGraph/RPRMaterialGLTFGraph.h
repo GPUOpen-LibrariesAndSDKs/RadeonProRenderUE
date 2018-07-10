@@ -19,28 +19,20 @@
 
 #pragma once
 
-#include "Enums/RPRMaterialNodeInputValueType.h"
-#include "Templates/SharedPointer.h"
-#include "INodeParamType.h"
-#include "DelegateCombinations.h"
-#include "Delegate.h"
-#include "UnrealTypeTraits.h"
-#include "NodeParamTypeFactory.h"
+#include "GLTFTypedefs.h"
+#include "RPRMaterialGLTFNode.h"
+#include "RPRMaterialGraph.h"
+#include "RPRMaterialGraphSerializationContext.h"
 
-class RPRGLTFImporter_API FNodeParamTypeGLTFFactory : public FNodeParamTypeFactory
+/*
+* Load the data required for a RPR Material by creating a graph from a glTF RPR material structure.
+*/
+class RPRGLTFIMPORTER_API FRPRMaterialGLTFGraph : public FRPRMaterialGraph<GLTF::FRPRMaterial, FRPRMaterialGLTFNode>
 {
-
 public:
-	static TSharedPtr<FNodeParamTypeFactory>	Get();
 
-	virtual ~FNodeParamTypeGLTFFactory() {}
-
-protected:
-
-	void InitializeFactory();
-
-private:
-
-	static TSharedPtr<FNodeParamTypeGLTFFactory> Instance;
+    virtual bool Parse(const GLTF::FRPRMaterial& InMaterial);
+    virtual void Load(FRPRMaterialGraphSerializationContext& SerializationContext);
+	virtual bool IsUberNode(FRPRMaterialGLTFNodePtr Node) const override;
 
 };

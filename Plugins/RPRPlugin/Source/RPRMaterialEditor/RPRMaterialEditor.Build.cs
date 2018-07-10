@@ -42,6 +42,14 @@ public class RPRMaterialEditor : ModuleRules
         PrivateIncludePaths.AddRange(
             new string[] {
                 "RPRMaterialEditor/Public",
+
+                "RPRMaterialEditor/Public/Assets",
+                "RPRMaterialEditor/Public/Assets/Factories",
+                "RPRMaterialEditor/Public/Assets/AssetTypeActions",
+
+                "RPRMaterialEditor/Public/RPRMaterialEditor",
+                "RPRMaterialEditor/Public/RPRMaterialEditor/PropertiesLayout",
+                "RPRMaterialEditor/Public/RPRMaterialEditor/RPRMaterialParamCopiers",
             }
             );
 

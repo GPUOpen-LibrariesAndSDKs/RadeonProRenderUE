@@ -24,7 +24,7 @@ echo.
 echo == Start Build %2... ==
 echo.
 echo Use UnrealEngine UE4_PATH environment variable : %1
-CALL %1\Engine\Build\BatchFiles\RunUAT.bat BuildPlugin -Plugin="%CD%\..\Plugins\RPRPlugin\RPRPlugin.uplugin" -nop4 -utf8output -pak -distribution -compile -package="%CD%\PluginStaging\UE4_%2\RPRPlugin" -Rocket -TargetPlatforms=Win64 ^> output_log.txt
+CALL %1\Engine\Build\BatchFiles\RunUAT.bat BuildPlugin -Plugin="%CD%\..\Plugins\RPRPlugin\RPRPlugin.uplugin" -nop4 -utf8output -pak -distribution -compile -package="%CD%\PluginStaging\UE4_%2\RPRPlugin" -Rocket -TargetPlatforms=Win64
 echo.
 echo == Build completed ==
 echo.

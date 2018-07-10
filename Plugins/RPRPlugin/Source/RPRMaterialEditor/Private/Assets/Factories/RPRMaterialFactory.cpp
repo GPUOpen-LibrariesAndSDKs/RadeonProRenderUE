@@ -23,7 +23,7 @@
 #include "FeedbackContext.h"
 #include "AssetTypeCategories.h"
 #include "RPRMaterialXmlGraph.h"
-#include "RPRPlugin/Public/Assets/RPRMaterial.h"
+#include "Assets/RPRMaterial.h"
 #include "RPRUberMaterialToMaterialInstanceCopier.h"
 #include "EditorStyleSet.h"
 

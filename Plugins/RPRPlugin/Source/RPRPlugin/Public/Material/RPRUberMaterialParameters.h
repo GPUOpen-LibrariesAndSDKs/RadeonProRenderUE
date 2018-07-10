@@ -19,16 +19,16 @@
 #pragma once
 
 #include "Engine/Texture2D.h"
-#include "RPRTypedefs.h"
-#include "Color.h"
-#include "UnrealTypeTraits.h"
-#include "RPRMaterialParameterEnums.h"
-#include "RPRUBerMaterialParameterBase.h"
-#include "RPRMaterialCoMChannel1.h"
-#include "RPRMaterialMap.h"
-#include "RPRMaterialCoM.h"
-#include "RPRMaterialBool.h"
-#include "RPRMaterialEnum.h"
+#include "Typedefs/RPRTypedefs.h"
+#include "Math/Color.h"
+#include "Templates/UnrealTypeTraits.h"
+#include "Enums/RPRMaterialParameterEnums.h"
+#include "Material/UberMaterialParameters/RPRUBerMaterialParameterBase.h"
+#include "Material/UberMaterialParameters/RPRMaterialCoMChannel1.h"
+#include "Material/UberMaterialParameters/RPRMaterialMap.h"
+#include "Material/UberMaterialParameters/RPRMaterialCoM.h"
+#include "Material/UberMaterialParameters/RPRMaterialBool.h"
+#include "Material/UberMaterialParameters/RPRMaterialEnum.h"
 #include "RPRUberMaterialParameters.generated.h"
 
 USTRUCT(BlueprintType)

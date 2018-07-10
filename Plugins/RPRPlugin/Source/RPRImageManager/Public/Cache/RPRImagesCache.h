@@ -17,9 +17,9 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "RPRTypedefs.h"
+#include "Typedefs/RPRTypedefs.h"
 #include "Engine/Texture.h"
-#include "Map.h"
+#include "Containers/Map.h"
 
 namespace RPR
 {

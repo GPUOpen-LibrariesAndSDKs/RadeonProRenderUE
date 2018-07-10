@@ -17,6 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 #include "RPRCpTexture2DDynamic.h"
+#include "Engine/Texture2DDynamic.h"
 
 #if ENGINE_MINOR_VERSION < 20
 

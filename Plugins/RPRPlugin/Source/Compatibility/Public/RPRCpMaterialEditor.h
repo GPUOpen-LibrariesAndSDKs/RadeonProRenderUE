@@ -22,12 +22,13 @@
 
 #include "RPRCompatibility.h"
 #include "Runtime/Launch/Resources/Version.h"
+#include "Materials/MaterialExpression.h"
 
 class RPRCOMPATIBILITY_API FRPRCpMaterialEditor
 {
 public:
-    static FName GetMaterialExpressionInputName(UMaterialExpression* MaterialExpression, int32 InputIndex);
 
+    static FName GetMaterialExpressionInputName(UMaterialExpression* MaterialExpression, int32 InputIndex);
 
 };
 

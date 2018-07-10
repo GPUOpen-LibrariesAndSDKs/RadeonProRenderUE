@@ -18,10 +18,10 @@
 ********************************************************************/
 #pragma once
 
-#include "UnrealString.h"
-#include "RPRMaterialMapMode.h"
-#include "RPRMaterialMap.h"
+#include "Containers/UnrealString.h"
 #include "Miscs/NumericRestriction.h"
+#include "Material/UberMaterialParameters/RPRMaterialMapMode.h"
+#include "Material/UberMaterialParameters/RPRMaterialMap.h"
 #include "RPRMaterialCoMChannel1.generated.h"
 
 enum class ERPRMCoMapC1InterpretationMode

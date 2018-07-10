@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "Delegate.h"
+#include "Delegates/Delegate.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FBoolStateChange, bool)
 

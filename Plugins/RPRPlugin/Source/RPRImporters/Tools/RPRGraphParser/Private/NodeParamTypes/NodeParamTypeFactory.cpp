@@ -17,7 +17,6 @@
 * THE SOFTWARE.
 ********************************************************************/
 #include "NodeParamTypeFactory.h"
-
 #include "RPRUberMaterialParameters.h"
 #include "IsClass.h"
 #include "SharedPointer.h"

@@ -18,6 +18,9 @@
 ********************************************************************/
 #pragma once
 #include "RPRCompatibility.h"
+#include "PixelFormat.h"
+#include "Engine/Texture.h"
+#include "RHIDefinitions.h"
 
 class RPRCOMPATIBILITY_API FRPRCpTexture2DDynamic
 {

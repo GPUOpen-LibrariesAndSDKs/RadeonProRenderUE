@@ -20,7 +20,7 @@
 #pragma once
 
 #include "Materials/MaterialInterface.h"
-#include "SoftObjectPtr.h"
+#include "UObject/SoftObjectPtr.h"
 #include "Engine/Texture2D.h"
 #include "RPRSettings.generated.h"
 

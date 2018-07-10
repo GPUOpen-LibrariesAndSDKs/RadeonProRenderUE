@@ -18,9 +18,8 @@
 ********************************************************************/
 #pragma once
 
-#include "Engine.h"
-#include "ModuleManager.h"
-#include "RPRStaticMeshEditorAssetContextMenu.h"
+#include "Modules/ModuleManager.h"
+#include "RPRStaticMeshEditor/RPRStaticMeshEditorAssetContextMenu.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRPRPluginEditor, All, All);
 
