@@ -28,6 +28,11 @@ DECLARE_LOG_CATEGORY_CLASS(LogRPRMaterialGLTFGraph, Log, All)
 
 bool FRPRMaterialGLTFGraph::Parse(const GLTF::FRPRMaterial& InMaterial)
 {
+	if (InMaterial.nodes.size() == 0)
+	{
+		return (false);
+	}
+
     const std::vector<GLTF::FRPRNode>& GLTFNodes = InMaterial.nodes;
     Name = GLTFNodes[0].name.c_str(); // Name of RootNode
 

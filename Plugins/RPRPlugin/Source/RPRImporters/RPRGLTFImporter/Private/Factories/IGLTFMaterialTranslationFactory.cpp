@@ -42,10 +42,11 @@ bool UGLTFMaterialTranslationFactoryInterface::DoesSupportClass(UClass* InClass)
 UMaterialExpressionConstant* UGLTFMaterialTranslationFactoryInterface::CreateScalarExpression(const float& InScalar)
 {
     auto ConstantExp = NewObject<UMaterialExpressionConstant>(Material);
+	auto material = Cast<UMaterial>(Material);
     ConstantExp->R = InScalar;
     ConstantExp->MaterialExpressionEditorX = -400;
     ConstantExp->MaterialExpressionEditorY = MaterialNodeY;
-    Material->Expressions.Add(ConstantExp);
+	material->Expressions.Add(ConstantExp);
     MaterialNodeY += MaterialNodeStepY;
     return ConstantExp;
 }
@@ -53,10 +54,11 @@ UMaterialExpressionConstant* UGLTFMaterialTranslationFactoryInterface::CreateSca
 UMaterialExpressionConstant4Vector* UGLTFMaterialTranslationFactoryInterface::CreateVec4Expression(const FLinearColor& InVector4)
 {
     auto Vec4Exp = NewObject<UMaterialExpressionConstant4Vector>(Material);
+	auto material = Cast<UMaterial>(Material);
     Vec4Exp->Constant = InVector4;
     Vec4Exp->MaterialExpressionEditorX = -400;
     Vec4Exp->MaterialExpressionEditorY = MaterialNodeY;
-    Material->Expressions.Add(Vec4Exp);
+    material->Expressions.Add(Vec4Exp);
     MaterialNodeY += MaterialNodeStepY;
     return Vec4Exp;
 }
@@ -64,10 +66,11 @@ UMaterialExpressionConstant4Vector* UGLTFMaterialTranslationFactoryInterface::Cr
 UMaterialExpressionTextureSample* UGLTFMaterialTranslationFactoryInterface::CreateTextureSampleExpression(UTexture2D* InTexture)
 {
     auto TextureExp = NewObject<UMaterialExpressionTextureSample>(Material);
+	auto material = Cast<UMaterial>(Material);
     TextureExp->Texture = InTexture;
     TextureExp->MaterialExpressionEditorX = -400;
     TextureExp->MaterialExpressionEditorY = MaterialNodeY;
-    Material->Expressions.Add(TextureExp);
+    material->Expressions.Add(TextureExp);
     MaterialNodeY += MaterialNodeStepY;
     return TextureExp;
 }
@@ -75,11 +78,12 @@ UMaterialExpressionTextureSample* UGLTFMaterialTranslationFactoryInterface::Crea
 UMaterialExpressionMultiply* UGLTFMaterialTranslationFactoryInterface::CreateMultiplyExpression(UMaterialExpression* InA, UMaterialExpression* InB)
 {
     auto MultiplyExp = NewObject<UMaterialExpressionMultiply>(Material);
+	auto material = Cast<UMaterial>(Material);
     MultiplyExp->A.Expression = InA;
     MultiplyExp->B.Expression = InB;
     MultiplyExp->MaterialExpressionEditorX = -400;
     MultiplyExp->MaterialExpressionEditorY = MaterialNodeY;
-    Material->Expressions.Add(MultiplyExp);
+    material->Expressions.Add(MultiplyExp);
     MaterialNodeY += MaterialNodeStepY;
     return MultiplyExp;
 }

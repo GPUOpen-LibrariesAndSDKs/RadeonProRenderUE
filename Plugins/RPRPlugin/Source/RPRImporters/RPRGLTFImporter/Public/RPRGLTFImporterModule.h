@@ -33,6 +33,8 @@ public:
 
     //~ IModuleInterface interface
 
+	void StartupModule();
+
     static inline FRPRGLTFImporterModule& Get() { return FModuleManager::GetModuleChecked<FRPRGLTFImporterModule>("RPRGLTFImporter"); }
 	static inline FRPRGLTFImporterModule& Load() { return FModuleManager::LoadModuleChecked<FRPRGLTFImporterModule>("RPRGLTFImporter"); }
 

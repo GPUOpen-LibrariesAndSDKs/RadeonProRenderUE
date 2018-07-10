@@ -396,7 +396,7 @@ UMaterialInterface* URPRGLTFImportFactory::CreateMaterial(int InMaterialIndex)
 
         // Create package name (differs based on glTF or RPR material structure)
         FString PackageName;
-        if (bUsesRPRMaterial)
+        if (bUsesRPRMaterial && GLTFRPRMaterial.nodes.size() > 0)
         {
             GLTF::FRPRNode RootNode = GLTFRPRMaterial.nodes[0];
             PackageName = MakeUniquePackageName(RootNode.name); // Use Uber root node as name instead
