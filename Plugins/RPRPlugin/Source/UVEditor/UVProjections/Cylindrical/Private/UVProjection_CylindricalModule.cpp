@@ -17,9 +17,10 @@
 * THE SOFTWARE.
 ********************************************************************/
 #include "UVProjection_CylindricalModule.h"
-#include "SUVProjectionTypeEntry.h"
-#include "UVProjectionFactory.h"
+#include "UVProjectionMappingEditor/SUVProjectionTypeEntry.h"
+#include "UVProjectionMappingEditor/SlateUVProjectionsEntry/UVProjectionFactory.h"
 #include "SUVProjectionCylinder.h"
+#include "EditorStyleSet.h"
 
 #define LOCTEXT_NAMESPACE "UVProjection_CylindricalModule"
 

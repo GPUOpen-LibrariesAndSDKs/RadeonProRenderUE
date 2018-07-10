@@ -16,11 +16,11 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRIHelpers.h"
+#include "Helpers/RPRIHelpers.h"
 #include "RadeonProRenderInterchange.h"
-#include "RPREnums.h"
-#include "RPRHelpers.h"
-#include "RPRXMaterialHelpers.h"
+#include "Enums/RPREnums.h"
+#include "Helpers/RPRHelpers.h"
+#include "Helpers/RPRXMaterialHelpers.h"
 
 namespace RPRI
 {

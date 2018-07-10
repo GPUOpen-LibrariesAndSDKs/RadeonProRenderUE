@@ -16,9 +16,9 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "SUVChannelAvailable.h"
-#include "STextBlock.h"
-#include "SComboBox.h"
+#include "UVProjectionMappingEditor/ProjectionSettings/SUVChannelAvailable.h"
+#include "Widgets/Text/STextBlock.h"
+#include "Widgets/Input/SComboBox.h"
 #include "RawMesh.h"
 
 #define LOCTEXT_NAMESPACE "SUVChannelAvailable"

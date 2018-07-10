@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "RPRMatParamCopier_MaterialMap.h"
+#include "RPRMaterialEditor/RPRMaterialParamCopiers/RPRMatParamCopier_MaterialMap.h"
 
 class FRPRMatParamCopier_MaterialCoM : public FRPRMatParamCopier_MaterialMap
 {

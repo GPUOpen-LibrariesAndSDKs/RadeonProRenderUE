@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 
-#include "SharedPointer.h"
+#include "Templates/SharedPointer.h"
 #include "EditorViewportClient.h"
 
 class FRPRStaticMeshEditorViewportClient : public FEditorViewportClient

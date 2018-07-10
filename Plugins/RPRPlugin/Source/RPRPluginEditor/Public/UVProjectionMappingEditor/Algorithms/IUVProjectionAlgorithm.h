@@ -18,10 +18,10 @@
 ********************************************************************/
 #pragma once
 
-#include "SharedPointer.h"
-#include "Delegate.h"
-#include "UVProjectionSettings.h"
-#include "RPRMeshDataContainer.h"
+#include "Templates/SharedPointer.h"
+#include "Delegates/Delegate.h"
+#include "UVProjectionMappingEditor/ProjectionSettings/UVProjectionSettings.h"
+#include "RPRMeshData/RPRMeshDataContainer.h"
 
 class IUVProjectionAlgorithm : public TSharedFromThis<IUVProjectionAlgorithm>
 {

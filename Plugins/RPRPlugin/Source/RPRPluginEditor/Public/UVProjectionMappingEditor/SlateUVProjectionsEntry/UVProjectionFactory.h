@@ -18,10 +18,10 @@
 ********************************************************************/
 #pragma once
 
-#include "IUVProjectionSettingsWidget.h"
-#include "UVProjectionType.h"
-#include "SharedPointer.h"
-#include "IUVProjectionModule.h"
+#include "UVProjectionMappingEditor/SlateUVProjectionsEntry/IUVProjectionSettingsWidget.h"
+#include "UVProjectionMappingEditor/UVProjectionType.h"
+#include "Templates/SharedPointer.h"
+#include "UVProjectionMappingEditor/IUVProjectionModule.h"
 
 class RPRPLUGINEDITOR_API FUVProjectionFactory
 {

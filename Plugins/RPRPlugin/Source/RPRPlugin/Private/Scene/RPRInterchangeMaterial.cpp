@@ -19,10 +19,10 @@
 
 #if WITH_EDITOR
 
-#include "RPRInterchangeMaterial.h"
+#include "Scene/RPRInterchangeMaterial.h"
 #include "Components/SceneComponent.h"
 #include "StaticMeshResources.h"
-#include "RPRCrackers.h"
+#include "Scene/RPRCrackers.h"
 
 #include "Materials/Material.h"
 #include "Materials/MaterialExpression.h"

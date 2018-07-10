@@ -18,8 +18,8 @@
 ********************************************************************/
 #include "UVUtility.h"
 #include "Engine/StaticMesh.h"
-#include "Vector2D.h"
-#include "Developer/RawMesh/Public/RawMesh.h"
+#include "Math/Vector2D.h"
+#include "RawMesh.h"
 #include "StaticMeshHelper.h"
 #include "RawMesh.h"
 

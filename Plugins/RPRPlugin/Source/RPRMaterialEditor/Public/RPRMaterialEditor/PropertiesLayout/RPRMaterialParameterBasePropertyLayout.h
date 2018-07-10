@@ -18,8 +18,8 @@
 ********************************************************************/
 #pragma once
 #include "IPropertyTypeCustomization.h"
-#include "SWidget.h"
-#include "Visibility.h"
+#include "Widgets/SWidget.h"
+#include "Layout/Visibility.h"
 
 class FRPRMaterialParameterBasePropertyLayout : public IPropertyTypeCustomization
 {

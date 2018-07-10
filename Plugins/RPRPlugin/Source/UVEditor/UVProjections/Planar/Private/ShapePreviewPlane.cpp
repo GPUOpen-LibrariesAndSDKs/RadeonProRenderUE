@@ -18,7 +18,7 @@
 ********************************************************************/
 #include "ShapePreviewPlane.h"
 #include "DrawDebugHelpers.h"
-#include "TransformablePlane.h"
+#include "Math/TransformablePlane.h"
 
 UShapePreviewPlane::UShapePreviewPlane()
 	: InitialPlane(FVector(1, 0, 0), 0)

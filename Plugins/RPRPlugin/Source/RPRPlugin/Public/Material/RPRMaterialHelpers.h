@@ -18,10 +18,10 @@
 ********************************************************************/
 #pragma once
 
-#include "UnrealString.h"
-#include "RPRTypedefs.h"
-#include "RPRHelpers.h"
-#include "RPREnums.h"
+#include "Containers/UnrealString.h"
+#include "Typedefs/RPRTypedefs.h"
+#include "Helpers/RPRHelpers.h"
+#include "Enums/RPREnums.h"
 #include "RPRImageManager.h"
 
 namespace RPR

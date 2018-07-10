@@ -18,9 +18,9 @@
 ********************************************************************/
 #pragma once
 
-#include "Engine.h"
-#include "ModuleManager.h"
-#include "SharedPointer.h"
+#include "Engine/Engine.h"
+#include "Modules/ModuleManager.h"
+#include "Templates/SharedPointer.h"
 
 class FUVVisualizerModule : public IModuleInterface
 {

@@ -23,7 +23,7 @@
 
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
-#include "DeclarativeSyntaxSupport.h"
+#include "Widgets/DeclarativeSyntaxSupport.h"
 
 class SRPRViewportTabContent : public SCompoundWidget
 {

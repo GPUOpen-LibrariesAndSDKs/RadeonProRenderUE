@@ -16,13 +16,13 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "NodeParamXml_RPRMaterialCoM.h"
-#include "RPRMaterialXmlNodeParameter.h"
-#include "UnrealType.h"
-#include "RPRMaterialXmlNode.h"
+#include "NodeParamTypes/CoM/NodeParamXml_RPRMaterialCoM.h"
+#include "Node/RPRMaterialXmlNodeParameter.h"
+#include "UObject/UnrealType.h"
+#include "Node/RPRMaterialXmlNode.h"
 #include "RPRMaterialXmlGraph.h"
-#include "RPRUberMaterialParameters.h"
-#include "RPRMaterialXmlInputTextureNode.h"
+#include "Material/RPRUberMaterialParameters.h"
+#include "Node/RPRMaterialXmlInputTextureNode.h"
 #include "RPRMaterialGraphSerializationContext.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogNodeParamRPRMaterialMap, Log, All)

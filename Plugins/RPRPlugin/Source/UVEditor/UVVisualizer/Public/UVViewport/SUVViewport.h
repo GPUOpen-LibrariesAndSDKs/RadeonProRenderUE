@@ -18,13 +18,13 @@
 ********************************************************************/
 #pragma once
 
-#include "DeclarativeSyntaxSupport.h"
+#include "Widgets/DeclarativeSyntaxSupport.h"
 #include "RawMesh.h"
 #include "Engine/Texture2D.h"
-#include "SlateBrush.h"
-#include "UVViewportClient.h"
+#include "Styling/SlateBrush.h"
+#include "UVViewport/UVViewportClient.h"
 #include "SEditorViewport.h"
-#include "RPRMeshDataContainer.h"
+#include "RPRMeshData/RPRMeshDataContainer.h"
 #include "UVVisualizerEditorSettings.h"
 
 DECLARE_DELEGATE_RetVal(EUVUpdateMethod, FGetUVUpdateMethod)

@@ -19,12 +19,12 @@
 #pragma once
 
 #include "Enums/RPRMaterialNodeParameterValueType.h"
-#include "SharedPointer.h"
-#include "INodeParamType.h"
-#include "DelegateCombinations.h"
-#include "Delegate.h"
-#include "UnrealTypeTraits.h"
-#include "NodeParamTypeFactory.h"
+#include "Templates/SharedPointer.h"
+#include "NodeParamTypes/INodeParamType.h"
+#include "Delegates/DelegateCombinations.h"
+#include "Delegates/Delegate.h"
+#include "Templates/UnrealTypeTraits.h"
+#include "NodeParamTypes/NodeParamTypeFactory.h"
 
 class RPRMATERIALIMPORTER_API FNodeParamTypeXmlFactory : public FNodeParamTypeFactory
 {

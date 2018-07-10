@@ -18,10 +18,10 @@
 ********************************************************************/
 #pragma once
 
-#include "Engine.h"
-#include "ModuleManager.h"
-#include "IUVProjectionModule.h"
-#include "SharedPointer.h"
+#include "Engine/Engine.h"
+#include "Modules/ModuleManager.h"
+#include "UVProjectionMappingEditor/IUVProjectionModule.h"
+#include "Templates/SharedPointer.h"
 
 class FUVProjection_TriPlanarModule : public IModuleInterface, 
 										public IUVProjectionModule,

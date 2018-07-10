@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 #include "Components/MeshComponent.h"
-#include "RPRMeshDataContainer.h"
+#include "RPRMeshData/RPRMeshDataContainer.h"
 #include "UVMeshComponent.generated.h"
 
 UCLASS(Blueprintable, ClassGroup = (Rendering, Common), editinlinenew, BlueprintType, meta = (BlueprintSpawnableComponent))

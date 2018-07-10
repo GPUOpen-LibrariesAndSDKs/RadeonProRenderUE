@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "RPRMaterialGLTFNodeInput.h"
-#include "RPRUberMaterialParameters.h"
-#include "Map/NodeParamGTLF_RPRMaterialMap.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNodeInput.h"
+#include "Material/RPRUberMaterialParameters.h"
+#include "MaterialGraph/NodeParamTypes/Map/NodeParamGTLF_RPRMaterialMap.h"
 
 class FNodeParamGTLF_RPRMaterialCoM : public FNodeParamGTLF_RPRMaterialMap
 {

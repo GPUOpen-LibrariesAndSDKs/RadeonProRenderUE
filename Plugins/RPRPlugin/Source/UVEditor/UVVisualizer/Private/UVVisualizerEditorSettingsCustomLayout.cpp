@@ -21,9 +21,9 @@
 #include "DetailCategoryBuilder.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
-#include "STextBlock.h"
+#include "Widgets/Text/STextBlock.h"
 #include "IDetailCustomNodeBuilder.h"
-#include "SButton.h"
+#include "Widgets/Input/SButton.h"
 
 #define LOCTEXT_NAMESPACE "FUVVisualizerEditorSettingsCustomLayout"
 

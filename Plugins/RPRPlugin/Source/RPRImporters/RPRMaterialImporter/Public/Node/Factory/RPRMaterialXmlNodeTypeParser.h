@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "RPRMaterialXmlNode.h"
+#include "Node/RPRMaterialXmlNode.h"
 #include "XmlNode.h"
 
 class FRPRMaterialXmlNodeTypeParser

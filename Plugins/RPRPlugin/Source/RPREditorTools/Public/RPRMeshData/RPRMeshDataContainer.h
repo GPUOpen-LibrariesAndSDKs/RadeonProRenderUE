@@ -17,12 +17,12 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "Array.h"
-#include "SharedPointer.h"
-#include "RPRMeshData.h"
+#include "Containers/Array.h"
+#include "Templates/SharedPointer.h"
+#include "RPRMeshData/RPRMeshData.h"
 #include "Engine/StaticMesh.h"
-#include "AssertionMacros.h"
-#include "DelegateCombinations.h"
+#include "Misc/AssertionMacros.h"
+#include "Delegates/DelegateCombinations.h"
 
 // Verify function exists to it will tell if the function name has changed	
 

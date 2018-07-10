@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 #include "Engine/Texture2DDynamic.h"
-#include "RPRTypedefs.h"
+#include "Typedefs/RPRTypedefs.h"
 
 class FRPRRenderSystemResources
 {

@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 
-#include "ObjectMacros.h"
+#include "UObject/ObjectMacros.h"
 #include "Engine/Texture2D.h"
 #include "UVVisualizerEditorSettings.generated.h"
 

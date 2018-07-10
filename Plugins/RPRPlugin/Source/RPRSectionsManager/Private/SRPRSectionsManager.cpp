@@ -17,13 +17,13 @@
 * THE SOFTWARE.
 ********************************************************************/
 #include "SRPRSectionsManager.h"
-#include "STextBlock.h"
+#include "Widgets/Text/STextBlock.h"
 #include "RPRSectionsManagerModeSettings.h"
 #include "PropertyEditorModule.h"
-#include "ModuleManager.h"
-#include "SButton.h"
+#include "Modules/ModuleManager.h"
+#include "Widgets/Input/SButton.h"
 #include "RPRSectionsDetailCustomization.h"
-#include "SScrollBox.h"
+#include "Widgets/Layout/SScrollBox.h"
 
 void SRPRSectionsManager::Construct(const FArguments& InArgs)
 {

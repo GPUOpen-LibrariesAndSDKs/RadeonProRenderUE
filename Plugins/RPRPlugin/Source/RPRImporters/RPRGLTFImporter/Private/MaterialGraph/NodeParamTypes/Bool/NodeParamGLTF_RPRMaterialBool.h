@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "NodeParamGLTFBase.h"
+#include "MaterialGraph/NodeParamTypes/NodeParamGLTFBase.h"
 
 class FNodeParamGLTF_RPRMaterialBool : public FNodeParamGLTFBase
 {

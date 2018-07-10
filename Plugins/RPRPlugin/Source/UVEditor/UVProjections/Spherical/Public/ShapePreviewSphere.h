@@ -18,8 +18,8 @@
 ********************************************************************/
 #pragma once
 
-#include "Axis.h"
-#include "ShapePreviewBase.h"
+#include "Math/Axis.h"
+#include "ShapePreviews/ShapePreviewBase.h"
 #include "ShapePreviewSphere.generated.h"
 
 UCLASS()

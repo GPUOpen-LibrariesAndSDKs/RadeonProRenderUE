@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "../gltf2.h"
+#include "gltf/gltf2.h"
 
 #include <RadeonProRender.h>
 #include <RprSupport.h>

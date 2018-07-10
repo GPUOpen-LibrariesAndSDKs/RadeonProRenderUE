@@ -19,7 +19,7 @@
 
 #include "RPRPlugin.h"
 #include "RPRSettings.h"
-#include "Engine.h"
+#include "Engine/Engine.h"
 
 #if WITH_EDITOR
 #	include "Viewport/SRPRViewportTabContent.h"
@@ -31,7 +31,8 @@
 #	include "WorkspaceMenuStructureModule.h"
 
 #	include "ISettingsModule.h"
-#	include "SDockTab.h"
+#	include "Widgets/Docking/SDockTab.h"
+#	include "Framework/MultiBox/MultiBoxBuilder.h"
 #endif
 
 #include "Slate/SceneViewport.h"

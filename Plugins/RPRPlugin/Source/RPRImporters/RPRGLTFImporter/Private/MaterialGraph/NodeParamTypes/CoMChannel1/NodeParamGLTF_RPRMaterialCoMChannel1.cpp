@@ -17,10 +17,10 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "NodeParamGLTF_RPRMaterialCoMChannel1.h"
+#include "MaterialGraph/NodeParamTypes/CoMChannel1/NodeParamGLTF_RPRMaterialCoMChannel1.h"
 
-#include "RPRMaterialGLTFNodeInput.h"
-#include "UnrealType.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNodeInput.h"
+#include "UObject/UnrealType.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogNodeParamGLTF_RPRMaterialCoMChannel1, Log, All)
 

@@ -20,7 +20,7 @@
 #include "IDetailCustomization.h"
 #include "Engine/StaticMesh.h"
 #include "DetailCategoryBuilder.h"
-#include "RPRMeshData.h"
+#include "RPRMeshData/RPRMeshData.h"
 
 DECLARE_DELEGATE_OneParam(FMaterialChanged, UStaticMesh* /* Modified mesh */)
 

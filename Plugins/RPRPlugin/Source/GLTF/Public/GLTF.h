@@ -22,7 +22,7 @@
 #include "GLTFTypedefs.h"
 #include "GLTFBufferCache.h"
 #include "GLTFSettings.h"
-#include "gltf2.h"
+#include "gltf/gltf2.h"
 #include "Templates/SharedPointer.h"
 #include "RPR_GLTFModule.h"
 

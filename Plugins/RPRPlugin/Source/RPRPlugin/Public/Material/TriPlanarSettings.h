@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 
-#include "ObjectMacros.h"
+#include "UObject/ObjectMacros.h"
 #include "TriPlanarSettings.generated.h"
 
 /**

@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 #include "Engine/StaticMesh.h"
-#include "RPRMeshData.h"
+#include "RPRMeshData/RPRMeshData.h"
 #include "DynamicMeshBuilder.h"
 #include "DynamicSelectionMeshVisualizer.generated.h"
 

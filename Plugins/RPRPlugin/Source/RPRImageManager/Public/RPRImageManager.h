@@ -17,11 +17,11 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "SharedPointer.h"
-#include "RPRTypedefs.h"
+#include "Templates/SharedPointer.h"
+#include "Typedefs/RPRTypedefs.h"
 #include "PixelFormat.h"
 #include "Engine/Texture.h"
-#include "RPRImagesCache.h"
+#include "Cache/RPRImagesCache.h"
 #include "Engine/Texture2D.h"
 
 namespace RPR

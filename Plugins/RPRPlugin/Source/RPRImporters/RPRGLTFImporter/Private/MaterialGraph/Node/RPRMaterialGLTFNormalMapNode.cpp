@@ -17,16 +17,16 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "RPRMaterialGLTFNormalMapNode.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNormalMapNode.h"
 
 #include "Engine/Texture2D.h"
 
-#include "RPRMaterialGLTFImageTextureNode.h"
-#include "RPRMaterialGLTFGraph.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFImageTextureNode.h"
+#include "MaterialGraph/RPRMaterialGLTFGraph.h"
 
 #include "RPRGLTFImporterModule.h"
-#include "RPRMaterialGLTFNode.h"
-#include "RPRMaterialGLTFNodeInput.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNode.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNodeInput.h"
 
 RPRMaterialGLTF::ERPRMaterialNodeType FRPRMaterialGLTFNormalMapNode::GetNodeType() const
 {

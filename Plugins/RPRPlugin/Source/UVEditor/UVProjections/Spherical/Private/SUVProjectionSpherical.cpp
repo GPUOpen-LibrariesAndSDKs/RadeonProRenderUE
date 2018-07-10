@@ -18,9 +18,9 @@
 ********************************************************************/
 #include "SUVProjectionSpherical.h"
 #include "UVProjectionSphericalAlgo.h"
-#include "SBoxPanel.h"
-#include "SScrollBox.h"
-#include "SSpacer.h"
+#include "Widgets/SBoxPanel.h"
+#include "Widgets/Layout/SScrollBox.h"
+#include "Widgets/Layout/SSpacer.h"
 #include "IDetailsViewHelper.h"
 
 void SUVProjectionSpherical::Construct(const FArguments& InArgs)

@@ -18,8 +18,8 @@
 ********************************************************************/
 #pragma once
 
-#include "UnrealType.h"
-#include "IMaterialParameter.h"
+#include "UObject/UnrealType.h"
+#include "Material/Tools/MaterialCacheMaker/ParameterSetters/IMaterialParameter.h"
 
 namespace RPRX
 {

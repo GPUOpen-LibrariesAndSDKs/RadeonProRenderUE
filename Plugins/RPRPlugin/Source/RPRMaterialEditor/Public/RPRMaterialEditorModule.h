@@ -18,8 +18,8 @@
 ********************************************************************/
 #pragma once
 
-#include "Engine.h"
-#include "ModuleManager.h"
+#include "Engine/Engine.h"
+#include "Modules/ModuleManager.h"
 #include "IAssetTypeActions.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRPRMaterialEditor, All, All);

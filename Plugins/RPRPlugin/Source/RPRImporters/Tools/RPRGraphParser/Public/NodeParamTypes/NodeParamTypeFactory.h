@@ -22,7 +22,7 @@
 #include "Delegates/DelegateCombinations.h"
 #include "Delegates/Delegate.h"
 #include "Templates/UnrealTypeTraits.h"
-#include "INodeParamType.h"
+#include "NodeParamTypes/INodeParamType.h"
 
 DECLARE_DELEGATE_RetVal(TSharedPtr<INodeParamType>, FNodeParamTypeCreator);
 

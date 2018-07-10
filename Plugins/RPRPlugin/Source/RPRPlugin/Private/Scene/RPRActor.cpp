@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "RPRActor.h"
+#include "Scene/RPRActor.h"
 
 ARPRActor::ARPRActor()
 :	Component(NULL)

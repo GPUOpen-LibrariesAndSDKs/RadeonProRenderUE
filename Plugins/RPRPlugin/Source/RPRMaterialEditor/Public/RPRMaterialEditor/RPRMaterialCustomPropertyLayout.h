@@ -18,12 +18,12 @@
 ********************************************************************/
 #pragma once
 #include "IDetailCustomization.h"
-#include "TriPlanarSettings.h"
-#include "NotifyHook.h"
+#include "Material/TriPlanarSettings.h"
+#include "Misc/NotifyHook.h"
 #include "PropertyHandle.h"
 #include "DetailCategoryBuilder.h"
 #include "MaterialEditor/DEditorParameterValue.h"
-#include "RPRMaterialEditorInstanceConstant.h"
+#include "RPRMaterialEditor/RPRMaterialEditorInstanceConstant.h"
 
 class FRPRMaterialCustomPropertyLayout : public IDetailCustomization
 {

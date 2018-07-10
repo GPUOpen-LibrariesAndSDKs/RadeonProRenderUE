@@ -18,8 +18,8 @@
 ********************************************************************/
 #pragma once
 
-#include "UnrealType.h"
-#include "NameTypes.h"
+#include "UObject/UnrealType.h"
+#include "UObject/NameTypes.h"
 
 class FPropertyHelper
 {

@@ -16,12 +16,12 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMaterialBuilder.h"
-#include "RPRHelpers.h"
-#include "RPREnums.h"
-#include "RPRScene.h"
-#include "RPRXHelpers.h"
-#include "RPRErrorsHelpers.h"
+#include "Material/RPRMaterialBuilder.h"
+#include "Helpers/RPRHelpers.h"
+#include "Enums/RPREnums.h"
+#include "Scene/RPRScene.h"
+#include "Helpers/RPRXHelpers.h"
+#include "Helpers/RPRErrorsHelpers.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRMaterialBuilder, Log, All)
 

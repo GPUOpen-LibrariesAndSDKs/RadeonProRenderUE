@@ -16,8 +16,7 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRStaticMeshEditorActions.h"
-#include "EditorStyle.h"
+#include "RPRStaticMeshEditor/RPRStaticMeshEditorActions.h"
 
 #define LOCTEXT_NAMESPACE "RPRStaticMeshEditorActions"
 

@@ -16,10 +16,10 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "NodeParamXml_RPRMaterialBool.h"
-#include "RPRMaterialXmlNodeParameter.h"
-#include "UnrealType.h"
-#include "RPRUberMaterialParameters.h"
+#include "NodeParamTypes/Bool/NodeParamXml_RPRMaterialBool.h"
+#include "Node/RPRMaterialXmlNodeParameter.h"
+#include "UObject/UnrealType.h"
+#include "Material/RPRUberMaterialParameters.h"
 #include "RPRMaterialGraphSerializationContext.h"
 
 void FNodeParamXml_RPRMaterialBool::LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext, FRPRMaterialXmlNodeParameterPtr CurrentNodeParameter, UProperty* Property)

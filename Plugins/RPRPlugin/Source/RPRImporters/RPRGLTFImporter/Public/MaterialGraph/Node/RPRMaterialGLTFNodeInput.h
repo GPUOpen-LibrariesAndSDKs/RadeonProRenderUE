@@ -20,13 +20,13 @@
 #pragma once
 
 #include "GLTFTypedefs.h"
-#include "Enums/RPRMaterialNodeInputValueType.h"
-#include "NameTypes.h"
+#include "MaterialGraph/Enums/RPRMaterialNodeInputValueType.h"
+#include "UObject/NameTypes.h"
 #include "Math/Vector4.h"
 #include "Containers/Map.h"
 #include "Containers/UnrealString.h"
 #include "RPRMaterialGraphSerializationContext.h"
-#include "RPRMaterialGLTFBaseNode.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFBaseNode.h"
 
 /*
 * Represents a node input in the glTF RPR material structure.

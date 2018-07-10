@@ -18,9 +18,9 @@
 ********************************************************************/
 #pragma once
 
-#include "RPRMaterialXmlNodeParameter.h"
-#include "RPRUberMaterialParameters.h"
-#include "Map/NodeParamXml_RPRMaterialMap.h"
+#include "Node/RPRMaterialXmlNodeParameter.h"
+#include "Material/RPRUberMaterialParameters.h"
+#include "NodeParamTypes/Map/NodeParamXml_RPRMaterialMap.h"
 
 class FNodeParamXml_RPRMaterialCoM : public FNodeParamXml_RPRMaterialMap
 {

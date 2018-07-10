@@ -16,18 +16,18 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRStaticMeshEditorViewportClient.h"
+#include "RPRStaticMeshEditor/RPRStaticMeshEditorViewportClient.h"
 #include "AdvancedPreviewScene.h"
-#include "RPRStaticMeshEditor.h"
-#include "SRPRStaticMeshEditorViewport.h"
+#include "RPRStaticMeshEditor/RPRStaticMeshEditor.h"
+#include "RPRStaticMeshEditor/SRPRStaticMeshEditorViewport.h"
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
 #include "AssetViewerSettings.h"
 #include "Editor.h"
 #include "Editor/EditorPerProjectUserSettings.h"
 #include "ThumbnailRendering/SceneThumbnailInfo.h"
-#include "ShapePreviewProxy.h"
-#include "Matrix.h"
+#include "ShapePreviews/ShapePreviewProxy.h"
+#include "Math/Matrix.h"
 #include "EditorModes.h"
 #include "EditorModeManager.h"
 #include "EditorViewportClient.h"

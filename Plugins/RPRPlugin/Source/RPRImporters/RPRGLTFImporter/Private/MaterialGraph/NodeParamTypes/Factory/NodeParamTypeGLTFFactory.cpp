@@ -17,17 +17,17 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "NodeParamTypeGLTFFactory.h"
+#include "MaterialGraph/NodeParamTypes/Factory/NodeParamTypeGLTFFactory.h"
 
-#include "RPRUberMaterialParameters.h"
+#include "Material/RPRUberMaterialParameters.h"
 #include "Templates/IsClass.h"
 #include "Templates/SharedPointer.h"
 
-#include "Map/NodeParamGTLF_RPRMaterialMap.h"
-#include "CoMChannel1/NodeParamGLTF_RPRMaterialCoMChannel1.h"
-#include "Bool/NodeParamGLTF_RPRMaterialBool.h"
-#include "Enum/NodeParamGLTF_RPRMaterialEnum.h"
-#include "CoM/NodeParamGTLF_RPRMaterialCoM.h"
+#include "MaterialGraph/NodeParamTypes/Map/NodeParamGTLF_RPRMaterialMap.h"
+#include "MaterialGraph/NodeParamTypes/CoMChannel1/NodeParamGLTF_RPRMaterialCoMChannel1.h"
+#include "MaterialGraph/NodeParamTypes/Bool/NodeParamGLTF_RPRMaterialBool.h"
+#include "MaterialGraph/NodeParamTypes/Enum/NodeParamGLTF_RPRMaterialEnum.h"
+#include "MaterialGraph/NodeParamTypes/CoM/NodeParamGTLF_RPRMaterialCoM.h"
 
 TSharedPtr<FNodeParamTypeGLTFFactory> FNodeParamTypeGLTFFactory::Instance;
 

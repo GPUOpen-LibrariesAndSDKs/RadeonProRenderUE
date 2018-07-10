@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 #include "Templates/UnrealTypeTraits.h"
-#include "ObjectMacros.h"
+#include "UObject/ObjectMacros.h"
 
 UENUM(BlueprintType)
 enum class ERPRMaterialMapMode : uint8

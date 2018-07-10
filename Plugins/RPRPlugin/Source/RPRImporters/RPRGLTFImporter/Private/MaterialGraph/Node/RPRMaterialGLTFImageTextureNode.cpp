@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "RPRMaterialGLTFImageTextureNode.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFImageTextureNode.h"
 
 #include "Engine/Texture2D.h"
 #include "AssetToolsModule.h"
@@ -25,7 +25,7 @@
 #include "RPRGLTFImporterModule.h"
 #include "RPRMaterialGraphSerializationContext.h"
 #include "RPRSettings.h"
-#include "RPRMaterialGLTFNodeInput.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNodeInput.h"
 
 RPRMaterialGLTF::ERPRMaterialNodeType FRPRMaterialGLTFImageTextureNode::GetNodeType() const
 {

@@ -18,9 +18,9 @@
 ********************************************************************/
 #pragma once
 #include "IPropertyTypeCustomization.h"
-#include "SlateTypes.h"
-#include "RPRMaterialBool.h"
-#include "RPRMaterialParameterBasePropertyLayout.h"
+#include "Styling/SlateTypes.h"
+#include "Material/UberMaterialParameters/RPRMaterialBool.h"
+#include "RPRMaterialEditor/PropertiesLayout/RPRMaterialParameterBasePropertyLayout.h"
 
 class FRPRMaterialBoolPropertiesLayout : public FRPRMaterialParameterBasePropertyLayout
 {

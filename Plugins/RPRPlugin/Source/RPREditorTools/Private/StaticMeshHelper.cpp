@@ -18,7 +18,7 @@
 ********************************************************************/
 #include "StaticMeshHelper.h"
 #include "StaticMeshResources.h"
-#include "FaceAssignationHelper.h"
+#include "FaceAssignationHelper/FaceAssignationHelper.h"
 #include "RPRCpStaticMesh.h"
 
 void FStaticMeshHelper::LoadRawMeshFromStaticMesh(class UStaticMesh* StaticMesh, struct FRawMesh& OutRawMesh, int32 SourceModelIdx /*= 0*/)

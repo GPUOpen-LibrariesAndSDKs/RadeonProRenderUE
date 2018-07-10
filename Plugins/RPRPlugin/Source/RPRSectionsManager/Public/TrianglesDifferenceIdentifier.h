@@ -17,8 +17,8 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "AsyncWork.h"
-#include "RPRMeshData.h"
+#include "Async/AsyncWork.h"
+#include "RPRMeshData/RPRMeshData.h"
 #include "TrianglesSelectionFlags.h"
 #include "DynamicSelectionMeshVisualizer.h"
 

@@ -16,13 +16,13 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRStaticMeshDetailCustomization.h"
+#include "RPRStaticMeshEditor/RPRStaticMeshDetailCustomization.h"
 #include "DetailLayoutBuilder.h"
 #include "PropertyCustomizationHelpers.h"
-#include "RPRStaticMeshEditor.h"
-#include "STextBlock.h"
-#include "SCheckBox.h"
-#include "SButton.h"
+#include "RPRStaticMeshEditor/RPRStaticMeshEditor.h"
+#include "Widgets/Text/STextBlock.h"
+#include "Widgets/Input/SCheckBox.h"
+#include "Widgets/Input/SButton.h"
 
 #define LOCTEXT_NAMESPACE "RPRStaticMeshDetailCustomization"
 

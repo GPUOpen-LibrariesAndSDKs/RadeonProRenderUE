@@ -17,15 +17,15 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "STableRow.h"
-#include "STableViewBase.h"
-#include "SCompoundWidget.h"
-#include "DeclarativeSyntaxSupport.h"
-#include "SListView.h"
-#include "SScrollBox.h"
-#include "SBorder.h"
-#include "STextBlock.h"
-#include "SBox.h"
+#include "Widgets/Views/STableRow.h"
+#include "Widgets/Views/STableViewBase.h"
+#include "Widgets/SCompoundWidget.h"
+#include "Widgets/DeclarativeSyntaxSupport.h"
+#include "Widgets/Views/SListView.h"
+#include "Widgets/Layout/SScrollBox.h"
+#include "Widgets/Layout/SBorder.h"
+#include "Widgets/Text/STextBlock.h"
+#include "Widgets/Layout/SBox.h"
 
 
 template<typename TObjectType>

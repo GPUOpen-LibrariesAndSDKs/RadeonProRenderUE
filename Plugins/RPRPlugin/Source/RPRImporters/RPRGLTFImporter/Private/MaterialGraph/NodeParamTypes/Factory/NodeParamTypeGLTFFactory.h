@@ -19,13 +19,13 @@
 
 #pragma once
 
-#include "Enums/RPRMaterialNodeInputValueType.h"
+#include "MaterialGraph/Enums/RPRMaterialNodeInputValueType.h"
 #include "Templates/SharedPointer.h"
-#include "INodeParamType.h"
-#include "DelegateCombinations.h"
-#include "Delegate.h"
-#include "UnrealTypeTraits.h"
-#include "NodeParamTypeFactory.h"
+#include "NodeParamTypes/INodeParamType.h"
+#include "Delegates/DelegateCombinations.h"
+#include "Delegates/Delegate.h"
+#include "Templates/UnrealTypeTraits.h"
+#include "NodeParamTypes/NodeParamTypeFactory.h"
 
 class RPRGLTFIMPORTER_API FNodeParamTypeGLTFFactory : public FNodeParamTypeFactory
 {

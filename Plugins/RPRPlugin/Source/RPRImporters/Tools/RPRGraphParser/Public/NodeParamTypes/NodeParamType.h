@@ -17,11 +17,11 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "INodeParamType.h"
+#include "NodeParamTypes/INodeParamType.h"
 #include "RPRMaterialGraphSerializationContext.h"
-#include "RPRMaterialNode.h"
-#include "UnrealType.h"
-#include "SharedPointer.h"
+#include "Nodes/RPRMaterialNode.h"
+#include "UObject/UnrealType.h"
+#include "Templates/SharedPointer.h"
 
 template<typename TNode>
 class FNodeParamType : public INodeParamType

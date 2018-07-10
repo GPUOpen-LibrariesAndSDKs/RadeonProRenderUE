@@ -18,9 +18,9 @@
 ********************************************************************/
 #pragma once
 
-#include "GCObject.h"
-#include "UObjectGlobals.h"
-#include "ShapePreviewBase.h"
+#include "UObject/GCObject.h"
+#include "UObject/UObjectGlobals.h"
+#include "ShapePreviews/ShapePreviewBase.h"
 
 template<typename ShapeType>
 class FShapePreviewable : public FGCObject

@@ -18,9 +18,9 @@
 ********************************************************************/
 #pragma once
 #include "CoreMinimal.h"
-#include "RPRUberMaterialParameters.h"
-#include "UberMaterialPropertyHelper.h"
-#include "RPRUberMaterialParameterBase.h"
+#include "Material/RPRUberMaterialParameters.h"
+#include "Material/Tools/UberMaterialPropertyHelper.h"
+#include "Material/UberMaterialParameters/RPRUberMaterialParameterBase.h"
 
 class IRPRMaterialNode
 {

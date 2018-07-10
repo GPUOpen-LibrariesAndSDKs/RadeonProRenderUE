@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "RPRMaterialGLTFNode.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNode.h"
 #include "Templates/SharedPointer.h"
 #include "RPRMaterialGraphSerializationContext.h"
 

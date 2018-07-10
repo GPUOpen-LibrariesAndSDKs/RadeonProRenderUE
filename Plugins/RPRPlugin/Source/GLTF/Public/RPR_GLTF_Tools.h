@@ -17,8 +17,8 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "RPRTypedefs.h"
-#include "RPRXTypedefs.h"
+#include "Typedefs/RPRTypedefs.h"
+#include "Typedefs/RPRXTypedefs.h"
 #include "RPR_GLTFModule.h"
 
 class RPR_GLTF_API FRPR_GLTF_Tools

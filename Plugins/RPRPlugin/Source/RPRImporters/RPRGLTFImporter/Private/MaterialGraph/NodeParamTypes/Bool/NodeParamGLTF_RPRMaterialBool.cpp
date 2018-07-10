@@ -17,11 +17,11 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "NodeParamGLTF_RPRMaterialBool.h"
+#include "MaterialGraph/NodeParamTypes/Bool/NodeParamGLTF_RPRMaterialBool.h"
 
-#include "UnrealType.h"
-#include "RPRMaterialGLTFNodeInput.h"
-#include "RPRMaterialBool.h"
+#include "UObject/UnrealType.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNodeInput.h"
+#include "Material/UberMaterialParameters/RPRMaterialBool.h"
 
 void FNodeParamGLTF_RPRMaterialBool::LoadRPRMaterialParameters(
 	FRPRMaterialGraphSerializationContext& SerializationContext, 

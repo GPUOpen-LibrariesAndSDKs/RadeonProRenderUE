@@ -18,6 +18,10 @@
 ********************************************************************/
 #pragma once
 #include "RPRCompatibility.h"
+#include "StaticMeshResources.h"
+#include "Math/TransformCalculus2D.h"
+#include "Rendering/PositionVertexBuffer.h"
+#include "Rendering/StaticMeshVertexBuffer.h"
 
 class RPRCOMPATIBILITY_API FRPRCpStaticMesh
 {

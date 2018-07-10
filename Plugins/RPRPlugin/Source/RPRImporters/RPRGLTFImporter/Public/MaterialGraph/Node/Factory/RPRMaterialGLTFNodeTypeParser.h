@@ -20,7 +20,7 @@
 #pragma once
 
 #include "GLTFTypedefs.h"
-#include "RPRMaterialGLTFNode.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNode.h"
 #include "Containers/Map.h"
 #include "Containers/UnrealString.h"
 

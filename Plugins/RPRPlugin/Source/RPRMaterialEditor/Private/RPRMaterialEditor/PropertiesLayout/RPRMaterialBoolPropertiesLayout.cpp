@@ -16,9 +16,9 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMaterialBoolPropertiesLayout.h"
+#include "RPRMaterialEditor/PropertiesLayout/RPRMaterialBoolPropertiesLayout.h"
 #include "DetailWidgetRow.h"
-#include "SCheckBox.h"
+#include "Widgets/Input/SCheckBox.h"
 
 TSharedRef<IPropertyTypeCustomization> FRPRMaterialBoolPropertiesLayout::MakeInstance()
 {

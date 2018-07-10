@@ -18,9 +18,9 @@
 ********************************************************************/
 #pragma once
 
-#include "RPRMaterialXmlNode.h"
+#include "Node/RPRMaterialXmlNode.h"
 #include "Engine/Texture2D.h"
-#include "SharedPointer.h"
+#include "Templates/SharedPointer.h"
 #include "RPRMaterialGraphSerializationContext.h"
 
 class FRPRMaterialXmlInputTextureNode : public FRPRMaterialXmlNode

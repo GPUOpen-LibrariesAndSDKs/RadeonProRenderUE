@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include "INodeParamType.h"
-#include "RPRUberMaterialParameters.h"
-#include "RPRMaterialGLTFNodeInput.h"
-#include "NodeParamGLTFBase.h"
+#include "NodeParamTypes/INodeParamType.h"
+#include "Material/RPRUberMaterialParameters.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNodeInput.h"
+#include "MaterialGraph/NodeParamTypes/NodeParamGLTFBase.h"
 
 class FNodeParamGTLF_RPRMaterialMap : public FNodeParamGLTFBase
 {

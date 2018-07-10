@@ -17,16 +17,19 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "SGLTFImportWindow.h"
+#include "Widgets/SGLTFImportWindow.h"
 
-#include "Application/SlateApplication.h"
-#include "IMainFrameModule.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Interfaces/IMainFrameModule.h"
 #include "IDetailsView.h"
 #include "PropertyEditorModule.h"
-#include "Layout/SGridPanel.h"
-#include "Layout/SUniformGridPanel.h"
+#include "Widgets/Layout/SGridPanel.h"
+#include "Widgets/Layout/SUniformGridPanel.h"
 
 #include "GLTFSettings.h"
+#include "Widgets/Layout/SBorder.h"
+#include "Widgets/Text/STextBlock.h"
+#include "Widgets/Input/SButton.h"
 
 #define LOCTEXT_NAMESPACE "SGLTFImportWindow"
 

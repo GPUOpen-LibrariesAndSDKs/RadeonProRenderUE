@@ -17,11 +17,11 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "NodeParamGLTF_RPRMaterialEnum.h"
+#include "MaterialGraph/NodeParamTypes/Enum/NodeParamGLTF_RPRMaterialEnum.h"
 
-#include "UnrealType.h"
-#include "RPRMaterialGLTFNodeInput.h"
-#include "RPRMaterialEnum.h"
+#include "UObject/UnrealType.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNodeInput.h"
+#include "Material/UberMaterialParameters/RPRMaterialEnum.h"
 
 void FNodeParamGLTF_RPRMaterialEnum::LoadRPRMaterialParameters(
 	FRPRMaterialGraphSerializationContext& SerializationContext, 

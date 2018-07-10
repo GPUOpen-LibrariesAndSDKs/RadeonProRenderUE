@@ -17,14 +17,14 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "NodeParamGTLF_RPRMaterialMap.h"
+#include "MaterialGraph/NodeParamTypes/Map/NodeParamGTLF_RPRMaterialMap.h"
 
-#include "RPRMaterialGLTFImageTextureNode.h"
-#include "RPRMaterialGLTFNormalMapNode.h"
-#include "RPRMaterialGLTFBaseNode.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFImageTextureNode.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNormalMapNode.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFBaseNode.h"
 #include "RPRMaterialGraph.h"
 #include "RPRMaterialGraphSerializationContext.h"
-#include "RPRMaterialGLTFGraph.h"
+#include "MaterialGraph/RPRMaterialGLTFGraph.h"
 
 void FNodeParamGTLF_RPRMaterialMap::LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext, FRPRMaterialGLTFNodeInputPtr CurrentNode, UProperty* Property)
 {

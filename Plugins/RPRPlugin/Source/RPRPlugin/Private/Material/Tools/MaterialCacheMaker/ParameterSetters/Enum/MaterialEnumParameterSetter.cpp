@@ -16,8 +16,8 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "MaterialEnumParameterSetter.h"
-#include "RPRXMaterialHelpers.h"
+#include "Material/Tools/MaterialCacheMaker/ParameterSetters/Enum/MaterialEnumParameterSetter.h"
+#include "Helpers/RPRXMaterialHelpers.h"
 
 namespace RPRX
 {

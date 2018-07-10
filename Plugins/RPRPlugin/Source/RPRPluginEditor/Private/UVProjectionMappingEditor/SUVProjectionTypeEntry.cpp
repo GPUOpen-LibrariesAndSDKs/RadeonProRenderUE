@@ -16,12 +16,12 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "SUVProjectionTypeEntry.h"
-#include "UVProjectionFactory.h"
-#include "SBox.h"
-#include "STextBlock.h"
-#include "SBoxPanel.h"
-#include "SImage.h"
+#include "UVProjectionMappingEditor/SUVProjectionTypeEntry.h"
+#include "UVProjectionMappingEditor/SlateUVProjectionsEntry/UVProjectionFactory.h"
+#include "Widgets/Layout/SBox.h"
+#include "Widgets/Text/STextBlock.h"
+#include "Widgets/SBoxPanel.h"
+#include "Widgets/Images/SImage.h"
 
 void SUVProjectionTypeEntry::Construct(const FArguments& InArgs)
 {

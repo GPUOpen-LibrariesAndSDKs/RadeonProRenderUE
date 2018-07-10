@@ -18,8 +18,8 @@
 ********************************************************************/
 #pragma once
 
-#include "Vector.h"
-#include "Vector2D.h"
+#include "Math/Vector.h"
+#include "Math/Vector2D.h"
 
 class RPREDITORTOOLS_API FRPRVectorTools
 {

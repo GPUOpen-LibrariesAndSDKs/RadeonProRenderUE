@@ -16,9 +16,9 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRErrorsHelpers.h"
-#include "LogMacros.h"
-#include "RPRHelpers.h"
+#include "Helpers/RPRErrorsHelpers.h"
+#include "Logging/LogMacros.h"
+#include "Helpers/RPRHelpers.h"
 #include "RadeonProRender.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRErrors, Log, All)

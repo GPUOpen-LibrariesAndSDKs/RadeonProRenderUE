@@ -18,8 +18,8 @@
 ********************************************************************/
 #pragma once
 #include "IPropertyTypeCustomization.h"
-#include "SWidget.h"
-#include "RPRMaterialParameterBasePropertyLayout.h"
+#include "Widgets/SWidget.h"
+#include "RPRMaterialEditor/PropertiesLayout/RPRMaterialParameterBasePropertyLayout.h"
 
 class FRPRMaterialEnumPropertiesLayout : public FRPRMaterialParameterBasePropertyLayout
 {

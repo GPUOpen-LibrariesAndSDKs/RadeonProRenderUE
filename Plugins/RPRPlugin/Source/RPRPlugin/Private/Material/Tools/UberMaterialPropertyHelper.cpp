@@ -16,10 +16,10 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "UberMaterialPropertyHelper.h"
-#include "UnrealTypeTraits.h"
-#include "EnumProperty.h"
-#include "UnrealType.h"
+#include "Material/Tools/UberMaterialPropertyHelper.h"
+#include "Templates/UnrealTypeTraits.h"
+#include "UObject/EnumProperty.h"
+#include "UObject/UnrealType.h"
 
 FString FUberMaterialPropertyHelper::GetPropertyTypeName(const UProperty* Property)
 {

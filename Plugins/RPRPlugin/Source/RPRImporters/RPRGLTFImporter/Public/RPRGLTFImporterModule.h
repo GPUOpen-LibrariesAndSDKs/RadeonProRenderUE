@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "ModuleManager.h"
+#include "Modules/ModuleManager.h"
 #include "Templates/SharedPointer.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRPRRPRGLTFImporter, Log, All);

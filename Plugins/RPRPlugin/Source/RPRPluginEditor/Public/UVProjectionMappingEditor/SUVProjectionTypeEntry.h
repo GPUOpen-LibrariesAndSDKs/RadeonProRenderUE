@@ -18,10 +18,10 @@
 ********************************************************************/
 #pragma once
 
-#include "SCompoundWidget.h"
-#include "IUVProjectionModule.h"
-#include "SharedPointer.h"
-#include "DeclarativeSyntaxSupport.h"
+#include "Widgets/SCompoundWidget.h"
+#include "UVProjectionMappingEditor/IUVProjectionModule.h"
+#include "Templates/SharedPointer.h"
+#include "Widgets/DeclarativeSyntaxSupport.h"
 
 class IUVProjectionModule;
 

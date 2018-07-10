@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 
-#include "RPRMaterialXmlNodeParameter.h"
+#include "Node/RPRMaterialXmlNodeParameter.h"
 #include "Nodes/RPRMaterialNode.h"
 #include "XmlNode.h"
 

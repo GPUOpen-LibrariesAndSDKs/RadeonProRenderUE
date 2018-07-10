@@ -17,8 +17,8 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "NameTypes.h"
-#include "Platform.h"
+#include "UObject/NameTypes.h"
+#include "HAL/Platform.h"
 
 class FGLTFNodeHelper
 {

@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "AMD_RPR_material.h"
+#include "gltf/Extensions/AMD_RPR_material.h"
 
 #include <RadeonProRender.h>
 

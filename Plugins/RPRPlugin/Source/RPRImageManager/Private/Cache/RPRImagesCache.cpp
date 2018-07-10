@@ -16,10 +16,10 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRImagesCache.h"
-#include "RPRTypedefs.h"
-#include "RPRHelpers.h"
-#include "RPRConstAway.h"
+#include "Cache/RPRImagesCache.h"
+#include "Typedefs/RPRTypedefs.h"
+#include "Helpers/RPRHelpers.h"
+#include "Helpers/RPRConstAway.h"
 
 namespace RPR
 {

@@ -18,12 +18,12 @@
 ********************************************************************/
 #pragma once
 
-#include "DeclarativeSyntaxSupport.h"
-#include "IUVProjectionSettingsWidget.h"
-#include "SharedPointer.h"
-#include "IUVProjectionAlgorithm.h"
-#include "SUVProjectionBase.h"
-#include "ShapePreviewable.h"
+#include "Widgets/DeclarativeSyntaxSupport.h"
+#include "UVProjectionMappingEditor/SlateUVProjectionsEntry/IUVProjectionSettingsWidget.h"
+#include "Templates/SharedPointer.h"
+#include "UVProjectionMappingEditor/Algorithms/IUVProjectionAlgorithm.h"
+#include "UVProjectionMappingEditor/SlateUVProjectionsEntry/SUVProjectionBase.h"
+#include "ShapePreviews/ShapePreviewable.h"
 #include "ShapePreviewPlane.h"
 
 /*

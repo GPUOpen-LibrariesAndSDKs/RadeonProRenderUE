@@ -16,14 +16,14 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMeshData.h"
+#include "RPRMeshData/RPRMeshData.h"
 #include "StaticMeshHelper.h"
 #include "RPRStaticMeshPreviewComponent.h"
 #include "UVUtility.h"
-#include "RPRConstAway.h"
+#include "Helpers/RPRConstAway.h"
 
-#include "FileHelper.h"
-#include "PlatformFilemanager.h"
+#include "Misc/FileHelper.h"
+#include "HAL/PlatformFilemanager.h"
 
 DECLARE_LOG_CATEGORY_CLASS(RPRMeshDataLog, Log, All)
 

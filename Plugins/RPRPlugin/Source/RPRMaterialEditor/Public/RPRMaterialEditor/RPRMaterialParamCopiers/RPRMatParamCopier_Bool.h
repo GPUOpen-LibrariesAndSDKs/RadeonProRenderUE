@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "IRPRMatParamCopier.h"
+#include "RPRMaterialEditor/RPRMaterialParamCopiers/IRPRMatParamCopier.h"
 
 class FRPRMatParamCopier_Bool : public IRPRMatParamCopier
 {

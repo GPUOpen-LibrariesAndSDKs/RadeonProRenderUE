@@ -18,9 +18,9 @@
 ********************************************************************/
 #pragma once
 
-#include "Developer/RawMesh/Public/RawMesh.h"
+#include "RawMesh.h"
 #include "Engine/StaticMesh.h"
-#include "StaticMeshVertexBuffer.h"
+#include "Rendering/StaticMeshVertexBuffer.h"
 
 class RPREDITORTOOLS_API FStaticMeshHelper
 {

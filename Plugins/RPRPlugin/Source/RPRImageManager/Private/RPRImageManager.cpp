@@ -20,7 +20,7 @@
 #include "RPRImageManagerModule.h"
 #include "Engine/TextureCube.h"
 #include "CubemapUnwrapUtils.h"
-#include "RPRHelpers.h"
+#include "Helpers/RPRHelpers.h"
 #include "RPRSettings.h"
 
 namespace RPR

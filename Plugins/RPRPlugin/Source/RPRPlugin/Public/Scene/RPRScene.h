@@ -24,13 +24,13 @@
 #include "RPRPlugin.h"
 #include "RPRSettings.h"
 #include "GameFramework/Actor.h"
-#include "MaterialLibrary.h"
-#include "RPRMaterialLibrary.h"
-#include "UMSControl.h"
+#include "Scene/MaterialLibrary.h"
+#include "Material/RPRMaterialLibrary.h"
+#include "Scene/UMSControl.h"
 #include <RadeonProRenderInterchange.h>
 #include <map>
-#include "RPRITypedefs.h"
-#include "ObjectScopedLocked.h"
+#include "Typedefs/RPRITypedefs.h"
+#include "Helpers/ObjectScopedLocked.h"
 #include "RPRScene.generated.h"
 
 /**

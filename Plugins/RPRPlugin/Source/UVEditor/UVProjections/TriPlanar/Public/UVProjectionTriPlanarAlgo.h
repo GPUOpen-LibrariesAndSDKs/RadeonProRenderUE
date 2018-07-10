@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "UVProjectionAlgorithmBase.h"
+#include "UVProjectionMappingEditor/Algorithms/UVProjectionAlgorithmBase.h"
 #include "MaterialEditor/DEditorParameterValue.h"
 #include "Factories/MaterialInstanceConstantFactoryNew.h"
 #include "MaterialEditor/MaterialEditorInstanceConstant.h"

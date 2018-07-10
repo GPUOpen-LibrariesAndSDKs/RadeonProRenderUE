@@ -17,9 +17,9 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "Editor/UnrealEd/Public/SViewportToolBar.h"
-#include "UICommandList.h"
-#include "SlateDelegates.h"
+#include "SViewportToolBar.h"
+#include "Framework/Commands/UICommandList.h"
+#include "Framework/SlateDelegates.h"
 
 class SUVViewportToolBar : public SViewportToolBar
 {

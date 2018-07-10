@@ -16,7 +16,7 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRStaticMeshEditorModesCommands.h"
+#include "RPRStaticMeshEditor/Modes/RPRStaticMeshEditorModesCommands.h"
 #include "EditorStyleSet.h"
 #include "RPREditorStyle.h"
 

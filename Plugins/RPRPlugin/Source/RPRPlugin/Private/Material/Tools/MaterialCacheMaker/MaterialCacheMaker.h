@@ -18,11 +18,11 @@
 ********************************************************************/
 #pragma once
 
-#include "RPRMaterial.h"
-#include "RPRTypedefs.h"
-#include "RPRXTypedefs.h"
-#include "MaterialContext.h"
-#include "ParameterArgs.h"
+#include "Assets/RPRMaterial.h"
+#include "Typedefs/RPRTypedefs.h"
+#include "Typedefs/RPRXTypedefs.h"
+#include "Material/MaterialContext.h"
+#include "Material/Tools/MaterialCacheMaker/ParameterArgs/ParameterArgs.h"
 
 namespace RPRX
 {

@@ -18,8 +18,8 @@
 ********************************************************************/
 #pragma once
 
-#include "Array.h"
-#include "StaticMeshVertexBuffer.h"
+#include "Containers/Array.h"
+#include "Rendering/StaticMeshVertexBuffer.h"
 
 DECLARE_DELEGATE_OneParam(FOnEachUVChannelDelegate, int32 /* UVChannel */)
 

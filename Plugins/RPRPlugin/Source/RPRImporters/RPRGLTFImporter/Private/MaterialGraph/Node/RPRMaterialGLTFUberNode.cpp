@@ -17,8 +17,8 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "RPRMaterialGLTFUberNode.h"
-#include "RPRMaterialGLTFNodeInput.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFUberNode.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNodeInput.h"
 
 RPRMaterialGLTF::ERPRMaterialNodeType FRPRMaterialGLTFUberNode::GetNodeType() const
 {

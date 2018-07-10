@@ -17,11 +17,11 @@
 * THE SOFTWARE.
 ********************************************************************/
 #include "RPRMaterialXmlGraph.h"
-#include "RPRMaterialXmlNode.h"
+#include "Node/RPRMaterialXmlNode.h"
 #include "XmlNode.h"
-#include "RPRUberMaterialParameters.h"
-#include "RPRMaterialXmlUberNode.h"
-#include "RPRMaterialXmlNodeFactory.h"
+#include "Material/RPRUberMaterialParameters.h"
+#include "Node/RPRMaterialXmlUberNode.h"
+#include "Node/Factory/RPRMaterialXmlNodeFactory.h"
 #include "XmlFile.h"
 
 #define NODE_ATTRIBUTE_NAME	TEXT("name")

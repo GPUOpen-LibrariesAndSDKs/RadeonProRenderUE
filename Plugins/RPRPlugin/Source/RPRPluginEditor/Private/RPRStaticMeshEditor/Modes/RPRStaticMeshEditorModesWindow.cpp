@@ -16,17 +16,17 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRStaticMeshEditorModesWindow.h"
-#include "RPRStaticMeshEditor.h"
-#include "RPRStaticMeshEditorActions.h"
+#include "RPRStaticMeshEditor/Modes/RPRStaticMeshEditorModesWindow.h"
+#include "RPRStaticMeshEditor/RPRStaticMeshEditor.h"
+#include "RPRStaticMeshEditor/RPRStaticMeshEditorActions.h"
 #include "EdMode.h"
-#include "MultiBoxDefs.h"
-#include "MultiBoxBuilder.h"
+#include "Framework/MultiBox/MultiBoxDefs.h"
+#include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "EditorStyleSet.h"
 #include <EditorViewportClient.h>
 #include <EditorModeManager.h>
-#include "SBoxPanel.h"
-#include "SUVProjectionMappingEditor.h"
+#include "Widgets/SBoxPanel.h"
+#include "UVProjectionMappingEditor/SUVProjectionMappingEditor.h"
 #include "EditorModes.h"
 #include "SRPRSectionsManager.h"
 #include "RPRSectionsManagerMode.h"

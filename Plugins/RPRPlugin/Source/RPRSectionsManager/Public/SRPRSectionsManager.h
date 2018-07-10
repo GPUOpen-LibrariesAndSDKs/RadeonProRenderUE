@@ -17,10 +17,10 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "DeclarativeSyntaxSupport.h"
-#include "SCompoundWidget.h"
+#include "Widgets/DeclarativeSyntaxSupport.h"
+#include "Widgets/SCompoundWidget.h"
 #include "IDetailsView.h"
-#include "RPRMeshDataContainer.h"
+#include "RPRMeshData/RPRMeshDataContainer.h"
 
 DECLARE_DELEGATE_RetVal(FRPRMeshDataContainerPtr, FGetRPRMeshDatas)
 

@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 
-#include "ParameterArgs.h"
+#include "Material/Tools/MaterialCacheMaker/ParameterArgs/ParameterArgs.h"
 
 namespace RPRX
 {

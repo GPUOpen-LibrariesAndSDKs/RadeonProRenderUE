@@ -19,7 +19,7 @@
 #pragma once
 
 #include "IDetailsView.h"
-#include "SharedPointer.h"
+#include "Templates/SharedPointer.h"
 
 class RPREDITORTOOLS_API IDetailsViewHelper
 {

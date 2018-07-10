@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "RPRRendererWorker.h"
+#include "Renderer/RPRRendererWorker.h"
 #include "RprLoadStore.h"
 #include "RPRSettings.h"
 #include "HAL/RunnableThread.h"
@@ -29,8 +29,8 @@
 #include "Scene/RPRActor.h"
 
 #include "RPRStats.h"
-#include "RPRHelpers.h"
-#include "RPRErrorsHelpers.h"
+#include "Helpers/RPRHelpers.h"
+#include "Helpers/RPRErrorsHelpers.h"
 
 DEFINE_STAT(STAT_ProRender_PreRender);
 DEFINE_STAT(STAT_ProRender_RebuildScene);

@@ -18,8 +18,8 @@
 ********************************************************************/
 #include "UVProjectionPlanarAlgo.h"
 #include "UVUtility.h"
-#include "TransformablePlane.h"
-#include "ScopedSlowTask.h"
+#include "Math/TransformablePlane.h"
+#include "Misc/ScopedSlowTask.h"
 #include "TriPlanarMaterialEnabler.h"
 
 #define LOCTEXT_NAMESPACE "UVProjectionPlanarAlgo"

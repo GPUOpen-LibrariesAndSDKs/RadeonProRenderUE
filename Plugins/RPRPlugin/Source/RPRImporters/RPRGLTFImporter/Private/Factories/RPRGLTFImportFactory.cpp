@@ -29,7 +29,7 @@
 #include "Materials/Material.h"
 
 #include "AssetRegistryModule.h"
-#include "BlueprintEditorUtils.h"
+#include "Kismet2/BlueprintEditorUtils.h"
 #include "ObjectTools.h"
 #include "PackageTools.h"
 #include "Kismet2/KismetEditorUtilities.h"

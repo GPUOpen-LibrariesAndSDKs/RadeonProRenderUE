@@ -16,22 +16,21 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "SUVProjectionMappingEditor.h"
-#include "RPRStaticMeshEditor.h"
-#include "AssetEditorManager.h"
-#include "EditorStyle.h"
-#include "SUVProjectionTypeEntry.h"
-#include "SListView.h"
-#include "SBoxPanel.h"
-#include "STextBlock.h"
+#include "UVProjectionMappingEditor/SUVProjectionMappingEditor.h"
+#include "RPRStaticMeshEditor/RPRStaticMeshEditor.h"
+#include "Toolkits/AssetEditorManager.h"
+#include "UVProjectionMappingEditor/SUVProjectionTypeEntry.h"
+#include "Widgets/Views/SListView.h"
+#include "Widgets/SBoxPanel.h"
+#include "Widgets/Text/STextBlock.h"
 #include "Engine/StaticMesh.h"
-#include "SBox.h"
+#include "Widgets/Layout/SBox.h"
 #include "PropertyEditorModule.h"
 #include "IDetailsView.h"
 #include "RawMesh.h"
 #include "StaticMeshHelper.h"
-#include "IUVProjectionModule.h"
-#include "UVProjectionFactory.h"
+#include "UVProjectionMappingEditor/IUVProjectionModule.h"
+#include "UVProjectionMappingEditor/SlateUVProjectionsEntry/UVProjectionFactory.h"
 
 #define LOCTEXT_NAMESPACE "SUVMappingEditor"
 

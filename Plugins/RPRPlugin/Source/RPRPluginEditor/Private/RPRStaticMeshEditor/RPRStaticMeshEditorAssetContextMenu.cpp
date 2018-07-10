@@ -16,11 +16,11 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRStaticMeshEditorAssetContextMenu.h"
+#include "RPRStaticMeshEditor/RPRStaticMeshEditorAssetContextMenu.h"
 #include "RPRPluginEditorModule.h"
-#include "MultiBoxExtender.h"
-#include "MultiBoxBuilder.h"
-#include "RPRStaticMeshEditor.h"
+#include "Framework/MultiBox/MultiBoxExtender.h"
+#include "Framework/MultiBox/MultiBoxBuilder.h"
+#include "RPRStaticMeshEditor/RPRStaticMeshEditor.h"
 #include "Engine/StaticMesh.h"
 
 #define LOCTEXT_NAMESPACE "RPRStaticMeshEditorAssetContextMenu"

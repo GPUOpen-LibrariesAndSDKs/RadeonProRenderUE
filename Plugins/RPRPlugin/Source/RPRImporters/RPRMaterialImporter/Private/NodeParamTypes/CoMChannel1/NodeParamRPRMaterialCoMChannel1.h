@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "Map/NodeParamXml_RPRMaterialMap.h"
+#include "NodeParamTypes/Map/NodeParamXml_RPRMaterialMap.h"
 
 class FNodeParamXml_RPRMaterialCoMChannel1 : public FNodeParamXml_RPRMaterialMap
 {

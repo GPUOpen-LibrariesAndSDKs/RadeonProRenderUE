@@ -17,10 +17,10 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "Map.h"
+#include "Containers/Map.h"
 #include "RPRStaticMeshPreviewComponent.h"
-#include "Set.h"
-#include "RPRMeshData.h"
+#include "Containers/Set.h"
+#include "RPRMeshData/RPRMeshData.h"
 #include "TrianglesSelectionFlags.h"
 
 class RPRSECTIONSMANAGER_API FRPRSectionsSelectionManager

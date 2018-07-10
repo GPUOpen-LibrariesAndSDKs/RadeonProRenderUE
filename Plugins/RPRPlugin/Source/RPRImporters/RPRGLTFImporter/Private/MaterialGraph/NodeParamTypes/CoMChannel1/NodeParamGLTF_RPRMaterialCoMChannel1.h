@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "Map/NodeParamGTLF_RPRMaterialMap.h"
-#include "RPRMaterialCoMChannel1.h"
+#include "MaterialGraph/NodeParamTypes/Map/NodeParamGTLF_RPRMaterialMap.h"
+#include "Material/UberMaterialParameters/RPRMaterialCoMChannel1.h"
 
 class FNodeParamGLTF_RPRMaterialCoMChannel1 : public FNodeParamGTLF_RPRMaterialMap
 {

@@ -16,9 +16,9 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "ParameterArgs.h"
-#include "UberMaterialPropertyHelper.h"
-#include "UberMaterialPropertyHelper.h"
+#include "Material/Tools/MaterialCacheMaker/ParameterArgs/ParameterArgs.h"
+#include "Material/Tools/UberMaterialPropertyHelper.h"
+#include "Material/Tools/UberMaterialPropertyHelper.h"
 
 namespace RPRX
 {

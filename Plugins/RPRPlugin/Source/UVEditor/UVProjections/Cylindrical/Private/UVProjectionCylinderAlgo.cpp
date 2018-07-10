@@ -18,8 +18,8 @@
 ********************************************************************/
 #include "UVProjectionCylinderAlgo.h"
 #include "UVUtility.h"
-#include "RPRVectorTools.h"
-#include "ScopedSlowTask.h"
+#include "Math/RPRVectorTools.h"
+#include "Misc/ScopedSlowTask.h"
 #include "TriPlanarMaterialEnabler.h"
 
 #define LOCTEXT_NAMESPACE "UVProjectionCylinderAlgo"

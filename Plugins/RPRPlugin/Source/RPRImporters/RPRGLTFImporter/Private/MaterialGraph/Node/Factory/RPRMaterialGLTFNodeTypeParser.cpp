@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "RPRMaterialGLTFNodeTypeParser.h"
+#include "MaterialGraph/Node/Factory/RPRMaterialGLTFNodeTypeParser.h"
 
 TMap<GLTF::ERPRNodeType, RPRMaterialGLTF::ERPRMaterialNodeType> FRPRMaterialGLTFNodeTypeParser::GLTFTypeEnumToUETypeEnumMap;
 

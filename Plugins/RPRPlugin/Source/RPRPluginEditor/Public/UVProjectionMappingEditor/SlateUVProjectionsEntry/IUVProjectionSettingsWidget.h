@@ -18,9 +18,9 @@
 ********************************************************************/
 #pragma once
 
-#include "SharedPointer.h"
-#include "SWidget.h"
-#include "RPRMeshDataContainer.h"
+#include "Templates/SharedPointer.h"
+#include "Widgets/SWidget.h"
+#include "RPRMeshData/RPRMeshDataContainer.h"
 
 DECLARE_DELEGATE(FOnProjectionApplied)
 

@@ -16,9 +16,9 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRVectorTools.h"
-#include "Matrix.h"
-#include "Quat.h"
+#include "Math/RPRVectorTools.h"
+#include "Math/Matrix.h"
+#include "Math/Quat.h"
 
 FVector FRPRVectorTools::ApplyMaxComponentOnAllComponents(const FVector& InVector)
 {

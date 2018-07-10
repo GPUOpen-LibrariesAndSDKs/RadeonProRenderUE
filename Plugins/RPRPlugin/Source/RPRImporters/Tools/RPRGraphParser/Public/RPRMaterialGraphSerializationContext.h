@@ -18,8 +18,8 @@
 ********************************************************************/
 #pragma once
 
-#include "UnrealString.h"
-#include "UnrealType.h"
+#include "Containers/UnrealString.h"
+#include "UObject/UnrealType.h"
 
 /*
 * Required datas for the serialization of a RPRMaterialGraph

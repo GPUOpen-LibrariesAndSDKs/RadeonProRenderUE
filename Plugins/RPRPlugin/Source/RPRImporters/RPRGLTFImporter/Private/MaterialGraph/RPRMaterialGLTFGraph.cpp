@@ -17,12 +17,12 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "RPRMaterialGLTFGraph.h"
+#include "MaterialGraph/RPRMaterialGLTFGraph.h"
 
-#include "RPRMaterialGLTFNodeFactory.h"
+#include "MaterialGraph/Node/Factory/RPRMaterialGLTFNodeFactory.h"
 #include "GLTF.h"
-#include "RPRMaterialGLTFNode.h"
-#include "RPRMaterialGLTFUberNode.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNode.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFUberNode.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRMaterialGLTFGraph, Log, All)
 

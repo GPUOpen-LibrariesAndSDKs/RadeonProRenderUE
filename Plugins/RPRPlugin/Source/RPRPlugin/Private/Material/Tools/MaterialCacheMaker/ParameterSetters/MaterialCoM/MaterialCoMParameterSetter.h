@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 
-#include "MaterialMapParameterSetter.h"
+#include "Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialMap/MaterialMapParameterSetter.h"
 
 namespace RPRX
 {

@@ -18,11 +18,11 @@
 ********************************************************************/
 #pragma once
 
-#include "SUVProjectionBase.h"
-#include "ShapePreviewBase.h"
-#include "TriPlanarSettings.h"
+#include "UVProjectionMappingEditor/SlateUVProjectionsEntry/SUVProjectionBase.h"
+#include "ShapePreviews/ShapePreviewBase.h"
+#include "Material/TriPlanarSettings.h"
 #include "IDetailsView.h"
-#include "NotifyHook.h"
+#include "Misc/NotifyHook.h"
 #include "IStructureDetailsView.h"
 
 /*

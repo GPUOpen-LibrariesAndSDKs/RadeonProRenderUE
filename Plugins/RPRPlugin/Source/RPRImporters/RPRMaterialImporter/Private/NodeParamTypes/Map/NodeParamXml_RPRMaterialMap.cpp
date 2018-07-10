@@ -16,8 +16,8 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "NodeParamXml_RPRMaterialMap.h"
-#include "RPRMaterialXmlInputTextureNode.h"
+#include "NodeParamTypes/Map/NodeParamXml_RPRMaterialMap.h"
+#include "Node/RPRMaterialXmlInputTextureNode.h"
 #include "RPRMaterialXmlGraph.h"
 
 void FNodeParamXml_RPRMaterialMap::LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext, FRPRMaterialXmlNodeParameterPtr CurrentNodeParameter, UProperty* Property)

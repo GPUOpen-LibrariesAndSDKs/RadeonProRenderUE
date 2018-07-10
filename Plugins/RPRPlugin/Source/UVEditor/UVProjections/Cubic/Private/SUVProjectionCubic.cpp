@@ -18,11 +18,11 @@
 ********************************************************************/
 #include "SUVProjectionCubic.h"
 #include "UVProjectionCubicAlgo.h"
-#include "RPRVectorTools.h"
+#include "Math/RPRVectorTools.h"
 #include "IDetailsViewHelper.h"
-#include "SBoxPanel.h"
-#include "SScrollBox.h"
-#include "SSpacer.h"
+#include "Widgets/SBoxPanel.h"
+#include "Widgets/Layout/SScrollBox.h"
+#include "Widgets/Layout/SSpacer.h"
 
 void SUVProjectionCubic::Construct(const FArguments& InArgs)
 {

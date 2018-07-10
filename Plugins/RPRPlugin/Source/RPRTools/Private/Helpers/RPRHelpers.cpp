@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "RPRHelpers.h"
+#include "Helpers/RPRHelpers.h"
 
 #include "Engine/Texture2D.h"
 #include "Engine/TextureCube.h"

@@ -16,7 +16,7 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRUberMaterialParameterBase.h"
+#include "Material/UberMaterialParameters/RPRUberMaterialParameterBase.h"
 
 FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase()
 	: RprxParamID(INDEX_NONE)

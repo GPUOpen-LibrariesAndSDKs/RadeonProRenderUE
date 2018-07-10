@@ -17,8 +17,8 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "SharedPointer.h"
-#include "RPRMaterialXmlNode.h"
+#include "Templates/SharedPointer.h"
+#include "Node/RPRMaterialXmlNode.h"
 
 class FRPRMaterialXmlNodeFactory
 {

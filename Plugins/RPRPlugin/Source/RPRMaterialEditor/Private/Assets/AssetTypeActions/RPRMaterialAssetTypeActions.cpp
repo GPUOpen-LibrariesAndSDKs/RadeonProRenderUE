@@ -16,10 +16,10 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMaterialAssetTypeActions.h"
-#include "RPRMaterial.h"
+#include "Assets/AssetTypeActions/RPRMaterialAssetTypeActions.h"
+#include "Assets/RPRMaterial.h"
 #include "ThumbnailRendering/SceneThumbnailInfoWithPrimitive.h"
-#include "RPRMaterialEditor.h"
+#include "RPRMaterialEditor/RPRMaterialEditor.h"
 
 #define LOCTEXT_NAMESPACE "RPRMaterialAssetTypeActions"
 

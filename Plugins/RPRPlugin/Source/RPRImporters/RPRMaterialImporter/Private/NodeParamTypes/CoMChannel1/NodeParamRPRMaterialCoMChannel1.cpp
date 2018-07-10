@@ -16,10 +16,10 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "NodeParamRPRMaterialCoMChannel1.h"
-#include "RPRMaterialXmlNodeParameter.h"
+#include "NodeParamTypes/CoMChannel1/NodeParamRPRMaterialCoMChannel1.h"
+#include "Node/RPRMaterialXmlNodeParameter.h"
 #include "RPRMaterialGraphSerializationContext.h"
-#include "UnrealType.h"
+#include "UObject/UnrealType.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogNodeParamRPRMaterialMapChannel1, Log, All)
 

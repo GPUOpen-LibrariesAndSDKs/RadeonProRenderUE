@@ -18,9 +18,9 @@
 ********************************************************************/
 #pragma once
 #include "IPropertyTypeCustomization.h"
-#include "SWidget.h"
-#include "Reply.h"
-#include "RPRMaterialParameterBasePropertyLayout.h"
+#include "Widgets/SWidget.h"
+#include "Input/Reply.h"
+#include "RPRMaterialEditor/PropertiesLayout/RPRMaterialParameterBasePropertyLayout.h"
 
 class FRPRMaterialMapPropertiesLayout : public FRPRMaterialParameterBasePropertyLayout
 {

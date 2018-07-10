@@ -16,4 +16,4 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "SObjectOutliner.h"
+#include "SObjectOutliner/SObjectOutliner.h"

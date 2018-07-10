@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 #include "CoreTypes.h"
-#include "Array.h"
+#include "Containers/Array.h"
 
 class FTrianglesSelectionFlags
 {

@@ -18,7 +18,7 @@
 ********************************************************************/
 #include "RPRRenderSystemResources.h"
 #include "RPRPlugin.h"
-#include "ContextHelper.h"
+#include "Helpers/ContextHelper.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRPRRenderSystemResources, Log, All)
 

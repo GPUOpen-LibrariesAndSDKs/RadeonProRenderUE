@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "NodeParamXmlBase.h"
+#include "NodeParamTypes/NodeParamXmlBase.h"
 
 class FNodeParamXml_RPRMaterialBool : public FNodeParamXmlBase
 {

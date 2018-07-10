@@ -16,14 +16,14 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "ParameterFactory.h"
-#include "UberMaterialPropertyHelper.h"
+#include "Material/Tools/MaterialCacheMaker/Factory/ParameterFactory.h"
+#include "Material/Tools/UberMaterialPropertyHelper.h"
 
-#include "MaterialCoMChannel1/MaterialCoMChannel1ParameterSetter.h"
-#include "MaterialCoMParameterSetter.h"
-#include "MaterialMapParameterSetter.h"
-#include "MaterialEnumParameterSetter.h"
-#include "MaterialBoolParameterSetter.h"
+#include "Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialCoMChannel1/MaterialCoMChannel1ParameterSetter.h"
+#include "Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialCoM/MaterialCoMParameterSetter.h"
+#include "Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialMap/MaterialMapParameterSetter.h"
+#include "Material/Tools/MaterialCacheMaker/ParameterSetters/Enum/MaterialEnumParameterSetter.h"
+#include "Material/Tools/MaterialCacheMaker/ParameterSetters/Bool/MaterialBoolParameterSetter.h"
 
 namespace RPRX
 {

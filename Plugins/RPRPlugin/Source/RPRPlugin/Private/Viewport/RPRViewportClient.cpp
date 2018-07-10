@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "RPRViewportClient.h"
+#include "Viewport/RPRViewportClient.h"
 
 #include "RPRPlugin.h"
 

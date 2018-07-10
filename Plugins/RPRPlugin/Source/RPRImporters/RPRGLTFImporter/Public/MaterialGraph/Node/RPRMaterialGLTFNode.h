@@ -20,12 +20,12 @@
 #pragma once
 
 #include "GLTFTypedefs.h"
-#include "AMD_RPR_material.h"
-#include "NameTypes.h"
+#include "gltf/Extensions/AMD_RPR_material.h"
+#include "UObject/NameTypes.h"
 #include "Containers/Array.h"
 #include "Templates/SharedPointer.h"
-#include "AMD_RPR_material.h"
-#include "RPRMaterialGLTFBaseNode.h"
+#include "gltf/Extensions/AMD_RPR_material.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFBaseNode.h"
 
 /*
 * Represents a material node in the glTF RPR material structure.

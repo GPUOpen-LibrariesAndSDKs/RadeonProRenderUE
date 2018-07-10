@@ -16,7 +16,7 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "UVViewportActions.h"
+#include "UVViewport/UVViewportActions.h"
 #include "EditorStyleSet.h"
 
 #define LOCTEXT_NAMESPACE "UVViewportActions"

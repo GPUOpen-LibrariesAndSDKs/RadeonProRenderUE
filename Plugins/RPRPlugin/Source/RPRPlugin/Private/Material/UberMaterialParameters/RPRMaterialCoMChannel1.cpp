@@ -16,8 +16,8 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMaterialCoMChannel1.h"
-#include "RPRConstAway.h"
+#include "Material/UberMaterialParameters/RPRMaterialCoMChannel1.h"
+#include "Helpers/RPRConstAway.h"
 
 FRPRMaterialCoMChannel1::FRPRMaterialCoMChannel1(
 	const FString& InXmlParamName, 

@@ -22,8 +22,8 @@
 #include "CoreMinimal.h"
 #include "Factories/IGLTFMaterialTranslationFactory.h"
 #include "GLTFTypedefs.h"
-#include "RPRMaterialCoM.h"
-#include "RPRMaterialCoMChannel1.h"
+#include "Material/UberMaterialParameters/RPRMaterialCoM.h"
+#include "Material/UberMaterialParameters/RPRMaterialCoMChannel1.h"
 #include "GLTFMaterialTranslationFactoryRPR.generated.h"
 
 //~ Forward declares

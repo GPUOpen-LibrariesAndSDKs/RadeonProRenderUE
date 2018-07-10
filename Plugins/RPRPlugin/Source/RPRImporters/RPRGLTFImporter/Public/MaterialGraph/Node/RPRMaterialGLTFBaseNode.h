@@ -17,9 +17,9 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "RPRMaterialNode.h"
-#include "AMD_RPR_material.h"
-#include "ITypedNode.h"
+#include "Nodes/RPRMaterialNode.h"
+#include "gltf/Extensions/AMD_RPR_material.h"
+#include "Nodes/ITypedNode.h"
 
 namespace RPRMaterialGLTF
 {

@@ -16,9 +16,9 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMatParamCopier_MaterialMap.h"
+#include "RPRMaterialEditor/RPRMaterialParamCopiers/RPRMatParamCopier_MaterialMap.h"
 #include "MaterialEditor/DEditorTextureParameterValue.h"
-#include "RPRUberMaterialToMaterialInstanceCopier.h"
+#include "RPRMaterialEditor/RPRUberMaterialToMaterialInstanceCopier.h"
 #include "MaterialEditor/DEditorStaticSwitchParameterValue.h"
 
 void FRPRMatParamCopier_MaterialMap::Apply(const FRPRUberMaterialParameters& RPRUberMaterialParameters, UStructProperty* Property, UMaterialEditorInstanceConstant* RPRMaterialEditorInstance)

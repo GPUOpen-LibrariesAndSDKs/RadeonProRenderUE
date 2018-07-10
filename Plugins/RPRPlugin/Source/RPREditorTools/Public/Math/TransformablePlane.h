@@ -18,8 +18,8 @@
 ********************************************************************/
 #pragma once
 
-#include "Plane.h"
-#include "Vector.h"
+#include "Math/Plane.h"
+#include "Math/Vector.h"
 
 class RPREDITORTOOLS_API FTransformablePlane
 {

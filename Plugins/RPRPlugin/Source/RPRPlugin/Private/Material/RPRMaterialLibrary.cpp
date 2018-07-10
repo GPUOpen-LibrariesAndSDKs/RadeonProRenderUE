@@ -16,14 +16,14 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMaterialLibrary.h"
-#include "LogMacros.h"
-#include "RPRHelpers.h"
-#include "RPRMaterialHelpers.h"
-#include "RPRXMaterialHelpers.h"
-#include "Tools/MaterialCacheMaker/MaterialCacheMaker.h"
-#include "ScopeLock.h"
-#include "RPRMaterial.h"
+#include "Material/RPRMaterialLibrary.h"
+#include "Logging/LogMacros.h"
+#include "Helpers/RPRHelpers.h"
+#include "Material/RPRMaterialHelpers.h"
+#include "Helpers/RPRXMaterialHelpers.h"
+#include "Material/Tools/MaterialCacheMaker/MaterialCacheMaker.h"
+#include "Misc/ScopeLock.h"
+#include "Assets/RPRMaterial.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRMaterialLibrary, Log, All)
 

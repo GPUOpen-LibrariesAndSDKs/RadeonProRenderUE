@@ -16,15 +16,15 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "UVViewportClient.h"
+#include "UVViewport/UVViewportClient.h"
 #include "AssetEditorModeManager.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "RawMesh.h"
 #include "UVUtility.h"
-#include "SUVViewport.h"
+#include "UVViewport/SUVViewport.h"
 #include "Engine/Selection.h"
-#include "UVViewportActions.h"
-#include "RPRConstAway.h"
+#include "UVViewport/UVViewportActions.h"
+#include "Helpers/RPRConstAway.h"
 #include "Engine/StaticMesh.h"
 #include "ActorFactories/ActorFactoryBasicShape.h"
 #include "Materials/Material.h"

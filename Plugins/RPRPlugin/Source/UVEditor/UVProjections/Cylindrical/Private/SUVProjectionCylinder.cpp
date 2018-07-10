@@ -19,9 +19,9 @@
 #include "SUVProjectionCylinder.h"
 #include "UVProjectionCylinderAlgo.h"
 #include "IDetailsViewHelper.h"
-#include "SScrollBox.h"
-#include "SBoxPanel.h"
-#include "SSpacer.h"
+#include "Widgets/Layout/SScrollBox.h"
+#include "Widgets/SBoxPanel.h"
+#include "Widgets/Layout/SSpacer.h"
 
 void SUVProjectionCylinder::Construct(const FArguments& InArgs)
 {

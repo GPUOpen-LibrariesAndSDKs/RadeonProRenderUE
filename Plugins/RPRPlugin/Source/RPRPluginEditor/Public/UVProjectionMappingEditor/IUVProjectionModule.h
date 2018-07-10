@@ -18,9 +18,9 @@
 ********************************************************************/
 #pragma once
 
-#include "SUVProjectionTypeEntry.h"
-#include "IUVProjectionSettingsWidget.h"
-#include "RPRStaticMeshEditor.h"
+#include "UVProjectionMappingEditor/SUVProjectionTypeEntry.h"
+#include "UVProjectionMappingEditor/SlateUVProjectionsEntry/IUVProjectionSettingsWidget.h"
+#include "RPRStaticMeshEditor/RPRStaticMeshEditor.h"
 
 class IUVProjectionModule
 {

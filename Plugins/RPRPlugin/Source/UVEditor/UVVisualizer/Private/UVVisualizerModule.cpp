@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 #include "UVVisualizerModule.h"
-#include "UVViewportActions.h"
+#include "UVViewport/UVViewportActions.h"
 
 void FUVVisualizerModule::StartupModule()
 {

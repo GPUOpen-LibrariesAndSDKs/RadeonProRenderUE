@@ -17,9 +17,9 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "RPRLightComponent.h"
-#include "RPRScene.h"
-#include "RPRHelpers.h"
+#include "Scene/RPRLightComponent.h"
+#include "Scene/RPRScene.h"
+#include "Helpers/RPRHelpers.h"
 
 #include "Engine/TextureLightProfile.h"
 #include "Engine/TextureCube.h"

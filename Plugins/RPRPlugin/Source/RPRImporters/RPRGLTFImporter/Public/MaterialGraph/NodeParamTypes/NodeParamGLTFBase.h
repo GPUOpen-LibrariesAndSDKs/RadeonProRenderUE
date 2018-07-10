@@ -18,7 +18,7 @@
 ********************************************************************/
 
 #pragma once
-#include "NodeParamType.h"
-#include "RPRMaterialGLTFNodeInput.h"
+#include "NodeParamTypes/NodeParamType.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNodeInput.h"
 
 class FNodeParamGLTFBase : public FNodeParamType<FRPRMaterialGLTFNodeInput> {};

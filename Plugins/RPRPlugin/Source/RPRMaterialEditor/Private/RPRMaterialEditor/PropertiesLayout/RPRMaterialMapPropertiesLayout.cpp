@@ -16,14 +16,14 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMaterialMapPropertiesLayout.h"
+#include "RPRMaterialEditor/PropertiesLayout/RPRMaterialMapPropertiesLayout.h"
 #include "DetailWidgetRow.h"
-#include "STextBlock.h"
-#include "SBoxPanel.h"
-#include "RPRMaterialMap.h"
-#include "SButton.h"
+#include "Widgets/Text/STextBlock.h"
+#include "Widgets/SBoxPanel.h"
+#include "Material/UberMaterialParameters/RPRMaterialMap.h"
+#include "Widgets/Input/SButton.h"
 #include "RPRImageManager.h"
-#include "RPRConstAway.h"
+#include "Helpers/RPRConstAway.h"
 
 #define LOCTEXT_NAMESPACE "RPRMaterialMapPropertiesLayout"
 

@@ -20,7 +20,7 @@
 #include "Delegates/Delegate.h"
 #include "Delegates/DelegateCombinations.h"
 #include "Engine/StaticMesh.h"
-#include "RPRMeshSection.h"
+#include "RPRMeshData/RPRMeshSection.h"
 #include "RawMesh.h"
 
 DECLARE_STATS_GROUP(TEXT("RPRMeshData"), STATGROUP_RPRMeshData, STATCAT_Advanced)

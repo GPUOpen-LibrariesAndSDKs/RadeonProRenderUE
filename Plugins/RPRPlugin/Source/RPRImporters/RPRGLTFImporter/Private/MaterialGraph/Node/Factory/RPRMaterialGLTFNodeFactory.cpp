@@ -17,13 +17,13 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "RPRMaterialGLTFNodeFactory.h"
+#include "MaterialGraph/Node/Factory/RPRMaterialGLTFNodeFactory.h"
 
-#include "RPRMaterialGLTFUberNode.h"
-#include "RPRMaterialGLTFNormalMapNode.h"
-#include "RPRMaterialGLTFImageTextureNode.h"
-#include "RPRMaterialGLTFNode.h"
-#include "RPRMaterialGLTFNodeTypeParser.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFUberNode.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNormalMapNode.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFImageTextureNode.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNode.h"
+#include "MaterialGraph/Node/Factory/RPRMaterialGLTFNodeTypeParser.h"
 
 #include "RPRGLTFImporterModule.h"
 

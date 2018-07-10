@@ -17,8 +17,8 @@
 * THE SOFTWARE.
 ********************************************************************/
 #include "UVProjection_TriPlanarModule.h"
-#include "SUVProjectionTypeEntry.h"
-#include "UVProjectionFactory.h"
+#include "UVProjectionMappingEditor/SUVProjectionTypeEntry.h"
+#include "UVProjectionMappingEditor/SlateUVProjectionsEntry/UVProjectionFactory.h"
 #include "SUVProjectionTriPlanar.h"
 #include "EditorStyleSet.h"
 

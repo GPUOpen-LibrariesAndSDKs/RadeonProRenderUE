@@ -17,14 +17,14 @@
 * THE SOFTWARE.
 ********************************************************************/
 #include "SSceneComponentsOutliner.h"
-#include "SObjectOutliner.h"
+#include "SObjectOutliner/SObjectOutliner.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
-#include "SBoxPanel.h"
-#include "SBorder.h"
-#include "STextBlock.h"
-#include "SButton.h"
-#include "RPRMeshData.h"
+#include "Widgets/SBoxPanel.h"
+#include "Widgets/Layout/SBorder.h"
+#include "Widgets/Text/STextBlock.h"
+#include "Widgets/Input/SButton.h"
+#include "RPRMeshData/RPRMeshData.h"
 #include "RPRStaticMeshPreviewComponent.h"
 
 #define LOCTEXT_NAMESPACE "SSceneComponentsOutliner"

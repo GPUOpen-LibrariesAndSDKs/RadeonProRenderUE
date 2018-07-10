@@ -18,10 +18,10 @@
 ********************************************************************/
 #pragma once
 
-#include "NameTypes.h"
-#include "Array.h"
-#include "RPRMaterialXmlNode.h"
-#include "RPRMaterialXmlUberNode.h"
+#include "UObject/NameTypes.h"
+#include "Containers/Array.h"
+#include "Node/RPRMaterialXmlNode.h"
+#include "Node/RPRMaterialXmlUberNode.h"
 #include "RPRMaterialGraph.h"
 
 /*

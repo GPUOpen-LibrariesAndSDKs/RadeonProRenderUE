@@ -16,11 +16,11 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMaterialXmlNodeFactory.h"
-#include "RPRMaterialXmlInputTextureNode.h"
-#include "RPRMaterialXmlUberNode.h"
-#include "RPRMaterialXmlNodeTypeParser.h"
-#include "RPRMaterialXmlNode.h"
+#include "Node/Factory/RPRMaterialXmlNodeFactory.h"
+#include "Node/RPRMaterialXmlInputTextureNode.h"
+#include "Node/RPRMaterialXmlUberNode.h"
+#include "Node/Factory/RPRMaterialXmlNodeTypeParser.h"
+#include "Node/RPRMaterialXmlNode.h"
 
 #define NODE_ATTRIBUTE_TYPE	TEXT("type")
 

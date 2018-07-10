@@ -16,7 +16,7 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMaterialEnum.h"
+#include "Material/UberMaterialParameters/RPRMaterialEnum.h"
 
 FRPRMaterialEnum::FRPRMaterialEnum(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode)
 	: FRPRUberMaterialParameterBase(InXmlParamName, InRprxParamID, InPreviewSupportMode)

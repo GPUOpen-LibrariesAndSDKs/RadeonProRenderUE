@@ -17,12 +17,12 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "RPRMaterialGLTFNode.h"
-#include "RPRMaterialGLTFNodeInput.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNode.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNodeInput.h"
 
 #include "GLTF.h"
-#include "Tools/UberMaterialPropertyHelper.h"
-#include "Helpers/GLTFNodeHelper.h"
+#include "Material/Tools/UberMaterialPropertyHelper.h"
+#include "MaterialGraph/Helpers/GLTFNodeHelper.h"
 #include "GLTFTypedefs.h"
 
 bool FRPRMaterialGLTFNode::Parse(const GLTF::FRPRNode& InNode, int32 NodeIndex)

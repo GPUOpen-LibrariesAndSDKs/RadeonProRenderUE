@@ -16,11 +16,11 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "NodeParamXml_RPRMaterialEnum.h"
-#include "UnrealType.h"
-#include "RPRMaterialXmlNodeParameter.h"
+#include "NodeParamTypes/Enum/NodeParamXml_RPRMaterialEnum.h"
+#include "UObject/UnrealType.h"
+#include "Node/RPRMaterialXmlNodeParameter.h"
 #include "RPRMaterialGraphSerializationContext.h"
-#include "RPRMaterialEnum.h"
+#include "Material/UberMaterialParameters/RPRMaterialEnum.h"
 
 void FNodeParamXml_RPRMaterialEnum::LoadRPRMaterialParameters(FRPRMaterialGraphSerializationContext& SerializationContext, 
 															FRPRMaterialXmlNodeParameterPtr CurrentNodeParameter,

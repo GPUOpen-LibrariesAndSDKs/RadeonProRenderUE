@@ -18,10 +18,10 @@
 ********************************************************************/
 #pragma once
 
-#include "SCompoundWidget.h"
-#include "DeclarativeSyntaxSupport.h"
-#include "UVProjectionAlgorithmBase.h"
-#include "UVProjectionSettings.h"
+#include "Widgets/SCompoundWidget.h"
+#include "Widgets/DeclarativeSyntaxSupport.h"
+#include "UVProjectionMappingEditor/Algorithms/UVProjectionAlgorithmBase.h"
+#include "UVProjectionMappingEditor/ProjectionSettings/UVProjectionSettings.h"
 
 class SGlobalUVProjectionSettings : public SCompoundWidget
 {

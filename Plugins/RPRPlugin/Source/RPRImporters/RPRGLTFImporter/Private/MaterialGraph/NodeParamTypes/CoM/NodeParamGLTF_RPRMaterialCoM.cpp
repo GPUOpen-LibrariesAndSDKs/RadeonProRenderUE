@@ -17,14 +17,14 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "UnrealType.h"
-#include "RPRUberMaterialParameters.h"
-#include "RPRMaterialGLTFNodeInput.h"
-#include "RPRMaterialGLTFNode.h"
-#include "RPRMaterialGLTFGraph.h"
-#include "RPRMaterialGLTFImageTextureNode.h"
-#include "RPRMaterialCoM.h"
-#include "NodeParamGTLF_RPRMaterialCoM.h"
+#include "UObject/UnrealType.h"
+#include "Material/RPRUberMaterialParameters.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNodeInput.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNode.h"
+#include "MaterialGraph/RPRMaterialGLTFGraph.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFImageTextureNode.h"
+#include "Material/UberMaterialParameters/RPRMaterialCoM.h"
+#include "MaterialGraph/NodeParamTypes/CoM/NodeParamGTLF_RPRMaterialCoM.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogNodeParamRPRMaterialCoM, Log, All)
 

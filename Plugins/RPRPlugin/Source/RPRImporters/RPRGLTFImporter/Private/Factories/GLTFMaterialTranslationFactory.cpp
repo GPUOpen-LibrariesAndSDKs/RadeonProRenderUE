@@ -25,7 +25,7 @@
 #include "MaterialGraph/MaterialGraphSchema.h"
 
 #include "AssetRegistryModule.h"
-#include "BlueprintEditorUtils.h"
+#include "Kismet2/BlueprintEditorUtils.h"
 #include "ComponentReregisterContext.h"
 #include "PackageTools.h"
 #include "Kismet2/KismetEditorUtilities.h"

@@ -17,16 +17,16 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "RPRMaterialGLTFNodeInput.h"
+#include "MaterialGraph/Node/RPRMaterialGLTFNodeInput.h"
 
 #include "GLTF.h"
-#include "INodeParamType.h"
-#include "RPRUberMaterialParameters.h"
-#include "UberMaterialPropertyHelper.h"
+#include "NodeParamTypes/INodeParamType.h"
+#include "Material/RPRUberMaterialParameters.h"
+#include "Material/Tools/UberMaterialPropertyHelper.h"
 
 #include "RPRGLTFImporterModule.h"
-#include "Helpers/GLTFNodeHelper.h"
-#include "Factory/NodeParamTypeGLTFFactory.h"
+#include "MaterialGraph/Helpers/GLTFNodeHelper.h"
+#include "MaterialGraph/NodeParamTypes/Factory/NodeParamTypeGLTFFactory.h"
 
 TMap<GLTF::ERPRInputValueType, ERPRMaterialGLTFNodeInputValueType> FRPRMaterialGLTFNodeInput::GLTFTypeEnumToUETypeEnumMap;
 

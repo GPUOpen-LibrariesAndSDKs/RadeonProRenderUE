@@ -18,14 +18,14 @@
 ********************************************************************/
 #pragma once
 
-#include "AssetEditorToolkit.h"
+#include "Toolkits/AssetEditorToolkit.h"
 #include "Editor.h"
-#include "GCObject.h"
-#include "SharedPointer.h"
-#include "RPRStaticMeshEditorSelection.h"
+#include "UObject/GCObject.h"
+#include "Templates/SharedPointer.h"
+#include "RPRStaticMeshEditor/RPRStaticMeshEditorSelection.h"
 #include "Engine/StaticMesh.h"
-#include "RPRMeshDataContainer.h"
-#include "RPRStaticMeshEditorModesCommands.h"
+#include "RPRMeshData/RPRMeshDataContainer.h"
+#include "RPRStaticMeshEditor/Modes/RPRStaticMeshEditorModesCommands.h"
 
 extern const FName RPRStaticMeshEditorAppIdentifier;
 

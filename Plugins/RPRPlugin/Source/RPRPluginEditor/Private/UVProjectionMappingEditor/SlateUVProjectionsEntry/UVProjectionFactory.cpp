@@ -16,8 +16,8 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "UVProjectionFactory.h"
-#include "IUVProjectionModule.h"
+#include "UVProjectionMappingEditor/SlateUVProjectionsEntry/UVProjectionFactory.h"
+#include "UVProjectionMappingEditor/IUVProjectionModule.h"
 
 TArray<IUVProjectionModule*> FUVProjectionFactory::UVProjectionModules;
 

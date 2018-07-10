@@ -24,15 +24,15 @@
 #include "MaterialGraph/MaterialGraphSchema.h"
 
 #include "AssetRegistryModule.h"
-#include "BlueprintEditorUtils.h"
+#include "Kismet2/BlueprintEditorUtils.h"
 #include "ComponentReregisterContext.h"
 #include "PackageTools.h"
 #include "Misc/Paths.h"
 
 #include "GLTF.h"
 
-#include "RPRMaterialGLTFGraph.h"
-#include "RPRUberMaterialParameters.h"
+#include "MaterialGraph/RPRMaterialGLTFGraph.h"
+#include "Material/RPRUberMaterialParameters.h"
 
 #include "RPRGLTFMaterialExpressionsHelper.h"
 

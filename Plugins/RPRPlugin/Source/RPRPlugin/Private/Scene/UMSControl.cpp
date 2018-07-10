@@ -16,8 +16,8 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "UMSControl.h"
-#include "tinyxml2.h"
+#include "Scene/UMSControl.h"
+#include "Scene/tinyxml2.h"
 #include <fstream>
 #include <experimental/filesystem>
 #include <CoreMinimal.h>
