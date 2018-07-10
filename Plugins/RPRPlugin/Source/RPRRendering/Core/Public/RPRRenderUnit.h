@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "SharedPointer.h"
+#include "Templates/SharedPointer.h"
 
 // Represents a system that can be plugged into the RenderSystem
 // to manage what will be rendered in the RPR viewport

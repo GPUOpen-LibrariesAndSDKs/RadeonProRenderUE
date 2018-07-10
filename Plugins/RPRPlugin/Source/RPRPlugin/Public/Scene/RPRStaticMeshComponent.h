@@ -19,17 +19,17 @@
 
 #pragma once
 
-#include "RPRTypedefs.h"
+#include "Typedefs/RPRTypedefs.h"
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
 #include "Scene/RPRSceneComponent.h"
 #include "RprSupport.h"
 #include <RadeonProRenderInterchange.h>
-#include "RPRShape.h"
-#include "RPRMaterial.h"
-#include "Queue.h"
-#include "Tuple.h"
-#include "RPRXTypedefs.h"
+#include "Scene/StaticMeshComponent/RPRShape.h"
+#include "Assets/RPRMaterial.h"
+#include "Containers/Queue.h"
+#include "Templates/Tuple.h"
+#include "Typedefs/RPRXTypedefs.h"
 #include "RPRStaticMeshComponent.generated.h"
 
 enum

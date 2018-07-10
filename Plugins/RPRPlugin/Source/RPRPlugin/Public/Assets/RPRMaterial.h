@@ -19,8 +19,8 @@
 #pragma once
 
 #include "Materials/MaterialInstanceConstant.h"
-#include "RPRUberMaterialParameters.h"
-#include "TriPlanarSettings.h"
+#include "Material/RPRUberMaterialParameters.h"
+#include "Material/TriPlanarSettings.h"
 #include "RPRMaterial.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FRPRMaterialChanged, class URPRMaterial*)

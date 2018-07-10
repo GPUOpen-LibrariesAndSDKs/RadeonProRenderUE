@@ -16,7 +16,7 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "FaceAssignationHelper.h"
+#include "FaceAssignationHelper/FaceAssignationHelper.h"
 
 void FFaceAssignInfo::CopyFromRawMesh(const FRawMesh& RawMesh, int32 TriangleStartIndex)
 {

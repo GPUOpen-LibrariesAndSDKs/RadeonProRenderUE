@@ -17,13 +17,14 @@
 * THE SOFTWARE.
 ********************************************************************/
 #include "SUVVisualizerEditor.h"
-#include "SBox.h"
-#include "SBoxPanel.h"
-#include "SComboBox.h"
+#include "Widgets/Layout/SBox.h"
+#include "Widgets/SBoxPanel.h"
+#include "Widgets/Input/SComboBox.h"
 #include "Engine/StaticMesh.h"
 #include "PropertyEditorModule.h"
-#include "SScrollBox.h"
+#include "Widgets/Layout/SScrollBox.h"
 #include "UVVisualizerEditorSettingsCustomLayout.h"
+#include "Modules/ModuleManager.h"
 
 #define LOCTEXT_NAMESPACE "SUVVisualizerEditor"
 

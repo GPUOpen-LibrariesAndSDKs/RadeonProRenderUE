@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 
-#include "RPRUberMaterialParameterBase.h"
+#include "Material/UberMaterialParameters/RPRUberMaterialParameterBase.h"
 #include "RPRMaterialBool.generated.h"
 
 /*

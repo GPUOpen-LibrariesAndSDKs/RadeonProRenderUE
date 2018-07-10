@@ -39,21 +39,21 @@ public class RPR_GLTF : ModuleRules
     public RPR_GLTF(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+        bEnableExceptions = true;
+
         DefineIncludesAndDependencies(Target);
         DefineIncludesAndDependenciesForThirdParty(Target);
     }
 
     void DefineIncludesAndDependencies(ReadOnlyTargetRules Target)
     {
-        PublicIncludePaths.AddRange(
+        PrivateIncludePaths.AddRange(
             new string[] {
                 "GLTF/Public",
                 "GLTF/Public/gltf",
                 "GLTF/Public/gltf/Extensions",
-				// ... add public include paths required here ...
-			}
+            }
             );
-
 
         PrivateIncludePaths.AddRange(
             new string[] {

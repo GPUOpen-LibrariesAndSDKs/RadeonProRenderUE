@@ -33,11 +33,11 @@ public class RPRPlugin : ModuleRules
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
         bEnableExceptions = true;
 
-        PublicIncludePaths.AddRange(
+        PrivateIncludePaths.AddRange(
 			new string[] {
 				"RPRPlugin/Public",
-                "RPRPlugin/Public/SDK",
                 "RPRPlugin/Public/Enums",
+                "RPRPlugin/Public/Assets",
 
                 "RPRPlugin/Public/Material",
                 "RPRPlugin/Public/Material/Tools",
@@ -79,7 +79,7 @@ public class RPRPlugin : ModuleRules
 			}
 			);
 
-		PrivateDependencyModuleNames.AddRange(
+        PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"CoreUObject",
@@ -93,7 +93,15 @@ public class RPRPlugin : ModuleRules
 				// ... add private dependencies that you statically link with here ...	
 			});
 
-		if (Target.bBuildEditor == true)
+        PublicIncludePathModuleNames.AddRange(
+            new string[]
+            {
+                "Core"
+            }
+            );
+
+
+        if (Target.bBuildEditor == true)
 		{
 			//Definitions.Add("MY_WITH_EDITOR=1");
 			PrivateDependencyModuleNames.AddRange(

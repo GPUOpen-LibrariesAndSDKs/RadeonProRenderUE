@@ -16,7 +16,7 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMatParamCopier_MaterialCoM.h"
+#include "RPRMaterialEditor/RPRMaterialParamCopiers/RPRMatParamCopier_MaterialCoM.h"
 #include "MaterialEditor/DEditorVectorParameterValue.h"
 
 void FRPRMatParamCopier_MaterialCoM::Apply(const FRPRUberMaterialParameters& RPRUberMaterialParameters, UStructProperty* Property, UMaterialEditorInstanceConstant* RPRMaterialEditorInstance)

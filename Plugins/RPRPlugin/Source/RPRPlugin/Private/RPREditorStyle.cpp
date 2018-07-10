@@ -21,8 +21,8 @@
 
 #include "RPREditorStyle.h"
 
-#include "SlateStyle.h"
-#include "EditorStyle.h"
+#include "Styling/SlateStyle.h"
+#include "Interfaces/IEditorStyleModule.h"
 
 #define IMAGE_BRUSH( RelativePath, ... ) FSlateImageBrush( style.RootToContentDir(RelativePath, TEXT(".png")), __VA_ARGS__ )
 

@@ -18,9 +18,9 @@
 ********************************************************************/
 #pragma once
 
-#include "SUVProjectionBase.h"
+#include "UVProjectionMappingEditor/SlateUVProjectionsEntry/SUVProjectionBase.h"
 #include "ShapePreviewCylinder.h"
-#include "ShapePreviewable.h"
+#include "ShapePreviews/ShapePreviewable.h"
 
 class SUVProjectionCylinder : public SUVProjectionBase, public FShapePreviewable<UShapePreviewCylinder>
 {

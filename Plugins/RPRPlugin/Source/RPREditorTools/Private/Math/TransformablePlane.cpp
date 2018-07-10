@@ -16,9 +16,9 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "TransformablePlane.h"
+#include "Math/TransformablePlane.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Rotator.h"
+#include "Math/Rotator.h"
 
 FTransformablePlane::FTransformablePlane(const FPlane& InPlane, const FVector& InOrigin, const FVector& InPlaneUp)
 	: Plane(InPlane)

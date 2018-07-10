@@ -19,15 +19,15 @@
 #pragma once
 #include "EdMode.h"
 #include "RPRStaticMeshPreviewComponent.h"
-#include "SharedPointer.h"
-#include "Map.h"
+#include "Templates/SharedPointer.h"
+#include "Containers/Map.h"
 #include "EditorViewportClient.h"
 #include "SceneView.h"
 #include "IMeshPaintGeometryAdapter.h"
 #include "DynamicSelectionMeshVisualizer.h"
-#include "RPRMeshDataContainer.h"
+#include "RPRMeshData/RPRMeshDataContainer.h"
 #include "TrianglesDifferenceIdentifier.h"
-#include "SNotificationList.h"
+#include "Widgets/Notifications/SNotificationList.h"
 #include "TrianglesSelectionFlags.h"
 
 #define SELECTED_INDICES_ALLOCATOR_SIZE 512

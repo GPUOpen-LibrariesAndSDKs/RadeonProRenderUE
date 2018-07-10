@@ -18,8 +18,8 @@
 ********************************************************************/
 #pragma once
 
-#include "SUVProjectionBase.h"
-#include "ShapePreviewable.h"
+#include "UVProjectionMappingEditor/SlateUVProjectionsEntry/SUVProjectionBase.h"
+#include "ShapePreviews/ShapePreviewable.h"
 #include "ShapePreviewCube.h"
 
 /*

@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "IObjectScopedLockable.h"
+#include "Helpers/IObjectScopedLockable.h"
 
 template<typename ObjectType>
 class FObjectScopedLocked

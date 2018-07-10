@@ -20,4 +20,23 @@
 
 #include "RPRCpMaterialEditor.h"
 
+#if ENGINE_MINOR_VERSION == 18
+
+FName FRPRCpMaterialEditor::GetMaterialExpressionInputName(UMaterialExpression* MaterialExpression, int32 InputIndex)
+{
+    return (*MaterialExpression->GetInputName(InputIndex));
+}
+
+
+#elif ENGINE_MINOR_VERSION >= 19
+
+
+FName FRPRCpMaterialEditor::GetMaterialExpressionInputName(UMaterialExpression* MaterialExpression, int32 InputIndex)
+{
+    return (MaterialExpression->GetInputName(InputIndex));
+}
+
+
+#endif // ENGINE_MINOR_VERSIOn
+
 #endif // WITH_EDITOR

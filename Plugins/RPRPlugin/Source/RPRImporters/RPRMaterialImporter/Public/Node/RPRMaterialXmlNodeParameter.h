@@ -19,10 +19,10 @@
 #pragma once
 
 #include "Enums/RPRMaterialNodeParameterValueType.h"
-#include "NameTypes.h"
+#include "UObject/NameTypes.h"
 #include "Containers/Map.h"
-#include "UnrealString.h"
-#include "RPRMaterialXmlBaseNode.h"
+#include "Containers/UnrealString.h"
+#include "Node/RPRMaterialXmlBaseNode.h"
 
 /*
  * Represents a parameter node in the RPR Material xml file.

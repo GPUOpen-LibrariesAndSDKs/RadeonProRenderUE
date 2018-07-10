@@ -18,7 +18,7 @@
 ********************************************************************/
 #include "RPR_GLTF_Tools.h"
 #include "ProRenderGLTF.h"
-#include "Array.h"
+#include "Containers/Array.h"
 
 RPR::FResult FRPR_GLTF_Tools::ImportFromGLFT(
 	const FString& Filename, 

@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "glTF/gltf2.h"
-#include "glTF/Extensions/AMD_RPR_material.h"
+#include "gltf/gltf2.h"
+#include "gltf/Extensions/AMD_RPR_material.h"
 #include "Templates/SharedPointer.h"
 
 namespace GLTF

@@ -16,9 +16,9 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "SGlobalUVProjectionSettings.h"
-#include "SScrollBox.h"
-#include "SUVChannelAvailable.h"
+#include "UVProjectionMappingEditor/ProjectionSettings/SGlobalUVProjectionSettings.h"
+#include "Widgets/Layout/SScrollBox.h"
+#include "UVProjectionMappingEditor/ProjectionSettings/SUVChannelAvailable.h"
 #include "StaticMeshHelper.h"
 
 void SGlobalUVProjectionSettings::Construct(const FArguments& InArgs)

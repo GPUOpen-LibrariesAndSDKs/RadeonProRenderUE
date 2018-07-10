@@ -24,9 +24,9 @@
 #include "Materials/Material.h"
 #include "RPRSectionsManagerModeSettings.h"
 #include "RPRSelectionManager.h"
-#include "RPRConstAway.h"
-#include "NotificationManager.h"
-#include "Compatibility/Public/RPRCpStaticMesh.h"
+#include "Helpers/RPRConstAway.h"
+#include "Framework/Notifications/NotificationManager.h"
+#include "RPRCpStaticMesh.h"
 
 #define LOCTEXT_NAMESPACE "RPRSectionsManagerMode"
 

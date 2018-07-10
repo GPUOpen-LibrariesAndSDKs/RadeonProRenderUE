@@ -18,8 +18,8 @@
 ********************************************************************/
 #pragma once
 
-#include "RPRMaterialXmlNode.h"
-#include "SharedPointer.h"
+#include "Node/RPRMaterialXmlNode.h"
+#include "Templates/SharedPointer.h"
 
 class RPRMATERIALIMPORTER_API FRPRMaterialXmlUberNode : public FRPRMaterialXmlNode
 {

@@ -19,10 +19,10 @@
 #pragma once
 
 #include "SEditorViewport.h"
-#include "GCObject.h"
+#include "UObject/GCObject.h"
 #include "SCommonEditorViewportToolbarBase.h"
-#include "RPRStaticMeshEditor.h"
-#include "RPRStaticMeshEditorViewportClient.h"
+#include "RPRStaticMeshEditor/RPRStaticMeshEditor.h"
+#include "RPRStaticMeshEditor/RPRStaticMeshEditorViewportClient.h"
 #include "AdvancedPreviewScene.h"
 #include "Components/StaticMeshComponent.h"
 

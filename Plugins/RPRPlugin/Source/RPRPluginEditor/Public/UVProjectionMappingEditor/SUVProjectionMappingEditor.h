@@ -18,13 +18,13 @@
 ********************************************************************/
 #pragma once
 
-#include "DeclarativeSyntaxSupport.h"
-#include "SCompoundWidget.h"
-#include "STableRow.h"
-#include "SDockTab.h"
+#include "Widgets/DeclarativeSyntaxSupport.h"
+#include "Widgets/SCompoundWidget.h"
+#include "Widgets/Views/STableRow.h"
+#include "Widgets/Docking/SDockTab.h"
 #include "UVProjectionMappingEditor/SUVProjectionTypeEntry.h"
-#include "GCObject.h"
-#include "NotifyHook.h"
+#include "UObject/GCObject.h"
+#include "Misc/NotifyHook.h"
 #include "IDetailsView.h"
 
 DECLARE_DELEGATE(FOnProjectionApplied);

@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 #include "IPropertyTypeCustomization.h"
-#include "RPRMaterialCoMBasePropertiesLayout.h"
+#include "RPRMaterialEditor/PropertiesLayout/RPRMaterialCoMBasePropertiesLayout.h"
 
 class FRPRMaterialCoMChannel1PropertiesLayout : public FRPRMaterialCoMBasePropertiesLayout
 {

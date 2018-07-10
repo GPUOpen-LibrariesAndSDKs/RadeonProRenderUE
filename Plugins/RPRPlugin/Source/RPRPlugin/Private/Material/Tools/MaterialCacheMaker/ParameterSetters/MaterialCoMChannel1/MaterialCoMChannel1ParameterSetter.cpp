@@ -16,9 +16,9 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "MaterialCoMChannel1ParameterSetter.h"
-#include "RPRMaterialCoMChannel1.h"
-#include "RPRXMaterialHelpers.h"
+#include "Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialCoMChannel1/MaterialCoMChannel1ParameterSetter.h"
+#include "Material/UberMaterialParameters/RPRMaterialCoMChannel1.h"
+#include "Helpers/RPRXMaterialHelpers.h"
 
 namespace RPRX
 {

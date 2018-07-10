@@ -55,14 +55,10 @@ public class RPR_SDK : ModuleRules
     public RPR_SDK(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-
-		PublicIncludePaths.AddRange(
-			new string[] {
-                "SDK/Public",
-            });
-        
+       
      	PrivateIncludePaths.AddRange(
 			new string[] {
+                "SDK/Public",
                 "SDK/Private",
             });
 
@@ -111,7 +107,6 @@ public class RPR_SDK : ModuleRules
     public void AddRPRIncludes(List<string> IncludePaths)
     {
         IncludePaths.AddRange(new string[] {
-            ModuleDirectory + "/" + SDKDirectory + "RprTools",
             ModuleDirectory + "/" + SDKDirectory + "RadeonProRender",
             ModuleDirectory + "/" + SDKDirectory + "RadeonProRender/inc",
             ModuleDirectory + "/" + SDKDirectory + "RadeonProRenderInterchange/include",

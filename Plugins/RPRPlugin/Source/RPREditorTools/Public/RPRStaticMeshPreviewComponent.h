@@ -19,7 +19,7 @@
 #pragma once
 
 #include "Components/StaticMeshComponent.h"
-#include "TransformCalculus2D.h"
+#include "Math/TransformCalculus2D.h"
 #include "RPRStaticMeshPreviewComponent.generated.h"
 
 DECLARE_STATS_GROUP(TEXT("RPR Static Mesh Preview Component"), STATGROUP_RPRStaticMeshPreviewComponent, STATCAT_Advanced)

@@ -18,12 +18,12 @@
 ********************************************************************/
 #include "SUVProjectionPlanar.h"
 #include "UVProjectionPlanarAlgo.h"
-#include "SBoxPanel.h"
-#include "SButton.h"
+#include "Widgets/SBoxPanel.h"
+#include "Widgets/Input/SButton.h"
 #include "PropertyEditorModule.h"
-#include "SScrollBox.h"
+#include "Widgets/Layout/SScrollBox.h"
 #include "IDetailsViewHelper.h"
-#include "SSpacer.h"
+#include "Widgets/Layout/SSpacer.h"
 
 #define LOCTEXT_NAMESPACE "SUVProjectionPlanar"
 

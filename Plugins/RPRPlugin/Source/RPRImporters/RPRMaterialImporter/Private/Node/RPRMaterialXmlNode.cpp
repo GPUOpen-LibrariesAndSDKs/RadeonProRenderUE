@@ -16,14 +16,14 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMaterialXmlNode.h"
-#include "RPRUberMaterialParameters.h"
-#include "RPRMaterialXmlNodeParameter.h"
+#include "Node/RPRMaterialXmlNode.h"
+#include "Material/RPRUberMaterialParameters.h"
+#include "Node/RPRMaterialXmlNodeParameter.h"
 #include "RPREditorMaterialConstants.h"
 #include "AssetToolsModule.h"
 #include "RPRSettings.h"
 #include "XmlNode.h"
-#include "UberMaterialPropertyHelper.h"
+#include "Material/Tools/UberMaterialPropertyHelper.h"
 
 #define NODE_ATTRIBUTE_NAME TEXT("name")
 #define NODE_ATTRIBUTE_TAG	TEXT("tag")

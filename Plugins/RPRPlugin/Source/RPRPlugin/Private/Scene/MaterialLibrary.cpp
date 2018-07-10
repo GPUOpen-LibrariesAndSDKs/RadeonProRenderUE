@@ -16,8 +16,8 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "MaterialLibrary.h"
-#include "tinyxml2.h"
+#include "Scene/MaterialLibrary.h"
+#include "Scene/tinyxml2.h"
 #include <fstream>
 #include <experimental/filesystem>
 #include <CoreMinimal.h>

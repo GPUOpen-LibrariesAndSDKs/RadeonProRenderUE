@@ -16,17 +16,17 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRUberMaterialToMaterialInstanceCopier.h"
-#include "RPRUberMaterialParameters.h"
-#include "Map.h"
-#include "IRPRMatParamCopier.h"
-#include "RPRMatParamCopier_MaterialCoM.h"
-#include "RPRMatParamCopier_MaterialCoMChannel1.h"
-#include "RPRMaterialBool.h"
-#include "RPRMaterialEnum.h"
-#include "RPRMatParamCopier_Enum.h"
-#include "RPRMatParamCopier_Bool.h"
-#include "RPRMaterialCoMChannel1.h"
+#include "RPRMaterialEditor/RPRUberMaterialToMaterialInstanceCopier.h"
+#include "Material/RPRUberMaterialParameters.h"
+#include "Containers/Map.h"
+#include "RPRMaterialEditor/RPRMaterialParamCopiers/IRPRMatParamCopier.h"
+#include "RPRMaterialEditor/RPRMaterialParamCopiers/RPRMatParamCopier_MaterialCoM.h"
+#include "RPRMaterialEditor/RPRMaterialParamCopiers/RPRMatParamCopier_MaterialCoMChannel1.h"
+#include "Material/UberMaterialParameters/RPRMaterialBool.h"
+#include "Material/UberMaterialParameters/RPRMaterialEnum.h"
+#include "RPRMaterialEditor/RPRMaterialParamCopiers/RPRMatParamCopier_Enum.h"
+#include "RPRMaterialEditor/RPRMaterialParamCopiers/RPRMatParamCopier_Bool.h"
+#include "Material/UberMaterialParameters/RPRMaterialCoMChannel1.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRUberMaterialToMaterialInstanceCopier, Log, All)
 

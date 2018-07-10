@@ -16,10 +16,10 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMaterialEnumPropertiesLayout.h"
+#include "RPRMaterialEditor/PropertiesLayout/RPRMaterialEnumPropertiesLayout.h"
 #include "DetailWidgetRow.h"
-#include "SComboBox.h"
-#include "RPRMaterialEnum.h"
+#include "Widgets/Input/SComboBox.h"
+#include "Material/UberMaterialParameters/RPRMaterialEnum.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRMaterialEnumPropertiesLayout, Log, All)
 

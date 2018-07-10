@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "Commands.h"
+#include "Framework/Commands/Commands.h"
 
 class FUVViewportCommands : public TCommands<FUVViewportCommands>
 {

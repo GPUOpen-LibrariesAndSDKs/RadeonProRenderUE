@@ -16,7 +16,7 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRXHelpers.h"
+#include "Helpers/RPRXHelpers.h"
 #include "RprSupport.h"
 
 namespace RPRX

@@ -18,10 +18,11 @@
 ********************************************************************/
 #include "UVProjectionCubicAlgo.h"
 #include "RPRPluginEditorModule.h"
-#include "RPRStaticMeshEditor.h"
+#include "RPRStaticMeshEditor/RPRStaticMeshEditor.h"
 #include "UVUtility.h"
-#include "RPRVectorTools.h"
+#include "Math/RPRVectorTools.h"
 #include "TriPlanarMaterialEnabler.h"
+#include "Misc/ScopedSlowTask.h"
 
 #define LOCTEXT_NAMESPACE "UVProjectionCubicAlgo"
 

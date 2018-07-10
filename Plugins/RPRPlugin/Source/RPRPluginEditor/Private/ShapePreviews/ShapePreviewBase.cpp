@@ -16,8 +16,8 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "ShapePreviewBase.h"
-#include "ShapePreviewProxy.h"
+#include "ShapePreviews/ShapePreviewBase.h"
+#include "ShapePreviews/ShapePreviewProxy.h"
 #include "DrawDebugHelpers.h"
 
 UShapePreviewBase::UShapePreviewBase()

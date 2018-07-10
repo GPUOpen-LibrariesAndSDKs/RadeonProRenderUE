@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 #include "RPRToolsModule.h"
-#include "RPRTypedefs.h"
+#include "Typedefs/RPRTypedefs.h"
 
 namespace RPR
 {

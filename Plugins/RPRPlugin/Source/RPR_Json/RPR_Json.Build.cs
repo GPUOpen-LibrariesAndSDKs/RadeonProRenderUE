@@ -29,8 +29,9 @@ public class RPR_Json : ModuleRules
 
     public RPR_Json(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-        
+        PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+        bEnableExceptions = true;
+
         PublicIncludePaths.AddRange(
             new string[] {
                 ModuleDirectory + "/" + ThirdPartyDirectory + "json/include",

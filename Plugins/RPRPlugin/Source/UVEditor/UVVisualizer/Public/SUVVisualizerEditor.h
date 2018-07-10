@@ -18,15 +18,15 @@
 ********************************************************************/
 #pragma once
 
-#include "DeclarativeSyntaxSupport.h"
-#include "SCompoundWidget.h"
-#include "SUVViewport.h"
+#include "Widgets/DeclarativeSyntaxSupport.h"
+#include "Widgets/SCompoundWidget.h"
+#include "UVViewport/SUVViewport.h"
 #include "UVVisualizerEditorSettings.h"
 #include "IStructureDetailsView.h"
-#include "NotifyHook.h"
-#include "RPRMeshDataContainer.h"
-#include <GCObject.h>
-#include <IDetailCustomization.h>
+#include "Misc/NotifyHook.h"
+#include "RPRMeshData/RPRMeshDataContainer.h"
+#include "UObject/GCObject.h"
+#include "IDetailCustomization.h"
 
 class UVVISUALIZER_API SUVVisualizerEditor : public SCompoundWidget, public FNotifyHook, public FGCObject
 {

@@ -19,8 +19,8 @@
 #pragma once
 
 #include "RPREditorMaterialConstants.h"
-#include "RPRUberMaterialParameters.h"
-#include "RPRMaterialEditorInstanceConstant.h"
+#include "Material/RPRUberMaterialParameters.h"
+#include "RPRMaterialEditor/RPRMaterialEditorInstanceConstant.h"
 
 class FRPRUberMaterialToMaterialInstanceCopier
 {

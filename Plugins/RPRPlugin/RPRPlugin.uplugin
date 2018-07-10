@@ -44,7 +44,7 @@
 			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
-			"Name": "GLTFImporter",
+			"Name": "RPRGLTFImporter",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
 			"WhitelistPlatforms": [ "Win64" ]

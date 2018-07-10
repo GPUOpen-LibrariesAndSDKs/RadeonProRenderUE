@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "ModuleInterface.h"
-#include "ModuleManager.h"
+#include "Modules/ModuleInterface.h"
+#include "Modules/ModuleManager.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRPRImageManager, All, All);
 

@@ -18,8 +18,8 @@
 ********************************************************************/
 #pragma once
 
-#include "RPRMaterialMap.h"
-#include "RPRMaterialMapMode.h"
+#include "Material/UberMaterialParameters/RPRMaterialMap.h"
+#include "Material/UberMaterialParameters/RPRMaterialMapMode.h"
 #include "RPRMaterialCoM.generated.h"
 
 /*

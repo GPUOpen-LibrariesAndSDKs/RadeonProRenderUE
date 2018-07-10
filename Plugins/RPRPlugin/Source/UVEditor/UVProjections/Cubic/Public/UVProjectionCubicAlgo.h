@@ -18,8 +18,8 @@
 ********************************************************************/
 #pragma once
 
-#include "UVProjectionAlgorithmBase.h"
-#include "Axis.h"
+#include "UVProjectionMappingEditor/Algorithms/UVProjectionAlgorithmBase.h"
+#include "Math/Axis.h"
 
 class FUVProjectionCubicAlgo : public FUVProjectionAlgorithmBase
 {

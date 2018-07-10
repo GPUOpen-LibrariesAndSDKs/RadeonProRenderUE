@@ -16,8 +16,8 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMatParamCopier_Enum.h"
-#include "RPRMaterialEnum.h"
+#include "RPRMaterialEditor/RPRMaterialParamCopiers/RPRMatParamCopier_Enum.h"
+#include "Material/UberMaterialParameters/RPRMaterialEnum.h"
 #include "MaterialEditor/DEditorScalarParameterValue.h"
 
 void FRPRMatParamCopier_Enum::Apply(const FRPRUberMaterialParameters& RPRUberMaterialParameters, UStructProperty* Property, UMaterialEditorInstanceConstant* RPRMaterialEditorInstance)

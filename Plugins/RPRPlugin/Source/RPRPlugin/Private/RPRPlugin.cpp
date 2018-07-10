@@ -19,7 +19,7 @@
 
 #include "RPRPlugin.h"
 #include "RPRSettings.h"
-#include "Engine.h"
+#include "Engine/Engine.h"
 
 #if WITH_EDITOR
 #	include "Viewport/SRPRViewportTabContent.h"
@@ -31,7 +31,8 @@
 #	include "WorkspaceMenuStructureModule.h"
 
 #	include "ISettingsModule.h"
-#	include "SDockTab.h"
+#	include "Widgets/Docking/SDockTab.h"
+#	include "Framework/MultiBox/MultiBoxBuilder.h"
 #endif
 
 #include "Slate/SceneViewport.h"
@@ -41,6 +42,7 @@
 
 #include "Scene/RPRScene.h"
 #include "EngineUtils.h"
+#include "RPRCpTexture2DDynamic.h"
 
 DEFINE_LOG_CATEGORY(LogRPRPlugin)
 
@@ -377,8 +379,12 @@ void	FRPRPluginModule::StartupModule()
 	FWorldDelegates::OnPreWorldFinishDestroy.AddRaw(this, &FRPRPluginModule::OnWorldDestroyed);
 
 	// Create render texture
-	const FVector2D	renderResolution(10, 10); // First, create a small texture (resized later)
-	m_RenderTexture = UTexture2DDynamic::Create(renderResolution.X, renderResolution.Y, PF_R8G8B8A8, true);
+    FRPRCpTexture2DDynamic::FCreateInfo createInfo;
+    createInfo.Format = PF_R8G8B8A8;
+    createInfo.bIsResolveTarget = true;
+
+    const FVector2D	renderResolution(10, 10); // First, create a small texture (resized later)
+	m_RenderTexture = FRPRCpTexture2DDynamic::Create(renderResolution.X, renderResolution.Y, createInfo);
 	m_RenderTexture->CompressionSettings = TC_HDR;
 	m_RenderTexture->AddToRoot();
 

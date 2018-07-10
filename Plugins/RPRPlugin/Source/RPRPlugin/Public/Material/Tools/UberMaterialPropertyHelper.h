@@ -18,10 +18,10 @@
 ********************************************************************/
 #pragma once
 
-#include "UnrealType.h"
-#include "UnrealString.h"
-#include "RPRUberMaterialParameterBase.h"
-#include "RPRUberMaterialParameters.h"
+#include "UObject/UnrealType.h"
+#include "Containers/UnrealString.h"
+#include "Material/UberMaterialParameters/RPRUberMaterialParameterBase.h"
+#include "Material/RPRUberMaterialParameters.h"
 
 class RPRPLUGIN_API FUberMaterialPropertyHelper
 {

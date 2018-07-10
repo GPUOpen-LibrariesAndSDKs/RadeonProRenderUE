@@ -17,8 +17,8 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "NodeParamType.h"
-#include "RPRMaterialXmlNodeParameter.h"
+#include "NodeParamTypes/NodeParamType.h"
+#include "Node/RPRMaterialXmlNodeParameter.h"
 
 class FNodeParamXmlBase : public FNodeParamType<FRPRMaterialXmlNodeParameter>
 {

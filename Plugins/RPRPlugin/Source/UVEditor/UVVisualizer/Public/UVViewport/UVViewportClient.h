@@ -18,13 +18,13 @@
 ********************************************************************/
 #pragma once
 #include "EditorViewportClient.h"
-#include "SharedPointer.h"
+#include "Templates/SharedPointer.h"
 #include "PreviewScene.h"
 #include "UnrealWidget.h"
 #include "Editor.h"
-#include "UICommandList.h"
+#include "Framework/Commands/UICommandList.h"
 #include "Materials/MaterialInstanceDynamic.h"
-#include "UVMeshComponent.h"
+#include "UVViewport/UVMeshComponent.h"
 
 DECLARE_DELEGATE(FOnUVChanged)
 

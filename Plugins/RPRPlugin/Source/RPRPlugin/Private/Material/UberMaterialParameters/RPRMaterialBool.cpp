@@ -16,7 +16,7 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMaterialBool.h"
+#include "Material/UberMaterialParameters/RPRMaterialBool.h"
 
 FRPRMaterialBool::FRPRMaterialBool(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, bool DefaultValue)
 	: FRPRUberMaterialParameterBase(InXmlParamName, InRprxParamID, InPreviewSupportMode)

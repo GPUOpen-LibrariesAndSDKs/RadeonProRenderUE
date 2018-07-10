@@ -18,11 +18,11 @@
 ********************************************************************/
 #pragma once
 
-#include "DeclarativeSyntaxSupport.h"
-#include "Private/SObjectOutliner/SObjectOutliner.h"
+#include "Widgets/DeclarativeSyntaxSupport.h"
+#include "SObjectOutliner/SObjectOutliner.h"
 #include "Components/StaticMeshComponent.h"
 #include "RPRStaticMeshPreviewComponent.h"
-#include "RPRMeshDataContainer.h"
+#include "RPRMeshData/RPRMeshDataContainer.h"
 
 class OUTLINERS_API SSceneComponentsOutliner : public SCompoundWidget
 {

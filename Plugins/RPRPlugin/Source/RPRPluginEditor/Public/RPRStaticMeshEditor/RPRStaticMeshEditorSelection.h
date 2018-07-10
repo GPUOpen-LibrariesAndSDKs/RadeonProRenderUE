@@ -19,7 +19,7 @@
 #pragma once
 
 #include "Components/SceneComponent.h"
-#include "SharedPointer.h"
+#include "Templates/SharedPointer.h"
 
 class UShapePreviewBase;
 

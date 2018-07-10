@@ -18,10 +18,10 @@
 ********************************************************************/
 #pragma once
 
-#include "RPRTypedefs.h"
-#include "RPRShape.h"
-#include "GCObject.h"
-#include "RPRScene.h"
+#include "Typedefs/RPRTypedefs.h"
+#include "Scene/StaticMeshComponent/RPRShape.h"
+#include "UObject/GCObject.h"
+#include "Scene/RPRScene.h"
 
 namespace RPR
 {

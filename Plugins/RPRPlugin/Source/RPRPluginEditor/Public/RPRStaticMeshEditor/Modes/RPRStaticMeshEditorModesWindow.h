@@ -17,13 +17,13 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "SharedPointer.h"
-#include "SWidget.h"
+#include "Templates/SharedPointer.h"
+#include "Widgets/SWidget.h"
 #include "Editor.h"
-#include "UICommandList.h"
-#include "SBox.h"
-#include "SWidgetSwitcher.h"
-#include "RPRMeshDataContainer.h"
+#include "Framework/Commands/UICommandList.h"
+#include "Widgets/Layout/SBox.h"
+#include "Widgets/Layout/SWidgetSwitcher.h"
+#include "RPRMeshData/RPRMeshDataContainer.h"
 
 class FRPRStaticMeshEditorModesWindow : public TSharedFromThis<FRPRStaticMeshEditorModesWindow>
 {

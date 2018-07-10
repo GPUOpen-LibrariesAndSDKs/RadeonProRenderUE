@@ -29,7 +29,7 @@ public class RPRCompatibility : ModuleRules
 
     void DefineIncludesAndDependencies(ReadOnlyTargetRules Target)
     {
-        PublicIncludePaths.AddRange(
+        PrivateIncludePaths.AddRange(
             new string[] {
                 "Compatibility/Public",
 				// ... add public include paths required here ...
@@ -47,7 +47,8 @@ public class RPRCompatibility : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core"
+                "Core",
+               // "Launch",
 				// ... add other public dependencies that you statically link with here ...
 			}
             );

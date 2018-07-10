@@ -18,18 +18,18 @@
 ********************************************************************/
 #pragma once
 
-#include "IUVProjectionSettingsWidget.h"
+#include "UVProjectionMappingEditor/SlateUVProjectionsEntry/IUVProjectionSettingsWidget.h"
 #include "Engine/StaticMesh.h"
-#include "DeclarativeSyntaxSupport.h"
-#include "UVProjectionType.h"
-#include "IUVProjectionAlgorithm.h"
-#include "SWidget.h"
-#include "SCompoundWidget.h"
-#include "ShapePreviewBase.h"
-#include "SlateDelegates.h"
+#include "Widgets/DeclarativeSyntaxSupport.h"
+#include "UVProjectionMappingEditor/UVProjectionType.h"
+#include "UVProjectionMappingEditor/Algorithms/IUVProjectionAlgorithm.h"
+#include "Widgets/SWidget.h"
+#include "Widgets/SCompoundWidget.h"
+#include "ShapePreviews/ShapePreviewBase.h"
+#include "Framework/SlateDelegates.h"
 #include "IDetailsView.h"
-#include "RPRStaticMeshEditor.h"
-#include "RPRMeshDataContainer.h"
+#include "RPRStaticMeshEditor/RPRStaticMeshEditor.h"
+#include "RPRMeshData/RPRMeshDataContainer.h"
 
 /*
  * Abstract class for UV Projection widgets

@@ -18,11 +18,11 @@
 ********************************************************************/
 #pragma once
 
-#include "SharedPointer.h"
-#include "INodeParamType.h"
-#include "DelegateCombinations.h"
-#include "Delegate.h"
-#include "UnrealTypeTraits.h"
+#include "Templates/SharedPointer.h"
+#include "Delegates/DelegateCombinations.h"
+#include "Delegates/Delegate.h"
+#include "Templates/UnrealTypeTraits.h"
+#include "NodeParamTypes/INodeParamType.h"
 
 DECLARE_DELEGATE_RetVal(TSharedPtr<INodeParamType>, FNodeParamTypeCreator);
 

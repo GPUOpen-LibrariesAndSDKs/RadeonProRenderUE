@@ -35,11 +35,21 @@ public class RPRMaterialEditor : ModuleRules
     {
         PublicIncludePaths.AddRange(
             new string[] {
-                "RPRMaterialEditor/Public",
-                "RPRPlugin/Public",
-				// ... add public include paths required here ...
-                
                 "Runtime/Slate/Private"
+            }
+            );
+
+        PrivateIncludePaths.AddRange(
+            new string[] {
+                "RPRMaterialEditor/Public",
+
+                "RPRMaterialEditor/Public/Assets",
+                "RPRMaterialEditor/Public/Assets/Factories",
+                "RPRMaterialEditor/Public/Assets/AssetTypeActions",
+
+                "RPRMaterialEditor/Public/RPRMaterialEditor",
+                "RPRMaterialEditor/Public/RPRMaterialEditor/PropertiesLayout",
+                "RPRMaterialEditor/Public/RPRMaterialEditor/RPRMaterialParamCopiers",
             }
             );
 

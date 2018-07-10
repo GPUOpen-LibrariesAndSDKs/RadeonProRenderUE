@@ -17,8 +17,8 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "RPRTypedefs.h"
-#include "UnrealString.h"
+#include "Typedefs/RPRTypedefs.h"
+#include "Containers/UnrealString.h"
 
 namespace RPR
 {

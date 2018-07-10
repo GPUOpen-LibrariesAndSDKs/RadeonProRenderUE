@@ -17,8 +17,8 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "SharedPointer.h"
-#include "RPRMaterialNode.h"
+#include "Templates/SharedPointer.h"
+#include "Nodes/RPRMaterialNode.h"
 
 class INodeParamType
 {

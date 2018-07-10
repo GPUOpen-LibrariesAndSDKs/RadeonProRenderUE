@@ -17,10 +17,10 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "SWidget.h"
-#include "RPRMaterialMapMode.h"
+#include "Widgets/SWidget.h"
+#include "Material/UberMaterialParameters/RPRMaterialMapMode.h"
 #include "PropertyHandle.h"
-#include "RPRMaterialMapPropertiesLayout.h"
+#include "RPRMaterialEditor/PropertiesLayout/RPRMaterialMapPropertiesLayout.h"
 
 class FRPRMaterialCoMBasePropertiesLayout : public FRPRMaterialMapPropertiesLayout
 {

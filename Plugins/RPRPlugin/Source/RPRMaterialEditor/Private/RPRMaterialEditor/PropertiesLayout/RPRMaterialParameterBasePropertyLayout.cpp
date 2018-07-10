@@ -16,11 +16,11 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMaterialParameterBasePropertyLayout.h"
+#include "RPRMaterialEditor/PropertiesLayout/RPRMaterialParameterBasePropertyLayout.h"
 #include "DetailWidgetRow.h"
-#include "RPRUberMaterialParameterBase.h"
-#include "STextBlock.h"
-#include "SImage.h"
+#include "Material/UberMaterialParameters/RPRUberMaterialParameterBase.h"
+#include "Widgets/Text/STextBlock.h"
+#include "Widgets/Images/SImage.h"
 
 #define LOCTEXT_NAMESPACE "RPRMaterialParameterBasePropertyLayout"
 

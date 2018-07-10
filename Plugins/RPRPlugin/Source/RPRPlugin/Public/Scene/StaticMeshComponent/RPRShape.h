@@ -19,7 +19,7 @@
 #pragma once
 
 #include "RprSupport.h"
-#include "RPRCachedMesh.h"
+#include "Scene/StaticMeshComponent/RPRCachedMesh.h"
 
 struct	FRPRShape
 {

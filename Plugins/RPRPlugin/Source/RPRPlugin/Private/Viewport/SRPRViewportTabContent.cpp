@@ -19,7 +19,7 @@
 
 #if WITH_EDITOR
 
-#include "SRPRViewportTabContent.h"
+#include "Viewport/SRPRViewportTabContent.h"
 
 #include "RPRSettings.h"
 #include "RPRPlugin.h"
@@ -33,9 +33,9 @@
 #include "Widgets/SViewport.h"
 #include "Widgets/Input/SComboBox.h"
 #include "Widgets/Input/SNumericEntryBox.h"
-#include <SSpacer.h>
-#include <SButton.h>
-#include <SlateIcon.h>
+#include "Widgets/Layout/SSpacer.h"
+#include "Widgets/Input/SButton.h"
+#include "Textures/SlateIcon.h"
 
 #define LOCTEXT_NAMESPACE "SRPRViewportTabContent"
 

@@ -20,7 +20,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ModuleManager.h"
+#include "Modules/ModuleManager.h"
 
 class FRPR_SDKModule : public IModuleInterface
 {

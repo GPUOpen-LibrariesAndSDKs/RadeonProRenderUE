@@ -23,9 +23,10 @@
 //#define RPR_VERBOSE
 
 #include "Engine/World.h"
-#include "MultiBox/MultiBoxExtender.h"
+#include "Framework/MultiBox/MultiBoxExtender.h"
 #include "CoreMinimal.h"
-#include "ModuleManager.h"
+#include "Modules/ModuleManager.h"
+#include "Widgets/Docking/SDockTab.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRPRPlugin, All, All);
 

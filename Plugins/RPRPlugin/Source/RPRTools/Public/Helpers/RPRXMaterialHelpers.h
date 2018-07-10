@@ -19,11 +19,11 @@
 #pragma once
 
 #include "Engine/Texture2D.h"
-#include "RPRXTypedefs.h"
-#include "RPRTypedefs.h"
-#include "RPRHelpers.h"
-#include "RPRXEnums.h"
-#include "Color.h"
+#include "Typedefs/RPRXTypedefs.h"
+#include "Typedefs/RPRTypedefs.h"
+#include "Helpers/RPRHelpers.h"
+#include "Enums/RPRXEnums.h"
+#include "Math/Color.h"
 
 namespace RPRX
 {

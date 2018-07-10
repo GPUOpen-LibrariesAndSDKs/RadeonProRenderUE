@@ -16,7 +16,7 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "UVProjectionAlgorithmBase.h"
+#include "UVProjectionMappingEditor/Algorithms/UVProjectionAlgorithmBase.h"
 #include "StaticMeshHelper.h"
 #include "Engine/StaticMesh.h"
 #include "UVUtility.h"

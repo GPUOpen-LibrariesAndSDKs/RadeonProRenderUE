@@ -18,9 +18,9 @@
 ********************************************************************/
 #pragma once
 
-#include "RPRUberMaterialParameterBase.h"
+#include "Material/UberMaterialParameters/RPRUberMaterialParameterBase.h"
 #include "Engine/Texture2D.h"
-#include "UnrealString.h"
+#include "Containers/UnrealString.h"
 #include "RPRMaterialMap.generated.h"
 
 /*

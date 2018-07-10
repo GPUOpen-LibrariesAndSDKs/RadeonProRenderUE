@@ -16,7 +16,7 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMatParamCopierUtility.h"
+#include "RPRMaterialEditor/RPRMaterialParamCopiers/RPRMatParamCopierUtility.h"
 #include "RPREditorMaterialConstants.h"
 #include "MaterialEditor/DEditorParameterValue.h"
 #include "RPRCpMaterial.h"

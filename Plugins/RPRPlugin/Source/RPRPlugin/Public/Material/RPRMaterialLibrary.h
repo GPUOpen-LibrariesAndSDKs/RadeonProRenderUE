@@ -18,14 +18,14 @@
 ********************************************************************/
 #pragma once
 
-#include "RPRTypedefs.h"
-#include "RPRMaterial.h"
-#include "MaterialContext.h"
-#include "Map.h"
+#include "Typedefs/RPRTypedefs.h"
+#include "Assets/RPRMaterial.h"
+#include "Material/MaterialContext.h"
+#include "Containers/Map.h"
 #include "RPRImageManager.h"
-#include "CriticalSection.h"
-#include "IObjectScopedLockable.h"
-#include "RPRIHelpers.h"
+#include "HAL/CriticalSection.h"
+#include "Helpers/IObjectScopedLockable.h"
+#include "Helpers/RPRIHelpers.h"
 
 /*
 * Library of RPR materials.

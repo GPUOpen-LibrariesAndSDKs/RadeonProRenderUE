@@ -16,13 +16,13 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "UVMeshComponent.h"
+#include "UVViewport/UVMeshComponent.h"
 #include "UVUtility.h"
 #include "Engine/Engine.h"
 #include "Materials/MaterialInterface.h"
 #include "Materials/Material.h"
 #include "DynamicMeshBuilder.h"
-#include "ConstructorHelpers.h"
+#include "UObject/ConstructorHelpers.h"
 #include "SceneManagement.h"
 #include "Runtime/Launch/Resources/Version.h"
 

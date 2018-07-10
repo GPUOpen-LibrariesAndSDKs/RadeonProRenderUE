@@ -19,10 +19,10 @@
 #pragma once
 
 #include "Toolkits/AssetEditorToolkit.h"
-#include "RPRMaterialEditorInstanceConstant.h"
+#include "RPRMaterialEditor/RPRMaterialEditorInstanceConstant.h"
 #include "Misc/NotifyHook.h"
 #include "IDetailsView.h"
-#include "RPRMaterial.h"
+#include "Assets/RPRMaterial.h"
 
 class FRPRMaterialEditor : public FAssetEditorToolkit, FGCObject, FNotifyHook
 {

@@ -16,20 +16,20 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "SUVViewport.h"
+#include "UVViewport/SUVViewport.h"
 #include "EditorStyleSet.h"
 #include "UVUtility.h"
 #include "StaticMeshHelper.h"
-#include "RPRVectorTools.h"
-#include "SUVViewportToolBar.h"
-#include "UVViewportActions.h"
+#include "Math/RPRVectorTools.h"
+#include "UVViewport/SUVViewportToolBar.h"
+#include "UVViewport/UVViewportActions.h"
 #include "SEditorViewport.h"
-#include "UICommandList.h"
-#include "UIAction.h"
+#include "Framework/Commands/UICommandList.h"
+#include "Framework/Commands/UIAction.h"
 #include "EditorViewportCommands.h"
 #include "STransformViewportToolbar.h"
-#include "SBorder.h"
-#include "RPRConstAway.h"
+#include "Widgets/Layout/SBorder.h"
+#include "Helpers/RPRConstAway.h"
 
 SUVViewport::SUVViewport()
 	: UVChannelIndex(INDEX_NONE)

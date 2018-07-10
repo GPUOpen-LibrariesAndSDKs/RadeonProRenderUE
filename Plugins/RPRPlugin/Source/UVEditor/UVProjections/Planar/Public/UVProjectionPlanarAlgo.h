@@ -18,8 +18,8 @@
 ********************************************************************/
 #pragma once
 
-#include "UVProjectionAlgorithmBase.h"
-#include "TransformablePlane.h"
+#include "UVProjectionMappingEditor/Algorithms/UVProjectionAlgorithmBase.h"
+#include "Math/TransformablePlane.h"
 
 class FUVProjectionPlanarAlgo : public FUVProjectionAlgorithmBase
 {

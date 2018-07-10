@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 #include "TrianglesSelectionFlags.h"
-#include "UnrealMemory.h"
+#include "HAL/UnrealMemory.h"
 
 FTrianglesSelectionFlags::FTrianglesSelectionFlags(uint32 InNumTriangles)
 	: NumTriangles(InNumTriangles)

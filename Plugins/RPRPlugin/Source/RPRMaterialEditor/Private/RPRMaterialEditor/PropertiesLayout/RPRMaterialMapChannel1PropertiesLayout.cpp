@@ -16,11 +16,10 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMaterialMapChannel1PropertiesLayout.h"
-#include "RPRMaterialCoMChannel1.h"
-#include "SBox.h"
-#include "SNumericEntryBox.h"
-#include "Private/PropertyHandleImpl.h"
+#include "RPRMaterialEditor/PropertiesLayout/RPRMaterialMapChannel1PropertiesLayout.h"
+#include "Material/UberMaterialParameters/RPRMaterialCoMChannel1.h"
+#include "Widgets/Layout/SBox.h"
+#include "Widgets/Input/SNumericEntryBox.h"
 
 TSharedRef<class IPropertyTypeCustomization> FRPRMaterialCoMChannel1PropertiesLayout::MakeInstance()
 {

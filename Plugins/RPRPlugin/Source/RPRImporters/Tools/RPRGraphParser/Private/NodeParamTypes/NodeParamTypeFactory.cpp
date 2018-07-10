@@ -16,11 +16,10 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "NodeParamTypeFactory.h"
-
-#include "RPRUberMaterialParameters.h"
-#include "IsClass.h"
-#include "SharedPointer.h"
+#include "NodeParamTypes/NodeParamTypeFactory.h"
+#include "Material/RPRUberMaterialParameters.h"
+#include "Templates/IsClass.h"
+#include "Templates/SharedPointer.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogNodeParamTypeFactory, Log, All)
 

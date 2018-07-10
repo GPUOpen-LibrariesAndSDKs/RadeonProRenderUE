@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "NameTypes.h"
+#include "UObject/NameTypes.h"
 #include "GLTFTypedefs.h"
 
 namespace GLTF

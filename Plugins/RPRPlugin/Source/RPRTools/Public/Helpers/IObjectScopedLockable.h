@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 
-#include "CriticalSection.h"
+#include "HAL/CriticalSection.h"
 
 class IObjectScopedLockable
 {

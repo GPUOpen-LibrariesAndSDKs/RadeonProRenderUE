@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 #include "Materials/MaterialInterface.h"
-#include "TriPlanarSettings.h"
+#include "Material/TriPlanarSettings.h"
 
 class RPREDITORTOOLS_API FTriPlanarSettingsEditorLoader
 {

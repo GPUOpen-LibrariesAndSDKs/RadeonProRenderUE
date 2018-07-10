@@ -18,8 +18,8 @@
 ********************************************************************/
 #pragma once
 #include "IDetailCustomization.h"
-#include "RPRMeshDataContainer.h"
-#include "SlateTypes.h"
+#include "RPRMeshData/RPRMeshDataContainer.h"
+#include "Styling/SlateTypes.h"
 #include "DetailCategoryBuilder.h"
 
 class FRPRStaticMeshDetailCustomization : public IDetailCustomization

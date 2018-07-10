@@ -18,10 +18,10 @@
 ********************************************************************/
 #pragma once
 
-#include "RPRUberMaterialParameters.h"
-#include "UnrealString.h"
-#include "RPRTypedefs.h"
-#include "MaterialContext.h"
+#include "Material/RPRUberMaterialParameters.h"
+#include "Containers/UnrealString.h"
+#include "Typedefs/RPRTypedefs.h"
+#include "Material/MaterialContext.h"
 #include "RPRImageManager.h"
 
 namespace RPRX

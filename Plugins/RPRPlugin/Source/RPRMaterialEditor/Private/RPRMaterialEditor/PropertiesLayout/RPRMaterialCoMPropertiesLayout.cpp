@@ -16,10 +16,10 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMaterialCoMPropertiesLayout.h"
-#include "RPRMaterialCoM.h"
-#include "SColorBlock.h"
-#include "SColorPicker.h"
+#include "RPRMaterialEditor/PropertiesLayout/RPRMaterialCoMPropertiesLayout.h"
+#include "Material/UberMaterialParameters/RPRMaterialCoM.h"
+#include "Widgets/Colors/SColorBlock.h"
+#include "Widgets/Colors/SColorPicker.h"
 
 TSharedRef<IPropertyTypeCustomization> FRPRMaterialCoMPropertiesLayout::MakeInstance()
 {

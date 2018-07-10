@@ -17,9 +17,9 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "RPRCameraComponent.h"
+#include "Scene/RPRCameraComponent.h"
 #include "RadeonProRender.h"
-#include "RPRScene.h"
+#include "Scene/RPRScene.h"
 
 #include "Components/PrimitiveComponent.h"
 #include "Camera/CameraComponent.h"

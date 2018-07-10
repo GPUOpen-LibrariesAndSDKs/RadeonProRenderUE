@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 #include "RPRSelectionManager.h"
-#include "RPRConstAway.h"
+#include "Helpers/RPRConstAway.h"
 
 TSharedPtr<FRPRSectionsSelectionManager> FRPRSectionsSelectionManager::Instance;
 

@@ -17,9 +17,9 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "RPRMaterialNode.h"
+#include "Nodes/RPRMaterialNode.h"
 #include "XmlNode.h"
-#include "ITypedNode.h"
+#include "Nodes/ITypedNode.h"
 
 namespace RPRMaterialXml
 {

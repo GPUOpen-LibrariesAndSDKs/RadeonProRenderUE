@@ -17,10 +17,11 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "RPRViewportCameraComponent.h"
+#include "Scene/RPRViewportCameraComponent.h"
 #include "RadeonProRender.h"
-#include "RPRCameraComponent.h"
-#include "RPRScene.h"
+#include "Scene/RPRCameraComponent.h"
+#include "Scene/RPRScene.h"
+#include "Components/PrimitiveComponent.h"
 
 #include "Kismet/GameplayStatics.h"
 

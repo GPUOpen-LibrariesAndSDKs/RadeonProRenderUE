@@ -30,9 +30,9 @@ public class UVProjection_Planar : ModuleRules
 
     void DefineIncludesAndDependencies()
     {
-        PublicIncludePaths.AddRange(
+        PrivateIncludePaths.AddRange(
             new string[] {
-                "UVProjections/Planar/Public",
+                "UVEditor/UVProjections/Planar/Public",
 				// ... add public include paths required here ...
 			}
             );
@@ -40,7 +40,7 @@ public class UVProjection_Planar : ModuleRules
 
         PrivateIncludePaths.AddRange(
             new string[] {
-                "UVProjections/Planar/Private"
+                "UVEditor/UVProjections/Planar/Private"
 				// ... add other private include paths required here ...
 			}
             );

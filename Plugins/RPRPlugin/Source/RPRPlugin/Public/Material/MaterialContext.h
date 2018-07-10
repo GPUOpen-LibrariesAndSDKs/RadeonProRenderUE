@@ -18,8 +18,8 @@
 ********************************************************************/
 #pragma once
 
-#include "RPRTypedefs.h"
-#include "RPRXTypedefs.h"
+#include "Typedefs/RPRTypedefs.h"
+#include "Typedefs/RPRXTypedefs.h"
 
 namespace RPR
 {

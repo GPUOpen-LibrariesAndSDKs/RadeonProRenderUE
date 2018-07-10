@@ -30,10 +30,10 @@ public class UVVisualizer : ModuleRules
 
     void DefineIncludesAndDependencies()
     {
-        PublicIncludePaths.AddRange(
+        PrivateIncludePaths.AddRange(
             new string[] {
-                "UVVisualizer/Public",
-                "UVVisualizer/Public/UVViewport",
+                "UVEditor/UVVisualizer/Public",
+                "UVEditor/UVVisualizer/Public/UVViewport",
 				// ... add public include paths required here ...
 			}
             );
@@ -41,8 +41,8 @@ public class UVVisualizer : ModuleRules
 
         PrivateIncludePaths.AddRange(
             new string[] {
-                "UVVisualizer/Private",
-                "UVVisualizer/Private/UVViewport"
+                "UVEditor/UVVisualizer/Private",
+                "UVEditor/UVVisualizer/Private/UVViewport"
 				// ... add other private include paths required here ...
 			}
             );

@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "Stats.h"
+#include "Stats/Stats.h"
 
 DECLARE_STATS_GROUP(TEXT("ProRender"), STATGROUP_ProRender, STATCAT_Advanced);
 

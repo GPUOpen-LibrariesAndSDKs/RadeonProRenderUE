@@ -18,8 +18,8 @@
 ********************************************************************/
 #pragma once
 
-#include "Engine.h"
-#include "ModuleManager.h"
+#include "Engine/Engine.h"
+#include "Modules/ModuleManager.h"
 
 class FRPRRenderGLTFSceneModule : public IModuleInterface
 {

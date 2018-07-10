@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "RPRScene.h"
+#include "Scene/RPRScene.h"
 
 #include "RprTools.h"
 
@@ -29,7 +29,7 @@
 #include "Renderer/RPRRendererWorker.h"
 
 #include "HAL/PlatformFileManager.h"
-#include "Application/SlateApplication.h"
+#include "Framework/Application/SlateApplication.h"
 #include "Slate/SceneViewport.h"
 
 #include "RPRPlugin.h"
@@ -47,11 +47,12 @@
 #include "TextureResource.h"
 
 #include "RPRStats.h"
-#include "RPRHelpers.h"
-#include "RPRXHelpers.h"
-#include "RPRIHelpers.h"
+#include "Helpers/RPRHelpers.h"
+#include "Helpers/RPRXHelpers.h"
+#include "Helpers/RPRIHelpers.h"
 #include "RenderingThread.h"
 #include "RPR_SDKModule.h"
+#include "Components/StaticMeshComponent.h"
 
 #define LOCTEXT_NAMESPACE "ARPRScene"
 

@@ -31,7 +31,7 @@ public class RPRTools : ModuleRules
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicIncludePaths.AddRange(
+        PrivateIncludePaths.AddRange(
 			new string[] {
 				"RPRTools/Public",
                 "RPRTools/Public/Helpers",

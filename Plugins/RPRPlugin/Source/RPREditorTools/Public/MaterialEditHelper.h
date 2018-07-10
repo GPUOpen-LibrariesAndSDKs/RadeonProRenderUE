@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 #include "RPREditorToolsModule.h"
-#include "Delegate.h"
+#include "Delegates/Delegate.h"
 #include "MaterialEditor/DEditorParameterValue.h"
 #include "Materials/MaterialInterface.h"
 #include "MaterialEditor/MaterialEditorInstanceConstant.h"

@@ -33,7 +33,7 @@ public class RPRSectionsManager : ModuleRules
 
     void DefineIncludesAndDependencies()
     {
-        PublicIncludePaths.AddRange(
+        PrivateIncludePaths.AddRange(
             new string[] {
                 "RPRSectionsManager/Public",
 				// ... add public include paths required here ...

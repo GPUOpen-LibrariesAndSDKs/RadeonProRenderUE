@@ -35,14 +35,20 @@ public class RPRMaterialImporter : ModuleRules
     {
         PublicIncludePaths.AddRange(
             new string[] {
-                "RPRImporters/RPRMaterialImporter/Public",
-                "RPRPlugin/Public",    
-                            
                 "Runtime/Slate/Private"
             }
             );
 
-
+        PrivateIncludePaths.AddRange(
+            new string[] {
+                "RPRImporters/RPRMaterialImporter/Public",
+                "RPRImporters/RPRMaterialImporter/Public/Enums",
+                "RPRImporters/RPRMaterialImporter/Public/NodeParamTypes",
+                "RPRImporters/RPRMaterialImporter/Public/Node",
+                "RPRImporters/RPRMaterialImporter/Public/Node/Factory",
+            }
+            );
+        
         PrivateIncludePaths.AddRange(
             new string[] {
                 "RPRImporters/RPRMaterialImporter/Private",

@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "UnrealTypeTraits.h"
+#include "Templates/UnrealTypeTraits.h"
 #include "RprSupport.h"
 
 UENUM(BlueprintType)

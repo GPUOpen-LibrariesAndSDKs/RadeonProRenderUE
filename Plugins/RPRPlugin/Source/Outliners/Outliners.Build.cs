@@ -33,7 +33,7 @@ public class Outliners : ModuleRules
 
     void DefineIncludesAndDependencies()
     {
-        PublicIncludePaths.AddRange(
+        PrivateIncludePaths.AddRange(
             new string[] {
                 "Outliners/Public",
 				// ... add public include paths required here ...
@@ -44,7 +44,6 @@ public class Outliners : ModuleRules
         PrivateIncludePaths.AddRange(
             new string[] {
                 "Outliners/Private",
-                "Outliners/Private/SObjectOutliner"
 				// ... add other private include paths required here ...
 			}
             );

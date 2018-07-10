@@ -16,10 +16,10 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMaterialXmlUberNode.h"
-#include "RPRUberMaterialParameters.h"
+#include "Node/RPRMaterialXmlUberNode.h"
+#include "Material/RPRUberMaterialParameters.h"
 #include "RPRMaterialGraphSerializationContext.h"
-#include "RPRMaterialXmlNodeParameter.h"
+#include "Node/RPRMaterialXmlNodeParameter.h"
 
 RPRMaterialXml::ERPRMaterialNodeType FRPRMaterialXmlUberNode::GetNodeType() const
 {

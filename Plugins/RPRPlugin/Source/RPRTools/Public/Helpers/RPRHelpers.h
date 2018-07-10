@@ -22,7 +22,7 @@
 #include "RadeonProRender.h"
 #include "Math/mathutils.h"
 #include "RPRToolsModule.h"
-#include "RPRTypedefs.h"
+#include "Typedefs/RPRTypedefs.h"
 #include "RprTools.h"
 
 RPRTOOLS_API RadeonProRender::matrix BuildMatrixNoScale(const struct FTransform &transform);

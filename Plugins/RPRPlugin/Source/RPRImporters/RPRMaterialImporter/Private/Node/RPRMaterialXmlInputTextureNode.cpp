@@ -16,12 +16,12 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMaterialXmlInputTextureNode.h"
+#include "Node/RPRMaterialXmlInputTextureNode.h"
 #include "RPRSettings.h"
 #include "AssetToolsModule.h"
-#include "ModuleManager.h"
+#include "Modules/ModuleManager.h"
 #include "RPRMaterialGraphSerializationContext.h"
-#include "RPRMaterialXmlNodeParameter.h"
+#include "Node/RPRMaterialXmlNodeParameter.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRMaterialXmlInputTextureNode, Log, All)
 

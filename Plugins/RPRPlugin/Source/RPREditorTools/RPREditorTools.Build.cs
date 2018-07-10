@@ -34,7 +34,9 @@ public class RPREditorTools : ModuleRules
 
     void DefineIncludesAndDependencies()
     {
-        PublicIncludePaths.AddRange(
+        PublicIncludePathModuleNames.Add("RPRPlugin");
+
+        PrivateIncludePaths.AddRange(
             new string[] {
                 "RPREditorTools/Public",
                 "RPREditorTools/Public/RPRMeshData",
@@ -59,9 +61,9 @@ public class RPREditorTools : ModuleRules
             {
                 "Core",
                 "RawMesh",
-				"RPRPlugin",
                 "RPRCompatibility",
                 "UnrealEd",
+                "RPRPlugin",
 				// ... add other public dependencies that you statically link with here ...
 			}
             );
@@ -86,6 +88,7 @@ public class RPREditorTools : ModuleRules
                 "RHI",
                 "RenderCore",
                 "ShaderCore",
+                "RPRPlugin",
 				// ... add private dependencies that you statically link with here ...	
 			}
         );

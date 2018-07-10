@@ -27,7 +27,7 @@
 #include "SceneView.h"
 #include "Components/StaticMeshComponent.h"
 #include "StaticMeshResources.h"
-#include "ConstructorHelpers.h"
+#include "UObject/ConstructorHelpers.h"
 #include "Runtime/Launch/Resources/Version.h"
 #include "FaceAssignationHelper/FaceAssignationHelper.h"
 #include "RPRCpStaticMesh.h"

@@ -17,17 +17,17 @@
 * THE SOFTWARE.
 ********************************************************************/
 #include "RPRMaterialEditorModule.h"
-#include "RPRMaterialAssetTypeActions.h"
+#include "Assets/AssetTypeActions/RPRMaterialAssetTypeActions.h"
 #include "IAssetTools.h"
 #include "PropertyEditorModule.h"
-#include "RPRMaterial.h"
-#include "RPRUberMaterialParameters.h"
-#include "RPRMaterialBoolPropertiesLayout.h"
-#include "RPRMaterialBool.h"
-#include "RPRMaterialEnumPropertiesLayout.h"
-#include "RPRMaterialCoMPropertiesLayout.h"
-#include "RPRMaterialMapChannel1PropertiesLayout.h"
-#include "RPRMaterialMapPropertiesLayout.h"
+#include "Assets/RPRMaterial.h"
+#include "Material/RPRUberMaterialParameters.h"
+#include "RPRMaterialEditor/PropertiesLayout/RPRMaterialBoolPropertiesLayout.h"
+#include "Material/UberMaterialParameters/RPRMaterialBool.h"
+#include "RPRMaterialEditor/PropertiesLayout/RPRMaterialEnumPropertiesLayout.h"
+#include "RPRMaterialEditor/PropertiesLayout/RPRMaterialCoMPropertiesLayout.h"
+#include "RPRMaterialEditor/PropertiesLayout/RPRMaterialMapChannel1PropertiesLayout.h"
+#include "RPRMaterialEditor/PropertiesLayout/RPRMaterialMapPropertiesLayout.h"
 
 DEFINE_LOG_CATEGORY(LogRPRMaterialEditor)
 

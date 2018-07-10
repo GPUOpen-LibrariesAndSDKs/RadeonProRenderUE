@@ -16,8 +16,8 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRStaticMeshEditorSelection.h"
-#include "ShapePreviewBase.h"
+#include "RPRStaticMeshEditor/RPRStaticMeshEditorSelection.h"
+#include "ShapePreviews/ShapePreviewBase.h"
 
 void FRPRStaticMeshEditorSelection::SelectComponent(USceneComponent* Component)
 {

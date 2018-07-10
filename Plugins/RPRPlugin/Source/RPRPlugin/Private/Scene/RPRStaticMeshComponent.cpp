@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 
-#include "RPRStaticMeshComponent.h"
+#include "Scene/RPRStaticMeshComponent.h"
 
 #include <map>
 #include <set>
@@ -27,20 +27,20 @@
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshActor.h"
 #include "Camera/CameraActor.h"
-#include "PositionVertexBuffer.h"
+#include "Rendering/PositionVertexBuffer.h"
 #include "StaticMeshResources.h"
 
-#include "RPRHelpers.h"
+#include "Helpers/RPRHelpers.h"
 
 #include "RadeonProRenderInterchange.h"
-#include "RPRInterchangeMaterial.h"
+#include "Scene/RPRInterchangeMaterial.h"
 #include "RprSupport.h"
 
 #include "RPRStats.h"
 #include "Scene/RPRScene.h"
-#include "RPRMaterialBuilder.h"
-#include "Async.h"
-#include "RPRXHelpers.h"
+#include "Material/RPRMaterialBuilder.h"
+#include "Async/Async.h"
+#include "Helpers/RPRXHelpers.h"
 #include "RPRCpStaticMesh.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);

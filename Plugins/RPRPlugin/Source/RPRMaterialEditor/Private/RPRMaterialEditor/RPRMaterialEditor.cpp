@@ -16,19 +16,19 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMaterialEditor.h"
-#include "RPRUberMaterialToMaterialInstanceCopier.h"
+#include "RPRMaterialEditor/RPRMaterialEditor.h"
+#include "RPRMaterialEditor/RPRUberMaterialToMaterialInstanceCopier.h"
 #include "Tools/PropertyHelper/PropertyHelper.h"
 #include "Materials/MaterialInstanceConstant.h"
 #include "Framework/Docking/TabManager.h"
-#include "RPRUberMaterialParameters.h"
+#include "Material/RPRUberMaterialParameters.h"
 #include "PropertyEditorModule.h"
 #include "Misc/ConfigCacheIni.h"
-#include "RPRMaterial.h"
+#include "Assets/RPRMaterial.h"
 #include "CoreGlobals.h"
-#include "SDockTab.h"
+#include "Widgets/Docking/SDockTab.h"
 #include "Editor.h"
-#include "RPRMaterialCustomPropertyLayout.h"
+#include "RPRMaterialEditor/RPRMaterialCustomPropertyLayout.h"
 
 #define LOCTEXT_NAMESPACE "RPRMaterialEditor"
 

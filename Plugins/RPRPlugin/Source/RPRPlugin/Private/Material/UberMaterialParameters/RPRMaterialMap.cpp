@@ -16,7 +16,7 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMaterialMap.h"
+#include "Material/UberMaterialParameters/RPRMaterialMap.h"
 
 FRPRMaterialMap::FRPRMaterialMap(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, FCanUseParameter InCanUseParameter)
 	: FRPRUberMaterialParameterBase(InXmlParamName, InRprxParamID, InPreviewSupportMode, InCanUseParameter)

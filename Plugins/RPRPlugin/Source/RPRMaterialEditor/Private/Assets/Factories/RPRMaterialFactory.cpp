@@ -16,15 +16,15 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMaterialFactory.h"
+#include "Assets/Factories/RPRMaterialFactory.h"
 #include "RPRPlugin.h"
 #include "Editor.h"
 #include "RPRSettings.h"
-#include "FeedbackContext.h"
+#include "Misc/FeedbackContext.h"
 #include "AssetTypeCategories.h"
 #include "RPRMaterialXmlGraph.h"
-#include "RPRPlugin/Public/Assets/RPRMaterial.h"
-#include "RPRUberMaterialToMaterialInstanceCopier.h"
+#include "Assets/RPRMaterial.h"
+#include "RPRMaterialEditor/RPRUberMaterialToMaterialInstanceCopier.h"
 #include "EditorStyleSet.h"
 
 #define LOCTEXT_NAMESPACE "RPRMaterialFactory"

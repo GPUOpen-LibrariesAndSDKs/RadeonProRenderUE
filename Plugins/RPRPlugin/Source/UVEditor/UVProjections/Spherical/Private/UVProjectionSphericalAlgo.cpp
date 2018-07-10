@@ -18,9 +18,9 @@
 ********************************************************************/
 #include "UVProjectionSphericalAlgo.h"
 #include "UVUtility.h"
-#include "RPRStaticMeshEditor.h"
-#include "RPRVectorTools.h"
-#include "ScopedSlowTask.h"
+#include "RPRStaticMeshEditor/RPRStaticMeshEditor.h"
+#include "Math/RPRVectorTools.h"
+#include "Misc/ScopedSlowTask.h"
 #include "TriPlanarMaterialEnabler.h"
 
 #define LOCTEXT_NAMESPACE "UVProjectionSphericalAlgo"

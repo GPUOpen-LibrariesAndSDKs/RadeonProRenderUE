@@ -16,7 +16,7 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMeshDataContainer.h"
+#include "RPRMeshData/RPRMeshDataContainer.h"
 #include "Engine/StaticMesh.h"
 
 void FRPRMeshDataContainer::Add(FRPRMeshDataPtr MeshDataPtr)

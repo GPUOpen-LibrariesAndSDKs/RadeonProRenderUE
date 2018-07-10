@@ -16,13 +16,13 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "NodeParamTypeXmlFactory.h"
+#include "NodeParamTypes/Factory/NodeParamTypeXmlFactory.h"
 
-#include "NodeParamXml_RPRMaterialMap/NodeParamXml_RPRMaterialMap.h"
-#include "NodeParamXml_RPRMaterialCoM/NodeParamXml_RPRMaterialCoM.h"
-#include "NodeParamXml_RPRMaterialCoMChannel1/NodeParamRPRMaterialCoMChannel1.h"
-#include "NodeParamXml_RPRMaterialBool/NodeParamXml_RPRMaterialBool.h"
-#include "NodeParamXml_RPRMaterialEnum/NodeParamXml_RPRMaterialEnum.h"
+#include "NodeParamTypes/Map/NodeParamXml_RPRMaterialMap.h"
+#include "NodeParamTypes/CoM/NodeParamXml_RPRMaterialCoM.h"
+#include "NodeParamTypes/CoMChannel1/NodeParamRPRMaterialCoMChannel1.h"
+#include "NodeParamTypes/Bool/NodeParamXml_RPRMaterialBool.h"
+#include "NodeParamTypes/Enum/NodeParamXml_RPRMaterialEnum.h"
 
 TSharedPtr<FNodeParamTypeXmlFactory> FNodeParamTypeXmlFactory::Instance;
 

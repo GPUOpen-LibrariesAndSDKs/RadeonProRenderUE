@@ -18,14 +18,14 @@
 ********************************************************************/
 #pragma once
 
-#include "IUVProjectionAlgorithm.h"
-#include "PositionVertexBuffer.h"
-#include "StaticMeshVertexBuffer.h"
-#include "ColorVertexBuffer.h"
-#include "GCObject.h"
-#include "SharedPointer.h"
+#include "UVProjectionMappingEditor/Algorithms/IUVProjectionAlgorithm.h"
+#include "Rendering/PositionVertexBuffer.h"
+#include "Rendering/StaticMeshVertexBuffer.h"
+#include "Rendering/ColorVertexBuffer.h"
+#include "UObject/GCObject.h"
+#include "Templates/SharedPointer.h"
 #include "RawMesh.h"
-#include "RPRMeshDataContainer.h"
+#include "RPRMeshData/RPRMeshDataContainer.h"
 
 DECLARE_DELEGATE_TwoParams(FSectionWorker, FRPRMeshDataPtr /*MeshData*/, int32 /*SectionIndex*/)
 

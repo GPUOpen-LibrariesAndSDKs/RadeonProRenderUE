@@ -16,13 +16,14 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "SUVProjectionBase.h"
+#include "UVProjectionMappingEditor/SlateUVProjectionsEntry/SUVProjectionBase.h"
 #include "PropertyEditorModule.h"
-#include "SButton.h"
-#include "SScrollBox.h"
-#include "STextBlock.h"
-#include "SSpacer.h"
-#include "SGlobalUVProjectionSettings.h"
+#include "Widgets/Input/SButton.h"
+#include "Widgets/Layout/SScrollBox.h"
+#include "Widgets/Text/STextBlock.h"
+#include "Widgets/Layout/SSpacer.h"
+#include "UVProjectionMappingEditor/ProjectionSettings/SGlobalUVProjectionSettings.h"
+#include "Modules/ModuleManager.h"
 
 #define LOCTEXT_NAMESPACE "SUVProjectionBase"
 

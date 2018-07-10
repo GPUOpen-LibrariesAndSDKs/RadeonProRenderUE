@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "ModuleInterface.h"
+#include "Modules/ModuleInterface.h"
 
 class FRPRMaterialImporterModule : public IModuleInterface
 {

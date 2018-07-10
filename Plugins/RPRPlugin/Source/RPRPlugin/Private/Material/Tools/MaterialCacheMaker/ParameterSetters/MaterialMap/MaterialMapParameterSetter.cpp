@@ -16,12 +16,12 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "MaterialMapParameterSetter.h"
-#include "RPRMaterialMap.h"
-#include "RPRMaterialHelpers.h"
-#include "MaterialContext.h"
-#include "RPRTypedefs.h"
-#include "RPRXMaterialHelpers.h"
+#include "Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialMap/MaterialMapParameterSetter.h"
+#include "Material/UberMaterialParameters/RPRMaterialMap.h"
+#include "Material/RPRMaterialHelpers.h"
+#include "Material/MaterialContext.h"
+#include "Typedefs/RPRTypedefs.h"
+#include "Helpers/RPRXMaterialHelpers.h"
 
 namespace RPRX
 {

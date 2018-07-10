@@ -18,11 +18,11 @@
 ********************************************************************/
 #pragma once
 #include "IDetailCustomization.h"
-#include "SWidget.h"
+#include "Widgets/SWidget.h"
 #include "PropertyHandle.h"
-#include "SharedPointer.h"
-#include "Visibility.h"
-#include "Delegate.h"
+#include "Templates/SharedPointer.h"
+#include "Layout/Visibility.h"
+#include "Delegates/Delegate.h"
 
 DECLARE_DELEGATE_RetVal(bool, FHasMeshChangesNotCommitted)
 

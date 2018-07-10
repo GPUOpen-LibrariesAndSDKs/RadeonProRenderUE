@@ -16,13 +16,13 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMaterialCoMBasePropertiesLayout.h"
+#include "RPRMaterialEditor/PropertiesLayout/RPRMaterialCoMBasePropertiesLayout.h"
 #include "IDetailChildrenBuilder.h"
 #include "DetailWidgetRow.h"
-#include "SWidgetSwitcher.h"
-#include "SharedPointer.h"
-#include "SComboBox.h"
-#include "RPRMaterialMap.h"
+#include "Widgets/Layout/SWidgetSwitcher.h"
+#include "Templates/SharedPointer.h"
+#include "Widgets/Input/SComboBox.h"
+#include "Material/UberMaterialParameters/RPRMaterialMap.h"
 
 TSharedRef<SWidget> FRPRMaterialCoMBasePropertiesLayout::GetPropertyValueRowWidget()
 {

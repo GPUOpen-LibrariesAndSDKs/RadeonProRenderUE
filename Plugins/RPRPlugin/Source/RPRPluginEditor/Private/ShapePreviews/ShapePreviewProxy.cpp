@@ -16,6 +16,6 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "ShapePreviewProxy.h"
+#include "ShapePreviews/ShapePreviewProxy.h"
 
 IMPLEMENT_HIT_PROXY(HShapePreviewProxy, HHitProxy);

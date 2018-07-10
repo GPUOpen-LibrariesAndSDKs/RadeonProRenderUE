@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 
-#include "UnrealString.h"
+#include "Containers/UnrealString.h"
 #include "RPRUberMaterialParameterBase.generated.h"
 
 DECLARE_DELEGATE_RetVal_OneParam(bool, FCanUseParameter, const struct FRPRUberMaterialParameterBase*)

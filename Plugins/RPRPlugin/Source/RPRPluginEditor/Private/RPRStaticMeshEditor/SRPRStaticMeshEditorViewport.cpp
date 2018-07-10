@@ -16,14 +16,14 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "SRPRStaticMeshEditorViewport.h"
+#include "RPRStaticMeshEditor/SRPRStaticMeshEditorViewport.h"
 #include "ComponentReregisterContext.h"
 #include "Editor.h"
-#include "UObjectGlobals.h"
+#include "UObject/UObjectGlobals.h"
 #include "PreviewScene.h"
 #include "RawMesh.h"
 #include "StaticMeshHelper.h"
-#include "SceneViewport.h"
+#include "Slate/SceneViewport.h"
 #include "RPRStaticMeshPreviewComponent.h"
 #include "RPRStaticMeshPreview.h"
 

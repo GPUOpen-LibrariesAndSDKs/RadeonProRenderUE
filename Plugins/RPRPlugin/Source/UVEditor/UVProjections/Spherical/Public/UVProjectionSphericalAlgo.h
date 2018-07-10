@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 
-#include "UVProjectionAlgorithmBase.h"
+#include "UVProjectionMappingEditor/Algorithms/UVProjectionAlgorithmBase.h"
 
 class FUVProjectionSphericalAlgo : public FUVProjectionAlgorithmBase
 {

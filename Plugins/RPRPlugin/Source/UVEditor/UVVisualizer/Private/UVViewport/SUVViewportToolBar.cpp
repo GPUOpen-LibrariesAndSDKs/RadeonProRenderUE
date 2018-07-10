@@ -16,13 +16,13 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "SUVViewportToolBar.h"
-#include "SUVViewport.h"
+#include "UVViewport/SUVViewportToolBar.h"
+#include "UVViewport/SUVViewport.h"
 #include "SEditorViewportToolBarMenu.h"
-#include "SBox.h"
+#include "Widgets/Layout/SBox.h"
 #include "EditorStyleSet.h"
-#include "MultiBoxBuilder.h"
-#include "UVViewportActions.h"
+#include "Framework/MultiBox/MultiBoxBuilder.h"
+#include "UVViewport/UVViewportActions.h"
 #include "EditorViewportCommands.h"
 #include "SViewportToolBarIconMenu.h"
 #include "STransformViewportToolbar.h"

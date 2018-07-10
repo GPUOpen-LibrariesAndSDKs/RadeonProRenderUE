@@ -17,10 +17,10 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "RPRUberMaterialParameters.h"
-#include "UnrealType.h"
+#include "Material/RPRUberMaterialParameters.h"
+#include "UObject/UnrealType.h"
 #include "RPREditorMaterialConstants.h"
-#include "RPRMatParamCopierUtility.h"
+#include "RPRMaterialEditor/RPRMaterialParamCopiers/RPRMatParamCopierUtility.h"
 #include "MaterialEditor/MaterialEditorInstanceConstant.h"
 
 class IRPRMatParamCopier

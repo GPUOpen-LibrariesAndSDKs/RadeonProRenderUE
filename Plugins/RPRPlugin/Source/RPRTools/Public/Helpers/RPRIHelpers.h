@@ -18,8 +18,8 @@
 ********************************************************************/
 #pragma once
 #include "RPRToolsModule.h"
-#include "RPRITypedefs.h"
-#include "RPRXTypedefs.h"
+#include "Typedefs/RPRITypedefs.h"
+#include "Typedefs/RPRXTypedefs.h"
 
 namespace RPRI
 {

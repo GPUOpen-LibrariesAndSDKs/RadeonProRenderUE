@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 
-#include "Commands.h"
+#include "Framework/Commands/Commands.h"
 
 class FRPRStaticMeshEditorActions : public TCommands<FRPRStaticMeshEditorActions>
 {

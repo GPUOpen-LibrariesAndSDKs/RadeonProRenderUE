@@ -18,8 +18,8 @@
 ********************************************************************/
 
 #include "RPR_SDKModule.h"
-#include "PlatformProcess.h"
-#include "Paths.h"
+#include "HAL/PlatformProcess.h"
+#include "Misc/Paths.h"
 
 FString FRPR_SDKModule::GetDLLsDirectory()
 {

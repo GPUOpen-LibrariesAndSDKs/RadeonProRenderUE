@@ -17,7 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "Platform.h"
+#include "HAL/Platform.h"
 
 namespace RPR
 {

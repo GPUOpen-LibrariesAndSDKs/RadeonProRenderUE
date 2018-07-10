@@ -19,7 +19,7 @@
 #include "RPRStaticMeshPreviewComponent.h"
 #include "StaticMeshResources.h"
 #include "Engine/StaticMesh.h"
-#include "StaticMeshVertexBuffer.h"
+#include "Rendering/StaticMeshVertexBuffer.h"
 #include "StaticMeshVertexData.h"
 #include "RPRCpStaticMesh.h"
 

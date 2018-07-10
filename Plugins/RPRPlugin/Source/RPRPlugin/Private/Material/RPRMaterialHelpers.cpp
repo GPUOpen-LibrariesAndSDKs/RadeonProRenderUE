@@ -16,10 +16,10 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRMaterialHelpers.h"
+#include "Material/RPRMaterialHelpers.h"
 #include "RadeonProRender.h"
-#include "RPRHelpers.h"
-#include "LogMacros.h"
+#include "Helpers/RPRHelpers.h"
+#include "Logging/LogMacros.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRMaterialHelpers, Log, All)
 

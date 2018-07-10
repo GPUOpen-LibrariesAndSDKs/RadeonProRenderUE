@@ -18,8 +18,8 @@
 ********************************************************************/
 #pragma once
 
-#include "SCompoundWidget.h"
-#include "DeclarativeSyntaxSupport.h"
+#include "Widgets/SCompoundWidget.h"
+#include "Widgets/DeclarativeSyntaxSupport.h"
 
 DECLARE_DELEGATE_OneParam(FOnUVChannelChanged, int32 /* NewUVChannel */)
 

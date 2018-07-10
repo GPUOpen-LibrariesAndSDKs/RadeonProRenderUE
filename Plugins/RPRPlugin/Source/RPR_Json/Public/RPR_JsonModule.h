@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "ModuleManager.h"
+#include "Modules/ModuleManager.h"
 
 class FRPR_JsonModule : public IModuleInterface
 {

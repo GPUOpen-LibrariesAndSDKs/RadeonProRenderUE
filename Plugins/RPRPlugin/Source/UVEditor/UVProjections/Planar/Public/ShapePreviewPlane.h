@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 
-#include "ShapePreviewBase.h"
+#include "ShapePreviews/ShapePreviewBase.h"
 #include "ShapePreviewPlane.generated.h"
 
 UCLASS()

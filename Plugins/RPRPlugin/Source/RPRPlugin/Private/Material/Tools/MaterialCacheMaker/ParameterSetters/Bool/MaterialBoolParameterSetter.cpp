@@ -16,8 +16,8 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "MaterialBoolParameterSetter.h"
-#include "RPRXMaterialHelpers.h"
+#include "Material/Tools/MaterialCacheMaker/ParameterSetters/Bool/MaterialBoolParameterSetter.h"
+#include "Helpers/RPRXMaterialHelpers.h"
 
 namespace RPRX
 {

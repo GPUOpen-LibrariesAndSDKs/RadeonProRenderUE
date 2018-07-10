@@ -17,8 +17,8 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "Array.h"
-#include "Vector2D.h"
+#include "Containers/Array.h"
+#include "Math/Vector2D.h"
 #include "RawMesh.h"
 
 class FFaceAssignInfo
