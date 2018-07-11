@@ -56,9 +56,6 @@ public:
 
 private:
 
-	rpr_material_node CreateDefaultDummyShapeMaterial(uint32 iShape);
-	rpriExportRprMaterialResult CreateXMLShapeMaterial(uint32 iShape, class UMaterialInterface const * matInterface);
-
 	TArray<FRPRCachedMesh>	GetMeshInstances(UStaticMesh *mesh);
 	bool					BuildMaterials();
 
@@ -71,6 +68,7 @@ private:
 	bool ApplyRPRMaterialOnShape(RPR::FShape& Shape, URPRMaterial* Material);
 	void OnUsedMaterialChanged(URPRMaterial* Material);
 	void ClearMaterialChangedWatching();
+	void AttachDummyMaterial(RPR::FShape shape);
 
 private:
 

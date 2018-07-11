@@ -17,45 +17,27 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "RPRToolsModule.h"
-#include "Typedefs/RPRTypedefs.h"
 
-namespace RPR
+#include "Material/UberMaterialParameters/RPRUberMaterialParameterBase.h"
+#include "Engine/Texture2D.h"
+#include "Containers/UnrealString.h"
+#include "RPRMaterialMap.generated.h"
+
+/*
+* Base class for parameters that represents a map
+*/
+USTRUCT(BlueprintType)
+struct RPRCORE_API FRPRMaterialMap : public FRPRUberMaterialParameterBase
 {
-	namespace Context
-	{
-		RPRTOOLS_API FResult		Create(
-			int32 ApiVersion,
-			TArray<FPluginId>& PluginIds,
-			FCreationFlags CreationFlags,
-			const FContextProperties* ContextProperties,
-			const FString& CachePath,
-			FContext& OutContext
-		);
+	GENERATED_BODY()
 
-		RPRTOOLS_API FResult		Create(
-			int32 ApiVersion,
-			FPluginId PluginId,
-			FCreationFlags CreationFlags,
-			const FContextProperties* ContextProperties,
-			const FString& CachePath,
-			FContext& OutContext
-		);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
+	UTexture2D*		Texture;
 
-		RPRTOOLS_API FResult		CreateScene(FContext Context, FScene& OutScene);
-		RPRTOOLS_API FResult		SetActivePlugin(FContext Context, FPluginId PluginId);
-		RPRTOOLS_API FResult		ClearMemory(FContext Context);
-
-
-		namespace Parameters
-		{
-			RPRTOOLS_API FResult	Set1u(FContext Context, const FString& ParamName, uint32 Value);
-			RPRTOOLS_API FResult	Set1f(FContext Context, const FString& ParamName, float Value);
-		}
-
-		namespace MaterialSystem
-		{
-			RPRTOOLS_API FResult	Create(RPR::FContext Context, RPR::FMaterialSystemType Type, RPR::FMaterialSystem& OutMaterialSystem);
-		}
-	}
-}
+	FRPRMaterialMap() {}
+	FRPRMaterialMap(
+		const FString& InXmlParamName, 
+		uint32 InRprxParamID, 
+		ESupportMode InPreviewSupportMode, 
+		FCanUseParameter InCanUseParameter = FCanUseParameter());
+};

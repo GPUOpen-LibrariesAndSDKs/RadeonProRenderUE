@@ -15,7 +15,31 @@
 	"Installed": false,
 	"Modules": [
 		{
+			"Name": "RPRCompatibility",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [ "Win64" ]
+		},
+		{
 			"Name": "RPR_SDK",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [ "Win64"]
+		},
+		{
+			"Name": "RPRTools",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [ "Win64" ]
+		},
+		{
+			"Name": "RPREditorTools",
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [ "Win64" ]
+		},
+		{
+			"Name": "RPRCore",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"WhitelistPlatforms": [ "Win64"]
@@ -38,31 +62,7 @@
 			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
-			"Name": "RPRCompatibility",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [ "Win64" ]
-		},
-		{
 			"Name": "RPRGLTFImporter",
-			"Type": "Editor",
-			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [ "Win64" ]
-		},
-		{
-			"Name": "RPRTools",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [ "Win64" ]
-		},
-		{
-			"Name": "RPRImageManager",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [ "Win64" ]
-		},
-		{
-			"Name": "RPREditorTools",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
 			"WhitelistPlatforms": [ "Win64" ]

@@ -17,45 +17,23 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "RPRToolsModule.h"
+
 #include "Typedefs/RPRTypedefs.h"
 
 namespace RPR
 {
-	namespace Context
+	/*
+	* Helper to assign a RPR material to a RPR shape
+	*/
+	namespace MaterialBuilder
 	{
-		RPRTOOLS_API FResult		Create(
-			int32 ApiVersion,
-			TArray<FPluginId>& PluginIds,
-			FCreationFlags CreationFlags,
-			const FContextProperties* ContextProperties,
-			const FString& CachePath,
-			FContext& OutContext
-		);
+		RPRCORE_API FResult	BindMaterialRawDatasToShape(uint32 MaterialType, FMaterialRawDatas MaterialRawDatas, FShape& Shape);
+		RPRCORE_API FResult CommitMaterial(uint32 MaterialType, FMaterialRawDatas MaterialRawDatas);
 
-		RPRTOOLS_API FResult		Create(
-			int32 ApiVersion,
-			FPluginId PluginId,
-			FCreationFlags CreationFlags,
-			const FContextProperties* ContextProperties,
-			const FString& CachePath,
-			FContext& OutContext
-		);
+		// Private
 
-		RPRTOOLS_API FResult		CreateScene(FContext Context, FScene& OutScene);
-		RPRTOOLS_API FResult		SetActivePlugin(FContext Context, FPluginId PluginId);
-		RPRTOOLS_API FResult		ClearMemory(FContext Context);
-
-
-		namespace Parameters
-		{
-			RPRTOOLS_API FResult	Set1u(FContext Context, const FString& ParamName, uint32 Value);
-			RPRTOOLS_API FResult	Set1f(FContext Context, const FString& ParamName, float Value);
-		}
-
-		namespace MaterialSystem
-		{
-			RPRTOOLS_API FResult	Create(RPR::FContext Context, RPR::FMaterialSystemType Type, RPR::FMaterialSystem& OutMaterialSystem);
-		}
-	}
+		static FResult SetMaterialOnShape(FShape& Shape, FMaterialRawDatas MaterialRawDatas);
+		static FResult AttachMaterialToShape(FShape& Shape, FMaterialRawDatas MaterialRawDatas);
+		static FResult CommitMaterialX(FMaterialRawDatas MaterialRawDatas);
+	};
 }

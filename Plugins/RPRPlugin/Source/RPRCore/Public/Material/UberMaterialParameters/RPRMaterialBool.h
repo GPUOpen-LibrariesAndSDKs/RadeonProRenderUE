@@ -17,45 +17,21 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "RPRToolsModule.h"
-#include "Typedefs/RPRTypedefs.h"
 
-namespace RPR
+#include "Material/UberMaterialParameters/RPRUberMaterialParameterBase.h"
+#include "RPRMaterialBool.generated.h"
+
+/*
+* Represents a parameter that is a boolean
+*/
+USTRUCT(BlueprintType)
+struct RPRCORE_API FRPRMaterialBool : public FRPRUberMaterialParameterBase
 {
-	namespace Context
-	{
-		RPRTOOLS_API FResult		Create(
-			int32 ApiVersion,
-			TArray<FPluginId>& PluginIds,
-			FCreationFlags CreationFlags,
-			const FContextProperties* ContextProperties,
-			const FString& CachePath,
-			FContext& OutContext
-		);
+	GENERATED_BODY()
 
-		RPRTOOLS_API FResult		Create(
-			int32 ApiVersion,
-			FPluginId PluginId,
-			FCreationFlags CreationFlags,
-			const FContextProperties* ContextProperties,
-			const FString& CachePath,
-			FContext& OutContext
-		);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
+	bool	bIsEnabled;
 
-		RPRTOOLS_API FResult		CreateScene(FContext Context, FScene& OutScene);
-		RPRTOOLS_API FResult		SetActivePlugin(FContext Context, FPluginId PluginId);
-		RPRTOOLS_API FResult		ClearMemory(FContext Context);
-
-
-		namespace Parameters
-		{
-			RPRTOOLS_API FResult	Set1u(FContext Context, const FString& ParamName, uint32 Value);
-			RPRTOOLS_API FResult	Set1f(FContext Context, const FString& ParamName, float Value);
-		}
-
-		namespace MaterialSystem
-		{
-			RPRTOOLS_API FResult	Create(RPR::FContext Context, RPR::FMaterialSystemType Type, RPR::FMaterialSystem& OutMaterialSystem);
-		}
-	}
-}
+	FRPRMaterialBool() {}
+	FRPRMaterialBool(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, bool DefaultValue);
+};

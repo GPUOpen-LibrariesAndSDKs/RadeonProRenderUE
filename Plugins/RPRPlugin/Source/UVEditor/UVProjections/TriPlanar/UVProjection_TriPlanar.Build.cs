@@ -49,7 +49,7 @@ public class UVProjection_TriPlanar : ModuleRules
             new string[]
             {
                 "Core",
-				"RPRPlugin"
+				"RPRCore",
 				// ... add other public dependencies that you statically link with here ...
 			}
             );

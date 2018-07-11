@@ -34,6 +34,7 @@ public:
 	virtual bool	Init() override { return true; }
 	virtual uint32	Run() override;
 	virtual void	Stop() override;
+	virtual void	Exit() override;
 	// End FRunnable interface
 
 	void			EnsureCompletion();

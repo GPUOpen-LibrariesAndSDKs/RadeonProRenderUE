@@ -35,11 +35,20 @@ namespace RPR
 			return (Create(ApiVersion, pluginIds, CreationFlags, ContextProperties, CachePath, OutContext));
 		}
 
+		FResult CreateScene(FContext Context, FScene& OutScene)
+		{
+			return rprContextCreateScene(Context, &OutScene);
+		}
+
 		FResult SetActivePlugin(FContext Context, FPluginId PluginId)
 		{
 			return (rprContextSetActivePlugin(Context, PluginId));
 		}
 
+		FResult ClearMemory(FContext Context)
+		{
+			return (rprContextClearMemory(Context));
+		}
 
 		namespace Parameters
 		{

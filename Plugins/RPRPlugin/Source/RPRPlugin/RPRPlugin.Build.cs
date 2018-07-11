@@ -36,11 +36,6 @@ public class RPRPlugin : ModuleRules
         PrivateIncludePaths.AddRange(
 			new string[] {
 				"RPRPlugin/Public",
-                "RPRPlugin/Public/Enums",
-                "RPRPlugin/Public/Assets",
-
-                "RPRPlugin/Public/Material",
-                "RPRPlugin/Public/Material/Tools",
 
                 "RPRPlugin/Public/Scene",
                 "RPRPlugin/Public/Scene/StaticMeshComponent",
@@ -54,16 +49,6 @@ public class RPRPlugin : ModuleRules
 		PrivateIncludePaths.AddRange(
 			new string[] {
 				"RPRPlugin/Private",
-                "RPRPlugin/Private/Material",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/Factory",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterArgs",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/Bool",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/Enum",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialMap",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialCoM",
-                "RPRPlugin/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialCoMChannel1",
             }
 			);
 
@@ -73,7 +58,7 @@ public class RPRPlugin : ModuleRules
 				"Core",
                 "RPR_SDK",
                 "RPRTools",
-                "RPRImageManager",
+                "RPRCore",
                 "RPRCompatibility",
 				// ... add other public dependencies that you statically link with here ...
 			}

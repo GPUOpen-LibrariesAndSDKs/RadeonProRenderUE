@@ -548,13 +548,17 @@ uint32	FRPRRendererWorker::Run()
 		else
 			FPlatformProcess::Sleep(0.1f);
 	}
-	ReleaseResources();
 	return 0;
 }
 
 void	FRPRRendererWorker::Stop()
 {
 	m_StopTaskCounter.Increment();
+}
+
+void	FRPRRendererWorker::Exit()
+{
+	ReleaseResources();
 }
 
 void	FRPRRendererWorker::AddPendingKill(ARPRActor *actor)

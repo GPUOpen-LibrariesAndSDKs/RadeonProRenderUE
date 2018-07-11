@@ -36,8 +36,6 @@ public:
 	FRPRPluginModule();
 	~FRPRPluginModule();
 
-	static FString	GetDLLsDirectory();
-
 	virtual void	StartupModule() override;
 	virtual void	ShutdownModule() override;
 

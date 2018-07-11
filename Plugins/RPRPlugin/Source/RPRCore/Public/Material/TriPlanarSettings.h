@@ -17,45 +17,31 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "RPRToolsModule.h"
-#include "Typedefs/RPRTypedefs.h"
 
-namespace RPR
+#include "UObject/ObjectMacros.h"
+#include "TriPlanarSettings.generated.h"
+
+/**
+ * Describes the settings of the tri planar mode
+ */
+USTRUCT(BlueprintType)
+struct RPRCORE_API FTriPlanarSettings
 {
-	namespace Context
-	{
-		RPRTOOLS_API FResult		Create(
-			int32 ApiVersion,
-			TArray<FPluginId>& PluginIds,
-			FCreationFlags CreationFlags,
-			const FContextProperties* ContextProperties,
-			const FString& CachePath,
-			FContext& OutContext
-		);
+	GENERATED_BODY()
+	
+public:
 
-		RPRTOOLS_API FResult		Create(
-			int32 ApiVersion,
-			FPluginId PluginId,
-			FCreationFlags CreationFlags,
-			const FContextProperties* ContextProperties,
-			const FString& CachePath,
-			FContext& OutContext
-		);
+	FTriPlanarSettings();
 
-		RPRTOOLS_API FResult		CreateScene(FContext Context, FScene& OutScene);
-		RPRTOOLS_API FResult		SetActivePlugin(FContext Context, FPluginId PluginId);
-		RPRTOOLS_API FResult		ClearMemory(FContext Context);
+public:
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool	bUseTriPlanar;
 
-		namespace Parameters
-		{
-			RPRTOOLS_API FResult	Set1u(FContext Context, const FString& ParamName, uint32 Value);
-			RPRTOOLS_API FResult	Set1f(FContext Context, const FString& ParamName, float Value);
-		}
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float	Scale;
 
-		namespace MaterialSystem
-		{
-			RPRTOOLS_API FResult	Create(RPR::FContext Context, RPR::FMaterialSystemType Type, RPR::FMaterialSystem& OutMaterialSystem);
-		}
-	}
-}
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float	Angle;
+	
+};

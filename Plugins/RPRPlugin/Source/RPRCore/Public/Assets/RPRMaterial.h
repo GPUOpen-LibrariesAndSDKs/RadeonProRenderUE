@@ -17,45 +17,48 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "RPRToolsModule.h"
-#include "Typedefs/RPRTypedefs.h"
 
-namespace RPR
+#include "Materials/MaterialInstanceConstant.h"
+#include "Material/RPRUberMaterialParameters.h"
+#include "Material/TriPlanarSettings.h"
+#include "RPRMaterial.generated.h"
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FRPRMaterialChanged, class URPRMaterial*)
+
+/*
+* Asset representing a RPR Uber material
+*/
+UCLASS(BlueprintType)
+class RPRCORE_API URPRMaterial : public UMaterialInstanceConstant
 {
-	namespace Context
-	{
-		RPRTOOLS_API FResult		Create(
-			int32 ApiVersion,
-			TArray<FPluginId>& PluginIds,
-			FCreationFlags CreationFlags,
-			const FContextProperties* ContextProperties,
-			const FString& CachePath,
-			FContext& OutContext
-		);
+	GENERATED_BODY()
 
-		RPRTOOLS_API FResult		Create(
-			int32 ApiVersion,
-			FPluginId PluginId,
-			FCreationFlags CreationFlags,
-			const FContextProperties* ContextProperties,
-			const FString& CachePath,
-			FContext& OutContext
-		);
+	friend class FRPRXMaterialLibrary;
 
-		RPRTOOLS_API FResult		CreateScene(FContext Context, FScene& OutScene);
-		RPRTOOLS_API FResult		SetActivePlugin(FContext Context, FPluginId PluginId);
-		RPRTOOLS_API FResult		ClearMemory(FContext Context);
+public:
 
+	URPRMaterial();
 
-		namespace Parameters
-		{
-			RPRTOOLS_API FResult	Set1u(FContext Context, const FString& ParamName, uint32 Value);
-			RPRTOOLS_API FResult	Set1f(FContext Context, const FString& ParamName, float Value);
-		}
+	void					MarkMaterialDirty();
+	bool					IsMaterialDirty() const;
+	FRPRMaterialChanged&	OnRPRMaterialChanged() { return OnRPRMaterialChangedEvent; }
 
-		namespace MaterialSystem
-		{
-			RPRTOOLS_API FResult	Create(RPR::FContext Context, RPR::FMaterialSystemType Type, RPR::FMaterialSystem& OutMaterialSystem);
-		}
-	}
-}
+#if WITH_EDITOR
+	virtual void	PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+
+private:
+
+	void	ResetMaterialDirtyFlag();
+
+public:
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Material)
+	FRPRUberMaterialParameters	MaterialParameters;
+
+private:
+
+	FRPRMaterialChanged OnRPRMaterialChangedEvent;
+	bool				bShouldCacheBeRebuild;
+
+};

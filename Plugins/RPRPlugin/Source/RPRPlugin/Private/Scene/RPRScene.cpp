@@ -53,6 +53,8 @@
 #include "RenderingThread.h"
 #include "RPR_SDKModule.h"
 #include "Components/StaticMeshComponent.h"
+#include "ContextHelper.h"
+#include "RPRCoreModule.h"
 
 #define LOCTEXT_NAMESPACE "ARPRScene"
 
@@ -61,51 +63,26 @@ DEFINE_LOG_CATEGORY_STATIC(LogRPRScene, Log, All);
 DEFINE_STAT(STAT_ProRender_UpdateScene);
 DEFINE_STAT(STAT_ProRender_CopyFramebuffer);
 
-namespace
-{
-	extern "C" void OutputDebugStringA(char const *);
-
-	void    rpriLoggerLog(char const * _log)
-	{
-		UE_LOG(LogRPRScene, Log, TEXT("%s"), ANSI_TO_TCHAR(_log));
-		OutputDebugStringA(_log);
-	}
-
-	void    rpriLoggerWarning(char const * _log)
-	{
-		UE_LOG(LogRPRScene, Warning, TEXT("%s"), ANSI_TO_TCHAR(_log));
-		OutputDebugStringA(_log);
-	}
-
-	void    rpriLoggerError(char const * _log)
-	{
-		UE_LOG(LogRPRScene, Error, TEXT("%s"), ANSI_TO_TCHAR(_log));
-		OutputDebugStringA(_log);
-	}
-}
-
 
 ARPRScene::ARPRScene()
-	: m_RprContext(nullptr)
-	, m_RprScene(nullptr)
-	, m_RpriContext(nullptr)
-	, m_RprMaterialSystem(nullptr)
-	, m_RprSupportCtx(nullptr)
+	: m_RprScene(nullptr)
 	, m_ActiveCamera(nullptr)
 	, m_TriggerEndFrameResize(false)
 	, m_TriggerEndFrameRebuild(false)
 	, m_RendererWorker(nullptr)
 	, m_Plugin(nullptr)
 	, m_RenderTexture(nullptr)
-	, m_NumDevices(0)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
 	m_Plugin = &FRPRPluginModule::Load();
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+
+	RPRCoreResources = IRPRCore::GetResources();
 }
 
 static const FString	kViewportCameraName = "Active viewport camera";
+
 void	ARPRScene::FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames)
 {
 	UWorld	*world = GetWorld();
@@ -127,7 +104,7 @@ void	ARPRScene::FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames)
 
 void	ARPRScene::SetActiveCamera(const FString &cameraName)
 {
-	if (m_RprContext == nullptr)
+	if (!RPRCoreResources->IsInitialized())
 		return;
 
 	if (cameraName == kViewportCameraName)
@@ -348,81 +325,6 @@ void	ARPRScene::RefreshScene()
 	}
 }
 
-uint32	ARPRScene::GetContextCreationFlags(const rpr_int TahoePluginId)
-{
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != nullptr);
-
-	rpr_creation_flags	maxCreationFlags = 0;
-	if (settings->bEnableCPU)
-		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_CPU;
-	if (settings->bEnableGPU1)
-		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU0;
-	if (settings->bEnableGPU2)
-		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU1;
-	if (settings->bEnableGPU3)
-		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU2;
-	if (settings->bEnableGPU4)
-		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU3;
-	if (settings->bEnableGPU5)
-		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU4;
-	if (settings->bEnableGPU6)
-		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU5;
-	if (settings->bEnableGPU7)
-		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU6;
-	if (settings->bEnableGPU8)
-		maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_GPU7;
-	rpr_creation_flags	creationFlags = 0;
-
-	RPR_TOOLS_OS	os =
-#if PLATFORM_WINDOWS
-		RPRTOS_WINDOWS;
-#elif PLATFORM_MAC
-		RPRTOS_MC;
-#elif PLATFORM_LINUX
-		RPRTOS_LINUX;
-#else
-		return 0; // incompatible
-#endif
-
-	rprAreDevicesCompatible(TahoePluginId, TCHAR_TO_ANSI(*settings->RenderCachePath), false, maxCreationFlags, &creationFlags, os);
-	if (creationFlags > 0)
-	{
-		if (creationFlags != RPR_CREATION_FLAGS_ENABLE_CPU)
-			creationFlags &= ~RPR_CREATION_FLAGS_ENABLE_CPU;
-
-		FString	usedDevices = "Device(s) used for ProRender: ";
-		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_CPU)
-			usedDevices += "[CPU]";
-		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU0)
-			usedDevices += "[GPU1]";
-		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU1)
-			usedDevices += "[GPU2]";
-		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU2)
-			usedDevices += "[GPU3]";
-		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU3)
-			usedDevices += "[GPU4]";
-		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU4)
-			usedDevices += "[GPU5]";
-		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU5)
-			usedDevices += "[GPU6]";
-		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU6)
-			usedDevices += "[GPU7]";
-		if (creationFlags & RPR_CREATION_FLAGS_ENABLE_GPU7)
-			usedDevices += "[GPU8]";
-
-		usedDevices += ".";
-
-		UE_LOG(LogRPRScene, Log, TEXT("%s"), *usedDevices);
-	}
-	else
-	{
-		UE_LOG(LogRPRScene, Error, TEXT("No compatible device!"));
-	}
-
-	return creationFlags;
-}
-
 bool	ARPRScene::RPRThread_Rebuild()
 {
 	bool			restartRender = false;
@@ -443,24 +345,6 @@ bool	ARPRScene::RPRThread_Rebuild()
 	return restartRender;
 }
 
-void ARPRScene::LoadMappings()
-{
-	m_materialLibrary.Clear();
-	m_UMSControl.Clear();
-
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != nullptr);
-
-	// Set the master material mappings file.
-	m_materialLibrary.LoadMasterMappingFile(TCHAR_TO_ANSI(*(FPaths::ProjectDir() + "/Plugins/RPRPlugin/Content/MaterialMappings.xml")));
-
-	// Initialize material library for UE material to RPR replacement.	 
-	m_materialLibrary.AddDirectory(TCHAR_TO_ANSI(*(FPaths::ProjectDir() + "/Plugins/RPRPlugin/Content/Materials")));
-
-	// Initialize the UMSControl
-	m_UMSControl.LoadControlData(TCHAR_TO_ANSI(*(FPaths::ProjectDir() + "/Plugins/RPRPlugin/Content/UMSControl.xml")));
-}
-
 void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 {
 	UE_LOG(LogRPRScene, VeryVerbose, TEXT("Render RPR scene"));
@@ -468,25 +352,28 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
 	check(settings != nullptr);
 
-	if (m_RprContext == nullptr)
+	if (m_RenderTexture == nullptr)
 	{
 		InitializeRPRRendering();
 	}
 
 	if (!m_RendererWorker.IsValid())
 	{
-		check(m_RprContext != nullptr);
-
 		SetTrace(settings->bTrace);
 
 		outObjectToBuildCount = BuildScene();
 
 		// IF in editor
 		if (!BuildViewportCamera())
+		{
 			return;
+		}
+
 		// Pickup the specified camera
 		if (!m_Plugin->ActiveCameraName().IsEmpty()) // Otherwise, it'll just use the last found camera in the scene
+		{
 			SetActiveCamera(m_Plugin->ActiveCameraName());
+		}
 		else
 		{
 			// IF in editor
@@ -495,7 +382,15 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 		SetOrbit(m_Plugin->IsOrbitting());
 		TriggerFrameRebuild();
 
-		m_RendererWorker = MakeShareable(new FRPRRendererWorker(m_RprContext, m_RprScene, m_RenderTexture->SizeX, m_RenderTexture->SizeY, m_NumDevices, this));
+		m_RendererWorker = MakeShareable(
+			new FRPRRendererWorker(
+				RPRCoreResources->GetRPRContext(), 
+				m_RprScene, 
+				m_RenderTexture->SizeX, m_RenderTexture->SizeY, 
+				RPRCoreResources->GetNumDevicesCompatible(),
+				this
+			));
+
 		m_RendererWorker->SetQualitySettings(settings->QualitySettings);
 	}
 	m_RendererWorker->SetPaused(false);
@@ -503,101 +398,14 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 
 void	ARPRScene::InitializeRPRRendering()
 {
-	UE_LOG(LogRPRScene, Verbose, TEXT("Initialize RPR rendering..."));
-
-	URPRSettings* settings = GetMutableDefault<URPRSettings>();
-
-	if (!ensure(m_Plugin->GetRenderTexture() != nullptr))
-		return;
-
-	const FString dllDirectory = FRPR_SDKModule::GetDLLsDirectory();
-	const FString dllPath = FPaths::Combine(dllDirectory, TEXT("Tahoe64.dll"));
-	if (!FPaths::FileExists(dllPath))
-	{
-		UE_LOG(LogRPRScene, Error, TEXT("DLL '%s' doesn't exist!"), *dllPath);
-		return;
-	}
-
-	UE_LOG(LogRPRScene, VeryVerbose, TEXT("DLL '%s' access checked"), *dllPath);
-
-	rpr_int	tahoePluginId = rprRegisterPlugin(TCHAR_TO_ANSI(*dllPath)); // Seems to be mandatory
-	if (tahoePluginId == -1)
-	{
-		UE_LOG(LogRPRScene, Error, TEXT("\"%s\" not registered by \"%s\" path."), "Tahoe64.dll", *dllPath);
-		return;
-	}
-
-	UE_LOG(LogRPRScene, Log, TEXT("Plugin registered"));
-
-	uint32	creationFlags = GetContextCreationFlags(tahoePluginId);
-	if (creationFlags == 0)
-	{
-		UE_LOG(LogRPRScene, Error, TEXT("Couldn't find a compatible device"));
-		return;
-	}
-
-	m_NumDevices = 0;
-	for (uint32 s = RPR_CREATION_FLAGS_ENABLE_GPU7; s; s >>= 1)
-		m_NumDevices += (creationFlags & s) != 0;
-
-	if (rprCreateContext(RPR_API_VERSION, &tahoePluginId, 1, creationFlags, nullptr, TCHAR_TO_ANSI(*settings->RenderCachePath), &m_RprContext) != RPR_SUCCESS ||
-		rprContextSetParameter1u(m_RprContext, "aasamples", m_NumDevices) != RPR_SUCCESS ||
-		rprContextSetParameter1u(m_RprContext, "preview", 1) != RPR_SUCCESS ||
-		rprContextSetParameter1f(m_RprContext, "radianceclamp", (rpr_float)1.0f) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRScene, Error, TEXT("RPR Context creation failed: check your OpenCL runtime and driver versions."));
-		return;
-	}
-
-	UE_LOG(LogRPRScene, Verbose, TEXT("RPR context created"));
-
-	if (rprContextSetActivePlugin(m_RprContext, tahoePluginId) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRScene, Error, TEXT("RPR Context setup failed: Couldn't set tahoe plugin."));
-		return;
-	}
-
-	UE_LOG(LogRPRScene, VeryVerbose, TEXT("RPR context active"));
-
-	rpriAllocateContext(&m_RpriContext);
-	rpriErrorOptions(m_RpriContext, 5, false, false);
-	rpriSetLoggers(m_RpriContext, rpriLoggerLog, rpriLoggerWarning, rpriLoggerError);
-
-	// Not sure if material systems should be created on a per mesh level or per section
-	if (rprContextCreateMaterialSystem(m_RprContext, 0, &m_RprMaterialSystem) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRScene, Warning, TEXT("Couldn't create RPR material system"));
-		return;
-	}
-	if (rprxCreateContext(m_RprMaterialSystem, RPRX_FLAGS_ENABLE_LOGGING, &m_RprSupportCtx) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRScene, Warning, TEXT("Couldn't create RPR material X system"));
-		return;
-	}
-
-	if (rprContextCreateScene(m_RprContext, &m_RprScene) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRScene, Error, TEXT("RPR Scene creation failed"));
-		return;
-	}
-	if (rprContextSetScene(m_RprContext, m_RprScene) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRScene, Error, TEXT("RPR Scene setup failed"));
-		return;
-	}
-
 	m_RenderTexture = m_Plugin->GetRenderTexture();
-	RPRImageManager = MakeShareable(new RPR::FImageManager(m_RprContext));
 
-	RPR::FMaterialContext materialContext;
-	materialContext.MaterialSystem = m_RprMaterialSystem;
-	materialContext.RPRContext = m_RprContext;
-	materialContext.RPRXContext = m_RprSupportCtx;
-	RPRXMaterialLibrary.Initialize(materialContext, RPRImageManager);
-	
-	LoadMappings();
-	
-	UE_LOG(LogRPRScene, Verbose, TEXT("RPR rendering fully initialized"));
+	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
+	RPR::FResult result = RPR::Context::CreateScene(rprContext, m_RprScene);
+	if (RPR::IsResultFailed(result))
+	{
+		UE_LOG(LogRPRScene, Error, TEXT("Couldn't create RPR scene"));
+	}
 }
 
 void	ARPRScene::Rebuild()
@@ -612,13 +420,15 @@ void	ARPRScene::Rebuild()
 	// Once the RPR thread is deleted, clean all scene resources
 	RemoveSceneContent(false, false);
 
-	LoadMappings();
+	RPRCoreResources->GetRPRMaterialLibrary()->ClearCache();
+	RPRCoreResources->GetRPRImageManager()->ClearCache();
 
-	m_MaterialCache.clear();
-	RPRXMaterialLibrary.ClearCache();
-	RPRImageManager->ClearCache();
+	RPR::FResult result = RPR::Context::ClearMemory(RPRCoreResources->GetRPRContext());
+	if (RPR::IsResultFailed(result))
+	{
+		UE_LOG(LogRPRScene, Error, TEXT("Cannot clear RPR context memory"));
+	}
 
-	rprContextClearMemory(m_RprContext);
 	// NOTE: Right now, keeps mesh cache
 }
 
@@ -659,8 +469,6 @@ void	ARPRScene::StartOrbitting(const FIntPoint &mousePos)
 
 void	ARPRScene::SetTrace(bool trace)
 {
-	if (m_RprContext == nullptr)
-		return;
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
 	if (settings == nullptr)
 		return;
@@ -668,6 +476,7 @@ void	ARPRScene::SetTrace(bool trace)
 	FString	tracePath = settings->TraceFolder;
 	if (tracePath.IsEmpty())
 		return;
+
 	if (!FPaths::DirectoryExists(tracePath))
 	{
 		if (!FPlatformFileManager::Get().GetPlatformFile().CreateDirectoryTree(*tracePath))
@@ -680,19 +489,23 @@ void	ARPRScene::SetTrace(bool trace)
 		m_RendererWorker->SetTrace(trace, tracePath);
 	else
 	{
-		if (rprContextSetParameterString(nullptr, "tracingfolder", TCHAR_TO_ANSI(*tracePath)) != RPR_SUCCESS ||
-			rprContextSetParameter1u(nullptr, "tracing", trace) != RPR_SUCCESS)
+		RPR::FContext context = RPRCoreResources->GetRPRContext();
+		if (context != nullptr)
 		{
-			UE_LOG(LogRPRScene, Warning, TEXT("Couldn't enable RPR trace."));
-			return;
-		}
-		if (trace)
-		{
-			UE_LOG(LogRPRScene, Log, TEXT("RPR Tracing enabled"));
-		}
-		else
-		{
-			UE_LOG(LogRPRScene, Log, TEXT("RPR Tracing disabled"));
+			if (rprContextSetParameterString(context, "tracingfolder", TCHAR_TO_ANSI(*tracePath)) != RPR_SUCCESS ||
+				rprContextSetParameter1u(context, "tracing", trace) != RPR_SUCCESS)
+			{
+				UE_LOG(LogRPRScene, Warning, TEXT("Couldn't enable RPR trace."));
+				return;
+			}
+			if (trace)
+			{
+				UE_LOG(LogRPRScene, Log, TEXT("RPR Tracing enabled"));
+			}
+			else
+			{
+				UE_LOG(LogRPRScene, Log, TEXT("RPR Tracing disabled"));
+			}
 		}
 	}
 }
@@ -867,21 +680,16 @@ void	ARPRScene::RemoveSceneContent(bool clearScene, bool clearCache)
 	{
 		if (clearCache)
 		{
-			RPRXMaterialLibrary.ClearCache();
+			RPRCoreResources->GetRPRMaterialLibrary()->ClearCache();
 
 			try
 			{
 				URPRStaticMeshComponent::ClearCache(m_RprScene);
-				for (auto&& mat : m_MaterialCache)
-				{
-					RPRI::DeleteMaterial(m_RprSupportCtx, mat.second);
-				}
 			}
 			catch (std::exception)
 			{
 				UE_LOG(LogRPRScene, Warning, TEXT("RPRScene could not clean the materials correctly!"));
 			}
-			m_MaterialCache.clear();
 		}
 
 		if (clearScene)
@@ -938,55 +746,19 @@ void	ARPRScene::ImmediateRelease(URPRSceneComponent *component)
 void	ARPRScene::BeginDestroy()
 {
 	Super::BeginDestroy();
-
-	RPRXMaterialLibrary.Close();
-
+	
 	if (m_RendererWorker.IsValid())
 	{
 		m_RendererWorker->EnsureCompletion();
 		m_RendererWorker = nullptr; // TODO MAKE SURE TSharedPtr correctly deletes the renderer
 	}
 	RemoveSceneContent(true, true);
-	if (m_RprSupportCtx != nullptr)
-	{
-		RPRX::Context::Delete(m_RprSupportCtx);
-		m_RprSupportCtx = nullptr;
-	}
 
-	if (m_RprMaterialSystem != nullptr)
-	{
-		RPR::DeleteObject(m_RprMaterialSystem);
-		m_RprMaterialSystem = nullptr;
-	}
-
-	if (m_RpriContext != nullptr)
-	{
-		RPRI::DeleteContext(m_RpriContext);
-		m_RpriContext = nullptr;
-	}
-	
 	if (m_RprScene != nullptr)
 	{
 		RPR::DeleteObject(m_RprScene);
 		m_RprScene = nullptr;
 	}
-	if (m_RprContext != nullptr)
-	{
-		//rprContextClearMemory(m_RprContext);
-		RPR::DeleteObject(m_RprContext);
-		m_RprContext = nullptr;
-	}
-}
-
-
-FObjectScopedLocked<class FRPRXMaterialLibrary> ARPRScene::GetRPRMaterialLibrary() const
-{
-	return (FObjectScopedLocked<FRPRXMaterialLibrary>(&RPRXMaterialLibrary));
-}
-
-RPR::FImageManagerPtr ARPRScene::GetImageManager() const
-{
-	return (RPRImageManager);
 }
 
 #undef LOCTEXT_NAMESPACE

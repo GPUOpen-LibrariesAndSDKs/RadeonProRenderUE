@@ -63,7 +63,7 @@ public class RPRMaterialImporter : ModuleRules
             {
                 "Core",
                 "RPR_SDK",
-                "RPRPlugin",
+                "RPRCore",
                 "RPRTools",
                 "RPRGraphParser",
                 "XmlParser",

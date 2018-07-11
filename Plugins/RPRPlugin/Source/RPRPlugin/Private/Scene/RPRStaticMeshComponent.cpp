@@ -42,6 +42,9 @@
 #include "Async/Async.h"
 #include "Helpers/RPRXHelpers.h"
 #include "RPRCpStaticMesh.h"
+#include "Material/RPRMaterialBuilder.h"
+#include "RPRCoreModule.h"
+#include "RPRCoreSystemResources.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
 
@@ -65,7 +68,8 @@ TArray<FRPRCachedMesh>	URPRStaticMeshComponent::GetMeshInstances(UStaticMesh *me
 	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 	{
 		rpr_shape	newShape = nullptr;
-		if (rprContextCreateInstance(Scene->m_RprContext, srcShapes[iShape].m_RprShape, &newShape) != RPR_SUCCESS)
+		RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
+		if (rprContextCreateInstance(rprContext, srcShapes[iShape].m_RprShape, &newShape) != RPR_SUCCESS)
 		{
 			for (int32 jShape = 0; jShape < instances.Num(); ++jShape)
 				rprObjectDelete(instances[jShape].m_RprShape);
@@ -104,149 +108,6 @@ void	URPRStaticMeshComponent::ClearCache(RPR::FScene scene)
 #define RPR_UMS_INTEGRATION 1
 #define RPR_UMS_DUMP_RPIF 0
 
-rpr_material_node URPRStaticMeshComponent::CreateDefaultDummyShapeMaterial(uint32 iShape)
-{
-	rpr_shape					shape = m_Shapes[iShape].m_RprShape;
-	rpr_material_node material = nullptr;
-
-	// Default dummy material creation
-	if (rprMaterialSystemCreateNode(Scene->m_RprMaterialSystem, RPR_MATERIAL_NODE_DIFFUSE, &material) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR material node"));
-		return nullptr;
-	}
-	m_Shapes[iShape].m_RprMaterial = material;
-	if (rprMaterialNodeSetInputF(m_Shapes[iShape].m_RprMaterial, "color", 0.5f, 0.5f, 0.5f, 1.0f) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR material to the RPR shape"));
-		return nullptr;
-	}
-	if (rprShapeSetMaterial(shape, m_Shapes[iShape].m_RprMaterial) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR material to the RPR shape"));
-		return nullptr;
-	}
-	return material;
-}
-
-rpriExportRprMaterialResult URPRStaticMeshComponent::CreateXMLShapeMaterial(uint32 iShape, UMaterialInterface const * matInterface)
-{
-	const char* materialName = TCHAR_TO_ANSI(*matInterface->GetName());
-	rpr_shape					shape = m_Shapes[iShape].m_RprShape;
-	rpr_material_node material = nullptr;
-	const UMaterial				*parentMaterial = matInterface != nullptr ? matInterface->GetMaterial() : nullptr;
-	assert(parentMaterial != nullptr);
-
-#if 0
-	// We can only query the matInstance properties if this is actually a mat instance.
-	const UMaterialInstance* matInstance = Cast<UMaterialInstance>(matInterface);
-	if (matInterface && matInstance)
-	{
-		UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\t[SCALARS]:"));
-		for (auto& param : matInstance->ScalarParameterValues)
-		{
-			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\tName=%s, Value=%f"), *param.ParameterName.GetPlainNameString(), param.ParameterValue);
-		}
-
-		UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\n\t[VECTORS]:"));
-		for (auto& param : matInstance->VectorParameterValues)
-		{
-			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\tName=%s, Value=%f,%f,%f,%f"), *param.ParameterName.GetPlainNameString(),
-				param.ParameterValue.R, param.ParameterValue.G, param.ParameterValue.B, param.ParameterValue.A);
-		}
-
-		UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\n\t[TEXTURES]:"));
-		for (auto& param : matInstance->TextureParameterValues)
-		{
-			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\tName=%s"), *param.ParameterName.GetPlainNameString());
-		}
-	}
-#endif
-
-	// We have a match - go ahead and use the relevent material.
-	bool isUberMaterial = false;
-	void* xmlMaterial = Scene->m_materialLibrary.CreateMaterial(matInterface, Scene->m_RprContext, Scene->m_RprMaterialSystem, Scene->m_RprSupportCtx, isUberMaterial);
-				
-	// If we failed to create the xmlMaterial, go ahead with red default one and just log the error
-	if (!xmlMaterial) {
-		if (rprMaterialSystemCreateNode(Scene->m_RprMaterialSystem, RPR_MATERIAL_NODE_DIFFUSE, &xmlMaterial) != RPR_SUCCESS)
-		{
-			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create a default RPR material node"));
-			return rpriExportRprMaterialResult{ 0, nullptr };
-		}
-					
-		// We choose to ignore errors below - it won't happen.
-		rprMaterialNodeSetInputF(xmlMaterial, "color", 1.0f, 0.5f, 0.5f, 1.0f);
-
-	}
-
-	// We must differentiate between an uber material handle and an rpr material node handle.
-	if (isUberMaterial)
-	{
-		// Save the material.
-		rprx_material uberMaterial = reinterpret_cast<rprx_material>(xmlMaterial);
-		m_Shapes[iShape].m_RprxMaterial = uberMaterial;
-
-		// Attach the material to the shape.
-		if (rprxShapeAttachMaterial(Scene->m_RprSupportCtx, shape, uberMaterial) != RPR_SUCCESS)
-		{
-			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign substituted XML RPR material to the RPR shape"));
-			return rpriExportRprMaterialResult{ 0, nullptr };
-		}
-
-		// Commit the changes to the uber material.
-		rpr_int result = rprxMaterialCommit(Scene->m_RprSupportCtx, uberMaterial);
-		if (result != RPR_SUCCESS)
-		{
-			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("rprxMaterialCommit failed error %d"), result);
-			return rpriExportRprMaterialResult{ 0, nullptr };
-		}
-		return rpriExportRprMaterialResult{ 1, uberMaterial };
-
-	}
-	else
-	{
-		// save the material
-		m_Shapes[iShape].m_RprMaterial = xmlMaterial;
-		
-		// And use it!
-		if (rprShapeSetMaterial(shape, xmlMaterial) != RPR_SUCCESS)
-		{
-			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign substituted XML RPR material to the RPR shape"));
-			return rpriExportRprMaterialResult{ 0, nullptr };
-		}
-	}
-
-#if 0
-	// More debug data
-	{
-		TArray<FName> names;
-		TArray<FGuid> ids;
-		parentMaterial->GetAllTextureParameterNames(names, ids);
-		UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\n\t[GetAllTextureParameterNames]:"));
-		for (auto& name : names)
-		{
-			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\tName=%s"), *name.GetPlainNameString());
-
-			UTexture* value = nullptr;
-			if (parentMaterial->GetTextureParameterValue(name, value))
-			{
-				UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\t\tGot value"));
-			}
-		}
-
-		UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\n\t[GetUsedTextures]:"));
-		TArray<UTexture*> textures;
-		parentMaterial->GetUsedTextures(textures, EMaterialQualityLevel::Num, true, ERHIFeatureLevel::Num, true);
-		for (auto& texture : textures)
-		{
-			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\tName=%s"), *texture->GetName());
-		}
-	}
-#endif
-	return rpriExportRprMaterialResult{ 0, xmlMaterial };
-}
-
 #pragma optimize("",off)
 bool	URPRStaticMeshComponent::BuildMaterials()
 {
@@ -263,154 +124,15 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 
 		// If we have a wrong index, it ll just return nullptr, and fallback to a dummy material
 		UMaterialInterface	*matInterface = component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
-		const UMaterial		*parentMaterial = matInterface != nullptr ? matInterface->GetMaterial() : nullptr;
-		const char* materialName = matInterface != nullptr ? TCHAR_TO_ANSI(*matInterface->GetName()) : "";
 
 		if (matInterface->IsA<URPRMaterial>())
 		{
 			BuildRPRMaterial(shape, Cast<URPRMaterial>(matInterface));
-			continue;
 		}
-
-		// check the caches to see if we have already converted this material
-		auto cacheIt = Scene->m_MaterialCache.find(materialName);
-
-		if ( (cacheIt != Scene->m_MaterialCache.end()))
-		{		
-#ifdef RPR_VERBOSE
-			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("Found %s in Cache"), UTF8_TO_TCHAR(materialName));
-#endif
-			rpriExportRprMaterialResult cachedMaterial = cacheIt->second;
-			RPR::FMaterialBuilder materialBuilder(Scene);
-			materialBuilder.BindMaterialRawDatasToShape(cachedMaterial.type, cachedMaterial.data, shape);
-			continue;
-		}
-
-		rpr_material_node	material = nullptr;
-		if (parentMaterial == nullptr)
+		else
 		{
-			material = CreateDefaultDummyShapeMaterial(iShape);
-			Scene->m_MaterialCache[materialName] = rpriExportRprMaterialResult{ 0, material };
-			continue;
+			AttachDummyMaterial(shape);
 		}
-
-		// Attempt to map UE material to one in the Radeon ProRender material library loaded from disk.
-		if (Scene->m_materialLibrary.HasMaterialName(materialName))
-		{
-#ifdef RPR_VERBOSE
-			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("Found %s"), UTF8_TO_TCHAR(materialName));
-#endif
-			rpriExportRprMaterialResult res = CreateXMLShapeMaterial(iShape, matInterface);
-			if (res.data != nullptr) {
-				if(Scene->m_MaterialCache.find(materialName) != Scene->m_MaterialCache.end())
-				{
-#ifdef RPR_VERBOSE
-					UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("!!%s Already in material cache!!"), UTF8_TO_TCHAR(materialName));
-#endif
-				}
-				Scene->m_MaterialCache[materialName] = res;
-
-			} else
-			{
-				material = CreateDefaultDummyShapeMaterial(iShape);
-				Scene->m_MaterialCache[materialName] = rpriExportRprMaterialResult{ 0, material };
-			}
-			continue;
-		}
-
-
-		// We block instance materials if their parent is not UMS Enabled.
-		bool parentMaterialAllowed = true;
-		const UMaterialInstance* matInstance = Cast<UMaterialInstance>(matInterface);
-		const char* parentMaterialName = "";
-		if (matInstance) {
-			const UMaterialInterface *parentMatInstance = matInstance->Parent;
-			parentMaterialName = TCHAR_TO_ANSI(*parentMatInstance->GetName());
-			parentMaterialAllowed = Scene->m_UMSControl.IsMaterialUMSEnabled(parentMaterialName);
-		}
-
-#if WITH_EDITOR
-		bool materialUMSEnabled = Scene->m_UMSControl.IsMaterialUMSEnabled(materialName);
-		if (parentMaterialAllowed &&  materialUMSEnabled)
-		{
-#ifdef RPR_VERBOSE
-			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("UMS Enabled for %s"), UTF8_TO_TCHAR(materialName));
-#endif
-
-			std::vector<rpri::generic::IMaterialGraph*> mgs;
-			mgs.emplace_back(new UE4InterchangeMaterialGraph(matInterface));
-
-			static char const UE4ImporterString[] = "UE4 Importer";
-			rpriImportProperty importProps[] = {
-				{ "Import", reinterpret_cast<uintptr_t>(UE4ImporterString) },
-				{ "Num Materials", mgs.size() },
-				{ "Material Import Array", reinterpret_cast<uintptr_t>(mgs.data()) }
-			};
-			uint32_t const numImportProps = sizeof(importProps) / sizeof(importProps[0]);
-
-			rpriImportFromMemory(Scene->m_RpriContext, "Generic", numImportProps, importProps);
-
-			std::vector<rpriExportRprMaterialResult> resultArray;
-			resultArray.resize(mgs.size());
-
-			rpriExportProperty exportProps[] = {
-				{ "RPR Context", reinterpret_cast<uintptr_t>(&Scene->m_RprContext) },
-				{ "RPR Material System", reinterpret_cast<uintptr_t>(&Scene->m_RprMaterialSystem) },
-				{ "RPRX Context", reinterpret_cast<uintptr_t>(&Scene->m_RprSupportCtx) },
-				{ "Num RPR Materials", static_cast<uintptr_t>(mgs.size()) },
-				{ "RPR Material Result Array", reinterpret_cast<uintptr_t>(resultArray.data()) },
-			};
-			uint32_t const numExportProps = sizeof(exportProps) / sizeof(exportProps[0]);
-
-			rpriExport(Scene->m_RpriContext, "RPR API Exporter", numExportProps, exportProps);
-
-			Scene->m_MaterialCache[materialName] = resultArray[0];
-
-			if (resultArray[0].type == 0)
-			{
-				rpr_material_node rprMatNode = reinterpret_cast<rpr_material_node>(resultArray[0].data);
-				rprShapeSetMaterial(shape, rprMatNode);
-			}
-			else
-			{
-				rprx_material rprMatX = reinterpret_cast<rprx_material>(resultArray[0].data);
-				if (rprxShapeAttachMaterial(Scene->m_RprSupportCtx, shape, rprMatX) != RPR_SUCCESS)
-				{
-					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR X material to the RPR shape"));
-				}
-				if (rprxMaterialCommit(Scene->m_RprSupportCtx, rprMatX) != RPR_SUCCESS)
-				{
-					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't commit RPR X material"));
-				}
-			}
-		} else {
-			if (materialUMSEnabled) {
-				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Fallback for material %s due to disallowed parent %s"), UTF8_TO_TCHAR(materialName), UTF8_TO_TCHAR(parentMaterialName));
-			}
-			else {
-				if (matInstance) {
-					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Fallback for material %s INSTANCE OF %s"), UTF8_TO_TCHAR(materialName), UTF8_TO_TCHAR(parentMaterialName));
-				}
-				else {
-					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Fallback for material %s"), UTF8_TO_TCHAR(materialName));
-				}
-			}
-			if (rprMaterialSystemCreateNode(Scene->m_RprMaterialSystem, RPR_MATERIAL_NODE_DIFFUSE, &material) != RPR_SUCCESS)
-			{
-				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR material node"));
-				return false;
-			}
-			m_Shapes[iShape].m_RprMaterial = material;
-			Scene->m_MaterialCache[materialName] = { 0, material };
-
-			if (rprMaterialNodeSetInputF(material, "color", 0.5f, 0.5f, 0.5f, 1.0f) != RPR_SUCCESS ||
-				rprShapeSetMaterial(shape, material) != RPR_SUCCESS)
-			{
-				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't assign RPR material to the RPR shape"));
-				return false;
-			}
-		}
-#endif // WITH_EDITOR
 	}
 
 	return true;
@@ -418,7 +140,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 
 void URPRStaticMeshComponent::BuildRPRMaterial(RPR::FShape& Shape, URPRMaterial* Material)
 {
-	FObjectScopedLocked<FRPRXMaterialLibrary> rprMaterialLibrary = Scene->GetRPRMaterialLibrary();
+	auto rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 
 	if (!rprMaterialLibrary->Contains(Material))
 	{
@@ -440,7 +162,7 @@ void URPRStaticMeshComponent::BuildRPRMaterial(RPR::FShape& Shape, URPRMaterial*
 
 bool URPRStaticMeshComponent::ApplyRPRMaterialOnShape(RPR::FShape& Shape, URPRMaterial* Material)
 {
-	auto rprMaterialLibrary = Scene->GetRPRMaterialLibrary();
+	auto rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 
 	uint32 materialType;
 	RPR::FMaterialRawDatas materialRawDatas;
@@ -450,9 +172,20 @@ bool URPRStaticMeshComponent::ApplyRPRMaterialOnShape(RPR::FShape& Shape, URPRMa
 		return (false);
 	}
 
-	RPR::FMaterialBuilder materialBuilder(Scene);
-	materialBuilder.BindMaterialRawDatasToShape(materialType, materialRawDatas, Shape);
+	RPR::MaterialBuilder::BindMaterialRawDatasToShape(materialType, materialRawDatas, Shape);
 	return (true);
+}
+
+void URPRStaticMeshComponent::AttachDummyMaterial(RPR::FShape shape)
+{
+	auto rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+	RPR::FMaterialNode dummyMaterial = rprMaterialLibrary->GetDummyMaterial();
+
+	RPR::FResult result = RPR::ShapeSetMaterial(shape, dummyMaterial);
+	if (RPR::IsResultFailed(result))
+	{
+		UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Cannot attach dummy material to mesh %s"), *GetName());
+	}
 }
 
 #pragma optimize("",on)
@@ -480,6 +213,7 @@ bool	URPRStaticMeshComponent::Build()
 		SrcComponent->ComponentHasTag(kStripTag))
 		return false;
 
+	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
 
 	// Note for runtime builds
 	// All that data is probably stripped from runtime builds
@@ -575,7 +309,7 @@ bool	URPRStaticMeshComponent::Build()
 
 			rpr_shape	shape = nullptr;
 
-			if (rprContextCreateMesh(Scene->m_RprContext,
+			if (rprContextCreateMesh(rprContext,
 									 (rpr_float const *)positions.GetData(), positions.Num(), sizeof(float) * 3,
 									 (rpr_float const *)normals.GetData(), normals.Num(), sizeof(float) * 3,
 									 (rpr_float const *)uvs.GetData(), uvs.Num(), sizeof(float) * 2,
@@ -642,7 +376,7 @@ bool	URPRStaticMeshComponent::Build()
 			}
 
 			FRPRCachedMesh	newInstance(newShape.m_UEMaterialIndex);
-			if (rprContextCreateInstance(Scene->m_RprContext, shape, &newInstance.m_RprShape) != RPR_SUCCESS)
+			if (rprContextCreateInstance(rprContext, shape, &newInstance.m_RprShape) != RPR_SUCCESS)
 			{
 				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh instance from '%s'"), *staticMesh->GetName());
 				return false;
@@ -711,7 +445,7 @@ bool URPRStaticMeshComponent::RPRThread_Update()
 
 	if (bNeedRebuild)
 	{
-		auto rprMaterialLibrary = Scene->GetRPRMaterialLibrary();
+		auto rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 		FScopeLock scLock(&m_RefreshLock);
 
 		URPRMaterial* material = nullptr;
@@ -723,8 +457,7 @@ bool URPRStaticMeshComponent::RPRThread_Update()
 			RPR::FMaterialRawDatas materialRawDatas;
 			if (rprMaterialLibrary->TryGetMaterialRawDatas(material, materialType, materialRawDatas))
 			{
-				RPR::FMaterialBuilder materialBuilder(Scene);
-				materialBuilder.CommitMaterial(materialType, reinterpret_cast<RPRX::FMaterial>(materialRawDatas));
+				RPR::MaterialBuilder::CommitMaterial(materialType, reinterpret_cast<RPRX::FMaterial>(materialRawDatas));
 			}
 		}
 	}
@@ -734,7 +467,7 @@ bool URPRStaticMeshComponent::RPRThread_Update()
 
 void URPRStaticMeshComponent::OnUsedMaterialChanged(URPRMaterial* Material)
 {
-	auto rprMaterialLibrary = Scene->GetRPRMaterialLibrary();
+	auto rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 
 	if (rprMaterialLibrary->Contains(Material))
 	{
@@ -804,7 +537,8 @@ void	URPRStaticMeshComponent::ReleaseResources()
 			if (m_Shapes[iShape].m_RprxMaterial != nullptr)
 			{
 				check(m_Shapes[iShape].m_RprShape != nullptr);
-				RPRX::ShapeDetachMaterial(Scene->m_RprSupportCtx, m_Shapes[iShape].m_RprShape, m_Shapes[iShape].m_RprxMaterial);
+				RPRX::FContext rprSupportCtx = IRPRCore::GetResources()->GetRPRXSupportContext();
+				RPRX::ShapeDetachMaterial(rprSupportCtx, m_Shapes[iShape].m_RprShape, m_Shapes[iShape].m_RprxMaterial);
 			}
 
 			if (m_Shapes[iShape].m_RprShape != nullptr)

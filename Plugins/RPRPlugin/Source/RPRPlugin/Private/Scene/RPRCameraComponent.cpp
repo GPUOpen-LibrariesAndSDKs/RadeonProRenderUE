@@ -26,6 +26,8 @@
 #include "CineCameraComponent.h"
 
 #include "RPRStats.h"
+#include "RPRCoreSystemResources.h"
+#include "RPRCoreModule.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRCameraComponent, Log, All);
 
@@ -157,7 +159,9 @@ bool	URPRCameraComponent::Build()
 	// Async load: SrcComponent can be null if it was deleted from the scene
 	if (Scene == NULL || Cast<UCameraComponent>(SrcComponent) == NULL)
 		return false;
-	if (rprContextCreateCamera(Scene->m_RprContext, &m_RprCamera) != RPR_SUCCESS)
+
+	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
+	if (rprContextCreateCamera(rprContext, &m_RprCamera) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRCameraComponent, Warning, TEXT("Couldn't create RPR camera"));
 		return false;

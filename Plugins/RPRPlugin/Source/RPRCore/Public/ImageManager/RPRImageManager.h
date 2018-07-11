@@ -17,45 +17,48 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "RPRToolsModule.h"
+#include "Templates/SharedPointer.h"
 #include "Typedefs/RPRTypedefs.h"
+#include "PixelFormat.h"
+#include "Engine/Texture.h"
+#include "Cache/RPRImagesCache.h"
+#include "Engine/Texture2D.h"
 
 namespace RPR
 {
-	namespace Context
+
+	/*
+	* Load and cache the RPR images.
+	*/
+	class RPRCORE_API FImageManager
 	{
-		RPRTOOLS_API FResult		Create(
-			int32 ApiVersion,
-			TArray<FPluginId>& PluginIds,
-			FCreationFlags CreationFlags,
-			const FContextProperties* ContextProperties,
-			const FString& CachePath,
-			FContext& OutContext
-		);
+	public:
 
-		RPRTOOLS_API FResult		Create(
-			int32 ApiVersion,
-			FPluginId PluginId,
-			FCreationFlags CreationFlags,
-			const FContextProperties* ContextProperties,
-			const FString& CachePath,
-			FContext& OutContext
-		);
+		FImageManager(RPR::FContext RPRContext = nullptr);
+		virtual ~FImageManager();
 
-		RPRTOOLS_API FResult		CreateScene(FContext Context, FScene& OutScene);
-		RPRTOOLS_API FResult		SetActivePlugin(FContext Context, FPluginId PluginId);
-		RPRTOOLS_API FResult		ClearMemory(FContext Context);
+		RPR::FImage LoadImageFromTexture(UTexture2D* Texture, bool bRebuild = false);
+		RPR::FImage LoadCubeImageFromTexture(UTextureCube* Texture, bool bRebuild = false);
 
+		void ClearCache();
 
-		namespace Parameters
-		{
-			RPRTOOLS_API FResult	Set1u(FContext Context, const FString& ParamName, uint32 Value);
-			RPRTOOLS_API FResult	Set1f(FContext Context, const FString& ParamName, float Value);
-		}
+		static bool IsFormatSupported(EPixelFormat format);
+		static EPixelFormat GetDefaultSupportedPixelFormat();
 
-		namespace MaterialSystem
-		{
-			RPRTOOLS_API FResult	Create(RPR::FContext Context, RPR::FMaterialSystemType Type, RPR::FMaterialSystem& OutMaterialSystem);
-		}
-	}
+	private:
+
+		RPR::FImage LoadImageFromTextureInternal(UTexture2D* Texture, bool bRebuild);
+		bool BuildRPRImageFormat(EPixelFormat srcFormat, FImageFormat &outFormat, uint32 &outComponentSize);
+		void ConvertPixels(const void *textureData, TArray<uint8> &outData, EPixelFormat pixelFormat, uint32 pixelCount);
+		RPR::FImage	FindInCache(UTexture* Texture, bool bRebuild);
+		RPR::FImage	TryLoadErrorTexture();
+
+	private:
+
+		RPR::FContext context;
+		FImagesCache cache;
+
+	};
+
+	typedef TSharedPtr<FImageManager> FImageManagerPtr;
 }

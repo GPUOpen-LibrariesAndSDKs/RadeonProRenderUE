@@ -73,11 +73,11 @@ public class RPRMaterialEditor : ModuleRules
             {
                 "Core",
                 "RPR_SDK",
+                "RPRCore",
                 "RPRPlugin",
                 "RPRMaterialImporter",
                 "RPREditorTools",
                 "RPRTools",
-                "RPRImageManager"
 				
 				// ... add other public dependencies that you statically link with here ...
 			}

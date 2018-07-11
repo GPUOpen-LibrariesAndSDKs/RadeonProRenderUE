@@ -17,45 +17,37 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "RPRToolsModule.h"
+
+#include "Assets/RPRMaterial.h"
 #include "Typedefs/RPRTypedefs.h"
+#include "Typedefs/RPRXTypedefs.h"
+#include "Material/MaterialContext.h"
+#include "Material/Tools/MaterialCacheMaker/ParameterArgs/ParameterArgs.h"
 
-namespace RPR
+namespace RPRX
 {
-	namespace Context
+	DECLARE_DELEGATE_RetVal_FourParams(RPR::FResult, FUberMaterialParametersPropertyVisitor, const FRPRUberMaterialParameters&, UScriptStruct*, UProperty*, FMaterial&)
+
+	class FMaterialCacheMaker
 	{
-		RPRTOOLS_API FResult		Create(
-			int32 ApiVersion,
-			TArray<FPluginId>& PluginIds,
-			FCreationFlags CreationFlags,
-			const FContextProperties* ContextProperties,
-			const FString& CachePath,
-			FContext& OutContext
-		);
+	public:
 
-		RPRTOOLS_API FResult		Create(
-			int32 ApiVersion,
-			FPluginId PluginId,
-			FCreationFlags CreationFlags,
-			const FContextProperties* ContextProperties,
-			const FString& CachePath,
-			FContext& OutContext
-		);
+		FMaterialCacheMaker(RPR::FMaterialContext InMaterialContent, const URPRMaterial* InRPRMaterial);
 
-		RPRTOOLS_API FResult		CreateScene(FContext Context, FScene& OutScene);
-		RPRTOOLS_API FResult		SetActivePlugin(FContext Context, FPluginId PluginId);
-		RPRTOOLS_API FResult		ClearMemory(FContext Context);
+		bool	CacheUberMaterial(RPRX::FMaterial& OutMaterial);
+		bool	UpdateUberMaterial(RPRX::FMaterial& InOutMaterial);
 
+	private:
 
-		namespace Parameters
-		{
-			RPRTOOLS_API FResult	Set1u(FContext Context, const FString& ParamName, uint32 Value);
-			RPRTOOLS_API FResult	Set1f(FContext Context, const FString& ParamName, float Value);
-		}
+		RPR::FResult	BrowseUberMaterialParameters(FUberMaterialParametersPropertyVisitor Visitor, FMaterial& OutMaterial);
+		RPR::FResult	ApplyUberMaterialParameter(const FRPRUberMaterialParameters& Parameters, UScriptStruct* ParametersStruct,
+													UProperty* ParameterProperty, FMaterial& InOutMaterial);
 
-		namespace MaterialSystem
-		{
-			RPRTOOLS_API FResult	Create(RPR::FContext Context, RPR::FMaterialSystemType Type, RPR::FMaterialSystem& OutMaterialSystem);
-		}
-	}
+	private:
+
+		RPR::FMaterialContext	MaterialContext;
+		const URPRMaterial*		RPRMaterial;
+	};
+
 }
+

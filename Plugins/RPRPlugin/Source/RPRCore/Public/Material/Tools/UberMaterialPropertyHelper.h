@@ -17,45 +17,26 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
-#include "RPRToolsModule.h"
-#include "Typedefs/RPRTypedefs.h"
 
-namespace RPR
+#include "UObject/UnrealType.h"
+#include "Containers/UnrealString.h"
+#include "Material/UberMaterialParameters/RPRUberMaterialParameterBase.h"
+#include "Material/RPRUberMaterialParameters.h"
+
+class RPRCORE_API FUberMaterialPropertyHelper
 {
-	namespace Context
-	{
-		RPRTOOLS_API FResult		Create(
-			int32 ApiVersion,
-			TArray<FPluginId>& PluginIds,
-			FCreationFlags CreationFlags,
-			const FContextProperties* ContextProperties,
-			const FString& CachePath,
-			FContext& OutContext
-		);
+public:
 
-		RPRTOOLS_API FResult		Create(
-			int32 ApiVersion,
-			FPluginId PluginId,
-			FCreationFlags CreationFlags,
-			const FContextProperties* ContextProperties,
-			const FString& CachePath,
-			FContext& OutContext
-		);
+	/* 
+	* Returns the most appropriate type name for a property.
+	* - Convert any enum property to uint8.
+	* - Get c++ type for the others properties
+	*/
+	static FString	GetPropertyTypeName(const UProperty* Property);
 
-		RPRTOOLS_API FResult		CreateScene(FContext Context, FScene& OutScene);
-		RPRTOOLS_API FResult		SetActivePlugin(FContext Context, FPluginId PluginId);
-		RPRTOOLS_API FResult		ClearMemory(FContext Context);
+	static const FRPRUberMaterialParameterBase*	GetParameterBaseFromProperty(const FRPRUberMaterialParameters* MaterialParameters,
+																			const UProperty* Property);
 
-
-		namespace Parameters
-		{
-			RPRTOOLS_API FResult	Set1u(FContext Context, const FString& ParamName, uint32 Value);
-			RPRTOOLS_API FResult	Set1f(FContext Context, const FString& ParamName, float Value);
-		}
-
-		namespace MaterialSystem
-		{
-			RPRTOOLS_API FResult	Create(RPR::FContext Context, RPR::FMaterialSystemType Type, RPR::FMaterialSystem& OutMaterialSystem);
-		}
-	}
-}
+	static bool				IsPropertyValidUberParameterProperty(const UProperty* Property);
+	static const UStruct*	GetTopStructProperty(const UStruct* Struct);
+};

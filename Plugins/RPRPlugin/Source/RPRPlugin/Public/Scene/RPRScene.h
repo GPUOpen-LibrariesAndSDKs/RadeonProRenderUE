@@ -24,13 +24,12 @@
 #include "RPRPlugin.h"
 #include "RPRSettings.h"
 #include "GameFramework/Actor.h"
-#include "Scene/MaterialLibrary.h"
 #include "Material/RPRMaterialLibrary.h"
-#include "Scene/UMSControl.h"
 #include <RadeonProRenderInterchange.h>
 #include <map>
 #include "Typedefs/RPRITypedefs.h"
 #include "Helpers/ObjectScopedLocked.h"
+#include "RPRCoreSystemResources.h"
 #include "RPRScene.generated.h"
 
 /**
@@ -48,15 +47,9 @@ public:
 
 	UPROPERTY()
 	FString	LastSavedFilename;
+
 public:
-	RPR::FContext	m_RprContext;
 	RPR::FScene		m_RprScene;
-	RPR::FMaterialSystem	m_RprMaterialSystem;
-	RPRX::FContext			m_RprSupportCtx;
-	RPRI::FContext			m_RpriContext;
-	std::map<std::string, rpriExportRprMaterialResult> m_MaterialCache;
-	rpr::MaterialLibrary m_materialLibrary;
-	rpr::UMSControl m_UMSControl;
 	
 	class URPRSceneComponent	*m_ActiveCamera;
 
@@ -81,10 +74,6 @@ public:
 	void	TriggerResize() { m_TriggerEndFrameResize = true; }
 	void	TriggerFrameRebuild() { m_TriggerEndFrameRebuild = true; }
 
-	FObjectScopedLocked<class FRPRXMaterialLibrary>	GetRPRMaterialLibrary() const;
-
-	RPR::FImageManagerPtr				GetImageManager() const;
-
 private:
 	virtual void	BeginDestroy() override;
 	virtual void	Tick(float deltaTime) override;
@@ -97,8 +86,6 @@ private:
 	void	RefreshScene();
 	uint32	BuildScene();
 	bool	BuildViewportCamera();
-	uint32	GetContextCreationFlags(const rpr_int TahoePluginId);
-	void	LoadMappings();
 	void	DestroyRPRActors(TArray<class ARPRActor*>& Actors);
 	void	InitializeRPRRendering();
 	void	DrawRPRBufferToViewport();
@@ -130,6 +117,5 @@ private:
 	UPROPERTY(Transient)
 	class URPRViewportCameraComponent*		ViewportCameraComponent;
 
-	RPR::FImageManagerPtr	RPRImageManager;
-	FRPRXMaterialLibrary	RPRXMaterialLibrary;
+	FRPRCoreSystemResourcesPtr				RPRCoreResources;
 };

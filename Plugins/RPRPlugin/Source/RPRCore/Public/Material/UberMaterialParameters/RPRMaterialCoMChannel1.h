@@ -16,43 +16,63 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-
 #pragma once
 
-#include "Modules/ModuleManager.h"
-#include "Templates/SharedPointer.h"
+#include "Containers/UnrealString.h"
+#include "Miscs/NumericRestriction.h"
+#include "Material/UberMaterialParameters/RPRMaterialMapMode.h"
+#include "Material/UberMaterialParameters/RPRMaterialMap.h"
+#include "RPRMaterialCoMChannel1.generated.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(LogRPRRPRGLTFImporter, Log, All);
-
-//~ Forward declares
-typedef TSharedPtr<struct FGLTF> FGLTFPtr;
-
-class FRPRGLTFImporterModule : public IModuleInterface
+enum class ERPRMCoMapC1InterpretationMode
 {
+	AsFloat,
+	AsFloat4
+};
+
+/*
+* Represents a parameter that can be a map or a float
+*/
+USTRUCT(BlueprintType)
+struct RPRCORE_API FRPRMaterialCoMChannel1 : public FRPRMaterialMap
+{
+	GENERATED_BODY()
+
 public:
 
-    //~ IModuleInterface interface
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
+	float		Constant;
 
-    static inline FRPRGLTFImporterModule& Get() { return FModuleManager::GetModuleChecked<FRPRGLTFImporterModule>("RPRGLTFImporter"); }
-	static inline FRPRGLTFImporterModule& Load() { return FModuleManager::LoadModuleChecked<FRPRGLTFImporterModule>("RPRGLTFImporter"); }
+	UPROPERTY(EditAnywhere, Category = Material)
+	ERPRMaterialMapMode		Mode;
+
+	ERPRMCoMapC1InterpretationMode RPRInterpretationMode;
 
 public:
 
-    /** Singleton access to the currently loaded glTF context object. Returns false if no glTF is loaded. */
-    static bool GetGLTF(FGLTFPtr& OutGLTF);
+	FRPRMaterialCoMChannel1() {}
+	FRPRMaterialCoMChannel1(
+		const FString& InXmlParamName, 
+		uint32 InRprxParamID, 
+		ESupportMode InPreviewSupportMode, 
+		float InConstantValue = 1.0f, 
+		ERPRMCoMapC1InterpretationMode InMode = ERPRMCoMapC1InterpretationMode::AsFloat,
+		FCanUseParameter InCanUseParameter = FCanUseParameter());
 
-protected:
+#if WITH_EDITOR
+	
+	FNumericRestriction<float>&			GetConstantRestriction();
+	const FNumericRestriction<float>&	GetConstantRestriction() const;
 
-    /** Internal getter for glTF context. */
-    FGLTFPtr GetGLTF() const;
-    /** Internal setter for glTF context. Should only be called by RPRGLTFImportFactory. */
-    void SetGLTF(FGLTFPtr InGLTF);
+#endif
 
 private:
 
-    /** The glTF context comprised of the imported glTF file structure, buffers, and selected import options. */
-    FGLTFPtr GLTF;
+#if WITH_EDITORONLY_DATA
 
-    /** The RPRGLTFImportFactory sets what the currently loaded glTF structure is. */
-    friend class URPRGLTFImportFactory;
+	FNumericRestriction<float> ConstantRestriction;
+
+#endif
+
+
 };

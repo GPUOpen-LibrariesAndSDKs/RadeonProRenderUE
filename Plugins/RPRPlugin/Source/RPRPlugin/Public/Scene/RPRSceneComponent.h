@@ -21,6 +21,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
+#include "RPRCoreErrorHelper.h"
 #include "RPRSceneComponent.generated.h"
 
 enum
@@ -34,6 +35,7 @@ enum
 		if (function(__VA_ARGS__) != RPR_SUCCESS)								\
 		{																		\
 			UE_LOG(LogClass, Warning, TEXT(ErrorMessage));						\
+			FRPRCoreErrorHelper::LogLastError();								\
 		}																		\
 	}
 

@@ -30,6 +30,9 @@
 #include "Components/DirectionalLightComponent.h"
 
 #include "RPRStats.h"
+#include "RPRCoreModule.h"
+#include "RPRCoreSystemResources.h"
+#include "RPRCoreErrorHelper.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRLightComponent, Log, All);
 
@@ -84,7 +87,8 @@ bool	URPRLightComponent::BuildIESLight(const UPointLightComponent *lightComponen
 		FLinearColor(lightComponent->LightColor) * lightComponent->IESBrightnessScale :
 		BuildRPRLightColor(lightComponent, lightComponent->bUseInverseSquaredFalloff);
 
-	if (rprContextCreateIESLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS ||
+	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
+	if (rprContextCreateIESLight(rprContext, &m_RprLight) != RPR_SUCCESS ||
 		rprIESLightSetImageFromFile(m_RprLight, TCHAR_TO_ANSI(*filePath), 256, 256) != RPR_SUCCESS ||
 		rprIESLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B) != RPR_SUCCESS)
 	{
@@ -110,8 +114,9 @@ bool	URPRLightComponent::BuildPointLight(const UPointLightComponent *pointLightC
 	if (pointLightComponent->IESTexture != NULL)
 		return BuildIESLight(pointLightComponent);
 	const FLinearColor	lightColor = BuildRPRLightColor(pointLightComponent, pointLightComponent->bUseInverseSquaredFalloff);
-
-	if (rprContextCreatePointLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS ||
+	
+	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
+	if (rprContextCreatePointLight(rprContext, &m_RprLight) != RPR_SUCCESS ||
 		rprPointLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create point light"));
@@ -128,8 +133,9 @@ bool	URPRLightComponent::BuildSpotLight(const USpotLightComponent *spotLightComp
 	if (spotLightComponent->IESTexture != NULL)
 		return BuildIESLight(spotLightComponent);
 	const FLinearColor	lightColor = BuildRPRLightColor(spotLightComponent, spotLightComponent->bUseInverseSquaredFalloff);
-
-	if (rprContextCreateSpotLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS ||
+	
+	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
+	if (rprContextCreateSpotLight(rprContext, &m_RprLight) != RPR_SUCCESS ||
 		rprSpotLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B) != RPR_SUCCESS ||
 		rprSpotLightSetConeShape(m_RprLight, FMath::DegreesToRadians(spotLightComponent->InnerConeAngle), FMath::DegreesToRadians(spotLightComponent->OuterConeAngle)) != RPR_SUCCESS)
 	{
@@ -158,21 +164,36 @@ bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightCompone
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Skipped '%s', there is no specified cubemap"), *skyLightComponent->GetName());
 		return false;
 	}
-	m_RprImage = Scene->GetImageManager()->LoadCubeImageFromTexture(skyLightComponent->Cubemap);
+	m_RprImage = IRPRCore::GetResources()->GetRPRImageManager()->LoadCubeImageFromTexture(skyLightComponent->Cubemap);
 	if (m_RprImage == NULL)
 		return false;
+
 	const float	intensity = skyLightComponent->Intensity;
-	if (rprContextCreateEnvironmentLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS ||
-		rprEnvironmentLightSetImage(m_RprLight, m_RprImage) != RPR_SUCCESS ||
-		//rprSceneSetEnvironmentOverride(Scene->m_RprScene, RPR_SCENE_ENVIRONMENT_OVERRIDE_REFRACTION, m_RprLight) != RPR_SUCCESS ||
-		//rprSceneSetEnvironmentOverride(Scene->m_RprScene, RPR_SCENE_ENVIRONMENT_OVERRIDE_TRANSPARENCY, m_RprLight) != RPR_SUCCESS ||
-		rprSceneSetEnvironmentOverride(Scene->m_RprScene, RPR_SCENE_ENVIRONMENT_OVERRIDE_BACKGROUND, m_RprLight) != RPR_SUCCESS ||
-		//rprSceneSetBackgroundImage(Scene->m_RprScene, m_RprImage) != RPR_SUCCESS ||
-		rprEnvironmentLightSetIntensityScale(m_RprLight, intensity) != RPR_SUCCESS)
+	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
+	if (rprContextCreateEnvironmentLight(rprContext, &m_RprLight) != RPR_SUCCESS)
 	{
-		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create RPR image"));
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create create environment light"));
 		return false;
 	}
+
+	if (rprEnvironmentLightSetImage(m_RprLight, m_RprImage) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't set environment light image"));
+		return false;
+	}
+
+	if (rprSceneSetEnvironmentOverride(Scene->m_RprScene, RPR_SCENE_ENVIRONMENT_OVERRIDE_BACKGROUND, m_RprLight) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't set environment into the scene"));
+		return false;
+	}
+
+	if (rprEnvironmentLightSetIntensityScale(m_RprLight, intensity) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't set intensity scale of the environment light"));
+		return false;
+	}
+
 	m_CachedSourceType = skyLightComponent->SourceType;
 	m_CachedIntensity = skyLightComponent->Intensity;
 
@@ -190,7 +211,8 @@ bool	URPRLightComponent::BuildDirectionalLight(const UDirectionalLightComponent 
 	FLinearColor	lightColor(dirLightComponent->LightColor);
 
 	lightColor *= intensity * kDirLightIntensityMultiplier;
-	if (rprContextCreateDirectionalLight(Scene->m_RprContext, &m_RprLight) != RPR_SUCCESS ||
+	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
+	if (rprContextCreateDirectionalLight(rprContext, &m_RprLight) != RPR_SUCCESS ||
 		rprDirectionalLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B) != RPR_SUCCESS ||
 		rprDirectionalLightSetShadowSoftness(m_RprLight, 1.0f - dirLightComponent->ShadowSharpen) != RPR_SUCCESS)
 	{
@@ -451,7 +473,7 @@ void	URPRLightComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 
 		if (m_RebuildFlags & PROPERTY_REBUILD_ENV_LIGHT_CUBEMAP)
 		{
-			m_RprImage = Scene->GetImageManager()->LoadCubeImageFromTexture(skyLightComponent->Cubemap, true);
+			m_RprImage = IRPRCore::GetResources()->GetRPRImageManager()->LoadCubeImageFromTexture(skyLightComponent->Cubemap, true);
 		}
 	}
 

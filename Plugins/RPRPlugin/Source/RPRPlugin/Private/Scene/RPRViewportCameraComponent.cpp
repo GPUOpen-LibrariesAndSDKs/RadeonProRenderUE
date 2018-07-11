@@ -33,6 +33,8 @@
 #   include "Editor.h"
 #	include "LevelEditorViewport.h"
 #endif
+#include "RPRCoreModule.h"
+#include "RPRCoreSystemResources.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRViewportCameraComponent, Log, All);
 
@@ -301,7 +303,8 @@ bool	URPRViewportCameraComponent::Build()
 	m_CachedCameraPos = GetViewLocation() * 0.1f;
 	m_CachedCameraLookAt = GetLookAtLocation() * 0.1f;
 
-	if (rprContextCreateCamera(Scene->m_RprContext, &m_RprCamera) != RPR_SUCCESS)
+	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
+	if (rprContextCreateCamera(rprContext, &m_RprCamera) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRViewportCameraComponent, Warning, TEXT("Couldn't create RPR viewport camera"));
 		return false;
