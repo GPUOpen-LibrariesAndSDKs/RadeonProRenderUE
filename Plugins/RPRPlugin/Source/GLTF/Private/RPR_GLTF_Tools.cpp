@@ -17,26 +17,136 @@
 * THE SOFTWARE.
 ********************************************************************/
 #include "RPR_GLTF_Tools.h"
-#include "ProRenderGLTF.h"
 #include "Containers/Array.h"
 
-RPR::FResult FRPR_GLTF_Tools::ImportFromGLFT(
-	const FString& Filename, 
-	RPR::FContext Context,
-	RPR::FMaterialSystem MaterialSystem, 
-	RPRX::FContext RPRContext, 
-	RPR::FScene& OutScene)
+namespace RPR
 {
-	return rprImportFromGLTF(TCHAR_TO_ANSI(*Filename), Context, MaterialSystem, RPRContext, &OutScene);
-}
+	namespace GLTF
+	{
 
-RPR::FResult FRPR_GLTF_Tools::ExportToGLTF(
-	const FString& Filename, 
-	RPR::FContext Context, 
-	RPR::FMaterialSystem MaterialSystem, 
-	RPRX::FContext RPRContext, 
-	const TArray<RPR::FScene>& Scenes)
-{
-	return rprExportToGLTF(TCHAR_TO_ANSI(*Filename), Context, MaterialSystem, RPRContext, Scenes.GetData(), Scenes.Num());
-}
+		FStatus ImportFromGLFT(
+			const FString& Filename,
+			RPR::FContext Context,
+			RPR::FMaterialSystem MaterialSystem,
+			RPRX::FContext RPRContext,
+			RPR::FScene& OutScene)
+		{
+			return rprImportFromGLTF(TCHAR_TO_ANSI(*Filename), Context, MaterialSystem, RPRContext, &OutScene);
+		}
 
+		FStatus ExportToGLTF(
+			const FString& Filename,
+			RPR::FContext Context,
+			RPR::FMaterialSystem MaterialSystem,
+			RPRX::FContext RPRContext,
+			const TArray<RPR::FScene>& Scenes)
+		{
+			return rprExportToGLTF(TCHAR_TO_ANSI(*Filename), Context, MaterialSystem, RPRContext, Scenes.GetData(), Scenes.Num());
+		}
+
+		bool IsResultSuccess(FStatus status)
+		{
+			return (status == GLTF_SUCCESS);
+		}
+
+		bool IsResultFailed(FStatus status)
+		{
+			return (status != GLTF_SUCCESS);
+		}
+
+		FString GetStatusText(FStatus status)
+		{
+			switch (status)
+			{
+				case GLTF_SUCCESS:
+				return TEXT("Success");
+
+				case GLTF_ERROR_SAVE:
+				return TEXT("Error save");
+
+				case GLTF_ERROR_LOAD:
+				return TEXT("Error load");
+
+				case GLTF_ERROR_IMPORT:
+				return TEXT("Error import");
+
+				case GLTF_ERROR_EXPORT:
+				return TEXT("Error export");
+
+				default:
+				return TEXT("Unknown");
+			}
+		}
+
+		namespace Import
+		{
+			/*
+			* Generic way to list items (shapes, materials etc.) after a call to rprImportFromGLTF.
+			* Since it is the same steps for every type of item,
+			* we can use a template and pointer-to-function to not duplicate code
+			*/
+			template<typename ImportType>
+			RPR::GLTF::FStatus GLTF_Import(
+				TArray<ImportType>& OutItems, 
+				RPR::GLTF::FStatus (*RPRNativeImportFunction)(ImportType* /* Items */, int /* sizeBytes */, int * /* numberOfItems */)
+			)
+			{
+				OutItems.Empty();
+
+				RPR::GLTF::FStatus status;
+				int32 numItems = 0;
+				status = RPRNativeImportFunction(nullptr, 0, &numItems);
+
+				if (IsResultFailed(status))
+				{
+					return (status);
+				}
+
+				ImportType* items = new ImportType[numItems];
+				status = RPRNativeImportFunction(items, numItems * sizeof(ImportType), nullptr);
+
+				if (IsResultFailed(status))
+				{
+					delete[] items;
+					return (status);
+				}
+
+				OutItems.Reserve(numItems);
+				for (int32 i = 0; i < numItems; ++i)
+				{
+					OutItems.Add(items[i]);
+				}
+
+				delete[] items;
+				return (status);
+			}
+
+			RPR::GLTF::FStatus GetShapes(TArray<RPR::FShape>& OutShapes)
+			{
+				return GLTF_Import<RPR::FShape>(OutShapes, rprGLTF_ListImported_Shapes);
+			}
+
+			RPR::GLTF::FStatus GetLights(TArray<RPR::FLight>& OutLights)
+			{
+				return GLTF_Import<RPR::FLight>(OutLights, rprGLTF_ListImported_Lights);
+			}
+
+			RPR::GLTF::FStatus GetImages(TArray<RPR::FImage>& OutImages)
+			{
+				return GLTF_Import<RPR::FImage>(OutImages, rprGLTF_ListImported_Images);
+			}
+
+			RPR::GLTF::FStatus GetCameras(TArray<RPR::FCamera>& OutCameras)
+			{
+				return GLTF_Import<RPR::FCamera>(OutCameras, rprGLTF_ListImported_Cameras);
+			}
+
+			RPR::GLTF::FStatus GetMaterialX(TArray<RPRX::FMaterial>& OutMaterials)
+			{
+				return GLTF_Import<RPRX::FMaterial>(OutMaterials, rprGLTF_ListImported_MaterialX);
+			}
+
+		}
+
+	} // GLTF
+} // RPR

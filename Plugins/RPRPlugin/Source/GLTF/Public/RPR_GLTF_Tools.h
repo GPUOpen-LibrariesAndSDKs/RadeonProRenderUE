@@ -20,25 +20,42 @@
 #include "Typedefs/RPRTypedefs.h"
 #include "Typedefs/RPRXTypedefs.h"
 #include "RPR_GLTFModule.h"
+#include "ProRenderGLTF.h"
 
-class RPR_GLTF_API FRPR_GLTF_Tools
+namespace RPR
 {
-public:
+	namespace GLTF
+	{
+		using FStatus = gltf_status;
 
-	static RPR::FResult	ImportFromGLFT(
-		const FString& Filename, 
-		RPR::FContext Context, 
-		RPR::FMaterialSystem MaterialSystem, 
-		RPRX::FContext RPRContext, 
-		RPR::FScene& OutScene
-	);
+		RPR_GLTF_API RPR::FResult ImportFromGLFT(
+			const FString& Filename,
+			RPR::FContext Context,
+			RPR::FMaterialSystem MaterialSystem,
+			RPRX::FContext RPRContext,
+			RPR::FScene& OutScene
+		);
 
-	static RPR::FResult ExportToGLTF(
-		const FString& Filename, 
-		RPR::FContext Context,
-		RPR::FMaterialSystem MaterialSystem,
-		RPRX::FContext RPRContext,
-		const TArray<RPR::FScene>& Scenes
-	);
+		RPR_GLTF_API RPR::FResult ExportToGLTF(
+			const FString& Filename,
+			RPR::FContext Context,
+			RPR::FMaterialSystem MaterialSystem,
+			RPRX::FContext RPRContext,
+			const TArray<RPR::FScene>& Scenes
+		);
 
+		RPR_GLTF_API bool		IsResultSuccess(FStatus status);
+		RPR_GLTF_API bool		IsResultFailed(FStatus status);
+		RPR_GLTF_API FString	GetStatusText(FStatus status);
+
+		namespace Import
+		{
+			RPR_GLTF_API FStatus GetShapes(TArray<RPR::FShape>& OutShapes);
+			RPR_GLTF_API FStatus GetLights(TArray<RPR::FLight>& OutLights);
+			RPR_GLTF_API FStatus GetImages(TArray<RPR::FImage>& OutImages);
+			RPR_GLTF_API FStatus GetCameras(TArray<RPR::FCamera>& OutCameras);
+			RPR_GLTF_API FStatus GetMaterialX(TArray<RPRX::FMaterial>& OutMaterials);
+		}
+
+	}
 };

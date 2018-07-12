@@ -48,6 +48,12 @@
 #include "GLTF.h"
 
 #include "RPRGLTFImporterModule.h"
+#include "RPRCoreErrorHelper.h"
+#include "Typedefs/RPRTypedefs.h"
+#include "RPRCoreModule.h"
+#include "RPRCoreSystemResources.h"
+#include "RPR_GLTF_Tools.h"
+#include "Helpers/RPRHelpers.h"
 
 #define LOCTEXT_NAMESPACE "URPRGLTFImportFactory"
 
@@ -84,14 +90,33 @@ UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InPa
 {
     FEditorDelegates::OnAssetPreImport.Broadcast(this, InClass, InParent, InName, InParms);
 
-    // Parse the glTF json and load buffers
-    TSharedPtr<GLTF::FData> GLTFData = nullptr;
-    if (!LoadGLTFData(InFilename, GLTFData))
-    {
-        UE_LOG(LogRPRRPRGLTFImporter, Error, TEXT("URPRGLTFImportFactory::FactoryCreateFile: Failed to load glTF file '%s'."), *InFilename);
-        return nullptr;
-    }
+	RPR::GLTF::FStatus status;
+	RPR::FScene scene;
 
+	// Import data from gltf file into a RPR scene
+	auto rprResources = IRPRCore::GetResources();
+	status = RPR::GLTF::ImportFromGLFT(
+		InFilename,
+		rprResources->GetRPRContext(),
+		rprResources->GetMaterialSystem(),
+		rprResources->GetRPRXSupportContext(),
+		scene);
+
+	if (RPR::GLTF::IsResultFailed(status))
+	{
+		UE_LOG(LogRPRRPRGLTFImporter, 
+			Error, 
+			TEXT("URPRGLTFImportFactory::FactoryCreateFile: Failed to load glTF file '%s' (%s)."), 
+			*InFilename, *RPR::GLTF::GetStatusText(status)
+		);
+
+		FRPRCoreErrorHelper::LogLastError();
+		return (nullptr);
+	}
+
+
+	return (nullptr);
+#if 0
     // Create a new GLTFSettings object to keep track of options chosen in the ImportWindow
     UGLTFSettings* Settings = GetMutableDefault<UGLTFSettings>();
     // Note the export tool this file was created with
@@ -157,6 +182,7 @@ UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InPa
         FEditorDelegates::OnAssetPostImport.Broadcast(this, ImportedObject);
     }
     return ImportedObject;
+#endif
 }
 
 bool URPRGLTFImportFactory::LoadGLTFData(const FString& InFilename, TSharedPtr<GLTF::FData>& OutGLTFData)

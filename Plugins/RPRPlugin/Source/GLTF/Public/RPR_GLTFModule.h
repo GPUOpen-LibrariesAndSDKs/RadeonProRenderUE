@@ -29,4 +29,15 @@ public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 
+private:
+
+	FString GetDLLsDirectory();
+	void	PreloadDLLs(const TArray<FString>& DllNames);
+	void	UnloadDLLs();
+
+private:
+
+	using FDLLHandle = void*;
+	TArray<FDLLHandle>	dllHandles;
+
 };

@@ -37,7 +37,9 @@ namespace RPR
 	typedef rpr_scene			FScene;
 
 	typedef rpr_shape			FShape;
+	typedef rpr_light			FLight;
 	typedef rpr_image			FImage;
+	typedef rpr_camera			FCamera;
 	typedef rpr_image_format	FImageFormat;
 	typedef rpr_image_desc		FImageDesc;
 
