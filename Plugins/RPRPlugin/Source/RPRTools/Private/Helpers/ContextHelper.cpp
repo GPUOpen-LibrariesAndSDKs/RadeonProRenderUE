@@ -50,6 +50,11 @@ namespace RPR
 			return (rprContextClearMemory(Context));
 		}
 
+		FResult SetScene(FContext Context, FScene Scene)
+		{
+			return (rprContextSetScene(Context, Scene));
+		}
+
 		namespace Parameters
 		{
 			FResult Set1u(FContext Context, const FString& ParamName, uint32 Value)

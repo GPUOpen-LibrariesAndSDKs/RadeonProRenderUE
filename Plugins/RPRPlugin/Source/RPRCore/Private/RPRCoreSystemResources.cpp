@@ -318,8 +318,8 @@ void FRPRCoreSystemResources::Shutdown()
 	
 	DestroyRPRXMaterialLibrary();
 	DestroyRPRImageManager();
-	DestroyRPRXSupportContext();
 	DestroyMaterialSystem();
+	DestroyRPRXSupportContext();
 	DestroyRPRIContext();
 	DestroyRPRContext();
 

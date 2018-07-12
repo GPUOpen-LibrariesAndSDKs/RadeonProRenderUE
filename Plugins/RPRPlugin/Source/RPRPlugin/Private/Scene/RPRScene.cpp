@@ -398,14 +398,25 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 
 void	ARPRScene::InitializeRPRRendering()
 {
-	m_RenderTexture = m_Plugin->GetRenderTexture();
-
 	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
 	RPR::FResult result = RPR::Context::CreateScene(rprContext, m_RprScene);
 	if (RPR::IsResultFailed(result))
 	{
 		UE_LOG(LogRPRScene, Error, TEXT("Couldn't create RPR scene"));
+		return;
 	}
+
+	result = RPR::Context::SetScene(rprContext, m_RprScene);
+	if (RPR::IsResultFailed(result))
+	{
+		RPR::DeleteObject(m_RprScene);
+		m_RprScene = nullptr;
+
+		UE_LOG(LogRPRScene, Error, TEXT("Couldn't set scene to the context"));
+		return;
+	}
+
+	m_RenderTexture = m_Plugin->GetRenderTexture();
 }
 
 void	ARPRScene::Rebuild()
@@ -523,9 +534,8 @@ void	ARPRScene::OnSave()
 	static FString	kFileTypes = TEXT("Targa (*.TGA)|*.tga"
 		"|Windows Bitmap (*.BMP)|*.bmp"
 		"|PNG (*.PNG)|*.png"
-		"|JPG (*.JPG)|*.jpg"
 		"|FireRender Scene (*.FRS)|*.frs"
-		"|All files (*TGA;*.BMP;*.PNG;*.JPG;*.FRS)|*tga;*.bmp;*.png;*.jpg;*.frs");
+		"|All files (*TGA;*.BMP;*.PNG;*.FRS)|*tga;*.bmp;*.png;*.frs");
 
 	TArray<FString>		saveFilenames;
 	const bool	save = desktopPlatform->SaveFileDialog(
@@ -541,7 +551,7 @@ void	ARPRScene::OnSave()
 		return;
 	FString	saveFilename = FPaths::ChangeExtension(saveFilenames[0], FPaths::GetExtension(saveFilenames[0]).ToLower());
 	FString	extension = FPaths::GetExtension(saveFilename);
-	if (extension != "tga" && extension != "bmp" && extension != "png" && extension != "jpg" && extension != "frs")
+	if (extension != "tga" && extension != "bmp" && extension != "png" && extension != "frs")
 		return;
 
 	LastSavedExportPath = saveFilename;

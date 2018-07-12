@@ -45,6 +45,7 @@ namespace RPR
 		RPRTOOLS_API FResult		CreateScene(FContext Context, FScene& OutScene);
 		RPRTOOLS_API FResult		SetActivePlugin(FContext Context, FPluginId PluginId);
 		RPRTOOLS_API FResult		ClearMemory(FContext Context);
+		RPRTOOLS_API FResult		SetScene(FContext Context, FScene Scene);
 
 
 		namespace Parameters

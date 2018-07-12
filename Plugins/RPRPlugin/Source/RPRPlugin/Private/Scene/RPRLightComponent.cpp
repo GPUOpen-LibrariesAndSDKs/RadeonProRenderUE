@@ -33,6 +33,7 @@
 #include "RPRCoreModule.h"
 #include "RPRCoreSystemResources.h"
 #include "RPRCoreErrorHelper.h"
+#include "Engine/Scene.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRLightComponent, Log, All);
 
@@ -85,7 +86,7 @@ bool	URPRLightComponent::BuildIESLight(const UPointLightComponent *lightComponen
 	}
 	const FLinearColor	lightColor = lightComponent->bUseIESBrightness ?
 		FLinearColor(lightComponent->LightColor) * lightComponent->IESBrightnessScale :
-		BuildRPRLightColor(lightComponent, lightComponent->bUseInverseSquaredFalloff);
+		BuildRPRLightColor(lightComponent, lightComponent->IntensityUnits == ELightUnits::Lumens);
 
 	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
 	if (rprContextCreateIESLight(rprContext, &m_RprLight) != RPR_SUCCESS ||
@@ -113,7 +114,7 @@ bool	URPRLightComponent::BuildPointLight(const UPointLightComponent *pointLightC
 {
 	if (pointLightComponent->IESTexture != NULL)
 		return BuildIESLight(pointLightComponent);
-	const FLinearColor	lightColor = BuildRPRLightColor(pointLightComponent, pointLightComponent->bUseInverseSquaredFalloff);
+	const FLinearColor	lightColor = BuildRPRLightColor(pointLightComponent, pointLightComponent->IntensityUnits == ELightUnits::Lumens);
 	
 	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
 	if (rprContextCreatePointLight(rprContext, &m_RprLight) != RPR_SUCCESS ||
@@ -132,7 +133,7 @@ bool	URPRLightComponent::BuildSpotLight(const USpotLightComponent *spotLightComp
 {
 	if (spotLightComponent->IESTexture != NULL)
 		return BuildIESLight(spotLightComponent);
-	const FLinearColor	lightColor = BuildRPRLightColor(spotLightComponent, spotLightComponent->bUseInverseSquaredFalloff);
+	const FLinearColor	lightColor = BuildRPRLightColor(spotLightComponent, spotLightComponent->IntensityUnits == ELightUnits::Lumens);
 	
 	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
 	if (rprContextCreateSpotLight(rprContext, &m_RprLight) != RPR_SUCCESS ||
@@ -359,7 +360,7 @@ bool	URPRLightComponent::RPRThread_Update()
 		case	ERPRLightType::Point:
 		{
 			check(pointLightComponent != NULL);
-			const FLinearColor	lightColor = BuildRPRLightColor(pointLightComponent, pointLightComponent->bUseInverseSquaredFalloff);
+			const FLinearColor	lightColor = BuildRPRLightColor(pointLightComponent, pointLightComponent->IntensityUnits == ELightUnits::Lumens);
 
 			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set point light color", PROPERTY_REBUILD_LIGHT_COLOR, rprPointLightSetRadiantPower3f, m_RprLight, lightColor.R, lightColor.G, lightColor.B);
 			break;
@@ -367,7 +368,7 @@ bool	URPRLightComponent::RPRThread_Update()
 		case	ERPRLightType::Spot:
 		{
 			check(spotLightComponent != NULL);
-			const FLinearColor	lightColor = BuildRPRLightColor(spotLightComponent, spotLightComponent->bUseInverseSquaredFalloff);
+			const FLinearColor	lightColor = BuildRPRLightColor(spotLightComponent, spotLightComponent->IntensityUnits == ELightUnits::Lumens);
 
 			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set spot light color", PROPERTY_REBUILD_LIGHT_COLOR, rprSpotLightSetRadiantPower3f, m_RprLight, lightColor.R, lightColor.G, lightColor.B);
 			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set spot light cone angles", PROPERTY_REBUILD_SPOT_LIGHT_ANGLES, rprSpotLightSetConeShape, m_RprLight, FMath::DegreesToRadians(m_CachedConeAngles.X), FMath::DegreesToRadians(m_CachedConeAngles.Y));
@@ -396,7 +397,7 @@ bool	URPRLightComponent::RPRThread_Update()
 		case	ERPRLightType::IES:
 		{
 			check(pointLightComponent != NULL);
-			const FLinearColor	lightColor = BuildRPRLightColor(pointLightComponent, pointLightComponent->bUseInverseSquaredFalloff);
+			const FLinearColor	lightColor = BuildRPRLightColor(pointLightComponent, pointLightComponent->IntensityUnits == ELightUnits::Lumens);
 
 			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set IES light color", PROPERTY_REBUILD_LIGHT_COLOR, rprIESLightSetRadiantPower3f, m_RprLight, lightColor.R, lightColor.G, lightColor.B);
 			break;
