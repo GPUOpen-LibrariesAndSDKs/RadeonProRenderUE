@@ -16,39 +16,25 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#pragma once
 
-#include "Containers/UnrealString.h"
-#include "Typedefs/RPRTypedefs.h"
-#include "Helpers/RPRHelpers.h"
-#include "Enums/RPREnums.h"
-#include "ImageManager/RPRImageManager.h"
+#include "RPRPluginVersionModule.h"
+#include "RPRPluginVersion.h"
 
-namespace RPR
+DEFINE_LOG_CATEGORY(LogRPRPluginVersion)
+
+void FRPRPluginVersionModule::StartupModule()
 {
-	/*
-	* Interface between the RPR material native functions and UE4
-	*/
-	class FMaterialHelpers
-	{
-	public:
+	UE_LOG(LogRPRPluginVersion, Log,
+		TEXT("RPR Plugin Version (%d.%d - Build %d:%s)"),
+		RPR_PLUGIN_MAJOR_VERSION,
+		RPR_PLUGIN_MINOR_VERSION,
+		RPR_PLUGIN_BUILD_VERSION,
+		RPR_PLUGIN_BUILD_GUID);
+}
 
-		static const TCHAR*	ImageDataInputName;
-
-		static FResult	CreateNode(FMaterialSystem MaterialSystem, EMaterialNodeType NodeType, FMaterialNode& OutMaterialNode);
-		static FResult	DeleteNode(FMaterialNode& MaterialNode);
-
-		static FResult	CreateImageNode(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
-													UTexture2D* Texture, FMaterialNode& MaterialNode);
-
-		class FMaterialNode
-		{
-		public:
-
-			static FResult	SetInputF(RPR::FMaterialNode MaterialNode, const FString& ParameterName, float x, float y, float z, float w);
-
-		};
-	};
-
+void FRPRPluginVersionModule::ShutdownModule()
+{
 
 }
+
+IMPLEMENT_MODULE(FRPRPluginVersionModule, RPRPluginVersion)

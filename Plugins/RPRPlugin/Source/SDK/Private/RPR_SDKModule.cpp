@@ -20,6 +20,9 @@
 #include "RPR_SDKModule.h"
 #include "HAL/PlatformProcess.h"
 #include "Misc/Paths.h"
+#include "RadeonProRender.h"
+
+DECLARE_LOG_CATEGORY_CLASS(LogRPRSDK, Log, All)
 
 FString FRPR_SDKModule::GetDLLsDirectory()
 {
@@ -29,6 +32,8 @@ FString FRPR_SDKModule::GetDLLsDirectory()
 
 void FRPR_SDKModule::StartupModule()
 {
+	UE_LOG(LogRPRSDK, Log, TEXT("RPR Api Version : %x"), RPR_API_VERSION);
+
 	TArray<FString> dllNames;
 	dllNames.Add(TEXT("Tahoe64.dll"));
 	dllNames.Add(TEXT("RadeonProRender64.dll"));

@@ -38,8 +38,8 @@
 
 #include "RPRGLTFImporterModule.h"
 #include "RPRMaterialGraphSerializationContext.h"
-#include "RPRMaterialFactory.h"
-#include "RPRMaterial.h"
+#include "Assets/Factories/RPRMaterialFactory.h"
+#include "Assets/RPRMaterial.h"
 
 #define LOCTEXT_NAMESPACE "UGLTFMaterialTranslationFactoryRPR"
 

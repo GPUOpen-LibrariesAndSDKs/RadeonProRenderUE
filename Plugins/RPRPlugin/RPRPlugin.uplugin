@@ -13,7 +13,19 @@
 	"CanContainContent": true,
 	"IsBetaVersion": true,
 	"Installed": false,
+	"PreBuildSteps":
+	{
+		"Win64": [
+			"echo Pre build step...",
+			"if exist \"$(PluginDir)\\Build\\$(TargetPlatform)\\UpdateBuildVersion.exe\" (\"$(PluginDir)\\Build\\$(TargetPlatform)\\UpdateBuildVersion.exe\" \"$(PluginDir)\\Source\\RPRPluginVersion\\Public\\RPRPluginVersion.h\")"
+		]
+	},
 	"Modules": [
+		{
+			"Name": "RPRPluginVersion",
+			"Type": "Runtime",
+			"LoadingPhase": "PostConfigInit"
+		},
 		{
 			"Name": "RPRCompatibility",
 			"Type": "Runtime",

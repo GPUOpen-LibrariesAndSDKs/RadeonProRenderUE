@@ -53,7 +53,7 @@
 #include "RenderingThread.h"
 #include "RPR_SDKModule.h"
 #include "Components/StaticMeshComponent.h"
-#include "ContextHelper.h"
+#include "Helpers/ContextHelper.h"
 #include "RPRCoreModule.h"
 
 #define LOCTEXT_NAMESPACE "ARPRScene"

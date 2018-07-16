@@ -16,39 +16,17 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
+
 #pragma once
 
-#include "Containers/UnrealString.h"
-#include "Typedefs/RPRTypedefs.h"
-#include "Helpers/RPRHelpers.h"
-#include "Enums/RPREnums.h"
-#include "ImageManager/RPRImageManager.h"
+#include "CoreMinimal.h"
+#include "Modules/ModuleManager.h"
 
-namespace RPR
+DECLARE_LOG_CATEGORY_EXTERN(LogRPRPluginVersion, All, All);
+
+class FRPRPluginVersionModule : public IModuleInterface
 {
-	/*
-	* Interface between the RPR material native functions and UE4
-	*/
-	class FMaterialHelpers
-	{
-	public:
-
-		static const TCHAR*	ImageDataInputName;
-
-		static FResult	CreateNode(FMaterialSystem MaterialSystem, EMaterialNodeType NodeType, FMaterialNode& OutMaterialNode);
-		static FResult	DeleteNode(FMaterialNode& MaterialNode);
-
-		static FResult	CreateImageNode(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
-													UTexture2D* Texture, FMaterialNode& MaterialNode);
-
-		class FMaterialNode
-		{
-		public:
-
-			static FResult	SetInputF(RPR::FMaterialNode MaterialNode, const FString& ParameterName, float x, float y, float z, float w);
-
-		};
-	};
-
-
-}
+public:
+	virtual void	StartupModule() override;
+	virtual void	ShutdownModule() override;
+};

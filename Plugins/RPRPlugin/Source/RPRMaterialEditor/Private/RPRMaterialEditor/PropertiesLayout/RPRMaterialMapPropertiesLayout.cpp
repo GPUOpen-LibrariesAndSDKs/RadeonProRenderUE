@@ -22,7 +22,7 @@
 #include "Widgets/SBoxPanel.h"
 #include "Material/UberMaterialParameters/RPRMaterialMap.h"
 #include "Widgets/Input/SButton.h"
-#include "RPRImageManager.h"
+#include "ImageManager/RPRImageManager.h"
 #include "Helpers/RPRConstAway.h"
 
 #define LOCTEXT_NAMESPACE "RPRMaterialMapPropertiesLayout"

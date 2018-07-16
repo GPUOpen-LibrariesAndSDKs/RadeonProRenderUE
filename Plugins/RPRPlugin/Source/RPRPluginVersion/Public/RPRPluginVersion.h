@@ -18,37 +18,10 @@
 ********************************************************************/
 #pragma once
 
-#include "Containers/UnrealString.h"
-#include "Typedefs/RPRTypedefs.h"
-#include "Helpers/RPRHelpers.h"
-#include "Enums/RPREnums.h"
-#include "ImageManager/RPRImageManager.h"
+/* Set by RPRPluginVersion.Build.cs */
 
-namespace RPR
-{
-	/*
-	* Interface between the RPR material native functions and UE4
-	*/
-	class FMaterialHelpers
-	{
-	public:
+#define RPR_PLUGIN_MAJOR_VERSION 0
+#define RPR_PLUGIN_MINOR_VERSION 7
 
-		static const TCHAR*	ImageDataInputName;
-
-		static FResult	CreateNode(FMaterialSystem MaterialSystem, EMaterialNodeType NodeType, FMaterialNode& OutMaterialNode);
-		static FResult	DeleteNode(FMaterialNode& MaterialNode);
-
-		static FResult	CreateImageNode(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
-													UTexture2D* Texture, FMaterialNode& MaterialNode);
-
-		class FMaterialNode
-		{
-		public:
-
-			static FResult	SetInputF(RPR::FMaterialNode MaterialNode, const FString& ParameterName, float x, float y, float z, float w);
-
-		};
-	};
-
-
-}
+#define RPR_PLUGIN_BUILD_VERSION 15
+#define RPR_PLUGIN_BUILD_GUID TEXT("2ed90673-adbc-4aa2-8900-adea2acb3ecc")
