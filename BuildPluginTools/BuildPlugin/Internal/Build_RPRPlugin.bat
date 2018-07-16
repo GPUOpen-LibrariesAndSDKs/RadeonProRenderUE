@@ -45,11 +45,16 @@ echo.
 echo == Start Build %2... ==
 echo.
 echo Use UnrealEngine UE4_PATH environment variable : %1
-set OutputPath=%CD%\PluginStaging\UE4_%2\%Mode%\RPRPlugin
+set OutputPath=%CD%\Stage\UE4_%2\%Mode%\RPRPlugin
 CALL %1\Engine\Build\BatchFiles\RunUAT.bat BuildPlugin -Plugin="%CD%\..\..\Plugins\RPRPlugin\RPRPlugin.uplugin" -nop4 -utf8output -pak -compile -package="%OutputPath%" -Rocket -TargetPlatforms=Win64 %UATArgs%
 echo.
 echo == Build completed ==
 echo.
+goto :Clean
+
+:Clean
+del /f /s /q "%OutputPath%\Intermediate" 1>nul
+rmdir /s /q "%OutputPath%\Intermediate"
 goto :PostBuild
 
 :PostBuild

@@ -16,9 +16,10 @@
 	"PreBuildSteps":
 	{
 		"Win64": [
-			
+			"echo Pre build step...",
+			"if exist \"$(PluginDir)\\Build\\$(TargetPlatform)\\UpdateBuildVersion.exe\" (\"$(PluginDir)\\Build\\$(TargetPlatform)\\UpdateBuildVersion.exe\" \"$(PluginDir)\\Source\\RPRPluginVersion\\Public\\RPRPluginVersion.h\")"
 		]
-	}
+	},
 	"Modules": [
 		{
 			"Name": "RPRPluginVersion",

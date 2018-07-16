@@ -32,8 +32,6 @@ public class RPRPluginVersion : ModuleRules
 
     private const string RPRPluginMajorVersionDefName = "RPR_PLUGIN_MAJOR_VERSION";
     private const string RPRPluginMinorVersionDefName = "RPR_PLUGIN_MINOR_VERSION";
-    private const string RPRPluginBuildVersionDefName = "RPR_PLUGIN_BUILD_VERSION";
-    private const string RPRPluginBuildGUIDDefName = "RPR_PLUGIN_BUILD_GUID";
 
     // Assure to do this step only one time during a build
     // since the constructor of RPRPluginVersion can be called multiple times
@@ -68,9 +66,6 @@ public class RPRPluginVersion : ModuleRules
     {
         string versionFilePath = Path.Combine(ModuleDirectory, "Public", "RPRPluginVersion.h");
 
-        int buildVersion = -1;
-        string buildGuid = "Unknown";
-
         string[] lines = File.ReadAllLines(versionFilePath);
         for (int i = 0; i < lines.Length; ++i)
         {
@@ -79,23 +74,11 @@ public class RPRPluginVersion : ModuleRules
             SetValueIfValidLine(ref line, RPRPluginMajorVersionDefName, (Value) => { return RPRPluginVersion_Major.ToString(); });
             SetValueIfValidLine(ref line, RPRPluginMinorVersionDefName, (Value) => { return RPRPluginVersion_Minor.ToString(); });
 
-            SetValueIfValidLine(ref line, RPRPluginBuildVersionDefName, (Value) => 
-            {
-                buildVersion = int.Parse(Value) + 1;
-                return buildVersion.ToString();
-            });
-
-            SetValueIfValidLine(ref line, RPRPluginBuildGUIDDefName,    (Value) => 
-            {
-                buildGuid = Guid.NewGuid().ToString();
-                return EscapeText(buildGuid);
-            });
-
             lines[i] = line;
         }
         File.WriteAllLines(versionFilePath, lines);
 
-        Console.WriteLine("RPR Plugin Version ({0}.{1} - Build {2}:{3})", RPRPluginVersion_Major, RPRPluginVersion_Minor, buildVersion, buildGuid);
+        Console.WriteLine("RPR Plugin Version {0}.{1}", RPRPluginVersion_Major, RPRPluginVersion_Minor);
     }
 
     private bool SetValueIfValidLine(ref string Line, string ExpectedDefName, Func<string, string> SetValue)
