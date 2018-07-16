@@ -26,6 +26,7 @@
 #include "Assets/RPRMaterial.h"
 #include "RPRCoreModule.h"
 #include "RPRCoreSystemResources.h"
+#include "RPRCoreErrorHelper.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRMaterialLibrary, Log, All)
 

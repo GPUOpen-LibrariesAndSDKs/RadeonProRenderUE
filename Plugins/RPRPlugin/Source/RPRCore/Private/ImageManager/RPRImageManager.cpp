@@ -16,7 +16,7 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "RPRImageManager.h"
+#include "ImageManager/RPRImageManager.h"
 #include "Engine/TextureCube.h"
 #include "CubemapUnwrapUtils.h"
 #include "Helpers/RPRHelpers.h"

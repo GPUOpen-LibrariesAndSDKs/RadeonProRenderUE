@@ -21,6 +21,7 @@
 #include "Helpers/RPRHelpers.h"
 #include "Helpers/RPRXHelpers.h"
 #include "RPRSettings.h"
+#include "RPRCoreErrorHelper.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRCoreSystemResources, Log, All)
 

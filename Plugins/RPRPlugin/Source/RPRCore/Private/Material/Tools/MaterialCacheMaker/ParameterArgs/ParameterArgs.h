@@ -22,7 +22,7 @@
 #include "Containers/UnrealString.h"
 #include "Typedefs/RPRTypedefs.h"
 #include "Material/MaterialContext.h"
-#include "RPRImageManager.h"
+#include "ImageManager/RPRImageManager.h"
 
 namespace RPRX
 {

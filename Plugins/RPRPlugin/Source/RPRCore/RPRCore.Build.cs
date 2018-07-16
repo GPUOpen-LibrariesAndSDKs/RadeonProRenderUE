@@ -24,6 +24,7 @@ namespace UnrealBuildTool.Rules
 		public RPRCore(ReadOnlyTargetRules Target) : base(Target)
 		{
             PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+            bEnableExceptions = true;
 
             PrivateIncludePaths.AddRange(
 				new string[] {

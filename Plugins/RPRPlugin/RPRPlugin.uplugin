@@ -13,7 +13,18 @@
 	"CanContainContent": true,
 	"IsBetaVersion": true,
 	"Installed": false,
+	"PreBuildSteps":
+	{
+		"Win64": [
+			
+		]
+	}
 	"Modules": [
+		{
+			"Name": "RPRPluginVersion",
+			"Type": "Runtime",
+			"LoadingPhase": "PostConfigInit"
+		},
 		{
 			"Name": "RPRCompatibility",
 			"Type": "Runtime",

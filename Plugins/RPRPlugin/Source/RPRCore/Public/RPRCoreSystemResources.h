@@ -20,7 +20,7 @@
 #include "Typedefs/RPRTypedefs.h"
 #include "Typedefs/RPRXTypedefs.h"
 #include "Typedefs/RPRITypedefs.h"
-#include "RPRMaterialLibrary.h"
+#include "Material/RPRMaterialLibrary.h"
 #include "ImageManager/RPRImageManager.h"
 #include "Material/RPRMaterialLibrary.h"
 #include "RprTools.h"

@@ -22,11 +22,11 @@
 #include "Assets/RPRMaterial.h"
 #include "Material/MaterialContext.h"
 #include "Containers/Map.h"
-#include "RPRImageManager.h"
+#include "ImageManager/RPRImageManager.h"
 #include "HAL/CriticalSection.h"
 #include "Helpers/IObjectScopedLockable.h"
 #include "Helpers/RPRIHelpers.h"
-#include "ObjectScopedLocked.h"
+#include "Helpers/ObjectScopedLocked.h"
 
 /*
 * Library of RPR materials.
