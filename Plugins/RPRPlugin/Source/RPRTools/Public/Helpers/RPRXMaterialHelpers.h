@@ -54,11 +54,16 @@ namespace RPRX
 
 		static RPR::FResult GetMaterialParameterType(FContext Context, FMaterial Material, FParameter Parameter, FParameterType& OutParameterType);
 
+		template<typename T>
+		static RPR::FResult	GetMaterialParameterValue(FContext Context, FMaterial Material, FParameter Parameter, T& OutValue)
+		{
+			return rprxMaterialGetParameterValue(Context, Material, Parameter, &OutValue);
+		}
+
 	private:
 		
 		static void			CheckParameterType(FContext Context, FMaterial Material, FParameter Parameter, FParameterType ExpectedParameterType);
 
 	};
-
 
 }

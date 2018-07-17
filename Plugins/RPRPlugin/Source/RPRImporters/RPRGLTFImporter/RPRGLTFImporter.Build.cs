@@ -29,14 +29,13 @@ public class RPRGLTFImporter : ModuleRules
         PrivateIncludePaths.AddRange(
             new string[] {
                 "RPRImporters/RPRGLTFImporter/Private",
-                "RPRImporters/RPRGLTFImporter/Private/MaterialGraph",
-                "RPRImporters/RPRGLTFImporter/Private/MaterialGraph/NodeParamTypes",
         });
 
         PublicDependencyModuleNames.AddRange(
             new string[] {
                 "Core",
                 "RPRCore",
+                "RPR_SDK",
                 "RPR_GLTF",
                 "RPRGraphParser",
                 "RPRPlugin",
@@ -62,16 +61,15 @@ public class RPRGLTFImporter : ModuleRules
                 "RPRMaterialEditor"
         });
 		
-		string PluginDir = Path.GetFullPath(Path.Combine(ModuleDirectory, "..", "..", ".."));
-		string ThirdPartyDir = Path.Combine(PluginDir, "ThirdParty");
-		string SDKDir = Path.Combine(ThirdPartyDir, "ProRenderSDK");
+		//string PluginDir = Path.GetFullPath(Path.Combine(ModuleDirectory, "..", "..", ".."));
+		//string ThirdPartyDir = Path.Combine(PluginDir, "ThirdParty");
+		//string SDKDir = Path.Combine(ThirdPartyDir, "ProRenderSDK");
 		
-		PublicIncludePaths.AddRange(
-			new string[] {
-				Path.Combine(SDKDir, "RadeonProRender", "inc"),
-		});
-		
+		//PublicIncludePaths.AddRange(
+		//	new string[] {
+		//		Path.Combine(SDKDir, "RadeonProRender", "inc"),
+		//});		
 
-        MinFilesUsingPrecompiledHeaderOverride = 1;
+        //MinFilesUsingPrecompiledHeaderOverride = 1;
     }
 }

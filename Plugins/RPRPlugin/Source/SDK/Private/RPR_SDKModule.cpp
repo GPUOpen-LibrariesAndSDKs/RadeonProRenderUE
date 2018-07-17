@@ -57,7 +57,8 @@ void FRPR_SDKModule::PreloadDLLs(const TArray<FString>& DllNames)
 		for (int32 i = 0; i < DllNames.Num(); ++i)
 		{
 			FDLLHandle handle = FPlatformProcess::GetDllHandle(*DllNames[i]);
-			checkf(handle, TEXT("Cannot load dll '%s'!"), *DllNames[i]);
+			checkf(handle, TEXT("Cannot load dll '%s'! Check if the file exists at : '%s'"), 
+				*DllNames[i], *FPaths::Combine(dllDirectory, DllNames[i]));
 
 			dllHandles.Add(handle);
 		}
