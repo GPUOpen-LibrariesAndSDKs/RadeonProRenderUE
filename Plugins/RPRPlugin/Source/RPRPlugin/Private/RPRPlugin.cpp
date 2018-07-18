@@ -372,6 +372,12 @@ void	FRPRPluginModule::StartupModule()
 	if (m_Loaded)
 		return;
 
+	if (!FRPR_SDKModule::IsSDKLoadValid())
+	{
+		m_Loaded = false;
+		return;
+	}
+
 	m_Loaded = true;
 
 	// This one for PIE world creation
@@ -425,6 +431,9 @@ void	FRPRPluginModule::StartupModule()
 
 void	FRPRPluginModule::ShutdownModule()
 {
+	if (!m_Loaded)
+		return;
+
 #if WITH_EDITOR
 	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(TEXT("RPRViewport"));
 

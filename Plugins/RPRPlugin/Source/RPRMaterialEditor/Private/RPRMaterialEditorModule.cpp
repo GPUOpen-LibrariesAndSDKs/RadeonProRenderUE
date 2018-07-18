@@ -28,6 +28,7 @@
 #include "RPRMaterialEditor/PropertiesLayout/RPRMaterialCoMPropertiesLayout.h"
 #include "RPRMaterialEditor/PropertiesLayout/RPRMaterialMapChannel1PropertiesLayout.h"
 #include "RPRMaterialEditor/PropertiesLayout/RPRMaterialMapPropertiesLayout.h"
+#include "RPR_SDKModule.h"
 
 DEFINE_LOG_CATEGORY(LogRPRMaterialEditor)
 
@@ -37,12 +38,19 @@ DEFINE_LOG_CATEGORY(LogRPRMaterialEditor)
 
 void FRPRMaterialEditorModule::StartupModule()
 {
+	check(FRPR_SDKModule::IsLoaded());
+	if (!FRPR_SDKModule::IsSDKLoadValid())
+		return;
+
 	RegisterAssetTypeActions();
 	RegisterCustomPropertyLayouts();
 }
 
 void FRPRMaterialEditorModule::ShutdownModule()
 {
+	if (!FRPR_SDKModule::IsSDKLoadValid())
+		return;
+
 	UnregisterAllAssetTypeActions();
 }
 

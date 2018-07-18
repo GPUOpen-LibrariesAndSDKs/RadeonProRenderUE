@@ -29,7 +29,7 @@ namespace RPR
 	/*
 	* Interface between the RPR material native functions and UE4
 	*/
-	class FMaterialHelpers
+	class RPRCORE_API FMaterialHelpers
 	{
 	public:
 

@@ -67,6 +67,7 @@ public class RPR_SDK : ModuleRules
             new string[]
             {
                  "Core",
+                 "RPRPluginVersion"
             });
         
         AddRPRIncludes(PublicIncludePaths);

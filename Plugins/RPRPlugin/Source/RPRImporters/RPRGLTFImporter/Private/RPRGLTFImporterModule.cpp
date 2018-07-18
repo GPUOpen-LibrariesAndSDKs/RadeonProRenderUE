@@ -19,8 +19,9 @@
 
 #include "RPRGLTFImporterModule.h"
 #include "GLTF.h"
+#include "Logging/LogMacros.h"
 
-DEFINE_LOG_CATEGORY(LogRPRRPRGLTFImporter);
+DEFINE_LOG_CATEGORY(LogRPRGLTFImporter);
 
 bool FRPRGLTFImporterModule::GetGLTF(FGLTFPtr& OutGLTF)
 {

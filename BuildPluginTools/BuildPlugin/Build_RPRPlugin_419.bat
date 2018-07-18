@@ -1,1 +1,1 @@
-Internal\Build_RPRPlugin.bat 4.19
+call Internal\Build_RPRPlugin.bat 4.19

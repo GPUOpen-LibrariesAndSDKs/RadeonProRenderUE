@@ -21,23 +21,25 @@
 
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
+#include "RPRDynamicLibraryLoader.h"
 
-class FRPR_SDKModule : public IModuleInterface
+class RPR_SDK_API FRPR_SDKModule : public IModuleInterface
 {
 public:
+
+	FRPR_SDKModule();
+
 	virtual void	StartupModule() override;
 	virtual void	ShutdownModule() override;
 	
-	static RPR_SDK_API FString	GetDLLsDirectory();
+	static FString	GetDLLsDirectory();
+
+	static bool		IsSDKLoadValid();
+	static bool		IsLoaded();
 
 private:
 
-	void	PreloadDLLs(const TArray<FString>& DllNames);
-	void	UnloadDLLs();
-
-private:
-
-	using FDLLHandle = void*;
-	TArray<FDLLHandle>		dllHandles;
+	TArray<FRPRDynamicLibraryLoader::FDLLHandle> dllHandles;
+	bool	bIsSDKLoadValid;
 
 };

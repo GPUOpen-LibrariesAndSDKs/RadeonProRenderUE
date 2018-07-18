@@ -19,6 +19,7 @@
 #pragma once
 
 #include "RprSupport.h"
+#include "Typedefs/RPRXTypedefs.h"
 
 namespace RPRX
 {
@@ -30,4 +31,10 @@ namespace RPRX
 		Carpaint		= RPRX_MATERIAL_CARPAINT
 	};
 
+	enum class EMaterialParameterType : RPRX::FParameterType
+	{
+		Float4 = RPRX_PARAMETER_TYPE_FLOAT4,
+		UInt = RPRX_PARAMETER_TYPE_UINT,
+		Node = RPRX_PARAMETER_TYPE_NODE
+	};
 }

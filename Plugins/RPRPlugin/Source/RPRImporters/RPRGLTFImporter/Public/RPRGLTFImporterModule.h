@@ -22,7 +22,7 @@
 #include "Modules/ModuleManager.h"
 #include "Templates/SharedPointer.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(LogRPRRPRGLTFImporter, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogRPRGLTFImporter, Log, All);
 
 //~ Forward declares
 typedef TSharedPtr<struct FGLTF> FGLTFPtr;

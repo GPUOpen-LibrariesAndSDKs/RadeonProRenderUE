@@ -97,7 +97,7 @@ namespace RPR
 				int32 numItems = 0;
 				status = RPRNativeImportFunction(nullptr, 0, &numItems);
 
-				if (IsResultFailed(status))
+				if (IsResultFailed(status) || numItems == 0)
 				{
 					return (status);
 				}

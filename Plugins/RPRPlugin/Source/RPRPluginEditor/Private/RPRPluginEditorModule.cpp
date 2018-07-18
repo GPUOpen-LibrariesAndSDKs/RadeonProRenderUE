@@ -17,6 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 #include "RPRPluginEditorModule.h"
+#include "RPR_SDKModule.h"
 
 DEFINE_LOG_CATEGORY(LogRPRPluginEditor)
 
@@ -24,11 +25,18 @@ DEFINE_LOG_CATEGORY(LogRPRPluginEditor)
 
 void FRPRPluginEditorModule::StartupModule()
 {
+	check(FRPR_SDKModule::IsLoaded());
+	if (!FRPR_SDKModule::IsSDKLoadValid())
+		return;
+
 	RPRStaticMeshEditorAssetContextMenu.Startup();
 }
 
 void FRPRPluginEditorModule::ShutdownModule()
 {
+	if (!FRPR_SDKModule::IsSDKLoadValid())
+		return;
+
 	RPRStaticMeshEditorAssetContextMenu.Shutdown();
 }
 

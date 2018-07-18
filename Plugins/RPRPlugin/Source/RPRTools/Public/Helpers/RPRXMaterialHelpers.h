@@ -53,6 +53,7 @@ namespace RPRX
 												FParameter Parameter, const FLinearColor& Color);
 
 		static RPR::FResult GetMaterialParameterType(FContext Context, FMaterial Material, FParameter Parameter, FParameterType& OutParameterType);
+		static RPR::FResult GetMaterialParameterType(FContext Context, FMaterial Material, FParameter Parameter, EMaterialParameterType& OutParameterType);
 
 		template<typename T>
 		static RPR::FResult	GetMaterialParameterValue(FContext Context, FMaterial Material, FParameter Parameter, T& OutValue)

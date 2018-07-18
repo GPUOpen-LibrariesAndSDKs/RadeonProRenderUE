@@ -69,6 +69,14 @@ namespace RPRX
 		return rprxMaterialGetParameterType(Context, Material, Parameter, &OutParameterType);
 	}
 
+	RPR::FResult FMaterialHelpers::GetMaterialParameterType(FContext Context, FMaterial Material, FParameter Parameter, EMaterialParameterType& OutParameterType)
+	{
+		FParameterType parameterType;
+		RPR::FResult status = GetMaterialParameterType(Context, Material, Parameter, parameterType);
+		OutParameterType = (EMaterialParameterType) parameterType;
+		return (status);
+	}
+
 	void FMaterialHelpers::CheckParameterType(FContext Context, FMaterial Material, FParameter Parameter, FParameterType ExpectedParameterType)
 	{
 		FParameterType parameterType;

@@ -24,9 +24,26 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRPRPluginVersion, All, All);
 
-class FRPRPluginVersionModule : public IModuleInterface
+class RPRPLUGINVERSION_API FRPRPluginVersionModule : public IModuleInterface
 {
 public:
 	virtual void	StartupModule() override;
 	virtual void	ShutdownModule() override;
+
+	static FRPRPluginVersionModule&	Get();
+	static bool		IsLoaded();
+
+	static const FString&	GetRPRPluginPath();
+	static bool				IsPluginSetupValid();
+
+private:
+
+	void	DumpPluginVersion();
+	void	CachePluginPath();
+
+private:
+
+	FString	RPRPluginPath;
+	bool	bIsPluginSetupValid;
+
 };

@@ -68,6 +68,7 @@ public class RPR_GLTF : ModuleRules
             new string[]
             {
                 "Core",
+                "RPRPluginVersion",
                 "RPRTools",
                 "RPR_SDK",
                 "RPR_Json",

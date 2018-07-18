@@ -46,7 +46,10 @@ class URPRGLTFImportFactory : public UFactory
 private:
 
 	bool			ImportMaterials(TArray<URPRMaterial*>& OutMaterials);
-	URPRMaterial*	ImportMaterial(const RPRX::FMaterial& NativeRPRMaterial);
+	URPRMaterial*	ImportMaterial(RPRX::FMaterial NativeRPRMaterial);
+
+	template<typename TSetter>
+	void			SetMaterialParameter(RPRX::FMaterial NativeRPRMaterial, FRPRUberMaterialParameterBase* UberParameter, RPRX::FParameter Parameter);
 
 private:
 
@@ -55,3 +58,12 @@ private:
 	FString			Filename;
 
 };
+
+template<typename TSetter>
+void URPRGLTFImportFactory::SetMaterialParameter(RPRX::FMaterial NativeRPRMaterial, FRPRUberMaterialParameterBase* UberParameter, RPRX::FParameter Parameter)
+{
+	/*RPR::GLTF::Importer::IRPRMaterialParameterSetter* diffuseColorSetter = new RPR::GLTF::Importer::FRPRMaterialMapSetter();
+	diffuseColorSetter->Set(NativeRPRMaterial, &UberParameter.Diffuse_Color, RPRX_UBER_MATERIAL_DIFFUSE_COLOR);
+
+	delete diffuseColorSetter;*/
+}

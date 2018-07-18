@@ -1,1 +1,1 @@
-Internal\Build_RPRPlugin.bat 4.20 -debug
+call Internal\Build_RPRPlugin.bat 4.20 -debug

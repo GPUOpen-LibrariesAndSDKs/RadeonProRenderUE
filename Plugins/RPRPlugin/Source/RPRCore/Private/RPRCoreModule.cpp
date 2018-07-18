@@ -3,6 +3,7 @@
 #include "RPRCoreModule.h"
 #include "Modules/ModuleManager.h"
 #include "RPRCoreSystemResources.h"
+#include "RPR_SDKModule.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRCoreModule, Log, All)
 
@@ -37,19 +38,26 @@ IRPRCore* IRPRCore::RPRCoreModuleInstance(nullptr);
 
 void FRPRCoreModule::StartupModule()
 {
-	RPRCoreModuleInstance = this;
-
-	Resources = MakeShareable(new FRPRCoreSystemResources);
-	if (Resources->Initialize())
+	check(FRPR_SDKModule::IsLoaded());
+	if (FRPR_SDKModule::IsSDKLoadValid())
 	{
-		Resources->SetRPRILoggers(LogRPRIInfo, LogRPRIWarning, LogRPRIError);
+		RPRCoreModuleInstance = this;
+
+		Resources = MakeShareable(new FRPRCoreSystemResources);
+		if (Resources->Initialize())
+		{
+			Resources->SetRPRILoggers(LogRPRIInfo, LogRPRIWarning, LogRPRIError);
+		}
 	}
 }
 
 void FRPRCoreModule::ShutdownModule()
 {
-	Resources->Shutdown();
-	Resources.Reset();
+	if (Resources.IsValid())
+	{
+		Resources->Shutdown();
+		Resources.Reset();
+	}
 
 	RPRCoreModuleInstance = nullptr;
 }

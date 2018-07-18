@@ -25,10 +25,15 @@
 #include "Editor.h"
 #include "Misc/Paths.h"
 #include "Engine/StaticMesh.h"
+#include "RPRGLTFImporterModule.h"
+#include "Helpers/RPRXMaterialHelpers.h"
+#include "RprSupport.h"
+#include "Enums/RPRXEnums.h"
+#include "Typedefs/RPRXTypedefs.h"
+#include "Factories/Setters/RPRMaterialMapSetter.h"
+#include "Factories/Setters/IRPRMaterialParameterSetter.h"
 
 #define LOCTEXT_NAMESPACE "URPRGLTFImportFactory"
-
-DECLARE_LOG_CATEGORY_CLASS(LogRPRRPRGLTFImporter, Log, All)
 
 URPRGLTFImportFactory::URPRGLTFImportFactory(const FObjectInitializer& InObjectInitializer)
     : Super(InObjectInitializer)
@@ -80,7 +85,7 @@ UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InPa
 
 	if (RPR::GLTF::IsResultFailed(status))
 	{
-		UE_LOG(LogRPRRPRGLTFImporter, Error, 
+		UE_LOG(LogRPRGLTFImporter, Error,
 			TEXT("URPRGLTFImportFactory::FactoryCreateFile: Failed to load glTF file '%s' (%s)."), 
 			*InFilename, *RPR::GLTF::GetStatusText(status));
 
@@ -101,7 +106,7 @@ bool URPRGLTFImportFactory::ImportMaterials(TArray<URPRMaterial*>& OutMaterials)
 
 	if (RPR::GLTF::IsResultFailed(status))
 	{
-		UE_LOG(LogRPRRPRGLTFImporter, Error,
+		UE_LOG(LogRPRGLTFImporter, Error,
 			TEXT("URPRGLTFImportFactory::FactoryCreateFile: Failed to get RPR materials '%s' (%s)."),
 			*Filename, *RPR::GLTF::GetStatusText(status));
 
@@ -122,18 +127,19 @@ bool URPRGLTFImportFactory::ImportMaterials(TArray<URPRMaterial*>& OutMaterials)
 	return (true);
 }
 
-URPRMaterial* URPRGLTFImportFactory::ImportMaterial(const RPRX::FMaterial& NativeRPRMaterial)
+URPRMaterial* URPRGLTFImportFactory::ImportMaterial(RPRX::FMaterial NativeRPRMaterial)
 {
 	URPRMaterial* newMaterial = NewObject<URPRMaterial>(Parent, TEXT("M_RPRMaterial"), Flags);
 
 	FRPRUberMaterialParameters& parameters = newMaterial->MaterialParameters;
 
-	auto resources = IRPRCore::GetResources();
-	RPRX::FContext rprxContext = resources->GetRPRXSupportContext();
+	RPR::GLTF::Importer::IRPRMaterialParameterSetter* diffuseColorSetter = new RPR::GLTF::Importer::FRPRMaterialMapSetter();
+	diffuseColorSetter->Set(NativeRPRMaterial, &parameters.Diffuse_Color, RPRX_UBER_MATERIAL_DIFFUSE_COLOR);
 
-	//RPRX::FMaterialHelpers::GetMaterialParameterValue(rprxContext, NativeRPRMaterial, )
+	delete diffuseColorSetter;
 
 	return (newMaterial);
 }
+
 
 #undef LOCTEXT_NAMESPACE

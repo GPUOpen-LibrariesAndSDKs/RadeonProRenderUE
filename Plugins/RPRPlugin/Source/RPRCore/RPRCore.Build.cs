@@ -46,6 +46,7 @@ namespace UnrealBuildTool.Rules
 			PublicDependencyModuleNames.AddRange(
 				new string[]
 				{
+                    "RPRPluginVersion",
                     "RPR_SDK",
                     "RPRTools",
 				}

@@ -20,6 +20,7 @@
 
 #include "Engine/Engine.h"
 #include "Modules/ModuleManager.h"
+#include "RPRDynamicLibraryLoader.h"
 
 class FRPR_GLTFModule : public IModuleInterface
 {
@@ -37,7 +38,6 @@ private:
 
 private:
 
-	using FDLLHandle = void*;
-	TArray<FDLLHandle>	dllHandles;
+	TArray<FRPRDynamicLibraryLoader::FDLLHandle> dllHandles;
 
 };

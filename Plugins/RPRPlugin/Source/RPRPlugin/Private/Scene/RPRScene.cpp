@@ -78,7 +78,10 @@ ARPRScene::ARPRScene()
 	m_Plugin = &FRPRPluginModule::Load();
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 
-	RPRCoreResources = IRPRCore::GetResources();
+	if (FRPR_SDKModule::IsSDKLoadValid())
+	{
+		RPRCoreResources = IRPRCore::GetResources();
+	}
 }
 
 static const FString	kViewportCameraName = "Active viewport camera";
@@ -104,7 +107,7 @@ void	ARPRScene::FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames)
 
 void	ARPRScene::SetActiveCamera(const FString &cameraName)
 {
-	if (!RPRCoreResources->IsInitialized())
+	if (!RPRCoreResources.IsValid() || !RPRCoreResources->IsInitialized())
 		return;
 
 	if (cameraName == kViewportCameraName)
