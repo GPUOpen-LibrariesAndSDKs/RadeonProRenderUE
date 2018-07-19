@@ -31,12 +31,6 @@ public:
 	
 	UTexture2D*	ImportTexture(FRPRMaterialGraphSerializationContext& SerializationContext);
 	
-
-private:
-
-	UTexture2D*	TryLoadingTextureIfAvailable(const FString& FilePath);
-	void		SetDefaultRequiredTextureFormat(UTexture2D* Texture);
-
 };
 
 typedef TSharedPtr<FRPRMaterialXmlInputTextureNode>	FRPRMaterialXmlInputTextureNodePtr;

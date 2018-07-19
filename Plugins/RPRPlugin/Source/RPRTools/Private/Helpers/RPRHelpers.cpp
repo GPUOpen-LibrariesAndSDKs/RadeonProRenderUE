@@ -24,6 +24,7 @@
 #include "CubemapUnwrapUtils.h"
 #include "RprSupport.h"
 #include "RprTools.h"
+#include "HAL/UnrealMemory.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRHelpers, Log, All);
 
@@ -108,4 +109,50 @@ namespace RPR
 		rprAreDevicesCompatible(PluginId, TCHAR_TO_ANSI(*RenderCachePath), bDoWhiteListTest, DevicesUsed, &OutDevicesCompatible, ToolsOS);
 		return (OutDevicesCompatible > 0);
 	}
+
+	namespace RPRMaterial
+	{
+		RPR::FResult GetNodeInputName(RPR::FMaterialNode MaterialNode, int32 InputIndex, FString& OutName)
+		{
+			TArray<uint8> rawDatas;
+			RPR::FResult status = GetNodeInputInfo(MaterialNode, InputIndex, EMaterialNodeInputInfo::NameString, rawDatas);
+			if (RPR::IsResultSuccess(status))
+			{
+				OutName = FString((char*) rawDatas.GetData());
+			}
+			return (status);
+		}
+
+		RPR::FResult GetNodeInputType(RPR::FMaterialNode MaterialNode, int32 InputIndex, RPR::EMaterialNodeInputType& OutInputType)
+		{
+			TArray<uint8> rawDatas;
+			RPR::FResult result = GetNodeInputInfo(MaterialNode, InputIndex, EMaterialNodeInputInfo::Type, rawDatas);
+			FMemory::Memcpy(&OutInputType, rawDatas.GetData(), sizeof(RPR::EMaterialNodeInputType));
+			return (result);
+		}
+
+		RPR::FResult GetNodeInputValue(RPR::FMaterialNode MaterialNode, int32 InputIndex, TArray<uint8>& OutRawDatas)
+		{
+			return (GetNodeInputInfo(MaterialNode, InputIndex, EMaterialNodeInputInfo::Value, OutRawDatas));
+		}
+
+		RPR::FResult GetNodeInputInfo(RPR::FMaterialNode MaterialNode, int32 InputIndex, RPR::EMaterialNodeInputInfo Info, TArray<uint8>& OutRawDatas)
+		{
+			RPR::FResult status;
+
+			uint32 bufferSize;
+			status = rprMaterialNodeGetInputInfo(MaterialNode, InputIndex, (RPR::FMaterialNodeInputInfo) Info, 0, nullptr, (size_t*) &bufferSize);
+			if (RPR::IsResultFailed(status) || bufferSize <= 1)
+			{
+				OutRawDatas.Empty();
+				return (status);
+			}
+
+			OutRawDatas.Empty(bufferSize);
+			OutRawDatas.AddUninitialized(bufferSize);
+			status = rprMaterialNodeGetInputInfo(MaterialNode, InputIndex, (RPR::FMaterialNodeInputInfo) Info, bufferSize, OutRawDatas.GetData(), nullptr);
+			return (status);
+		}
+	}
+
 }

@@ -16,48 +16,17 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
+
 #pragma once
 
-#include "RadeonProRender.h"
+#include "CoreMinimal.h"
+#include "Modules/ModuleManager.h"
 
-namespace RPR
+DECLARE_LOG_CATEGORY_EXTERN(LogRPRImporterTools, All, All);
+
+class FRPRImporterToolsModule : public IModuleInterface
 {
-	enum EMaterialType
-	{
-		Material,
-		MaterialX
-	};
-
-	enum class EMaterialNodeInputType : FMaterialNodeInputType
-	{
-		Float4		= RPR_MATERIAL_NODE_INPUT_TYPE_FLOAT4,
-		UInt		= RPR_MATERIAL_NODE_INPUT_TYPE_UINT,
-		Node		= RPR_MATERIAL_NODE_INPUT_TYPE_NODE,
-		Image		= RPR_MATERIAL_NODE_INPUT_TYPE_IMAGE
-	};
-
-	enum class EMaterialNodeType : FMaterialNodeType
-	{
-		Diffuse					= RPR_MATERIAL_NODE_DIFFUSE,
-		Microfacet				= RPR_MATERIAL_NODE_MICROFACET,
-		Reflection				= RPR_MATERIAL_NODE_REFLECTION,
-		Refraction				= RPR_MATERIAL_NODE_REFRACTION,
-		MicrofacetRefraction	= RPR_MATERIAL_NODE_MICROFACET_REFRACTION,
-		Transparent				= RPR_MATERIAL_NODE_TRANSPARENT,
-		Emissive				= RPR_MATERIAL_NODE_EMISSIVE,
-
-		ImageTexture			= RPR_MATERIAL_NODE_IMAGE_TEXTURE,
-		NormalMap				= RPR_MATERIAL_NODE_NORMAL_MAP
-
-		// Not completed. See rpr_material_node_type in RadeonProRender for others
-	};
-
-	enum class EMaterialNodeInputInfo : FMaterialNodeInputInfo
-	{
-		Name = RPR_MATERIAL_NODE_INPUT_NAME,
-		NameString = RPR_MATERIAL_NODE_INPUT_NAME_STRING,
-		Description = RPR_MATERIAL_NODE_INPUT_DESCRIPTION,
-		Value = RPR_MATERIAL_NODE_INPUT_VALUE,
-		Type = RPR_MATERIAL_NODE_INPUT_TYPE
-	};
-}
+public:
+	virtual void	StartupModule() override;
+	virtual void	ShutdownModule() override;
+};

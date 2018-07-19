@@ -40,7 +40,8 @@ public class RPRGLTFImporter : ModuleRules
                 "RPRGraphParser",
                 "RPRPlugin",
                 "RPRTools",
-                "RPR_Json"
+                "RPR_Json",
+                "RPRImporterTools"
         });
 
         PrivateDependencyModuleNames.AddRange(

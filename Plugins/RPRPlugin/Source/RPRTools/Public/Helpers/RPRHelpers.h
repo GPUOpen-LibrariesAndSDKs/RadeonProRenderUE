@@ -23,6 +23,7 @@
 #include "Math/mathutils.h"
 #include "RPRToolsModule.h"
 #include "Typedefs/RPRTypedefs.h"
+#include "Enums/RPREnums.h"
 #include "RprTools.h"
 
 RPRTOOLS_API RadeonProRender::matrix BuildMatrixNoScale(const struct FTransform &transform);
@@ -62,5 +63,25 @@ namespace RPR
 		RPR::FCreationFlags& OutDevicesCompatible, 
 		RPR_TOOLS_OS ToolsOS
 	);
+
+	namespace RPRMaterial
+	{
+		RPRTOOLS_API RPR::FResult GetNodeInputName(RPR::FMaterialNode MaterialNode, int32 InputIndex, FString& OutName);
+		RPRTOOLS_API RPR::FResult GetNodeInputType(RPR::FMaterialNode MaterialNode, int32 InputIndex, RPR::EMaterialNodeInputType& OutInputType);
+		RPRTOOLS_API RPR::FResult GetNodeInputValue(RPR::FMaterialNode MaterialNode, int32 InputIndex, TArray<uint8>& OutRawDatas);
+		RPRTOOLS_API RPR::FResult GetNodeInputInfo(RPR::FMaterialNode MaterialNode, int32 InputIndex, RPR::EMaterialNodeInputInfo Info, TArray<uint8>& OutRawDatas);
+
+		template<typename T>
+		RPR::FResult GetNodeInputValue(RPR::FMaterialNode MaterialNode, int32 InputIndex, T* OutValue)
+		{
+			TArray<uint8> rawDatas;
+			RPR::FResult status = GetNodeInputValue(MaterialNode, InputIndex, rawDatas);
+			if (RPR::IsResultSuccess(status))
+			{
+				FMemory::Memcmp(OutValue, rawDatas.GetData(), sizeof(T));
+			}
+			return (status);
+		}
+	}
 
 }

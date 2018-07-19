@@ -14,11 +14,11 @@ namespace RPR
 
 			public:
 
-				virtual bool Set(RPRX::FMaterial NativeRPRMaterial, FRPRUberMaterialParameterBase* UberParameter, RPRX::FParameter Parameter) override;
+				virtual bool Set(FSerializationContext& SerializationCtx, FRPRUberMaterialParameterBase* UberParameter, RPRX::FParameter Parameter) override;
 
 			protected:
 
-				virtual bool SetParameterValue(RPRX::FContext RPRContext, RPRX::FMaterial NativeRPRMaterial,
+				virtual bool SetParameterValue(FSerializationContext& SerializationCtx,
 					FRPRUberMaterialParameterBase* UberParameter, RPRX::EMaterialParameterType ParameterType, RPRX::FParameter Parameter) = 0;
 
 			};

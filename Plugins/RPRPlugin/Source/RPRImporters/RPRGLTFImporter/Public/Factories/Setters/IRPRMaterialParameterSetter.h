@@ -1,6 +1,7 @@
 #pragma once
 #include "Material/RPRUberMaterialParameters.h"
 #include "Typedefs/RPRXTypedefs.h"
+#include "Enums/RPRXEnums.h"
 
 namespace RPR
 {
@@ -8,12 +9,18 @@ namespace RPR
 	{
 		namespace Importer
 		{
+			struct FSerializationContext
+			{
+				RPRX::FContext	RPRXContext;
+				RPRX::FMaterial NativeRPRMaterial;
+				FString			ImportFilePath;
+			};
 
 			class IRPRMaterialParameterSetter
 			{
 			public:
 
-				virtual bool Set(RPRX::FMaterial NativeRPRMaterial, FRPRUberMaterialParameterBase* UberParameter, RPRX::FParameter Parameter) = 0;
+				virtual bool Set(FSerializationContext& SerializationCtx, FRPRUberMaterialParameterBase* UberParameter, RPRX::FParameter Parameter) = 0;
 
 			protected:
 

@@ -134,7 +134,11 @@ URPRMaterial* URPRGLTFImportFactory::ImportMaterial(RPRX::FMaterial NativeRPRMat
 	FRPRUberMaterialParameters& parameters = newMaterial->MaterialParameters;
 
 	RPR::GLTF::Importer::IRPRMaterialParameterSetter* diffuseColorSetter = new RPR::GLTF::Importer::FRPRMaterialMapSetter();
-	diffuseColorSetter->Set(NativeRPRMaterial, &parameters.Diffuse_Color, RPRX_UBER_MATERIAL_DIFFUSE_COLOR);
+	//diffuseColorSetter->Set(NativeRPRMaterial, &parameters.Diffuse_Color, RPRX_UBER_MATERIAL_DIFFUSE_COLOR);
+	RPR::GLTF::Importer::FSerializationContext serializationCtx;
+	serializationCtx.RPRXContext = IRPRCore::GetResources()->GetRPRXSupportContext();
+	serializationCtx.NativeRPRMaterial = NativeRPRMaterial;
+	diffuseColorSetter->Set(serializationCtx, &parameters.Normal, RPRX_UBER_MATERIAL_NORMAL);
 
 	delete diffuseColorSetter;
 

@@ -66,6 +66,7 @@ public class RPRMaterialImporter : ModuleRules
                 "RPRCore",
                 "RPRTools",
                 "RPRGraphParser",
+                "RPRImporterTools",
                 "XmlParser",
             }
             );

@@ -224,12 +224,16 @@ void	FRPRPluginModule::CreateMenuBarExtension(FMenuBarBuilder &menubarBuilder)
 
 void	FRPRPluginModule::CreateNewScene(UWorld *world)
 {
+	UE_LOG(LogRPRPlugin, VeryVerbose, TEXT("Try create new scene..."));
+
 	if (world == NULL)
 		return;
 	FActorSpawnParameters	params;
 	params.ObjectFlags = RF_Public | RF_Transactional;
 
 	check(world->SpawnActor<ARPRScene>(ARPRScene::StaticClass(), params) != NULL);
+
+	UE_LOG(LogRPRPlugin, VeryVerbose, TEXT("New scene created!"));
 
 	RefreshCameraList();
 }
@@ -255,6 +259,8 @@ void	FRPRPluginModule::Reset()
 
 void	FRPRPluginModule::OnWorldAdded(UWorld *inWorld)
 {
+	UE_LOG(LogRPRPlugin, VeryVerbose, TEXT("On World Added..."));
+
 	if (inWorld == NULL)
 		return;
 
@@ -293,11 +299,15 @@ void	FRPRPluginModule::OnWorldAdded(UWorld *inWorld)
 
 void	FRPRPluginModule::OnWorldInitialized(UWorld *inWorld, const UWorld::InitializationValues IVS)
 {
+	UE_LOG(LogRPRPlugin, VeryVerbose, TEXT("On World Initialized..."));
+
 	OnWorldAdded(inWorld);
 }
 
 void	FRPRPluginModule::OnWorldDestroyed(UWorld *inWorld)
 {
+	UE_LOG(LogRPRPlugin, VeryVerbose, TEXT("On World Destroyed..."));
+
 	if (inWorld == NULL)
 		return;
 
@@ -369,11 +379,17 @@ void	FRPRPluginModule::StartOrbitting(const FIntPoint &mousePos)
 
 void	FRPRPluginModule::StartupModule()
 {
+	UE_LOG(LogRPRPlugin, VeryVerbose, TEXT("Startup RPR Plugin module..."));
+
 	if (m_Loaded)
+	{
+		UE_LOG(LogRPRPlugin, VeryVerbose, TEXT("RPR Plugin already loaded"));
 		return;
+	}
 
 	if (!FRPR_SDKModule::IsSDKLoadValid())
 	{
+		UE_LOG(LogRPRPlugin, VeryVerbose, TEXT("RPR SDK Module not loaded. Cannot continue RPR plugin initialization."));
 		m_Loaded = false;
 		return;
 	}
@@ -427,6 +443,8 @@ void	FRPRPluginModule::StartupModule()
 		.SetTooltipText(LOCTEXT("TooltipText", "Opens a Radeon ProRender viewport."))
 		.SetIcon(FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.Tabs.Viewports"));
 #endif
+
+	UE_LOG(LogRPRPlugin, VeryVerbose, TEXT("RPR Plugin module started"));
 }
 
 void	FRPRPluginModule::ShutdownModule()

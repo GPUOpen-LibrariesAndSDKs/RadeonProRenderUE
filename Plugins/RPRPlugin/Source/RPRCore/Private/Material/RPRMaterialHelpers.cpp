@@ -27,9 +27,9 @@ namespace RPR
 {
 	const TCHAR* FMaterialHelpers::ImageDataInputName(TEXT("data"));
 
-	FResult	FMaterialHelpers::CreateNode(FMaterialSystem MaterialSystem, EMaterialNodeType NodeType, RPR::FMaterialNode& OutMaterialNode)
+	FResult	FMaterialHelpers::CreateNode(FMaterialSystem MaterialSystem, RPR::EMaterialNodeType NodeType, RPR::FMaterialNode& OutMaterialNode)
 	{
-		FResult result = rprMaterialSystemCreateNode(MaterialSystem, NodeType, &OutMaterialNode);
+		FResult result = rprMaterialSystemCreateNode(MaterialSystem, (RPR::FMaterialNodeType) NodeType, &OutMaterialNode);
 
 		if (IsResultFailed(result))
 		{
