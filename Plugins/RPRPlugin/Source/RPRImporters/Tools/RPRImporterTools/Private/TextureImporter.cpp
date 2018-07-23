@@ -4,6 +4,13 @@
 #include "AssetToolsModule.h"
 #include "Modules/ModuleManager.h"
 #include "UObject/UObjectGlobals.h"
+#include "Helpers/RPRImageHelpers.h"
+#include "Helpers/RPRHelpers.h"
+#include "AssetRegistryModule.h"
+#include "RenderUtils.h"
+#include "HAL/FileManager.h"
+#include "PackageTools.h"
+#include "Engine/Texture.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRTextureImporter, Log, All)
 
@@ -67,10 +74,93 @@ namespace RPR
 		Texture->PostEditChange();
 	}
 
-	UTexture2D* FTextureImporter::ImportTextureFromImageNode(RPR::FMaterialNode ImageNode, const FString& DestinationDirectory)
+	RPR::FResult FTextureImporter::ImportTextureFromImage(RPR::FImage Image, const FString& Destination, UTexture2D*& OutTexture)
 	{
-		//RPR::Material::GetNodeInputInfo(ImageNode)
-		return (nullptr);
+		UPackage* package = CreatePackage(nullptr, *Destination);
+		OutTexture = NewObject<UTexture2D>(package, *FPaths::GetBaseFilename(Destination), EObjectFlags::RF_Public | EObjectFlags::RF_Standalone);
+
+		RPR::FResult status = CreateTextureFromImage(Image, OutTexture);
+		if (RPR::IsResultFailed(status))
+		{
+			TArray<UPackage*> packagesToDelete;
+			packagesToDelete.Add(package);
+			PackageTools::UnloadPackages(packagesToDelete);
+			IFileManager::Get().Delete(*Destination);
+			return (status);
+		}
+
+		FAssetRegistryModule::AssetCreated(OutTexture);
+		OutTexture->MarkPackageDirty();
+
+		UPackage::SavePackage(package, OutTexture, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone, *Destination);
+		return (status);
+	}
+
+	RPR::FResult FTextureImporter::CreateTextureFromImage(RPR::FImage Image, UTexture2D*& InOutTexture)
+	{
+		RPR::FResult status;
+		FImageDesc description;
+
+		status = RPR::Image::GetDescription(Image, description);
+		if (RPR::IsResultFailed(status)) 
+		{
+			UE_LOG(LogRPRTextureImporter, Warning, TEXT("Cannot get image description"));
+			return status;
+		}
+
+		EPixelFormat pixelFormat;
+		status = RPR::Image::GetFormat(Image, pixelFormat);
+		if (RPR::IsResultFailed(status))
+		{
+			UE_LOG(LogRPRTextureImporter, Warning, TEXT("Cannot get image pixel format"));
+			return status;
+		}
+
+		TArray<uint8> imageBuffer;
+		status = RPR::Image::GetBufferData(Image, imageBuffer);
+		if (RPR::IsResultFailed(status))
+		{
+			UE_LOG(LogRPRTextureImporter, Warning, TEXT("Cannot get image buffer data"));
+			return status;
+		}
+
+		RPR::EImageWrapType wrapMode;
+		status = RPR::Image::GetWrapMode(Image, wrapMode);
+		if (RPR::IsResultFailed(status))
+		{
+			wrapMode = EImageWrapType::ClampToBorder;
+		}
+
+		TextureAddress textureAddress = (wrapMode == EImageWrapType::ClampToBorder || wrapMode == EImageWrapType::ClampOne || wrapMode == EImageWrapType::ClampZero) ? TA_Clamp : TA_Wrap;
+		InOutTexture->AddressX = InOutTexture->AddressY = textureAddress;
+
+		InOutTexture->PlatformData = new FTexturePlatformData();
+		InOutTexture->PlatformData->SizeX = description.image_width;
+		InOutTexture->PlatformData->SizeY = description.image_height;
+		InOutTexture->PlatformData->PixelFormat = pixelFormat;
+
+		// Allocate first mipmap.
+		int32 NumBlocksX = description.image_width / GPixelFormats[pixelFormat].BlockSizeX;
+		int32 NumBlocksY = description.image_height / GPixelFormats[pixelFormat].BlockSizeY;
+
+		FTexture2DMipMap* Mip = new(InOutTexture->PlatformData->Mips) FTexture2DMipMap();
+		Mip->SizeX = description.image_width;
+		Mip->SizeY = description.image_height;
+		Mip->SizeZ = description.image_depth;
+
+		Mip->BulkData.Lock(LOCK_READ_WRITE);
+		uint32 allocatedSize = NumBlocksX * NumBlocksY * GPixelFormats[pixelFormat].BlockBytes * GPixelFormats[pixelFormat].NumComponents;
+		void* buffer = Mip->BulkData.Realloc(allocatedSize);
+		uint32 totalSize = FMath::Min((uint32) imageBuffer.Num(), allocatedSize);
+		FMemory::BigBlockMemcpy(buffer, imageBuffer.GetData(), totalSize);
+		buffer = nullptr;
+		Mip->BulkData.Unlock();
+		
+		// InOutTexture->CompressionSettings = TextureCompressionSettings::TC_Default;
+
+		InOutTexture->UpdateResource();
+
+		return (status);
 	}
 
 }

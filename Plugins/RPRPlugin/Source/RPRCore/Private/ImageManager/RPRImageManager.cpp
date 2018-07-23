@@ -36,6 +36,13 @@ namespace RPR
 		ClearCache();
 	}
 
+	void FImageManager::AddImage(UTexture* Texture, RPR::FImage Image)
+	{
+		FImage image = FindInCache(Texture, false);
+		ensureMsgf(image == nullptr, TEXT("The RPR image has already been registered!"));
+		cache.Add(Texture, image);
+	}
+
 	FImage FImageManager::LoadImageFromTexture(UTexture2D* Texture, bool bRebuild)
 	{
 		FImage image = LoadImageFromTextureInternal(Texture, bRebuild);
@@ -138,7 +145,7 @@ namespace RPR
 		{
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't build cubemap"));
 			return TryLoadErrorTexture();
-		}
+		};
 		if (srcSize.X <= 0 || srcSize.Y <= 0)
 		{
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't build cubemap: empty texture"));
@@ -197,6 +204,11 @@ namespace RPR
 	EPixelFormat FImageManager::GetDefaultSupportedPixelFormat()
 	{
 		return (PF_B8G8R8A8);
+	}
+
+	void FImageManager::Transfer(FImageManager& Destination)
+	{
+		cache.Transfer(Destination.cache);
 	}
 
 	bool	FImageManager::BuildRPRImageFormat(EPixelFormat srcFormat, FImageFormat &outFormat, uint32 &outComponentSize)

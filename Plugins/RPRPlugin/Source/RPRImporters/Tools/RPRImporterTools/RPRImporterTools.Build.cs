@@ -57,6 +57,9 @@ public class RPRImporterTools : ModuleRules
 				"Core",
                 "CoreUObject",
                 "Engine",
+                "AssetRegistry",
+                "UnrealEd",
+                "RenderCore",
 				// ... add private dependencies that you statically link with here ...	
 			});
     }

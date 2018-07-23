@@ -125,7 +125,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		// If we have a wrong index, it ll just return nullptr, and fallback to a dummy material
 		UMaterialInterface	*matInterface = component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
 
-		if (matInterface->IsA<URPRMaterial>())
+		if (matInterface != nullptr && matInterface->IsA<URPRMaterial>())
 		{
 			BuildRPRMaterial(shape, Cast<URPRMaterial>(matInterface));
 		}

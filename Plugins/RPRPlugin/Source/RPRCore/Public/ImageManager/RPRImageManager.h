@@ -34,8 +34,12 @@ namespace RPR
 	{
 	public:
 
-		FImageManager(RPR::FContext RPRContext = nullptr);
+		FImageManager(RPR::FContext RPRContext);
 		virtual ~FImageManager();
+
+		// Add a couple UTexture/RPR::FImage in cache
+		// When added, the ImageManager will be in charge of delete the RPR::FImage memory.
+		void		AddImage(UTexture* Texture, RPR::FImage Image);
 
 		RPR::FImage LoadImageFromTexture(UTexture2D* Texture, bool bRebuild = false);
 		RPR::FImage LoadCubeImageFromTexture(UTextureCube* Texture, bool bRebuild = false);
@@ -44,6 +48,10 @@ namespace RPR
 
 		static bool IsFormatSupported(EPixelFormat format);
 		static EPixelFormat GetDefaultSupportedPixelFormat();
+
+		// Transfer all the ImageManager data to another one. 
+		// Once it is done, the current ImageManager will become empty.
+		void		Transfer(FImageManager& Destination);
 
 	private:
 

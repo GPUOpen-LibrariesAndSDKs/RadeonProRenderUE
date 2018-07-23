@@ -44,6 +44,15 @@ namespace RPR
 		}
 	}
 
+	void FImagesCache::Transfer(FImagesCache& ImageCache)
+	{
+		for (auto it(loadedImages.CreateIterator()) ; it ; ++it)
+		{
+			ImageCache.Add(it.Key(), it.Value());
+		}
+		loadedImages.Empty();
+	}
+
 	void FImagesCache::ReleaseAll()
 	{
 		for (auto it(loadedImages.CreateIterator()); it; ++it)

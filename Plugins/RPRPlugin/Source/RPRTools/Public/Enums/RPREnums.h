@@ -60,4 +60,39 @@ namespace RPR
 		Value = RPR_MATERIAL_NODE_INPUT_VALUE,
 		Type = RPR_MATERIAL_NODE_INPUT_TYPE
 	};
+
+	enum class EImageInfo
+	{
+		Format = RPR_IMAGE_FORMAT,
+		Description = RPR_IMAGE_DESC,
+		Data = RPR_IMAGE_DATA,
+		DataSize = RPR_IMAGE_DATA_SIZEBYTE,
+		WrapMode = RPR_IMAGE_WRAP,
+		FilterMode = RPR_IMAGE_FILTER,
+		Gamma = RPR_IMAGE_GAMMA,
+		MipMapEnabled = RPR_IMAGE_MIPMAP_ENABLED
+	};
+
+	enum class EImageFilterType
+	{
+		Nearest = RPR_IMAGE_FILTER_TYPE_NEAREST,
+		Linear = RPR_IMAGE_FILTER_TYPE_LINEAR
+	};
+
+	enum class EImageWrapType
+	{
+		Repeat = RPR_IMAGE_WRAP_TYPE_REPEAT,
+		MirroredRepeat = RPR_IMAGE_WRAP_TYPE_MIRRORED_REPEAT,
+		Edge = RPR_IMAGE_WRAP_TYPE_CLAMP_TO_EDGE,
+		ClampToBorder = RPR_IMAGE_WRAP_TYPE_CLAMP_TO_BORDER,
+		ClampZero = RPR_IMAGE_WRAP_TYPE_CLAMP_ZERO,
+		ClampOne = RPR_IMAGE_WRAP_TYPE_CLAMP_ONE
+	};
+
+	enum class EComponentType
+	{
+		Uint8 = RPR_COMPONENT_TYPE_UINT8,
+		Float16 = RPR_COMPONENT_TYPE_FLOAT16,
+		Float32 = RPR_COMPONENT_TYPE_FLOAT32
+	};
 }

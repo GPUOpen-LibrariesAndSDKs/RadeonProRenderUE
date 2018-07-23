@@ -58,6 +58,7 @@ public class RPRGLTFImporter : ModuleRules
                 "PropertyEditor",
                 "RenderCore",
                 "RawMesh",
+                "AssetTools",
                 "UnrealEd",
                 "RPRMaterialEditor"
         });

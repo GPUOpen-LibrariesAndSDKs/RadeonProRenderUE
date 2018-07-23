@@ -36,6 +36,10 @@ namespace RPR
 		void	Add(UTexture* Texture, FImage Image);
 		void	Release(UTexture* Texture);
 
+		// Transfers all these data to another ImageCache.
+		// Once transfered, the current ImageCache will lose all these data.
+		void	Transfer(FImagesCache& ImageCache);
+
 		// Free each image resources and clear the cache
 		void	ReleaseAll();
 

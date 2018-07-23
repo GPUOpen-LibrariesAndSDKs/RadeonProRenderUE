@@ -63,7 +63,7 @@ public class RPRTools : ModuleRules
 				"Core",
 				"CoreUObject",
                 "Engine",
-
+                "RenderCore",
 				// ... add private dependencies that you statically link with here ...	
 			});
     }

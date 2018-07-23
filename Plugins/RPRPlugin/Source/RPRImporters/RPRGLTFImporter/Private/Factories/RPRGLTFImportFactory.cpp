@@ -32,6 +32,11 @@
 #include "Typedefs/RPRXTypedefs.h"
 #include "Factories/Setters/RPRMaterialMapSetter.h"
 #include "Factories/Setters/IRPRMaterialParameterSetter.h"
+#include "ImageManager/RPRImageManager.h"
+#include "TextureImporter.h"
+#include "AssetToolsModule.h"
+#include "IAssetTools.h"
+#include "RPRSettings.h"
 
 #define LOCTEXT_NAMESPACE "URPRGLTFImportFactory"
 
@@ -71,6 +76,13 @@ UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InPa
 	Flags = InFlags;
 	Filename = InFilename;
 
+	gltf::glTFAssetData gltfFileData;
+	if (!gltf::Import(TCHAR_TO_UTF8(*InFilename), gltfFileData))
+	{
+		UE_LOG(LogRPRGLTFImporter, Error, TEXT("Failed to load glTF file '%s'."), *InFilename);
+		return (nullptr);
+	}
+
 	RPR::GLTF::FStatus status;
 	RPR::FScene scene;
 
@@ -93,10 +105,83 @@ UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InPa
 		return (nullptr);
 	}
 
-	TArray<URPRMaterial*> rprMaterials;
-	ImportMaterials(rprMaterials);
+	RPR::GLTF::FImageResources imageResources;
+	ImportImages(gltfFileData, imageResources);
+
+	//TArray<URPRMaterial*> rprMaterials;
+	//ImportMaterials(rprMaterials);
 
 	return (nullptr);
+}
+
+bool URPRGLTFImportFactory::ImportImages(gltf::glTFAssetData GLTFFileData, RPR::GLTF::FImageResources& ImageResources)
+{
+	RPR::FResult status;
+
+	TArray<RPR::FImage> images;
+	status = RPR::GLTF::Import::GetImages(images);
+	if (RPR::IsResultFailed(status))
+	{
+		UE_LOG(LogRPRGLTFImporter, Error, TEXT("Couldn't import images from gltf file! Import aborted."));
+		return (false);
+	}
+
+	for (int32 i = 0; i < images.Num(); ++i)
+	{
+		auto& resourceData = ImageResources.RegisterNewResource(i);
+		resourceData.Image = images[i];
+	}
+	
+	TArray<FString> imagePaths;
+	GetImagePathsFromGLTF(GLTFFileData, imagePaths);
+
+	URPRSettings* rprSettings = GetMutableDefault<URPRSettings>();
+	FAssetToolsModule& assetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools");
+	assetToolsModule.Get().ImportAssets(imagePaths, rprSettings->DefaultRootDirectoryForImportedTextures.Path);
+
+	// Find the textures in the directory.
+	// Do not use results of ImportAssets since if the user refuse to override the texture, it will return nothing.
+	LoadTextures(imagePaths, ImageResources);
+	return (true);
+}
+
+void URPRGLTFImportFactory::GetImagePathsFromGLTF(gltf::glTFAssetData GLTFFileData, TArray<FString>& OutImagePaths)
+{
+	FString gltfFileDirectory = FPaths::GetPath(Filename);
+
+	for (uint32 i = 0; i < GLTFFileData.images.size(); ++i)
+	{
+		gltf::Image& gltfImage = GLTFFileData.images[i];
+		FString gltfImageURI = FString(gltfImage.uri.c_str());
+
+		FString fullImagePath = FPaths::ConvertRelativePathToFull(gltfFileDirectory, gltfImageURI);
+		if (FPaths::FileExists(fullImagePath))
+		{
+			OutImagePaths.Add(fullImagePath);
+		}
+		else
+		{
+			UE_LOG(LogRPRGLTFImporter, Warning, TEXT("Couldn't find image '%s'!"), *FPaths::ConvertRelativePathToFull(*fullImagePath));
+			OutImagePaths.Emplace(TEXT(""));
+		}
+	}
+}
+
+void URPRGLTFImportFactory::LoadTextures(const TArray<FString>& ImagePaths, RPR::GLTF::FImageResources& ImageResources)
+{
+	URPRSettings* rprSettings = GetMutableDefault<URPRSettings>();
+	FString textureDirectory = rprSettings->DefaultRootDirectoryForImportedTextures.Path;
+
+	for (int32 imageIndex = 0; imageIndex < ImagePaths.Num(); ++imageIndex)
+	{
+		auto resourceData = ImageResources.GetResourceById(imageIndex);
+		if (resourceData != nullptr && !ImagePaths[imageIndex].IsEmpty())
+		{
+			FString textureName = FPaths::GetBaseFilename(ImagePaths[imageIndex]);
+			FString texturePath = FPaths::Combine(*textureDirectory, textureName + "." + textureName);
+			resourceData->Texture = LoadObject<UTexture>(nullptr, *texturePath);
+		}
+	}
 }
 
 bool URPRGLTFImportFactory::ImportMaterials(TArray<URPRMaterial*>& OutMaterials)

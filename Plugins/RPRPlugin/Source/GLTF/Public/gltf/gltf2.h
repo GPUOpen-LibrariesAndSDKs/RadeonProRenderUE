@@ -480,7 +480,7 @@ namespace gltf
     };
 
     // Imports a gltf 2.0 file from disk.
-    bool Import(const std::string& filename, glTFAssetData& gltf);
+	RPR_GLTF_API bool Import(const std::string& filename, glTFAssetData& gltf);
 
     // Exports a gltf file to disk.
     bool Export(const std::string& filename, const glTFAssetData& gltf);

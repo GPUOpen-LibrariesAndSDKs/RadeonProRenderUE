@@ -262,11 +262,17 @@ void	FRPRPluginModule::OnWorldAdded(UWorld *inWorld)
 	UE_LOG(LogRPRPlugin, VeryVerbose, TEXT("On World Added..."));
 
 	if (inWorld == NULL)
+	{
+		UE_LOG(LogRPRPlugin, VeryVerbose, TEXT("The world is invalid. Abort."));
 		return;
+	}
 
 	if (inWorld == m_EditorWorld ||
 		inWorld == m_GameWorld)
+	{
+		UE_LOG(LogRPRPlugin, VeryVerbose, TEXT("The current world is already registered."));
 		return;
+	}
 
 	ARPRScene	*existingScene = GetCurrentScene();
 	UWorld		*world = m_GameWorld != NULL ? m_GameWorld : m_EditorWorld;
@@ -283,10 +289,15 @@ void	FRPRPluginModule::OnWorldAdded(UWorld *inWorld)
 		m_EditorWorld = inWorld;
 	}
 	else
+	{
+		UE_LOG(LogRPRPlugin, VeryVerbose, TEXT("Invalid world type (%d)."), inWorld->WorldType);
 		return;
+	}
 
 	if (existingScene != NULL)
 	{
+		UE_LOG(LogRPRPlugin, VeryVerbose, TEXT("A scene already exists. Delete it."));
+
 		// Delete the old one
 		check(world != NULL);
 		world->DestroyActor(existingScene);
@@ -322,14 +333,13 @@ void	FRPRPluginModule::OnWorldDestroyed(UWorld *inWorld)
 	check(m_GameWorld == NULL ||
 		  m_EditorWorld == NULL);
 
+	UE_LOG(LogRPRPlugin, VeryVerbose, TEXT("Destroy all RPR scenes"));
+
 	// Delete all scenes from the world being destroyed
 	for (TActorIterator<ARPRScene> it(inWorld); it; ++it)
 		inWorld->DestroyActor(*it);
 
 	Reset();
-
-	// Create a new one in the remaining one (if any)
-	CreateNewScene(m_GameWorld != NULL ? m_GameWorld : m_EditorWorld);
 }
 
 FIntPoint	FRPRPluginModule::OrbitDelta()

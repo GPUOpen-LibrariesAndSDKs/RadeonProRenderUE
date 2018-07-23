@@ -24,6 +24,9 @@
 #include "GLTFTypedefs.h"
 #include "Assets/RPRMaterial.h"
 #include "Typedefs/RPRXTypedefs.h"
+#include "ImageManager/RPRImageManager.h"
+#include "gltf/gltf2.h"
+#include "ImageResources.h"
 #include "RPRGLTFImportFactory.generated.h"
 
 //~ Forward declares
@@ -45,8 +48,12 @@ class URPRGLTFImportFactory : public UFactory
 
 private:
 
+	bool			ImportImages(gltf::glTFAssetData GLTFFileData, RPR::GLTF::FImageResources& ImageResources);
 	bool			ImportMaterials(TArray<URPRMaterial*>& OutMaterials);
 	URPRMaterial*	ImportMaterial(RPRX::FMaterial NativeRPRMaterial);
+
+	void			GetImagePathsFromGLTF(gltf::glTFAssetData GLTFFileData, TArray<FString>& OutImagePaths);
+	void			LoadTextures(const TArray<FString>& ImagePaths, RPR::GLTF::FImageResources& ImageResources);
 
 	template<typename TSetter>
 	void			SetMaterialParameter(RPRX::FMaterial NativeRPRMaterial, FRPRUberMaterialParameterBase* UberParameter, RPRX::FParameter Parameter);
