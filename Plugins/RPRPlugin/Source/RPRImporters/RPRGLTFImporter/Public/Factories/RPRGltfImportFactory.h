@@ -48,12 +48,12 @@ class URPRGLTFImportFactory : public UFactory
 
 private:
 
-	bool			ImportImages(gltf::glTFAssetData GLTFFileData, RPR::GLTF::FImageResources& ImageResources);
-	bool			ImportMaterials(TArray<URPRMaterial*>& OutMaterials);
-	URPRMaterial*	ImportMaterial(RPRX::FMaterial NativeRPRMaterial);
+	bool			ImportImages(gltf::glTFAssetData GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources);
+	bool			ImportMaterials(RPR::GLTF::FImageResourcesPtr ImageResources, TArray<URPRMaterial*>& OutMaterials);
+	URPRMaterial*	ImportMaterial(RPR::GLTF::FImageResourcesPtr ImageResources, RPRX::FMaterial NativeRPRMaterial);
 
 	void			GetImagePathsFromGLTF(gltf::glTFAssetData GLTFFileData, TArray<FString>& OutImagePaths);
-	void			LoadTextures(const TArray<FString>& ImagePaths, RPR::GLTF::FImageResources& ImageResources);
+	void			LoadTextures(const TArray<FString>& ImagePaths, RPR::GLTF::FImageResourcesPtr ImageResources);
 
 	template<typename TSetter>
 	void			SetMaterialParameter(RPRX::FMaterial NativeRPRMaterial, FRPRUberMaterialParameterBase* UberParameter, RPRX::FParameter Parameter);

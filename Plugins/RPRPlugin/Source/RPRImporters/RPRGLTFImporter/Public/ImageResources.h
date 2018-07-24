@@ -1,6 +1,7 @@
 #pragma once
 #include "Engine/Texture.h"
 #include "RPRTypedefs.h"
+#include "Templates/SharedPointer.h"
 
 namespace RPR
 {
@@ -23,7 +24,8 @@ namespace RPR
 		public:
 
 			FResourceData&	RegisterNewResource(int32 id);
-			FResourceData*	GetResourceById(int32 id);
+			FResourceData*	FindResourceById(int32 id);
+			FResourceData*	FindResourceByImage(RPR::FImage image);
 			int32			GetNumResources() const;
 
 		private:
@@ -31,6 +33,8 @@ namespace RPR
 			TArray<FResourceData> ResourceDatas;
 
 		};
+
+		using FImageResourcesPtr = TSharedPtr<FImageResources>;
 
 	}
 }

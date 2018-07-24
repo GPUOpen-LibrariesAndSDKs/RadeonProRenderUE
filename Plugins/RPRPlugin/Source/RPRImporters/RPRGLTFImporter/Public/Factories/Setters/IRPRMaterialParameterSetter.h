@@ -2,6 +2,7 @@
 #include "Material/RPRUberMaterialParameters.h"
 #include "Typedefs/RPRXTypedefs.h"
 #include "Enums/RPRXEnums.h"
+#include "ImageResources.h"
 
 namespace RPR
 {
@@ -14,6 +15,7 @@ namespace RPR
 				RPRX::FContext	RPRXContext;
 				RPRX::FMaterial NativeRPRMaterial;
 				FString			ImportFilePath;
+				RPR::GLTF::FImageResourcesPtr ImageResources;
 			};
 
 			class IRPRMaterialParameterSetter

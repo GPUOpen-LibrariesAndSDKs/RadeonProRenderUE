@@ -77,6 +77,12 @@ namespace RPRX
 		return (status);
 	}
 
+	RPR::FResult FMaterialHelpers::IsMaterialRPRX(FContext Context, RPR::FMaterialNode MaterialNode, bool& bOutIsMaterialRPRX)
+	{
+		RPRX::FMaterial materialX;
+		return rprxIsMaterialRprx(Context, MaterialNode, &materialX, (rpr_bool*) &bOutIsMaterialRPRX);
+	}
+
 	void FMaterialHelpers::CheckParameterType(FContext Context, FMaterial Material, FParameter Parameter, FParameterType ExpectedParameterType)
 	{
 		FParameterType parameterType;

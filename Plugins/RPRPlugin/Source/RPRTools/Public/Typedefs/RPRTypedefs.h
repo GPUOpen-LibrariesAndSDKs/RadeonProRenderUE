@@ -43,6 +43,7 @@ namespace RPR
 	typedef rpr_image_format	FImageFormat;
 	typedef rpr_image_desc		FImageDesc;
 
+	typedef rpr_material_node_info			FMaterialNodeInfo;
 	typedef rpr_material_node_input_info	FMaterialNodeInputInfo;
 	typedef rpr_material_node_type			FMaterialNodeType;
 	typedef rpr_material_node_input_type	FMaterialNodeInputType;

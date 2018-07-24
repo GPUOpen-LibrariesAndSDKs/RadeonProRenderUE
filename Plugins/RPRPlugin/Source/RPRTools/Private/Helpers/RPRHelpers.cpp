@@ -153,6 +153,189 @@ namespace RPR
 			status = rprMaterialNodeGetInputInfo(MaterialNode, InputIndex, (RPR::FMaterialNodeInputInfo) Info, bufferSize, OutRawDatas.GetData(), nullptr);
 			return (status);
 		}
-	}
 
-}
+		RPR::FResult InternalDumpMaterialNode(RPR::FContext Context, RPR::FMaterialNode MaterialNode, int32 Depth)
+		{
+			FString indentation = FString::ChrN(Depth, ' ');
+			UE_LOG(LogRPRHelpers, Log, TEXT("%sMaterial Node"), *indentation);
+
+			RPR::FResult status;
+
+			RPR::EMaterialNodeType materialNodeType;
+			status = RPR::RPRMaterial::GetNodeInfo(MaterialNode, RPR::EMaterialNodeInfo::Type, &materialNodeType);
+			if (RPR::IsResultFailed(status))
+			{
+				UE_LOG(LogRPRHelpers, Log, TEXT("%sCannot get node type info"), *indentation);
+				return (status);
+			}
+
+			uint64 numInputs;
+			status = RPR::RPRMaterial::GetNodeInfo(MaterialNode, RPR::EMaterialNodeInfo::InputCount, &numInputs);
+			if (RPR::IsResultFailed(status))
+			{
+				UE_LOG(LogRPRHelpers, Log, TEXT("%sCannot get node input count"), *indentation);
+				return (status);
+			}
+
+			for (int32 inputIndex = 0; inputIndex < numInputs; ++inputIndex)
+			{
+				FString name;
+				status = RPR::RPRMaterial::GetNodeInputName(MaterialNode, inputIndex, name);
+				if (RPR::IsResultFailed(status))
+				{
+					UE_LOG(LogRPRHelpers, Log, TEXT("%sCannot get node input name"), *indentation);
+					return (status);
+				}
+
+				RPR::EMaterialNodeInputType inputType;
+				status = RPR::RPRMaterial::GetNodeInputType(MaterialNode, inputIndex, inputType);
+				if (RPR::IsResultFailed(status))
+				{
+					UE_LOG(LogRPRHelpers, Log, TEXT("%s%s -> Cannot get node input type"), *indentation, *name);
+					return (status);
+				}
+
+				switch (inputType)
+				{
+					case EMaterialNodeInputType::Float4:
+					{
+						FLinearColor value;
+						status = RPR::RPRMaterial::GetNodeInputValue(MaterialNode, inputIndex, value);
+						if (RPR::IsResultFailed(status))
+						{
+							UE_LOG(LogRPRHelpers, Log, TEXT("%sInput '%s' -> Float : Cannot get value"), *indentation, *name);
+							return (status);
+						}
+						UE_LOG(LogRPRHelpers, Log, TEXT("%sInput '%s' -> Float : [%f, %f, %f, %f]"), *indentation, *name, value.R, value.G, value.B, value.A);
+					}
+					break;
+
+					case EMaterialNodeInputType::Image:
+					{
+						RPR::FImage image = nullptr;
+						status = RPR::RPRMaterial::GetNodeInputValue(MaterialNode, inputIndex, image);
+						if (RPR::IsResultFailed(status))
+						{
+							UE_LOG(LogRPRHelpers, Log, TEXT("%sInput '%s' -> Image : Cannot get image"), *indentation, *name);
+							return (status);
+						}
+						UE_LOG(LogRPRHelpers, Log, TEXT("%sInput '%s' -> Image : [%p]"), *indentation, *name, image);
+					}
+					break;
+
+					case EMaterialNodeInputType::UInt:
+					{
+						uint32 value;
+						status = RPR::RPRMaterial::GetNodeInputValue(MaterialNode, inputIndex, value);
+						if (RPR::IsResultFailed(status))
+						{
+							UE_LOG(LogRPRHelpers, Log, TEXT("%sInput '%s' -> uint : Cannot get value"), *indentation, *name);
+							return (status);
+						}
+						UE_LOG(LogRPRHelpers, Log, TEXT("%sInput '%s' -> uint : [%d]"), *indentation, *name, value);
+					}
+					break;
+
+					case EMaterialNodeInputType::Node:
+					{
+						RPR::FMaterialNode childNode = nullptr;
+						status = RPR::RPRMaterial::GetNodeInputValue(MaterialNode, inputIndex, childNode);
+						if (RPR::IsResultFailed(status))
+						{
+							UE_LOG(LogRPRHelpers, Log, TEXT("%sInput '%s' -> Node : Cannot get value"), *indentation, *name);
+							return (status);
+						}
+						UE_LOG(LogRPRHelpers, Log, TEXT("%sInput '%s' -> Node : [%p]"), *indentation, *name, childNode);
+						status = InternalDumpMaterialNode(Context, childNode, Depth + 1);
+					}
+					break;
+
+					default:
+					UE_LOG(LogRPRHelpers, Log, TEXT("%sInput '%s' -> Unknown type"), *indentation, *name);
+					break;
+				}
+			}
+
+			return status;
+		}
+
+		RPR::FResult DumpMaterialNode(RPR::FContext Context, RPR::FMaterialNode MaterialNode)
+		{
+			return InternalDumpMaterialNode(Context, MaterialNode, 0);
+		}
+
+		bool FindInMaterialNode(RPR::FContext Context, RPR::FMaterialNode MaterialNode, FMaterialNodeFinder Finder)
+		{
+			RPR::FResult status;
+
+			uint64 numInputs;
+			status = RPR::RPRMaterial::GetNodeInfo(MaterialNode, RPR::EMaterialNodeInfo::InputCount, &numInputs);
+			if (RPR::IsResultFailed(status))
+			{
+				UE_LOG(LogRPRHelpers, Warning, TEXT("Cannot get node input count"));
+				return (false);
+			}
+
+			for (int32 inputIndex = 0; inputIndex < numInputs; ++inputIndex)
+			{
+				FString name;
+				status = RPR::RPRMaterial::GetNodeInputName(MaterialNode, inputIndex, name);
+				if (RPR::IsResultFailed(status))
+				{
+					UE_LOG(LogRPRHelpers, Warning, TEXT("Cannot get node input name"));
+					return (false);
+				}
+
+				RPR::EMaterialNodeInputType inputType;
+				status = RPR::RPRMaterial::GetNodeInputType(MaterialNode, inputIndex, inputType);
+				if (RPR::IsResultFailed(status))
+				{
+					UE_LOG(LogRPRHelpers, Warning, TEXT("%s -> Cannot get node input type"), *name);
+					return (false);
+				}
+
+				if (Finder(MaterialNode, inputIndex, name, inputType))
+				{
+					return (true);
+				}
+
+				if (inputType == EMaterialNodeInputType::Node)
+				{
+					RPR::FMaterialNode childNode = nullptr;
+					status = RPR::RPRMaterial::GetNodeInputValue(MaterialNode, inputIndex, childNode);
+
+					if (FindInMaterialNode(Context, childNode, Finder))
+					{
+						return (true);
+					}
+				}
+			}
+
+			return (false);
+		}
+
+		bool FindFirstImageAvailable(RPR::FContext Context, RPR::FMaterialNode MaterialNode, RPR::FImage& OutImage)
+		{			
+			FMaterialNodeFinder finder = 
+				[&OutImage] (RPR::FMaterialNode node, int32 inputIndex, const FString& inputName, RPR::EMaterialNodeInputType inputType)
+			{
+				if (inputName.Compare(TEXT("data"), ESearchCase::IgnoreCase) == 0 && inputType == EMaterialNodeInputType::Image)
+				{
+					RPR::FResult status = RPR::RPRMaterial::GetNodeInputValue(node, inputIndex, OutImage);
+					if (RPR::IsResultFailed(status))
+					{
+						OutImage = nullptr;
+						UE_LOG(LogRPRHelpers, Warning, TEXT("%s -> Cannot get node input image"), *inputName);
+						return (false);
+					}
+					return (true);
+				}
+				return (false);
+			};
+
+			return (FindInMaterialNode(Context, MaterialNode, finder));
+		}
+
+	} // namespace RPRMaterial
+
+} // namespace RPR

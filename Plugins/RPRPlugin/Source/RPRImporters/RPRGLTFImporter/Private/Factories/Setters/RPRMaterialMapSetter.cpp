@@ -9,7 +9,7 @@
 bool RPR::GLTF::Importer::FRPRMaterialMapSetter::SetParameterValue(FSerializationContext& SerializationCtx,
 	FRPRUberMaterialParameterBase* UberParameter, RPRX::EMaterialParameterType ParameterType, RPRX::FParameter Parameter)
 {
-	FRPRMaterialCoM* map = (FRPRMaterialCoM*)UberParameter;
+	FRPRMaterialCoM* map = (FRPRMaterialCoM*) UberParameter;
 	RPR::FResult status;
 
 	switch (ParameterType)
@@ -17,7 +17,7 @@ bool RPR::GLTF::Importer::FRPRMaterialMapSetter::SetParameterValue(FSerializatio
 		case RPRX::EMaterialParameterType::Float4:
 		{
 			FLinearColor value;
-			status = RPRX::FMaterialHelpers::GetMaterialParameterValue<FLinearColor>(SerializationCtx.RPRXContext, SerializationCtx.NativeRPRMaterial, Parameter, value);
+			status = RPRX::FMaterialHelpers::GetMaterialParameterValue(SerializationCtx.RPRXContext, SerializationCtx.NativeRPRMaterial, Parameter, value);
 			map->Constant = value;
 			map->Mode = ERPRMaterialMapMode::Constant;
 		}
@@ -25,37 +25,25 @@ bool RPR::GLTF::Importer::FRPRMaterialMapSetter::SetParameterValue(FSerializatio
 
 		case RPRX::EMaterialParameterType::Node:
 		{
-			auto resources = IRPRCore::GetResources();
-			RPR::FMaterialNode node = nullptr;
-			status = RPR::FMaterialHelpers::CreateNode(resources->GetMaterialSystem(), EMaterialNodeType::ImageTexture, node);
+			RPRX::FMaterial materialNode = nullptr;
+			status = RPRX::FMaterialHelpers::GetMaterialParameterValue(SerializationCtx.RPRXContext, SerializationCtx.NativeRPRMaterial, Parameter, materialNode);
 			if (RPR::IsResultFailed(status))
 			{
-				UE_LOG(LogRPRGLTFImporter, Error, TEXT("Cannot create new node to import material node"));
+				UE_LOG(LogRPRGLTFImporter, Warning, TEXT("Cannot get node from parameter value"));
 				return (false);
 			}
 
-			status = RPRX::FMaterialHelpers::GetMaterialParameterValue<RPR::FMaterialNode>(SerializationCtx.RPRXContext, SerializationCtx.NativeRPRMaterial, Parameter, node);
-			map->Mode = ERPRMaterialMapMode::Texture;
-
-			FString inputName;
-			if (RPR::IsResultSuccess(RPR::RPRMaterial::GetNodeInputName(node, 0, inputName)))
+			RPR::FImage image = nullptr;
+			if (RPR::RPRMaterial::FindFirstImageAvailable(SerializationCtx.RPRXContext, materialNode, image))
 			{
-				UE_LOG(LogRPRGLTFImporter, Log, TEXT("Input name : %s"), *inputName);
+				auto resourceData = SerializationCtx.ImageResources->FindResourceByImage(image);
+				if (resourceData)
+				{
+					map->Mode = ERPRMaterialMapMode::Texture;
+					map->Texture = Cast<UTexture2D>(resourceData->Texture);
+					return (true);
+				}
 			}
-			RPR::EMaterialNodeInputType inputType;
-			if (RPR::IsResultSuccess(RPR::RPRMaterial::GetNodeInputType(node, 0, inputType)))
-			{
-
-			}
-			int32 value;
-			if (RPR::IsResultSuccess(RPR::RPRMaterial::GetNodeInputValue(node, 0, &value)))
-			{
-
-			}
-
-			//RPR::FTextureImporter::ImportTextureFromImageNode(SerializationCtx.ImportFilePath);
-			
-			// map->Constant =
 		}
 		break;
 

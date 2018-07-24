@@ -25,6 +25,7 @@
 #include "Typedefs/RPRTypedefs.h"
 #include "Enums/RPREnums.h"
 #include "RprTools.h"
+#include "Function.h"
 
 RPRTOOLS_API RadeonProRender::matrix BuildMatrixNoScale(const struct FTransform &transform);
 RPRTOOLS_API RadeonProRender::matrix BuildMatrixWithScale(const struct FTransform &transform);
@@ -66,22 +67,65 @@ namespace RPR
 
 	namespace RPRMaterial
 	{
+		using FMaterialNodeFinder = TFunction<bool(RPR::FMaterialNode, int32, const FString&, RPR::EMaterialNodeInputType)>;
+
+		template<typename T>
+		RPR::FResult GetNodeInfo(RPR::FMaterialNode MaterialNode, RPR::EMaterialNodeInfo Info, T* OutValue)
+		{
+			RPR::FResult status;
+			TArray<uint8> bufferData;
+			uint32 bufferSize;
+
+			status = rprMaterialNodeGetInfo(MaterialNode, (RPR::FMaterialNodeInfo) Info, 0, nullptr, (size_t*) &bufferSize);
+			if (RPR::IsResultFailed(status))
+			{
+				return (status);
+			}
+
+			bufferData.AddUninitialized(bufferSize);
+			status = rprMaterialNodeGetInfo(MaterialNode, (RPR::FMaterialNodeInfo) Info, bufferSize, bufferData.GetData(), nullptr);
+			if (RPR::IsResultSuccess(status))
+			{
+				FMemory::Memcpy(OutValue, bufferData.GetData(), sizeof(T));
+			}
+			return (status);
+		}
+		
 		RPRTOOLS_API RPR::FResult GetNodeInputName(RPR::FMaterialNode MaterialNode, int32 InputIndex, FString& OutName);
 		RPRTOOLS_API RPR::FResult GetNodeInputType(RPR::FMaterialNode MaterialNode, int32 InputIndex, RPR::EMaterialNodeInputType& OutInputType);
 		RPRTOOLS_API RPR::FResult GetNodeInputValue(RPR::FMaterialNode MaterialNode, int32 InputIndex, TArray<uint8>& OutRawDatas);
 		RPRTOOLS_API RPR::FResult GetNodeInputInfo(RPR::FMaterialNode MaterialNode, int32 InputIndex, RPR::EMaterialNodeInputInfo Info, TArray<uint8>& OutRawDatas);
 
 		template<typename T>
-		RPR::FResult GetNodeInputValue(RPR::FMaterialNode MaterialNode, int32 InputIndex, T* OutValue)
+		RPR::FResult GetNodeInputValue(RPR::FMaterialNode MaterialNode, int32 InputIndex, T& OutValue)
 		{
 			TArray<uint8> rawDatas;
 			RPR::FResult status = GetNodeInputValue(MaterialNode, InputIndex, rawDatas);
 			if (RPR::IsResultSuccess(status))
 			{
-				FMemory::Memcmp(OutValue, rawDatas.GetData(), sizeof(T));
+				FMemory::Memcpy(&OutValue, rawDatas.GetData(), sizeof(T));
 			}
 			return (status);
 		}
+
+		template<typename T>
+		RPR::FResult GetNodeInputValue(RPR::FMaterialNode MaterialNode, int32 InputIndex, T*& OutValue)
+		{
+			TArray<uint8> rawDatas;
+			RPR::FResult status = GetNodeInputValue(MaterialNode, InputIndex, rawDatas);
+			if (RPR::IsResultSuccess(status))
+			{
+				uint64 address;
+				FMemory::Memcpy(&address, rawDatas.GetData(), sizeof(void*)); // Size of a pointer
+				OutValue = (void*) address;
+			}
+			return (status);
+		}
+
+		RPRTOOLS_API RPR::FResult DumpMaterialNode(RPR::FContext Context, RPR::FMaterialNode MaterialNode);
+
+		RPRTOOLS_API bool FindInMaterialNode(RPR::FContext Context, RPR::FMaterialNode MaterialNode, FMaterialNodeFinder Finder);
+		RPRTOOLS_API bool FindFirstImageAvailable(RPR::FContext Context, RPR::FMaterialNode MaterialNode, RPR::FImage& OutImage);
 	}
 
 }

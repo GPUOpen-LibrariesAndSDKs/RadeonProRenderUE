@@ -61,6 +61,8 @@ namespace RPRX
 			return rprxMaterialGetParameterValue(Context, Material, Parameter, &OutValue);
 		}
 
+		static RPR::FResult	IsMaterialRPRX(FContext Context, RPR::FMaterialNode MaterialNode, bool& bOutIsMaterialRPRX);
+
 	private:
 		
 		static void			CheckParameterType(FContext Context, FMaterial Material, FParameter Parameter, FParameterType ExpectedParameterType);

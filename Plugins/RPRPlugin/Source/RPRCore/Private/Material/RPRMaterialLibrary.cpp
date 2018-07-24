@@ -199,6 +199,8 @@ bool FRPRXMaterialLibrary::CacheMaterial(URPRMaterial* InMaterial, RPRI::FExport
 		return (false);
 	}
 
+	UE_LOG(LogRPRMaterialLibrary, VeryVerbose, TEXT("Create material (%p)"), newMaterial);
+
 	OutMaterial.type = EMaterialType::MaterialX;
 	OutMaterial.data = newMaterial;
 
@@ -215,9 +217,10 @@ void FRPRXMaterialLibrary::ReleaseRawMaterialDatas(RPRI::FExportMaterialResult& 
 		RPRX::FContext rprxSupportCtx = IRPRCore::GetResources()->GetRPRXSupportContext();
 		RPRI::DeleteMaterial(rprxSupportCtx, Material);
 	}
-	catch (std::exception)
+	catch (std::exception ex)
 	{
-		UE_LOG(LogRPRMaterialLibrary, Warning, TEXT("Couldn't delete an object/material correctly"));
+		UE_LOG(LogRPRMaterialLibrary, Warning, TEXT("Couldn't delete an object/material correctly (%s)"), ex.what());
+		FRPRCoreErrorHelper::LogLastError();
 	}
 }
 

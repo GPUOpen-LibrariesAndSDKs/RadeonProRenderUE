@@ -12,10 +12,13 @@ namespace RPR
 			{
 
 			protected:
+				
 				virtual bool SetParameterValue(FSerializationContext& SerializationCtx, FRPRUberMaterialParameterBase* UberParameter, RPRX::EMaterialParameterType ParameterType, RPRX::FParameter Parameter) override;
-
-
 				virtual bool IsParameterTypeSupported(RPRX::EMaterialParameterType MaterialParameterType) override;
+
+			private:
+
+				
 
 			};
 

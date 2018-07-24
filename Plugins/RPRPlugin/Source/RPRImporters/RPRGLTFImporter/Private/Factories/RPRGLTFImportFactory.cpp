@@ -105,16 +105,16 @@ UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InPa
 		return (nullptr);
 	}
 
-	RPR::GLTF::FImageResources imageResources;
+	RPR::GLTF::FImageResourcesPtr imageResources = MakeShareable(new RPR::GLTF::FImageResources);
 	ImportImages(gltfFileData, imageResources);
 
-	//TArray<URPRMaterial*> rprMaterials;
-	//ImportMaterials(rprMaterials);
+	TArray<URPRMaterial*> rprMaterials;
+	ImportMaterials(imageResources, rprMaterials);
 
 	return (nullptr);
 }
 
-bool URPRGLTFImportFactory::ImportImages(gltf::glTFAssetData GLTFFileData, RPR::GLTF::FImageResources& ImageResources)
+bool URPRGLTFImportFactory::ImportImages(gltf::glTFAssetData GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources)
 {
 	RPR::FResult status;
 
@@ -128,7 +128,7 @@ bool URPRGLTFImportFactory::ImportImages(gltf::glTFAssetData GLTFFileData, RPR::
 
 	for (int32 i = 0; i < images.Num(); ++i)
 	{
-		auto& resourceData = ImageResources.RegisterNewResource(i);
+		auto& resourceData = ImageResources->RegisterNewResource(i);
 		resourceData.Image = images[i];
 	}
 	
@@ -167,14 +167,14 @@ void URPRGLTFImportFactory::GetImagePathsFromGLTF(gltf::glTFAssetData GLTFFileDa
 	}
 }
 
-void URPRGLTFImportFactory::LoadTextures(const TArray<FString>& ImagePaths, RPR::GLTF::FImageResources& ImageResources)
+void URPRGLTFImportFactory::LoadTextures(const TArray<FString>& ImagePaths, RPR::GLTF::FImageResourcesPtr ImageResources)
 {
 	URPRSettings* rprSettings = GetMutableDefault<URPRSettings>();
 	FString textureDirectory = rprSettings->DefaultRootDirectoryForImportedTextures.Path;
 
 	for (int32 imageIndex = 0; imageIndex < ImagePaths.Num(); ++imageIndex)
 	{
-		auto resourceData = ImageResources.GetResourceById(imageIndex);
+		auto resourceData = ImageResources->FindResourceById(imageIndex);
 		if (resourceData != nullptr && !ImagePaths[imageIndex].IsEmpty())
 		{
 			FString textureName = FPaths::GetBaseFilename(ImagePaths[imageIndex]);
@@ -184,7 +184,7 @@ void URPRGLTFImportFactory::LoadTextures(const TArray<FString>& ImagePaths, RPR:
 	}
 }
 
-bool URPRGLTFImportFactory::ImportMaterials(TArray<URPRMaterial*>& OutMaterials)
+bool URPRGLTFImportFactory::ImportMaterials(RPR::GLTF::FImageResourcesPtr ImageResources, TArray<URPRMaterial*>& OutMaterials)
 {
 	TArray<RPRX::FMaterial> materials;
 	RPR::FResult status = RPR::GLTF::Import::GetMaterialX(materials);
@@ -202,7 +202,7 @@ bool URPRGLTFImportFactory::ImportMaterials(TArray<URPRMaterial*>& OutMaterials)
 	for (int32 i = 0; i < materials.Num(); ++i)
 	{
 		RPRX::FMaterial nRPRMaterial = materials[i];
-		URPRMaterial* RPRMaterial = ImportMaterial(nRPRMaterial);
+		URPRMaterial* RPRMaterial = ImportMaterial(ImageResources, nRPRMaterial);
 		if (RPRMaterial)
 		{
 			OutMaterials.Add(RPRMaterial);
@@ -212,7 +212,7 @@ bool URPRGLTFImportFactory::ImportMaterials(TArray<URPRMaterial*>& OutMaterials)
 	return (true);
 }
 
-URPRMaterial* URPRGLTFImportFactory::ImportMaterial(RPRX::FMaterial NativeRPRMaterial)
+URPRMaterial* URPRGLTFImportFactory::ImportMaterial(RPR::GLTF::FImageResourcesPtr ImageResources, RPRX::FMaterial NativeRPRMaterial)
 {
 	URPRMaterial* newMaterial = NewObject<URPRMaterial>(Parent, TEXT("M_RPRMaterial"), Flags);
 
@@ -223,6 +223,7 @@ URPRMaterial* URPRGLTFImportFactory::ImportMaterial(RPRX::FMaterial NativeRPRMat
 	RPR::GLTF::Importer::FSerializationContext serializationCtx;
 	serializationCtx.RPRXContext = IRPRCore::GetResources()->GetRPRXSupportContext();
 	serializationCtx.NativeRPRMaterial = NativeRPRMaterial;
+	serializationCtx.ImageResources = ImageResources;
 	diffuseColorSetter->Set(serializationCtx, &parameters.Normal, RPRX_UBER_MATERIAL_NORMAL);
 
 	delete diffuseColorSetter;

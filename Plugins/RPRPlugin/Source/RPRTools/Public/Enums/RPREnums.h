@@ -19,6 +19,7 @@
 #pragma once
 
 #include "RadeonProRender.h"
+#include "Typedefs/RPRTypedefs.h"
 
 namespace RPR
 {
@@ -59,6 +60,13 @@ namespace RPR
 		Description = RPR_MATERIAL_NODE_INPUT_DESCRIPTION,
 		Value = RPR_MATERIAL_NODE_INPUT_VALUE,
 		Type = RPR_MATERIAL_NODE_INPUT_TYPE
+	};
+
+	enum class EMaterialNodeInfo : FMaterialNodeInfo
+	{
+		Type = RPR_MATERIAL_NODE_TYPE,
+		System = RPR_MATERIAL_NODE_SYSTEM,
+		InputCount = RPR_MATERIAL_NODE_INPUT_COUNT
 	};
 
 	enum class EImageInfo
