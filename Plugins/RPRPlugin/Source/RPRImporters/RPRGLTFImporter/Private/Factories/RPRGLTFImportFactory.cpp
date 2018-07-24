@@ -42,6 +42,7 @@
 #include "GLTFMaterialParameterSetterFactory.h"
 #include "RPRMaterialFactory.h"
 #include "CoreGlobals.h"
+#include "AssetRegistryModule.h"
 
 #define LOCTEXT_NAMESPACE "URPRGLTFImportFactory"
 
@@ -150,8 +151,10 @@ bool URPRGLTFImportFactory::ImportImages(gltf::glTFAssetData GLTFFileData, RPR::
 		if (textures[i]->IsA<UTexture2D>())
 		{
 			UTexture2D* texture = Cast<UTexture2D>(textures[i]);
-			FTextureImporter::SetDefaultRequiredTextureFormat(texture);
+			RPR::FTextureImporter::SetDefaultRequiredTextureFormat(texture);
 		}
+
+		FAssetRegistryModule::AssetCreated(textures[i]);
 	}
 
 	// Find the textures in the directory.
@@ -223,6 +226,7 @@ bool URPRGLTFImportFactory::ImportMaterials(gltf::glTFAssetData GLTFFileData, RP
 		if (RPRMaterial)
 		{
 			OutMaterials.Add(RPRMaterial);
+			FAssetRegistryModule::AssetCreated(RPRMaterial);
 		}
 	}
 

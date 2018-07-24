@@ -25,6 +25,7 @@
 #include "RprSupport.h"
 #include "RprTools.h"
 #include "HAL/UnrealMemory.h"
+#include "Helpers/RPRErrorsHelpers.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRHelpers, Log, All);
 
@@ -272,7 +273,7 @@ namespace RPR
 			status = RPR::RPRMaterial::GetNodeInfo(MaterialNode, RPR::EMaterialNodeInfo::InputCount, &numInputs);
 			if (RPR::IsResultFailed(status))
 			{
-				UE_LOG(LogRPRHelpers, Warning, TEXT("Cannot get node input count"));
+				UE_LOG(LogRPRHelpers, Warning, TEXT("Cannot get node input count (error code %d)"), status);
 				return (false);
 			}
 
@@ -282,7 +283,7 @@ namespace RPR
 				status = RPR::RPRMaterial::GetNodeInputName(MaterialNode, inputIndex, name);
 				if (RPR::IsResultFailed(status))
 				{
-					UE_LOG(LogRPRHelpers, Warning, TEXT("Cannot get node input name"));
+					UE_LOG(LogRPRHelpers, Warning, TEXT("Cannot get node input name (error code %d)"), status);
 					return (false);
 				}
 
@@ -290,7 +291,7 @@ namespace RPR
 				status = RPR::RPRMaterial::GetNodeInputType(MaterialNode, inputIndex, inputType);
 				if (RPR::IsResultFailed(status))
 				{
-					UE_LOG(LogRPRHelpers, Warning, TEXT("%s -> Cannot get node input type"), *name);
+					UE_LOG(LogRPRHelpers, Warning, TEXT("%s -> Cannot get node input type (error code %d)"), *name, status);
 					return (false);
 				}
 
@@ -304,7 +305,7 @@ namespace RPR
 					RPR::FMaterialNode childNode = nullptr;
 					status = RPR::RPRMaterial::GetNodeInputValue(MaterialNode, inputIndex, childNode);
 
-					if (FindInMaterialNode(Context, childNode, Finder))
+					if (childNode != nullptr && FindInMaterialNode(Context, childNode, Finder))
 					{
 						return (true);
 					}
@@ -317,7 +318,7 @@ namespace RPR
 		bool FindFirstImageAvailable(RPR::FContext Context, RPR::FMaterialNode MaterialNode, RPR::FImage& OutImage)
 		{			
 			FMaterialNodeFinder finder = 
-				[&OutImage] (RPR::FMaterialNode node, int32 inputIndex, const FString& inputName, RPR::EMaterialNodeInputType inputType)
+				[&Context, &OutImage] (RPR::FMaterialNode node, int32 inputIndex, const FString& inputName, RPR::EMaterialNodeInputType inputType)
 			{
 				if (inputName.Compare(TEXT("data"), ESearchCase::IgnoreCase) == 0 && inputType == EMaterialNodeInputType::Image)
 				{
@@ -326,6 +327,7 @@ namespace RPR
 					{
 						OutImage = nullptr;
 						UE_LOG(LogRPRHelpers, Warning, TEXT("%s -> Cannot get node input image"), *inputName);
+						RPR::Error::LogLastError(Context);
 						return (false);
 					}
 					return (true);

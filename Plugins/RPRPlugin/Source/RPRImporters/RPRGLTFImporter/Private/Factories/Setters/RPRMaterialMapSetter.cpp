@@ -20,6 +20,11 @@ bool RPR::GLTF::Importer::FRPRMaterialMapSetter::SetParameterValue(FSerializatio
 		return (false);
 	}
 
+	if (materialNode == nullptr)
+	{
+		return (false);
+	}
+
 	RPR::FImage image = nullptr;
 	if (RPR::RPRMaterial::FindFirstImageAvailable(SerializationCtx.RPRXContext, materialNode, image))
 	{

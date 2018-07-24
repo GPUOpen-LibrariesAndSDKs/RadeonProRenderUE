@@ -1,7 +1,15 @@
 #include "GLTFMaterialParameterSetterFactory.h"
+
 #include "Material/UberMaterialParameters/RPRMaterialMap.h"
+#include "Material/UberMaterialParameters/RPRMaterialEnum.h"
+#include "Material/UberMaterialParameters/RPRMaterialBool.h"
+#include "Material/UberMaterialParameters/RPRMaterialCoMChannel1.h"
+
 #include "Factories/Setters/RPRMaterialMapSetter.h"
 #include "Factories/Setters/RPRMaterialCoMSetter.h"
+#include "Factories/Setters/RPRMaterialEnumSetter.h"
+#include "Factories/Setters/RPRMaterialBoolSetter.h"
+#include "Factories/Setters/RPRMaterialCoMChannel1Setter.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogGLTFMaterialParameterSetterFactory, Log, All)
 
@@ -37,7 +45,10 @@ namespace RPR
 			#define ADD_CLASS_TO_FACTORY(ParameterType, ParameterSetterClass) \
 				Factory.Add(ParameterType::StaticStruct(), [] () { return MakeShareable(new ParameterSetterClass); });
 				{
+					ADD_CLASS_TO_FACTORY(FRPRMaterialEnum, FRPRMaterialEnumSetter);
+					ADD_CLASS_TO_FACTORY(FRPRMaterialBool, FRPRMaterialBoolSetter);
 					ADD_CLASS_TO_FACTORY(FRPRMaterialCoM, FRPRMaterialCoMSetter);
+					ADD_CLASS_TO_FACTORY(FRPRMaterialCoMChannel1, FRPRMaterialCoMChannel1Setter);
 					ADD_CLASS_TO_FACTORY(FRPRMaterialMap, FRPRMaterialMapSetter);
 				}
 			#undef ADD_CLASS_TO_FACTORY

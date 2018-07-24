@@ -54,6 +54,11 @@ TSharedRef<SWidget> FRPRMaterialEnumPropertiesLayout::GenerateEnumWidget(TShared
 FText FRPRMaterialEnumPropertiesLayout::GetSelectedEnumValue() const
 {
 	UEnum* enumType = GetEnumTypeFromPropertyHandle();
+	if (enumType == nullptr)
+	{
+		return (FText::GetEmpty());
+	}
+
 	TSharedPtr<IPropertyHandle> enumValuePropertyHandle = GetEnumValuePropertyHandle();
 	uint8 enumValue;
 	enumValuePropertyHandle->GetValue(enumValue);

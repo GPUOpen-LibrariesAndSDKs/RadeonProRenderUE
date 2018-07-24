@@ -1,14 +1,14 @@
-#include "Factories/Setters/RPRMaterialCoMSetter.h"
+#include "Factories/Setters/RPRMaterialCoMChannel1Setter.h"
 #include "Helpers/RPRXMaterialHelpers.h"
 #include "Helpers/RPRHelpers.h"
 
-bool RPR::GLTF::Importer::FRPRMaterialCoMSetter::SetParameterValue(
-	FSerializationContext& SerializationCtx, 
-	FRPRUberMaterialParameterBase* UberParameter, 
-	RPRX::EMaterialParameterType ParameterType, 
+bool RPR::GLTF::Importer::FRPRMaterialCoMChannel1Setter::SetParameterValue(
+	FSerializationContext& SerializationCtx,
+	FRPRUberMaterialParameterBase* UberParameter,
+	RPRX::EMaterialParameterType ParameterType,
 	RPRX::FParameter Parameter)
 {
-	FRPRMaterialCoM* map = (FRPRMaterialCoM*) UberParameter;
+	FRPRMaterialCoMChannel1* map = (FRPRMaterialCoMChannel1*) UberParameter;
 	RPR::FResult status;
 
 	switch (ParameterType)
@@ -17,7 +17,7 @@ bool RPR::GLTF::Importer::FRPRMaterialCoMSetter::SetParameterValue(
 		{
 			FLinearColor value;
 			status = RPRX::FMaterialHelpers::GetMaterialParameterValue(SerializationCtx.RPRXContext, SerializationCtx.NativeRPRMaterial, Parameter, value);
-			map->Constant = value;
+			map->Constant = value.R;
 			map->Mode = ERPRMaterialMapMode::Constant;
 			return (true);
 		}
@@ -40,8 +40,8 @@ bool RPR::GLTF::Importer::FRPRMaterialCoMSetter::SetParameterValue(
 	return (false);
 }
 
-bool RPR::GLTF::Importer::FRPRMaterialCoMSetter::IsParameterTypeSupported(RPRX::EMaterialParameterType MaterialParameterType)
+bool RPR::GLTF::Importer::FRPRMaterialCoMChannel1Setter::IsParameterTypeSupported(RPRX::EMaterialParameterType MaterialParameterType)
 {
-	return (MaterialParameterType == RPRX::EMaterialParameterType::Node || 
+	return (MaterialParameterType == RPRX::EMaterialParameterType::Node ||
 		MaterialParameterType == RPRX::EMaterialParameterType::Float4);
 }
