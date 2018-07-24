@@ -37,6 +37,9 @@ public:
 	static const FRPRUberMaterialParameterBase*	GetParameterBaseFromProperty(const FRPRUberMaterialParameters* MaterialParameters,
 																			const UProperty* Property);
 
+	static FRPRUberMaterialParameterBase*	GetParameterBaseFromProperty(FRPRUberMaterialParameters* MaterialParameters,
+																			const UProperty* Property);
+
 	static bool				IsPropertyValidUberParameterProperty(const UProperty* Property);
 	static const UStruct*	GetTopStructProperty(const UStruct* Struct);
 };

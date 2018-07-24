@@ -19,6 +19,7 @@
 #pragma once
 
 #include "Containers/UnrealString.h"
+#include "Typedefs/RPRXTypedefs.h"
 #include "RPRUberMaterialParameterBase.generated.h"
 
 DECLARE_DELEGATE_RetVal_OneParam(bool, FCanUseParameter, const struct FRPRUberMaterialParameterBase*)
@@ -48,18 +49,18 @@ public:
 	FRPRUberMaterialParameterBase();
 	FRPRUberMaterialParameterBase(
 		const FString& InParamName, 
-		uint32 InRprxParamID, 
+		RPRX::FParameterType InRprxParamType,
 		ESupportMode InPreviewSupportMode, 
 		FCanUseParameter InCanUseParameter = FCanUseParameter());
 
 	virtual ~FRPRUberMaterialParameterBase() {}
 
-	uint32			GetRprxParam() const;
-	const FString&	GetParameterName() const;
-	bool			CanUseParameter() const;
-	bool			IsPreviewSupported() const;
-	bool			IsPropertySupported() const;
-	void			SetAdditionalInfoText(const FText& Text);
+	RPRX::FParameterType	GetRprxParamType() const;
+	const FString&			GetParameterName() const;
+	bool					CanUseParameter() const;
+	bool					IsPreviewSupported() const;
+	bool					IsPropertySupported() const;
+	void					SetAdditionalInfoText(const FText& Text);
 
 	virtual FString	GetPropertyName(UProperty* Property) const;
 	virtual FString	GetPropertyTypeName(UProperty* Property) const;
@@ -75,7 +76,7 @@ public:
 private:
 
 	UPROPERTY()
-	uint32		RprxParamID;
+	uint32		RprxParamType;
 
 	UPROPERTY()
 	FString		ParamName;

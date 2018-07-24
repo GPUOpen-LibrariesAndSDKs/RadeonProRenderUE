@@ -11,51 +11,30 @@ bool RPR::GLTF::Importer::FRPRMaterialMapSetter::SetParameterValue(FSerializatio
 {
 	FRPRMaterialCoM* map = (FRPRMaterialCoM*) UberParameter;
 	RPR::FResult status;
-
-	switch (ParameterType)
+				
+	RPRX::FMaterial materialNode = nullptr;
+	status = RPRX::FMaterialHelpers::GetMaterialParameterValue(SerializationCtx.RPRXContext, SerializationCtx.NativeRPRMaterial, Parameter, materialNode);
+	if (RPR::IsResultFailed(status))
 	{
-		case RPRX::EMaterialParameterType::Float4:
-		{
-			FLinearColor value;
-			status = RPRX::FMaterialHelpers::GetMaterialParameterValue(SerializationCtx.RPRXContext, SerializationCtx.NativeRPRMaterial, Parameter, value);
-			map->Constant = value;
-			map->Mode = ERPRMaterialMapMode::Constant;
-		}
-		break;
-
-		case RPRX::EMaterialParameterType::Node:
-		{
-			RPRX::FMaterial materialNode = nullptr;
-			status = RPRX::FMaterialHelpers::GetMaterialParameterValue(SerializationCtx.RPRXContext, SerializationCtx.NativeRPRMaterial, Parameter, materialNode);
-			if (RPR::IsResultFailed(status))
-			{
-				UE_LOG(LogRPRGLTFImporter, Warning, TEXT("Cannot get node from parameter value"));
-				return (false);
-			}
-
-			RPR::FImage image = nullptr;
-			if (RPR::RPRMaterial::FindFirstImageAvailable(SerializationCtx.RPRXContext, materialNode, image))
-			{
-				auto resourceData = SerializationCtx.ImageResources->FindResourceByImage(image);
-				if (resourceData)
-				{
-					map->Mode = ERPRMaterialMapMode::Texture;
-					map->Texture = Cast<UTexture2D>(resourceData->Texture);
-					return (true);
-				}
-			}
-		}
-		break;
-
-		default:
+		UE_LOG(LogRPRGLTFImporter, Warning, TEXT("Cannot get node from parameter value"));
 		return (false);
 	}
 
-	return (RPR::IsResultSuccess(status));
+	RPR::FImage image = nullptr;
+	if (RPR::RPRMaterial::FindFirstImageAvailable(SerializationCtx.RPRXContext, materialNode, image))
+	{
+		auto resourceData = SerializationCtx.ImageResources->FindResourceByImage(image);
+		if (resourceData)
+		{
+			map->Texture = Cast<UTexture2D>(resourceData->Texture);
+			return (true);
+		}
+	}
+
+	return (false);
 }
 
 bool RPR::GLTF::Importer::FRPRMaterialMapSetter::IsParameterTypeSupported(RPRX::EMaterialParameterType MaterialParameterType)
 {
-	return (MaterialParameterType == RPRX::EMaterialParameterType::Float4 ||
-		MaterialParameterType == RPRX::EMaterialParameterType::Node);
+	return (MaterialParameterType == RPRX::EMaterialParameterType::Node);
 }

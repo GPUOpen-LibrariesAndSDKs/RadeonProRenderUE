@@ -37,6 +37,11 @@
 #include "AssetToolsModule.h"
 #include "IAssetTools.h"
 #include "RPRSettings.h"
+#include "Class.h"
+#include "UberMaterialPropertyHelper.h"
+#include "GLTFMaterialParameterSetterFactory.h"
+#include "RPRMaterialFactory.h"
+#include "CoreGlobals.h"
 
 #define LOCTEXT_NAMESPACE "URPRGLTFImportFactory"
 
@@ -109,7 +114,7 @@ UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InPa
 	ImportImages(gltfFileData, imageResources);
 
 	TArray<URPRMaterial*> rprMaterials;
-	ImportMaterials(imageResources, rprMaterials);
+	ImportMaterials(gltfFileData, imageResources, rprMaterials);
 
 	return (nullptr);
 }
@@ -137,7 +142,17 @@ bool URPRGLTFImportFactory::ImportImages(gltf::glTFAssetData GLTFFileData, RPR::
 
 	URPRSettings* rprSettings = GetMutableDefault<URPRSettings>();
 	FAssetToolsModule& assetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools");
-	assetToolsModule.Get().ImportAssets(imagePaths, rprSettings->DefaultRootDirectoryForImportedTextures.Path);
+	TArray<UObject*> textures = assetToolsModule.Get().ImportAssets(imagePaths, rprSettings->DefaultRootDirectoryForImportedTextures.Path);
+
+	// Set required compression settings on the new imported textures
+	for (int32 i = 0; i < textures.Num(); ++i)
+	{
+		if (textures[i]->IsA<UTexture2D>())
+		{
+			UTexture2D* texture = Cast<UTexture2D>(textures[i]);
+			FTextureImporter::SetDefaultRequiredTextureFormat(texture);
+		}
+	}
 
 	// Find the textures in the directory.
 	// Do not use results of ImportAssets since if the user refuse to override the texture, it will return nothing.
@@ -184,7 +199,7 @@ void URPRGLTFImportFactory::LoadTextures(const TArray<FString>& ImagePaths, RPR:
 	}
 }
 
-bool URPRGLTFImportFactory::ImportMaterials(RPR::GLTF::FImageResourcesPtr ImageResources, TArray<URPRMaterial*>& OutMaterials)
+bool URPRGLTFImportFactory::ImportMaterials(gltf::glTFAssetData GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources, TArray<URPRMaterial*>& OutMaterials)
 {
 	TArray<RPRX::FMaterial> materials;
 	RPR::FResult status = RPR::GLTF::Import::GetMaterialX(materials);
@@ -201,8 +216,10 @@ bool URPRGLTFImportFactory::ImportMaterials(RPR::GLTF::FImageResourcesPtr ImageR
 
 	for (int32 i = 0; i < materials.Num(); ++i)
 	{
-		RPRX::FMaterial nRPRMaterial = materials[i];
-		URPRMaterial* RPRMaterial = ImportMaterial(ImageResources, nRPRMaterial);
+		FString materialName = FString(GLTFFileData.materials[i].name.c_str());
+
+		RPRX::FMaterial nativeRPRMaterial = materials[i];
+		URPRMaterial* RPRMaterial = ImportMaterial(materialName, ImageResources, nativeRPRMaterial);
 		if (RPRMaterial)
 		{
 			OutMaterials.Add(RPRMaterial);
@@ -212,23 +229,69 @@ bool URPRGLTFImportFactory::ImportMaterials(RPR::GLTF::FImageResourcesPtr ImageR
 	return (true);
 }
 
-URPRMaterial* URPRGLTFImportFactory::ImportMaterial(RPR::GLTF::FImageResourcesPtr ImageResources, RPRX::FMaterial NativeRPRMaterial)
+URPRMaterial* URPRGLTFImportFactory::ImportMaterial(const FString& MaterialName, RPR::GLTF::FImageResourcesPtr ImageResources, RPRX::FMaterial NativeRPRMaterial)
 {
-	URPRMaterial* newMaterial = NewObject<URPRMaterial>(Parent, TEXT("M_RPRMaterial"), Flags);
+	URPRMaterial* newMaterial = CreateNewMaterial(MaterialName);
+	if (newMaterial == nullptr)
+	{
+		UE_LOG(LogRPRGLTFImporter, Error, TEXT("Cannot create new material '%s'"), *MaterialName);
+		return (nullptr);
+	}
 
 	FRPRUberMaterialParameters& parameters = newMaterial->MaterialParameters;
 
-	RPR::GLTF::Importer::IRPRMaterialParameterSetter* diffuseColorSetter = new RPR::GLTF::Importer::FRPRMaterialMapSetter();
-	//diffuseColorSetter->Set(NativeRPRMaterial, &parameters.Diffuse_Color, RPRX_UBER_MATERIAL_DIFFUSE_COLOR);
+	// Create & initialize serialization context
 	RPR::GLTF::Importer::FSerializationContext serializationCtx;
 	serializationCtx.RPRXContext = IRPRCore::GetResources()->GetRPRXSupportContext();
 	serializationCtx.NativeRPRMaterial = NativeRPRMaterial;
 	serializationCtx.ImageResources = ImageResources;
-	diffuseColorSetter->Set(serializationCtx, &parameters.Normal, RPRX_UBER_MATERIAL_NORMAL);
 
-	delete diffuseColorSetter;
+	// Use reflection to set each parameter of the Uber material
+	UStruct* uberMaterialParameters = FRPRUberMaterialParameters::StaticStruct();
+	UProperty* currentParameterProp = uberMaterialParameters->PropertyLink;
+	while (currentParameterProp != nullptr)
+	{
+		FRPRUberMaterialParameterBase* uberMaterialParameter =
+			FUberMaterialPropertyHelper::GetParameterBaseFromProperty(&parameters, currentParameterProp);
+
+		if (uberMaterialParameter == nullptr)
+		{
+			// If the property is not a standard uber material parameter...
+			continue;
+		}
+
+		UStructProperty* structProperty = Cast<UStructProperty>(currentParameterProp);
+		if (structProperty == nullptr)
+		{
+			// Unsupported property
+			continue;
+		}
+
+		UStruct* structRef = structProperty->Struct;
+		RPR::GLTF::Importer::IRPRMaterialParameterSetterPtr materialParameterSetter =
+			RPR::GLTF::Importer::FGLTFMaterialParameterSetterFactory::CreateMaterialParameterSetter(structRef);
+
+		if (materialParameterSetter.IsValid())
+		{
+			materialParameterSetter->Set(serializationCtx, uberMaterialParameter, uberMaterialParameter->GetRprxParamType());
+		}
+
+		currentParameterProp = currentParameterProp->PropertyLinkNext;
+	}
+
+	newMaterial->PostEditChange();
 
 	return (newMaterial);
+}
+
+URPRMaterial* URPRGLTFImportFactory::CreateNewMaterial(const FString& MaterialName) const
+{
+	URPRSettings* settings = GetMutableDefault<URPRSettings>();
+	FString materialPath = FPaths::Combine(settings->DefaultRootDirectoryForImportedMaterials.Path, MaterialName);
+	UPackage* package = CreatePackage(nullptr, *materialPath);
+
+	URPRMaterialFactory* rprMaterialFactory = NewObject<URPRMaterialFactory>();
+	return (URPRMaterial*) rprMaterialFactory->FactoryCreateNew(URPRMaterial::StaticClass(), package, *MaterialName, RF_Public | RF_Standalone, nullptr, GWarn);
 }
 
 

@@ -10,6 +10,11 @@ namespace RPR
 	{
 		namespace Importer
 		{
+			/*
+			* Data that are used by the RPRMaterialParameterSetters to work.
+			* Allow to not pass lot of parameters to the functions and
+			* make the code more flexible to add new datum.
+			*/
 			struct FSerializationContext
 			{
 				RPRX::FContext	RPRXContext;
@@ -29,6 +34,8 @@ namespace RPR
 				virtual bool	IsParameterTypeSupported(RPRX::EMaterialParameterType MaterialParameterType) = 0;
 
 			};
+
+			using IRPRMaterialParameterSetterPtr = TSharedPtr<IRPRMaterialParameterSetter>;
 
 		}
 	}

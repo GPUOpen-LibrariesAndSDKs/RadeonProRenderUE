@@ -50,6 +50,7 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 	, bUseErrorTexture(true)
 {
 	DefaultRootDirectoryForImportedTextures.Path = TEXT("/Game/Textures");
+	DefaultRootDirectoryForImportedMaterials.Path = TEXT("/Game/Materials");
 	ErrorTexture = LoadObject<UTexture2D>(nullptr, TEXT("/RPRPlugin/UETextures/T_TextureNotSupported.T_TextureNotSupported"));
 	TryLoadUberMaterialFromDefaultLocation();
 }

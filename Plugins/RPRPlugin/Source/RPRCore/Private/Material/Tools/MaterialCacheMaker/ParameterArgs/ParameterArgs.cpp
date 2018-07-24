@@ -42,7 +42,7 @@ namespace RPRX
 		uint32 FArgs::GetRprxParam() const
 		{
 			const FRPRUberMaterialParameterBase* materialParameter = GetMaterialParameterBase();
-			return (materialParameter->GetRprxParam());
+			return (materialParameter->GetRprxParamType());
 		}
 
 		bool FArgs::CanUseParam() const

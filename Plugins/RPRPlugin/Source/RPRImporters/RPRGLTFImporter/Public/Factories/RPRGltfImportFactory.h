@@ -49,14 +49,16 @@ class URPRGLTFImportFactory : public UFactory
 private:
 
 	bool			ImportImages(gltf::glTFAssetData GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources);
-	bool			ImportMaterials(RPR::GLTF::FImageResourcesPtr ImageResources, TArray<URPRMaterial*>& OutMaterials);
-	URPRMaterial*	ImportMaterial(RPR::GLTF::FImageResourcesPtr ImageResources, RPRX::FMaterial NativeRPRMaterial);
+	bool			ImportMaterials(gltf::glTFAssetData GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources, TArray<URPRMaterial*>& OutMaterials);
+	URPRMaterial*	ImportMaterial(const FString& MaterialName, RPR::GLTF::FImageResourcesPtr ImageResources, RPRX::FMaterial NativeRPRMaterial);
 
 	void			GetImagePathsFromGLTF(gltf::glTFAssetData GLTFFileData, TArray<FString>& OutImagePaths);
 	void			LoadTextures(const TArray<FString>& ImagePaths, RPR::GLTF::FImageResourcesPtr ImageResources);
 
 	template<typename TSetter>
 	void			SetMaterialParameter(RPRX::FMaterial NativeRPRMaterial, FRPRUberMaterialParameterBase* UberParameter, RPRX::FParameter Parameter);
+
+	URPRMaterial*	CreateNewMaterial(const FString& MaterialName) const;
 
 private:
 
@@ -65,12 +67,3 @@ private:
 	FString			Filename;
 
 };
-
-template<typename TSetter>
-void URPRGLTFImportFactory::SetMaterialParameter(RPRX::FMaterial NativeRPRMaterial, FRPRUberMaterialParameterBase* UberParameter, RPRX::FParameter Parameter)
-{
-	/*RPR::GLTF::Importer::IRPRMaterialParameterSetter* diffuseColorSetter = new RPR::GLTF::Importer::FRPRMaterialMapSetter();
-	diffuseColorSetter->Set(NativeRPRMaterial, &UberParameter.Diffuse_Color, RPRX_UBER_MATERIAL_DIFFUSE_COLOR);
-
-	delete diffuseColorSetter;*/
-}

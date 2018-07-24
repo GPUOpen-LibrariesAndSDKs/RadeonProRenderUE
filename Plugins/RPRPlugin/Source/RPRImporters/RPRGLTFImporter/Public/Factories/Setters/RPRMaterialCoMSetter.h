@@ -1,5 +1,5 @@
 #pragma once
-#include "Factories/Setters/RPRMaterialParameterSetter.h"
+#include "Factories/Setters/RPRMaterialMapSetter.h"
 
 namespace RPR
 {
@@ -7,17 +7,15 @@ namespace RPR
 	{
 		namespace Importer
 		{
-
-			class FRPRMaterialMapSetter : public FRPRMaterialParameterSetter
+			class FRPRMaterialCoMSetter : public FRPRMaterialMapSetter
 			{
 
 			protected:
-				
+
 				virtual bool SetParameterValue(FSerializationContext& SerializationCtx, FRPRUberMaterialParameterBase* UberParameter, RPRX::EMaterialParameterType ParameterType, RPRX::FParameter Parameter) override;
-				virtual bool IsParameterTypeSupported(RPRX::EMaterialParameterType MaterialParameterType) override;				
+				virtual bool IsParameterTypeSupported(RPRX::EMaterialParameterType MaterialParameterType) override;
 
 			};
-
 		}
 	}
 }

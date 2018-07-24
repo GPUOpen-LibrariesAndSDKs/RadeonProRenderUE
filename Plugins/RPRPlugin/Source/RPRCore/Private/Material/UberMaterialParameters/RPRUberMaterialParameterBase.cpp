@@ -19,19 +19,19 @@
 #include "Material/UberMaterialParameters/RPRUberMaterialParameterBase.h"
 
 FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase()
-	: RprxParamID(INDEX_NONE)
+	: RprxParamType(INDEX_NONE)
 {}
 
-FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(const FString& InParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, FCanUseParameter InCanUseParameter)
+FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(const FString& InParamName, RPRX::FParameterType InRprxParamType, ESupportMode InPreviewSupportMode, FCanUseParameter InCanUseParameter)
 	: ParamName(InParamName)
-	, RprxParamID(InRprxParamID)
+	, RprxParamType(InRprxParamType)
 	, SupportMode(InPreviewSupportMode)
 	, CanUseParameterDelegate(InCanUseParameter)
 {}
 
-uint32 FRPRUberMaterialParameterBase::GetRprxParam() const
+RPRX::FParameterType FRPRUberMaterialParameterBase::GetRprxParamType() const
 {
-	return (RprxParamID);
+	return (RprxParamType);
 }
 
 const FString& FRPRUberMaterialParameterBase::GetParameterName() const

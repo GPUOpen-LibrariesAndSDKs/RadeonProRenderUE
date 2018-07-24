@@ -49,7 +49,7 @@ struct _rprxmaterial
 typedef _rprxcontext *rprx_context;
 typedef _rprxmaterial *rprx_material;
 
-/*rprx_material_type*/
+/*rprx_parameter_type*/
 #define RPRX_UBER_MATERIAL_DIFFUSE_COLOR 0x100U 
 #define RPRX_UBER_MATERIAL_DIFFUSE_WEIGHT 0x101U 
 #define RPRX_UBER_MATERIAL_DIFFUSE_ROUGHNESS 0x102U 

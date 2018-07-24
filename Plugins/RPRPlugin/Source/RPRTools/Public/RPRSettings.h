@@ -127,6 +127,9 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = Materials)
 	FDirectoryPath	DefaultRootDirectoryForImportedTextures;
 
+	UPROPERTY(Config, EditAnywhere, Category = Materials)
+	FDirectoryPath	DefaultRootDirectoryForImportedMaterials;
+
 	UPROPERTY(Config, EditAnywhere, meta = (Tooltip = "If checked, the error texture will be used when the texture cannot be loaded correctly in RPR."), Category = ImageManager)
 	bool		bUseErrorTexture;
 
