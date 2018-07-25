@@ -47,6 +47,8 @@
 #include "StaticMeshHelper.h"
 #include "Helpers/RPRMeshHelper.h"
 #include "RPRMeshImporter.h"
+#include "Slate/SGLTFImportWindow.h"
+#include "GTLFImportSettings.h"
 
 #define LOCTEXT_NAMESPACE "URPRGLTFImportFactory"
 
@@ -81,6 +83,12 @@ bool URPRGLTFImportFactory::FactoryCanImport(const FString& InFilename)
 UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InParent, FName InName, EObjectFlags InFlags, const FString& InFilename, const TCHAR* InParms, FFeedbackContext* InWarn, bool& bOutOperationCanceled)
 {
     FEditorDelegates::OnAssetPreImport.Broadcast(this, InClass, InParent, InName, InParms);
+
+	if (!SGLTFImportWindow::Open(InFilename))
+	{
+		bOutOperationCanceled = true;
+		return (nullptr);
+	}
 
 	Parent = InParent;
 	Flags = InFlags;
@@ -318,12 +326,19 @@ bool URPRGLTFImportFactory::ImportMeshes(const gltf::glTFAssetData& GLTFFileData
 
 	checkf(GLTFFileData.meshes.size() == shapes.Num(), TEXT("Count of mesh imported by gltf and RPR is different"));
 
+	UGTLFImportSettings* gltfImportSettings = GetMutableDefault<UGTLFImportSettings>();
+	RPR::FMeshImporter::FSettings importSettings;
+	{
+		importSettings.ScaleFactor = gltfImportSettings->ScaleFactor;
+		importSettings.Rotation = gltfImportSettings->Rotation;
+	}
+
 	for (int32 i = 0; i < shapes.Num(); ++i)
 	{
 		FString meshName = FString(GLTFFileData.meshes[i].name.c_str());
 		RPR::FShape shape = shapes[i];
 
-		UStaticMesh* staticMesh = RPR::FMeshImporter::ImportMesh(meshName, shape);
+		UStaticMesh* staticMesh = RPR::FMeshImporter::ImportMesh(meshName, shape, importSettings);
 		if (staticMesh != nullptr)
 		{
 			OutStaticMeshes.Add(staticMesh);

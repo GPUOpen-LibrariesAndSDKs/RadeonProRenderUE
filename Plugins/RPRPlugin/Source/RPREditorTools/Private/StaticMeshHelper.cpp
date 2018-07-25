@@ -38,7 +38,7 @@ void FStaticMeshHelper::SaveRawMeshToStaticMesh(FRawMesh& RawMesh, class UStatic
 	check(StaticMesh);
 	check(SourceModelIdx < StaticMesh->SourceModels.Num());
 
-	if (RawMesh.IsValid())
+	if (RawMesh.IsValidOrFixable())
 	{
 		StaticMesh->SourceModels[SourceModelIdx].RawMeshBulkData->SaveRawMesh(RawMesh);
 	}

@@ -6,14 +6,18 @@
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRMeshImporter, Log, All)
 
-UStaticMesh* RPR::FMeshImporter::ImportMesh(const FString& MeshName, RPR::FShape Shape)
+RPR::FMeshImporter::FSettings::FSettings()
+	: ScaleFactor(100.0f)
+{}
+
+UStaticMesh* RPR::FMeshImporter::ImportMesh(const FString& MeshName, RPR::FShape Shape, const FSettings& Settings)
 {
 	FRawMesh rawMesh;
 
-	if (!ImportVertices(MeshName, Shape, rawMesh.VertexPositions)) return nullptr;
-	if (!ImportNormals(MeshName, Shape, rawMesh.WedgeTangentZ)) return nullptr;	
+	if (!ImportVertices(MeshName, Shape, Settings, rawMesh.VertexPositions)) return nullptr;
 	if (!ImportTriangles(MeshName, Shape, rawMesh.WedgeIndices)) return nullptr;
-	if (!ImportUVs(MeshName, Shape, rawMesh.WedgeTexCoords)) return nullptr;
+	if (!ImportNormals(MeshName, Shape, Settings, rawMesh.WedgeIndices, rawMesh.WedgeTangentZ)) return nullptr;
+	if (!ImportUVs(MeshName, Shape, rawMesh.WedgeTexCoords, rawMesh.WedgeIndices.Num())) return nullptr;
 
 	InitializeUnknownData(rawMesh);
 
@@ -30,7 +34,7 @@ UStaticMesh* RPR::FMeshImporter::ImportMesh(const FString& MeshName, RPR::FShape
 	return (newMesh);
 }
 
-bool RPR::FMeshImporter::ImportVertices(const FString& MeshName, RPR::FShape Shape, TArray<FVector>& OutVertices)
+bool RPR::FMeshImporter::ImportVertices(const FString& MeshName, RPR::FShape Shape, const FSettings& Settings, TArray<FVector>& OutVertices)
 {
 	RPR::FResult status;
 	uint32 count;
@@ -49,12 +53,14 @@ bool RPR::FMeshImporter::ImportVertices(const FString& MeshName, RPR::FShape Sha
 			UE_LOG(LogRPRMeshImporter, Error, TEXT("Cannot get vertices for mesh '%s'"), *MeshName);
 			return (false);
 		}
+		
+		FTransform transform = CreateTransformFromImportSettings(Settings);
+		TransformPosition(OutVertices, transform);
 	}
-
 	return (true);
 }
 
-bool RPR::FMeshImporter::ImportNormals(const FString& MeshName, RPR::FShape Shape, TArray<FVector>& OutNormals)
+bool RPR::FMeshImporter::ImportNormals(const FString& MeshName, RPR::FShape Shape, const FSettings& Settings, const TArray<uint32>& Indices, TArray<FVector>& OutNormals)
 {
 	RPR::FResult status;
 	uint32 count;
@@ -73,6 +79,22 @@ bool RPR::FMeshImporter::ImportNormals(const FString& MeshName, RPR::FShape Shap
 			UE_LOG(LogRPRMeshImporter, Error, TEXT("Cannot get normals for mesh '%s'"), *MeshName);
 			return (false);
 		}
+
+		FTransform transform = CreateTransformFromImportSettings(Settings);
+		TransformVectors(OutNormals, transform);
+
+		// If there is not the same number, 
+		// it means that the organization is different
+		if (OutNormals.Num() != Indices.Num())
+		{
+			TArray<FVector> normals = MoveTemp(OutNormals);
+			OutNormals.AddUninitialized(Indices.Num());
+			for (int32 index = 0; index < Indices.Num(); ++index)
+			{
+				uint32 vertexId = Indices[index];
+				OutNormals[index] = normals[vertexId];
+			}
+		}
 	}
 
 	return (true);
@@ -90,7 +112,7 @@ bool RPR::FMeshImporter::ImportTriangles(const FString& MeshName, RPR::FShape Sh
 	return (true);
 }
 
-bool RPR::FMeshImporter::ImportUVs(const FString& MeshName, RPR::FShape Shape, TArray<FVector2D>* UVs)
+bool RPR::FMeshImporter::ImportUVs(const FString& MeshName, RPR::FShape Shape, TArray<FVector2D>* UVs, uint32 ExpectedNumUVs)
 {
 	RPR::FResult status;
 	uint32 count;
@@ -112,11 +134,18 @@ bool RPR::FMeshImporter::ImportUVs(const FString& MeshName, RPR::FShape Shape, T
 			return (false);
 		}
 
-		status = RPR::Mesh::GetUV(Shape, uvIndex, UVs[uvIndex]);
-		if (RPR::IsResultFailed(status))
+		if (count > 0)
 		{
-			UE_LOG(LogRPRMeshImporter, Error, TEXT("Cannot get uv for UV channels '%d' from the mesh '%s'"), *MeshName, uvIndex);
-			return (false);
+			status = RPR::Mesh::GetUV(Shape, uvIndex, UVs[uvIndex]);
+			if (RPR::IsResultFailed(status))
+			{
+				UE_LOG(LogRPRMeshImporter, Error, TEXT("Cannot get uv for UV channels '%d' from the mesh '%s'"), *MeshName, uvIndex);
+				return (false);
+			}
+		}
+		else
+		{
+			GenerateDefaultUVs(UVs[uvIndex], ExpectedNumUVs);
 		}
 	}
 
@@ -147,4 +176,30 @@ void RPR::FMeshImporter::SaveRawMeshToStaticMesh(FRawMesh& RawMesh, UStaticMesh*
 	FStaticMeshSourceModel& srcModel = StaticMesh->AddSourceModel();
 	srcModel.SaveRawMesh(RawMesh);
 	FStaticMeshHelper::SaveRawMeshToStaticMesh(RawMesh, StaticMesh);
+}
+
+void RPR::FMeshImporter::TransformPosition(TArray<FVector>& Vertices, const FTransform& Transform)
+{
+	for (int32 i = 0; i < Vertices.Num(); ++i)
+	{
+		Vertices[i] = Transform.TransformPosition(Vertices[i]);
+	}
+}
+
+void RPR::FMeshImporter::TransformVectors(TArray<FVector>& Vertices, const FTransform& Transform)
+{
+	for (int32 i = 0; i < Vertices.Num(); ++i)
+	{
+		Vertices[i] = Transform.TransformVector(Vertices[i]);
+	}
+}
+
+void RPR::FMeshImporter::GenerateDefaultUVs(TArray<FVector2D>& UVs, uint32 NumUVs)
+{
+	UVs.AddZeroed(NumUVs);
+}
+
+FTransform RPR::FMeshImporter::CreateTransformFromImportSettings(const FSettings& Settings)
+{
+	return FTransform(Settings.Rotation, FVector::ZeroVector, FVector::OneVector * Settings.ScaleFactor * -1.0f);
 }

@@ -29,6 +29,10 @@ public class RPRGLTFImporter : ModuleRules
         PrivateIncludePaths.AddRange(
             new string[] {
                 "RPRImporters/RPRGLTFImporter/Private",
+                "RPRImporters/RPRGLTFImporter/Private/Slate",
+
+                "RPRImporters/RPRGLTFImporter/Public",
+                "RPRImporters/RPRGLTFImporter/Public/Slate",
         });
 
         PublicDependencyModuleNames.AddRange(
