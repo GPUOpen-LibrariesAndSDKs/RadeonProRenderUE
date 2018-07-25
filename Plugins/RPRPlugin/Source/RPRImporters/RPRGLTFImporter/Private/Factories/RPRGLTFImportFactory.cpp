@@ -121,9 +121,10 @@ UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InPa
 	TArray<URPRMaterial*> rprMaterials;
 	ImportMaterials(gltfFileData, imageResources, rprMaterials);
 
-	ImportMeshes(gltfFileData);
+	TArray<UStaticMesh*> staticMeshes;
+	ImportMeshes(gltfFileData, staticMeshes);
 
-	return (nullptr);
+	return (staticMeshes.Num() > 0 ? staticMeshes[0] : nullptr);
 }
 
 bool URPRGLTFImportFactory::ImportImages(const gltf::glTFAssetData& GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources)
@@ -304,7 +305,7 @@ URPRMaterial* URPRGLTFImportFactory::CreateNewMaterial(const FString& MaterialNa
 	return (URPRMaterial*) rprMaterialFactory->FactoryCreateNew(URPRMaterial::StaticClass(), package, *MaterialName, RF_Public | RF_Standalone, nullptr, GWarn);
 }
 
-bool URPRGLTFImportFactory::ImportMeshes(const gltf::glTFAssetData& GLTFFileData)
+bool URPRGLTFImportFactory::ImportMeshes(const gltf::glTFAssetData& GLTFFileData, TArray<UStaticMesh*>& OutStaticMeshes)
 {
 	RPR::FResult status;
 
@@ -323,9 +324,14 @@ bool URPRGLTFImportFactory::ImportMeshes(const gltf::glTFAssetData& GLTFFileData
 		RPR::FShape shape = shapes[i];
 
 		UStaticMesh* staticMesh = RPR::FMeshImporter::ImportMesh(meshName, shape);
-		if (staticMesh)
+		if (staticMesh != nullptr)
 		{
-			GWarn->AddWarning(FString::Printf(TEXT("Mesh import fail '%s'"), *meshName));
+			OutStaticMeshes.Add(staticMesh);
+			FAssetRegistryModule::AssetCreated(staticMesh);
+		}
+		else
+		{
+			UE_LOG(LogRPRGLTFImporter, Warning, TEXT("Mesh import fail '%s'"), *meshName);
 		}
 	}
 

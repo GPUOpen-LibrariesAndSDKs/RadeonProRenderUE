@@ -10,9 +10,6 @@ UStaticMesh* RPR::FMeshImporter::ImportMesh(const FString& MeshName, RPR::FShape
 {
 	FRawMesh rawMesh;
 
-	RPR::FResult status;
-	uint32 count;
-
 	if (!ImportVertices(MeshName, Shape, rawMesh.VertexPositions)) return nullptr;
 	if (!ImportNormals(MeshName, Shape, rawMesh.WedgeTangentZ)) return nullptr;	
 	if (!ImportTriangles(MeshName, Shape, rawMesh.WedgeIndices)) return nullptr;
@@ -83,10 +80,7 @@ bool RPR::FMeshImporter::ImportNormals(const FString& MeshName, RPR::FShape Shap
 
 bool RPR::FMeshImporter::ImportTriangles(const FString& MeshName, RPR::FShape Shape, TArray<uint32>& OutTriangles)
 {
-	RPR::FResult status;
-	uint32 count;
-
-	status = RPR::Mesh::GetVertexIndexes(Shape, OutTriangles);
+	RPR::FResult status = RPR::Mesh::GetVertexIndexes(Shape, OutTriangles);
 	if (RPR::IsResultFailed(status))
 	{
 		UE_LOG(LogRPRMeshImporter, Error, TEXT("Cannot get triangles for mesh '%s'"), *MeshName);

@@ -47,6 +47,7 @@ public class RPRImporterTools : ModuleRules
 			new string[]
 			{
                 "RPRTools",
+                "RPREditorTools",
 			}
 			);
 

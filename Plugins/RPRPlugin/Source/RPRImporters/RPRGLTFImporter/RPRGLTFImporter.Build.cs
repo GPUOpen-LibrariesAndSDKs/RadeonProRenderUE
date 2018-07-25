@@ -40,7 +40,6 @@ public class RPRGLTFImporter : ModuleRules
                 "RPRGraphParser",
                 "RPRPlugin",
                 "RPRTools",
-                "RPREditorTools",
                 "RPR_Json",
                 "RPRImporterTools",
                 "RPRMaterialEditor",
