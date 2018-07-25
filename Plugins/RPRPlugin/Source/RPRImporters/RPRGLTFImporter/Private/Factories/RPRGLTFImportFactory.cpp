@@ -43,6 +43,10 @@
 #include "RPRMaterialFactory.h"
 #include "CoreGlobals.h"
 #include "AssetRegistryModule.h"
+#include "RawMesh.h"
+#include "StaticMeshHelper.h"
+#include "Helpers/RPRMeshHelper.h"
+#include "RPRMeshImporter.h"
 
 #define LOCTEXT_NAMESPACE "URPRGLTFImportFactory"
 
@@ -117,10 +121,12 @@ UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InPa
 	TArray<URPRMaterial*> rprMaterials;
 	ImportMaterials(gltfFileData, imageResources, rprMaterials);
 
+	ImportMeshes(gltfFileData);
+
 	return (nullptr);
 }
 
-bool URPRGLTFImportFactory::ImportImages(gltf::glTFAssetData GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources)
+bool URPRGLTFImportFactory::ImportImages(const gltf::glTFAssetData& GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources)
 {
 	RPR::FResult status;
 
@@ -163,13 +169,13 @@ bool URPRGLTFImportFactory::ImportImages(gltf::glTFAssetData GLTFFileData, RPR::
 	return (true);
 }
 
-void URPRGLTFImportFactory::GetImagePathsFromGLTF(gltf::glTFAssetData GLTFFileData, TArray<FString>& OutImagePaths)
+void URPRGLTFImportFactory::GetImagePathsFromGLTF(const gltf::glTFAssetData& GLTFFileData, TArray<FString>& OutImagePaths)
 {
 	FString gltfFileDirectory = FPaths::GetPath(Filename);
 
 	for (uint32 i = 0; i < GLTFFileData.images.size(); ++i)
 	{
-		gltf::Image& gltfImage = GLTFFileData.images[i];
+		const gltf::Image& gltfImage = GLTFFileData.images[i];
 		FString gltfImageURI = FString(gltfImage.uri.c_str());
 
 		FString fullImagePath = FPaths::ConvertRelativePathToFull(gltfFileDirectory, gltfImageURI);
@@ -202,7 +208,7 @@ void URPRGLTFImportFactory::LoadTextures(const TArray<FString>& ImagePaths, RPR:
 	}
 }
 
-bool URPRGLTFImportFactory::ImportMaterials(gltf::glTFAssetData GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources, TArray<URPRMaterial*>& OutMaterials)
+bool URPRGLTFImportFactory::ImportMaterials(const gltf::glTFAssetData& GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources, TArray<URPRMaterial*>& OutMaterials)
 {
 	TArray<RPRX::FMaterial> materials;
 	RPR::FResult status = RPR::GLTF::Import::GetMaterialX(materials);
@@ -298,5 +304,32 @@ URPRMaterial* URPRGLTFImportFactory::CreateNewMaterial(const FString& MaterialNa
 	return (URPRMaterial*) rprMaterialFactory->FactoryCreateNew(URPRMaterial::StaticClass(), package, *MaterialName, RF_Public | RF_Standalone, nullptr, GWarn);
 }
 
+bool URPRGLTFImportFactory::ImportMeshes(const gltf::glTFAssetData& GLTFFileData)
+{
+	RPR::FResult status;
+
+	TArray<RPR::FShape> shapes;
+	status = RPR::GLTF::Import::GetShapes(shapes);
+	if (RPR::IsResultFailed(status))
+	{
+		return (false);
+	}
+
+	checkf(GLTFFileData.meshes.size() == shapes.Num(), TEXT("Count of mesh imported by gltf and RPR is different"));
+
+	for (int32 i = 0; i < shapes.Num(); ++i)
+	{
+		FString meshName = FString(GLTFFileData.meshes[i].name.c_str());
+		RPR::FShape shape = shapes[i];
+
+		UStaticMesh* staticMesh = RPR::FMeshImporter::ImportMesh(meshName, shape);
+		if (staticMesh)
+		{
+			GWarn->AddWarning(FString::Printf(TEXT("Mesh import fail '%s'"), *meshName));
+		}
+	}
+
+	return (true);
+}
 
 #undef LOCTEXT_NAMESPACE

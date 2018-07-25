@@ -48,11 +48,14 @@ class URPRGLTFImportFactory : public UFactory
 
 private:
 
-	bool			ImportImages(gltf::glTFAssetData GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources);
-	bool			ImportMaterials(gltf::glTFAssetData GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources, TArray<URPRMaterial*>& OutMaterials);
+	bool			ImportImages(const gltf::glTFAssetData& GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources);
+	bool			ImportMaterials(const gltf::glTFAssetData& GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources, TArray<URPRMaterial*>& OutMaterials);
 	URPRMaterial*	ImportMaterial(const FString& MaterialName, RPR::GLTF::FImageResourcesPtr ImageResources, RPRX::FMaterial NativeRPRMaterial);
+	bool			ImportMeshes(const gltf::glTFAssetData& GLTFFileData);
+	UStaticMesh*	ImportMesh(const FString& MeshName, RPR::FShape Shape);
 
-	void			GetImagePathsFromGLTF(gltf::glTFAssetData GLTFFileData, TArray<FString>& OutImagePaths);
+
+	void			GetImagePathsFromGLTF(const gltf::glTFAssetData& GLTFFileData, TArray<FString>& OutImagePaths);
 	void			LoadTextures(const TArray<FString>& ImagePaths, RPR::GLTF::FImageResourcesPtr ImageResources);
 
 	template<typename TSetter>
@@ -65,5 +68,4 @@ private:
 	UObject*		Parent;
 	EObjectFlags	Flags;
 	FString			Filename;
-
 };

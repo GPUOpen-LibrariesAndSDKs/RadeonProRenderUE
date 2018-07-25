@@ -40,8 +40,10 @@ public class RPRGLTFImporter : ModuleRules
                 "RPRGraphParser",
                 "RPRPlugin",
                 "RPRTools",
+                "RPREditorTools",
                 "RPR_Json",
-                "RPRImporterTools"
+                "RPRImporterTools",
+                "RPRMaterialEditor",
         });
 
         PrivateDependencyModuleNames.AddRange(
@@ -60,7 +62,7 @@ public class RPRGLTFImporter : ModuleRules
                 "RawMesh",
                 "AssetTools",
                 "UnrealEd",
-                "RPRMaterialEditor"
+                "RawMesh",
         });
 		
 		//string PluginDir = Path.GetFullPath(Path.Combine(ModuleDirectory, "..", "..", ".."));

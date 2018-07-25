@@ -640,7 +640,7 @@
     ],
     "meshes": [
         {
-            "name": "",
+            "name": "my_mesh",
             "primitives": [
                 {
                     "attributes": {

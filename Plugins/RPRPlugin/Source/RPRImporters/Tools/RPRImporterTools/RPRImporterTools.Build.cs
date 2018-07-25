@@ -60,6 +60,7 @@ public class RPRImporterTools : ModuleRules
                 "AssetRegistry",
                 "UnrealEd",
                 "RenderCore",
+                "RawMesh",
 				// ... add private dependencies that you statically link with here ...	
 			});
     }
