@@ -130,4 +130,30 @@ namespace RPR
 		UV2IndexStride = RPR_MESH_UV2_INDEX_STRIDE,
 		UVDimensions = RPR_MESH_UV_DIM
 	};
+
+	enum class EShapeInfo
+	{
+		Type = RPR_SHAPE_TYPE,
+		VidmemUsage = RPR_SHAPE_VIDMEM_USAGE,
+		Transform = RPR_SHAPE_TRANSFORM,
+		Material = RPR_SHAPE_MATERIAL,
+		LinearMotion = RPR_SHAPE_LINEAR_MOTION,
+		AngularMotion = RPR_SHAPE_ANGULAR_MOTION,
+		VisibilityFlag = RPR_SHAPE_VISIBILITY_FLAG,
+		ShadowFlag = RPR_SHAPE_SHADOW_FLAG,
+		SubdivisionFactor = RPR_SHAPE_SUBDIVISION_FACTOR,
+		DisplacementScale = RPR_SHAPE_DISPLACEMENT_SCALE,
+		VisibilityPrimaryOnlyFlag = RPR_SHAPE_VISIBILITY_PRIMARY_ONLY_FLAG,
+		VisibilityInSpecularFlag = RPR_SHAPE_VISIBILITY_IN_SPECULAR_FLAG,
+		ShadowCatcherFlag = RPR_SHAPE_SHADOW_CATCHER_FLAG,
+		VolumeMaterial = RPR_SHAPE_VOLUME_MATERIAL,
+		ObjectGroupId = RPR_SHAPE_OBJECT_GROUP_ID,
+		SubdivisionCreaseWeight = RPR_SHAPE_SUBDIVISION_CREASEWEIGHT,
+		SubdivisionBoundaryInterop = RPR_SHAPE_SUBDIVISION_BOUNDARYINTEROP,
+		DisplacementMaterial = RPR_SHAPE_DISPLACEMENT_MATERIAL,
+		MaterialsPerFace = RPR_SHAPE_MATERIALS_PER_FACE,
+		ScaleMotion = RPR_SHAPE_SCALE_MOTION,
+		HeteroVolume = RPR_SHAPE_HETERO_VOLUME,
+		LayerMash = RPR_SHAPE_LAYER_MASK,
+	};
 }

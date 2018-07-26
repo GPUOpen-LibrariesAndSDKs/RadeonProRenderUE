@@ -26,6 +26,7 @@
 #include "RprTools.h"
 #include "HAL/UnrealMemory.h"
 #include "Helpers/RPRErrorsHelpers.h"
+#include "Helpers/RPRXMaterialHelpers.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRHelpers, Log, All);
 
@@ -155,116 +156,7 @@ namespace RPR
 			return (status);
 		}
 
-		RPR::FResult InternalDumpMaterialNode(RPR::FContext Context, RPR::FMaterialNode MaterialNode, int32 Depth)
-		{
-			FString indentation = FString::ChrN(Depth, ' ');
-			UE_LOG(LogRPRHelpers, Log, TEXT("%sMaterial Node"), *indentation);
-
-			RPR::FResult status;
-
-			RPR::EMaterialNodeType materialNodeType;
-			status = RPR::RPRMaterial::GetNodeInfo(MaterialNode, RPR::EMaterialNodeInfo::Type, &materialNodeType);
-			if (RPR::IsResultFailed(status))
-			{
-				UE_LOG(LogRPRHelpers, Log, TEXT("%sCannot get node type info"), *indentation);
-				return (status);
-			}
-
-			uint64 numInputs;
-			status = RPR::RPRMaterial::GetNodeInfo(MaterialNode, RPR::EMaterialNodeInfo::InputCount, &numInputs);
-			if (RPR::IsResultFailed(status))
-			{
-				UE_LOG(LogRPRHelpers, Log, TEXT("%sCannot get node input count"), *indentation);
-				return (status);
-			}
-
-			for (int32 inputIndex = 0; inputIndex < numInputs; ++inputIndex)
-			{
-				FString name;
-				status = RPR::RPRMaterial::GetNodeInputName(MaterialNode, inputIndex, name);
-				if (RPR::IsResultFailed(status))
-				{
-					UE_LOG(LogRPRHelpers, Log, TEXT("%sCannot get node input name"), *indentation);
-					return (status);
-				}
-
-				RPR::EMaterialNodeInputType inputType;
-				status = RPR::RPRMaterial::GetNodeInputType(MaterialNode, inputIndex, inputType);
-				if (RPR::IsResultFailed(status))
-				{
-					UE_LOG(LogRPRHelpers, Log, TEXT("%s%s -> Cannot get node input type"), *indentation, *name);
-					return (status);
-				}
-
-				switch (inputType)
-				{
-					case EMaterialNodeInputType::Float4:
-					{
-						FLinearColor value;
-						status = RPR::RPRMaterial::GetNodeInputValue(MaterialNode, inputIndex, value);
-						if (RPR::IsResultFailed(status))
-						{
-							UE_LOG(LogRPRHelpers, Log, TEXT("%sInput '%s' -> Float : Cannot get value"), *indentation, *name);
-							return (status);
-						}
-						UE_LOG(LogRPRHelpers, Log, TEXT("%sInput '%s' -> Float : [%f, %f, %f, %f]"), *indentation, *name, value.R, value.G, value.B, value.A);
-					}
-					break;
-
-					case EMaterialNodeInputType::Image:
-					{
-						RPR::FImage image = nullptr;
-						status = RPR::RPRMaterial::GetNodeInputValue(MaterialNode, inputIndex, image);
-						if (RPR::IsResultFailed(status))
-						{
-							UE_LOG(LogRPRHelpers, Log, TEXT("%sInput '%s' -> Image : Cannot get image"), *indentation, *name);
-							return (status);
-						}
-						UE_LOG(LogRPRHelpers, Log, TEXT("%sInput '%s' -> Image : [%p]"), *indentation, *name, image);
-					}
-					break;
-
-					case EMaterialNodeInputType::UInt:
-					{
-						uint32 value;
-						status = RPR::RPRMaterial::GetNodeInputValue(MaterialNode, inputIndex, value);
-						if (RPR::IsResultFailed(status))
-						{
-							UE_LOG(LogRPRHelpers, Log, TEXT("%sInput '%s' -> uint : Cannot get value"), *indentation, *name);
-							return (status);
-						}
-						UE_LOG(LogRPRHelpers, Log, TEXT("%sInput '%s' -> uint : [%d]"), *indentation, *name, value);
-					}
-					break;
-
-					case EMaterialNodeInputType::Node:
-					{
-						RPR::FMaterialNode childNode = nullptr;
-						status = RPR::RPRMaterial::GetNodeInputValue(MaterialNode, inputIndex, childNode);
-						if (RPR::IsResultFailed(status))
-						{
-							UE_LOG(LogRPRHelpers, Log, TEXT("%sInput '%s' -> Node : Cannot get value"), *indentation, *name);
-							return (status);
-						}
-						UE_LOG(LogRPRHelpers, Log, TEXT("%sInput '%s' -> Node : [%p]"), *indentation, *name, childNode);
-						status = InternalDumpMaterialNode(Context, childNode, Depth + 1);
-					}
-					break;
-
-					default:
-					UE_LOG(LogRPRHelpers, Log, TEXT("%sInput '%s' -> Unknown type"), *indentation, *name);
-					break;
-				}
-			}
-
-			return status;
-		}
-
-		RPR::FResult DumpMaterialNode(RPR::FContext Context, RPR::FMaterialNode MaterialNode)
-		{
-			return InternalDumpMaterialNode(Context, MaterialNode, 0);
-		}
-
+		
 		bool FindInMaterialNode(RPR::FContext Context, RPR::FMaterialNode MaterialNode, FMaterialNodeFinder Finder)
 		{
 			RPR::FResult status;

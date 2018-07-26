@@ -26,6 +26,7 @@
 #include "Enums/RPREnums.h"
 #include "RprTools.h"
 #include "Function.h"
+#include "Typedefs/RPRXTypedefs.h"
 
 RPRTOOLS_API RadeonProRender::matrix BuildMatrixNoScale(const struct FTransform &transform);
 RPRTOOLS_API RadeonProRender::matrix BuildMatrixWithScale(const struct FTransform &transform);
@@ -121,8 +122,6 @@ namespace RPR
 			}
 			return (status);
 		}
-
-		RPRTOOLS_API RPR::FResult DumpMaterialNode(RPR::FContext Context, RPR::FMaterialNode MaterialNode);
 
 		RPRTOOLS_API bool FindInMaterialNode(RPR::FContext Context, RPR::FMaterialNode MaterialNode, FMaterialNodeFinder Finder);
 		RPRTOOLS_API bool FindFirstImageAvailable(RPR::FContext Context, RPR::FMaterialNode MaterialNode, RPR::FImage& OutImage);

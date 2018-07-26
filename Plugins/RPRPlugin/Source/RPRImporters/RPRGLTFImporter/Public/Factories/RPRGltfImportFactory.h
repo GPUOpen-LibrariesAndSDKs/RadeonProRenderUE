@@ -26,7 +26,8 @@
 #include "Typedefs/RPRXTypedefs.h"
 #include "ImageManager/RPRImageManager.h"
 #include "gltf/gltf2.h"
-#include "ImageResources.h"
+#include "Resources/MaterialResources.h"
+#include "Resources/ImageResources.h"
 #include "RPRGLTFImportFactory.generated.h"
 
 //~ Forward declares
@@ -49,11 +50,11 @@ class URPRGLTFImportFactory : public UFactory
 private:
 
 	bool			ImportImages(const gltf::glTFAssetData& GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources);
-	bool			ImportMaterials(const gltf::glTFAssetData& GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources, TArray<URPRMaterial*>& OutMaterials);
+	bool			ImportMaterials(const gltf::glTFAssetData& GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources, RPR::GLTF::FMaterialResourcesPtr MaterialResources);
 	URPRMaterial*	ImportMaterial(const FString& MaterialName, RPR::GLTF::FImageResourcesPtr ImageResources, RPRX::FMaterial NativeRPRMaterial);
-	bool			ImportMeshes(const gltf::glTFAssetData& GLTFFileData, TArray<UStaticMesh*>& OutStaticMeshes);
+	bool			ImportMeshes(const gltf::glTFAssetData& GLTFFileData, RPR::GLTF::FMaterialResourcesPtr MaterialResources, TArray<UStaticMesh*>& OutStaticMeshes);
 	UStaticMesh*	ImportMesh(const FString& MeshName, RPR::FShape Shape);
-
+	void			AttachMaterialsOnMesh(RPR::FShape Shape, UStaticMesh* StaticMesh, RPR::GLTF::FMaterialResourcesPtr MaterialResources);
 
 	void			GetImagePathsFromGLTF(const gltf::glTFAssetData& GLTFFileData, TArray<FString>& OutImagePaths);
 	void			LoadTextures(const TArray<FString>& ImagePaths, RPR::GLTF::FImageResourcesPtr ImageResources);

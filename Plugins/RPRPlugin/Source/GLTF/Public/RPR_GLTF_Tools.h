@@ -55,6 +55,7 @@ namespace RPR
 			RPR_GLTF_API FStatus GetImages(TArray<RPR::FImage>& OutImages);
 			RPR_GLTF_API FStatus GetCameras(TArray<RPR::FCamera>& OutCameras);
 			RPR_GLTF_API FStatus GetMaterialX(TArray<RPRX::FMaterial>& OutMaterials);
+			RPR_GLTF_API FStatus GetMaterialNodes(TArray<RPR::FMaterialNode>& OutMaterialNodes);
 		}
 
 	}

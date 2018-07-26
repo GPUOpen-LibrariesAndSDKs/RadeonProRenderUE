@@ -19,7 +19,6 @@ namespace RPR
 			{
 				RPRX::FContext	RPRXContext;
 				RPRX::FMaterial NativeRPRMaterial;
-				FString			ImportFilePath;
 				RPR::GLTF::FImageResourcesPtr ImageResources;
 			};
 

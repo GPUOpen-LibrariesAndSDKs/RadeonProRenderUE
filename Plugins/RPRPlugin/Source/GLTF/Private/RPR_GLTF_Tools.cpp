@@ -93,8 +93,8 @@ namespace RPR
 			{
 				OutItems.Empty();
 
-				RPR::GLTF::FStatus status;
 				int32 numItems = 0;
+				RPR::GLTF::FStatus status;
 				status = RPRNativeImportFunction(nullptr, 0, &numItems);
 
 				if (IsResultFailed(status) || numItems == 0)
@@ -102,23 +102,8 @@ namespace RPR
 					return (status);
 				}
 
-				ImportType* items = new ImportType[numItems];
-				status = RPRNativeImportFunction(items, numItems * sizeof(ImportType), nullptr);
-
-				if (IsResultFailed(status))
-				{
-					delete[] items;
-					return (status);
-				}
-
-				OutItems.Reserve(numItems);
-				for (int32 i = 0; i < numItems; ++i)
-				{
-					OutItems.Add(items[i]);
-				}
-
-				delete[] items;
-				return (status);
+				OutItems.AddUninitialized(numItems);
+				return RPRNativeImportFunction(OutItems.GetData(), numItems * sizeof(ImportType), nullptr);
 			}
 
 			RPR::GLTF::FStatus GetShapes(TArray<RPR::FShape>& OutShapes)
@@ -144,6 +129,11 @@ namespace RPR
 			RPR::GLTF::FStatus GetMaterialX(TArray<RPRX::FMaterial>& OutMaterials)
 			{
 				return GLTF_Import<RPRX::FMaterial>(OutMaterials, rprGLTF_ListImported_MaterialX);
+			}
+
+			RPR::GLTF::FStatus GetMaterialNodes(TArray<RPR::FMaterialNode>& OutMaterialNodes)
+			{
+				return GLTF_Import<RPR::FMaterialNode>(OutMaterialNodes, rprGLTF_ListImported_MaterialNodes);
 			}
 
 		}

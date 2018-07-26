@@ -49,6 +49,9 @@
 #include "RPRMeshImporter.h"
 #include "Slate/SGLTFImportWindow.h"
 #include "GTLFImportSettings.h"
+#include "RPRShapeHelpers.h"
+#include "MaterialResources.h"
+#include "Miscs/RPRMaterialNodeDumper.h"
 
 #define LOCTEXT_NAMESPACE "URPRGLTFImportFactory"
 
@@ -126,11 +129,11 @@ UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InPa
 	RPR::GLTF::FImageResourcesPtr imageResources = MakeShareable(new RPR::GLTF::FImageResources);
 	ImportImages(gltfFileData, imageResources);
 
-	TArray<URPRMaterial*> rprMaterials;
-	ImportMaterials(gltfFileData, imageResources, rprMaterials);
+	RPR::GLTF::FMaterialResourcesPtr materialResources = MakeShareable(new RPR::GLTF::FMaterialResources);
+	ImportMaterials(gltfFileData, imageResources, materialResources);
 
 	TArray<UStaticMesh*> staticMeshes;
-	ImportMeshes(gltfFileData, staticMeshes);
+	ImportMeshes(gltfFileData, materialResources, staticMeshes);
 
 	return (staticMeshes.Num() > 0 ? staticMeshes[0] : nullptr);
 }
@@ -150,7 +153,7 @@ bool URPRGLTFImportFactory::ImportImages(const gltf::glTFAssetData& GLTFFileData
 	for (int32 i = 0; i < images.Num(); ++i)
 	{
 		auto& resourceData = ImageResources->RegisterNewResource(i);
-		resourceData.Image = images[i];
+		resourceData.ResourceRPR = images[i];
 	}
 	
 	TArray<FString> imagePaths;
@@ -212,12 +215,15 @@ void URPRGLTFImportFactory::LoadTextures(const TArray<FString>& ImagePaths, RPR:
 		{
 			FString textureName = FPaths::GetBaseFilename(ImagePaths[imageIndex]);
 			FString texturePath = FPaths::Combine(*textureDirectory, textureName + "." + textureName);
-			resourceData->Texture = LoadObject<UTexture>(nullptr, *texturePath);
+			resourceData->ResourceUE4 = LoadObject<UTexture>(nullptr, *texturePath);
 		}
 	}
 }
 
-bool URPRGLTFImportFactory::ImportMaterials(const gltf::glTFAssetData& GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources, TArray<URPRMaterial*>& OutMaterials)
+bool URPRGLTFImportFactory::ImportMaterials(
+	const gltf::glTFAssetData& GLTFFileData, 
+	RPR::GLTF::FImageResourcesPtr ImageResources, 
+	RPR::GLTF::FMaterialResourcesPtr MaterialResources)
 {
 	TArray<RPRX::FMaterial> materials;
 	RPR::FResult status = RPR::GLTF::Import::GetMaterialX(materials);
@@ -232,15 +238,23 @@ bool URPRGLTFImportFactory::ImportMaterials(const gltf::glTFAssetData& GLTFFileD
 		return (false);
 	}
 
-	for (int32 i = 0; i < materials.Num(); ++i)
-	{
-		FString materialName = FString(GLTFFileData.materials[i].name.c_str());
+	RPRX::FContext rprCtx = IRPRCore::GetResources()->GetRPRXSupportContext();
 
-		RPRX::FMaterial nativeRPRMaterial = materials[i];
+	for (int32 materialIndex = 0; materialIndex < materials.Num(); ++materialIndex)
+	{
+		FString materialName = FString(GLTFFileData.materials[materialIndex].name.c_str());
+		RPRX::FMaterial nativeRPRMaterial = materials[materialIndex];
+
+		UE_LOG(LogRPRGLTFImporter, Log, TEXT("=== Dump node to register ==="));
+		RPR::RPRMaterial::DumpMaterialNode(IRPRCore::GetResources()->GetRPRContext(), nativeRPRMaterial, rprCtx);
+
+		auto& resourceData = MaterialResources->RegisterNewResource(materialIndex);
+		resourceData.ResourceRPR = materials[materialIndex];
+
 		URPRMaterial* RPRMaterial = ImportMaterial(materialName, ImageResources, nativeRPRMaterial);
 		if (RPRMaterial)
 		{
-			OutMaterials.Add(RPRMaterial);
+			resourceData.ResourceUE4 = RPRMaterial;
 			FAssetRegistryModule::AssetCreated(RPRMaterial);
 		}
 	}
@@ -313,7 +327,10 @@ URPRMaterial* URPRGLTFImportFactory::CreateNewMaterial(const FString& MaterialNa
 	return (URPRMaterial*) rprMaterialFactory->FactoryCreateNew(URPRMaterial::StaticClass(), package, *MaterialName, RF_Public | RF_Standalone, nullptr, GWarn);
 }
 
-bool URPRGLTFImportFactory::ImportMeshes(const gltf::glTFAssetData& GLTFFileData, TArray<UStaticMesh*>& OutStaticMeshes)
+bool URPRGLTFImportFactory::ImportMeshes(
+	const gltf::glTFAssetData& GLTFFileData, 
+	RPR::GLTF::FMaterialResourcesPtr MaterialResources,
+	TArray<UStaticMesh*>& OutStaticMeshes)
 {
 	RPR::FResult status;
 
@@ -341,6 +358,8 @@ bool URPRGLTFImportFactory::ImportMeshes(const gltf::glTFAssetData& GLTFFileData
 		UStaticMesh* staticMesh = RPR::FMeshImporter::ImportMesh(meshName, shape, importSettings);
 		if (staticMesh != nullptr)
 		{
+			AttachMaterialsOnMesh(shape, staticMesh, MaterialResources);
+
 			OutStaticMeshes.Add(staticMesh);
 			FAssetRegistryModule::AssetCreated(staticMesh);
 		}
@@ -351,6 +370,42 @@ bool URPRGLTFImportFactory::ImportMeshes(const gltf::glTFAssetData& GLTFFileData
 	}
 
 	return (true);
+}
+
+void URPRGLTFImportFactory::AttachMaterialsOnMesh(RPR::FShape Shape, UStaticMesh* StaticMesh, RPR::GLTF::FMaterialResourcesPtr MaterialResources)
+{
+	RPR::FMaterialNode materialNode;
+	RPR::FResult status = RPR::Shape::GetMaterial(Shape, materialNode);
+	if (RPR::IsResultFailed(status) || materialNode == nullptr)
+	{
+		return;
+	}
+
+	RPRX::FContext rprxCtx = IRPRCore::GetResources()->GetRPRXSupportContext();
+	bool bIsRPRXMaterial;
+	status = RPRX::FMaterialHelpers::IsMaterialRPRX(rprxCtx, materialNode, bIsRPRXMaterial);
+	if (RPR::IsResultFailed(status))
+	{
+		UE_LOG(LogRPRGLTFImporter, Warning, TEXT("Cannot determine if the material is RPR or RPRX"));
+		return;
+	}
+
+	if (!bIsRPRXMaterial)
+	{
+		return;
+	}
+
+	UE_LOG(LogRPRGLTFImporter, Log, TEXT("=== Dump node to attach ==="));
+	RPR::RPRMaterial::DumpMaterialNode(IRPRCore::GetResources()->GetRPRContext(), materialNode, rprxCtx);
+
+	RPRX::FMaterial rprxMaterial = (RPRX::FMaterial) materialNode;
+	auto resourceData = MaterialResources->FindResourceByNativeMaterial(rprxMaterial);
+
+	if (resourceData != nullptr)
+	{
+		URPRMaterial* ue4Material = resourceData->ResourceUE4;
+		StaticMesh->SetMaterial(0, ue4Material);
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

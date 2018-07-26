@@ -31,7 +31,7 @@ bool RPR::GLTF::Importer::FRPRMaterialMapSetter::SetParameterValue(FSerializatio
 		auto resourceData = SerializationCtx.ImageResources->FindResourceByImage(image);
 		if (resourceData)
 		{
-			map->Texture = Cast<UTexture2D>(resourceData->Texture);
+			map->Texture = Cast<UTexture2D>(resourceData->ResourceUE4);
 			return (true);
 		}
 	}
