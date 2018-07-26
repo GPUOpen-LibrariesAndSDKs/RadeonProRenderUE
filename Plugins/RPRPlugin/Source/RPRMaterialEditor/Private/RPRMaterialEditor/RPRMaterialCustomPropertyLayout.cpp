@@ -49,7 +49,9 @@ void FRPRMaterialCustomPropertyLayout::CustomizeDetails(IDetailLayoutBuilder& De
     LoadTriPlanarSettings();
     HideDefaultUberMaterialParameters(DetailBuilder);
     AddUberMaterialParameters(DetailBuilder);
-    AddTriPlanarParameters(DetailBuilder);
+
+	// TODO : Re enable triplanar mapping when it will be available
+    // AddTriPlanarParameters(DetailBuilder);
 }
 
 FRPRMaterialCustomPropertyLayout::FRPRMaterialCustomPropertyLayout(URPRMaterialEditorInstanceConstant* InMaterialEditorConstant)
