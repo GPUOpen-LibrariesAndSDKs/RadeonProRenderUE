@@ -1,5 +1,5 @@
 #pragma once
-#include "RPRTypedefs.h"
+#include "Typedefs/RPRTypedefs.h"
 #include "Templates/SharedPointer.h"
 #include "Engine/Texture.h"
 
@@ -52,6 +52,11 @@ namespace RPR
 					}
 				}
 				return (nullptr);
+			}
+
+			FResourceData*	GetResource(int32 index)
+			{
+				return (ResourceDatas[index]);
 			}
 
 		protected:

@@ -30,9 +30,13 @@ public class RPRGLTFImporter : ModuleRules
             new string[] {
                 "RPRImporters/RPRGLTFImporter/Private",
                 "RPRImporters/RPRGLTFImporter/Private/Slate",
+                "RPRImporters/RPRGLTFImporter/Private/Factories",
+                "RPRImporters/RPRGLTFImporter/Private/Factories/Setters",
 
                 "RPRImporters/RPRGLTFImporter/Public",
                 "RPRImporters/RPRGLTFImporter/Public/Slate",
+                "RPRImporters/RPRGLTFImporter/Public/Factories",
+                "RPRImporters/RPRGLTFImporter/Public/Factories/Setters",
         });
 
         PublicDependencyModuleNames.AddRange(

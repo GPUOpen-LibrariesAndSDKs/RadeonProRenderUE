@@ -2,7 +2,7 @@
 #include "Material/RPRUberMaterialParameters.h"
 #include "Typedefs/RPRXTypedefs.h"
 #include "Enums/RPRXEnums.h"
-#include "ImageResources.h"
+#include "Resources/ImageResources.h"
 
 namespace RPR
 {

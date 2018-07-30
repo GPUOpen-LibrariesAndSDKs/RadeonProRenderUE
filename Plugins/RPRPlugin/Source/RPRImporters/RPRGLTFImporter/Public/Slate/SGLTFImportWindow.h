@@ -1,6 +1,6 @@
 #pragma once
 #include "Widgets/DeclarativeSyntaxSupport.h"
-#include "SCompoundWidget.h"
+#include "Widgets/SCompoundWidget.h"
 #include "Widgets/SWindow.h"
 #include "Templates/SharedPointer.h"
 

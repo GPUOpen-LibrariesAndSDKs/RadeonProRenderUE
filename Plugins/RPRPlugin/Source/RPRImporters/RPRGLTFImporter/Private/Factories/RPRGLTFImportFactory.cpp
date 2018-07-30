@@ -37,10 +37,10 @@
 #include "AssetToolsModule.h"
 #include "IAssetTools.h"
 #include "RPRSettings.h"
-#include "Class.h"
-#include "UberMaterialPropertyHelper.h"
-#include "GLTFMaterialParameterSetterFactory.h"
-#include "RPRMaterialFactory.h"
+#include "UObject/Class.h"
+#include "Material/Tools/UberMaterialPropertyHelper.h"
+#include "Factories/Setters/GLTFMaterialParameterSetterFactory.h"
+#include "Assets/Factories/RPRMaterialFactory.h"
 #include "CoreGlobals.h"
 #include "AssetRegistryModule.h"
 #include "RawMesh.h"
@@ -49,9 +49,10 @@
 #include "RPRMeshImporter.h"
 #include "Slate/SGLTFImportWindow.h"
 #include "GTLFImportSettings.h"
-#include "RPRShapeHelpers.h"
-#include "MaterialResources.h"
+#include "Helpers/RPRShapeHelpers.h"
+#include "Resources/MaterialResources.h"
 #include "Miscs/RPRMaterialNodeDumper.h"
+#include "Resources/StaticMeshResources.h"
 
 #define LOCTEXT_NAMESPACE "URPRGLTFImportFactory"
 
@@ -132,10 +133,10 @@ UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InPa
 	RPR::GLTF::FMaterialResourcesPtr materialResources = MakeShareable(new RPR::GLTF::FMaterialResources);
 	ImportMaterials(gltfFileData, imageResources, materialResources);
 
-	TArray<UStaticMesh*> staticMeshes;
-	ImportMeshes(gltfFileData, materialResources, staticMeshes);
+	RPR::GLTF::FStaticMeshResourcesPtr meshesResources = MakeShareable(new RPR::GLTF::FStaticMeshResources);
+	ImportMeshes(gltfFileData, materialResources, meshesResources);
 
-	return (staticMeshes.Num() > 0 ? staticMeshes[0] : nullptr);
+	return (meshesResources->GetNumResources() > 0 ? meshesResources->GetResource(0) : nullptr);
 }
 
 bool URPRGLTFImportFactory::ImportImages(const gltf::glTFAssetData& GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources)
@@ -330,7 +331,7 @@ URPRMaterial* URPRGLTFImportFactory::CreateNewMaterial(const FString& MaterialNa
 bool URPRGLTFImportFactory::ImportMeshes(
 	const gltf::glTFAssetData& GLTFFileData, 
 	RPR::GLTF::FMaterialResourcesPtr MaterialResources,
-	TArray<UStaticMesh*>& OutStaticMeshes)
+	RPR::GLTF::FStaticMeshResourcesPtr StaticMeshesResources)
 {
 	RPR::FResult status;
 
@@ -355,12 +356,15 @@ bool URPRGLTFImportFactory::ImportMeshes(
 		FString meshName = FString(GLTFFileData.meshes[i].name.c_str());
 		RPR::FShape shape = shapes[i];
 
+		auto& resourceData = StaticMeshesResources->RegisterNewResource(i);
+		resourceData.ResourceRPR = shape;
+
 		UStaticMesh* staticMesh = RPR::FMeshImporter::ImportMesh(meshName, shape, importSettings);
 		if (staticMesh != nullptr)
 		{
 			AttachMaterialsOnMesh(shape, staticMesh, MaterialResources);
 
-			OutStaticMeshes.Add(staticMesh);
+			resourceData.ResourceUE4 = staticMesh;
 			FAssetRegistryModule::AssetCreated(staticMesh);
 		}
 		else

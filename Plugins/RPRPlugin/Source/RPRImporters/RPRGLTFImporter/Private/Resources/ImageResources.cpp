@@ -1,4 +1,4 @@
-#include "ImageResources.h"
+#include "Resources/ImageResources.h"
 
 RPR::GLTF::FImageResources::FResourceData* RPR::GLTF::FImageResources::FindResourceByImage(RPR::FImage image)
 {

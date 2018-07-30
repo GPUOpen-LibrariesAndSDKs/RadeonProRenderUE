@@ -52,7 +52,7 @@ private:
 	bool			ImportImages(const gltf::glTFAssetData& GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources);
 	bool			ImportMaterials(const gltf::glTFAssetData& GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources, RPR::GLTF::FMaterialResourcesPtr MaterialResources);
 	URPRMaterial*	ImportMaterial(const FString& MaterialName, RPR::GLTF::FImageResourcesPtr ImageResources, RPRX::FMaterial NativeRPRMaterial);
-	bool			ImportMeshes(const gltf::glTFAssetData& GLTFFileData, RPR::GLTF::FMaterialResourcesPtr MaterialResources, TArray<UStaticMesh*>& OutStaticMeshes);
+	bool			ImportMeshes(const gltf::glTFAssetData& GLTFFileData, RPR::GLTF::FMaterialResourcesPtr MaterialResources, RPR::GLTF::FStaticMeshResourcesPtr StaticMeshesResources);
 	UStaticMesh*	ImportMesh(const FString& MeshName, RPR::FShape Shape);
 	void			AttachMaterialsOnMesh(RPR::FShape Shape, UStaticMesh* StaticMesh, RPR::GLTF::FMaterialResourcesPtr MaterialResources);
 

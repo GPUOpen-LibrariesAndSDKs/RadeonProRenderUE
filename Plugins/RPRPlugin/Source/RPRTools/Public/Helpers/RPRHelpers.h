@@ -25,7 +25,7 @@
 #include "Typedefs/RPRTypedefs.h"
 #include "Enums/RPREnums.h"
 #include "RprTools.h"
-#include "Function.h"
+#include "Templates/Function.h"
 #include "Typedefs/RPRXTypedefs.h"
 
 RPRTOOLS_API RadeonProRender::matrix BuildMatrixNoScale(const struct FTransform &transform);
