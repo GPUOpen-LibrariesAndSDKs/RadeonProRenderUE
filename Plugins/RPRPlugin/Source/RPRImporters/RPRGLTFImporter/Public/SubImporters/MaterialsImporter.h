@@ -16,12 +16,32 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
+
 #pragma once
+#include "gltf/gltf2.h"
+#include "Resources/ImageResources.h"
+#include "Resources/MaterialResources.h"
+#include "Typedefs/RPRXTypedefs.h"
+#include "Containers/UnrealString.h"
+#include "Assets/RPRMaterial.h"
 
-/* Set by RPRPluginVersion.Build.cs */
+namespace RPR
+{
+	namespace GLTF
+	{
+		namespace Import
+		{
 
-#define RPR_PLUGIN_MAJOR_VERSION 0
-#define RPR_PLUGIN_MINOR_VERSION 7
+			class FMaterialsImporter
+			{
+			public:
 
-#define RPR_PLUGIN_BUILD_VERSION 412
-#define RPR_PLUGIN_BUILD_GUID TEXT("c0631c24-1b31-47c1-8d59-d03ae67ca664")
+				static bool	ImportMaterials(const gltf::glTFAssetData& GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources, RPR::GLTF::FMaterialResourcesPtr MaterialResources);
+				static URPRMaterial* ImportMaterial(const FString& MaterialName, RPR::GLTF::FImageResourcesPtr ImageResources, RPRX::FMaterial NativeRPRMaterial);
+				static URPRMaterial* CreateNewMaterial(const FString& MaterialName);
+
+			};
+
+		}
+	}
+}

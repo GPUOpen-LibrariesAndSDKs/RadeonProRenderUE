@@ -34,9 +34,6 @@ public class RPRTools : ModuleRules
         PrivateIncludePaths.AddRange(
 			new string[] {
 				"RPRTools/Public",
-                "RPRTools/Public/Helpers",
-                "RPRTools/Public/Typedefs",
-                "RPRTools/Public/Enums",
             }
 			);
 

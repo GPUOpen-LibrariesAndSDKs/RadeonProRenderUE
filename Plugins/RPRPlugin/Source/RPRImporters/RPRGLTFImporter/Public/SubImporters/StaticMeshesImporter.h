@@ -16,12 +16,35 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
+
 #pragma once
+#include "gltf/gltf2.h"
+#include "Resources/MaterialResources.h"
+#include "Resources/StaticMeshResources.h"
+#include "Engine/StaticMesh.h"
 
-/* Set by RPRPluginVersion.Build.cs */
+namespace RPR
+{
+	namespace GLTF
+	{
+		namespace Import
+		{
 
-#define RPR_PLUGIN_MAJOR_VERSION 0
-#define RPR_PLUGIN_MINOR_VERSION 7
+			class FStaticMeshesImporters
+			{
+			public:
 
-#define RPR_PLUGIN_BUILD_VERSION 412
-#define RPR_PLUGIN_BUILD_GUID TEXT("c0631c24-1b31-47c1-8d59-d03ae67ca664")
+				static bool			ImportMeshes(
+					const gltf::glTFAssetData& GLTFFileData, 
+					RPR::GLTF::FMaterialResourcesPtr MaterialResources, 
+					RPR::GLTF::FStaticMeshResourcesPtr StaticMeshesResources);
+
+			private:
+
+				static void			AttachMaterialsOnMesh(RPR::FShape Shape, UStaticMesh* StaticMesh, RPR::GLTF::FMaterialResourcesPtr MaterialResources);
+
+			};
+
+		}
+	}
+}

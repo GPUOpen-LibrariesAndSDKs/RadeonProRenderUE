@@ -1,4 +1,9 @@
 #pragma once
+#include "Resources/ImportResources.h"
+#include "Materials/MaterialInterface.h"
+#include "Engine/StaticMesh.h"
+#include "Typedefs/RPRTypedefs.h"
+#include "Templates/SharedPointer.h"
 
 namespace RPR
 {
@@ -9,7 +14,7 @@ namespace RPR
 		{
 		public:
 
-			FResourceData*	FindResourceByShape(RPR : FShape shape);
+			FResourceData*	FindResourceByShape(RPR::FShape shape);
 
 		};
 

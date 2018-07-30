@@ -47,26 +47,4 @@ class URPRGLTFImportFactory : public UFactory
     virtual bool FactoryCanImport(const FString& InFilename) override;
     virtual UObject* FactoryCreateFile(UClass* InClass, UObject* InParent, FName InName, EObjectFlags InFlags, const FString& InFilename, const TCHAR* InParms, FFeedbackContext* InWarn, bool& bOutOperationCanceled) override;
 
-private:
-
-	bool			ImportImages(const gltf::glTFAssetData& GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources);
-	bool			ImportMaterials(const gltf::glTFAssetData& GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources, RPR::GLTF::FMaterialResourcesPtr MaterialResources);
-	URPRMaterial*	ImportMaterial(const FString& MaterialName, RPR::GLTF::FImageResourcesPtr ImageResources, RPRX::FMaterial NativeRPRMaterial);
-	bool			ImportMeshes(const gltf::glTFAssetData& GLTFFileData, RPR::GLTF::FMaterialResourcesPtr MaterialResources, RPR::GLTF::FStaticMeshResourcesPtr StaticMeshesResources);
-	UStaticMesh*	ImportMesh(const FString& MeshName, RPR::FShape Shape);
-	void			AttachMaterialsOnMesh(RPR::FShape Shape, UStaticMesh* StaticMesh, RPR::GLTF::FMaterialResourcesPtr MaterialResources);
-
-	void			GetImagePathsFromGLTF(const gltf::glTFAssetData& GLTFFileData, TArray<FString>& OutImagePaths);
-	void			LoadTextures(const TArray<FString>& ImagePaths, RPR::GLTF::FImageResourcesPtr ImageResources);
-
-	template<typename TSetter>
-	void			SetMaterialParameter(RPRX::FMaterial NativeRPRMaterial, FRPRUberMaterialParameterBase* UberParameter, RPRX::FParameter Parameter);
-
-	URPRMaterial*	CreateNewMaterial(const FString& MaterialName) const;
-
-private:
-
-	UObject*		Parent;
-	EObjectFlags	Flags;
-	FString			Filename;
 };

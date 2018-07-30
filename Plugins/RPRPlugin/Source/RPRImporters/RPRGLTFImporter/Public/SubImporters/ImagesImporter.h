@@ -16,12 +16,33 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
+
 #pragma once
+#include "gltf/gltf2.h"
+#include "Resources/ImageResources.h"
+#include "Containers/Array.h"
+#include "Containers/UnrealString.h"
 
-/* Set by RPRPluginVersion.Build.cs */
+namespace RPR
+{
+	namespace GLTF
+	{
+		namespace Import
+		{
 
-#define RPR_PLUGIN_MAJOR_VERSION 0
-#define RPR_PLUGIN_MINOR_VERSION 7
+			class FImagesImporter
+			{
+			public:
 
-#define RPR_PLUGIN_BUILD_VERSION 412
-#define RPR_PLUGIN_BUILD_GUID TEXT("c0631c24-1b31-47c1-8d59-d03ae67ca664")
+				static bool	ImportImages(const FString& GLTFFileDirectory, const gltf::glTFAssetData& GLTFFileData, RPR::GLTF::FImageResourcesPtr ImageResources);
+
+			private:
+
+				static void	GetImagePathsFromGLTF(const FString& GLTFFileDirectory, const gltf::glTFAssetData& GLTFFileData, TArray<FString>& OutImagePaths);
+				static void	LoadTextures(const TArray<FString>& ImagePaths, RPR::GLTF::FImageResourcesPtr ImageResources);
+
+			};
+
+		}
+	}
+}

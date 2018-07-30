@@ -54,8 +54,9 @@ namespace RPR
 				return (nullptr);
 			}
 
-			FResourceData*	GetResource(int32 index)
+			FResourceData&	GetResource(int32 index)
 			{
+				check(ResourceDatas.IsValidIndex(index));
 				return (ResourceDatas[index]);
 			}
 
