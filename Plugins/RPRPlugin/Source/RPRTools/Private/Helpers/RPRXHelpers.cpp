@@ -36,6 +36,11 @@ namespace RPRX
 		return (rprxMaterialCommit(Context, Material));
 	}
 
+	RPR::FResult ShapeGetMaterial(FContext Context, RPR::FShape Shape, FMaterial& OutMaterialX)
+	{
+		return (rprxShapeGetMaterial(Context, Shape, &OutMaterialX));
+	}
+
 	namespace Context
 	{
 

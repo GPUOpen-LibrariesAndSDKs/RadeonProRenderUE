@@ -29,6 +29,7 @@
 #include "RPRCoreModule.h"
 #include "RPRCoreSystemResources.h"
 #include "Miscs/RPRMaterialNodeDumper.h"
+#include "Helpers/RPRXHelpers.h"
 
 bool RPR::GLTF::Import::FStaticMeshesImporters::ImportMeshes(
 	const gltf::glTFAssetData& GLTFFileData, 
@@ -80,36 +81,22 @@ bool RPR::GLTF::Import::FStaticMeshesImporters::ImportMeshes(
 
 void RPR::GLTF::Import::FStaticMeshesImporters::AttachMaterialsOnMesh(RPR::FShape Shape, UStaticMesh* StaticMesh, RPR::GLTF::FMaterialResourcesPtr MaterialResources)
 {
-	RPR::FMaterialNode materialNode;
-	RPR::FResult status = RPR::Shape::GetMaterial(Shape, materialNode);
-	if (RPR::IsResultFailed(status) || materialNode == nullptr)
-	{
-		return;
-	}
+	auto resources = IRPRCore::GetResources();
+	
+	RPRX::FMaterial materialX;
 
-	RPRX::FContext rprxCtx = IRPRCore::GetResources()->GetRPRXSupportContext();
-	bool bIsRPRXMaterial;
-	status = RPRX::FMaterialHelpers::IsMaterialRPRX(rprxCtx, materialNode, bIsRPRXMaterial);
+	RPR::FResult status = RPRX::ShapeGetMaterial(resources->GetRPRXSupportContext(), Shape, materialX);
 	if (RPR::IsResultFailed(status))
 	{
-		UE_LOG(LogRPRGLTFImporter, Warning, TEXT("Cannot determine if the material is RPR or RPRX"));
+		UE_LOG(LogRPRGLTFImporter, Warning, TEXT("Cannot get material X from the shape"));
 		return;
 	}
 
-	if (!bIsRPRXMaterial)
-	{
-		return;
-	}
-
-	UE_LOG(LogRPRGLTFImporter, Log, TEXT("=== Dump node to attach ==="));
-	RPR::RPRMaterial::DumpMaterialNode(IRPRCore::GetResources()->GetRPRContext(), materialNode, rprxCtx);
-
-	RPRX::FMaterial rprxMaterial = (RPRX::FMaterial) materialNode;
-	auto resourceData = MaterialResources->FindResourceByNativeMaterial(rprxMaterial);
-
+	auto resourceData = MaterialResources->FindResourceByNativeMaterial(materialX);
 	if (resourceData != nullptr)
 	{
 		URPRMaterial* ue4Material = resourceData->ResourceUE4;
+		StaticMesh->StaticMaterials.AddDefaulted();
 		StaticMesh->SetMaterial(0, ue4Material);
 	}
 }

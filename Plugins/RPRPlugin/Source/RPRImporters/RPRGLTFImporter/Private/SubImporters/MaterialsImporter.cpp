@@ -124,9 +124,8 @@ URPRMaterial* RPR::GLTF::Import::FMaterialsImporter::ImportMaterial(
 
 		currentParameterProp = currentParameterProp->PropertyLinkNext;
 	}
-
+	
 	URPRMaterialFactory::CopyRPRMaterialParameterToMaterialInstance(newMaterial);
-
 	return (newMaterial);
 }
 

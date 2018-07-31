@@ -84,7 +84,7 @@ bool FRPRXMaterialLibrary::RecacheMaterial(URPRMaterial* MaterialKey)
 	{
 		RPRX::FMaterialCacheMaker cacheMaker(CreateMaterialContext(), MaterialKey);
 		auto materialX = reinterpret_cast<RPRX::FMaterial>(material);
-		return (cacheMaker.UpdateUberMaterial(materialX));
+		return (cacheMaker.UpdateUberMaterialParameters(materialX));
 	}
 
 	return (false);
@@ -199,8 +199,6 @@ bool FRPRXMaterialLibrary::CacheMaterial(URPRMaterial* InMaterial, RPRI::FExport
 		return (false);
 	}
 
-	UE_LOG(LogRPRMaterialLibrary, VeryVerbose, TEXT("Create material (%p)"), newMaterial);
-
 	OutMaterial.type = EMaterialType::MaterialX;
 	OutMaterial.data = newMaterial;
 
@@ -219,7 +217,7 @@ void FRPRXMaterialLibrary::ReleaseRawMaterialDatas(RPRI::FExportMaterialResult& 
 	}
 	catch (std::exception ex)
 	{
-		UE_LOG(LogRPRMaterialLibrary, Warning, TEXT("Couldn't delete an object/material correctly (%s)"), ex.what());
+		UE_LOG(LogRPRMaterialLibrary, Warning, TEXT("Couldn't delete an object/material correctly (%s)"), ANSI_TO_TCHAR(ex.what()));
 		FRPRCoreErrorHelper::LogLastError();
 	}
 }

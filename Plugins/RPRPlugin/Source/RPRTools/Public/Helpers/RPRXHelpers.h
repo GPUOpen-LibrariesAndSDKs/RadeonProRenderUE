@@ -26,6 +26,7 @@ namespace RPRX
 	RPRTOOLS_API RPR::FResult ShapeAttachMaterial(RPRX::FContext Context, RPR::FShape Shape, RPRX::FMaterial Material);
 	RPRTOOLS_API RPR::FResult ShapeDetachMaterial(RPRX::FContext Context, RPR::FShape Shape, RPRX::FMaterial Material);
 	RPRTOOLS_API RPR::FResult MaterialCommit(RPRX::FContext Context, RPRX::FMaterial Material);
+	RPRTOOLS_API RPR::FResult ShapeGetMaterial(RPRX::FContext Context, RPR::FShape Shape, RPRX::FMaterial& OutMaterialX);
 
 	namespace Context
 	{

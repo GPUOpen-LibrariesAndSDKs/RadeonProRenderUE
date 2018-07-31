@@ -36,10 +36,10 @@ namespace RPRX
 	{
 		return 
 			RPR::IsResultSuccess(RPRX::FMaterialHelpers::CreateMaterial(MaterialContext.RPRXContext, EMaterialType::Uber, OutMaterial)) && 
-			UpdateUberMaterial(OutMaterial);
+			UpdateUberMaterialParameters(OutMaterial);
 	}
 
-	bool	FMaterialCacheMaker::UpdateUberMaterial(RPRX::FMaterial& InOutMaterial)
+	bool	FMaterialCacheMaker::UpdateUberMaterialParameters(RPRX::FMaterial& InOutMaterial)
 	{
 		return RPR::IsResultSuccess(
 			BrowseUberMaterialParameters(

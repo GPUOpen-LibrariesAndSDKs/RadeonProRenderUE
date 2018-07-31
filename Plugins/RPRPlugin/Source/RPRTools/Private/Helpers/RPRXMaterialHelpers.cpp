@@ -18,16 +18,24 @@
 ********************************************************************/
 #include "Helpers/RPRXMaterialHelpers.h"
 
+DECLARE_LOG_CATEGORY_CLASS(LogMaterialHelpers, Log, All)
+
 namespace RPRX
 {
 
 	RPR::FResult FMaterialHelpers::CreateMaterial(FContext RPRXContext, EMaterialType MaterialType, FMaterial& OutMaterial)
 	{
-		return (rprxCreateMaterial(RPRXContext, MaterialType, &OutMaterial));
+		RPR::FResult status = rprxCreateMaterial(RPRXContext, MaterialType, &OutMaterial);
+		if (RPR::IsResultSuccess(status))
+		{
+			UE_LOG(LogMaterialHelpers, VeryVerbose, TEXT("New materialX created [%p]"), OutMaterial);
+		}
+		return (status);
 	}
 
 	RPR::FResult FMaterialHelpers::DeleteMaterial(FContext RPRXContext, FMaterial MaterialData)
 	{
+		UE_LOG(LogMaterialHelpers, VeryVerbose, TEXT("Delete material [%p]"), MaterialData);
 		return (rprxMaterialDelete(RPRXContext, MaterialData));
 	}
 

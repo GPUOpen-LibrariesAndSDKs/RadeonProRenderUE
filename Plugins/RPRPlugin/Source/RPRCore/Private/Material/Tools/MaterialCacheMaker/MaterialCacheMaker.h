@@ -35,7 +35,7 @@ namespace RPRX
 		FMaterialCacheMaker(RPR::FMaterialContext InMaterialContent, const URPRMaterial* InRPRMaterial);
 
 		bool	CacheUberMaterial(RPRX::FMaterial& OutMaterial);
-		bool	UpdateUberMaterial(RPRX::FMaterial& InOutMaterial);
+		bool	UpdateUberMaterialParameters(RPRX::FMaterial& InOutMaterial);
 
 	private:
 
