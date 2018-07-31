@@ -53,17 +53,7 @@ bool RPR::GLTF::Import::FImagesImporter::ImportImages(const FString& GLTFFileDir
 	FAssetToolsModule& assetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools");
 	TArray<UObject*> textures = assetToolsModule.Get().ImportAssets(imagePaths, rprSettings->DefaultRootDirectoryForImportedTextures.Path);
 
-	// Set required compression settings on the new imported textures
-	for (int32 i = 0; i < textures.Num(); ++i)
-	{
-		if (textures[i]->IsA<UTexture2D>())
-		{
-			UTexture2D* texture = Cast<UTexture2D>(textures[i]);
-			RPR::FTextureImporter::SetDefaultRequiredTextureFormat(texture);
-		}
-
-		FAssetRegistryModule::AssetCreated(textures[i]);
-	}
+	ConvertTexturesToBeSupported(textures);
 
 	// Find the textures in the directory.
 	// Do not use results of ImportAssets since if the user refuse to override the texture, it will return nothing.
@@ -106,4 +96,31 @@ void RPR::GLTF::Import::FImagesImporter::LoadTextures(const TArray<FString>& Ima
 			resourceData->ResourceUE4 = LoadObject<UTexture>(nullptr, *texturePath);
 		}
 	}
+}
+
+void RPR::GLTF::Import::FImagesImporter::ConvertTexturesToBeSupported(const TArray<UObject*>& Objects)
+{
+	for (int32 i = 0; i < Objects.Num(); ++i)
+	{
+		if (Objects[i]->IsA<UTexture>())
+		{
+			UTexture* texture = Cast<UTexture>(Objects[i]);
+			if (ShouldTextureByConverted(texture))
+			{
+				RPR::FTextureImporter::SetDefaultRequiredTextureFormat(texture);
+			}
+		}
+
+		FAssetRegistryModule::AssetCreated(Objects[i]);
+	}
+}
+
+bool RPR::GLTF::Import::FImagesImporter::ShouldTextureByConverted(UTexture* Texture)
+{
+	TEnumAsByte<TextureCompressionSettings>& compressionSettings = Texture->CompressionSettings;
+	
+	return
+		compressionSettings != TC_HDR &&
+		compressionSettings != TC_HDR_Compressed
+	;
 }

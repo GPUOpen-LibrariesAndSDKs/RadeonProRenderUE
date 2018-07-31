@@ -74,6 +74,8 @@ public:
 	void	TriggerResize() { m_TriggerEndFrameResize = true; }
 	void	TriggerFrameRebuild() { m_TriggerEndFrameRebuild = true; }
 
+	bool	IsRPRSceneValid() const;
+
 private:
 	virtual void	BeginDestroy() override;
 	virtual void	Tick(float deltaTime) override;

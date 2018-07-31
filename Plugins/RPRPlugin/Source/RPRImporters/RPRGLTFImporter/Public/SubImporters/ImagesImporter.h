@@ -41,6 +41,10 @@ namespace RPR
 				static void	GetImagePathsFromGLTF(const FString& GLTFFileDirectory, const gltf::glTFAssetData& GLTFFileData, TArray<FString>& OutImagePaths);
 				static void	LoadTextures(const TArray<FString>& ImagePaths, RPR::GLTF::FImageResourcesPtr ImageResources);
 
+				// Set required compression settings on the new imported textures
+				static void ConvertTexturesToBeSupported(const TArray<UObject*>& Objects);
+
+				static bool ShouldTextureByConverted(UTexture* Texture);
 			};
 
 		}

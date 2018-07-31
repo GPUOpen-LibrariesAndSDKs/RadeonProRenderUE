@@ -36,6 +36,15 @@
 #include "Widgets/Layout/SSpacer.h"
 #include "Widgets/Input/SButton.h"
 #include "Textures/SlateIcon.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Widgets/SWindow.h"
+#include "DesktopPlatformModule.h"
+#include "RPRCoreModule.h"
+#include "Typedefs/RPRTypedefs.h"
+#include "RPR_GLTF_Tools.h"
+#include "Framework/Notifications/NotificationManager.h"
+#include "Helpers/RPRHelpers.h"
+#include "Widgets/Notifications/SNotificationList.h"
 
 #define LOCTEXT_NAMESPACE "SRPRViewportTabContent"
 
@@ -125,6 +134,72 @@ FReply	SRPRViewportTabContent::OnRebuild()
 	UE_LOG(LogSRPRViewportTabContent, Verbose, TEXT("Rebuild RPR scene"));
 
 	m_Plugin->Rebuild();
+	return FReply::Handled();
+}
+
+FReply SRPRViewportTabContent::OnSceneExport()
+{
+	TSharedPtr<SWindow> ParentWindow = FSlateApplication::Get().FindWidgetWindow(AsShared());
+	void* ParentWindowHandle = (ParentWindow.IsValid() && ParentWindow->GetNativeWindow().IsValid()) ? ParentWindow->GetNativeWindow()->GetOSWindowHandle() : nullptr;
+	
+	if (m_LastExportDirectory.IsEmpty())
+	{
+		m_LastExportDirectory = FPaths::GetPath(FPaths::GetProjectFilePath());
+	}
+
+	TArray<FString> filenames;
+	bool bHasSaved = FDesktopPlatformModule::Get()->SaveFileDialog(
+		ParentWindowHandle,
+		TEXT("Export RPR scene"),
+		m_LastExportDirectory,
+		TEXT("RPRScene"),
+		TEXT("GLTF file|*.gltf"),
+		EFileDialogFlags::None,
+		filenames);
+
+	if (bHasSaved && filenames.Num() > 0)
+	{
+		const FString& filename = filenames[0];
+		m_LastExportDirectory = FPaths::GetPath(filename);
+
+		TArray<RPR::FScene> scenes;
+		scenes.Add(m_Plugin->GetCurrentScene()->m_RprScene);
+
+		auto resources = IRPRCore::GetResources();
+		RPR::FResult status =
+			RPR::GLTF::ExportToGLTF(
+				filename,
+				resources->GetRPRContext(), 
+				resources->GetMaterialSystem(), 
+				resources->GetRPRXSupportContext(),
+				scenes);
+
+		FText infoText;
+		const FSlateBrush* infoIcon;
+
+		if (RPR::IsResultSuccess(status))
+		{
+			infoText = LOCTEXT("ExportSuccess", "Scene exported!");
+			infoIcon = FEditorStyle::GetBrush(TEXT("NotificationList.SuccessImage"));
+		}
+		else
+		{
+			infoText = LOCTEXT("ExportFail", "Scene couldn't be exported.");
+			infoIcon = FCoreStyle::Get().GetBrush(TEXT("MessageLog.Error"));
+		}
+
+		FNotificationInfo Info(infoText);
+		Info.bFireAndForget = true;
+		Info.ExpireDuration = 5.0f;
+		Info.Image = infoIcon;
+
+		Info.Hyperlink = FSimpleDelegate::CreateLambda([filename] ()
+		{
+			FPlatformProcess::ExploreFolder(*filename);
+		});
+		FSlateNotificationManager::Get().AddNotification(Info);
+	}
+
 	return FReply::Handled();
 }
 
@@ -303,6 +378,12 @@ TOptional<float>	SRPRViewportTabContent::GetPhotolinearTonemapFStop() const
 	return m_Settings->PhotolinearTonemapFStop;
 }
 
+bool	SRPRViewportTabContent::IsSceneValid() const
+{
+	ARPRScene* scene = m_Plugin->GetCurrentScene();
+	return scene != nullptr && scene->IsRPRSceneValid();
+}
+
 void	SRPRViewportTabContent::OnPhotolinearTonemapFStopChanged(float newValue)
 {
 	m_Settings->PhotolinearTonemapFStop = newValue;
@@ -428,6 +509,22 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 				[
 					SNew(SImage)
 					.Image(FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.Save").GetIcon())
+				]
+			]
+			+SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(2.0f)
+			[
+				SNew(SButton)
+				.ButtonStyle(FEditorStyle::Get(), "FlatButton")
+				.Text(LOCTEXT("Export", "Export..."))
+				.ToolTipText(LOCTEXT("ExportTooltip", "Export the scene as gltf file"))
+				.IsEnabled(this, &SRPRViewportTabContent::IsSceneValid)
+				.OnClicked(this, &SRPRViewportTabContent::OnSceneExport)
+				.Content()
+				[
+					SNew(SImage)
+					.Image(FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.Export").GetIcon())
 				]
 			]
 			+ SHorizontalBox::Slot()

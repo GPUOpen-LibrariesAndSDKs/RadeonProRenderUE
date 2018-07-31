@@ -23,6 +23,7 @@
 
 #include "Styling/SlateStyle.h"
 #include "Interfaces/IEditorStyleModule.h"
+#include "Modules/ModuleManager.h"
 
 #define IMAGE_BRUSH( RelativePath, ... ) FSlateImageBrush( style.RootToContentDir(RelativePath, TEXT(".png")), __VA_ARGS__ )
 
@@ -85,6 +86,9 @@ TSharedRef<FSlateStyleSet>	FRPREditorStyle::Create()
 
 	style.Set("RPRViewport.Trace", new IMAGE_BRUSH("Icons/icon_tab_Stats_40x", Icon20x20));
 	style.Set("RPRViewport.Trace.Small", new IMAGE_BRUSH("Icons/icon_tab_Stats_16x", Icon16x16));
+
+	style.Set("RPRViewport.Export", new IMAGE_BRUSH("Icons/icon_file_open_40x", Icon20x20));
+	style.Set("RPRViewport.Export.Small", new IMAGE_BRUSH("Icons/icon_file_open_16px", Icon16x16));
 
 #if WITH_EDITOR
 	style.Set("RPRStaticMeshEditor.Mode_UVModifier", new IMAGE_BRUSH("Icons/icon_StaticMeshEd_UVOverlay_40x", Icon40x40));

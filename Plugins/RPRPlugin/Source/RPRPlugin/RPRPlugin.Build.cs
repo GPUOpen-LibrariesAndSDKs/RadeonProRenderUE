@@ -100,6 +100,7 @@ public class RPRPlugin : ModuleRules
 					"Slate",
 					"LevelEditor",
 					"Settings",
+                    "RPR_GLTF"
 				});
         }
 

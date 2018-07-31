@@ -13,7 +13,7 @@ namespace RPR
 		static UTexture2D*	ImportTextureFromPath(const FString& BaseFilePath, const FString& ImportTexturePath);
 		static RPR::FResult	ImportTextureFromImage(RPR::FImage Image, const FString& DestinationDirectory, UTexture2D*& OutTexture);
 		static RPR::FResult	CreateTextureFromImage(RPR::FImage Image, UTexture2D*& InOutTexture);
-		static void			SetDefaultRequiredTextureFormat(UTexture2D* Texture);
+		static void			SetDefaultRequiredTextureFormat(UTexture* Texture);
 
 	private:
 

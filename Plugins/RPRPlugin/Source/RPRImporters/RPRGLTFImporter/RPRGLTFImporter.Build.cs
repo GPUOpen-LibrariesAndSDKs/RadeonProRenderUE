@@ -51,6 +51,7 @@ public class RPRGLTFImporter : ModuleRules
                 "RPR_Json",
                 "RPRImporterTools",
                 "RPRMaterialEditor",
+                "RPREditorTools",
         });
 
         PrivateDependencyModuleNames.AddRange(

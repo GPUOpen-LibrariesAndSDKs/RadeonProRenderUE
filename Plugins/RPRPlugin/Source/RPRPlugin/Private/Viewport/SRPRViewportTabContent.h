@@ -43,6 +43,7 @@ private:
 	FReply					OnToggleTrace();
 	FReply					OnToggleDisplayPostEffectProperties();
 	FReply					OnRebuild();
+	FReply					OnSceneExport();
 
 	TSharedRef<SWidget>		OnGenerateCameraWidget(TSharedPtr<FString> inItem) const;
 	TSharedRef<SWidget>		OnGenerateQualitySettingsWidget(TSharedPtr<FString> inItem) const;
@@ -82,6 +83,9 @@ private:
 	TOptional<float>		GetPhotolinearTonemapSensitivity() const;
 	TOptional<float>		GetPhotolinearTonemapExposure() const;
 	TOptional<float>		GetPhotolinearTonemapFStop() const;
+
+	bool					IsSceneValid() const;
+
 private:
 	TSharedPtr<class FRPRViewportClient>	m_ViewportClient;
 	TSharedPtr<class SViewport>				m_ViewportWidget;
@@ -93,6 +97,8 @@ private:
 	class URPRSettings						*m_Settings;
 
 	bool									m_DisplayPostEffects;
+
+	FString	m_LastExportDirectory;
 };
 
 #endif // WITH_EDITOR

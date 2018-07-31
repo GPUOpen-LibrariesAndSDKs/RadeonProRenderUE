@@ -67,7 +67,7 @@ namespace RPR
 		return (existingTexture);
 	}
 
-	void FTextureImporter::SetDefaultRequiredTextureFormat(UTexture2D* Texture)
+	void FTextureImporter::SetDefaultRequiredTextureFormat(UTexture* Texture)
 	{
 		Texture->CompressionSettings = TC_EditorIcon;
 		Texture->MipGenSettings = TMGS_NoMipmaps;

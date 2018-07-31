@@ -148,6 +148,11 @@ uint32	ARPRScene::GetRenderIteration() const
 	return m_RendererWorker->Iteration();
 }
 
+bool ARPRScene::IsRPRSceneValid() const
+{
+	return m_RprScene != nullptr;
+}
+
 bool	ARPRScene::QueueBuildRPRActor(UWorld *world, USceneComponent *srcComponent, UClass *typeClass, bool checkIfContained)
 {
 	if (checkIfContained)

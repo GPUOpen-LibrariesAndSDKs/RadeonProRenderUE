@@ -3,6 +3,7 @@
 #include "RPRSettings.h"
 #include "StaticMeshHelper.h"
 #include "Helpers/RPRHelpers.h"
+#include "File/RPRFileHelper.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRMeshImporter, Log, All)
 
@@ -165,8 +166,9 @@ UStaticMesh* RPR::FMeshImporter::CreateStaticMesh(const FString& MeshName)
 {
 	URPRSettings* settings = GetMutableDefault<URPRSettings>();
 	FString meshPath = FPaths::Combine(settings->DefaultRootDirectoryForImportedMeshes.Path, MeshName);
+	meshPath = FRPRFileHelper::FixFilenameIfInvalid<UStaticMesh>(meshPath, TEXT("StaticMesh"));
 	UPackage* package = CreatePackage(nullptr, *meshPath);
-	UStaticMesh* newMesh = NewObject<UStaticMesh>(package, *MeshName, RF_Standalone | RF_Public);
+	UStaticMesh* newMesh = NewObject<UStaticMesh>(package, *FPaths::GetBaseFilename(meshPath), RF_Standalone | RF_Public);
 
 	return (newMesh);
 }
