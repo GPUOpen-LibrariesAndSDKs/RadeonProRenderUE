@@ -55,9 +55,6 @@ bool RPR::GLTF::Import::FMaterialsImporter::ImportMaterials(
 		FString materialName = FString(GLTFFileData.materials[materialIndex].name.c_str());
 		RPRX::FMaterial nativeRPRMaterial = materials[materialIndex];
 
-		UE_LOG(LogRPRGLTFImporter, Log, TEXT("=== Dump node to register ==="));
-		RPR::RPRMaterial::DumpMaterialNode(IRPRCore::GetResources()->GetRPRContext(), nativeRPRMaterial, rprCtx);
-
 		auto& resourceData = MaterialResources->RegisterNewResource(materialIndex);
 		resourceData.ResourceRPR = materials[materialIndex];
 

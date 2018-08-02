@@ -22,58 +22,5 @@ namespace RPR
 		RPRTOOLS_API RPR::FResult GetUVCount(RPR::FShape Shape, uint32 UVChannel, uint32& OutUVsCount);
 		RPRTOOLS_API RPR::FResult GetNumUV(RPR::FShape Shape, uint32& OutNumUVChannels);
 		RPRTOOLS_API RPR::FResult GetUVsIndexesStride(RPR::FShape Shape, uint32& OutStride);
-
-
-		/*
-		* Get mesh info in a generic way.
-		* Use the Allocator to make any 'new' from the size that will be send to your callback.
-		*/
-		template<typename T>
-		RPR::FResult GetInfo(RPR::FShape Shape, RPR::EMeshInfo MeshInfo, T* OutData, TFunction<void (uint64, T*)> Allocator = TFunction<void(uint64, T*)>())
-		{
-			RPR::FResult status;
-
-			uint64 size;
-			status = rprMeshGetInfo(Shape, (rpr_mesh_info) MeshInfo, 0, nullptr, (size_t*) &size);
-			if (RPR::IsResultFailed(status))
-			{
-				return status;
-			}
-
-			if (size > 0)
-			{
-				if (Allocator)
-				{
-					Allocator(size, OutData);
-				}
-				status = rprMeshGetInfo(Shape, (rpr_mesh_info) MeshInfo, size, OutData, nullptr);
-			}
-			return (status);
-		}
-
-		template<typename T>
-		RPR::FResult GetInfo(RPR::FShape Shape, RPR::EMeshInfo MeshInfo, TArray<T>& OutData)
-		{
-			RPR::FResult status;
-
-			uint64 size;
-			status = rprMeshGetInfo(Shape, (rpr_mesh_info) MeshInfo, 0, nullptr, (size_t*) &size);
-			if (RPR::IsResultFailed(status))
-			{
-				return status;
-			}
-
-			if (size > 0)
-			{
-				uint64 allocSize = size / sizeof(T);
-				if (OutData.Num() > allocSize)
-				{
-					OutData.Empty(allocSize);
-				}
-				OutData.AddUninitialized(allocSize);
-				status = rprMeshGetInfo(Shape, (rpr_mesh_info) MeshInfo, size, OutData.GetData(), nullptr);
-			}
-			return (status);
-		}
 	}
 }

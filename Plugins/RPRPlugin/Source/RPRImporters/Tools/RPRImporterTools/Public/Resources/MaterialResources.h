@@ -8,7 +8,7 @@ namespace RPR
 	namespace GLTF
 	{
 
-		class FMaterialResources : public FImportResources<URPRMaterial*, RPRX::FMaterial>
+		class RPRIMPORTERTOOLS_API FMaterialResources : public FImportResources<URPRMaterial*, RPRX::FMaterial>
 		{
 		public:
 

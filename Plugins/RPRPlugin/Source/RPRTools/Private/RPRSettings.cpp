@@ -49,6 +49,7 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 	, PhotolinearTonemapFStop(3.4f)
 	, bUseErrorTexture(true)
 {
+	DefaultRootDirectoryForImportLevels.Path = TEXT("/Game/Maps");
 	DefaultRootDirectoryForImportedMeshes.Path = TEXT("/Game/Meshes");
 	DefaultRootDirectoryForImportedMaterials.Path = TEXT("/Game/Materials");
 	DefaultRootDirectoryForImportedTextures.Path = TEXT("/Game/Textures");

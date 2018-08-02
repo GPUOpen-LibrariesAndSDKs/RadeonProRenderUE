@@ -29,6 +29,11 @@
 #include "SubImporters/ImagesImporter.h"
 #include "SubImporters/MaterialsImporter.h"
 #include "SubImporters/StaticMeshesImporter.h"
+#include "SubImporters/LevelImporter.h"
+#include "GTLFImportSettings.h"
+#include "Resources/ImageResources.h"
+#include "Resources/MaterialResources.h"
+#include "Resources/StaticMeshResources.h"
 
 #define LOCTEXT_NAMESPACE "URPRGLTFImportFactory"
 
@@ -108,7 +113,16 @@ UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InPa
 	RPR::GLTF::FStaticMeshResourcesPtr meshesResources = MakeShareable(new RPR::GLTF::FStaticMeshResources);
 	RPR::GLTF::Import::FStaticMeshesImporters::ImportMeshes(gltfFileData, materialResources, meshesResources);
 
-	return (meshesResources->GetNumResources() > 0 ? meshesResources->GetResource(0).ResourceUE4 : nullptr);
+	UGTLFImportSettings* gltfSettings = GetMutableDefault<UGTLFImportSettings>();
+	if (gltfSettings->ImportType == EGLTFImportType::Level)
+	{
+		UWorld* level = nullptr;
+		RPR::GLTF::Import::FLevelImporter::ImportLevel(gltfFileData, scene, meshesResources, level);
+		return (level);
+	}
+
+	bOutOperationCanceled = true;
+	return (nullptr);
 }
 
 #undef LOCTEXT_NAMESPACE

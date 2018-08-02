@@ -10,7 +10,7 @@ namespace RPR
 	namespace GLTF
 	{
 
-		class FStaticMeshResources : public FImportResources<UStaticMesh*, RPR::FShape>
+		class RPRIMPORTERTOOLS_API FStaticMeshResources : public FImportResources<UStaticMesh*, RPR::FShape>
 		{
 		public:
 

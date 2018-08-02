@@ -54,15 +54,21 @@ bool RPR::GLTF::Import::FStaticMeshesImporters::ImportMeshes(
 		importSettings.Rotation = gltfImportSettings->Rotation;
 	}
 
+	FString shapeName;
 	for (int32 i = 0; i < shapes.Num(); ++i)
 	{
-		FString meshName = FString(GLTFFileData.meshes[i].name.c_str());
 		RPR::FShape shape = shapes[i];
+		
+		status = RPR::Shape::GetShapeName(shape, shapeName);
+		if (RPR::IsResultFailed(status))
+		{
+			shapeName = TEXT("Mesh");
+		}
 
 		auto& resourceData = StaticMeshesResources->RegisterNewResource(i);
 		resourceData.ResourceRPR = shape;
 
-		UStaticMesh* staticMesh = RPR::FMeshImporter::ImportMesh(meshName, shape, importSettings);
+		UStaticMesh* staticMesh = RPR::FMeshImporter::ImportMesh(shapeName, shape, importSettings);
 		if (staticMesh != nullptr)
 		{
 			AttachMaterialsOnMesh(shape, staticMesh, MaterialResources);
@@ -72,7 +78,7 @@ bool RPR::GLTF::Import::FStaticMeshesImporters::ImportMeshes(
 		}
 		else
 		{
-			UE_LOG(LogRPRGLTFImporter, Warning, TEXT("Mesh import fail '%s'"), *meshName);
+			UE_LOG(LogRPRGLTFImporter, Warning, TEXT("Mesh import fail '%s'"), *shapeName);
 		}
 	}
 

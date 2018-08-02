@@ -40,8 +40,7 @@ public class RPRTools : ModuleRules
         PrivateIncludePaths.AddRange(
 			new string[] {
                 "RPRTools/Private",
-				
-				
+
             }
 			);
 

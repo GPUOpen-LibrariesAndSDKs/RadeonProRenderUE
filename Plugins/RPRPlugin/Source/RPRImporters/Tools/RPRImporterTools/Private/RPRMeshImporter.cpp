@@ -89,6 +89,7 @@ bool RPR::FMeshImporter::ImportNormals(const FString& MeshName, RPR::FShape Shap
 		if (OutNormals.Num() != Indices.Num())
 		{
 			TArray<FVector> normals = MoveTemp(OutNormals);
+			OutNormals.Empty(Indices.Num());
 			OutNormals.AddUninitialized(Indices.Num());
 			for (int32 index = 0; index < Indices.Num(); ++index)
 			{

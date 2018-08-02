@@ -156,4 +156,45 @@ namespace RPR
 		HeteroVolume = RPR_SHAPE_HETERO_VOLUME,
 		LayerMash = RPR_SHAPE_LAYER_MASK,
 	};
+
+	enum class ELightType
+	{
+		Point = RPR_LIGHT_TYPE_POINT,
+		Directional = RPR_LIGHT_TYPE_DIRECTIONAL,
+		Spot = RPR_LIGHT_TYPE_SPOT,
+		Environment = RPR_LIGHT_TYPE_ENVIRONMENT,
+		Sky = RPR_LIGHT_TYPE_SKY,
+		IES = RPR_LIGHT_TYPE_IES
+	};
+
+	enum class ELightInfo
+	{
+		Type = RPR_LIGHT_TYPE,
+		Transform = RPR_LIGHT_TRANSFORM,
+		GroupId = RPR_LIGHT_GROUP_ID,
+		
+		PointLight_RadiantPower = RPR_POINT_LIGHT_RADIANT_POWER,
+		
+		DirectionalLight_RadiantPower = RPR_DIRECTIONAL_LIGHT_RADIANT_POWER,
+		DirectionalLight_ShadowSoftness = RPR_DIRECTIONAL_LIGHT_SHADOW_SOFTNESS,
+		
+		SpotLight_RadiantPower = RPR_SPOT_LIGHT_RADIANT_POWER,
+		SpotLight_ConeShape = RPR_SPOT_LIGHT_CONE_SHAPE,
+		 
+		Environment_Image = RPR_ENVIRONMENT_LIGHT_IMAGE,
+		Environment_LightIntensityScale = RPR_ENVIRONMENT_LIGHT_INTENSITY_SCALE,
+		Environment_LightPortalList = RPR_ENVIRONMENT_LIGHT_PORTAL_LIST,
+		Environment_LightPotalCount = RPR_ENVIRONMENT_LIGHT_PORTAL_COUNT,
+		
+		SkyLight_Turbidity = RPR_SKY_LIGHT_TURBIDITY,
+		SkyLight_Albedo = RPR_SKY_LIGHT_ALBEDO,
+		SkyLight_LightScale = RPR_SKY_LIGHT_SCALE,
+		SkyLight_Direction = RPR_SKY_LIGHT_DIRECTION,
+		SkyLight_PortalList = RPR_SKY_LIGHT_PORTAL_LIST,
+		SkyLight_PortalCount = RPR_SKY_LIGHT_PORTAL_COUNT,
+		
+		IES_RadiantPower = RPR_IES_LIGHT_RADIANT_POWER,
+		IES_ImageDescription = RPR_IES_LIGHT_IMAGE_DESC
+	};
+
 }

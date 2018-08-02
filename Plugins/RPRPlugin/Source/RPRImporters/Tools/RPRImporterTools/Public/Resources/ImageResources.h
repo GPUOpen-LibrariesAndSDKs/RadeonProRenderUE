@@ -7,7 +7,7 @@ namespace RPR
 	namespace GLTF
 	{
 
-		class FImageResources : public FImportResources<UTexture*, RPR::FImage>
+		class RPRIMPORTERTOOLS_API FImageResources : public FImportResources<UTexture*, RPR::FImage>
 		{
 		public:
 

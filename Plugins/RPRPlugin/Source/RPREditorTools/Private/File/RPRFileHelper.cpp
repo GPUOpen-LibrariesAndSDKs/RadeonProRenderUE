@@ -8,10 +8,13 @@ FString FRPRFileHelper::FixFilenameIfInvalid(const FString& FilePath, UClass* Ob
 
 	if (!isFilenameEmpty)
 	{
-		return (FilePath);
+		FString fixedFilename = FPaths::GetBaseFilename(FilePath);
+		fixedFilename = FPaths::MakeValidFileName(fixedFilename, '_');
+		fixedFilename = fixedFilename.Replace(TEXT("."), TEXT("_"));
+		return (FPaths::Combine(FPaths::GetPath(FilePath), fixedFilename));
 	}
 	else
-	{		
+	{
 		return FPaths::Combine(FilePath, *MakeUniqueObjectName(nullptr, ObjectClass, *BaseFilename).ToString());
 	}
 }

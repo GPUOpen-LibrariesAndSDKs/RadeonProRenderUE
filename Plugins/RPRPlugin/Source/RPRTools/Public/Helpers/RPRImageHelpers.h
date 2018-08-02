@@ -8,9 +8,6 @@ namespace RPR
 {
 	namespace Image
 	{
-		RPRTOOLS_API RPR::FResult GetInfo(RPR::FImage Image, RPR::EImageInfo ImageInfo, TArray<uint8>& Datas);
-		RPRTOOLS_API RPR::FResult GetInfoSize(RPR::FImage Image, RPR::EImageInfo ImageInfo, uint32& OutSize);
-
 		RPRTOOLS_API RPR::FResult GetFormat(RPR::FImage Image, EPixelFormat& OutFormat);
 		RPRTOOLS_API RPR::FResult GetDescription(RPR::FImage Image, FImageDesc& OutDescription);
 		RPRTOOLS_API RPR::FResult GetBufferData(RPR::FImage Image, TArray<uint8>& OutBuffer);
