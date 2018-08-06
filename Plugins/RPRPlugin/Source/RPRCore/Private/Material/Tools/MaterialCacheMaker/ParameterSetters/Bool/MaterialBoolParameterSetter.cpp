@@ -18,6 +18,7 @@
 ********************************************************************/
 #include "Material/Tools/MaterialCacheMaker/ParameterSetters/Bool/MaterialBoolParameterSetter.h"
 #include "Helpers/RPRXMaterialHelpers.h"
+#include "Material/UberMaterialParameters/RPRMaterialBool.h"
 
 namespace RPRX
 {

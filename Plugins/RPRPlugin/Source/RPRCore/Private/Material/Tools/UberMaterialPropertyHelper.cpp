@@ -32,7 +32,7 @@ FString FUberMaterialPropertyHelper::GetPropertyTypeName(const UProperty* Proper
 	return (Property->GetCPPType());
 }
 
-const FRPRUberMaterialParameterBase* FUberMaterialPropertyHelper::GetParameterBaseFromProperty(
+const FRPRUberMaterialParameterBase* FUberMaterialPropertyHelper::GetParameterBaseFromPropertyConst(
 															const FRPRUberMaterialParameters* MaterialParameters, 
 															const UProperty* Property)
 {
@@ -45,8 +45,7 @@ const FRPRUberMaterialParameterBase* FUberMaterialPropertyHelper::GetParameterBa
 
 FRPRUberMaterialParameterBase* FUberMaterialPropertyHelper::GetParameterBaseFromProperty(FRPRUberMaterialParameters* MaterialParameters, const UProperty* Property)
 {
-	const FRPRUberMaterialParameters* materialParametersConst = MaterialParameters;
-	return (RPR::ConstRefAway(GetParameterBaseFromProperty(materialParametersConst, Property)));
+	return (RPR::ConstRefAway(GetParameterBaseFromPropertyConst(MaterialParameters, Property)));
 }
 
 bool FUberMaterialPropertyHelper::IsPropertyValidUberParameterProperty(const UProperty* Property)

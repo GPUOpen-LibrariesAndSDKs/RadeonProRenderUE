@@ -39,5 +39,6 @@ struct RPRCORE_API FRPRMaterialMap : public FRPRUberMaterialParameterBase
 		const FString& InXmlParamName, 
 		uint32 InRprxParamID, 
 		ESupportMode InPreviewSupportMode, 
-		FCanUseParameter InCanUseParameter = FCanUseParameter());
+		FCanUseParameter InCanUseParameter = FCanUseParameter(),
+        FApplyParameter InApplyParameterDelegate = FApplyParameter());
 };

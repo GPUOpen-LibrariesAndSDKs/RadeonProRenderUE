@@ -18,11 +18,13 @@
 ********************************************************************/
 #pragma once
 
-#include "Material/RPRUberMaterialParameters.h"
 #include "Containers/UnrealString.h"
 #include "Typedefs/RPRTypedefs.h"
 #include "Material/MaterialContext.h"
 #include "ImageManager/RPRImageManager.h"
+
+struct FRPRUberMaterialParameters;
+struct FRPRUberMaterialParameterBase;
 
 namespace RPRX
 {
@@ -42,10 +44,12 @@ namespace RPRX
 			template<typename ParameterType>
 			const ParameterType*	GetDirectParameter();
 
-			const FRPRUberMaterialParameterBase*	GetMaterialParameterBase() const;
+            const FRPRUberMaterialParameterBase*	GetMaterialParameterBase() const;
+            FRPRUberMaterialParameterBase*	        GetMaterialParameterBase();
 
 			uint32		GetRprxParam() const;
-			bool		CanUseParam() const;
+            bool		CanUseParam() const;
+            bool        HasCustomParameterApplier() const;
 		};
 
 		template<typename ParameterType>

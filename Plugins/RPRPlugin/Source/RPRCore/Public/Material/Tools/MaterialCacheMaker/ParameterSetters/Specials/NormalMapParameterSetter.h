@@ -16,40 +16,19 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "Material/Tools/MaterialCacheMaker/ParameterArgs/ParameterArgs.h"
-#include "Material/Tools/UberMaterialPropertyHelper.h"
-#include "Material/Tools/UberMaterialPropertyHelper.h"
+#pragma once
+
+#include "Material/Tools/MaterialCacheMaker/ParameterSetters/IMaterialParameter.h"
 
 namespace RPRX
 {
-	namespace MaterialParameter
-	{
 
-		FArgs::FArgs(const FRPRUberMaterialParameters& InParameters, const UProperty* InProperty, RPR::FImageManagerPtr InImageManager,
-			RPR::FMaterialContext& InMaterialContext, FMaterial& InMaterial)
-			: Parameters(InParameters)
-			, Property(InProperty)
-			, MaterialContext(InMaterialContext)
-			, Material(InMaterial)
-			, ImageManager(InImageManager)
-		{}
+    class FNormalMapParameterSetter : public IMaterialParameter
+    {
 
-		const FRPRUberMaterialParameterBase* FArgs::GetMaterialParameterBase() const
-		{
-			return (FUberMaterialPropertyHelper::GetParameterBaseFromProperty(&Parameters, Property));
-		}
+    public:
+        virtual void ApplyParameterX(MaterialParameter::FArgs& SetterParameters) override;
 
-		uint32 FArgs::GetRprxParam() const
-		{
-			const FRPRUberMaterialParameterBase* materialParameter = GetMaterialParameterBase();
-			return (materialParameter->GetRprxParamType());
-		}
+    };
 
-		bool FArgs::CanUseParam() const
-		{
-			const FRPRUberMaterialParameterBase* materialParameter = GetMaterialParameterBase();
-			return (materialParameter->CanUseParameter());
-		}
-
-	}
 }

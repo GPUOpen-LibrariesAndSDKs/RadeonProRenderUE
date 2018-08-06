@@ -45,7 +45,8 @@ namespace RPRX
 				materialContext.MaterialSystem,
 				*SetterParameters.ImageManager.Get(),
 				materialMap->Texture,
-				imageMaterialNode
+				RPR::FImageManager::EImageType::Standard,
+                imageMaterialNode
 			);
 
 			if (RPR::IsResultFailed(imageNodeCreationResult))

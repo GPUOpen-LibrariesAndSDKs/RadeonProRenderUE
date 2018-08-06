@@ -159,7 +159,9 @@ struct RPRCORE_API FRPRUberMaterialParameters
 
 	FRPRUberMaterialParameters();
 
+#if WITH_EDITOR
 	void	SetupEditorSettings();
+#endif
 
 };
 

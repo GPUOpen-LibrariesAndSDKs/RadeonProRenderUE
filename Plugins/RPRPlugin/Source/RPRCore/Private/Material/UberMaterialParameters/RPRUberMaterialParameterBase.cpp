@@ -22,11 +22,17 @@ FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase()
 	: RprxParamType(INDEX_NONE)
 {}
 
-FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(const FString& InParamName, RPRX::FParameterType InRprxParamType, ESupportMode InPreviewSupportMode, FCanUseParameter InCanUseParameter)
+FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(
+    const FString& InParamName, 
+    RPRX::FParameterType InRprxParamType, 
+    ESupportMode InPreviewSupportMode, 
+    FCanUseParameter InCanUseParameter,
+    FApplyParameter InApplyParameterDelegate)
 	: ParamName(InParamName)
 	, RprxParamType(InRprxParamType)
 	, SupportMode(InPreviewSupportMode)
 	, CanUseParameterDelegate(InCanUseParameter)
+    , ApplyParameterDelegate(InApplyParameterDelegate)
 {}
 
 RPRX::FParameterType FRPRUberMaterialParameterBase::GetRprxParamType() const
@@ -52,6 +58,16 @@ FString FRPRUberMaterialParameterBase::GetPropertyTypeName(UProperty* Property) 
 bool FRPRUberMaterialParameterBase::CanUseParameter() const
 {
 	return (CanUseParameterDelegate.IsBound() ? CanUseParameterDelegate.Execute(this) : true);
+}
+
+bool FRPRUberMaterialParameterBase::HasCustomParameterApplier() const
+{
+    return ApplyParameterDelegate.IsBound();
+}
+
+void FRPRUberMaterialParameterBase::ApplyParameter(RPRX::MaterialParameter::FArgs& SetterParameters)
+{
+    ApplyParameterDelegate.ExecuteIfBound(SetterParameters);
 }
 
 bool FRPRUberMaterialParameterBase::IsPreviewSupported() const

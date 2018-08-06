@@ -17,12 +17,19 @@
 * THE SOFTWARE.
 ********************************************************************/
 #include "Material/RPRUberMaterialParameters.h"
+#include "Material/Tools/MaterialCacheMaker/ParameterSetters/Specials/NormalMapParameterSetter.h"
 
 #define LOCTEXT_NAMESPACE "RPRUberMaterialParameters"
 
 static bool CanUseOnlyIfValidModeSet(const FRPRUberMaterialParameterBase* Parameter, FRPRMaterialEnum* EnumParameter, uint8 ExpectedValidMode)
 {
 	return (EnumParameter->EnumValue == ExpectedValidMode);
+}
+
+static void ApplyNormalMap(RPRX::MaterialParameter::FArgs& Args)
+{
+    RPRX::FNormalMapParameterSetter normalMapParameterSetter;
+    normalMapParameterSetter.ApplyParameterX(Args);    
 }
 
 FRPRUberMaterialParameters::FRPRUberMaterialParameters()
@@ -67,7 +74,7 @@ FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 
 	, Transparency(TEXT("transparency"), RPRX_UBER_MATERIAL_TRANSPARENCY, ESupportMode::PreviewNotSupported, 0.0f, ERPRMCoMapC1InterpretationMode::AsFloat4)
 
-	, Normal(		TEXT("normal"),			RPRX_UBER_MATERIAL_NORMAL,			ESupportMode::FullySupported)
+	, Normal(		TEXT("normal"),			RPRX_UBER_MATERIAL_NORMAL,			ESupportMode::FullySupported, FCanUseParameter(), FApplyParameter::CreateStatic(ApplyNormalMap))
 	, Bump(			TEXT("bump"),			RPRX_UBER_MATERIAL_BUMP,			ESupportMode::PreviewNotSupported)
 	, Displacement(	TEXT("displacement"),	RPRX_UBER_MATERIAL_DISPLACEMENT,	ESupportMode::PreviewNotSupported)
 
@@ -85,9 +92,11 @@ FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 #endif
 }
 
+
+#if WITH_EDITOR
+
 void FRPRUberMaterialParameters::SetupEditorSettings()
 {
-#if WITH_EDITOR
 	Diffuse_Weight.GetConstantRestriction().SetRange01();
 	Reflection_Weight.GetConstantRestriction().SetRange01();
 	Reflection_Metalness.GetConstantRestriction().SetRange01();
@@ -107,8 +116,9 @@ void FRPRUberMaterialParameters::SetupEditorSettings()
 
 	SSS_Scatter_Distance.GetConstantRestriction().SetMinimum(0.0f);
 	SSS_Scatter_Direction.GetConstantRestriction().SetRange(-1.0f, 1.0f);
-#endif
 }
+
+#endif // WITH_EDITOR
 
 
 #undef LOCTEXT_NAMESPACE

@@ -7,6 +7,8 @@
 #include "Modules/ModuleManager.h"
 #include "RPRCoreSystemResources.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogRPRCore, All, All);
+
 class RPRCORE_API IRPRCore : public IModuleInterface
 {
 
