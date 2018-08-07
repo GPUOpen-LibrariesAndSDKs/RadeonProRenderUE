@@ -68,30 +68,6 @@ RadeonProRender::matrix	BuildMatrixWithScale(const FTransform &transform)
 	return matrix;
 }
 
-FTransform	BuildTransformFromRPRMatrixWithScale(const RadeonProRender::matrix& matrix)
-{
-	RadeonProRender::float3 rprScale;
-	RadeonProRender::float3 rprTranslation;
-	RadeonProRender::float3 rprShear;
-	RadeonProRender::float3 rprRotation;
-	RadeonProRender::float4 rprPerspective;
-	RadeonProRender::decompose(matrix, rprTranslation, rprScale, rprShear, rprRotation, rprPerspective);
-
-	FVector translation = FVector(matrix.m03, matrix.m13, matrix.m23);
-	FQuat rotation(rprRotation.x, rprRotation.y, rprRotation.z, rprRotation.w);
-	FVector scale = FVector(rprScale.x, rprScale.y, rprScale.z);
-
-	/*FVector translation = FVector(matrix.m03, matrix.m23, matrix.m13);
-	FQuat rotation(-rprRotation.x, -rprRotation.z, -rprRotation.y, rprRotation.w);
-	FVector scale = FVector(rprScale.x, rprScale.z, rprScale.y);*/
-
-	FRotator rotator = rotation.Rotator();
-	/*FVector euler = rotator.Euler();
-	rotator = FRotator(euler.X, euler.Y, euler.Z);*/
-
-	return FTransform(rotator, translation, scale);
-}
-
 namespace RPR
 {
 

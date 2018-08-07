@@ -30,7 +30,6 @@
 
 RPRTOOLS_API RadeonProRender::matrix BuildMatrixNoScale(const struct FTransform &transform);
 RPRTOOLS_API RadeonProRender::matrix BuildMatrixWithScale(const struct FTransform &transform);
-RPRTOOLS_API FTransform	BuildTransformFromRPRMatrixWithScale(const RadeonProRender::matrix& matrix);
 
 namespace RPR
 {

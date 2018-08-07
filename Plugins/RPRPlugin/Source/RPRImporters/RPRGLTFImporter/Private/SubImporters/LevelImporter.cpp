@@ -199,13 +199,11 @@ void RPR::GLTF::Import::FLevelImporter::SetupCameras(UWorld* World, RPR::FScene 
 void RPR::GLTF::Import::FLevelImporter::ScaleTransformByImportSettings(FTransform& InOutTransform)
 {
 	UGTLFImportSettings* gltfSettings = GetMutableDefault<UGTLFImportSettings>();
+	
+	InOutTransform.ScaleTranslation(gltfSettings->ScaleFactor);
+
 	FQuat rotation = gltfSettings->Rotation.Quaternion();
-
-	static FRotator sceneRotation(0, 0, 0);
-
-	InOutTransform.SetLocation(InOutTransform.GetLocation() * gltfSettings->ScaleFactor);
-	//InOutTransform.SetRotation(axisTransform.Rotator().Quaternion() * InOutTransform.GetRotation());
-	//InOutTransform.SetScale3D(axisTransform.TransformVector(InOutTransform.GetScale3D()));
+	InOutTransform.SetRotation(InOutTransform.GetRotation() * rotation.Inverse());
 }
 
 void RPR::GLTF::Import::FLevelImporter::ScaleTransformByImportSettings(AActor* Actor)
