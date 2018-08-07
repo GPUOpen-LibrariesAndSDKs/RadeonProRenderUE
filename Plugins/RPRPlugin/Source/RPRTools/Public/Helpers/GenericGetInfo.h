@@ -66,40 +66,100 @@ namespace RPR
 
 		RPRTOOLS_API RPR::FResult GetObjectName(FGetInfoFunction GetInfoFunction, void* Source, FString& OutName);
 
+		void TransposeTranslation(FMatrix& m);
+
 		template<typename TTransformInfoType>
 		RPR::FResult GetObjectTransform(FGetInfoFunction GetInfoFunction, void* Source, TTransformInfoType TransformInfo, FTransform& OutTransform)
 		{
-			FMatrix transformMatrix;
-			RPR::FResult status = GetInfoNoAlloc(GetInfoFunction, Source, TransformInfo, &transformMatrix.M);
+			RadeonProRender::matrix tm;
+			RPR::FResult status = GetInfoNoAlloc(GetInfoFunction, Source, TransformInfo, &tm);
 			if (RPR::IsResultSuccess(status))
 			{
-				FMatrix transposedMatrix = transformMatrix.GetTransposed();
-
-				transformMatrix = FScaleMatrix::Make(FVector(-1, 1, 1)) * FRotationMatrix::Make(FRotator(0, 0, -90));
-
-				static FMatrix swapAxisMatrix = FMatrix(
-					FPlane(00, -1, 00, 00),
-					FPlane(01, 00, 00, 00),
-					FPlane(00, 00, -1, 00),
-					FPlane(00, 00, 00, 01)
+				FMatrix originalMatrix = FMatrix(
+					FPlane(tm.m00 * -1, tm.m01, tm.m02, tm.m03),
+					FPlane(tm.m10, tm.m11, tm.m12, tm.m13),
+					FPlane(tm.m20, tm.m21, tm.m22, tm.m23),
+					FPlane(tm.m30, tm.m31, tm.m32, tm.m33)
 				);
-				static FMatrix rotationMatrix = FRotationMatrix::Make(FRotator(-90, 0, 0));
-
-				OutTransform.SetFromMatrix(transposedMatrix);
-				OutTransform.SetLocation(swapAxisMatrix.TransformPosition(OutTransform.GetLocation()));
 				
-				static FMatrix swapRotationAxisMatrix = FMatrix(
-					FPlane(-1, 0, 0, 0),
-					FPlane(0, 0, -1, 0),
-					FPlane(0, -1, 0, 0),
-					FPlane(0, 0, 0, 1)
-				);
+				//TransposeTranslation(originalMatrix);
+				originalMatrix = originalMatrix.GetTransposed();
+				originalMatrix.ScaleTranslation(FVector(-1, 1, 1));
+				/*FMatrix firstRotationMatrix = FRotationMatrix(FRotator(90, 0, 0));
+				FMatrix secondRotationMatrix = FRotationMatrix(FRotator(0, 0, 90));
+				FMatrix scaleZMatrix = FScaleMatrix(FVector(1, 1, -1));*/
 
-				FRotator rotation = OutTransform.Rotator();
+				/*float angle = FMath::DegreesToRadians(90);
+				RadeonProRender::matrix firstRotationMatrix = RadeonProRender::rotation_y(angle);
+				RadeonProRender::matrix secondRotationMatrix = RadeonProRender::rotation_x(angle);
+				RadeonProRender::matrix scaleMatrix = RadeonProRender::scale(RadeonProRender::float3(1, 1, -1));*/
+
+				//FMatrix result = scaleZMatrix * secondRotationMatrix * firstRotationMatrix * originalMatrix;
+				
+				OutTransform = FTransform(originalMatrix);
+
+				FQuat rotation = FQuat(FVector::ForwardVector, FMath::DegreesToRadians(180));
+				OutTransform.SetRotation(rotation * OutTransform.GetRotation());
+				
+				FVector scale = OutTransform.GetScale3D();				
+				OutTransform.SetScale3D(scale);
+
+				//RadeonProRender::matrix result = /*scaleMatrix **/ secondRotationMatrix * firstRotationMatrix * tm;
+				//OutTransform = BuildTransformFromRPRMatrixWithScale(result);
+
+				/*scaleMatrix = FScaleMatrix(FVector(-1, 1, 1));
+				FMatrix result = originalMatrix;*/
+
+				//OutTransform = FTransform(result);
+				/*tm = RadeonProRender::matrix(
+					tm.m00, tm.m02, tm.m01, tm.m03,
+					tm.m20, tm.m22, tm.m21, tm.m23,
+					tm.m10, tm.m12, tm.m11, tm.m13,
+					0, 0, 0, tm.m33
+				);*/
+
+				// OutTransform = BuildTransformFromRPRMatrixWithScale(tm);
+				return status;
+
+				// Move translation column
+				//FVector translation = transformMatrix.GetColumn(3);
+				//transformMatrix.SetAxes(nullptr, nullptr, nullptr, &translation);
+				//transformMatrix = transformMatrix.GetTransposed();
+
+				//FRotator originalRotation = transformMatrix.Rotator();
+
+				//static FMatrix swapAxisMatrix = FMatrix(
+				//	FPlane(00, 01, 00, 00),
+				//	FPlane(01, 00, 00, 00),
+				//	FPlane(00, 00, 01, 00),
+				//	FPlane(00, 00, 00, 01)
+				//);
+
+				//FRotator rotator = transformMatrix.Rotator();
+				//FQuat quaternion = transformMatrix.ToQuat();
+				//FVector euler = quaternion.Euler();
+				//euler.X *= -1;
+				////euler.Y *= -1;
+				////float eulerX = euler.X;
+				////euler.X = euler.Y;
+				////euler.Y = eulerX;
+
+				//FQuat newQuaternion(-quaternion.X, -quaternion.Z, -quaternion.Y, quaternion.W);
+
+				//UE_LOG(LogRPRGetInfo, Log, TEXT("Rotation : (%s) -> Quat(%s)"), *euler.ToCompactString(), *quaternion.ToString());
+
+				//FQuat newRotation = FQuat::MakeFromEuler(euler);
+
+				//OutTransform.SetFromMatrix(transformMatrix);
+				//OutTransform.SetLocation(swapAxisMatrix.TransformPosition(OutTransform.GetLocation()));
+				////OutTransform.SetRotation(FQuat::MakeFromEuler(FVector(0, 0, -90)) * newRotation);
+				//OutTransform.SetRotation(newQuaternion);
+	
+				/*FRotator rotation = OutTransform.Rotator();
 				FVector rotationEuler = rotation.Euler();
-				//FVector newRotation = swapRotationAxisMatrix.TransformVector(rotationEuler);
-				//OutTransform.SetRotation(FRotator(newRotation.Y, newRotation.Z, newRotation.X).Quaternion());
-				//OutTransform.SetRotation(rotationMatrix.ToQuat() * OutTransform.GetRotation());
+				FVector newRotation = swapAxisMatrix.TransformVector(rotationEuler);
+				rotation = FRotator::MakeFromEuler(newRotation);
+				OutTransform.SetRotation(rotation.Quaternion());*/
 			}
 			return status;
 		}

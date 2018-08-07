@@ -4,5 +4,6 @@ UGTLFImportSettings::UGTLFImportSettings(const FObjectInitializer& PCIP)
 	: Super(PCIP)
 	, ImportType(EGLTFImportType::Level)
 	, ScaleFactor(100.0f)
-	, Rotation(0, 180, 90)
+	//, Rotation(0, 180, 180)
+	, Rotation(0, 0, 0)
 {}

@@ -94,6 +94,8 @@ void RPR::GLTF::Import::FLevelImporter::SetupMesh(UWorld* World, RPR::FShape Sha
 	meshActor->SetActorLabel(actorMeshName);
 	UStaticMeshComponent* staticMeshComponent = meshActor->FindComponentByClass<UStaticMeshComponent>();
 
+	UE_LOG(LogLevelImporter, Log, TEXT("--- Mesh : %s"), *actorMeshName);
+
 	RPR::GLTF::Import::FRPRShapeDataToMeshComponent::Setup(Shape, staticMeshComponent, MeshResources, meshActor);
 	ScaleTransformByImportSettings(meshActor);
 }
