@@ -43,9 +43,9 @@ namespace RPR
 		cache.Add(Texture, image);
 	}
 
-	FImage FImageManager::LoadImageFromTexture(UTexture2D* Texture, bool bRebuild)
+    FImage FImageManager::LoadImageFromTexture(UTexture2D* Texture, EImageType ImageType, bool bRebuild)
 	{
-		FImage image = LoadImageFromTextureInternal(Texture, bRebuild);
+		FImage image = LoadImageFromTextureInternal(Texture, ImageType, bRebuild);
 		if (image == nullptr)
 		{
 			image = TryLoadErrorTexture();
@@ -53,7 +53,7 @@ namespace RPR
 		return (image);
 	}
 
-	RPR::FImage FImageManager::LoadImageFromTextureInternal(UTexture2D* Texture, bool bRebuild)
+	RPR::FImage FImageManager::LoadImageFromTextureInternal(UTexture2D* Texture, EImageType ImageType, bool bRebuild)
 	{
 		check(context != nullptr);
 		check(Texture != nullptr);
@@ -102,7 +102,7 @@ namespace RPR
 		FImageDesc	desc;
 		desc.image_width = platformData->SizeX;
 		desc.image_height = platformData->SizeY;
-		desc.image_depth = 0;
+		desc.image_depth = 1;
 		desc.image_row_pitch = desc.image_width * componentSize * dstFormat.num_components;
 		desc.image_slice_pitch = 0;
 
@@ -110,7 +110,7 @@ namespace RPR
 		TArray<uint8>	rprData;
 		rprData.SetNum(totalByteCount);
 
-		ConvertPixels(textureDataReadOnly, rprData, platformData->PixelFormat, desc.image_width * desc.image_height);
+		ConvertPixels(textureDataReadOnly, rprData, platformData->PixelFormat, desc.image_width * desc.image_height, ImageType);
 		mipData.Unlock();
 
 		if (RPR::IsResultFailed(rprContextCreateImage(context, dstFormat, &desc, rprData.GetData(), &image)))
@@ -170,7 +170,7 @@ namespace RPR
 		TArray<uint8>	rprData;
 		rprData.SetNum(totalByteCount);
 
-		ConvertPixels(srcData.GetData(), rprData, srcFormat, desc.image_width * desc.image_height);
+		ConvertPixels(srcData.GetData(), rprData, srcFormat, desc.image_width * desc.image_height, EImageType::Standard);
 
 		if (RPR::IsResultFailed(rprContextCreateImage(context, dstFormat, &desc, rprData.GetData(), &image)))
 		{
@@ -244,7 +244,7 @@ namespace RPR
 		return true;
 	}
 
-	void	FImageManager::ConvertPixels(const void *textureData, TArray<uint8> &outData, EPixelFormat pixelFormat, uint32 pixelCount)
+	void	FImageManager::ConvertPixels(const void *textureData, TArray<uint8> &outData, EPixelFormat pixelFormat, uint32 pixelCount, EImageType imageType)
 	{
 		switch (pixelFormat)
 		{
@@ -254,10 +254,10 @@ namespace RPR
 			const FFloat16Color	*srcData = reinterpret_cast<const FFloat16Color*>(textureData);
 			for (uint32 iPixel = 0, iData = 0; iPixel < pixelCount; ++iPixel)
 			{
-				dstData[iData++] = srcData->R.GetFloat();
-				dstData[iData++] = srcData->G.GetFloat();
-				dstData[iData++] = srcData->B.GetFloat();
-				dstData[iData++] = srcData->A.GetFloat();
+				dstData[iData++] = ConvertPixel(srcData->R.GetFloat(), imageType);
+				dstData[iData++] = ConvertPixel(srcData->G.GetFloat(), imageType);
+				dstData[iData++] = ConvertPixel(srcData->B.GetFloat(), imageType);
+				dstData[iData++] = ConvertPixel(srcData->A.GetFloat(), imageType);
 				++srcData;
 			}
 			break;
@@ -304,9 +304,19 @@ namespace RPR
 		RPR::FImage image = cache.Get(texture);
 		if (image == nullptr)
 		{
-			image = LoadImageFromTextureInternal(texture, false);
+			image = LoadImageFromTextureInternal(texture, EImageType::Standard, false);
 		}
 		return (image);
 	}
+
+    float FImageManager::ConvertPixel(float pixelValue, EImageType imageType)
+    {
+        if (imageType == EImageType::NormalMap)
+        {
+            return FMath::GetMappedRangeValueUnclamped(FVector2D(0.0f, 1.0f), FVector2D(-1.0f, 1.0f), pixelValue);
+        }
+
+        return pixelValue;
+    }
 
 }

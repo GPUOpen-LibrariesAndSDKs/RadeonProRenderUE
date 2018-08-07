@@ -47,11 +47,11 @@ namespace RPR
 	}
 
 	RPR::FResult FMaterialHelpers::CreateImageNode(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
-															UTexture2D* Texture, RPR::FMaterialNode& OutMaterialNode)
+															UTexture2D* Texture, RPR::FImageManager::EImageType ImageType, RPR::FMaterialNode& OutMaterialNode)
 	{
 		OutMaterialNode = nullptr;
 
-		RPR::FImage image = ImageManager.LoadImageFromTexture(Texture);
+        RPR::FImage image = ImageManager.LoadImageFromTexture(Texture, ImageType);
 		if (image == nullptr)
 		{
 			return (RPR_ERROR_INVALID_IMAGE);

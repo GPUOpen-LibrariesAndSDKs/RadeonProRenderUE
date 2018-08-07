@@ -18,6 +18,17 @@
 ********************************************************************/
 #include "Material/UberMaterialParameters/RPRMaterialMap.h"
 
-FRPRMaterialMap::FRPRMaterialMap(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, FCanUseParameter InCanUseParameter)
-	: FRPRUberMaterialParameterBase(InXmlParamName, InRprxParamID, InPreviewSupportMode, InCanUseParameter)
+FRPRMaterialMap::FRPRMaterialMap(
+    const FString& InXmlParamName, 
+    uint32 InRprxParamID, 
+    ESupportMode InPreviewSupportMode, 
+    FCanUseParameter InCanUseParameter,
+    FApplyParameter InApplyParameterDelegate)
+	: FRPRUberMaterialParameterBase(
+        InXmlParamName, 
+        InRprxParamID, 
+        InPreviewSupportMode, 
+        InCanUseParameter, 
+        InApplyParameterDelegate
+    )
 {}

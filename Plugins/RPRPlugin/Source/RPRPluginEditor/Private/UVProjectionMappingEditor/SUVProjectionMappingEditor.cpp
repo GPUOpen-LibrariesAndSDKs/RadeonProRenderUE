@@ -31,6 +31,7 @@
 #include "StaticMeshHelper.h"
 #include "UVProjectionMappingEditor/IUVProjectionModule.h"
 #include "UVProjectionMappingEditor/SlateUVProjectionsEntry/UVProjectionFactory.h"
+#include "Widgets/Layout/SScrollBox.h"
 
 #define LOCTEXT_NAMESPACE "SUVMappingEditor"
 

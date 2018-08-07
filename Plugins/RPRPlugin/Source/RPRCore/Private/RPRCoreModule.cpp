@@ -5,7 +5,7 @@
 #include "RPRCoreSystemResources.h"
 #include "RPR_SDKModule.h"
 
-DECLARE_LOG_CATEGORY_CLASS(LogRPRCoreModule, Log, All)
+DEFINE_LOG_CATEGORY(LogRPRCore)
 
 class FRPRCoreModule : public IRPRCore
 {
@@ -65,16 +65,16 @@ void FRPRCoreModule::ShutdownModule()
 
 void FRPRCoreModule::LogRPRIInfo(const char* Log)
 {
-	UE_LOG(LogRPRCoreModule, Log, TEXT("%s"), ANSI_TO_TCHAR(Log));
+	UE_LOG(LogRPRCore, Log, TEXT("%s"), ANSI_TO_TCHAR(Log));
 }
 
 void FRPRCoreModule::LogRPRIWarning(const char* Log)
 {
-	UE_LOG(LogRPRCoreModule, Warning, TEXT("%s"), ANSI_TO_TCHAR(Log));
+	UE_LOG(LogRPRCore, Warning, TEXT("%s"), ANSI_TO_TCHAR(Log));
 }
 
 void FRPRCoreModule::LogRPRIError(const char* Log)
 {
-	UE_LOG(LogRPRCoreModule, Error, TEXT("%s"), ANSI_TO_TCHAR(Log));
+	UE_LOG(LogRPRCore, Error, TEXT("%s"), ANSI_TO_TCHAR(Log));
 }
 

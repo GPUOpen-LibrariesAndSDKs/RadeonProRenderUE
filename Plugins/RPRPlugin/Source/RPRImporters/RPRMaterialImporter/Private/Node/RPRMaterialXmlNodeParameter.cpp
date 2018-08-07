@@ -57,7 +57,7 @@ void FRPRMaterialXmlNodeParameter::LoadRPRMaterialParameters(FRPRMaterialGraphSe
 																									UProperty* PropertyPtr)
 {
 	const FRPRUberMaterialParameterBase* uberMaterialParameter =
-		FUberMaterialPropertyHelper::GetParameterBaseFromProperty(SerializationContext.MaterialParameters, PropertyPtr);
+		FUberMaterialPropertyHelper::GetParameterBaseFromPropertyConst(SerializationContext.MaterialParameters, PropertyPtr);
 
 	FString type = uberMaterialParameter->GetPropertyTypeName(PropertyPtr);
 	TSharedPtr<INodeParamType> nodeParam = FNodeParamTypeXmlFactory::Get()->CreateNewNodeParam(type);

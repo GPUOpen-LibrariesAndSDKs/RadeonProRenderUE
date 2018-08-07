@@ -34,6 +34,12 @@ namespace RPR
 	{
 	public:
 
+        enum class EImageType
+        {
+            Standard,
+            NormalMap
+        };
+
 		FImageManager(RPR::FContext RPRContext);
 		virtual ~FImageManager();
 
@@ -41,7 +47,7 @@ namespace RPR
 		// When added, the ImageManager will be in charge of delete the RPR::FImage memory.
 		void		AddImage(UTexture* Texture, RPR::FImage Image);
 
-		RPR::FImage LoadImageFromTexture(UTexture2D* Texture, bool bRebuild = false);
+		RPR::FImage LoadImageFromTexture(UTexture2D* Texture, EImageType ImageType = EImageType::Standard, bool bRebuild = false);
 		RPR::FImage LoadCubeImageFromTexture(UTextureCube* Texture, bool bRebuild = false);
 
 		void ClearCache();
@@ -55,11 +61,13 @@ namespace RPR
 
 	private:
 
-		RPR::FImage LoadImageFromTextureInternal(UTexture2D* Texture, bool bRebuild);
+		RPR::FImage LoadImageFromTextureInternal(UTexture2D* Texture, EImageType ImageType, bool bRebuild);
 		bool BuildRPRImageFormat(EPixelFormat srcFormat, FImageFormat &outFormat, uint32 &outComponentSize);
-		void ConvertPixels(const void *textureData, TArray<uint8> &outData, EPixelFormat pixelFormat, uint32 pixelCount);
+        void ConvertPixels(const void *textureData, TArray<uint8> &outData, EPixelFormat pixelFormat, uint32 pixelCount, EImageType imageType);
 		RPR::FImage	FindInCache(UTexture* Texture, bool bRebuild);
 		RPR::FImage	TryLoadErrorTexture();
+
+        float   ConvertPixel(float pixelValue, EImageType imageType);
 
 	private:
 

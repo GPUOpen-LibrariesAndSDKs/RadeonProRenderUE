@@ -133,7 +133,7 @@ UProperty* FRPRMaterialNode<T>::FindPropertyParameterByName(const FRPRUberMateri
 		if (FUberMaterialPropertyHelper::IsPropertyValidUberParameterProperty(Property))
 		{
 			const FRPRUberMaterialParameterBase* UberMaterialParameterBase =
-				FUberMaterialPropertyHelper::GetParameterBaseFromProperty(UberMaterialParameters, Property);
+				FUberMaterialPropertyHelper::GetParameterBaseFromPropertyConst(UberMaterialParameters, Property);
 
 			const FString& name = UberMaterialParameterBase->GetParameterName();
 

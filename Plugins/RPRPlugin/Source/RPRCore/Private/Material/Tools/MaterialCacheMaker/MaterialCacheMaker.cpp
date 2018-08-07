@@ -88,13 +88,21 @@ namespace RPRX
 
 		if (materialCacheParametersSetterArgs.CanUseParam())
 		{
-			TSharedPtr<RPRX::IMaterialParameter> mapSetter =
-				RPRX::MaterialParameter::FFactory::Create(InParameterProperty);
+            if (materialCacheParametersSetterArgs.HasCustomParameterApplier())
+            {
+                FRPRUberMaterialParameterBase* materialParameter = materialCacheParametersSetterArgs.GetMaterialParameterBase();
+                materialParameter->ApplyParameter(materialCacheParametersSetterArgs);
+            }
+            else
+            {
+                TSharedPtr<RPRX::IMaterialParameter> mapSetter =
+                    RPRX::MaterialParameter::FFactory::Create(InParameterProperty);
 
-			if (mapSetter.IsValid())
-			{
-				mapSetter->ApplyParameterX(materialCacheParametersSetterArgs);
-			}
+                if (mapSetter.IsValid())
+                {
+                    mapSetter->ApplyParameterX(materialCacheParametersSetterArgs);
+                }
+            }
 		}
 
 		return (result);

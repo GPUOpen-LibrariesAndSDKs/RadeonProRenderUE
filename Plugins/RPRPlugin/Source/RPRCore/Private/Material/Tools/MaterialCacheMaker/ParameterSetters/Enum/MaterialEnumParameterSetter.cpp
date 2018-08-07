@@ -18,6 +18,7 @@
 ********************************************************************/
 #include "Material/Tools/MaterialCacheMaker/ParameterSetters/Enum/MaterialEnumParameterSetter.h"
 #include "Helpers/RPRXMaterialHelpers.h"
+#include "Material/UberMaterialParameters/RPRMaterialEnum.h"
 
 namespace RPRX
 {

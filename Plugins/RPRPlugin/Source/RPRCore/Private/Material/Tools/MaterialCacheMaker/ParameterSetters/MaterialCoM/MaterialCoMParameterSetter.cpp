@@ -21,6 +21,7 @@
 #include "Material/MaterialContext.h"
 #include "Material/UberMaterialParameters/RPRMaterialMap.h"
 #include "Helpers/RPRXMaterialHelpers.h"
+#include "Material/UberMaterialParameters/RPRMaterialCoM.h"
 
 namespace RPRX
 {

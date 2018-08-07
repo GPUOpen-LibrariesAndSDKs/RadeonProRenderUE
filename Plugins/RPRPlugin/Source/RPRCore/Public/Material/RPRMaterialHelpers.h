@@ -39,7 +39,7 @@ namespace RPR
 		static FResult	DeleteNode(FMaterialNode& MaterialNode);
 
 		static FResult	CreateImageNode(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
-													UTexture2D* Texture, FMaterialNode& MaterialNode);
+													UTexture2D* Texture, RPR::FImageManager::EImageType ImageType, FMaterialNode& MaterialNode);
 
 		class FMaterialNode
 		{

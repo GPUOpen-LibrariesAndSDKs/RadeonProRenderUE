@@ -20,8 +20,9 @@
 
 #include "UObject/UnrealType.h"
 #include "Containers/UnrealString.h"
-#include "Material/UberMaterialParameters/RPRUberMaterialParameterBase.h"
 #include "Material/RPRUberMaterialParameters.h"
+
+struct FRPRUberMaterialParameters;
 
 class RPRCORE_API FUberMaterialPropertyHelper
 {
@@ -34,7 +35,7 @@ public:
 	*/
 	static FString	GetPropertyTypeName(const UProperty* Property);
 
-	static const FRPRUberMaterialParameterBase*	GetParameterBaseFromProperty(const FRPRUberMaterialParameters* MaterialParameters,
+	static const FRPRUberMaterialParameterBase*	GetParameterBaseFromPropertyConst(const FRPRUberMaterialParameters* MaterialParameters,
 																			const UProperty* Property);
 
 	static FRPRUberMaterialParameterBase*	GetParameterBaseFromProperty(FRPRUberMaterialParameters* MaterialParameters,

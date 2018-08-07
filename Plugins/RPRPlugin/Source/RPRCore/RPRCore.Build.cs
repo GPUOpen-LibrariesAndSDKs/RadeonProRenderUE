@@ -29,10 +29,11 @@ namespace UnrealBuildTool.Rules
             PrivateIncludePaths.AddRange(
 				new string[] {
 
+                    "RPRCore/Public/Material/Tools/MaterialCacheMaker",
+
                     "RPRCore/Private/Material",
                     "RPRCore/Private/Material/Tools/MaterialCacheMaker",
                     "RPRCore/Private/Material/Tools/MaterialCacheMaker/Factory",
-                    "RPRCore/Private/Material/Tools/MaterialCacheMaker/ParameterArgs",
                     "RPRCore/Private/Material/Tools/MaterialCacheMaker/ParameterSetters",
                     "RPRCore/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/Bool",
                     "RPRCore/Private/Material/Tools/MaterialCacheMaker/ParameterSetters/Enum",

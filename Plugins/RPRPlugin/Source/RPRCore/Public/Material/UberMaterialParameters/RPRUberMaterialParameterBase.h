@@ -20,9 +20,11 @@
 
 #include "Containers/UnrealString.h"
 #include "Typedefs/RPRXTypedefs.h"
+#include "Material/Tools/MaterialCacheMaker/ParameterArgs.h"
 #include "RPRUberMaterialParameterBase.generated.h"
 
 DECLARE_DELEGATE_RetVal_OneParam(bool, FCanUseParameter, const struct FRPRUberMaterialParameterBase*)
+DECLARE_DELEGATE_OneParam(FApplyParameter, RPRX::MaterialParameter::FArgs&)
 
 UENUM()
 enum class ESupportMode : uint8
@@ -51,13 +53,16 @@ public:
 		const FString& InParamName, 
 		RPRX::FParameterType InRprxParamType,
 		ESupportMode InPreviewSupportMode, 
-		FCanUseParameter InCanUseParameter = FCanUseParameter());
+		FCanUseParameter InCanUseParameter = FCanUseParameter(),
+        FApplyParameter InApplyParameterDelegate = FApplyParameter());
 
 	virtual ~FRPRUberMaterialParameterBase() {}
 
 	RPRX::FParameterType	GetRprxParamType() const;
 	const FString&			GetParameterName() const;
 	bool					CanUseParameter() const;
+    bool                    HasCustomParameterApplier() const;
+    void                    ApplyParameter(struct RPRX::MaterialParameter::FArgs& SetterParameters);
 	bool					IsPreviewSupported() const;
 	bool					IsPropertySupported() const;
 	void					SetAdditionalInfoText(const FText& Text);
@@ -81,5 +86,6 @@ private:
 	UPROPERTY()
 	FString		ParamName;
 
-	FCanUseParameter CanUseParameterDelegate;
+	FCanUseParameter    CanUseParameterDelegate;
+    FApplyParameter     ApplyParameterDelegate;
 };
