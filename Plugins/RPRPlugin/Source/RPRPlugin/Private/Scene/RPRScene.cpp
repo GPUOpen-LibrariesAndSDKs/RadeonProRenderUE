@@ -589,7 +589,7 @@ void	ARPRScene::CheckPendingKills()
 		if (actor == nullptr)
 		{
 			PendingKillQueue.RemoveAt(iKill);
-			break;
+			continue;
 		}
 		if (canSafelyKill ||
 			m_RendererWorker->CanSafelyKill(PendingKillQueue[iKill]))
@@ -699,7 +699,7 @@ void	ARPRScene::RemoveSceneContent(bool clearScene, bool clearCache)
 	Cameras.Empty();
 
 	CheckPendingKills();
-	check(PendingKillQueue.Num() == 0);
+	ensure(PendingKillQueue.Num() == 0);
 
 	if (m_RprScene != nullptr)
 	{
