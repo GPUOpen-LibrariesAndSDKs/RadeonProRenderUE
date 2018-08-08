@@ -55,14 +55,15 @@ URPRLightComponent::URPRLightComponent()
 
 static const float	kLumensToW = 1.0f / 17.0f;
 static const float	kW = 100.0f;
-static const float	kDirLightIntensityMultiplier = 0.5f;
+static const float	kDirLightIntensityMultiplier = 0.05f;
 
-FLinearColor	BuildRPRLightColor(const ULightComponentBase *lightComponent, bool lumenUnits)
+FLinearColor	BuildRPRLightColor(const ULocalLightComponent *lightComponent, ELightUnits lightUnits, float intensityScale = 1.0f)
 {
-	const float		intensity = lightComponent->Intensity;
-	FLinearColor	lightColor(lightComponent->LightColor);
+	const float			intensity = lightComponent->Intensity;
+	const FLinearColor	lightColor(lightComponent->LightColor);
 
-	return lightColor * intensity * (lumenUnits ? kLumensToW : kW);
+	float	convFactor = ULocalLightComponent::GetUnitsConversionFactor(lightUnits, ELightUnits::Lumens);
+	return lightColor * convFactor * intensity * kLumensToW * intensityScale;
 }
 
 bool	URPRLightComponent::BuildIESLight(const UPointLightComponent *lightComponent)
@@ -86,7 +87,7 @@ bool	URPRLightComponent::BuildIESLight(const UPointLightComponent *lightComponen
 	}
 	const FLinearColor	lightColor = lightComponent->bUseIESBrightness ?
 		FLinearColor(lightComponent->LightColor) * lightComponent->IESBrightnessScale :
-		BuildRPRLightColor(lightComponent, lightComponent->IntensityUnits == ELightUnits::Lumens);
+		BuildRPRLightColor(lightComponent, lightComponent->IntensityUnits, 0.01f);
 
 	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
 	if (rprContextCreateIESLight(rprContext, &m_RprLight) != RPR_SUCCESS ||
@@ -114,8 +115,8 @@ bool	URPRLightComponent::BuildPointLight(const UPointLightComponent *pointLightC
 {
 	if (pointLightComponent->IESTexture != NULL)
 		return BuildIESLight(pointLightComponent);
-	const FLinearColor	lightColor = BuildRPRLightColor(pointLightComponent, pointLightComponent->IntensityUnits == ELightUnits::Lumens);
-	
+	const FLinearColor	lightColor = BuildRPRLightColor(pointLightComponent, pointLightComponent->IntensityUnits, 10.0f);
+
 	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
 	if (rprContextCreatePointLight(rprContext, &m_RprLight) != RPR_SUCCESS ||
 		rprPointLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B) != RPR_SUCCESS)
@@ -133,7 +134,7 @@ bool	URPRLightComponent::BuildSpotLight(const USpotLightComponent *spotLightComp
 {
 	if (spotLightComponent->IESTexture != NULL)
 		return BuildIESLight(spotLightComponent);
-	const FLinearColor	lightColor = BuildRPRLightColor(spotLightComponent, spotLightComponent->IntensityUnits == ELightUnits::Lumens);
+	const FLinearColor	lightColor = BuildRPRLightColor(spotLightComponent, spotLightComponent->IntensityUnits, 10.0f);
 	
 	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
 	if (rprContextCreateSpotLight(rprContext, &m_RprLight) != RPR_SUCCESS ||
@@ -189,7 +190,7 @@ bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightCompone
 		return false;
 	}
 
-	if (rprEnvironmentLightSetIntensityScale(m_RprLight, intensity) != RPR_SUCCESS)
+	if (rprEnvironmentLightSetIntensityScale(m_RprLight, intensity * kDirLightIntensityMultiplier) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't set intensity scale of the environment light"));
 		return false;
@@ -360,7 +361,7 @@ bool	URPRLightComponent::RPRThread_Update()
 		case	ERPRLightType::Point:
 		{
 			check(pointLightComponent != NULL);
-			const FLinearColor	lightColor = BuildRPRLightColor(pointLightComponent, pointLightComponent->IntensityUnits == ELightUnits::Lumens);
+			const FLinearColor	lightColor = BuildRPRLightColor(pointLightComponent, pointLightComponent->IntensityUnits, 10.0f);
 
 			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set point light color", PROPERTY_REBUILD_LIGHT_COLOR, rprPointLightSetRadiantPower3f, m_RprLight, lightColor.R, lightColor.G, lightColor.B);
 			break;
@@ -368,7 +369,7 @@ bool	URPRLightComponent::RPRThread_Update()
 		case	ERPRLightType::Spot:
 		{
 			check(spotLightComponent != NULL);
-			const FLinearColor	lightColor = BuildRPRLightColor(spotLightComponent, spotLightComponent->IntensityUnits == ELightUnits::Lumens);
+			const FLinearColor	lightColor = BuildRPRLightColor(spotLightComponent, spotLightComponent->IntensityUnits, 10.0f);
 
 			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set spot light color", PROPERTY_REBUILD_LIGHT_COLOR, rprSpotLightSetRadiantPower3f, m_RprLight, lightColor.R, lightColor.G, lightColor.B);
 			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set spot light cone angles", PROPERTY_REBUILD_SPOT_LIGHT_ANGLES, rprSpotLightSetConeShape, m_RprLight, FMath::DegreesToRadians(m_CachedConeAngles.X), FMath::DegreesToRadians(m_CachedConeAngles.Y));
@@ -384,7 +385,7 @@ bool	URPRLightComponent::RPRThread_Update()
 		}
 		case	ERPRLightType::Environment:
 		{
-			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set env light intensity", PROPERTY_REBUILD_LIGHT_COLOR, rprEnvironmentLightSetIntensityScale, m_RprLight, m_CachedIntensity);
+			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set env light intensity", PROPERTY_REBUILD_LIGHT_COLOR, rprEnvironmentLightSetIntensityScale, m_RprLight, m_CachedIntensity * kDirLightIntensityMultiplier);
 			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set env light cubemap", PROPERTY_REBUILD_ENV_LIGHT_CUBEMAP, rprEnvironmentLightSetImage, m_RprLight, m_RprImage);
 
 			if (m_PendingDelete != NULL)
@@ -397,7 +398,7 @@ bool	URPRLightComponent::RPRThread_Update()
 		case	ERPRLightType::IES:
 		{
 			check(pointLightComponent != NULL);
-			const FLinearColor	lightColor = BuildRPRLightColor(pointLightComponent, pointLightComponent->IntensityUnits == ELightUnits::Lumens);
+			const FLinearColor	lightColor = BuildRPRLightColor(pointLightComponent, pointLightComponent->IntensityUnits, 0.01f);
 
 			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set IES light color", PROPERTY_REBUILD_LIGHT_COLOR, rprIESLightSetRadiantPower3f, m_RprLight, lightColor.R, lightColor.G, lightColor.B);
 			break;
@@ -443,6 +444,12 @@ void	URPRLightComponent::TickComponent(float deltaTime, ELevelTick tickType, FAc
 	const bool	force = false;
 
 	RPR_PROPERTY_CHECK(lightComponent->Intensity, m_CachedIntensity, PROPERTY_REBUILD_LIGHT_COLOR);
+
+	const ULocalLightComponent	*localLightComponent = Cast<ULocalLightComponent>(SrcComponent);
+	if (localLightComponent != nullptr)
+	{
+		RPR_PROPERTY_CHECK(localLightComponent->IntensityUnits, m_CachedIntensityUnits, PROPERTY_REBUILD_LIGHT_COLOR);
+	}
 
 	if (m_LightType != ERPRLightType::Environment)
 	{

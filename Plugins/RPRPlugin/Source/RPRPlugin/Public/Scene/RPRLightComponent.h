@@ -23,6 +23,7 @@
 #include "Components/SceneComponent.h"
 #include "RadeonProRender.h"
 #include "Scene/RPRSceneComponent.h"
+#include "Engine/Scene.h"
 #include "Components/SkyLightComponent.h"
 #include "RPRLightComponent.generated.h"
 
@@ -64,6 +65,7 @@ private:
 
 	float						m_CachedShadowSharpness;
 	float						m_CachedIntensity;
+	ELightUnits					m_CachedIntensityUnits;
 	FColor						m_CachedLightColor;
 	FVector2D					m_CachedConeAngles;
 
