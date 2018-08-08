@@ -52,6 +52,7 @@
 #include "Helpers/RPRIHelpers.h"
 #include "RenderingThread.h"
 #include "RPR_SDKModule.h"
+#include "Components/InstancedStaticMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Helpers/ContextHelper.h"
 #include "RPRCoreModule.h"
@@ -253,6 +254,8 @@ uint32	ARPRScene::BuildScene()
 			continue;
 		if (Cast<UStaticMeshComponent>(*it) != nullptr)
 			unbuiltObjects += QueueBuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass(), false);
+		else if (Cast<UInstancedStaticMeshComponent>(*it) != nullptr)
+			unbuiltObjects += QueueBuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass(), false);
 		else if (Cast<ULightComponentBase>(*it) != nullptr)
 			unbuiltObjects += QueueBuildRPRActor(world, *it, URPRLightComponent::StaticClass(), false);
 		else if (Cast<UCameraComponent>(*it) != nullptr)
@@ -319,6 +322,10 @@ void	ARPRScene::RefreshScene()
 			continue;
 		
 		if (Cast<UStaticMeshComponent>(*it) != nullptr)
+		{
+			objectAdded |= QueueBuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass(), true);
+		}
+		else if (Cast<UInstancedStaticMeshComponent>(*it) != nullptr)
 		{
 			objectAdded |= QueueBuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass(), true);
 		}
