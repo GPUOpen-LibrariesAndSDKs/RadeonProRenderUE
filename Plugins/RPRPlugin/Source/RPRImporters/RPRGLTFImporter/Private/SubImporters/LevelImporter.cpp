@@ -9,14 +9,17 @@
 #include "RPRShapeDataToStaticMeshComponent.h"
 #include "Engine/Light.h"
 #include "RPRLightDataToLightComponent.h"
+#include "RPRCameraDataToCameraComponent.h"
 #include "Engine/PointLight.h"
 #include "Engine/SkyLight.h"
 #include "Engine/DirectionalLight.h"
 #include "Engine/SpotLight.h"
 #include "Helpers/RPRLightHelpers.h"
+#include "Helpers/RPRCameraHelpers.h"
 #include "Kismet/GameplayStatics.h"
 #include "Helpers/RPRShapeHelpers.h"
 #include "GTLFImportSettings.h"
+#include "Camera/CameraActor.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogLevelImporter, Log, All)
 
@@ -33,7 +36,7 @@ bool RPR::GLTF::Import::FLevelImporter::ImportLevel(
 	}
 
 	SetupMeshes(OutWorld, Scene, MeshResources);
-	SetupLights(OutWorld, Scene);
+	// SetupLights(OutWorld, Scene); // In fact, it seems that gltf doesn't support lights
 	SetupCameras(OutWorld, Scene);
 
 	FAssetRegistryModule::AssetCreated(OutWorld);
@@ -81,7 +84,7 @@ void RPR::GLTF::Import::FLevelImporter::SetupMeshes(UWorld* World, RPR::FScene S
 void RPR::GLTF::Import::FLevelImporter::SetupMesh(UWorld* World, RPR::FShape Shape, int32 Index, RPR::GLTF::FStaticMeshResourcesPtr MeshResources)
 {
 	FString actorMeshName;
-	RPR::FResult status = RPR::Shape::GetShapeName(Shape, actorMeshName);
+	RPR::FResult status = RPR::Shape::GetName(Shape, actorMeshName);
 	if (RPR::IsResultFailed(status))
 	{
 		actorMeshName = FString::Printf(TEXT("shape_%d"), Index);
@@ -97,7 +100,7 @@ void RPR::GLTF::Import::FLevelImporter::SetupMesh(UWorld* World, RPR::FShape Sha
 	UE_LOG(LogLevelImporter, Log, TEXT("--- Mesh : %s"), *actorMeshName);
 
 	RPR::GLTF::Import::FRPRShapeDataToMeshComponent::Setup(Shape, staticMeshComponent, MeshResources, meshActor);
-	ScaleTransformByImportSettings(meshActor);
+	UpdateTransformAccordingToImportSettings(meshActor);
 }
 
 void RPR::GLTF::Import::FLevelImporter::SetupLights(UWorld* World, RPR::FScene Scene)
@@ -138,11 +141,14 @@ void RPR::GLTF::Import::FLevelImporter::SetupLight(UWorld* World, RPR::FLight Li
 		UE_LOG(LogLevelImporter, Warning, TEXT("Light type (%d) not supported"), (uint32) lightType);
 		return;
 	}
+
+	UE_LOG(LogLevelImporter, Log, TEXT("--- Light : %s"), *actorName);
 	
 	AActor* lightActor = CreateLightActor(World, *actorName, lightType);
 	ULightComponent* lightComponent = Cast<ULightComponent>(lightActor->GetComponentByClass(ULightComponent::StaticClass()));
 	
 	RPR::GLTF::Import::FRPRLightDataToLightComponent::Setup(Light, lightComponent, lightActor);
+	UpdateTranslationScaleAccordingToImportSettings(lightActor);
 }
 
 AActor* RPR::GLTF::Import::FLevelImporter::CreateLightActor(UWorld* World, const FName& ActorName, RPR::ELightType LightType)
@@ -193,22 +199,67 @@ ASkyLight* RPR::GLTF::Import::FLevelImporter::CreateOrGetSkyLight(UWorld* World,
 
 void RPR::GLTF::Import::FLevelImporter::SetupCameras(UWorld* World, RPR::FScene Scene)
 {
-	
+	TArray<RPR::FCamera> cameras;
+	RPR::FResult status = RPR::GLTF::Import::GetCameras(cameras);
+	if (RPR::IsResultFailed(status))
+	{
+		UE_LOG(LogLevelImporter, Error, TEXT("Cannot get cameras from RPR scene"));
+		return;
+	}
+
+	for (int32 i = 0; i < cameras.Num(); ++i)
+	{
+		SetupCamera(World, cameras[i], i);
+	}
 }
 
-void RPR::GLTF::Import::FLevelImporter::ScaleTransformByImportSettings(FTransform& InOutTransform)
+void RPR::GLTF::Import::FLevelImporter::SetupCamera(UWorld* World, RPR::FCamera Camera, int32 CameraIndex)
 {
-	UGTLFImportSettings* gltfSettings = GetMutableDefault<UGTLFImportSettings>();
-	
-	InOutTransform.ScaleTranslation(gltfSettings->ScaleFactor);
+	FString actorName;
+	RPR::FResult status = RPR::Camera::GetObjectName(Camera, actorName);
+	if (RPR::IsResultFailed(status) || actorName.IsEmpty())
+	{
+		actorName = FString::Printf(TEXT("camera_%d"), CameraIndex);
+	}
 
+	UE_LOG(LogLevelImporter, Log, TEXT("--- Camera : %s"), *actorName);
+
+	FActorSpawnParameters asp;
+	asp.Name = *actorName;
+	asp.ObjectFlags = RF_Public | RF_Standalone | RF_Transactional;
+	ACameraActor* cameraActor = World->SpawnActor<ACameraActor>(asp);
+	UCameraComponent* cameraComponent = cameraActor->GetCameraComponent();
+
+	RPR::GLTF::Import::FRPRCameraDataToCameraComponent::Setup(Camera, cameraComponent, cameraActor);
+	UpdateTranslationScaleAccordingToImportSettings(cameraActor);
+}
+
+void RPR::GLTF::Import::FLevelImporter::UpdateTransformAccordingToImportSettings(AActor* Actor)
+{
+	FTransform transform = Actor->GetTransform();
+	UpdateTransformAccordingToImportSettings(transform);
+	Actor->SetActorTransform(transform);
+}
+
+void RPR::GLTF::Import::FLevelImporter::UpdateTransformAccordingToImportSettings(FTransform& InOutTransform)
+{
+	UpdateTranslationScaleAccordingToImportSettings(InOutTransform);
+
+	UGTLFImportSettings* gltfSettings = GetMutableDefault<UGTLFImportSettings>();
 	FQuat rotation = gltfSettings->Rotation.Quaternion();
 	InOutTransform.SetRotation(InOutTransform.GetRotation() * rotation.Inverse());
 }
 
-void RPR::GLTF::Import::FLevelImporter::ScaleTransformByImportSettings(AActor* Actor)
+void RPR::GLTF::Import::FLevelImporter::UpdateTranslationScaleAccordingToImportSettings(AActor* Actor)
 {
 	FTransform transform = Actor->GetTransform();
-	ScaleTransformByImportSettings(transform);
+	UpdateTranslationScaleAccordingToImportSettings(transform);
 	Actor->SetActorTransform(transform);
 }
+
+void RPR::GLTF::Import::FLevelImporter::UpdateTranslationScaleAccordingToImportSettings(FTransform& InOutTransform)
+{
+	UGTLFImportSettings* gltfSettings = GetMutableDefault<UGTLFImportSettings>();
+	InOutTransform.ScaleTranslation(gltfSettings->ScaleFactor);
+}
+

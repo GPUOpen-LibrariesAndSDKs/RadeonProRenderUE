@@ -14,7 +14,7 @@ void RPR::GLTF::Import::FRPRShapeDataToMeshComponent::Setup(RPR::FShape Shape,
 	StaticMeshComponent->SetStaticMesh(staticMesh);
 
 	FTransform transform;
-	RPR::FResult status = RPR::Shape::GetTransform(Shape, transform);
+	RPR::FResult status = RPR::Shape::GetLocalTransform(Shape, transform);
 	if (RPR::IsResultFailed(status))
 	{
 		return;

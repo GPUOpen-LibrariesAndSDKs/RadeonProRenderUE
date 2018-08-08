@@ -59,7 +59,7 @@ bool RPR::GLTF::Import::FStaticMeshesImporters::ImportMeshes(
 	{
 		RPR::FShape shape = shapes[i];
 		
-		status = RPR::Shape::GetShapeName(shape, shapeName);
+		status = RPR::Shape::GetName(shape, shapeName);
 		if (RPR::IsResultFailed(status))
 		{
 			shapeName = TEXT("Mesh");

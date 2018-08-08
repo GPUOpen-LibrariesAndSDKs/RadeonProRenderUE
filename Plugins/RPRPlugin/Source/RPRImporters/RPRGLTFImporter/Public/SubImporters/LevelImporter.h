@@ -34,9 +34,12 @@ namespace RPR
 				static ASkyLight*	CreateOrGetSkyLight(UWorld* World, const FActorSpawnParameters& ActorSpawnParameters);
 
 				static void SetupCameras(UWorld* World, RPR::FScene Scene);
+				static void SetupCamera(UWorld* World, RPR::FCamera Camera, int32 CameraIndex);
 
-				static void ScaleTransformByImportSettings(AActor* Actor);
-				static void ScaleTransformByImportSettings(FTransform& InOutTransform);
+				static void UpdateTransformAccordingToImportSettings(AActor* Actor);
+				static void UpdateTransformAccordingToImportSettings(FTransform& InOutTransform);
+				static void UpdateTranslationScaleAccordingToImportSettings(AActor* Actor);
+				static void UpdateTranslationScaleAccordingToImportSettings(FTransform& InOutTransform);
 			};
 
 		}

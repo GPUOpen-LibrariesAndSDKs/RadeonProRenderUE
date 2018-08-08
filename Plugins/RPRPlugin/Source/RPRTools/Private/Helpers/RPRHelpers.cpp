@@ -36,7 +36,7 @@ static const float RPR_PI = 3.14159265f;
 // If you find a better way, have fun :)
 RadeonProRender::matrix	BuildMatrixNoScale(const FTransform &transform)
 {
-	const FVector	&position = transform.GetLocation() * 0.1f;
+	const FVector	position = transform.GetLocation() * 0.1f;
 	const FQuat		&quat = transform.GetRotation();
 
 	RadeonProRender::float3		rprPos(position.X, position.Z, position.Y);

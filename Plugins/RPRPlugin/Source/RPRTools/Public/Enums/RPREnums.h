@@ -29,7 +29,7 @@ namespace RPR
 		MaterialX
 	};
 
-	enum class EMaterialNodeInputType : FMaterialNodeInputType
+	enum class EMaterialNodeInputType : FMaterialNodeInputType // rpr_material_node_input_type
 	{
 		Float4		= RPR_MATERIAL_NODE_INPUT_TYPE_FLOAT4,
 		UInt		= RPR_MATERIAL_NODE_INPUT_TYPE_UINT,
@@ -37,7 +37,7 @@ namespace RPR
 		Image		= RPR_MATERIAL_NODE_INPUT_TYPE_IMAGE
 	};
 
-	enum class EMaterialNodeType : FMaterialNodeType
+	enum class EMaterialNodeType : FMaterialNodeType // rpr_material_node_type
 	{
 		Diffuse					= RPR_MATERIAL_NODE_DIFFUSE,
 		Microfacet				= RPR_MATERIAL_NODE_MICROFACET,
@@ -53,7 +53,7 @@ namespace RPR
 		// Not completed. See rpr_material_node_type in RadeonProRender for others
 	};
 
-	enum class EMaterialNodeInputInfo : FMaterialNodeInputInfo
+	enum class EMaterialNodeInputInfo : FMaterialNodeInputInfo // rpr_material_node_input_info
 	{
 		Name = RPR_MATERIAL_NODE_INPUT_NAME,
 		NameString = RPR_MATERIAL_NODE_INPUT_NAME_STRING,
@@ -62,14 +62,14 @@ namespace RPR
 		Type = RPR_MATERIAL_NODE_INPUT_TYPE
 	};
 
-	enum class EMaterialNodeInfo : FMaterialNodeInfo
+	enum class EMaterialNodeInfo : FMaterialNodeInfo // rpr_material_node_info
 	{
 		Type = RPR_MATERIAL_NODE_TYPE,
 		System = RPR_MATERIAL_NODE_SYSTEM,
 		InputCount = RPR_MATERIAL_NODE_INPUT_COUNT
 	};
 
-	enum class EImageInfo
+	enum class EImageInfo // rpr_image_info
 	{
 		Format = RPR_IMAGE_FORMAT,
 		Description = RPR_IMAGE_DESC,
@@ -81,13 +81,13 @@ namespace RPR
 		MipMapEnabled = RPR_IMAGE_MIPMAP_ENABLED
 	};
 
-	enum class EImageFilterType
+	enum class EImageFilterType // rpr_image_filter_type
 	{
 		Nearest = RPR_IMAGE_FILTER_TYPE_NEAREST,
 		Linear = RPR_IMAGE_FILTER_TYPE_LINEAR
 	};
 
-	enum class EImageWrapType
+	enum class EImageWrapType // rpr_image_wrap_type
 	{
 		Repeat = RPR_IMAGE_WRAP_TYPE_REPEAT,
 		MirroredRepeat = RPR_IMAGE_WRAP_TYPE_MIRRORED_REPEAT,
@@ -97,14 +97,14 @@ namespace RPR
 		ClampOne = RPR_IMAGE_WRAP_TYPE_CLAMP_ONE
 	};
 
-	enum class EComponentType
+	enum class EComponentType // rpr_component_type
 	{
 		Uint8 = RPR_COMPONENT_TYPE_UINT8,
 		Float16 = RPR_COMPONENT_TYPE_FLOAT16,
 		Float32 = RPR_COMPONENT_TYPE_FLOAT32
 	};
 
-	enum class EMeshInfo
+	enum class EMeshInfo // rpr_mesh_info
 	{
 		PolygonCount = RPR_MESH_POLYGON_COUNT,
 		VertexCount = RPR_MESH_VERTEX_COUNT,
@@ -131,7 +131,7 @@ namespace RPR
 		UVDimensions = RPR_MESH_UV_DIM
 	};
 
-	enum class EShapeInfo
+	enum class EShapeInfo // rpr_shape_info
 	{
 		Type = RPR_SHAPE_TYPE,
 		VidmemUsage = RPR_SHAPE_VIDMEM_USAGE,
@@ -157,7 +157,13 @@ namespace RPR
 		LayerMash = RPR_SHAPE_LAYER_MASK,
 	};
 
-	enum class ELightType
+	enum class EShapeType // rpr_shape_type
+	{
+		Mesh = RPR_SHAPE_TYPE_MESH,
+		Instance = RPR_SHAPE_TYPE_INSTANCE
+	};
+
+	enum class ELightType // rpr_light_type
 	{
 		Point = RPR_LIGHT_TYPE_POINT,
 		Directional = RPR_LIGHT_TYPE_DIRECTIONAL,
@@ -167,7 +173,7 @@ namespace RPR
 		IES = RPR_LIGHT_TYPE_IES
 	};
 
-	enum class ELightInfo
+	enum class ELightInfo // rpr_light_info
 	{
 		Type = RPR_LIGHT_TYPE,
 		Transform = RPR_LIGHT_TRANSFORM,
@@ -197,4 +203,40 @@ namespace RPR
 		IES_ImageDescription = RPR_IES_LIGHT_IMAGE_DESC
 	};
 
+	enum class ECameraInfo // rpr_camera_info
+	{
+		Transform = RPR_CAMERA_TRANSFORM,
+		FStop = RPR_CAMERA_FSTOP,
+		ApertureBlades = RPR_CAMERA_APERTURE_BLADES,
+		Response = RPR_CAMERA_RESPONSE,
+		Exposure = RPR_CAMERA_EXPOSURE,
+		FocalLength = RPR_CAMERA_FOCAL_LENGTH,
+		SensorSize = RPR_CAMERA_SENSOR_SIZE,
+		Mode = RPR_CAMERA_MODE,
+		OrthoWidth = RPR_CAMERA_ORTHO_WIDTH,
+		OrthoHeight = RPR_CAMERA_ORTHO_HEIGHT,
+		FocusDistance = RPR_CAMERA_FOCUS_DISTANCE,
+		Position = RPR_CAMERA_POSITION,
+		LookAt = RPR_CAMERA_LOOKAT,
+		CameraUp = RPR_CAMERA_UP,
+		FocalTilt = RPR_CAMERA_FOCAL_TILT,
+		LensShift = RPR_CAMERA_LENS_SHIFT,
+		IPD = RPR_CAMERA_IPD,
+		TiltCorrection = RPR_CAMERA_TILT_CORRECTION,
+		NearPlane = RPR_CAMERA_NEAR_PLANE,
+		FarPlane = RPR_CAMERA_FAR_PLANE,
+		LinearMotion = RPR_CAMERA_LINEAR_MOTION,
+		AngularMotion = RPR_CAMERA_ANGULAR_MOTION
+	};
+
+	enum class ECameraMode // rpr_camera_mode
+	{
+		Perspective = RPR_CAMERA_MODE_PERSPECTIVE,
+		Orthographic = RPR_CAMERA_MODE_ORTHOGRAPHIC,
+		LatitudeLongitude360 = RPR_CAMERA_MODE_LATITUDE_LONGITUDE_360,
+		LatitudeLongitudeStereo = RPR_CAMERA_MODE_LATITUDE_LONGITUDE_STEREO,
+		Cubemap = RPR_CAMERA_MODE_CUBEMAP,
+		CubemapStereo = RPR_CAMERA_MODE_CUBEMAP_STEREO,
+		FishEye = RPR_CAMERA_MODE_FISHEYE
+	};
 }
