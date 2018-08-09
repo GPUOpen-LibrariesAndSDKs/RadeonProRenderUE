@@ -16,6 +16,7 @@ namespace RPR
 		RPRTOOLS_API RPR::FResult	GetLightConeShape(RPR::FLight Light, float& OutInnerAngle, float& OutOuterAngle);
 		RPRTOOLS_API RPR::FResult	GetEnvironmentLightIntensityScale(RPR::FLight Light, float& OutLightIntensityScale);
 		RPRTOOLS_API RPR::FResult	GetEnvironmentLightImage(RPR::FLight Light, RPR::FImage& OutImage);
+		RPRTOOLS_API RPR::FResult	GetDirectionalShadowSoftness(RPR::FLight Light, float& OutShadowSoftness);
 
 	}
 }

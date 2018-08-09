@@ -91,6 +91,11 @@ FReply	SRPRViewportTabContent::OnToggleRender()
 	else
 	{
 		UE_LOG(LogSRPRViewportTabContent, Error, TEXT("RPR Scene invalid! Cannot start render"));
+
+		FNotificationInfo info(LOCTEXT("RPR Scene not found", "RPR scene couldn't be initialized correctly. Reload the scene and try again."));
+		info.bFireAndForget = true;
+		info.ExpireDuration = 3;
+		FSlateNotificationManager::Get().AddNotification(info);
 	}
 	return FReply::Handled();
 }

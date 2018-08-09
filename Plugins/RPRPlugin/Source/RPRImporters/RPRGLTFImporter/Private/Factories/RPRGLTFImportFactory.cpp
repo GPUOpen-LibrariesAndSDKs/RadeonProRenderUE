@@ -117,7 +117,10 @@ UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InPa
 	if (gltfSettings->ImportType == EGLTFImportType::Level)
 	{
 		UWorld* level = nullptr;
-		RPR::GLTF::Import::FLevelImporter::ImportLevel(gltfFileData, scene, meshesResources, level);
+		RPR::GLTF::Import::FLevelImporter::FResources levelImporterResources;
+		levelImporterResources.MeshResources = meshesResources;
+		levelImporterResources.ImageResources = imageResources;
+		RPR::GLTF::Import::FLevelImporter::ImportLevel(gltfFileData, scene, levelImporterResources, level);
 		return (level);
 	}
 

@@ -4,8 +4,11 @@
 #include "StaticMeshHelper.h"
 #include "Helpers/RPRHelpers.h"
 #include "File/RPRFileHelper.h"
+#include "Misc/ScopedSlowTask.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRMeshImporter, Log, All)
+
+#define LOCTEXT_NAMESPACE "RPR::FMeshImporter"
 
 RPR::FMeshImporter::FSettings::FSettings()
 	: ScaleFactor(100.0f)
@@ -13,11 +16,21 @@ RPR::FMeshImporter::FSettings::FSettings()
 
 UStaticMesh* RPR::FMeshImporter::ImportMesh(const FString& MeshName, RPR::FShape Shape, const FSettings& Settings)
 {
+	FScopedSlowTask slowTask(5.0f, FText::FormatOrdered(LOCTEXT("ImportingMesh", "Import mesh '{0}'"), FText::FromString(MeshName)));
+	slowTask.MakeDialog();
+
 	FRawMesh rawMesh;
 
+	slowTask.EnterProgressFrame(1.0f, LOCTEXT("ImportVertices", "Import vertices..."));
 	if (!ImportVertices(MeshName, Shape, Settings, rawMesh.VertexPositions)) return nullptr;
+
+	slowTask.EnterProgressFrame(1.0f, LOCTEXT("ImportTriangles", "Import triangles..."));
 	if (!ImportTriangles(MeshName, Shape, rawMesh.WedgeIndices)) return nullptr;
+
+	slowTask.EnterProgressFrame(1.0f, LOCTEXT("ImportNormals", "Import normals..."));
 	if (!ImportNormals(MeshName, Shape, Settings, rawMesh.WedgeIndices, rawMesh.WedgeTangentZ)) return nullptr;
+
+	slowTask.EnterProgressFrame(1.0f, LOCTEXT("ImportUV", "Import UV..."));
 	if (!ImportUVs(MeshName, Shape, rawMesh.WedgeTexCoords, rawMesh.WedgeIndices.Num())) return nullptr;
 
 	InitializeUnknownData(rawMesh);
@@ -29,6 +42,7 @@ UStaticMesh* RPR::FMeshImporter::ImportMesh(const FString& MeshName, RPR::FShape
 		return (nullptr);
 	}
 
+	slowTask.EnterProgressFrame(1.0f, LOCTEXT("SaveMesh", "Save mesh data..."));
 	UStaticMesh* newMesh = CreateStaticMesh(MeshName);
 	SaveRawMeshToStaticMesh(rawMesh, newMesh);
 
@@ -166,11 +180,13 @@ void RPR::FMeshImporter::InitializeUnknownData(FRawMesh& RawMesh)
 UStaticMesh* RPR::FMeshImporter::CreateStaticMesh(const FString& MeshName)
 {
 	URPRSettings* settings = GetMutableDefault<URPRSettings>();
-	FString meshPath = FPaths::Combine(settings->DefaultRootDirectoryForImportedMeshes.Path, MeshName);
-	meshPath = FRPRFileHelper::FixFilenameIfInvalid<UStaticMesh>(meshPath, TEXT("StaticMesh"));
-	UPackage* package = CreatePackage(nullptr, *meshPath);
-	UStaticMesh* newMesh = NewObject<UStaticMesh>(package, *FPaths::GetBaseFilename(meshPath), RF_Standalone | RF_Public);
 
+	FString validMeshName = MeshName.Replace(TEXT("."), TEXT("_"));
+	FString meshPath = FPaths::Combine(settings->DefaultRootDirectoryForImportedMeshes.Path, validMeshName);
+	meshPath = FRPRFileHelper::FixFilenameIfInvalid<UStaticMesh>(meshPath, TEXT("StaticMesh"));
+
+	UPackage* package = CreatePackage(nullptr, *meshPath);
+	UStaticMesh* newMesh = NewObject<UStaticMesh>(package, *FPaths::GetCleanFilename(meshPath), RF_Standalone | RF_Public | RF_Transactional);
 	return (newMesh);
 }
 
@@ -206,3 +222,5 @@ FTransform RPR::FMeshImporter::CreateTransformFromImportSettings(const FSettings
 {
 	return FTransform(Settings.Rotation, FVector::ZeroVector, FVector::OneVector * Settings.ScaleFactor * -1.0f);
 }
+
+#undef LOCTEXT_NAMESPACE

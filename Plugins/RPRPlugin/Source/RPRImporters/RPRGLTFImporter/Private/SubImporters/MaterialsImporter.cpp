@@ -33,6 +33,8 @@
 #include "AssetRegistryModule.h"
 #include "File/RPRFileHelper.h"
 #include "Assets/RPRMaterial.h"
+#include "ObjectTools.h"
+#include "UObject/UObjectGlobals.h"
 
 bool RPR::GLTF::Import::FMaterialsImporter::ImportMaterials(
 	const gltf::glTFAssetData& GLTFFileData, 
@@ -131,8 +133,13 @@ URPRMaterial* RPR::GLTF::Import::FMaterialsImporter::CreateNewMaterial(const FSt
 	URPRSettings* settings = GetMutableDefault<URPRSettings>();
 	FString materialPath = FPaths::Combine(settings->DefaultRootDirectoryForImportedMaterials.Path, MaterialName);
 	materialPath = FRPRFileHelper::FixFilenameIfInvalid<URPRMaterial>(materialPath, TEXT("Material"));
+
+	FRPRFileHelper::DeletePackageIfExists(materialPath);
 	UPackage* package = CreatePackage(nullptr, *materialPath);
 
 	URPRMaterialFactory* rprMaterialFactory = NewObject<URPRMaterialFactory>();
-	return (URPRMaterial*) rprMaterialFactory->FactoryCreateNew(URPRMaterial::StaticClass(), package, *MaterialName, RF_Public | RF_Standalone, nullptr, GWarn);
+	URPRMaterial* rprMaterial = (URPRMaterial*) rprMaterialFactory->FactoryCreateNew(URPRMaterial::StaticClass(), package, *MaterialName, RF_Public | RF_Standalone | RF_Transactional, nullptr, GWarn);
+
+	package->FullyLoad();
+	return rprMaterial;
 }

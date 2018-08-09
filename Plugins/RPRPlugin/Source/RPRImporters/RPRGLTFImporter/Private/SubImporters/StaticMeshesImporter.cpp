@@ -30,6 +30,9 @@
 #include "RPRCoreSystemResources.h"
 #include "Miscs/RPRMaterialNodeDumper.h"
 #include "Helpers/RPRXHelpers.h"
+#include "Misc/ScopedSlowTask.h"
+
+#define LOCTEXT_NAMESPACE "RPR::GLTF::Import::FStaticMeshesImporters"
 
 bool RPR::GLTF::Import::FStaticMeshesImporters::ImportMeshes(
 	const gltf::glTFAssetData& GLTFFileData, 
@@ -54,9 +57,14 @@ bool RPR::GLTF::Import::FStaticMeshesImporters::ImportMeshes(
 		importSettings.Rotation = gltfImportSettings->Rotation;
 	}
 
+	FScopedSlowTask slowTask(shapes.Num(), LOCTEXT("ImportingMeshes", "Import meshes..."));
+	slowTask.MakeDialog();
+
 	FString shapeName;
 	for (int32 i = 0; i < shapes.Num(); ++i)
 	{
+		slowTask.EnterProgressFrame();
+
 		RPR::FShape shape = shapes[i];
 		
 		status = RPR::Shape::GetName(shape, shapeName);
@@ -106,3 +114,5 @@ void RPR::GLTF::Import::FStaticMeshesImporters::AttachMaterialsOnMesh(RPR::FShap
 		StaticMesh->SetMaterial(0, ue4Material);
 	}
 }
+
+#undef LOCTEXT_NAMESPACE

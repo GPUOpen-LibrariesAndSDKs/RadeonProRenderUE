@@ -20,13 +20,19 @@
 #include "Helpers/RPRShapeHelpers.h"
 #include "GTLFImportSettings.h"
 #include "Camera/CameraActor.h"
+#include "Editor.h"
+#include "ActorFactories/ActorFactorySkyLight.h"
+#include "Engine/Level.h"
+#include "Factories/WorldFactory.h"
+#include "Components/SkyLightComponent.h"
+#include "FileHelpers.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogLevelImporter, Log, All)
 
 bool RPR::GLTF::Import::FLevelImporter::ImportLevel(
 	const gltf::glTFAssetData& GLTFFileData, 
 	RPR::FScene Scene, 
-	RPR::GLTF::FStaticMeshResourcesPtr MeshResources,
+	FResources& Resources,
 	UWorld*& OutWorld)
 {
 	OutWorld = CreateNewWorld(GLTFFileData);
@@ -35,34 +41,32 @@ bool RPR::GLTF::Import::FLevelImporter::ImportLevel(
 		return (false);
 	}
 
-	SetupMeshes(OutWorld, Scene, MeshResources);
-	// SetupLights(OutWorld, Scene); // In fact, it seems that gltf doesn't support lights
-	SetupCameras(OutWorld, Scene);
-
-	FAssetRegistryModule::AssetCreated(OutWorld);
+	SetupMeshes(OutWorld, Scene, Resources.MeshResources);
+	SetupLights(OutWorld, Scene, Resources.ImageResources);
+	// SetupCameras(OutWorld, Scene);
+	
+	SaveWorld(GLTFFileData, OutWorld);
 	return (true);
 }
 
 UWorld* RPR::GLTF::Import::FLevelImporter::CreateNewWorld(const gltf::glTFAssetData& GLTFFileData)
 {
 	FString sceneName = FString(GLTFFileData.scenes[GLTFFileData.scene].name.c_str());
-
-	URPRSettings* rprSettings = GetMutableDefault<URPRSettings>();
-	FString directory = rprSettings->DefaultRootDirectoryForImportLevels.Path;
-
-	FString sceneFilePath = FPaths::Combine(directory, sceneName);
-
-	sceneFilePath = FRPRFileHelper::FixFilenameIfInvalid<UWorld>(sceneFilePath, TEXT("RPRScene"));
-	sceneName = FPaths::GetBaseFilename(sceneFilePath);
-
-	UPackage* newPackage = CreatePackage(nullptr, *sceneFilePath);
-	check(newPackage);
-
-	// Create new world
-	UWorld* newWorld = NewObject<UWorld>(newPackage, *sceneName, RF_Public | RF_Standalone | RF_Transactional);
-	newWorld->InitializeNewWorld();
+	UWorld* newWorld = UWorld::CreateWorld(EWorldType::Inactive, false, *sceneName);
 
 	return newWorld;
+}
+
+void RPR::GLTF::Import::FLevelImporter::SaveWorld(const gltf::glTFAssetData& GLTFFileData, UWorld* World)
+{
+	FString sceneName = FString(GLTFFileData.scenes[GLTFFileData.scene].name.c_str());
+	URPRSettings* rprSettings = GetMutableDefault<URPRSettings>();
+	FString directory = rprSettings->DefaultRootDirectoryForImportLevels.Path;
+	FString sceneFilePath = FPaths::Combine(directory, sceneName);
+	sceneFilePath = FRPRFileHelper::FixFilenameIfInvalid<UWorld>(sceneFilePath, TEXT("RPRScene"));
+	FEditorFileUtils::SaveLevel(World->GetLevel(0), sceneFilePath);
+
+	FAssetRegistryModule::AssetCreated(World);
 }
 
 void RPR::GLTF::Import::FLevelImporter::SetupMeshes(UWorld* World, RPR::FScene Scene, RPR::GLTF::FStaticMeshResourcesPtr MeshResources)
@@ -85,14 +89,13 @@ void RPR::GLTF::Import::FLevelImporter::SetupMesh(UWorld* World, RPR::FShape Sha
 {
 	FString actorMeshName;
 	RPR::FResult status = RPR::Shape::GetName(Shape, actorMeshName);
-	if (RPR::IsResultFailed(status))
+	if (RPR::IsResultFailed(status) || actorMeshName.IsEmpty())
 	{
 		actorMeshName = FString::Printf(TEXT("shape_%d"), Index);
 	}
 
 	FActorSpawnParameters asp;
 	asp.Name = *actorMeshName;
-	asp.ObjectFlags = RF_Public | RF_Standalone | RF_Transactional;
 	AStaticMeshActor* meshActor = World->SpawnActor<AStaticMeshActor>(asp);
 	meshActor->SetActorLabel(actorMeshName);
 	UStaticMeshComponent* staticMeshComponent = meshActor->FindComponentByClass<UStaticMeshComponent>();
@@ -103,7 +106,7 @@ void RPR::GLTF::Import::FLevelImporter::SetupMesh(UWorld* World, RPR::FShape Sha
 	UpdateTransformAccordingToImportSettings(meshActor);
 }
 
-void RPR::GLTF::Import::FLevelImporter::SetupLights(UWorld* World, RPR::FScene Scene)
+void RPR::GLTF::Import::FLevelImporter::SetupLights(UWorld* World, RPR::FScene Scene, RPR::GLTF::FImageResourcesPtr ImageResources)
 {
 	TArray<RPR::FLight> lights;
 	RPR::FResult status = RPR::GLTF::Import::GetLights(lights);
@@ -115,11 +118,11 @@ void RPR::GLTF::Import::FLevelImporter::SetupLights(UWorld* World, RPR::FScene S
 
 	for (int32 i = 0; i < lights.Num(); ++i)
 	{
-		SetupLight(World, lights[i], i);
+		SetupLight(World, lights[i], i, ImageResources);
 	}
 }
 
-void RPR::GLTF::Import::FLevelImporter::SetupLight(UWorld* World, RPR::FLight Light, int32 LightIndex)
+void RPR::GLTF::Import::FLevelImporter::SetupLight(UWorld* World, RPR::FLight Light, int32 LightIndex, RPR::GLTF::FImageResourcesPtr ImageResources)
 {
 	FString actorName;
 	RPR::FResult status = RPR::Light::GetObjectName(Light, actorName);
@@ -145,17 +148,19 @@ void RPR::GLTF::Import::FLevelImporter::SetupLight(UWorld* World, RPR::FLight Li
 	UE_LOG(LogLevelImporter, Log, TEXT("--- Light : %s"), *actorName);
 	
 	AActor* lightActor = CreateLightActor(World, *actorName, lightType);
-	ULightComponent* lightComponent = Cast<ULightComponent>(lightActor->GetComponentByClass(ULightComponent::StaticClass()));
-	
-	RPR::GLTF::Import::FRPRLightDataToLightComponent::Setup(Light, lightComponent, lightActor);
-	UpdateTranslationScaleAccordingToImportSettings(lightActor);
+	if (lightActor != nullptr)
+	{
+		ULightComponentBase* lightComponent = Cast<ULightComponentBase>(lightActor->GetComponentByClass(ULightComponentBase::StaticClass()));
+
+		RPR::GLTF::Import::FRPRLightDataToLightComponent::Setup(Light, lightComponent, ImageResources, lightActor);
+		UpdateTranslationScaleAccordingToImportSettings(lightActor);
+	}
 }
 
 AActor* RPR::GLTF::Import::FLevelImporter::CreateLightActor(UWorld* World, const FName& ActorName, RPR::ELightType LightType)
 {
 	FActorSpawnParameters asp;
 	asp.Name = ActorName;
-	asp.ObjectFlags = RF_Public | RF_Standalone;
 	AActor* actor = nullptr; 
 
 	switch (LightType)
@@ -184,7 +189,7 @@ AActor* RPR::GLTF::Import::FLevelImporter::CreateLightActor(UWorld* World, const
 	return actor;
 }
 
-ASkyLight* RPR::GLTF::Import::FLevelImporter::CreateOrGetSkyLight(UWorld* World, const FActorSpawnParameters& ActorSpawnParameters)
+AActor* RPR::GLTF::Import::FLevelImporter::CreateOrGetSkyLight(UWorld* World, const FActorSpawnParameters& ActorSpawnParameters)
 {
 	TArray<AActor*> actors;
 	UGameplayStatics::GetAllActorsOfClass(World, ASkyLight::StaticClass(), actors);
@@ -193,7 +198,7 @@ ASkyLight* RPR::GLTF::Import::FLevelImporter::CreateOrGetSkyLight(UWorld* World,
 	{
 		return (Cast<ASkyLight>(actors[0]));
 	}
-	
+
 	return World->SpawnActor<ASkyLight>(ActorSpawnParameters);
 }
 

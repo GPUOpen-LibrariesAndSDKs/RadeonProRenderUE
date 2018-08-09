@@ -35,8 +35,19 @@ namespace RPRX
 
 	RPR::FResult FMaterialHelpers::DeleteMaterial(FContext RPRXContext, FMaterial MaterialData)
 	{
-		UE_LOG(LogMaterialHelpers, VeryVerbose, TEXT("Delete material [%p]"), MaterialData);
-		return (rprxMaterialDelete(RPRXContext, MaterialData));
+		// TODO : There is clearly an issue where the material X created from rprxCreateMaterial is not recognized as a material X 
+		// and cannot be deleted with rprxMaterialDelete. So memory leak here!
+
+		RPRX::FMaterial outMaterial = nullptr;
+		bool bIsRPRXMaterial;
+
+		RPR::FResult status = RPRX::FMaterialHelpers::IsMaterialRPRX(RPRXContext, MaterialData, outMaterial, bIsRPRXMaterial);
+		if (RPR::IsResultSuccess(status) && bIsRPRXMaterial)
+		{
+			UE_LOG(LogMaterialHelpers, VeryVerbose, TEXT("Delete material [%p]"), MaterialData);
+			return (rprxMaterialDelete(RPRXContext, MaterialData));
+		}
+		return (status);
 	}
 
 	RPR::FResult FMaterialHelpers::SetMaterialParameterNode(FContext Context, FMaterial Material, FParameter Parameter, RPR::FMaterialNode MaterialNode)
@@ -88,7 +99,12 @@ namespace RPRX
 	RPR::FResult FMaterialHelpers::IsMaterialRPRX(FContext Context, RPR::FMaterialNode MaterialNode, bool& bOutIsMaterialRPRX)
 	{
 		RPRX::FMaterial materialX;
-		return rprxIsMaterialRprx(Context, MaterialNode, &materialX, (rpr_bool*) &bOutIsMaterialRPRX);
+		return IsMaterialRPRX(Context, MaterialNode, materialX, bOutIsMaterialRPRX);
+	}
+
+	RPR::FResult FMaterialHelpers::IsMaterialRPRX(FContext Context, RPR::FMaterialNode MaterialNode, RPRX::FMaterial& OutMaterialX, bool& bOutIsMaterialRPRX)
+	{
+		return rprxIsMaterialRprx(Context, MaterialNode, &OutMaterialX, (rpr_bool*) &bOutIsMaterialRPRX);
 	}
 
 	void FMaterialHelpers::CheckParameterType(FContext Context, FMaterial Material, FParameter Parameter, FParameterType ExpectedParameterType)

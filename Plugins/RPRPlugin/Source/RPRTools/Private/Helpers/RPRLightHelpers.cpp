@@ -110,6 +110,11 @@ namespace RPR
 			return GetInfoNoAlloc(Light, ELightInfo::Environment_Image, OutImage);
 		}
 
+		RPR::FResult GetDirectionalShadowSoftness(RPR::FLight Light, float& OutShadowSoftness)
+		{
+			return GetInfoNoAlloc(Light, ELightInfo::DirectionalLight_ShadowSoftness, OutShadowSoftness);
+		}
+
 	} // namespace Light
 } // namespace RPR
 

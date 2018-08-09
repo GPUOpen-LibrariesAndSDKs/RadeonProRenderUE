@@ -1,6 +1,8 @@
 #include "File/RPRFileHelper.h"
 #include "Misc/Paths.h"
 #include "UObject/SoftObjectPath.h"
+#include "Misc/PackageName.h"
+#include "ObjectTools.h"
 
 FString FRPRFileHelper::FixFilenameIfInvalid(const FString& FilePath, UClass* ObjectClass, const FString& BaseFilename)
 {
@@ -17,4 +19,20 @@ FString FRPRFileHelper::FixFilenameIfInvalid(const FString& FilePath, UClass* Ob
 	{
 		return FPaths::Combine(FilePath, *MakeUniqueObjectName(nullptr, ObjectClass, *BaseFilename).ToString());
 	}
+}
+
+bool FRPRFileHelper::DeletePackageIfExists(const FString& AssetPath)
+{
+	FString dummyFilename;
+	if (FPackageName::DoesPackageExist(*AssetPath, nullptr, &dummyFilename))
+	{
+		FString materialAssetPath = AssetPath + TEXT(".") + FPaths::GetBaseFilename(AssetPath);
+		UObject* foundObject = LoadObject<UObject>(nullptr, *materialAssetPath);
+		if (foundObject != nullptr)
+		{
+			ObjectTools::DeleteSingleObject(foundObject);
+			return (true);
+		}
+	}
+	return (false);
 }

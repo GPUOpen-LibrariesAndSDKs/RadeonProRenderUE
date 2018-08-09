@@ -62,6 +62,7 @@ namespace RPRX
 		}
 
 		static RPR::FResult	IsMaterialRPRX(FContext Context, RPR::FMaterialNode MaterialNode, bool& bOutIsMaterialRPRX);
+		static RPR::FResult	IsMaterialRPRX(FContext Context, RPR::FMaterialNode MaterialNode, RPRX::FMaterial& OutMaterialX, bool& bOutIsMaterialRPRX);
 
 	private:
 		
