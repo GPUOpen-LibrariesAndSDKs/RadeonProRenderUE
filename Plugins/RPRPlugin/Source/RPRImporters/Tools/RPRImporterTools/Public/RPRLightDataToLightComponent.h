@@ -21,6 +21,7 @@ namespace RPR
 
 				static void SetupLightComponentByType(RPR::FLight Light, ELightType LightType, ULightComponentBase* LightComponent, RPR::GLTF::FImageResourcesPtr ImageResources);
 
+				static void SetupSpotLight(RPR::FLight Light, ULightComponentBase* LightComponent);
 				static void SetupDirectionalLight(RPR::FLight Light, ULightComponentBase* LightComponent);
 				static void SetupEnvironmentLight(RPR::FLight Light, ULightComponentBase* LightComponent, RPR::GLTF::FImageResourcesPtr ImageResources);
 			};

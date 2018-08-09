@@ -7,6 +7,7 @@
 #include "Typedefs/RPRTypedefs.h"
 #include "Engine/TextureCube.h"
 #include "Components/DirectionalLightComponent.h"
+#include "Components/SpotLightComponent.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRGLTFImporter, Log, All)
 
@@ -92,14 +93,12 @@ void RPR::GLTF::Import::FRPRLightDataToLightComponent::SetupLightComponentByType
 {
 	switch (LightType)
 	{
-		case RPR::ELightType::Point:		
-		break;
-
 		case RPR::ELightType::Directional:
 		SetupDirectionalLight(Light, LightComponent);
 		break;
 
 		case RPR::ELightType::Spot:		
+		SetupSpotLight(Light, LightComponent);
 		break;
 
 		case RPR::ELightType::Environment:
@@ -107,6 +106,8 @@ void RPR::GLTF::Import::FRPRLightDataToLightComponent::SetupLightComponentByType
 		SetupEnvironmentLight(Light, LightComponent, ImageResources);
 		break;
 
+		// Nothing specific to point lights
+		case RPR::ELightType::Point:
 		default:
 		break;
 	}
@@ -127,6 +128,26 @@ void RPR::GLTF::Import::FRPRLightDataToLightComponent::SetupDirectionalLight(RPR
 	else
 	{
 		directionalLightComponent->ShadowSharpen = shadowSoftness;
+	}
+}
+
+void RPR::GLTF::Import::FRPRLightDataToLightComponent::SetupSpotLight(RPR::FLight Light, ULightComponentBase* LightComponent)
+{
+	USpotLightComponent* spotLightComponent = Cast<USpotLightComponent>(LightComponent);
+
+	RPR::FResult status;
+
+	float innerAngle, outerAngle;
+	status = RPR::Light::GetLightConeShape(Light, innerAngle, outerAngle);
+	if (RPR::IsResultFailed(status))
+	{
+		UE_LOG(LogRPRGLTFImporter, Warning, TEXT("Cannot get cone shape for light %s"), *LightComponent->GetName());
+	}
+	else
+	{
+		// Not sure if we get radian angles from RPR but it probably is
+		spotLightComponent->InnerConeAngle = FMath::RadiansToDegrees(innerAngle);
+		spotLightComponent->OuterConeAngle = FMath::RadiansToDegrees(outerAngle);
 	}
 }
 
