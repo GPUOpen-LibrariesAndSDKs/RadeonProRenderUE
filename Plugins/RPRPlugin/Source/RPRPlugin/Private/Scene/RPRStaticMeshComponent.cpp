@@ -559,7 +559,7 @@ void	URPRStaticMeshComponent::WatchMaterialsChanges()
 
 	for (int32 materialIndex = 0; materialIndex < staticMeshComponent->GetNumMaterials(); ++materialIndex)
 	{
-		staticMeshComponent->GetMaterial(materialIndex)
+		staticMeshComponent->GetMaterial(materialIndex);
 	}
 }
 

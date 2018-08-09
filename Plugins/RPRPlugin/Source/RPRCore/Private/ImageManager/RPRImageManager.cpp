@@ -43,7 +43,7 @@ namespace RPR
 		cache.Add(Texture, image);
 	}
 
-    FImage FImageManager::LoadImageFromTexture(UTexture2D* Texture, EImageType ImageType, bool bRebuild)
+	FImage FImageManager::LoadImageFromTexture(UTexture2D* Texture, EImageType ImageType, bool bRebuild)
 	{
 		FImage image = LoadImageFromTextureInternal(Texture, ImageType, bRebuild);
 		if (image == nullptr)
@@ -309,14 +309,14 @@ namespace RPR
 		return (image);
 	}
 
-    float FImageManager::ConvertPixel(float pixelValue, EImageType imageType)
-    {
-        if (imageType == EImageType::NormalMap)
-        {
-            return FMath::GetMappedRangeValueUnclamped(FVector2D(0.0f, 1.0f), FVector2D(-1.0f, 1.0f), pixelValue);
-        }
+	float FImageManager::ConvertPixel(float pixelValue, EImageType imageType)
+	{
+		/*if (imageType == EImageType::NormalMap)
+		{
+			return FMath::GetMappedRangeValueUnclamped(FVector2D(0.0f, 1.0f), FVector2D(-1.0f, 1.0f), pixelValue);
+		}*/
 
-        return pixelValue;
-    }
+		return pixelValue;
+	}
 
 }

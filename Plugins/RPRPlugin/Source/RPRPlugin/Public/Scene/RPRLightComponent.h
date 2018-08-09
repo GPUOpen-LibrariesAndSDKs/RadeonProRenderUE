@@ -65,6 +65,7 @@ private:
 
 	ERPRLightType	m_LightType;
 
+	bool						m_CachedAffectsWorld;
 	float						m_CachedShadowSharpness;
 	float						m_CachedIntensity;
 	ELightUnits					m_CachedIntensityUnits;
