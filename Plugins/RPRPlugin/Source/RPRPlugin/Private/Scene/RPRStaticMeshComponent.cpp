@@ -27,6 +27,7 @@
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshActor.h"
 #include "Camera/CameraActor.h"
+#include "Components/InstancedStaticMeshComponent.h"
 #include "Rendering/PositionVertexBuffer.h"
 #include "StaticMeshResources.h"
 
@@ -54,35 +55,40 @@ TMap<UStaticMesh*, TArray<FRPRCachedMesh>>	URPRStaticMeshComponent::Cache;
 
 URPRStaticMeshComponent::URPRStaticMeshComponent()
 {
+	m_CachedInstanceCount = 0;
+
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-TArray<FRPRCachedMesh>	URPRStaticMeshComponent::GetMeshInstances(UStaticMesh *mesh)
+TArray<FRPRCachedMesh>	URPRStaticMeshComponent::GetMeshInstances(UStaticMesh *mesh, uint32 instanceCount)
 {
 	if (!Cache.Contains(mesh))
 		return TArray<FRPRCachedMesh>();
 	TArray<FRPRCachedMesh>			instances;
 	const TArray<FRPRCachedMesh>	&srcShapes = Cache[mesh];
+	RPR::FContext					rprContext = IRPRCore::GetResources()->GetRPRContext();
 
 	const uint32	shapeCount = srcShapes.Num();
 	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 	{
-		rpr_shape	newShape = nullptr;
-		RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
-		if (rprContextCreateInstance(rprContext, srcShapes[iShape].m_RprShape, &newShape) != RPR_SUCCESS)
+		for (uint32 iInstance = 0; iInstance < instanceCount; ++iInstance)
 		{
-			for (int32 jShape = 0; jShape < instances.Num(); ++jShape)
-				rprObjectDelete(instances[jShape].m_RprShape);
-			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh instance from '%s'"), *mesh->GetName());
-			return TArray<FRPRCachedMesh>();
-		}
-		else
-		{
+			rpr_shape	newShape = nullptr;
+			if (rprContextCreateInstance(rprContext, srcShapes[iShape].m_RprShape, &newShape) != RPR_SUCCESS)
+			{
+				for (int32 jShape = 0; jShape < instances.Num(); ++jShape)
+					rprObjectDelete(instances[jShape].m_RprShape);
+				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh instance from '%s'"), *mesh->GetName());
+				return TArray<FRPRCachedMesh>();
+			}
+			else
+			{
 #ifdef RPR_VERBOSE
-			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape instance created from '%s' section %d"), *mesh->GetName(), iShape);
+				UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape instance created from '%s' section %d"), *mesh->GetName(), iShape);
 #endif
+			}
+			instances.Add(FRPRCachedMesh(newShape, srcShapes[iShape].m_UEMaterialIndex));
 		}
-		instances.Add(FRPRCachedMesh(newShape, srcShapes[iShape].m_UEMaterialIndex));
 	}
 	return instances;
 }
@@ -119,8 +125,8 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 	const uint32	shapeCount = m_Shapes.Num();
 	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 	{
-		rpr_shape shape = m_Shapes[iShape].m_RprShape;
-		rpr_int status = RPR_SUCCESS;
+		rpr_shape	shape = m_Shapes[iShape].m_RprShape;
+		rpr_int		status = RPR_SUCCESS;
 
 		// If we have a wrong index, it ll just return nullptr, and fallback to a dummy material
 		UMaterialInterface	*matInterface = component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
@@ -207,26 +213,30 @@ bool	URPRStaticMeshComponent::Build()
 	//		return false;
 	static const FName	kStripTag = "RPR_Strip";
 	const AActor		*actor = SrcComponent->GetOwner();
-	if (Cast<ACameraActor>(actor) != nullptr ||
+	if (actor == nullptr ||
+		Cast<ACameraActor>(actor) != nullptr ||
 		Cast<APawn>(actor) != nullptr ||
 		actor->ActorHasTag(kStripTag) ||
 		SrcComponent->ComponentHasTag(kStripTag))
 		return false;
 
-	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
+	RPR::FContext	rprContext = IRPRCore::GetResources()->GetRPRContext();
 
 	// Note for runtime builds
 	// All that data is probably stripped from runtime builds
 	// So the solution would be to build all static meshes data before packaging
 	// Placing that built data inside the static mesh UserData could be an option
-	UStaticMeshComponent	*staticMeshComponent = Cast<UStaticMeshComponent>(SrcComponent);
+	UStaticMeshComponent			*staticMeshComponent = Cast<UStaticMeshComponent>(SrcComponent);
 	check(staticMeshComponent != nullptr);
 	UStaticMesh	*staticMesh = staticMeshComponent->GetStaticMesh();
 	if (staticMesh == nullptr ||
 		staticMesh->RenderData == nullptr ||
 		staticMesh->RenderData->LODResources.Num() == 0)
 		return false;
-	TArray<FStaticMaterial>	const	   &staticMaterials = staticMesh->StaticMaterials;
+	UInstancedStaticMeshComponent	*instancedMeshComponent = Cast<UInstancedStaticMeshComponent>(staticMeshComponent); // Foliage, instanced meshes, ..
+	if (instancedMeshComponent != nullptr && instancedMeshComponent->GetInstanceCount() == 0)
+		return false;
+	TArray<FStaticMaterial>	const	&staticMaterials = staticMesh->StaticMaterials;
 
 	// Always load highest LOD
 	const FStaticMeshLODResources		&lodRes = staticMesh->RenderData->LODResources[0];
@@ -237,9 +247,9 @@ bool	URPRStaticMeshComponent::Build()
 	enum class WindingOrder { CCW, CW };
 	std::set<WindingOrder> windingOrders;
 
-	TArray<FRPRCachedMesh>	shapes = GetMeshInstances(staticMesh);
-	// TODO : Reset the if so the cache system works again
-	if (true/*shapes.Num() == 0*/) // No mesh in cache ?
+	const uint32			instanceCount = instancedMeshComponent != nullptr ? instancedMeshComponent->GetInstanceCount() : 1;
+	TArray<FRPRCachedMesh>	shapes = GetMeshInstances(staticMesh, instanceCount);
+	if (shapes.Num() == 0) // No mesh in cache ?
 	{
 		FIndexArrayView					srcIndices = lodRes.IndexBuffer.GetArrayView();
 		const FStaticMeshVertexBuffer	&srcVertices = FRPRCpStaticMesh::GetStaticMeshVertexBufferConst(lodRes);
@@ -375,19 +385,22 @@ bool	URPRStaticMeshComponent::Build()
 				return false;
 			}
 
-			FRPRCachedMesh	newInstance(newShape.m_UEMaterialIndex);
-			if (rprContextCreateInstance(rprContext, shape, &newInstance.m_RprShape) != RPR_SUCCESS)
+			for (uint32 iInstance = 0; iInstance < instanceCount; ++iInstance)
 			{
-				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh instance from '%s'"), *staticMesh->GetName());
-				return false;
-			}
-			else
-			{
+				FRPRCachedMesh	newInstance(newShape.m_UEMaterialIndex);
+				if (rprContextCreateInstance(rprContext, shape, &newInstance.m_RprShape) != RPR_SUCCESS)
+				{
+					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh instance from '%s'"), *staticMesh->GetName());
+					return false;
+				}
+				else
+				{
 #ifdef RPR_VERBOSE
-				UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape instance created from '%s' section %d"), *staticMesh->GetName(), iSection);
+					UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape instance '%d' created from '%s' section %d"), iInstance, *staticMesh->GetName(), iSection);
 #endif
+				}
+				m_Shapes.Add(FRPRShape(newInstance, iInstance));
 			}
-			m_Shapes.Add(newInstance);
 		}
 
 		if (windingOrders.size() > 1)
@@ -405,17 +418,18 @@ bool	URPRStaticMeshComponent::Build()
 	{
 		const uint32	shapeCount = shapes.Num();
 		for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
-			m_Shapes.Add(shapes[iShape]);
+			m_Shapes.Add(FRPRShape(shapes[iShape], iShape % instanceCount));
 	}
 
 	static const FName		kPrimaryOnly("RPR_NoBlock");
 	const bool				primaryOnly = staticMeshComponent->ComponentHasTag(kPrimaryOnly) || actor->ActorHasTag(kPrimaryOnly);
+
+	RadeonProRender::matrix	componentMatrix = BuildMatrixWithScale(SrcComponent->GetComponentToWorld());
 	const uint32			shapeCount = m_Shapes.Num();
-	RadeonProRender::matrix	matrix = BuildMatrixWithScale(SrcComponent->GetComponentToWorld());
 	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 	{
 		rpr_shape	shape = m_Shapes[iShape].m_RprShape;
-		if (rprShapeSetTransform(shape, RPR_TRUE, &matrix.m00) != RPR_SUCCESS ||
+		if (!SetInstanceTransforms(instancedMeshComponent, &componentMatrix, shape, m_Shapes[iShape].m_InstanceIndex) ||
 			rprShapeSetVisibility(shape, staticMeshComponent->IsVisible()) != RPR_SUCCESS ||
 			(primaryOnly && rprShapeSetVisibilityPrimaryOnly(shape, primaryOnly) != RPR_SUCCESS) ||
 			rprShapeSetShadow(shape, staticMeshComponent->bCastStaticShadow) != RPR_SUCCESS ||
@@ -425,6 +439,7 @@ bool	URPRStaticMeshComponent::Build()
 			return false;
 		}
 	}
+	m_CachedInstanceCount = instanceCount;
 	return true;
 }
 
@@ -500,19 +515,43 @@ void	URPRStaticMeshComponent::TickComponent(float deltaTime, ELevelTick tickType
 {
 	SCOPE_CYCLE_COUNTER(STAT_ProRender_UpdateMeshes);
 
+	UInstancedStaticMeshComponent	*instancedMeshComponent = Cast<UInstancedStaticMeshComponent>(SrcComponent); // Foliage, instanced meshes, ..
+	if (instancedMeshComponent != nullptr)
+	{
+		if (instancedMeshComponent->GetInstanceCount() != m_CachedInstanceCount)
+		{
+			m_CachedInstanceCount = instancedMeshComponent->GetInstanceCount();
+		}
+	}
+
 	Super::TickComponent(deltaTime, tickType, tickFunction);
+}
+
+bool	URPRStaticMeshComponent::SetInstanceTransforms(UInstancedStaticMeshComponent *instancedMeshComponent, RadeonProRender::matrix *componentMatrix, rpr_shape shape, uint32 instanceIndex)
+{
+	if (instancedMeshComponent != nullptr && instancedMeshComponent->GetInstanceCount() > 0)
+	{
+		FTransform	instanceWTransforms;
+		if (!instancedMeshComponent->GetInstanceTransform(instanceIndex, instanceWTransforms, true))
+			return rprShapeSetTransform(shape, RPR_TRUE, &componentMatrix->m00) == RPR_SUCCESS; // Default
+
+		RadeonProRender::matrix	fullMatrix = BuildMatrixWithScale(instanceWTransforms);
+		return rprShapeSetTransform(shape, RPR_TRUE, &fullMatrix.m00) == RPR_SUCCESS;
+	}
+	return rprShapeSetTransform(shape, RPR_TRUE, &componentMatrix->m00) == RPR_SUCCESS;
 }
 
 bool	URPRStaticMeshComponent::RebuildTransforms()
 {
 	check(!IsInGameThread());
 
-	RadeonProRender::matrix	matrix = BuildMatrixWithScale(SrcComponent->GetComponentToWorld());
+	UInstancedStaticMeshComponent	*instancedMeshComponent = Cast<UInstancedStaticMeshComponent>(SrcComponent); // Foliage, instanced meshes, ..
+	RadeonProRender::matrix			componentMatrix = BuildMatrixWithScale(SrcComponent->GetComponentToWorld());
 
 	const uint32	shapeCount = m_Shapes.Num();
 	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 	{
-		if (rprShapeSetTransform(m_Shapes[iShape].m_RprShape, RPR_TRUE, &matrix.m00) != RPR_SUCCESS)
+		if (!SetInstanceTransforms(instancedMeshComponent, &componentMatrix, m_Shapes[iShape].m_RprShape, m_Shapes[iShape].m_InstanceIndex))
 		{
 			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't refresh RPR mesh transforms"));
 			return false;

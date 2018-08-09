@@ -32,6 +32,11 @@
 #include "Typedefs/RPRXTypedefs.h"
 #include "RPRStaticMeshComponent.generated.h"
 
+namespace	RadeonProRender
+{
+	class	matrix;
+}
+
 enum
 {
 	PROPERTY_REBUILD_MATERIALS = 0x80,
@@ -56,7 +61,7 @@ public:
 
 private:
 
-	TArray<FRPRCachedMesh>	GetMeshInstances(UStaticMesh *mesh);
+	TArray<FRPRCachedMesh>	GetMeshInstances(UStaticMesh *mesh, uint32 instanceCount);
 	bool					BuildMaterials();
 
 	virtual void	TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
@@ -64,15 +69,18 @@ private:
 	virtual bool	PostBuild() override;
 	virtual bool	RPRThread_Update() override;
 
-	void BuildRPRMaterial(RPR::FShape& Shape, URPRMaterial* Material);
-	bool ApplyRPRMaterialOnShape(RPR::FShape& Shape, URPRMaterial* Material);
-	void OnUsedMaterialChanged(URPRMaterial* Material);
-	void ClearMaterialChangedWatching();
-	void AttachDummyMaterial(RPR::FShape shape);
+	void	BuildRPRMaterial(RPR::FShape& Shape, URPRMaterial* Material);
+	bool	ApplyRPRMaterialOnShape(RPR::FShape& Shape, URPRMaterial* Material);
+	void	OnUsedMaterialChanged(URPRMaterial* Material);
+	void	ClearMaterialChangedWatching();
+	void	AttachDummyMaterial(RPR::FShape shape);
+	bool	SetInstanceTransforms(class UInstancedStaticMeshComponent *instancedMeshComponent, RadeonProRender::matrix *componentMatrix, rpr_shape shape, uint32 instanceIndex);
 
 private:
 
 	static TMap<UStaticMesh*, TArray<FRPRCachedMesh>>	Cache;
+
+	uint32				m_CachedInstanceCount;
 
 	TArray<FRPRShape>	m_Shapes;
 	TQueue<URPRMaterial*> m_dirtyMaterialsQueue;
