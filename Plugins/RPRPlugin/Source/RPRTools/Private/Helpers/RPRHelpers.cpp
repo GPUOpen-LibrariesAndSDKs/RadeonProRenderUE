@@ -86,6 +86,11 @@ namespace RPR
 		return rprObjectDelete(Object);
 	}
 
+	FResult SetObjectName(void* Object, const TCHAR* Name)
+	{
+		return rprObjectSetName(Object, TCHAR_TO_ANSI(Name));
+	}
+
 	FResult SceneDetachShape(FScene Scene, FShape Shape)
 	{
 		return rprSceneDetachShape(Scene, Shape);

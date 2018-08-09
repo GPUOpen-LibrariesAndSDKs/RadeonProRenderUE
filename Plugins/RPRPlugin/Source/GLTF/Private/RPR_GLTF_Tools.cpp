@@ -136,7 +136,76 @@ namespace RPR
 				return GLTF_Import<RPR::FMaterialNode>(OutMaterialNodes, rprGLTF_ListImported_MaterialNodes);
 			}
 
-		}
+		} // Import
+
+		namespace Group
+		{
+
+			RPR::GLTF::FStatus GetParentGroupFromShape(RPR::FShape Shape, FString& OutGroupName)
+			{
+				RPR::GLTF::FStatus status;
+				
+				size_t size;
+				status = rprGLTF_GetParentGroupFromShape(Shape, 0, nullptr, &size);
+				if (RPR::GLTF::IsResultFailed(status))
+				{
+					return (status);
+				}
+
+				if (size > 0)
+				{
+					TArray<uint8> rawDatas;
+					rawDatas.AddUninitialized(size);
+
+					status = rprGLTF_GetParentGroupFromShape(Shape, size, (rpr_char*) rawDatas.GetData(), nullptr);
+					if (RPR::GLTF::IsResultFailed(status))
+					{
+						return (status);
+					}
+
+					OutGroupName = FString((char*) rawDatas.GetData());
+				}
+				else
+				{
+					OutGroupName.Empty();
+				}
+				return (status);
+			}
+
+			RPR::GLTF::FStatus GetParentGroupFromGroup(const FString& GroupChild, FString& OutGroupName)
+			{
+				RPR::GLTF::FStatus status;
+
+				char* groupChildStr = TCHAR_TO_ANSI(*GroupChild);
+
+				size_t size;
+				status = rprGLTF_GetParentGroupFromGroup(groupChildStr, 0, nullptr, &size);
+				if (RPR::GLTF::IsResultFailed(status))
+				{
+					return (status);
+				}
+
+				if (size > 0)
+				{
+					TArray<uint8> rawDatas;
+					rawDatas.AddUninitialized(size);
+
+					status = rprGLTF_GetParentGroupFromGroup(groupChildStr, size, (rpr_char*) rawDatas.GetData(), nullptr);
+					if (RPR::GLTF::IsResultFailed(status))
+					{
+						return (status);
+					}
+
+					OutGroupName = FString((char*) rawDatas.GetData());
+				}
+				else
+				{
+					OutGroupName.Empty();
+				}
+				return (status);
+			}
+
+		} // Group
 
 	} // GLTF
 } // RPR

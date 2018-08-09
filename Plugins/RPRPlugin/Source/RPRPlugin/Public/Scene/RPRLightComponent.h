@@ -40,7 +40,9 @@ UCLASS(Transient)
 class URPRLightComponent : public URPRSceneComponent
 {
 	GENERATED_BODY()
+
 public:
+
 	URPRLightComponent();
 
 	virtual bool	Build() override;

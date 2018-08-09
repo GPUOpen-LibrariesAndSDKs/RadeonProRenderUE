@@ -8,6 +8,7 @@
 #include "Engine/TextureCube.h"
 #include "Components/DirectionalLightComponent.h"
 #include "Components/SpotLightComponent.h"
+#include "Engine/Scene.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRGLTFImporter, Log, All)
 
@@ -47,26 +48,6 @@ void RPR::GLTF::Import::FRPRLightDataToLightComponent::Setup(
 		return;
 	}
 
-	ULightComponent* lightComp = Cast<ULightComponent>(LightComponent);
-	if (lightComp != nullptr)
-	{
-		FLinearColor lightColor;
-		status = RPR::Light::GetLightPower(Light, lightType, lightColor);
-		if (RPR::IsResultSuccess(status))
-		{
-			float intensity = FMath::Max3(lightColor.R, lightColor.G, lightColor.B);
-			if (intensity > 0.0f)
-			{
-				lightColor.R /= intensity;
-				lightColor.G /= intensity;
-				lightColor.B /= intensity;
-			}
-
-			lightComp->SetLightColor(lightColor);
-			lightComp->SetIntensity(intensity);
-		}
-	}
-
 	SetupLightComponentByType(Light, lightType, LightComponent, ImageResources);
 }
 
@@ -85,6 +66,40 @@ bool RPR::GLTF::Import::FRPRLightDataToLightComponent::IsLightSupported(RPR::ELi
 #undef GLTF_IMPORT_CHECK_LIGHT_SUPPORT
 }
 
+bool RPR::GLTF::Import::FRPRLightDataToLightComponent::GetLightPower(RPR::FLight Light, FLinearColor& OutColor, float& OutIntensity)
+{
+	RPR::FResult status;
+	
+	ELightType lightType;
+	status = RPR::Light::GetLightType(Light, lightType);
+	if (RPR::IsResultFailed(status))
+	{
+		return (false);
+	}
+
+	FLinearColor lightColor;
+	status = RPR::Light::GetLightPower(Light, lightType, lightColor);
+	if (RPR::IsResultFailed(status))
+	{
+		return (false);
+	}
+
+	OutIntensity = FMath::Max3(lightColor.R, lightColor.G, lightColor.B);
+	if (OutIntensity > 0.0f)
+	{
+		lightColor.R /= OutIntensity;
+		lightColor.G /= OutIntensity;
+		lightColor.B /= OutIntensity;
+	}
+	OutColor = lightColor;
+
+	float intensityScale = GetIntensityScaleByLightType(lightType);
+	check(intensityScale != 0);
+	OutIntensity /= intensityScale;
+
+	return (true);
+}
+
 void RPR::GLTF::Import::FRPRLightDataToLightComponent::SetupLightComponentByType(
 	RPR::FLight Light, 
 	ELightType LightType, 
@@ -93,6 +108,10 @@ void RPR::GLTF::Import::FRPRLightDataToLightComponent::SetupLightComponentByType
 {
 	switch (LightType)
 	{
+		case RPR::ELightType::Point:
+		SetupPointLight(Light, LightComponent);
+		break;
+
 		case RPR::ELightType::Directional:
 		SetupDirectionalLight(Light, LightComponent);
 		break;
@@ -106,16 +125,21 @@ void RPR::GLTF::Import::FRPRLightDataToLightComponent::SetupLightComponentByType
 		SetupEnvironmentLight(Light, LightComponent, ImageResources);
 		break;
 
-		// Nothing specific to point lights
-		case RPR::ELightType::Point:
 		default:
 		break;
 	}
 }
 
+void RPR::GLTF::Import::FRPRLightDataToLightComponent::SetupPointLight(RPR::FLight Light, ULightComponentBase* LightComponent)
+{
+	UPointLightComponent* pointLightComponent = Cast<UPointLightComponent>(LightComponent);
+	SetupLocalLightPower(Light, pointLightComponent);
+}
+
 void RPR::GLTF::Import::FRPRLightDataToLightComponent::SetupDirectionalLight(RPR::FLight Light, ULightComponentBase* LightComponent)
 {
 	UDirectionalLightComponent* directionalLightComponent = Cast<UDirectionalLightComponent>(LightComponent);
+	SetupNonLocalLightPower(Light, LightComponent);
 
 	RPR::FResult status;
 
@@ -134,6 +158,7 @@ void RPR::GLTF::Import::FRPRLightDataToLightComponent::SetupDirectionalLight(RPR
 void RPR::GLTF::Import::FRPRLightDataToLightComponent::SetupSpotLight(RPR::FLight Light, ULightComponentBase* LightComponent)
 {
 	USpotLightComponent* spotLightComponent = Cast<USpotLightComponent>(LightComponent);
+	SetupLocalLightPower(Light, spotLightComponent);
 
 	RPR::FResult status;
 
@@ -145,7 +170,6 @@ void RPR::GLTF::Import::FRPRLightDataToLightComponent::SetupSpotLight(RPR::FLigh
 	}
 	else
 	{
-		// Not sure if we get radian angles from RPR but it probably is
 		spotLightComponent->InnerConeAngle = FMath::RadiansToDegrees(innerAngle);
 		spotLightComponent->OuterConeAngle = FMath::RadiansToDegrees(outerAngle);
 	}
@@ -186,6 +210,57 @@ void RPR::GLTF::Import::FRPRLightDataToLightComponent::SetupEnvironmentLight(RPR
 	}
 	else
 	{
-		skylightComponent->Intensity = intensityScale;
+		skylightComponent->Intensity = intensityScale / GetIntensityScaleByLightType(ELightType::Environment);
+	}
+}
+
+void RPR::GLTF::Import::FRPRLightDataToLightComponent::SetupLocalLightPower(RPR::FLight Light, ULocalLightComponent* LightComponent)
+{
+	FLinearColor color;
+	float intensity;
+	if (!GetLightPower(Light, color, intensity))
+	{
+		return;
+	}
+	
+	float wToLumens = 1.0f / RPR::Light::Constants::kLumensToW;
+	intensity = intensity * wToLumens;
+
+	LightComponent->IntensityUnits = ELightUnits::Lumens;
+	LightComponent->Intensity = intensity;
+}
+
+void RPR::GLTF::Import::FRPRLightDataToLightComponent::SetupNonLocalLightPower(RPR::FLight Light, ULightComponentBase* LightComponent)
+{
+	FLinearColor color;
+	float intensity;
+	if (!GetLightPower(Light, color, intensity))
+	{
+		return;
+	}
+
+	LightComponent->Intensity = intensity;
+}
+
+float RPR::GLTF::Import::FRPRLightDataToLightComponent::GetIntensityScaleByLightType(ELightType LightType)
+{
+	switch (LightType)
+	{
+		case RPR::ELightType::Point:
+		return (RPR::Light::Constants::kPointLightIntensityScale);
+				
+		case RPR::ELightType::Spot:
+		return (RPR::Light::Constants::kSpotLightIntensityScale);
+		
+		case RPR::ELightType::IES:
+		return (RPR::Light::Constants::kIESLightIntensityScale);
+
+		case RPR::ELightType::Environment:
+		case RPR::ELightType::Directional:
+		case RPR::ELightType::Sky:
+		return (RPR::Light::Constants::kDirLightIntensityMultiplier);
+
+		default:
+		return (1.0f);
 	}
 }

@@ -86,7 +86,8 @@ namespace RPR
 				// Transpose everything because... because!
 				originalMatrix = originalMatrix.GetTransposed();
 
-				originalMatrix.ScaleTranslation(FVector(-1, 1, 1));
+				const float metersToCentimeters = 100;
+				originalMatrix.ScaleTranslation(FVector(-1, 1, 1) * metersToCentimeters);
 				
 				// Make the transform from that and rotate 180 along Z, around the center of the transform
 				OutTransform = FTransform(originalMatrix);

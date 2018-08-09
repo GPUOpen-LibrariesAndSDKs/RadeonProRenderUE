@@ -400,6 +400,16 @@ bool	URPRStaticMeshComponent::Build()
 #endif
 				}
 				m_Shapes.Add(FRPRShape(newInstance, iInstance));
+
+				// Set shape name
+				if (iInstance + 1 < instanceCount)
+				{
+					RPR::SetObjectName(newInstance.m_RprShape, *FString::Printf(TEXT("%s_%d"), *staticMesh->GetName(), iInstance));
+				}
+				else
+				{
+					RPR::SetObjectName(newInstance.m_RprShape, *staticMesh->GetName());
+				}
 			}
 		}
 
@@ -524,6 +534,8 @@ void	URPRStaticMeshComponent::TickComponent(float deltaTime, ELevelTick tickType
 		}
 	}
 
+	WatchMaterialsChanges();
+
 	Super::TickComponent(deltaTime, tickType, tickFunction);
 }
 
@@ -539,6 +551,16 @@ bool	URPRStaticMeshComponent::SetInstanceTransforms(UInstancedStaticMeshComponen
 		return rprShapeSetTransform(shape, RPR_TRUE, &fullMatrix.m00) == RPR_SUCCESS;
 	}
 	return rprShapeSetTransform(shape, RPR_TRUE, &componentMatrix->m00) == RPR_SUCCESS;
+}
+
+void	URPRStaticMeshComponent::WatchMaterialsChanges()
+{
+	UStaticMeshComponent* staticMeshComponent = Cast<UStaticMeshComponent>(SrcComponent);
+
+	for (int32 materialIndex = 0; materialIndex < staticMeshComponent->GetNumMaterials(); ++materialIndex)
+	{
+		staticMeshComponent->GetMaterial(materialIndex)
+	}
 }
 
 bool	URPRStaticMeshComponent::RebuildTransforms()

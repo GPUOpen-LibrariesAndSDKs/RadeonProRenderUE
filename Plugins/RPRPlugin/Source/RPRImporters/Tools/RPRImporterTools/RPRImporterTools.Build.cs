@@ -62,6 +62,7 @@ public class RPRImporterTools : ModuleRules
                 "UnrealEd",
                 "RenderCore",
                 "RawMesh",
+                "RPR_GLTF"
 				// ... add private dependencies that you statically link with here ...	
 			});
     }

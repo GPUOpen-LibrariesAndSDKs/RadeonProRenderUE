@@ -76,6 +76,8 @@ private:
 	void	AttachDummyMaterial(RPR::FShape shape);
 	bool	SetInstanceTransforms(class UInstancedStaticMeshComponent *instancedMeshComponent, RadeonProRender::matrix *componentMatrix, rpr_shape shape, uint32 instanceIndex);
 
+	void	WatchMaterialsChanges();
+
 private:
 
 	static TMap<UStaticMesh*, TArray<FRPRCachedMesh>>	Cache;
@@ -84,6 +86,8 @@ private:
 
 	TArray<FRPRShape>	m_Shapes;
 	TQueue<URPRMaterial*> m_dirtyMaterialsQueue;
+
+	TArray<UMaterialInterface*> m_cachedMaterials;
 
 	TMap<URPRMaterial*, FDelegateHandle> m_OnMaterialChangedDelegateHandles;
 };

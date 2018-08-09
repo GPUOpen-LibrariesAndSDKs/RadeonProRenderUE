@@ -34,6 +34,7 @@
 #include "RPRCoreSystemResources.h"
 #include "RPRCoreErrorHelper.h"
 #include "Engine/Scene.h"
+#include "Helpers/RPRLightHelpers.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRLightComponent, Log, All);
 
@@ -53,17 +54,13 @@ URPRLightComponent::URPRLightComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-static const float	kLumensToW = 1.0f / 17.0f;
-static const float	kW = 100.0f;
-static const float	kDirLightIntensityMultiplier = 0.05f;
-
 FLinearColor	BuildRPRLightColor(const ULocalLightComponent *lightComponent, ELightUnits lightUnits, float intensityScale = 1.0f)
 {
 	const float			intensity = lightComponent->Intensity;
 	const FLinearColor	lightColor(lightComponent->LightColor);
 
 	float	convFactor = ULocalLightComponent::GetUnitsConversionFactor(lightUnits, ELightUnits::Lumens);
-	return lightColor * convFactor * intensity * kLumensToW * intensityScale;
+	return lightColor * convFactor * intensity * RPR::Light::Constants::kLumensToW * intensityScale;
 }
 
 bool	URPRLightComponent::BuildIESLight(const UPointLightComponent *lightComponent)
@@ -87,7 +84,7 @@ bool	URPRLightComponent::BuildIESLight(const UPointLightComponent *lightComponen
 	}
 	const FLinearColor	lightColor = lightComponent->bUseIESBrightness ?
 		FLinearColor(lightComponent->LightColor) * lightComponent->IESBrightnessScale :
-		BuildRPRLightColor(lightComponent, lightComponent->IntensityUnits, 0.01f);
+		BuildRPRLightColor(lightComponent, lightComponent->IntensityUnits, RPR::Light::Constants::kIESLightIntensityScale);
 
 	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
 	if (rprContextCreateIESLight(rprContext, &m_RprLight) != RPR_SUCCESS ||
@@ -115,7 +112,7 @@ bool	URPRLightComponent::BuildPointLight(const UPointLightComponent *pointLightC
 {
 	if (pointLightComponent->IESTexture != NULL)
 		return BuildIESLight(pointLightComponent);
-	const FLinearColor	lightColor = BuildRPRLightColor(pointLightComponent, pointLightComponent->IntensityUnits, 10.0f);
+	const FLinearColor	lightColor = BuildRPRLightColor(pointLightComponent, pointLightComponent->IntensityUnits, RPR::Light::Constants::kPointLightIntensityScale);
 
 	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
 	if (rprContextCreatePointLight(rprContext, &m_RprLight) != RPR_SUCCESS ||
@@ -134,7 +131,7 @@ bool	URPRLightComponent::BuildSpotLight(const USpotLightComponent *spotLightComp
 {
 	if (spotLightComponent->IESTexture != NULL)
 		return BuildIESLight(spotLightComponent);
-	const FLinearColor	lightColor = BuildRPRLightColor(spotLightComponent, spotLightComponent->IntensityUnits, 10.0f);
+	const FLinearColor	lightColor = BuildRPRLightColor(spotLightComponent, spotLightComponent->IntensityUnits, RPR::Light::Constants::kSpotLightIntensityScale);
 	
 	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
 	if (rprContextCreateSpotLight(rprContext, &m_RprLight) != RPR_SUCCESS ||
@@ -190,7 +187,7 @@ bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightCompone
 		return false;
 	}
 
-	if (rprEnvironmentLightSetIntensityScale(m_RprLight, intensity * kDirLightIntensityMultiplier) != RPR_SUCCESS)
+	if (rprEnvironmentLightSetIntensityScale(m_RprLight, intensity * RPR::Light::Constants::kDirLightIntensityMultiplier) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't set intensity scale of the environment light"));
 		return false;
@@ -212,7 +209,7 @@ bool	URPRLightComponent::BuildDirectionalLight(const UDirectionalLightComponent 
 	const float		intensity = dirLightComponent->Intensity;
 	FLinearColor	lightColor(dirLightComponent->LightColor);
 
-	lightColor *= intensity * kDirLightIntensityMultiplier;
+	lightColor *= intensity * RPR::Light::Constants::kDirLightIntensityMultiplier;
 	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
 	if (rprContextCreateDirectionalLight(rprContext, &m_RprLight) != RPR_SUCCESS ||
 		rprDirectionalLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B) != RPR_SUCCESS ||
@@ -260,7 +257,8 @@ bool	URPRLightComponent::Build()
 
 	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->GetComponentTransform());
 	if (rprLightSetTransform(m_RprLight, RPR_TRUE, &matrix.m00) != RPR_SUCCESS ||
-		rprSceneAttachLight(Scene->m_RprScene, m_RprLight) != RPR_SUCCESS)
+		rprSceneAttachLight(Scene->m_RprScene, m_RprLight) != RPR_SUCCESS ||
+		RPR::SetObjectName(m_RprLight, *GetOwner()->GetName()) != RPR_SUCCESS)
 	{
 		SrcComponent->SetComponentToWorld(oldComponentTransform);
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't add RPR light to the RPR scene"));
@@ -290,7 +288,8 @@ bool	URPRLightComponent::PostBuild()
 		return false;
 	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->GetComponentTransform());
 	if (rprLightSetTransform(m_RprLight, RPR_TRUE, &matrix.m00) != RPR_SUCCESS ||
-		rprSceneAttachLight(Scene->m_RprScene, m_RprLight) != RPR_SUCCESS)
+		rprSceneAttachLight(Scene->m_RprScene, m_RprLight) != RPR_SUCCESS ||
+		RPR::SetObjectName(m_RprLight, *GetOwner()->GetName()) != RPR_SUCCESS)
 	{
 		SrcComponent->SetComponentToWorld(oldComponentTransform);
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't add RPR env light to the RPR scene"));
@@ -377,7 +376,7 @@ bool	URPRLightComponent::RPRThread_Update()
 		}
 		case	ERPRLightType::Directional:
 		{
-			const FLinearColor	lightColor = FLinearColor(lightComponent->LightColor) * lightComponent->Intensity * kDirLightIntensityMultiplier;
+			const FLinearColor	lightColor = FLinearColor(lightComponent->LightColor) * lightComponent->Intensity * RPR::Light::Constants::kDirLightIntensityMultiplier;
 
 			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set dir light color", PROPERTY_REBUILD_LIGHT_COLOR, rprDirectionalLightSetRadiantPower3f, m_RprLight, lightColor.R, lightColor.G, lightColor.B);
 			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set dir light shadow softness", PROPERTY_REBUILD_DIR_LIGHT_SHADOW_SOFTNESS, rprDirectionalLightSetShadowSoftness, m_RprLight, 1.0f - m_CachedShadowSharpness);
@@ -385,7 +384,7 @@ bool	URPRLightComponent::RPRThread_Update()
 		}
 		case	ERPRLightType::Environment:
 		{
-			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set env light intensity", PROPERTY_REBUILD_LIGHT_COLOR, rprEnvironmentLightSetIntensityScale, m_RprLight, m_CachedIntensity * kDirLightIntensityMultiplier);
+			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set env light intensity", PROPERTY_REBUILD_LIGHT_COLOR, rprEnvironmentLightSetIntensityScale, m_RprLight, m_CachedIntensity * RPR::Light::Constants::kDirLightIntensityMultiplier);
 			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set env light cubemap", PROPERTY_REBUILD_ENV_LIGHT_CUBEMAP, rprEnvironmentLightSetImage, m_RprLight, m_RprImage);
 
 			if (m_PendingDelete != NULL)

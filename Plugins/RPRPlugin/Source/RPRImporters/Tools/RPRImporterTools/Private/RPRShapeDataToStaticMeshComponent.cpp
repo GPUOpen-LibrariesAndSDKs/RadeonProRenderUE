@@ -2,6 +2,7 @@
 #include "Helpers/RPRShapeHelpers.h"
 #include "RPRTypedefs.h"
 #include "Resources/StaticMeshResources.h"
+#include "RPR_GLTF_Tools.h"
 
 void RPR::GLTF::Import::FRPRShapeDataToMeshComponent::Setup(RPR::FShape Shape, 
 	UStaticMeshComponent* StaticMeshComponent, 

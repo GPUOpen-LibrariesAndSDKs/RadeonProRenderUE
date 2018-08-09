@@ -58,5 +58,11 @@ namespace RPR
 			RPR_GLTF_API FStatus GetMaterialNodes(TArray<RPR::FMaterialNode>& OutMaterialNodes);
 		}
 
+		namespace Group
+		{
+			RPR_GLTF_API FStatus GetParentGroupFromShape(RPR::FShape Shape, FString& OutGroupName);
+			RPR_GLTF_API FStatus GetParentGroupFromGroup(const FString& GroupChild, FString& OutGroupName);
+		}
+
 	}
 };

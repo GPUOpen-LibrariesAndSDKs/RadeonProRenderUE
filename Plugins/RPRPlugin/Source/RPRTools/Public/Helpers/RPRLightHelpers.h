@@ -18,5 +18,16 @@ namespace RPR
 		RPRTOOLS_API RPR::FResult	GetEnvironmentLightImage(RPR::FLight Light, RPR::FImage& OutImage);
 		RPRTOOLS_API RPR::FResult	GetDirectionalShadowSoftness(RPR::FLight Light, float& OutShadowSoftness);
 
+		namespace Constants
+		{
+			const float	kLumensToW = 1.0f / 17.0f;
+			const float	kW = 100.0f;
+			const float	kDirLightIntensityMultiplier = 0.05f;
+
+			const float	kIESLightIntensityScale = 0.01f;
+			const float	kPointLightIntensityScale = 10.0f;
+			const float	kSpotLightIntensityScale = 10.0f;
+		}
+
 	}
 }

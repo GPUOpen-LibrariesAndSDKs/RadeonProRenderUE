@@ -220,7 +220,8 @@ void RPR::FMeshImporter::GenerateDefaultUVs(TArray<FVector2D>& UVs, uint32 NumUV
 
 FTransform RPR::FMeshImporter::CreateTransformFromImportSettings(const FSettings& Settings)
 {
-	return FTransform(Settings.Rotation, FVector::ZeroVector, FVector::OneVector * Settings.ScaleFactor * -1.0f);
+	const float metersToCentimeters = 100;
+	return FTransform(Settings.Rotation, FVector::ZeroVector, FVector::OneVector * Settings.ScaleFactor * -1.0f * metersToCentimeters);
 }
 
 #undef LOCTEXT_NAMESPACE
