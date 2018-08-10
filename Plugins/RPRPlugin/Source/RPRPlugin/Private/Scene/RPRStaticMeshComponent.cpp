@@ -466,12 +466,30 @@ bool	URPRStaticMeshComponent::PostBuild()
 
 bool URPRStaticMeshComponent::RPRThread_Update()
 {
+	check(!IsInGameThread());
+
+	if (m_RebuildFlags == 0)
+	{
+		return (false);
+	}
+
+	bool bNeedRebuild = false;
+	{
+		FScopeLock scLock(&m_RefreshLock);
+		bNeedRebuild |= UpdateDirtyMaterialsIFN();
+		//bNeedRebuild |= UpdateDirtyMaterialsChangesIFN();
+	}
+
+	return (bNeedRebuild | Super::RPRThread_Update());
+}
+
+bool URPRStaticMeshComponent::UpdateDirtyMaterialsIFN()
+{
 	const bool bNeedRebuild = AreMaterialsDirty();
 
 	if (bNeedRebuild)
 	{
 		auto rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
-		FScopeLock scLock(&m_RefreshLock);
 
 		URPRMaterial* material = nullptr;
 		while (m_dirtyMaterialsQueue.Dequeue(material))
@@ -487,7 +505,41 @@ bool URPRStaticMeshComponent::RPRThread_Update()
 		}
 	}
 
-	return (bNeedRebuild | Super::RPRThread_Update());
+	return (bNeedRebuild);
+}
+
+bool URPRStaticMeshComponent::UpdateDirtyMaterialsChangesIFN()
+{
+	const bool bNeedRebuild = HasMaterialsChanged();
+
+	if (bNeedRebuild)
+	{
+		auto rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+		for (int32 i = 0; i < m_lastMaterialsList.Num(); ++i)
+		{
+			UMaterialInterface* material = m_lastMaterialsList[i];
+			URPRMaterial* rprMaterial = Cast<URPRMaterial>(material);
+			if (rprMaterial != nullptr)
+			{
+				if (!rprMaterialLibrary->Contains(rprMaterial))
+				{
+					if (rprMaterialLibrary->CacheAndRegisterMaterial(rprMaterial))
+					{
+						uint32 materialType;
+						RPR::FMaterialRawDatas materialRawData;
+						if (rprMaterialLibrary->TryGetMaterialRawDatas(rprMaterial, materialType, materialRawData))
+						{
+							RPR::MaterialBuilder::CommitMaterial(materialType, materialRawData);
+						}
+					}
+				}
+			}
+		}
+
+		m_cachedMaterials = m_lastMaterialsList;
+	}
+
+	return (bNeedRebuild);
 }
 
 void URPRStaticMeshComponent::OnUsedMaterialChanged(URPRMaterial* Material)
@@ -496,7 +548,10 @@ void URPRStaticMeshComponent::OnUsedMaterialChanged(URPRMaterial* Material)
 
 	if (rprMaterialLibrary->Contains(Material))
 	{
-		m_dirtyMaterialsQueue.Enqueue(Material);
+		{
+			FScopeLock scLock(&m_RefreshLock);
+			m_dirtyMaterialsQueue.Enqueue(Material);
+		}
 		MarkMaterialsAsDirty();
 	}
 	else
@@ -516,11 +571,6 @@ void URPRStaticMeshComponent::ClearMaterialChangedWatching()
 	m_OnMaterialChangedDelegateHandles.Empty();
 }
 
-void URPRStaticMeshComponent::MarkMaterialsAsDirty()
-{
-	m_RebuildFlags |= PROPERTY_REBUILD_MATERIALS;
-}
-
 void	URPRStaticMeshComponent::TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction)
 {
 	SCOPE_CYCLE_COUNTER(STAT_ProRender_UpdateMeshes);
@@ -534,7 +584,11 @@ void	URPRStaticMeshComponent::TickComponent(float deltaTime, ELevelTick tickType
 		}
 	}
 
-	WatchMaterialsChanges();
+	/*if (m_RefreshLock.TryLock())
+	{
+		WatchMaterialsChanges();
+		m_RefreshLock.Unlock();
+	}*/
 
 	Super::TickComponent(deltaTime, tickType, tickFunction);
 }
@@ -555,11 +609,41 @@ bool	URPRStaticMeshComponent::SetInstanceTransforms(UInstancedStaticMeshComponen
 
 void	URPRStaticMeshComponent::WatchMaterialsChanges()
 {
+	if (SrcComponent == nullptr) return;
+
 	UStaticMeshComponent* staticMeshComponent = Cast<UStaticMeshComponent>(SrcComponent);
 
-	for (int32 materialIndex = 0; materialIndex < staticMeshComponent->GetNumMaterials(); ++materialIndex)
+	const int32 numMaterials = staticMeshComponent->GetNumMaterials();
+	if (m_cachedMaterials.Num() != numMaterials)
 	{
-		staticMeshComponent->GetMaterial(materialIndex);
+		UpdateLastMaterialList();
+		MarkMaterialsAsDirty();
+		return;
+	}
+
+	m_cachedMaterials.Empty(numMaterials);
+	m_cachedMaterials.AddUninitialized(numMaterials);
+	for (int32 materialIndex = 0; materialIndex < numMaterials; ++materialIndex)
+	{
+		if (m_cachedMaterials[materialIndex] != staticMeshComponent->GetMaterial(materialIndex))
+		{
+			UpdateLastMaterialList();
+			MarkMaterialsChangesAsDirty();
+			return;
+		}
+	}
+}
+
+void	URPRStaticMeshComponent::UpdateLastMaterialList()
+{
+	UStaticMeshComponent* staticMeshComponent = Cast<UStaticMeshComponent>(SrcComponent);
+
+	const int32 numMaterials = staticMeshComponent->GetNumMaterials();
+	m_lastMaterialsList.Empty(numMaterials);
+	m_lastMaterialsList.AddUninitialized(numMaterials);
+	for (int32 materialIdx = 0; materialIdx < numMaterials; ++materialIdx)
+	{
+		m_lastMaterialsList[materialIdx] = staticMeshComponent->GetMaterial(materialIdx);
 	}
 }
 
@@ -580,6 +664,21 @@ bool	URPRStaticMeshComponent::RebuildTransforms()
 		}
 	}
 	return true;
+}
+
+void	URPRStaticMeshComponent::MarkMaterialsAsDirty()
+{
+	m_RebuildFlags |= PROPERTY_REBUILD_MATERIALS;
+}
+
+bool URPRStaticMeshComponent::HasMaterialsChanged() const
+{
+	return ((m_RebuildFlags & PROPERTY_MATERIALS_CHANGES) != 0);
+}
+
+void URPRStaticMeshComponent::MarkMaterialsChangesAsDirty()
+{
+	m_RebuildFlags |= PROPERTY_MATERIALS_CHANGES;
 }
 
 bool URPRStaticMeshComponent::AreMaterialsDirty() const

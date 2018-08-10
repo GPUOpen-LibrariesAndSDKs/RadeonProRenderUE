@@ -54,8 +54,12 @@ public:
 
 	virtual bool	Build() override;
 	virtual bool	RebuildTransforms() override;
+
 	bool			AreMaterialsDirty() const;
 	void			MarkMaterialsAsDirty();
+
+	bool			HasMaterialsChanged() const;
+	void			MarkMaterialsChangesAsDirty();
 
 	static void		ClearCache(RPR::FScene scene);
 
@@ -69,6 +73,9 @@ private:
 	virtual bool	PostBuild() override;
 	virtual bool	RPRThread_Update() override;
 
+	bool	UpdateDirtyMaterialsIFN();
+	bool	UpdateDirtyMaterialsChangesIFN();
+
 	void	BuildRPRMaterial(RPR::FShape& Shape, URPRMaterial* Material);
 	bool	ApplyRPRMaterialOnShape(RPR::FShape& Shape, URPRMaterial* Material);
 	void	OnUsedMaterialChanged(URPRMaterial* Material);
@@ -77,6 +84,7 @@ private:
 	bool	SetInstanceTransforms(class UInstancedStaticMeshComponent *instancedMeshComponent, RadeonProRender::matrix *componentMatrix, rpr_shape shape, uint32 instanceIndex);
 
 	void	WatchMaterialsChanges();
+	void	UpdateLastMaterialList();
 
 private:
 
@@ -88,6 +96,7 @@ private:
 	TQueue<URPRMaterial*> m_dirtyMaterialsQueue;
 
 	TArray<UMaterialInterface*> m_cachedMaterials;
+	TArray<UMaterialInterface*> m_lastMaterialsList;
 
 	TMap<URPRMaterial*, FDelegateHandle> m_OnMaterialChangedDelegateHandles;
 };
