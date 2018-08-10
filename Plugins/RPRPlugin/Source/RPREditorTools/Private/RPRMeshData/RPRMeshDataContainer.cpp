@@ -142,6 +142,16 @@ bool FRPRMeshDataContainer::FindFirstSelectedSection(FRPRMeshDataPtr& OutMeshDat
 	return (false);
 }
 
+int32 FRPRMeshDataContainer::CountNumSections() const
+{
+	int32 numSections = 0;
+	OnEachMeshData([&numSections] (FRPRMeshDataPtr MeshData) 
+	{
+		numSections += MeshData->GetNumSections();
+	});
+	return (numSections);
+}
+
 FRPRMeshDataPtr FRPRMeshDataContainer::FindByPreview(URPRStaticMeshPreviewComponent* PreviewMeshComponent)
 {
 	for (int32 i = 0; i < MeshDatas.Num(); ++i)

@@ -31,7 +31,7 @@ FUVProjectionPlanarAlgo::FSettings::FSettings()
 
 void FUVProjectionPlanarAlgo::StartAlgorithm()
 {
-	FScopedSlowTask slowTask(MeshDatas.Num(), LOCTEXT("ProjectUV", "Project UV (Planar)"));
+	FScopedSlowTask slowTask(MeshDatas.CountNumSections(), LOCTEXT("ProjectUV", "Project UV (Planar)"));
 	slowTask.MakeDialogDelayed(0.5f);
 
 	FUVProjectionAlgorithmBase::StartAlgorithm();

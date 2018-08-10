@@ -39,8 +39,6 @@ DECLARE_CYCLE_STAT(TEXT("DSMV ~ DeselectTriangles"), STAT_DeselectTriangles, STA
 DECLARE_CYCLE_STAT(TEXT("DSMV ~ DeselectTriangle"), STAT_DeselectTriangle, STATGROUP_DynamicSelectionMeshVisualizer);
 DECLARE_CYCLE_STAT(TEXT("DSMV ~ ClearTriangles"), STAT_ClearTriangles, STATGROUP_DynamicSelectionMeshVisualizer);
 
-#define INDEXBUFFER_SEGMENT_SIZE 512
-
 class FDSMVertexBuffer : public FVertexBuffer
 {
 public:
@@ -172,16 +170,32 @@ public:
 		RHIUnlockIndexBuffer(IndexBuffer.IndexBufferRHI);
 	}
 
+	virtual void CreateRenderThreadResources() override
+	{
+		if (VertexBuffer.Vertices.Num() > 0)
+		{
+			VertexBuffers.InitFromDynamicVertex(&VertexFactory, VertexBuffer.Vertices);
+
+			if (IndexBuffer.Indices.Num() > 0)
+			{
+				IndexBuffer.InitResource();
+			}
+		}
+	}
+
 	virtual ~FDSMVisualizerProxy()
 	{
-		VertexBuffer.ReleaseResource();
+		VertexBuffers.PositionVertexBuffer.ReleaseResource();
+		VertexBuffers.StaticMeshVertexBuffer.ReleaseResource();
+		VertexBuffers.ColorVertexBuffer.ReleaseResource();
+
 		IndexBuffer.ReleaseResource();
 		VertexFactory.ReleaseResource();
 	}
 
 	virtual void GetDynamicMeshElements(const TArray<const FSceneView *>& Views, const FSceneViewFamily& ViewFamily, uint32 VisibilityMap, class FMeshElementCollector& Collector) const override
 	{
-		if (IndexBuffer.Indices.Num() > 0)
+		if (VertexBuffer.Vertices.Num() > 0 && IndexBuffer.Indices.Num() > 0)
 		{
 			FMaterialRenderProxy* materialRenderProxy = MaterialRenderProxy;
 
@@ -222,19 +236,6 @@ public:
 		Result.bRenderCustomDepth = ShouldRenderCustomDepth();
 		MaterialRelevance.SetPrimitiveViewRelevance(Result);
 		return (Result);
-	}	
-	
-	virtual void CreateRenderThreadResources() override
-	{
-		VertexFactory.Init(&VertexBuffer);
-
-		VertexBuffer.InitResource();
-		VertexFactory.InitResource();
-
-		if (IndexBuffer.Indices.Num() > 0)
-		{
-			IndexBuffer.InitResource();
-		}
 	}
 
 	virtual uint32 GetMemoryFootprint(void) const override
@@ -262,6 +263,8 @@ private:
 	FDSMVertexBuffer VertexBuffer;
 	FDSMIndexBuffer IndexBuffer;
 	FDSMVertexFactory VertexFactory;
+	
+	FStaticMeshVertexBuffers VertexBuffers;
 
 	FMaterialRenderProxy* MaterialRenderProxy;
 	FMaterialRelevance MaterialRelevance;
@@ -517,5 +520,3 @@ FIndexArrayView UDynamicSelectionMeshVisualizerComponent::GetStaticMeshIndexView
 {
 	return (MeshData->GetStaticMesh()->RenderData->LODResources[0].IndexBuffer.GetArrayView());
 }
-
-#undef INDEXBUFFER_SEGMENT_SIZE

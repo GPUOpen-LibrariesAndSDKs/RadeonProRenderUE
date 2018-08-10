@@ -56,6 +56,7 @@ public:
 	bool	HasMeshesChangesNotCommitted() const;
 	int32	CountNumSelectedSections() const;
 	bool	FindFirstSelectedSection(FRPRMeshDataPtr& OutMeshData, int32& OutSectionIndex) const;
+	int32	CountNumSections() const;
 
 	DECLARE_BROADCAST(NotifyRawMeshChanges);
 	DECLARE_BROADCAST(NotifyStaticMeshChanges);

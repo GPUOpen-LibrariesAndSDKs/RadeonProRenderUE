@@ -26,7 +26,7 @@
 #include "SceneManagement.h"
 #include "Runtime/Launch/Resources/Version.h"
 
-class FUVMeshVertexBuffer : public FVertexBuffer
+class FUVMeshVertexBuffer : public FPositionVertexBuffer
 {
 public:
 
@@ -37,7 +37,6 @@ public:
 		FRHIResourceCreateInfo CreateInfo;
 		void* VertexBufferData = nullptr;
 		VertexBufferRHI = RHICreateAndLockVertexBuffer(Vertices.Num() * sizeof(FDynamicMeshVertex), BUF_Static, CreateInfo, VertexBufferData);
-
 		FMemory::Memcpy(VertexBufferData, Vertices.GetData(), Vertices.Num() * sizeof(FDynamicMeshVertex));
 		RHIUnlockVertexBuffer(VertexBufferRHI);
 	}
@@ -62,13 +61,14 @@ public:
 	void Init(const FUVMeshVertexBuffer* VertexBuffer)
 	{
 		FDataType NewData;
+		
 		NewData.PositionComponent = STRUCTMEMBER_VERTEXSTREAMCOMPONENT(VertexBuffer, FDynamicMeshVertex, Position, VET_Float3);
 		NewData.TangentBasisComponents[0] = STRUCTMEMBER_VERTEXSTREAMCOMPONENT(VertexBuffer, FDynamicMeshVertex, TangentX, VET_PackedNormal);
 		NewData.TangentBasisComponents[1] = STRUCTMEMBER_VERTEXSTREAMCOMPONENT(VertexBuffer, FDynamicMeshVertex, TangentZ, VET_PackedNormal);
 		NewData.ColorComponent = STRUCTMEMBER_VERTEXSTREAMCOMPONENT(VertexBuffer, FDynamicMeshVertex, Color, VET_Color);
 
 		NewData.TextureCoordinates.Add(
-			FVertexStreamComponent(VertexBuffer, STRUCT_OFFSET(FDynamicMeshVertex, TextureCoordinate), sizeof(FDynamicMeshVertex), VET_Float2)
+			STRUCTMEMBER_VERTEXSTREAMCOMPONENT(VertexBuffer, FDynamicMeshVertex, TextureCoordinate, VET_Float2)
 		);
 
 		SetData(NewData);
@@ -88,7 +88,6 @@ public:
 		FRHIResourceCreateInfo CreatInfo;
 		void* Buffer = nullptr;
 		IndexBufferRHI = RHICreateAndLockIndexBuffer(sizeof(uint16), Indices.Num() * sizeof(uint16), BUF_Static, CreatInfo, Buffer);
-
 		FMemory::Memcpy(Buffer, Indices.GetData(), Indices.Num() * sizeof(uint16));
 		RHIUnlockIndexBuffer(IndexBufferRHI);
 	}
@@ -128,15 +127,29 @@ public:
 		if (meshDatasPtr)
 		{
 			const int32 uvChannel = InComponent->GetUVChannel();
-			
+
 			AllocateDatas(meshDatasPtr, uvChannel);
 			ExtractDatas(meshDatasPtr, uvChannel, VertexBuffer.Vertices.GetData(), IndexBuffer.Indices.GetData());
 		}
 	}
 
+	virtual void CreateRenderThreadResources() override
+	{
+		if (VertexBuffer.Vertices.Num() > 0)
+		{
+			VertexBuffers.InitFromDynamicVertex(&VertexFactory, VertexBuffer.Vertices, 1);
+			IndexBuffer.InitResource();
+			
+			bAreResourcesInitialized = true;
+		}
+	}
+
 	virtual ~FUVMeshComponentProxy()
 	{
-		VertexBuffer.ReleaseResource();
+		VertexBuffers.PositionVertexBuffer.ReleaseResource();
+		VertexBuffers.StaticMeshVertexBuffer.ReleaseResource();
+		VertexBuffers.ColorVertexBuffer.ReleaseResource();
+
 		IndexBuffer.ReleaseResource();
 		VertexFactory.ReleaseResource();
 	}
@@ -224,7 +237,8 @@ public:
 	void UpdateUVs_RenderThread(FRPRMeshDataContainer* MeshDatasPtr, int32 UVChannel)
 	{
 		check(IsInRenderingThread());
-
+		return;
+/*
 		if (bAreResourcesInitialized && MeshDatasPtr != nullptr)
 		{
 			FRPRMeshDataContainer& meshDatas = *MeshDatasPtr;
@@ -246,7 +260,7 @@ public:
 			RHIUnlockVertexBuffer(VertexBuffer.VertexBufferRHI);
 
 			delete MeshDatasPtr;
-		}
+		}*/
 	}
 
 	void ColorVertex(FDynamicMeshVertex* InVertexBuffer, int32 VertexIndex, const FColor& Color)
@@ -266,20 +280,6 @@ public:
 	int32 CountNumUVDatas(int32 UVChannel, const FRawMesh& RawMesh) const
 	{
 		return (RawMesh.WedgeTexCoords[UVChannel].Num());
-	}
-
-	virtual void CreateRenderThreadResources() override
-	{
-		if (VertexBuffer.Vertices.Num() > 0)
-		{
-			VertexFactory.Init(&VertexBuffer);
-
-			VertexBuffer.InitResource();
-			IndexBuffer.InitResource();
-			VertexFactory.InitResource();
-
-			bAreResourcesInitialized = true;
-		}
 	}
 
 	virtual void DrawStaticElements(FStaticPrimitiveDrawInterface* PDI) override
@@ -425,6 +425,8 @@ private:
 	FUVMeshVertexBuffer VertexBuffer;
 	FUVMeshIndexBuffer IndexBuffer;
 	FUVMeshVertexFactory VertexFactory;
+
+	FStaticMeshVertexBuffers VertexBuffers;
 
 	FMaterialRenderProxy* MaterialRenderProxy;
 
