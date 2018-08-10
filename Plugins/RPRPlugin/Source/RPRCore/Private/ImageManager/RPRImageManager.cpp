@@ -81,7 +81,7 @@ namespace RPR
 		}
 		uint32				componentSize;
 		FImageFormat	dstFormat;
-		if (!BuildRPRImageFormat(platformData->PixelFormat, dstFormat, componentSize))
+		if (!BuildRPRImageFormat(platformData->PixelFormat, dstFormat, componentSize, ImageType))
 		{
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't build image: image format for '%s' not handled"), *Texture->GetName());
 			return nullptr;
@@ -153,7 +153,7 @@ namespace RPR
 		}
 		uint32				componentSize;
 		FImageFormat	dstFormat;
-		if (!BuildRPRImageFormat(srcFormat, dstFormat, componentSize))
+		if (!BuildRPRImageFormat(srcFormat, dstFormat, componentSize, EImageType::Standard))
 		{
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't build cubemap: image format for '%s' not handled"), *Texture->GetName());
 			return TryLoadErrorTexture();
@@ -211,23 +211,27 @@ namespace RPR
 		cache.Transfer(Destination.cache);
 	}
 
-	bool	FImageManager::BuildRPRImageFormat(EPixelFormat srcFormat, FImageFormat &outFormat, uint32 &outComponentSize)
+	bool	FImageManager::BuildRPRImageFormat(EPixelFormat srcFormat, FImageFormat &outFormat, uint32 &outComponentSize, EImageType imageType)
 	{
 		switch (srcFormat)
 		{
-			// Only pixel formats handled for now
+		// Only pixel formats handled for now
 		case PF_R8G8B8A8:
-		{
-			outFormat.num_components = 4;
-			outFormat.type = RPR_COMPONENT_TYPE_UINT8;
-			outComponentSize = sizeof(uint8);
-			break;
-		}
 		case PF_B8G8R8A8:
 		{
-			outFormat.num_components = 4;
-			outFormat.type = RPR_COMPONENT_TYPE_UINT8;
-			outComponentSize = sizeof(uint8);
+			// TODO post siggraph, try sending only 3 float/uints
+			//if (imageType == EImageType::NormalMap)
+			//{
+			//	outFormat.num_components = 3;
+			//	outFormat.type = RPR_COMPONENT_TYPE_FLOAT32;
+			//	outComponentSize = sizeof(float);
+			//}
+			//else
+			{
+				outFormat.num_components = 4;
+				outFormat.type = RPR_COMPONENT_TYPE_UINT8;
+				outComponentSize = sizeof(uint8);
+			}
 			break;
 		}
 		case PF_FloatRGBA:
@@ -252,6 +256,7 @@ namespace RPR
 		{
 			float				*dstData = reinterpret_cast<float*>(outData.GetData());
 			const FFloat16Color	*srcData = reinterpret_cast<const FFloat16Color*>(textureData);
+
 			for (uint32 iPixel = 0, iData = 0; iPixel < pixelCount; ++iPixel)
 			{
 				dstData[iData++] = ConvertPixel(srcData->R.GetFloat(), imageType);
@@ -264,8 +269,9 @@ namespace RPR
 		}
 		case PF_B8G8R8A8:
 		{
-			uint8		*dstData = reinterpret_cast<uint8*>(outData.GetData());
 			const uint8	*srcData = reinterpret_cast<const uint8*>(textureData);
+			uint8		*dstData = reinterpret_cast<uint8*>(outData.GetData());
+
 			for (uint32 iPixel = 0, iData = 0; iPixel < pixelCount; ++iPixel)
 			{
 				dstData[iData + 0] = srcData[iData + 2];

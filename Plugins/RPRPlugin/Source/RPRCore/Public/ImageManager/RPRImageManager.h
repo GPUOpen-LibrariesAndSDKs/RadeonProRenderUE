@@ -62,7 +62,7 @@ namespace RPR
 	private:
 
 		RPR::FImage LoadImageFromTextureInternal(UTexture2D* Texture, EImageType ImageType, bool bRebuild);
-		bool BuildRPRImageFormat(EPixelFormat srcFormat, FImageFormat &outFormat, uint32 &outComponentSize);
+		bool BuildRPRImageFormat(EPixelFormat srcFormat, FImageFormat &outFormat, uint32 &outComponentSize, EImageType ImageType);
         void ConvertPixels(const void *textureData, TArray<uint8> &outData, EPixelFormat pixelFormat, uint32 pixelCount, EImageType imageType);
 		RPR::FImage	FindInCache(UTexture* Texture, bool bRebuild);
 		RPR::FImage	TryLoadErrorTexture();

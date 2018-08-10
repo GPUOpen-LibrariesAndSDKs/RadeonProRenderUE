@@ -67,10 +67,10 @@ FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 
 	, Coating_Mode(FRPRMaterialEnum::Create<ERPRReflectionMode>(TEXT("coating.mode"), RPRX_UBER_MATERIAL_COATING_MODE, ESupportMode::PreviewNotSupported, ERPRReflectionMode::PBR))
 
-	, Emission_Color(					TEXT("emission.color"),		RPRX_UBER_MATERIAL_EMISSION_COLOR,	ESupportMode::NotSupported, 1.0f)
-	, Emission_Weight(					TEXT("emission.weight"),	RPRX_UBER_MATERIAL_EMISSION_WEIGHT, ESupportMode::NotSupported, 0.0f, ERPRMCoMapC1InterpretationMode::AsFloat4)
+	, Emission_Color(					TEXT("emission.color"),		RPRX_UBER_MATERIAL_EMISSION_COLOR,	ESupportMode::FullySupported, 1.0f)
+	, Emission_Weight(					TEXT("emission.weight"),	RPRX_UBER_MATERIAL_EMISSION_WEIGHT, ESupportMode::FullySupported, 0.0f, ERPRMCoMapC1InterpretationMode::AsFloat4)
 
-	, Emission_Mode(FRPRMaterialEnum::Create<ERPREmissionMode>(TEXT("emission.mode"), RPRX_UBER_MATERIAL_EMISSION_MODE, ESupportMode::NotSupported, ERPREmissionMode::SingleSided))
+	, Emission_Mode(FRPRMaterialEnum::Create<ERPREmissionMode>(TEXT("emission.mode"), RPRX_UBER_MATERIAL_EMISSION_MODE, ESupportMode::FullySupported, ERPREmissionMode::SingleSided))
 
 	, Transparency(TEXT("transparency"), RPRX_UBER_MATERIAL_TRANSPARENCY, ESupportMode::PreviewNotSupported, 0.0f, ERPRMCoMapC1InterpretationMode::AsFloat4)
 
