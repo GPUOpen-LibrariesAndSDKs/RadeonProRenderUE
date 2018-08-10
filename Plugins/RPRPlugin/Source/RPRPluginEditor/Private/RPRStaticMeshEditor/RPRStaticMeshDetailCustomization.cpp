@@ -39,6 +39,7 @@ void FRPRStaticMeshDetailCustomization::CustomizeDetails(IDetailLayoutBuilder& D
 	DetailBuilder.HideCategory("Navigation");
 	DetailBuilder.HideCategory("Thumbnail");
 	DetailBuilder.HideCategory("StaticMesh");
+	DetailBuilder.HideCategory("EditableMesh");
 	
 	IDetailCategoryBuilder& materialsCategory = DetailBuilder.EditCategory(
 		TEXT("StaticMeshMaterials"),

@@ -22,7 +22,7 @@
 #include "SceneManagement.h"
 #include "ShapePreviewBase.generated.h"
 
-UCLASS(Abstract, HideCategories=(Rendering, Tags, ComponentReplication, Activation, Variable, Cooking, Physics, LOD, Collision, Mobility))
+UCLASS(Abstract, HideCategories = (Rendering, Tags, ComponentReplication, Activation, Variable, Cooking, Physics, LOD, Collision, Mobility, AssetUserData))
 class RPRPLUGINEDITOR_API UShapePreviewBase : public USceneComponent
 {
 	GENERATED_BODY()
