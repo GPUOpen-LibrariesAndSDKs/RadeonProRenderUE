@@ -1,4 +1,4 @@
-#include "RPRShapeHelpers.h"
+#include "Helpers/RPRShapeHelpers.h"
 #include "RadeonProRender.h"
 
 DEFINE_LOG_CATEGORY(LogRPRShapeHelpers)

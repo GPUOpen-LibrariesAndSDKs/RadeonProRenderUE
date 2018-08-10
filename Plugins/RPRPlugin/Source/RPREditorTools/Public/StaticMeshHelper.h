@@ -21,6 +21,7 @@
 #include "RawMesh.h"
 #include "Engine/StaticMesh.h"
 #include "Rendering/StaticMeshVertexBuffer.h"
+#include "RawIndexBuffer.h"
 
 class RPREDITORTOOLS_API FStaticMeshHelper
 {

@@ -1,6 +1,6 @@
 #include "RPRShapeDataToStaticMeshComponent.h"
 #include "Helpers/RPRShapeHelpers.h"
-#include "RPRTypedefs.h"
+#include "Typedefs/RPRTypedefs.h"
 #include "Resources/StaticMeshResources.h"
 #include "RPR_GLTF_Tools.h"
 

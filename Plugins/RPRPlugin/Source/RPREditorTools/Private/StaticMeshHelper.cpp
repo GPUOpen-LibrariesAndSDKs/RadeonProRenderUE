@@ -20,6 +20,8 @@
 #include "StaticMeshResources.h"
 #include "FaceAssignationHelper/FaceAssignationHelper.h"
 #include "RPRCpStaticMesh.h"
+#include "MeshDescription.h"
+#include "MeshDescriptionOperations.h"
 
 void FStaticMeshHelper::LoadRawMeshFromStaticMesh(class UStaticMesh* StaticMesh, struct FRawMesh& OutRawMesh, int32 SourceModelIdx /*= 0*/)
 {
@@ -40,7 +42,22 @@ void FStaticMeshHelper::SaveRawMeshToStaticMesh(FRawMesh& RawMesh, class UStatic
 
 	if (RawMesh.IsValidOrFixable())
 	{
-		StaticMesh->SourceModels[SourceModelIdx].RawMeshBulkData->SaveRawMesh(RawMesh);
+		FMeshDescription* meshDescription = StaticMesh->GetOriginalMeshDescription(0);
+		if (meshDescription == nullptr)
+		{
+			StaticMesh->SourceModels[SourceModelIdx].RawMeshBulkData->SaveRawMesh(RawMesh);
+		}
+		else
+		{
+			TMap<int32, FName> materialMap;
+			for (int32 materialIndex = 0; materialIndex < StaticMesh->StaticMaterials.Num(); ++materialIndex)
+			{
+				FStaticMaterial& staticMaterial = StaticMesh->StaticMaterials[materialIndex];
+				materialMap.Add(materialIndex, staticMaterial.MaterialSlotName);
+			}
+			FMeshDescriptionOperations::ConvertFromRawMesh(RawMesh, *meshDescription, materialMap);
+			StaticMesh->CommitOriginalMeshDescription(0);
+		}
 	}
 
 	if (bShouldNotifyChange)

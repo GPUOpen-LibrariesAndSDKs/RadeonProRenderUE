@@ -61,6 +61,8 @@ public class RPREditorTools : ModuleRules
             {
                 "Core",
                 "RawMesh",
+                "MeshDescription",
+                "MeshDescriptionOperations",
                 "RPRCompatibility",
                 "UnrealEd",
                 "RPRPlugin",
