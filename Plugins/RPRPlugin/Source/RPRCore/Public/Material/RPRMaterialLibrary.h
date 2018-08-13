@@ -82,4 +82,4 @@ private:
 	RPR::FMaterialNode DummyMaterial;
 };
 
-typedef FObjectScopedLocked<FRPRXMaterialLibrary> FRPRXMaterialLibrarySL;
+using FRPRXMaterialLibrarySL = FObjectScopedLocked<FRPRXMaterialLibrary>;
