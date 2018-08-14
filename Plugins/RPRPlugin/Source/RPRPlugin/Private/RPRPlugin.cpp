@@ -177,6 +177,8 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 
 		// This one for level change
 		GEngine->OnWorldAdded().AddRaw(this, &FRPRPluginModule::OnWorldAdded);
+		
+		CreateNewSceneFromCurrentOpenedWorldIFN();
 	}
 
 	RefreshCameraList();
@@ -190,6 +192,24 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 	];
 
 	return RPRViewportTab;
+}
+
+void	FRPRPluginModule::CreateNewSceneFromCurrentOpenedWorldIFN()
+{
+	check(GEngine);
+
+	ARPRScene* currentScene = GetCurrentScene();
+	if (currentScene != nullptr) return;
+
+	const TIndirectArray<FWorldContext>& worldContexts = GEngine->GetWorldContexts();
+	for (int32 i = 0; i < worldContexts.Num(); ++i)
+	{
+		if (IsWorldSupported(worldContexts[i].WorldType))
+		{
+			OnWorldAdded(worldContexts[i].World());
+			break;
+		}
+	}
 }
 
 void	FRPRPluginModule::FillRPRMenu(FMenuBuilder &menuBuilder)
@@ -236,6 +256,14 @@ void	FRPRPluginModule::CreateNewScene(UWorld *world)
 	UE_LOG(LogRPRPlugin, VeryVerbose, TEXT("New scene created!"));
 
 	RefreshCameraList();
+}
+
+bool	FRPRPluginModule::IsWorldSupported(EWorldType::Type WorldType) const
+{
+	return 
+		WorldType == EWorldType::Game ||
+		WorldType == EWorldType::PIE ||
+		WorldType == EWorldType::Editor;
 }
 
 void	FRPRPluginModule::Reset()

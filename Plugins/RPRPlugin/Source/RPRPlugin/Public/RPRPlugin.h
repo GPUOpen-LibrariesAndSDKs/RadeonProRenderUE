@@ -90,7 +90,9 @@ private:
 	void					OnWorldInitialized(UWorld *inWorld, const UWorld::InitializationValues IVS);
 	void					OnWorldDestroyed(UWorld *inWorld);
 
+	void					CreateNewSceneFromCurrentOpenedWorldIFN();
 	void					CreateNewScene(UWorld *world);
+	bool					IsWorldSupported(EWorldType::Type WorldType) const;
 
 private:
 
