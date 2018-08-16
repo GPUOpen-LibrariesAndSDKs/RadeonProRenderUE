@@ -137,7 +137,7 @@ public:
 	FDirectoryPath	DefaultRootDirectoryForImportedTextures;
 
 	UPROPERTY(Config, EditAnywhere, meta = (Tooltip = "If checked, the error texture will be used when the texture cannot be loaded correctly in RPR."), Category = ImageManager)
-	bool		bUseErrorTexture;
+	bool			bUseErrorTexture;
 
 	UPROPERTY(Config, EditAnywhere, meta = (Tooltip = "The texture to use when the RPR plugin cannot load the texture correctly."), Category = ImageManager)
 	TSoftObjectPtr<UTexture2D>	ErrorTexture;

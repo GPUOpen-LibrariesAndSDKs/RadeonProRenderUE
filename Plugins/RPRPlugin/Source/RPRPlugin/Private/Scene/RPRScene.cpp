@@ -446,7 +446,7 @@ void	ARPRScene::Rebuild()
 	// Once the RPR thread is deleted, clean all scene resources
 	RemoveSceneContent(false, false);
 
-	RPRCoreResources->GetRPRMaterialLibrary()->ClearCache();
+	RPRCoreResources->GetRPRMaterialLibrary().ClearCache();
 	RPRCoreResources->GetRPRImageManager()->ClearCache();
 
 	RPR::FResult result = RPR::Context::ClearMemory(RPRCoreResources->GetRPRContext());
@@ -705,7 +705,7 @@ void	ARPRScene::RemoveSceneContent(bool clearScene, bool clearCache)
 	{
 		if (clearCache)
 		{
-			RPRCoreResources->GetRPRMaterialLibrary()->ClearCache();
+			RPRCoreResources->GetRPRMaterialLibrary().ClearCache();
 
 			try
 			{

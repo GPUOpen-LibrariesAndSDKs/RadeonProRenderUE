@@ -37,20 +37,26 @@ struct RPRCORE_API FRPRUberMaterialParameters
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Diffuse")
+	FRPRMaterialCoMChannel1	Diffuse_Weight;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Diffuse")
 	FRPRMaterialCoM			Diffuse_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Diffuse")
-	FRPRMaterialCoMChannel1	Diffuse_Weight;
-
+	FRPRMaterialMap			Diffuse_Normal;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Diffuse")
 	FRPRMaterialCoMChannel1	Diffuse_Roughness;
 	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
+	FRPRMaterialCoMChannel1	Reflection_Weight;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
 	FRPRMaterialCoM			Reflection_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
-	FRPRMaterialCoMChannel1	Reflection_Weight;
+	FRPRMaterialMap			Reflection_Normal;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
 	FRPRMaterialCoMChannel1	Reflection_Roughness;
@@ -67,6 +73,10 @@ struct RPRCORE_API FRPRUberMaterialParameters
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
 	FRPRMaterialCoMChannel1	Reflection_Metalness;
 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction")
+	FRPRMaterialCoMChannel1	Refraction_Weight;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
 	FRPRMaterialCoMChannel1	Reflection_Ior;
 
@@ -74,7 +84,10 @@ struct RPRCORE_API FRPRUberMaterialParameters
 	FRPRMaterialCoM			Refraction_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction")
-	FRPRMaterialCoMChannel1	Refraction_Weight;
+	FRPRMaterialCoM			Refraction_Absorption_Color;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction")
+	FRPRMaterialCoMChannel1	Refraction_Absorption_Distance;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction")
 	FRPRMaterialCoMChannel1	Refraction_Roughness;
@@ -85,14 +98,15 @@ struct RPRCORE_API FRPRUberMaterialParameters
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction")
 	FRPRMaterialBool		Refraction_IsThinSurface;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction")
-	FRPRMaterialEnum		Refraction_Mode;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
+	FRPRMaterialCoMChannel1	Coating_Weight;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
 	FRPRMaterialCoM			Coating_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
-	FRPRMaterialCoMChannel1	Coating_Weight;
+	FRPRMaterialMap			Coating_Normal;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
 	FRPRMaterialCoMChannel1	Coating_Roughness;
@@ -108,37 +122,27 @@ struct RPRCORE_API FRPRUberMaterialParameters
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Emission")
-	FRPRMaterialCoM			Emission_Color;
+	FRPRMaterialCoMChannel1	Emission_Weight;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Emission")
-	FRPRMaterialCoMChannel1	Emission_Weight;
+	FRPRMaterialCoM			Emission_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Emission")
 	FRPRMaterialEnum		Emission_Mode;
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Transparency")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Miscs")
 	FRPRMaterialCoMChannel1	Transparency;
-
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Normal")
-	FRPRMaterialMap			Normal;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Normal")
-	FRPRMaterialMap			Bump;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Normal")
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Miscs")
 	FRPRMaterialMap			Displacement;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS")
-	FRPRMaterialCoM			SSS_Absorption_Color;
+	FRPRMaterialCoMChannel1	SSS_Weight;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS")
 	FRPRMaterialCoM			SSS_Scatter_Color;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS")
-	FRPRMaterialCoMChannel1	SSS_Absorption_Distance;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS")
 	FRPRMaterialCoMChannel1	SSS_Scatter_Distance;
@@ -147,13 +151,14 @@ struct RPRCORE_API FRPRUberMaterialParameters
 	FRPRMaterialCoMChannel1	SSS_Scatter_Direction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS")
-	FRPRMaterialCoMChannel1	SSS_Weight;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS")
-	FRPRMaterialCoM			SSS_SubSurface_Color;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|SSS")
 	FRPRMaterialBool		SSS_IsMultiScatter;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Backscatter")
+	FRPRMaterialCoMChannel1	Backscatter_Weight;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Backscatter")
+	FRPRMaterialCoM			Backscatter_Color;
 
 
 

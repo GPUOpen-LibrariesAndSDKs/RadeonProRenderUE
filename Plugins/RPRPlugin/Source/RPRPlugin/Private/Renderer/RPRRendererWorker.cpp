@@ -455,6 +455,9 @@ bool	FRPRRendererWorker::PreRenderLoop()
 
 	m_PreRenderLock.Lock();
 
+	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
+	check(settings != nullptr);
+
 	if (m_UpdateTrace)
 	{
 		if (rprContextSetParameterString(nullptr, "tracingfolder", TCHAR_TO_ANSI(*m_TracePath)) != RPR_SUCCESS ||
@@ -488,9 +491,13 @@ bool	FRPRRendererWorker::PreRenderLoop()
 		ResizeFramebuffer();
 	if (m_ClearFramebuffer)
 		ClearFramebuffer();
-	UpdatePostEffectSettings();
 
 	const bool	isPaused = m_PauseRender || m_BuiltObjects.Num() > 0 || m_DiscardObjects.Num() > 0;
+
+	if (!isPaused || m_CurrentIteration < settings->MaximumRenderIterations)
+	{
+		UpdatePostEffectSettings();
+	}
 
 	m_PreRenderLock.Unlock();
 
@@ -514,14 +521,11 @@ uint32	FRPRRendererWorker::Run()
 		}
 		if (m_RenderLock.TryLock())
 		{
-			const uint32	sampleCount = FGenericPlatformMath::Min((m_CurrentIteration + 4) / 4, m_NumDevices);
-
 			{
 				SCOPE_CYCLE_COUNTER(STAT_ProRender_Render);
 
 				// Render + Resolve
-				if (rprContextSetParameter1u(m_RprContext, "aasamples", sampleCount) != RPR_SUCCESS ||
-					rprContextRender(m_RprContext) != RPR_SUCCESS)
+				if (rprContextRender(m_RprContext) != RPR_SUCCESS)
 				{
 					RPR::Error::LogLastError(m_RprContext);
 					m_RenderLock.Unlock();
@@ -531,7 +535,8 @@ uint32	FRPRRendererWorker::Run()
 			}
 			{
 				SCOPE_CYCLE_COUNTER(STAT_ProRender_Resolve);
-				if (rprContextResolveFrameBuffer(m_RprContext, m_RprFrameBuffer, m_RprResolvedFrameBuffer) != RPR_SUCCESS)
+				const bool bNormalizeOnly = false;
+				if (rprContextResolveFrameBuffer(m_RprContext, m_RprFrameBuffer, m_RprResolvedFrameBuffer, bNormalizeOnly) != RPR_SUCCESS)
 				{
 					RPR::Error::LogLastError(m_RprContext);
 					m_RenderLock.Unlock();
@@ -543,6 +548,7 @@ uint32	FRPRRendererWorker::Run()
 			// Build framebuffer data
 			BuildFramebufferData();
 
+			const uint32	sampleCount = FGenericPlatformMath::Min((m_CurrentIteration + 4) / 4, m_NumDevices);
 			m_CurrentIteration += sampleCount;
 		}
 		else

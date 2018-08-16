@@ -1,10 +1,10 @@
 /**********************************************************************
-Copyright 2017 Advanced Micro Devices, Inc. All rights reserved.
+Copyright ©2017 Advanced Micro Devices, Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
-â€¢   Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-â€¢   Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or
+•   Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+•   Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or
 other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -383,6 +383,7 @@ namespace RadeonProRender
 
 	inline float3 axis_from_quaternion(quaternion const& q)
 	{
+		float angle = 2 * acos(q.w);
 		float s = sqrt(1.f - q.w*q.w);
 		if (s < 0.001)
 		{

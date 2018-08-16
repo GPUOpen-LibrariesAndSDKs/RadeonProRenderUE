@@ -43,6 +43,7 @@
 #include "Scene/RPRScene.h"
 #include "EngineUtils.h"
 #include "RPRCpTexture2DDynamic.h"
+#include "RPR_SDKModule.h"
 
 DEFINE_LOG_CATEGORY(LogRPRPlugin)
 

@@ -124,13 +124,10 @@ void	URPRStaticMeshComponent::ClearCache(RPR::FScene scene)
 	}
 	Cache.Empty();
 }
-#define RPR_UMS_INTEGRATION 1
-#define RPR_UMS_DUMP_RPIF 0
 
-#pragma optimize("",off)
 bool	URPRStaticMeshComponent::BuildMaterials()
 {
-	auto rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+	FRPRXMaterialLibrary& rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 
 	const UStaticMeshComponent	*component = Cast<UStaticMeshComponent>(SrcComponent);
 	check(component != nullptr);
@@ -151,7 +148,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 			URPRMaterial* rprMaterial = Cast<URPRMaterial>(matInterface);
 			BuildRPRMaterial(shape, rprMaterial);
 
-			m_Shapes[iShape].m_RprxMaterial = (RPRX::FMaterial) rprMaterialLibrary->GetMaterialRawDatas(rprMaterial);
+			m_Shapes[iShape].m_RprxMaterial = (RPRX::FMaterial) rprMaterialLibrary.GetMaterialRawDatas(rprMaterial);
 		}
 		else
 		{
@@ -167,15 +164,15 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 
 void URPRStaticMeshComponent::BuildRPRMaterial(RPR::FShape& Shape, URPRMaterial* Material)
 {
-	auto rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+	FRPRXMaterialLibrary& rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 
-	if (!rprMaterialLibrary->Contains(Material))
+	if (!rprMaterialLibrary.Contains(Material))
 	{
-		rprMaterialLibrary->CacheAndRegisterMaterial(Material);
+		rprMaterialLibrary.CacheAndRegisterMaterial(Material);
 	}
 	else if (Material->IsMaterialDirty())
 	{
-		rprMaterialLibrary->RecacheMaterial(Material);
+		rprMaterialLibrary.RecacheMaterial(Material);
 	}
 
 	m_OnMaterialChangedDelegateHandles.Subscribe(Material);
@@ -185,11 +182,11 @@ void URPRStaticMeshComponent::BuildRPRMaterial(RPR::FShape& Shape, URPRMaterial*
 
 bool URPRStaticMeshComponent::ApplyRPRMaterialOnShape(RPR::FShape& Shape, URPRMaterial* Material)
 {
-	auto rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+	FRPRXMaterialLibrary& rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 
 	uint32 materialType;
 	RPR::FMaterialRawDatas materialRawDatas;
-	if (!rprMaterialLibrary->TryGetMaterialRawDatas(Material, materialType, materialRawDatas))
+	if (!rprMaterialLibrary.TryGetMaterialRawDatas(Material, materialType, materialRawDatas))
 	{
 		UE_LOG(LogRPRStaticMeshComponent, Error, TEXT("Cannot get the material raw datas from the library."));
 		return (false);
@@ -201,8 +198,8 @@ bool URPRStaticMeshComponent::ApplyRPRMaterialOnShape(RPR::FShape& Shape, URPRMa
 
 void URPRStaticMeshComponent::AttachDummyMaterial(RPR::FShape shape)
 {
-	auto rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
-	RPR::FMaterialNode dummyMaterial = rprMaterialLibrary->GetDummyMaterial();
+	FRPRXMaterialLibrary& rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+	RPR::FMaterialNode dummyMaterial = rprMaterialLibrary.GetDummyMaterial();
 
 	RPR::FResult result = RPR::ShapeSetMaterial(shape, dummyMaterial);
 	if (RPR::IsResultFailed(result))
@@ -210,8 +207,6 @@ void URPRStaticMeshComponent::AttachDummyMaterial(RPR::FShape shape)
 		UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Cannot attach dummy material to mesh %s"), *GetName());
 	}
 }
-
-#pragma optimize("",on)
 
 static bool const FLIP_SURFACE_NORMALS = false;
 static bool const FLIP_UV_Y = true;
@@ -475,8 +470,12 @@ bool	URPRStaticMeshComponent::PostBuild()
 	if (Scene == nullptr || !IsSrcComponentValid())
 		return false;
 
-	if (!BuildMaterials())
-		return false;
+	m_RefreshLock.Lock();
+	{
+		if (!BuildMaterials())
+			return false;
+	}
+	m_RefreshLock.Unlock();
 
 	return Super::PostBuild();
 }
@@ -492,7 +491,8 @@ bool URPRStaticMeshComponent::RPRThread_Update()
 
 	bool bNeedRebuild = false;
 	{
-		FScopeLock scLock(&m_RefreshLock);
+		m_RefreshLock.Lock();
+
 		bNeedRebuild |= UpdateDirtyMaterialsIFN();
 		// TODO : Re-enable to update correctly the material
 		// Disabled for now because it crashes in specific case :
@@ -502,6 +502,8 @@ bool URPRStaticMeshComponent::RPRThread_Update()
 		// - undo with Ctrl+Z
 		// - crash during the commit of the material parameters
 		// bNeedRebuild |= UpdateDirtyMaterialsChangesIFN();
+
+		m_RefreshLock.Unlock();
 	}
 
 	return (bNeedRebuild | Super::RPRThread_Update());
@@ -513,16 +515,16 @@ bool URPRStaticMeshComponent::UpdateDirtyMaterialsIFN()
 
 	if (bNeedRebuild)
 	{
-		auto rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+		FRPRXMaterialLibrary& rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 
 		URPRMaterial* material = nullptr;
 		while (m_dirtyMaterialsQueue.Dequeue(material))
 		{
-			rprMaterialLibrary->RecacheMaterial(material);
+			rprMaterialLibrary.RecacheMaterial(material);
 
 			uint32 materialType;
 			RPR::FMaterialRawDatas materialRawDatas;
-			if (rprMaterialLibrary->TryGetMaterialRawDatas(material, materialType, materialRawDatas))
+			if (rprMaterialLibrary.TryGetMaterialRawDatas(material, materialType, materialRawDatas))
 			{
 				RPR::MaterialBuilder::CommitMaterial(materialType, reinterpret_cast<RPRX::FMaterial>(materialRawDatas));
 			}
@@ -544,8 +546,8 @@ bool URPRStaticMeshComponent::UpdateDirtyMaterialsChangesIFN()
 		UStaticMesh* currentStaticMesh = staticMeshComponent->GetStaticMesh();
 		check(currentStaticMesh);
 
-		FRPRCoreSystemResourcesPtr resources = IRPRCore::GetResources();
-		auto rprMaterialLibrary = resources->GetRPRMaterialLibrary();
+		//FRPRCoreSystemResourcesPtr resources = IRPRCore::GetResources();
+		//FRPRXMaterialLibrary& rprMaterialLibrary = resources->GetRPRMaterialLibrary();
 		//rprMaterialLibrary->ClearCache();
 		for (int32 materialIndex = 0; materialIndex < m_lastMaterialsList.Num(); ++materialIndex)
 		{
@@ -586,20 +588,20 @@ bool URPRStaticMeshComponent::UpdateDirtyMaterialsChangesIFN()
 
 void URPRStaticMeshComponent::OnUsedMaterialChanged(URPRMaterial* Material)
 {
-	auto rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+	m_RefreshLock.Lock();
 
-	if (rprMaterialLibrary->Contains(Material))
+	FRPRXMaterialLibrary& rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+	if (rprMaterialLibrary.Contains(Material))
 	{
-		{
-			FScopeLock scLock(&m_RefreshLock);
-			m_dirtyMaterialsQueue.Enqueue(Material);
-		}
+		m_dirtyMaterialsQueue.Enqueue(Material);
 		MarkMaterialsAsDirty();
 	}
 	else
 	{
 		m_OnMaterialChangedDelegateHandles.Unsubscribe(Material);
 	}
+
+	m_RefreshLock.Unlock();
 }
 
 void URPRStaticMeshComponent::ClearMaterialChangedWatching()

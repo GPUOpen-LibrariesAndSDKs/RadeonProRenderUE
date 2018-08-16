@@ -27,7 +27,7 @@ public:
 	FObjectScopedLocked(ObjectType* Object);
 	FObjectScopedLocked(const ObjectType* Object);
 
-	~FObjectScopedLocked();
+	virtual ~FObjectScopedLocked();
 
 	ObjectType&			operator*();
 	const ObjectType&	operator*() const;

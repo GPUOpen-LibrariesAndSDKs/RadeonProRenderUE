@@ -1,4 +1,7 @@
-#pragma once
+#ifndef __RPRGLTF_H
+#define __RPRGLTF_H
+
+
 #include <RadeonProRender.h>
 #include <RprSupport.h>
 
@@ -89,15 +92,76 @@ rprGLTF_GetParentGroupFromGroup("hand", 512, groupName, NULL);
 
 if the shape/folder has not parent, the empty string is returned in groupName
 
-the 4 functions return RPR_SUCCESS if success
+these functions return RPR_SUCCESS if success
 */
 extern int rprGLTF_AssignShapeToGroup(rpr_shape shape, const rpr_char* groupName);
+extern int rprGLTF_AssignCameraToGroup(rpr_camera camera, const rpr_char* groupName);
 extern int rprGLTF_AssignParentGroupToGroup(const rpr_char* groupChild, const rpr_char* groupParent);
 extern int rprGLTF_GetParentGroupFromShape(rpr_shape shape, size_t size, rpr_char* groupName, size_t* size_ret);
+extern int rprGLTF_GetParentGroupFromCamera(rpr_camera camera, size_t size, rpr_char* groupName, size_t* size_ret);
 extern int rprGLTF_GetParentGroupFromGroup(const rpr_char* groupChild, size_t size, rpr_char* groupName, size_t* size_ret);
 
+
+// when rprImportFromGLTF is called, some buffers will be allocated and kept in memory for future getters.
+// for example, getters for animations data.
+// calling this function will clean all data - and make value from getters unavailable.
+// 
+// a typical usage is :
+// - first call rprImportFromGLTF(...)
+// - call all the getters you need :  rprGLTF_GetParentGroupFromShape , rprGLTF_GetAnimation ....
+// - then call rprGLTF_ReleaseImportedData();
+// - all pointers returned by getters become undefined - and musn't be used anymore.
+// - render the scene.
+//
+// important: this function will be automatically called internally at the very beginning of each call of rprImportFromGLTF
+//            make sure to not use the pointer from getters from a previous Import.
+extern int rprGLTF_ReleaseImportedData();
+
+
+typedef rpr_uint rprgltf_animation_movement_type;
+
+//rprgltf_animation_movement_type
+#define RPRGLTF_ANIMATION_MOVEMENTTYPE_TRANSLATION 0x1 
+#define RPRGLTF_ANIMATION_MOVEMENTTYPE_ROTATION 0x2 
+#define RPRGLTF_ANIMATION_MOVEMENTTYPE_SCALE 0x3 
+
+struct _rprgltf_animation
+{
+	unsigned int structSize; // size of this struct in Byte (internally used to identify if different versions)
+
+	char* groupName;
+
+	rprgltf_animation_movement_type movementType;
+
+	rpr_uint interpolationType; // unused for now.
+	
+	// example : if the animation has 2 FLOAT3 defining translation at time 0.5 and 3.0  for a translation along y axis , we have  :
+	//
+	//nbTimeKeys = 2
+	//nbTransformValues = 2   ( for easier developpement of animation rendering, let's agree to have nbTimeKeys = nbTransformValues in most of the cases, whenever it's possible )
+	//timeKeys        = { 0.5 , 3.0 }
+	//transformValues = { 0.0,0.0,0.0,  0.0,1.0,0.0,  }
+
+	unsigned int nbTimeKeys;
+	unsigned int nbTransformValues; 
+
+	float* timeKeys;
+	float* transformValues;
+
+};
+typedef _rprgltf_animation rprgltf_animation;
+
+//return null if not animation exists for animIndex
+extern const rprgltf_animation* rprGLTF_GetAnimation(int animIndex);
+
+// make sure the pointers specified inside rprgltf_animation structure  ( groupName2, timeKeys, transformValues) stay available from this call to the rprExportToGLTF call.
+// after that, they won't be used anymore by gltf library.
+// return RPR_SUCCESS if success.
+extern int rprGLTF_AddAnimation(const rprgltf_animation* anim);
 
 
 #ifdef __cplusplus
 }
 #endif
+
+#endif // __RPRGLTF_H

@@ -47,7 +47,7 @@ public:
 	FORCEINLINE RPRX::FContext			GetRPRXSupportContext() const { return RPRXSupportCtx; }
 	FORCEINLINE RPRI::FContext			GetRPRIContext() const { return RPRIContext; }
 	FORCEINLINE RPR::FImageManagerPtr	GetRPRImageManager() const { return RPRImageManager; }
-	FORCEINLINE FRPRXMaterialLibrarySL	GetRPRMaterialLibrary() { return FRPRXMaterialLibrarySL(&RPRXMaterialLibrary); }
+	FORCEINLINE FRPRXMaterialLibrary&	GetRPRMaterialLibrary() { return RPRXMaterialLibrary; }
 	FORCEINLINE int32					GetNumDevicesCompatible() const { return NumDevicesCompatible; }
 	
 private:

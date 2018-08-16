@@ -1,10 +1,10 @@
 /**********************************************************************
-Copyright 2017 Advanced Micro Devices, Inc. All rights reserved.
+Copyright ©2017 Advanced Micro Devices, Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
-â€¢   Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-â€¢   Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or
+•   Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+•   Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or
 other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -149,7 +149,7 @@ namespace RadeonProRender
         return q / norm;
     }
     
-    inline float dot(quaternion const& v1, quaternion const& v2)
+	inline float dot(quaternion const& v1, quaternion const& v2)
     {
         return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w;
     }
@@ -163,38 +163,36 @@ namespace RadeonProRender
         m.m30 =                    m.m31 =                      m.m32;                       m.m33 = 1;
     }
 
+	//linear interpolation of 2 quaternions
+	inline quaternion slerp(quaternion const& v0_, quaternion const& v1_, float t) 
+	{
+		quaternion v0 = normalize(v0_);
+		quaternion v1 = normalize(v1_);
 
-    //linear interpolation of 2 quaternions
-    inline quaternion slerp(quaternion const& v0_, quaternion const& v1_, float t) 
-    {
-        quaternion v0 = normalize(v0_);
-        quaternion v1 = normalize(v1_);
+		float dotr = dot(v0, v1);
 
-        float dotr = dot(v0, v1);
+		if (dotr < 0.0f) 
+		{
+			v1 = -v1;
+			dotr = -dotr;
+		}  
 
-        if (dotr < 0.0f) 
-        {
-            v1 = -v1;
-            dotr = -dotr;
-        }  
+		const float DOT_THRESHOLD = 0.9995f;
+		if (dotr > DOT_THRESHOLD) 
+		{
+			quaternion result = v0 + t*(v1 - v0);
+			result = normalize(result);
+			return result;
+		}
 
-        const float DOT_THRESHOLD = 0.9995f;
-        if (dotr > DOT_THRESHOLD) 
-        {
-            quaternion result = v0 + t*(v1 - v0);
-            result = normalize(result);
-            return result;
-        }
+		float theta_0 = acosf(dotr);
+		float theta = theta_0*t;
+		float sin_theta = sinf(theta);
+		float sin_theta_0 = sinf(theta_0);
 
-        float theta_0 = acosf(dotr);
-        float theta = theta_0*t;
-        float sin_theta = sinf(theta);
-        float sin_theta_0 = sinf(theta_0);
+		float s0 = cosf(theta) - dotr * sin_theta / sin_theta_0;
+		float s1 = sin_theta / sin_theta_0;
 
-        float s0 = cosf(theta) - dotr * sin_theta / sin_theta_0;
-        float s1 = sin_theta / sin_theta_0;
-
-        return (s0 * v0) + (s1 * v1);
-    }
-
+		return (s0 * v0) + (s1 * v1);
+	}
 }

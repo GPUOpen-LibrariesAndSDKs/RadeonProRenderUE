@@ -167,8 +167,7 @@ bool FRPRCoreSystemResources::InitializeContextParameters()
 {
 	RPR::FResult result;
 
-	result = RPR::Context::Parameters::Set1u(RPRContext, TEXT("aasamples"), NumDevicesCompatible);
-	result |= RPR::Context::Parameters::Set1u(RPRContext, TEXT("preview"), 1);
+	result = RPR::Context::Parameters::Set1u(RPRContext, TEXT("preview"), 1);
 	result |= RPR::Context::Parameters::Set1f(RPRContext, TEXT("radianceclamp"), 1.0f);
 
 	return (RPR::IsResultSuccess(result));

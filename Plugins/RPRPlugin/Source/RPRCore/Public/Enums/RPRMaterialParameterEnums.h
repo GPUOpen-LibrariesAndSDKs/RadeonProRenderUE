@@ -34,17 +34,6 @@ enum class ERPREmissionMode : uint8
 	DoubleSided = RPRX_UBER_MATERIAL_EMISSION_MODE_DOUBLESIDED
 };
 
-UENUM(BlueprintType)
-enum class ERPRRefractionMode : uint8
-{
-	Separate = RPRX_UBER_MATERIAL_REFRACTION_MODE_SEPARATE,
-	Linked = RPRX_UBER_MATERIAL_REFRACTION_MODE_LINKED
-};
-
-//Expose_TNameOf(ERPRReflectionMode)
-//Expose_TNameOf(ERPREmissionMode)
-//Expose_TNameOf(ERPRRefractionMode)
-
 template<>
 struct TNameOf<ERPRReflectionMode>
 {
@@ -60,14 +49,5 @@ struct TNameOf<ERPREmissionMode>
 	FORCEINLINE static TCHAR const* GetName()
 	{
 		return TEXT("ERPREmissionMode");
-	}
-};
-
-template<>
-struct TNameOf<ERPRRefractionMode>
-{ 
-	FORCEINLINE static TCHAR const* GetName()
-	{
-		return TEXT("ERPRRefractionMode");
 	}
 };

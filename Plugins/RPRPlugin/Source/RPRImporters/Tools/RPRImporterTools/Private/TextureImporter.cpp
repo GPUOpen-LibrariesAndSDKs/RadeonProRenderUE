@@ -128,10 +128,10 @@ namespace RPR
 		status = RPR::Image::GetWrapMode(Image, wrapMode);
 		if (RPR::IsResultFailed(status))
 		{
-			wrapMode = EImageWrapType::ClampToBorder;
+			wrapMode = EImageWrapType::ClampZero;
 		}
 
-		TextureAddress textureAddress = (wrapMode == EImageWrapType::ClampToBorder || wrapMode == EImageWrapType::ClampOne || wrapMode == EImageWrapType::ClampZero) ? TA_Clamp : TA_Wrap;
+		TextureAddress textureAddress = (wrapMode == EImageWrapType::ClampOne || wrapMode == EImageWrapType::ClampZero) ? TA_Clamp : TA_Wrap;
 		InOutTexture->AddressX = InOutTexture->AddressY = textureAddress;
 
 		InOutTexture->PlatformData = new FTexturePlatformData();

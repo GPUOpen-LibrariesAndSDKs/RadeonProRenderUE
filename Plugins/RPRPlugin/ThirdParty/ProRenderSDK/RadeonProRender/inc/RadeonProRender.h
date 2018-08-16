@@ -32,7 +32,8 @@ extern "C" {
 #endif
 
 
-#define RPR_API_VERSION 0x010030200 
+#define RPR_API_VERSION 0x010031200 
+#define RPR_API_VERSION_MINOR 0xecbc8261 
 
 /*rpr_status*/
 #define RPR_SUCCESS 0 
@@ -63,6 +64,7 @@ extern "C" {
 #define RPR_ERROR_OPENCL -26 
 #define RPR_ERROR_NULLPTR -27 
 #define RPR_ERROR_NODETYPE -28 
+#define RPR_ERROR_ABORTED -29 
 /*rpr_parameter_type*/
 #define RPR_PARAMETER_TYPE_FLOAT 0x1 
 #define RPR_PARAMETER_TYPE_FLOAT2 0x2 
@@ -72,6 +74,8 @@ extern "C" {
 #define RPR_PARAMETER_TYPE_STRING 0x6 
 #define RPR_PARAMETER_TYPE_SHADER 0x7 
 #define RPR_PARAMETER_TYPE_UINT 0x8 
+#define RPR_PARAMETER_TYPE_ULONG 0x9 
+#define RPR_PARAMETER_TYPE_LONGLONG 0xa 
 /*rpr_creation_flags*/
 #define RPR_CREATION_FLAGS_ENABLE_GPU0 (1 << 0) 
 #define RPR_CREATION_FLAGS_ENABLE_GPU1 (1 << 1) 
@@ -84,6 +88,15 @@ extern "C" {
 #define RPR_CREATION_FLAGS_ENABLE_GPU6 (1 << 8) 
 #define RPR_CREATION_FLAGS_ENABLE_GPU7 (1 << 9) 
 #define RPR_CREATION_FLAGS_ENABLE_METAL (1 << 10) 
+#define RPR_CREATION_FLAGS_ENABLE_GPU8 (1 << 11) 
+#define RPR_CREATION_FLAGS_ENABLE_GPU9 (1 << 12) 
+#define RPR_CREATION_FLAGS_ENABLE_GPU10 (1 << 13) 
+#define RPR_CREATION_FLAGS_ENABLE_GPU11 (1 << 14) 
+#define RPR_CREATION_FLAGS_ENABLE_GPU12 (1 << 15) 
+#define RPR_CREATION_FLAGS_ENABLE_GPU13 (1 << 16) 
+#define RPR_CREATION_FLAGS_ENABLE_GPU14 (1 << 17) 
+#define RPR_CREATION_FLAGS_ENABLE_GPU15 (1 << 18) 
+#define RPR_CREATION_FLAGS_ENABLE_DEBUG (1 << 31) 
 /*rpr_aa_filter*/
 #define RPR_FILTER_NONE 0x0 
 #define RPR_FILTER_BOX 0x1 
@@ -120,8 +133,10 @@ extern "C" {
 #define RPR_CONTEXT_PARAMETER_COUNT 0x107 
 #define RPR_CONTEXT_ACTIVE_PLUGIN 0x108 
 #define RPR_CONTEXT_SCENE 0x109 
-#define RPR_CONTEXT_AA_CELL_SIZE 0x10A 
-#define RPR_CONTEXT_AA_SAMPLES 0x10B 
+
+    
+
+    
 #define RPR_CONTEXT_ITERATIONS 0x10B 
 #define RPR_CONTEXT_IMAGE_FILTER_TYPE 0x10C 
 #define RPR_CONTEXT_IMAGE_FILTER_BOX_RADIUS 0x10D 
@@ -177,9 +192,18 @@ extern "C" {
 #define RPR_CONTEXT_TRANSPARENT_BACKGROUND 0x13F 
 #define RPR_CONTEXT_MAX_DEPTH_SHADOW 0x140 
 #define RPR_CONTEXT_API_VERSION 0x141 
+#define RPR_CONTEXT_GPU8_NAME 0x142 
+#define RPR_CONTEXT_GPU9_NAME 0x143 
+#define RPR_CONTEXT_GPU10_NAME 0x144 
+#define RPR_CONTEXT_GPU11_NAME 0x145 
+#define RPR_CONTEXT_GPU12_NAME 0x146 
+#define RPR_CONTEXT_GPU13_NAME 0x147 
+#define RPR_CONTEXT_GPU14_NAME 0x148 
+#define RPR_CONTEXT_GPU15_NAME 0x149 
+#define RPR_CONTEXT_API_VERSION_MINOR 0x14A 
 
 /* last of the RPR_CONTEXT_* */
-#define RPR_CONTEXT_MAX 0x142 
+#define RPR_CONTEXT_MAX 0x14a 
 
 /*rpr_camera_info*/
 #define RPR_CAMERA_TRANSFORM 0x201 
@@ -239,6 +263,7 @@ extern "C" {
 #define RPR_SHAPE_SCALE_MOTION 0x416 
 #define RPR_SHAPE_HETERO_VOLUME 0x417 
 #define RPR_SHAPE_LAYER_MASK 0x418 
+#define RPR_SHAPE_VISIBILITY 0x419 
 /*rpr_mesh_info*/
 #define RPR_MESH_POLYGON_COUNT 0x501 
 #define RPR_MESH_VERTEX_COUNT 0x502 
@@ -460,7 +485,10 @@ extern "C" {
 #define RPR_MATERIAL_INPUT_UV_TYPE 0x21 
 #define RPR_MATERIAL_INPUT_RADIUS 0x22 
 #define RPR_MATERIAL_INPUT_SIDE 0x23 
-#define RPR_MATERIAL_INPUT_MAX 0x24 
+#define RPR_MATERIAL_INPUT_CAUSTICS 0x24 
+#define RPR_MATERIAL_INPUT_TRANSMISSION_COLOR 0x25 
+#define RPR_MATERIAL_INPUT_THICKNESS 0x26 
+#define RPR_MATERIAL_INPUT_MAX 0x27 
 /*rpr_material_node_input*/
 #define RPR_MATERIAL_STANDARD_INPUT_DIFFUSE_COLOR 0x112 
 #define RPR_MATERIAL_STANDARD_INPUT_DIFFUSE_NORMAL 0x113 
@@ -599,7 +627,8 @@ extern "C" {
 #define RPR_IMAGE_WRAP_TYPE_REPEAT 0x1 
 #define RPR_IMAGE_WRAP_TYPE_MIRRORED_REPEAT 0x2 
 #define RPR_IMAGE_WRAP_TYPE_CLAMP_TO_EDGE 0x3 
-#define RPR_IMAGE_WRAP_TYPE_CLAMP_TO_BORDER 0x4 
+
+    
 #define RPR_IMAGE_WRAP_TYPE_CLAMP_ZERO 0x5 
 #define RPR_IMAGE_WRAP_TYPE_CLAMP_ONE 0x6 
 /*rpr_image_filter_type*/
@@ -611,7 +640,7 @@ extern "C" {
 #define RPR_COMPOSITE_TYPE 0x1  
 #define RPR_COMPOSITE_FRAMEBUFFER_INPUT_FB 0x2  
 #define RPR_COMPOSITE_NORMALIZE_INPUT_COLOR 0x3  
-#define RPR_COMPOSITE_NORMALIZE_INPUT_SHADOWCATCHER 0x4  
+#define RPR_COMPOSITE_NORMALIZE_INPUT_AOVTYPE 0x4  
 #define RPR_COMPOSITE_CONSTANT_INPUT_VALUE 0x5  
 #define RPR_COMPOSITE_LERP_VALUE_INPUT_COLOR0 0x6  
 #define RPR_COMPOSITE_LERP_VALUE_INPUT_COLOR1 0x7  
@@ -1015,6 +1044,13 @@ extern RPR_API_ENTRY rpr_int rprContextSetParameterString(rpr_context context, r
     */
   
 extern RPR_API_ENTRY rpr_int rprContextRender(rpr_context context);
+
+
+    /** @brief  can be called in a different thread to interrupt the rendering
+	*  then, rprContextRender will return  RPR_ERROR_ABORTED instead of RPR_SUCCESS
+    */
+  
+extern RPR_API_ENTRY rpr_int rprContextAbortRender(rpr_context context);
 
 
     /** @brief Perform evaluation and accumulation of a single sample (or number of AA samples if AA is enabled) on the part of the image
@@ -1669,6 +1705,16 @@ extern RPR_API_ENTRY rpr_int rprShapeSetScaleMotion(rpr_shape shape, rpr_float x
     */
   
 extern RPR_API_ENTRY rpr_int rprShapeSetVisibility(rpr_shape shape, rpr_bool visible);
+
+
+    /** @brief Set visibility flag
+    *
+    *  @param  shape       The shape to set visibility for
+    *  @param  visible     Determines if the shape is visible or not
+    *  @return             RPR_SUCCESS in case of success, error code otherwise
+    */
+  
+extern RPR_API_ENTRY rpr_int rprShapeSetVisibilityEx(rpr_shape shape, rpr_char const * visibilityType, rpr_bool visible);
 
 
     /** @brief Set visibility flag for primary rays
@@ -2399,9 +2445,13 @@ extern RPR_API_ENTRY rpr_int rprFrameBufferSaveToFile(rpr_framebuffer frame_buff
     *   Possible error codes:
     *      RPR_ERROR_OUT_OF_SYSTEM_MEMORY
     *      RPR_ERROR_OUT_OF_VIDEO_MEMORY
+    *
+    * Note: in RPR API 1.310, the default value of normalizeOnly has been removed.
+    *       Set it to FALSE, if you don't use this argument.
+    *
     */
   
-extern RPR_API_ENTRY rpr_int rprContextResolveFrameBuffer(rpr_context context, rpr_framebuffer src_frame_buffer, rpr_framebuffer dst_frame_buffer, rpr_bool normalizeOnly = false);
+extern RPR_API_ENTRY rpr_int rprContextResolveFrameBuffer(rpr_context context, rpr_framebuffer src_frame_buffer, rpr_framebuffer dst_frame_buffer, rpr_bool normalizeOnly);
 
 
     /** @brief Create material system
@@ -2550,7 +2600,8 @@ extern RPR_API_ENTRY rpr_int rprHeteroVolumeSetEmission(rpr_hetero_volume hetero
 extern RPR_API_ENTRY rpr_int rprHeteroVolumeSetAlbedo(rpr_hetero_volume heteroVolume, rpr_float r, rpr_float g, rpr_float b);
 extern RPR_API_ENTRY rpr_int rprHeteroVolumeSetFilter(rpr_hetero_volume heteroVolume, rpr_hetero_volume_filter filter);
 /***************compatibility part***************/
-#define FR_API_VERSION 0x010030200 
+#define FR_API_VERSION 0x010031200 
+#define FR_API_VERSION_MINOR 0xecbc8261 
 #define FR_SUCCESS 0 
 #define FR_ERROR_COMPUTE_API_NOT_SUPPORTED -1 
 #define FR_ERROR_OUT_OF_SYSTEM_MEMORY -2 
@@ -2579,6 +2630,7 @@ extern RPR_API_ENTRY rpr_int rprHeteroVolumeSetFilter(rpr_hetero_volume heteroVo
 #define FR_ERROR_OPENCL -26 
 #define FR_ERROR_NULLPTR -27 
 #define FR_ERROR_NODETYPE -28 
+#define FR_ERROR_ABORTED -29 
 #define FR_PARAMETER_TYPE_FLOAT 0x1 
 #define FR_PARAMETER_TYPE_FLOAT2 0x2 
 #define FR_PARAMETER_TYPE_FLOAT3 0x3 
@@ -2587,6 +2639,8 @@ extern RPR_API_ENTRY rpr_int rprHeteroVolumeSetFilter(rpr_hetero_volume heteroVo
 #define FR_PARAMETER_TYPE_STRING 0x6 
 #define FR_PARAMETER_TYPE_SHADER 0x7 
 #define FR_PARAMETER_TYPE_UINT 0x8 
+#define FR_PARAMETER_TYPE_ULONG 0x9 
+#define FR_PARAMETER_TYPE_LONGLONG 0xa 
 #define FR_CREATION_FLAGS_ENABLE_GPU0 (1 << 0) 
 #define FR_CREATION_FLAGS_ENABLE_GPU1 (1 << 1) 
 #define FR_CREATION_FLAGS_ENABLE_GPU2 (1 << 2) 
@@ -2598,6 +2652,15 @@ extern RPR_API_ENTRY rpr_int rprHeteroVolumeSetFilter(rpr_hetero_volume heteroVo
 #define FR_CREATION_FLAGS_ENABLE_GPU6 (1 << 8) 
 #define FR_CREATION_FLAGS_ENABLE_GPU7 (1 << 9) 
 #define FR_CREATION_FLAGS_ENABLE_METAL (1 << 10) 
+#define FR_CREATION_FLAGS_ENABLE_GPU8 (1 << 11) 
+#define FR_CREATION_FLAGS_ENABLE_GPU9 (1 << 12) 
+#define FR_CREATION_FLAGS_ENABLE_GPU10 (1 << 13) 
+#define FR_CREATION_FLAGS_ENABLE_GPU11 (1 << 14) 
+#define FR_CREATION_FLAGS_ENABLE_GPU12 (1 << 15) 
+#define FR_CREATION_FLAGS_ENABLE_GPU13 (1 << 16) 
+#define FR_CREATION_FLAGS_ENABLE_GPU14 (1 << 17) 
+#define FR_CREATION_FLAGS_ENABLE_GPU15 (1 << 18) 
+#define FR_CREATION_FLAGS_ENABLE_DEBUG (1 << 31) 
 #define FR_FILTER_NONE 0x0 
 #define FR_FILTER_BOX 0x1 
 #define FR_FILTER_TRIANGLE 0x2 
@@ -2625,8 +2688,6 @@ extern RPR_API_ENTRY rpr_int rprHeteroVolumeSetFilter(rpr_hetero_volume heteroVo
 #define FR_CONTEXT_PARAMETER_COUNT 0x107 
 #define FR_CONTEXT_ACTIVE_PLUGIN 0x108 
 #define FR_CONTEXT_SCENE 0x109 
-#define FR_CONTEXT_AA_CELL_SIZE 0x10A 
-#define FR_CONTEXT_AA_SAMPLES 0x10B 
 #define FR_CONTEXT_ITERATIONS 0x10B 
 #define FR_CONTEXT_IMAGE_FILTER_TYPE 0x10C 
 #define FR_CONTEXT_IMAGE_FILTER_BOX_RADIUS 0x10D 
@@ -2682,7 +2743,16 @@ extern RPR_API_ENTRY rpr_int rprHeteroVolumeSetFilter(rpr_hetero_volume heteroVo
 #define FR_CONTEXT_TRANSPARENT_BACKGROUND 0x13F 
 #define FR_CONTEXT_MAX_DEPTH_SHADOW 0x140 
 #define FR_CONTEXT_API_VERSION 0x141 
-#define FR_CONTEXT_MAX 0x142 
+#define FR_CONTEXT_GPU8_NAME 0x142 
+#define FR_CONTEXT_GPU9_NAME 0x143 
+#define FR_CONTEXT_GPU10_NAME 0x144 
+#define FR_CONTEXT_GPU11_NAME 0x145 
+#define FR_CONTEXT_GPU12_NAME 0x146 
+#define FR_CONTEXT_GPU13_NAME 0x147 
+#define FR_CONTEXT_GPU14_NAME 0x148 
+#define FR_CONTEXT_GPU15_NAME 0x149 
+#define FR_CONTEXT_API_VERSION_MINOR 0x14A 
+#define FR_CONTEXT_MAX 0x14a 
 #define FR_CAMERA_TRANSFORM 0x201 
 #define FR_CAMERA_FSTOP 0x202 
 #define FR_CAMERA_APERTURE_BLADES 0x203 
@@ -2737,6 +2807,7 @@ extern RPR_API_ENTRY rpr_int rprHeteroVolumeSetFilter(rpr_hetero_volume heteroVo
 #define FR_SHAPE_SCALE_MOTION 0x416 
 #define FR_SHAPE_HETERO_VOLUME 0x417 
 #define FR_SHAPE_LAYER_MASK 0x418 
+#define FR_SHAPE_VISIBILITY 0x419 
 #define FR_MESH_POLYGON_COUNT 0x501 
 #define FR_MESH_VERTEX_COUNT 0x502 
 #define FR_MESH_NORMAL_COUNT 0x503 
@@ -2924,7 +2995,10 @@ extern RPR_API_ENTRY rpr_int rprHeteroVolumeSetFilter(rpr_hetero_volume heteroVo
 #define FR_MATERIAL_INPUT_UV_TYPE 0x21 
 #define FR_MATERIAL_INPUT_RADIUS 0x22 
 #define FR_MATERIAL_INPUT_SIDE 0x23 
-#define FR_MATERIAL_INPUT_MAX 0x24 
+#define FR_MATERIAL_INPUT_CAUSTICS 0x24 
+#define FR_MATERIAL_INPUT_TRANSMISSION_COLOR 0x25 
+#define FR_MATERIAL_INPUT_THICKNESS 0x26 
+#define FR_MATERIAL_INPUT_MAX 0x27 
 #define FR_MATERIAL_STANDARD_INPUT_DIFFUSE_COLOR 0x112 
 #define FR_MATERIAL_STANDARD_INPUT_DIFFUSE_NORMAL 0x113 
 #define FR_MATERIAL_STANDARD_INPUT_GLOSSY_COLOR 0x114 
@@ -3050,7 +3124,6 @@ extern RPR_API_ENTRY rpr_int rprHeteroVolumeSetFilter(rpr_hetero_volume heteroVo
 #define FR_IMAGE_WRAP_TYPE_REPEAT 0x1 
 #define FR_IMAGE_WRAP_TYPE_MIRRORED_REPEAT 0x2 
 #define FR_IMAGE_WRAP_TYPE_CLAMP_TO_EDGE 0x3 
-#define FR_IMAGE_WRAP_TYPE_CLAMP_TO_BORDER 0x4 
 #define FR_IMAGE_WRAP_TYPE_CLAMP_ZERO 0x5 
 #define FR_IMAGE_WRAP_TYPE_CLAMP_ONE 0x6 
 #define FR_IMAGE_FILTER_TYPE_NEAREST 0x1 
@@ -3058,7 +3131,7 @@ extern RPR_API_ENTRY rpr_int rprHeteroVolumeSetFilter(rpr_hetero_volume heteroVo
 #define FR_COMPOSITE_TYPE 0x1  
 #define FR_COMPOSITE_FRAMEBUFFER_INPUT_FB 0x2  
 #define FR_COMPOSITE_NORMALIZE_INPUT_COLOR 0x3  
-#define FR_COMPOSITE_NORMALIZE_INPUT_SHADOWCATCHER 0x4  
+#define FR_COMPOSITE_NORMALIZE_INPUT_AOVTYPE 0x4  
 #define FR_COMPOSITE_CONSTANT_INPUT_VALUE 0x5  
 #define FR_COMPOSITE_LERP_VALUE_INPUT_COLOR0 0x6  
 #define FR_COMPOSITE_LERP_VALUE_INPUT_COLOR1 0x7  
@@ -3211,6 +3284,7 @@ extern RPR_API_ENTRY fr_int frContextSetParameter3f(fr_context context, fr_char 
 extern RPR_API_ENTRY fr_int frContextSetParameter4f(fr_context context, fr_char const * name, fr_float x, fr_float y, fr_float z, fr_float w);
 extern RPR_API_ENTRY fr_int frContextSetParameterString(fr_context context, fr_char const * name, fr_char const * value);
 extern RPR_API_ENTRY fr_int frContextRender(fr_context context);
+extern RPR_API_ENTRY fr_int frContextAbortRender(fr_context context);
 extern RPR_API_ENTRY fr_int frContextRenderTile(fr_context context, fr_uint xmin, fr_uint xmax, fr_uint ymin, fr_uint ymax);
 extern RPR_API_ENTRY fr_int frContextClearMemory(fr_context context);
 extern RPR_API_ENTRY fr_int frContextCreateImage(fr_context context, fr_image_format const format, fr_image_desc const * image_desc, void const * data, fr_image * out_image);
@@ -3264,6 +3338,7 @@ extern RPR_API_ENTRY fr_int frShapeSetLinearMotion(fr_shape shape, fr_float x, f
 extern RPR_API_ENTRY fr_int frShapeSetAngularMotion(fr_shape shape, fr_float x, fr_float y, fr_float z, fr_float w);
 extern RPR_API_ENTRY fr_int frShapeSetScaleMotion(fr_shape shape, fr_float x, fr_float y, fr_float z);
 extern RPR_API_ENTRY fr_int frShapeSetVisibility(fr_shape shape, fr_bool visible);
+extern RPR_API_ENTRY fr_int frShapeSetVisibilityEx(fr_shape shape, fr_char const * visibilityType, fr_bool visible);
 extern RPR_API_ENTRY fr_int frShapeSetVisibilityPrimaryOnly(fr_shape shape, fr_bool visible);
 extern RPR_API_ENTRY fr_int frShapeSetVisibilityInSpecular(fr_shape shape, fr_bool visible);
 extern RPR_API_ENTRY fr_int frShapeSetShadowCatcher(fr_shape shape, fr_bool shadowCatcher);
@@ -3318,7 +3393,7 @@ extern RPR_API_ENTRY fr_int frSceneGetCamera(fr_scene scene, fr_camera * out_cam
 extern RPR_API_ENTRY fr_int frFrameBufferGetInfo(fr_framebuffer framebuffer, fr_framebuffer_info info, size_t size, void * data, size_t * size_ret);
 extern RPR_API_ENTRY fr_int frFrameBufferClear(fr_framebuffer frame_buffer);
 extern RPR_API_ENTRY fr_int frFrameBufferSaveToFile(fr_framebuffer frame_buffer, fr_char const * file_path);
-extern RPR_API_ENTRY fr_int frContextResolveFrameBuffer(fr_context context, fr_framebuffer src_frame_buffer, fr_framebuffer dst_frame_buffer, fr_bool normalizeOnly = false);
+extern RPR_API_ENTRY fr_int frContextResolveFrameBuffer(fr_context context, fr_framebuffer src_frame_buffer, fr_framebuffer dst_frame_buffer, fr_bool normalizeOnly);
 extern RPR_API_ENTRY fr_int frContextCreateMaterialSystem(fr_context in_context, fr_material_system_type type, fr_material_system * out_matsys);
 extern RPR_API_ENTRY fr_int frMaterialSystemGetSize(fr_context in_context, fr_uint * out_size);
 extern RPR_API_ENTRY fr_int frMaterialSystemCreateNode(fr_material_system in_matsys, fr_material_node_type in_type, fr_material_node * out_node);
