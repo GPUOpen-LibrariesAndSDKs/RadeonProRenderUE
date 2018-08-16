@@ -30,6 +30,7 @@
 #include "Containers/Queue.h"
 #include "Templates/Tuple.h"
 #include "Typedefs/RPRXTypedefs.h"
+#include "Scene/StaticMeshComponent/DelegateHandleManager.h"
 #include "RPRStaticMeshComponent.generated.h"
 
 namespace	RadeonProRender
@@ -86,6 +87,10 @@ private:
 	void	WatchMaterialsChanges();
 	void	UpdateLastMaterialList();
 
+	RPR::FResult	DetachCurrentMaterial(RPR::FShape Shape);
+
+	FRPRShape*		FindShapeByMaterialIndex(int32 MaterialIndex);
+
 private:
 
 	static TMap<UStaticMesh*, TArray<FRPRCachedMesh>>	Cache;
@@ -98,5 +103,5 @@ private:
 	TArray<UMaterialInterface*> m_cachedMaterials;
 	TArray<UMaterialInterface*> m_lastMaterialsList;
 
-	TMap<URPRMaterial*, FDelegateHandle> m_OnMaterialChangedDelegateHandles;
+	FDelegateHandleManager<URPRMaterial> m_OnMaterialChangedDelegateHandles;
 };

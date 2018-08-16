@@ -39,6 +39,8 @@ FRPRXMaterialLibrary::FRPRXMaterialLibrary()
 
 void FRPRXMaterialLibrary::Initialize()
 {
+	UE_LOG(LogRPRMaterialLibrary, Verbose, TEXT("Initialize"));
+
 	bIsInitialized = true;
 	InitializeDummyMaterial();
 }
@@ -52,6 +54,8 @@ void FRPRXMaterialLibrary::Close()
 {
 	if (IsInitialized())
 	{
+		UE_LOG(LogRPRMaterialLibrary, Verbose, TEXT("Close"));
+
 		DestroyDummyMaterial();
 		ClearCache();
 	}
@@ -64,7 +68,10 @@ bool FRPRXMaterialLibrary::Contains(const URPRMaterial* InMaterial) const
 
 bool FRPRXMaterialLibrary::CacheAndRegisterMaterial(URPRMaterial* InMaterial)
 {
+	check(InMaterial);
 	check(!Contains(InMaterial));
+
+	UE_LOG(LogRPRMaterialLibrary, Verbose, TEXT("Cache material %s"), *InMaterial->GetName());
 
 	RPRI::FExportMaterialResult exportMaterialResult;
 	if (CacheMaterial(InMaterial, exportMaterialResult))
@@ -78,6 +85,9 @@ bool FRPRXMaterialLibrary::CacheAndRegisterMaterial(URPRMaterial* InMaterial)
 
 bool FRPRXMaterialLibrary::RecacheMaterial(URPRMaterial* MaterialKey)
 {
+	check(MaterialKey);
+	UE_LOG(LogRPRMaterialLibrary, Verbose, TEXT("Recache material %s"), *MaterialKey->GetName());
+
 	uint32 materialType;
 	RPR::FMaterialRawDatas material;
 	if (TryGetMaterialRawDatas(MaterialKey, materialType, material))
@@ -184,6 +194,8 @@ void FRPRXMaterialLibrary::DestroyDummyMaterial()
 {
 	if (DummyMaterial != nullptr)
 	{
+		UE_LOG(LogRPRMaterialLibrary, Verbose, TEXT("Destroy dummy material"));
+
 		RPR::FMaterialHelpers::DeleteNode(DummyMaterial);
 		DummyMaterial = nullptr;
 	}
@@ -196,6 +208,7 @@ bool FRPRXMaterialLibrary::CacheMaterial(URPRMaterial* InMaterial, RPRI::FExport
 	RPRX::FMaterialCacheMaker cacheMaker(CreateMaterialContext(), InMaterial);
 	if (!cacheMaker.CacheUberMaterial(newMaterial))
 	{
+		UE_LOG(LogRPRMaterialLibrary, Verbose, TEXT("Failed to cache uber material %s"), *InMaterial->GetName());
 		return (false);
 	}
 
@@ -203,6 +216,8 @@ bool FRPRXMaterialLibrary::CacheMaterial(URPRMaterial* InMaterial, RPRI::FExport
 	OutMaterial.data = newMaterial;
 
 	InMaterial->ResetMaterialDirtyFlag();
+
+	UE_LOG(LogRPRMaterialLibrary, Verbose, TEXT("Success to cache uber material %s -> %p"), *InMaterial->GetName(), newMaterial);
 	return (true);
 }
 
@@ -212,6 +227,8 @@ void FRPRXMaterialLibrary::ReleaseRawMaterialDatas(RPRI::FExportMaterialResult& 
 
 	try
 	{
+		UE_LOG(LogRPRMaterialLibrary, Verbose, TEXT("Delete material %p"), Material.data);
+
 		RPRX::FContext rprxSupportCtx = IRPRCore::GetResources()->GetRPRXSupportContext();
 		RPRI::DeleteMaterial(rprxSupportCtx, Material);
 	}
