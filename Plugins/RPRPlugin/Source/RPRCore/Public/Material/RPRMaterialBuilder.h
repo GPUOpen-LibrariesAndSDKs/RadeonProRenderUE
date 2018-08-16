@@ -19,6 +19,7 @@
 #pragma once
 
 #include "Typedefs/RPRTypedefs.h"
+#include "RPRCoreModule.h"
 
 namespace RPR
 {

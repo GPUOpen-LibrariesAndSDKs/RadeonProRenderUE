@@ -108,6 +108,7 @@ namespace RPR
 		FResult CommitMaterialX(FMaterialRawDatas MaterialRawDatas)
 		{
 			auto rprSupportContext = IRPRCore::GetResources()->GetRPRXSupportContext();
+
 			FResult status = RPRX::MaterialCommit(rprSupportContext, reinterpret_cast<RPRX::FMaterial>(MaterialRawDatas));
 
 			if (IsResultFailed(status))

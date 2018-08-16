@@ -494,7 +494,14 @@ bool URPRStaticMeshComponent::RPRThread_Update()
 	{
 		FScopeLock scLock(&m_RefreshLock);
 		bNeedRebuild |= UpdateDirtyMaterialsIFN();
-		bNeedRebuild |= UpdateDirtyMaterialsChangesIFN();
+		// TODO : Re-enable to update correctly the material
+		// Disabled for now because it crashes in specific case :
+		// - enable RPR rendering
+		// - change the material of the mesh with another RPR material
+		// - delete the mesh
+		// - undo with Ctrl+Z
+		// - crash during the commit of the material parameters
+		// bNeedRebuild |= UpdateDirtyMaterialsChangesIFN();
 	}
 
 	return (bNeedRebuild | Super::RPRThread_Update());
@@ -539,6 +546,7 @@ bool URPRStaticMeshComponent::UpdateDirtyMaterialsChangesIFN()
 
 		FRPRCoreSystemResourcesPtr resources = IRPRCore::GetResources();
 		auto rprMaterialLibrary = resources->GetRPRMaterialLibrary();
+		//rprMaterialLibrary->ClearCache();
 		for (int32 materialIndex = 0; materialIndex < m_lastMaterialsList.Num(); ++materialIndex)
 		{
 			UMaterialInterface* material = m_lastMaterialsList[materialIndex];
