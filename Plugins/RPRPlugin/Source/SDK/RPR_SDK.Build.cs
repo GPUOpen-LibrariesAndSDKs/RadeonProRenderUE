@@ -53,8 +53,9 @@ public class RPR_SDK : ModuleRules
 
 
     public RPR_SDK(ReadOnlyTargetRules Target) : base(Target)
-	{
-		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+    {
+        bEnableExceptions = true;
+        PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
        
      	PrivateIncludePaths.AddRange(
 			new string[] {
