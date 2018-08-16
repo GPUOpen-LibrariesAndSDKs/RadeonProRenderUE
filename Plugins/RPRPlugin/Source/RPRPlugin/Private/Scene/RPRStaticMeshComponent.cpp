@@ -470,12 +470,11 @@ bool	URPRStaticMeshComponent::PostBuild()
 	if (Scene == nullptr || !IsSrcComponentValid())
 		return false;
 
-	m_RefreshLock.Lock();
 	{
+		FScopeLock sc(&m_RefreshLock);
 		if (!BuildMaterials())
 			return false;
 	}
-	m_RefreshLock.Unlock();
 
 	return Super::PostBuild();
 }
@@ -491,7 +490,7 @@ bool URPRStaticMeshComponent::RPRThread_Update()
 
 	bool bNeedRebuild = false;
 	{
-		m_RefreshLock.Lock();
+		FScopeLock sc(&m_RefreshLock);
 
 		bNeedRebuild |= UpdateDirtyMaterialsIFN();
 		// TODO : Re-enable to update correctly the material
@@ -503,7 +502,6 @@ bool URPRStaticMeshComponent::RPRThread_Update()
 		// - crash during the commit of the material parameters
 		// bNeedRebuild |= UpdateDirtyMaterialsChangesIFN();
 
-		m_RefreshLock.Unlock();
 	}
 
 	return (bNeedRebuild | Super::RPRThread_Update());
@@ -588,7 +586,7 @@ bool URPRStaticMeshComponent::UpdateDirtyMaterialsChangesIFN()
 
 void URPRStaticMeshComponent::OnUsedMaterialChanged(URPRMaterial* Material)
 {
-	m_RefreshLock.Lock();
+	FScopeLock sc(&m_RefreshLock);
 
 	FRPRXMaterialLibrary& rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 	if (rprMaterialLibrary.Contains(Material))
@@ -600,8 +598,6 @@ void URPRStaticMeshComponent::OnUsedMaterialChanged(URPRMaterial* Material)
 	{
 		m_OnMaterialChangedDelegateHandles.Unsubscribe(Material);
 	}
-
-	m_RefreshLock.Unlock();
 }
 
 void URPRStaticMeshComponent::ClearMaterialChangedWatching()
