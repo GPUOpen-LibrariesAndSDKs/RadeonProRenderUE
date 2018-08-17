@@ -18,17 +18,17 @@
 ********************************************************************/
 #pragma once
 
-#include "Material/Tools/MaterialCacheMaker/ParameterSetters/IMaterialParameter.h"
+#include "Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialMap/MaterialMapParameterSetter.h"
 
 namespace RPRX
 {
 
-    class FNormalMapParameterSetter : public IMaterialParameter
+    class FNormalMapParameterSetter : public FMaterialMapParameterSetter
     {
 
-    public:
-        virtual void ApplyParameterX(MaterialParameter::FArgs& SetterParameters) override;
+	protected:
+		virtual RPR::FImageManager::EImageType GetImageType() const override;
 
-    };
+	};
 
 }

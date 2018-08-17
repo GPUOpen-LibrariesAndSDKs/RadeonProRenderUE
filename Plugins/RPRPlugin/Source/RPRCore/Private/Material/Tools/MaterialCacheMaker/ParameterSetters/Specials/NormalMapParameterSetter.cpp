@@ -23,46 +23,14 @@
 #include "Helpers/RPRXMaterialHelpers.h"
 #include "RPRCoreModule.h"
 #include "Material/UberMaterialParameters/RPRMaterialMap.h"
+#include "ImageManager/RPRImageManager.h"
 
 namespace RPRX
 {
-
-    void FNormalMapParameterSetter::ApplyParameterX(MaterialParameter::FArgs& SetterParameters)
-    {
-        RPR::FMaterialContext& materialContext = SetterParameters.MaterialContext;
-
-        RPR::FMaterialNode imageMaterialNode = nullptr;
-
-        const FRPRMaterialMap* normalMap = SetterParameters.GetDirectParameter<FRPRMaterialMap>();
-        if (normalMap->Texture != nullptr && SetterParameters.ImageManager.IsValid())
-        {
-            RPR::FResult imageNodeCreationResult = RPR::FMaterialHelpers::CreateImageNode(
-                materialContext.RPRContext,
-                materialContext.MaterialSystem,
-                *SetterParameters.ImageManager.Get(),
-                normalMap->Texture,
-                RPR::FImageManager::EImageType::NormalMap,
-                imageMaterialNode
-            );
-
-            if (RPR::IsResultFailed(imageNodeCreationResult))
-            {
-                UE_LOG(LogRPRCore, Warning, TEXT("Cannot load normal map image '%s' for parameter '%s'"), 
-                    *normalMap->Texture->GetName(), 
-                    *SetterParameters.Property->GetName());
-
-                return;
-            }
-        }
-
-        FMaterialHelpers::SetMaterialParameterNode(
-            materialContext.RPRXContext,
-            SetterParameters.Material,
-            SetterParameters.GetRprxParam(),
-            imageMaterialNode
-        );
-
-        return;
-    }
+	
+	RPR::FImageManager::EImageType FNormalMapParameterSetter::GetImageType() const
+	{
+		return RPR::FImageManager::EImageType::NormalMap;
+	}
 
 }

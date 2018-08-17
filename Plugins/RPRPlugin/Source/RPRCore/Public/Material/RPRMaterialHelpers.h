@@ -33,19 +33,36 @@ namespace RPR
 	{
 	public:
 
+		struct FImageNodeCreationParameters
+		{
+			RPR::FContext Context;
+			RPR::FMaterialSystem MaterialSystem;
+			RPR::FImageManagerPtr ImageManager;
+			UTexture2D* Texture;
+			RPR::FImageManager::EImageType ImageType;
+		};
+
 		static const TCHAR*	ImageDataInputName;
 
-		static FResult	CreateNode(FMaterialSystem MaterialSystem, EMaterialNodeType NodeType, FMaterialNode& OutMaterialNode);
-		static FResult	DeleteNode(FMaterialNode& MaterialNode);
+		static FResult	CreateNode(FMaterialSystem MaterialSystem, EMaterialNodeType NodeType, RPR::FMaterialNode& OutMaterialNode);
+		static FResult	DeleteNode(RPR::FMaterialNode& MaterialNode);
 
-		static FResult	CreateImageNode(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
-													UTexture2D* Texture, RPR::FImageManager::EImageType ImageType, FMaterialNode& MaterialNode);
+		static FResult	CreateImageNode(FImageNodeCreationParameters& CreationParameters, RPR::FMaterialNode& OutMaterialNode);
 
-		class FMaterialNode
+		// Creates an image node and outputs the main node created (could be normal map or image) and the image node created.
+		static FResult	CreateImageNode(FImageNodeCreationParameters& CreationParameters, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutImageNode);
+
+		class FNode
 		{
 		public:
 
-			static FResult	SetInputF(RPR::FMaterialNode MaterialNode, const FString& ParameterName, float x, float y, float z, float w);
+			static FResult	SetInputUInt(RPR::FMaterialNode MaterialNode, const FString& ParameterName, uint8 Value);
+			static FResult	SetInputNode(RPR::FMaterialNode MaterialNode, const FString& ParameterName, RPR::FMaterialNode InMaterialNode);
+
+			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, float x, float y = 0.0f, float z = 0.0f, float w = 0.0f);
+			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector2D& Value, float z = 0.0f, float w = 0.0f);
+			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector& Value, float w = 0.0f);
+			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector4& Value);
 
 		};
 	};

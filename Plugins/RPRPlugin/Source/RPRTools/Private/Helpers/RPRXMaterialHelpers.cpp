@@ -71,7 +71,7 @@ namespace RPRX
 
 	RPR::FResult FMaterialHelpers::SetMaterialParameterFloats(FContext Context, FMaterial Material, FParameter Parameter, float x, float y, float z, float w)
 	{
-		CheckParameterType(Context, Material, Parameter, RPRX_PARAMETER_TYPE_FLOAT4);
+		//CheckParameterType(Context, Material, Parameter, RPRX_PARAMETER_TYPE_FLOAT4);
 
 		RPR::FResult result = rprxMaterialSetParameterF(Context, Material, Parameter, x, y, z, w);
 		ensureMsgf(RPR::IsResultSuccess(result), TEXT("An error occured when set material parameter float4 %#04"), result);

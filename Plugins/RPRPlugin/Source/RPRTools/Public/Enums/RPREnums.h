@@ -48,8 +48,10 @@ namespace RPR
 		Emissive				= RPR_MATERIAL_NODE_EMISSIVE,
 
 		ImageTexture			= RPR_MATERIAL_NODE_IMAGE_TEXTURE,
-		NormalMap				= RPR_MATERIAL_NODE_NORMAL_MAP
+		NormalMap				= RPR_MATERIAL_NODE_NORMAL_MAP,
 
+		UVProcedural			= RPR_MATERIAL_NODE_UV_PROCEDURAL,
+		UVTriplanar				= RPR_MATERIAL_NODE_UV_TRIPLANAR
 		// Not completed. See rpr_material_node_type in RadeonProRender for others
 	};
 

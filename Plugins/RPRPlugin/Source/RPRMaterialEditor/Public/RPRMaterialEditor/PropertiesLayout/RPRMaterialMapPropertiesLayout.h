@@ -33,11 +33,27 @@ protected:
 
 	virtual TSharedRef<SWidget> GetPropertyValueRowWidget() override;
 
-	TSharedPtr<IPropertyHandle> GetTexturePropertyHandle() const;
 	TSharedRef<SWidget>			CreateCheckedTexturePropertyWidget() const;
+	TSharedRef<SWidget>			CreateUVSettingsPropertyWidget() const;
 	EVisibility					GetTextureFormatFixerAreaVisibility() const;
 	FReply						OnFixTextureFormatButtonClicked();
 	UTexture2D*					GetTexture();
 	const UTexture2D*			GetTexture() const;
+
+	TSharedRef<SWidget>			CreateVector2DPropertyWidget(TSharedPtr<IPropertyHandle> PropertyHandle) const;
+	TSharedRef<SWidget>			CreateVectorPropertyWidget(TSharedPtr<IPropertyHandle> PropertyHandle) const;
+	TOptional<float>			GetVectorComponent(TSharedPtr<IPropertyHandle> PropertyHandle, int32 ComponentIndex) const;
+	void						SetVectorComponent(float Value, ETextCommit::Type CommitType, TSharedPtr<IPropertyHandle> PropertyHandle, EAxis::Type AxisType);
+	float						GetVector2DComponentValue(TSharedPtr<IPropertyHandle> Vector2PropertyHandle, EAxis::Type AxisType) const;
+	void						OnVector2DComponentValueChanged(float NewValue, TSharedPtr<IPropertyHandle> Vector2PropertyHandle, EAxis::Type AxisType);
+
+	TSharedPtr<IPropertyHandle> GetTexturePropertyHandle() const;
+	TSharedPtr<IPropertyHandle>	GetUVWeightPropertyHandle() const;
+	TSharedPtr<IPropertyHandle> GetThresholdPropertyHandle() const;
+	TSharedPtr<IPropertyHandle> GetUVModePropertyHandle() const;
+	TSharedPtr<IPropertyHandle> GetOriginPropertyHandle() const;
+	TSharedPtr<IPropertyHandle> GetXAxisPropertyHandle() const;
+	TSharedPtr<IPropertyHandle> GetZAxisPropertyHandle() const;
+	TSharedPtr<IPropertyHandle> GetScalePropertyHandle() const;
 
 };

@@ -38,13 +38,13 @@ void FRPRMaterialParameterBasePropertyLayout::CustomizeHeader(TSharedRef<IProper
 		[
 			SNew(SHorizontalBox)
 			+SHorizontalBox::Slot()
-			.AutoWidth()
+			.FillWidth(1.0f)
 			.HAlign(HAlign_Left)
 			[
 				GetPropertyValueRowWidget()
 			]
 			+SHorizontalBox::Slot()
-			.FillWidth(1.0f)
+			.AutoWidth()
 			.HAlign(HAlign_Right)
 			.VAlign(VAlign_Center)
 			[

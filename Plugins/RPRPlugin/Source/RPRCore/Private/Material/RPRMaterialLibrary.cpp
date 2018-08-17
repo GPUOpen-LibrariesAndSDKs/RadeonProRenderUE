@@ -183,7 +183,7 @@ void FRPRXMaterialLibrary::InitializeDummyMaterial()
 		return;
 	}
 
-	result = RPR::FMaterialHelpers::FMaterialNode::SetInputF(DummyMaterial, TEXT("color"), 0.5f, 0.5f, 0.5f, 1.0f);
+	result = RPR::FMaterialHelpers::FNode::SetInputFloats(DummyMaterial, TEXT("color"), 0.5f, 0.5f, 0.5f, 1.0f);
 	if (RPR::IsResultFailed(result))
 	{
 		UE_LOG(LogRPRMaterialLibrary, Warning, TEXT("Cannot set the default color on the dummy material"));

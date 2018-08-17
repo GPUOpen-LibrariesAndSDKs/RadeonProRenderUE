@@ -25,11 +25,15 @@ namespace RPRX
 
 	class FMaterialMapParameterSetter : public IMaterialParameter
 	{
-		virtual void	ApplyParameterX(MaterialParameter::FArgs& SetterParameters);
+	public:
+		void	ApplyParameterX(MaterialParameter::FArgs& SetterParameters) override;
 
 	protected:
 
+		virtual RPR::FImageManager::EImageType	GetImageType() const;
+
 		bool	ApplyTextureParameter(MaterialParameter::FArgs& SetterParameters);
+		bool	ApplyUVSettings(MaterialParameter::FArgs& SetterParameters, RPR::FMaterialNode ImageMaterialNode);
 	};
 
 }
