@@ -70,7 +70,12 @@ private:
 	void	InitializeDummyMaterial();
 	void	DestroyDummyMaterial();
 	bool	CacheMaterial(URPRMaterial* InMaterial, RPRI::FExportMaterialResult& OutMaterial);
-	void	ReleaseRawMaterialDatas(RPRI::FExportMaterialResult& Material);
+
+	void	ReleaseRawMaterialData(const URPRMaterial* InMaterial, RPRI::FExportMaterialResult& Material);
+	void	ReleaseMaterialNodes(const URPRMaterial* InMaterial, RPRI::FExportMaterialResult& Material);
+	void	ReleaseMaterialNodes(const URPRMaterial* InMaterial, const FRPRMaterialMap* MaterialMap, RPRX::FMaterial RawMaterial);
+	void	ReleaseMaterialNodesHierarchy(RPR::FMaterialNode MaterialNode);
+
 	RPR::FMaterialContext	CreateMaterialContext() const;
 
 private:

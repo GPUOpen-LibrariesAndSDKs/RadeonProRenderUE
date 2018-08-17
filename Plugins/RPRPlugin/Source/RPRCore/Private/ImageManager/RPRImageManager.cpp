@@ -43,6 +43,11 @@ namespace RPR
 		cache.Add(Texture, image);
 	}
 
+	void FImageManager::RemoveImage(RPR::FImage Image)
+	{
+		cache.Release(Image);
+	}
+
 	FImage FImageManager::LoadImageFromTexture(UTexture2D* Texture, EImageType ImageType, bool bRebuild)
 	{
 		FImage image = LoadImageFromTextureInternal(Texture, ImageType, bRebuild);
@@ -204,11 +209,6 @@ namespace RPR
 	EPixelFormat FImageManager::GetDefaultSupportedPixelFormat()
 	{
 		return (PF_B8G8R8A8);
-	}
-
-	void FImageManager::Transfer(FImageManager& Destination)
-	{
-		cache.Transfer(Destination.cache);
 	}
 
 	bool	FImageManager::BuildRPRImageFormat(EPixelFormat srcFormat, FImageFormat &outFormat, uint32 &outComponentSize, EImageType imageType)

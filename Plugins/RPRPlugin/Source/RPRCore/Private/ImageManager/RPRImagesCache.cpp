@@ -44,13 +44,18 @@ namespace RPR
 		}
 	}
 
-	void FImagesCache::Transfer(FImagesCache& ImageCache)
+	void FImagesCache::Release(FImage Image)
 	{
-		for (auto it(loadedImages.CreateIterator()) ; it ; ++it)
+		for (auto it(loadedImages.CreateIterator()); it; ++it)
 		{
-			ImageCache.Add(it.Key(), it.Value());
+			FImage image = it.Value();
+			if (image == Image)
+			{
+				RPR::DeleteObject(image);
+				loadedImages.Remove(it.Key());
+				break;
+			}
 		}
-		loadedImages.Empty();
 	}
 
 	void FImagesCache::ReleaseAll()
