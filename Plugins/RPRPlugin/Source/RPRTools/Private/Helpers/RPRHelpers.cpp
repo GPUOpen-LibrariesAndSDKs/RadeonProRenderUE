@@ -27,6 +27,7 @@
 #include "HAL/UnrealMemory.h"
 #include "Helpers/RPRErrorsHelpers.h"
 #include "Helpers/RPRXMaterialHelpers.h"
+#include "Helpers/GenericGetInfo.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRHelpers, Log, All);
 
@@ -78,7 +79,7 @@ namespace RPR
 
 	bool IsResultFailed(rpr_int Result)
 	{
-		return (!IsResultSuccess(Result));
+		return !IsResultSuccess(Result);
 	}
 
 	FResult DeleteObject(void* Object)
@@ -94,11 +95,6 @@ namespace RPR
 	FResult SceneDetachShape(FScene Scene, FShape Shape)
 	{
 		return rprSceneDetachShape(Scene, Shape);
-	}
-
-	FResult ShapeSetMaterial(FShape Shape, RPR::FMaterialNode MaterialNode)
-	{
-		return (rprShapeSetMaterial(Shape, MaterialNode));
 	}
 
 	FResult SceneClear(FScene Scene)
@@ -119,6 +115,23 @@ namespace RPR
 
 	namespace RPRMaterial
 	{
+
+		RPR::FResult GetNodeName(RPR::FMaterialNode MaterialNode, FString& OutName)
+		{
+			return RPR::Generic::GetObjectName(rprMaterialNodeGetInfo, MaterialNode, OutName);
+		}
+
+		FString GetNodeName(RPR::FMaterialNode Material)
+		{
+			FString name;
+			RPR::FResult status = GetNodeName(Material, name);
+			if (RPR::IsResultFailed(status))
+			{
+				name = TEXT("Unkown");
+			}
+			return name;
+		}
+
 		RPR::FResult GetNodeInputName(RPR::FMaterialNode MaterialNode, int32 InputIndex, FString& OutName)
 		{
 			TArray<uint8> rawDatas;

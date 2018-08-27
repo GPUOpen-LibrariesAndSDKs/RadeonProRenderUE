@@ -19,6 +19,7 @@
 #include "Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialCoMChannel1/MaterialCoMChannel1ParameterSetter.h"
 #include "Material/UberMaterialParameters/RPRMaterialCoMChannel1.h"
 #include "Helpers/RPRXMaterialHelpers.h"
+#include "RPRCoreModule.h"
 
 namespace RPRX
 {
@@ -29,13 +30,20 @@ namespace RPRX
 
 		if (materialMap->Mode == ERPRMaterialMapMode::Texture)
 		{
-			if (materialMap->Texture != nullptr)
-			{
-				ApplyTextureParameter(SetterParameters);
-			}
+			UE_LOG(LogRPRCore_Steps, Verbose, TEXT("[%s] %s -> Set texture : %s"),
+				*SetterParameters.OwnerMaterial->GetName(),
+				*SetterParameters.Property->GetName(),
+				materialMap->Texture != nullptr ? *materialMap->Texture->GetName() : TEXT("None"));
+
+			ApplyTextureParameter(SetterParameters);
 		}
 		else
 		{
+			UE_LOG(LogRPRCore_Steps, Verbose, TEXT("[%s] %s -> Set constant value : %.2f"),
+				*SetterParameters.OwnerMaterial->GetName(),
+				*SetterParameters.Property->GetName(),
+				materialMap->Constant);
+
 			RPR::FMaterialContext& materialContext = SetterParameters.MaterialContext;
 
 			switch (materialMap->RPRInterpretationMode)

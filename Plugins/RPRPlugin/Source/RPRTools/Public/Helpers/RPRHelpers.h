@@ -94,6 +94,9 @@ namespace RPR
 			return (status);
 		}
 		
+		RPRTOOLS_API RPR::FResult	GetNodeName(RPR::FMaterialNode MaterialNode, FString& OutName);
+		RPRTOOLS_API FString		GetNodeName(RPR::FMaterialNode MaterialNode);
+
 		RPRTOOLS_API RPR::FResult GetNodeInputName(RPR::FMaterialNode MaterialNode, int32 InputIndex, FString& OutName);
 		RPRTOOLS_API RPR::FResult GetNodeInputType(RPR::FMaterialNode MaterialNode, int32 InputIndex, RPR::EMaterialNodeInputType& OutInputType);
 		RPRTOOLS_API RPR::FResult GetNodeInputValue(RPR::FMaterialNode MaterialNode, int32 InputIndex, TArray<uint8>& OutRawDatas);

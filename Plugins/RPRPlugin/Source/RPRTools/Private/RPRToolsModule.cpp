@@ -20,6 +20,7 @@
 #include "RPRToolsModule.h"
 
 DEFINE_LOG_CATEGORY(LogRPRTools)
+DEFINE_LOG_CATEGORY(LogRPRTools_Step)
 
 void FRPRToolsModule::StartupModule()
 {

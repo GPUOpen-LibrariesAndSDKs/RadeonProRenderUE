@@ -70,9 +70,9 @@ namespace RPRX
 	}
 
 	RPR::FResult FMaterialCacheMaker::ApplyUberMaterialParameter(const FRPRUberMaterialParameters& InParameters,
-																			UScriptStruct* InParametersStruct,
-																			UProperty* InParameterProperty,
-																			FMaterial& InOutMaterial)
+																		UScriptStruct* InParametersStruct,
+																		UProperty* InParameterProperty,
+																		FMaterial& InOutMaterial)
 	{
 		RPR::FResult result = RPR_SUCCESS;
 
@@ -82,6 +82,7 @@ namespace RPRX
 			InParameters,
 			InParameterProperty,
 			imageManager,
+			RPRMaterial,
 			MaterialContext,
 			InOutMaterial
 		);
@@ -90,6 +91,8 @@ namespace RPRX
 		{
             if (materialCacheParametersSetterArgs.HasCustomParameterApplier())
             {
+				UE_LOG(LogRPRCore_Steps, Verbose, TEXT("[%s] %s -> Parameter use custom application"), *RPRMaterial->GetName(), *InParameterProperty->GetName());
+
                 FRPRUberMaterialParameterBase* materialParameter = materialCacheParametersSetterArgs.GetMaterialParameterBase();
                 materialParameter->ApplyParameter(materialCacheParametersSetterArgs);
             }
@@ -100,9 +103,15 @@ namespace RPRX
 
                 if (mapSetter.IsValid())
                 {
+					UE_LOG(LogRPRCore_Steps, Verbose, TEXT("[%s] %s -> Parameter use standard application"), *RPRMaterial->GetName(), *InParameterProperty->GetName());
+
                     mapSetter->ApplyParameterX(materialCacheParametersSetterArgs);
                 }
             }
+		}
+		else
+		{
+			UE_LOG(LogRPRCore_Steps, Verbose, TEXT("[%s] %s -> Parameter not used"), *RPRMaterial->GetName(), *InParameterProperty->GetName());
 		}
 
 		return (result);

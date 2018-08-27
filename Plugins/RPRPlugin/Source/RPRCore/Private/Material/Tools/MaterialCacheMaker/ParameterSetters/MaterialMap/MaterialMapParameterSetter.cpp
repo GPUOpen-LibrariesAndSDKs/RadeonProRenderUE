@@ -22,12 +22,19 @@
 #include "Material/MaterialContext.h"
 #include "Typedefs/RPRTypedefs.h"
 #include "Helpers/RPRXMaterialHelpers.h"
+#include "RPRCoreModule.h"
 
 namespace RPRX
 {
 
 	void FMaterialMapParameterSetter::ApplyParameterX(MaterialParameter::FArgs& SetterParameters)
 	{
+		const FRPRMaterialMap* materialMap = SetterParameters.GetDirectParameter<FRPRMaterialMap>();
+		UE_LOG(LogRPRCore_Steps, Verbose, TEXT("[%s] %s -> Set texture : %s"),
+			*SetterParameters.OwnerMaterial->GetName(),
+			*SetterParameters.Property->GetName(),
+			materialMap->Texture != nullptr ? *materialMap->Texture->GetName() : TEXT("None"));
+
 		ApplyTextureParameter(SetterParameters);
 	}
 

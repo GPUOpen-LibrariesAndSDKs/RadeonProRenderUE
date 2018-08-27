@@ -21,6 +21,7 @@
 #include "Enums/RPREnums.h"
 #include "Helpers/RPRXHelpers.h"
 #include "Helpers/RPRErrorsHelpers.h"
+#include "Helpers/RPRShapeHelpers.h"
 #include "RPRCoreSystemResources.h"
 #include "RPRCoreModule.h"
 
@@ -82,7 +83,7 @@ namespace RPR
 
 		FResult SetMaterialOnShape(FShape& Shape, FMaterialRawDatas MaterialRawDatas)
 		{
-			FResult status = RPR::ShapeSetMaterial(Shape, reinterpret_cast<RPRX::FMaterial>(MaterialRawDatas));
+			FResult status = RPR::Shape::SetMaterial(Shape, reinterpret_cast<RPR::FMaterialNode>(MaterialRawDatas));
 
 			if (IsResultFailed(status))
 			{

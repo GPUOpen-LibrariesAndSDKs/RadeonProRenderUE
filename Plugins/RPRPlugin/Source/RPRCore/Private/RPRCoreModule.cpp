@@ -6,6 +6,7 @@
 #include "RPR_SDKModule.h"
 
 DEFINE_LOG_CATEGORY(LogRPRCore)
+DEFINE_LOG_CATEGORY(LogRPRCore_Steps)
 
 class FRPRCoreModule : public IRPRCore
 {

@@ -19,6 +19,7 @@
 #include "Material/Tools/MaterialCacheMaker/ParameterArgs.h"
 #include "Material/RPRUberMaterialParameters.h"
 #include "Material/Tools/UberMaterialPropertyHelper.h"
+#include "Assets/RPRMaterial.h"
 #include "Helpers/RPRConstAway.h"
 
 namespace RPRX
@@ -26,10 +27,16 @@ namespace RPRX
 	namespace MaterialParameter
 	{
 
-		FArgs::FArgs(const FRPRUberMaterialParameters& InParameters, const UProperty* InProperty, RPR::FImageManagerPtr InImageManager,
-			RPR::FMaterialContext& InMaterialContext, FMaterial& InMaterial)
+		FArgs::FArgs(
+			const FRPRUberMaterialParameters& InParameters, 
+			const UProperty* InProperty, 
+			RPR::FImageManagerPtr InImageManager,
+			const URPRMaterial* InOwnerMaterial,
+			RPR::FMaterialContext& InMaterialContext, 
+			FMaterial& InMaterial)
 			: Parameters(InParameters)
 			, Property(InProperty)
+			, OwnerMaterial(InOwnerMaterial)
 			, MaterialContext(InMaterialContext)
 			, Material(InMaterial)
 			, ImageManager(InImageManager)

@@ -32,6 +32,7 @@
 #include "StaticMeshResources.h"
 
 #include "Helpers/RPRHelpers.h"
+#include "Helpers/RPRShapeHelpers.h"
 
 #include "RadeonProRenderInterchange.h"
 #include "Scene/RPRInterchangeMaterial.h"
@@ -201,7 +202,7 @@ void URPRStaticMeshComponent::AttachDummyMaterial(RPR::FShape shape)
 	FRPRXMaterialLibrary& rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 	RPR::FMaterialNode dummyMaterial = rprMaterialLibrary.GetDummyMaterial();
 
-	RPR::FResult result = RPR::ShapeSetMaterial(shape, dummyMaterial);
+	RPR::FResult result = RPR::Shape::SetMaterial(shape, dummyMaterial);
 	if (RPR::IsResultFailed(result))
 	{
 		UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Cannot attach dummy material to mesh %s"), *GetName());

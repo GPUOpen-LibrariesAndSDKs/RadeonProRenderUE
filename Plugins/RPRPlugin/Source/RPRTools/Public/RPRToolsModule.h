@@ -24,6 +24,9 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRPRTools, All, All);
 
+// Used to trace rendering steps
+DECLARE_LOG_CATEGORY_EXTERN(LogRPRTools_Step, Verbose, Verbose);
+
 class FRPRToolsModule : public IModuleInterface
 {
 public:

@@ -30,6 +30,9 @@ namespace RPRX
 		{
 			UE_LOG(LogMaterialHelpers, VeryVerbose, TEXT("New materialX created [%p]"), OutMaterial);
 		}
+	
+		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxCreateMaterial(%p, %d) -> %p"), RPRXContext, MaterialType, OutMaterial);
+		
 		return (status);
 	}
 
@@ -44,6 +47,7 @@ namespace RPRX
 		RPR::FResult status = RPRX::FMaterialHelpers::IsMaterialRPRX(RPRXContext, MaterialData, outMaterial, bIsRPRXMaterial);
 		if (RPR::IsResultSuccess(status) && bIsRPRXMaterial)
 		{
+			UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxMaterialDelete(%p)"), MaterialData);
 			UE_LOG(LogMaterialHelpers, VeryVerbose, TEXT("Delete material [%p]"), MaterialData);
 			return (rprxMaterialDelete(RPRXContext, MaterialData));
 		}
@@ -52,12 +56,15 @@ namespace RPRX
 
 	RPR::FResult FMaterialHelpers::SetMaterialParameterNode(FContext Context, FMaterial Material, FParameter Parameter, RPR::FMaterialNode MaterialNode)
 	{
+		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxMaterialSetParameterN(%p, %p, %d, %s)"), Context, Material, Parameter, *RPR::RPRMaterial::GetNodeName(MaterialNode));
 		return (rprxMaterialSetParameterN(Context, Material, Parameter, MaterialNode));
 	}
 
 	RPR::FResult FMaterialHelpers::SetMaterialParameterUInt(FContext Context, FMaterial Material, FParameter Parameter, uint32 Value)
 	{
 		CheckParameterType(Context, Material, Parameter, RPRX_PARAMETER_TYPE_UINT);
+
+		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxMaterialSetParameterU(%p, %p, %d, %d)"), Context, Material, Parameter, Value);
 
 		RPR::FResult result = rprxMaterialSetParameterU(Context, Material, Parameter, Value);
 		ensureMsgf(RPR::IsResultSuccess(result), TEXT("An error occured when set material parameter uint %#04"), result);
