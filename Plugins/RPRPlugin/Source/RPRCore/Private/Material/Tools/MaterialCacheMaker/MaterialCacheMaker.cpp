@@ -91,7 +91,7 @@ namespace RPRX
 		{
             if (materialCacheParametersSetterArgs.HasCustomParameterApplier())
             {
-				UE_LOG(LogRPRCore_Steps, Verbose, TEXT("[%s] %s -> Parameter use custom application"), *RPRMaterial->GetName(), *InParameterProperty->GetName());
+				UE_LOG(LogRPRCore_Steps, VeryVerbose, TEXT("[%s] %s -> Parameter use custom application"), *RPRMaterial->GetName(), *InParameterProperty->GetName());
 
                 FRPRUberMaterialParameterBase* materialParameter = materialCacheParametersSetterArgs.GetMaterialParameterBase();
                 materialParameter->ApplyParameter(materialCacheParametersSetterArgs);
@@ -103,7 +103,7 @@ namespace RPRX
 
                 if (mapSetter.IsValid())
                 {
-					UE_LOG(LogRPRCore_Steps, Verbose, TEXT("[%s] %s -> Parameter use standard application"), *RPRMaterial->GetName(), *InParameterProperty->GetName());
+					UE_LOG(LogRPRCore_Steps, VeryVerbose, TEXT("[%s] %s -> Parameter use standard application"), *RPRMaterial->GetName(), *InParameterProperty->GetName());
 
                     mapSetter->ApplyParameterX(materialCacheParametersSetterArgs);
                 }
@@ -111,7 +111,7 @@ namespace RPRX
 		}
 		else
 		{
-			UE_LOG(LogRPRCore_Steps, Verbose, TEXT("[%s] %s -> Parameter not used"), *RPRMaterial->GetName(), *InParameterProperty->GetName());
+			UE_LOG(LogRPRCore_Steps, VeryVerbose, TEXT("[%s] %s -> Parameter not used"), *RPRMaterial->GetName(), *InParameterProperty->GetName());
 		}
 
 		return (result);

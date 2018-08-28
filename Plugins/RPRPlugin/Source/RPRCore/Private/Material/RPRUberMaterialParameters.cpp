@@ -40,7 +40,7 @@ static bool CantUseParameter(const FRPRUberMaterialParameterBase* MaterialParame
 FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 	// Diffuse
 	: Diffuse_Weight(		TEXT("diffuse.weight"),		RPRX_UBER_MATERIAL_DIFFUSE_WEIGHT,		ESupportMode::FullySupported, 1.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
-	, Diffuse_Color(		TEXT("diffuse.color"),		RPRX_UBER_MATERIAL_DIFFUSE_COLOR,		ESupportMode::FullySupported, 1.0f, FCanUseParameter::CreateStatic(CantUseParameter))
+	, Diffuse_Color(		TEXT("diffuse.color"),		RPRX_UBER_MATERIAL_DIFFUSE_COLOR,		ESupportMode::FullySupported, 1.0f)
 	, Diffuse_Normal(		TEXT("diffuse.normal"),		RPRX_UBER_MATERIAL_DIFFUSE_NORMAL,		ESupportMode::FullySupported, FCanUseParameter::CreateStatic(CantUseParameter),/*	FCanUseParameter(),*/ FApplyParameter::CreateStatic(ApplyNormalMap))
 	, Diffuse_Roughness(	TEXT("diffuse.roughness"),	RPRX_UBER_MATERIAL_DIFFUSE_ROUGHNESS,	ESupportMode::NotSupported,		0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4, FCanUseParameter::CreateStatic(CantUseParameter))
 

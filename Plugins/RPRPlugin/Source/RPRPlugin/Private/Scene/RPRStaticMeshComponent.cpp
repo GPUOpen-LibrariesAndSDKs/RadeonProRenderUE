@@ -417,11 +417,11 @@ bool	URPRStaticMeshComponent::Build()
 				// Set shape name
 				if (iInstance + 1 < instanceCount)
 				{
-					RPR::SetObjectName(newInstance.m_RprShape, *FString::Printf(TEXT("%s_%d"), *staticMesh->GetName(), iInstance));
+					RPR::SetObjectName(newInstance.m_RprShape, *FString::Printf(TEXT("%s_%s_%d"), *SrcComponent->GetOwner()->GetName(), *SrcComponent->GetName(), iInstance));
 				}
 				else
 				{
-					RPR::SetObjectName(newInstance.m_RprShape, *staticMesh->GetName());
+					RPR::SetObjectName(newInstance.m_RprShape, *FString::Printf(TEXT("%s_%s"), *SrcComponent->GetOwner()->GetName(), *SrcComponent->GetName()));
 				}
 			}
 		}
@@ -545,9 +545,6 @@ bool URPRStaticMeshComponent::UpdateDirtyMaterialsChangesIFN()
 		UStaticMesh* currentStaticMesh = staticMeshComponent->GetStaticMesh();
 		check(currentStaticMesh);
 
-		//FRPRCoreSystemResourcesPtr resources = IRPRCore::GetResources();
-		//FRPRXMaterialLibrary& rprMaterialLibrary = resources->GetRPRMaterialLibrary();
-		//rprMaterialLibrary->ClearCache();
 		for (int32 materialIndex = 0; materialIndex < m_lastMaterialsList.Num(); ++materialIndex)
 		{
 			UMaterialInterface* material = m_lastMaterialsList[materialIndex];

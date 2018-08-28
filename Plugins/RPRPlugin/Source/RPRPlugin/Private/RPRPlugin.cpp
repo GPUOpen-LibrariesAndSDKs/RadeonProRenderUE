@@ -71,6 +71,7 @@ FRPRPluginModule::FRPRPluginModule()
 ,	m_OrbitEnabled(false)
 ,	m_CleanViewport(false)
 ,	m_Loaded(false)
+,	m_AOVMode(RPR::EAOV::Color)
 {
 
 }
@@ -414,6 +415,22 @@ void	FRPRPluginModule::StartOrbitting(const FIntPoint &mousePos)
 	ARPRScene	*scene = GetCurrentScene();
 	if (scene != NULL)
 		scene->StartOrbitting(mousePos);
+}
+
+void FRPRPluginModule::SetAOV(RPR::EAOV AOVMode)
+{
+	m_AOVMode = AOVMode;
+
+	ARPRScene	*scene = GetCurrentScene();
+	if (scene != nullptr)
+	{
+		scene->SetAOV(AOVMode);
+	}
+}
+
+RPR::EAOV FRPRPluginModule::GetAOV() const
+{
+	return m_AOVMode;
 }
 
 void	FRPRPluginModule::StartupModule()

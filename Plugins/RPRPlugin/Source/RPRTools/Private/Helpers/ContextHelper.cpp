@@ -17,6 +17,9 @@
 * THE SOFTWARE.
 ********************************************************************/
 #include "Helpers/ContextHelper.h"
+#include "UObject/UObjectGlobals.h"
+#include "UObject/Class.h"
+#include "EngineMinimal.h"
 
 namespace RPR
 {
@@ -37,7 +40,9 @@ namespace RPR
 
 		FResult CreateScene(FContext Context, FScene& OutScene)
 		{
-			return rprContextCreateScene(Context, &OutScene);
+			RPR::FResult status = rprContextCreateScene(Context, &OutScene);
+			UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprContextCreateScene(context=%p) -> status=%d, scene=%p"), Context, status, OutScene);
+			return status;
 		}
 
 		FResult SetActivePlugin(FContext Context, FPluginId PluginId)
@@ -52,7 +57,40 @@ namespace RPR
 
 		FResult SetScene(FContext Context, FScene Scene)
 		{
-			return (rprContextSetScene(Context, Scene));
+			RPR::FResult status = rprContextSetScene(Context, Scene);
+			UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprContextSetScene(context=%p, scene=%p) -> %d"), Context, Scene, status);
+			return status;
+		}
+
+		FResult SetAOV(FContext Context, RPR::EAOV AOV, FFrameBuffer FrameBuffer)
+		{
+			RPR::FResult status = rprContextSetAOV(Context, (rpr_aov) AOV, FrameBuffer);
+
+			UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprContextSetAOV(context=%p, AOV=%d, framebuffer=%p) -> %d"),
+				Context,
+				(uint8) AOV,
+				FrameBuffer,
+				status);
+
+			return status;
+		}
+
+		FResult Render(FContext Context)
+		{
+			RPR::FResult status = rprContextRender(Context);
+			UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprContextRender(context=%p) -> %d"), Context, status);
+			return status;
+		}
+
+		FResult ResolveFrameBuffer(FContext Context, FFrameBuffer SrcFrameBuffer, FFrameBuffer DstFrameBuffer, bool bShouldNormalizeOnly)
+		{
+			RPR::FResult status = rprContextResolveFrameBuffer(Context, SrcFrameBuffer, DstFrameBuffer, bShouldNormalizeOnly);
+
+			UE_LOG(LogRPRTools_Step, VeryVerbose, 
+				TEXT("rprContextResolveFrameBuffer(context=%p, srcFrameBuffer=%p, dstFrameBuffer=%p, shouldNormalizeOnly=%s) -> %d"), 
+				Context, SrcFrameBuffer, DstFrameBuffer, bShouldNormalizeOnly ? TEXT("true") : TEXT("false"), status);
+
+			return status;
 		}
 
 		namespace Parameters

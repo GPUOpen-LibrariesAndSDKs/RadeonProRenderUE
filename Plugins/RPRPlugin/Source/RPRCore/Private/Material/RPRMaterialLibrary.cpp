@@ -180,7 +180,7 @@ void FRPRXMaterialLibrary::InitializeDummyMaterial()
 
 	RPR::FMaterialSystem materialSystem = IRPRCore::GetResources()->GetMaterialSystem();
 	
-	RPR::FResult result = RPR::FMaterialHelpers::CreateNode(materialSystem, EMaterialNodeType::Diffuse, DummyMaterial);
+	RPR::FResult result = RPR::FMaterialHelpers::CreateNode(materialSystem, EMaterialNodeType::Diffuse, TEXT("DummyMaterial"), DummyMaterial);
 	if (RPR::IsResultFailed(result))
 	{
 		UE_LOG(LogRPRMaterialLibrary, Error, TEXT("Couldn't create node for dummy material"));

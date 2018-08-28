@@ -407,6 +407,7 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 			));
 
 		m_RendererWorker->SetQualitySettings(settings->QualitySettings);
+		m_RendererWorker->SetAOV(m_Plugin->GetAOV());
 	}
 	m_RendererWorker->SetPaused(false);
 }
@@ -477,6 +478,14 @@ void	ARPRScene::SetOrbit(bool orbit)
 	{
 		URPRCameraComponent	*comp = Cast<URPRCameraComponent>(m_ActiveCamera);
 		comp->SetOrbit(orbit);
+	}
+}
+
+void	ARPRScene::SetAOV(RPR::EAOV AOV)
+{
+	if (m_RendererWorker.IsValid())
+	{
+		m_RendererWorker->SetAOV(AOV);
 	}
 }
 

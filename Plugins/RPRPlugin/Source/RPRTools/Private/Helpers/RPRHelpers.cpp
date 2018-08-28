@@ -28,6 +28,7 @@
 #include "Helpers/RPRErrorsHelpers.h"
 #include "Helpers/RPRXMaterialHelpers.h"
 #include "Helpers/GenericGetInfo.h"
+#include "Helpers/RPRShapeHelpers.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRHelpers, Log, All);
 
@@ -84,17 +85,38 @@ namespace RPR
 
 	FResult DeleteObject(void* Object)
 	{
-		return rprObjectDelete(Object);
+		FResult status = rprObjectDelete(Object);
+		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprObjectDelete(object=%p) -> %d"), Object, status);
+		return status;
 	}
 
 	FResult SetObjectName(void* Object, const TCHAR* Name)
 	{
-		return rprObjectSetName(Object, TCHAR_TO_ANSI(Name));
+		FResult status = rprObjectSetName(Object, TCHAR_TO_ANSI(Name));
+		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprSetObjectName(object=%p, name=%s) -> %d"), Object, Name, status);
+		return status;
 	}
 
 	FResult SceneDetachShape(FScene Scene, FShape Shape)
 	{
-		return rprSceneDetachShape(Scene, Shape);
+		FResult status = rprSceneDetachShape(Scene, Shape);
+
+		FString shapeIdentifier = *FString::Printf(TEXT("%p"), Shape);
+		if (Shape != nullptr)
+		{
+			FString shapeName;
+			RPR::FResult getNameStatus = RPR::Shape::GetName(Shape, shapeName);
+			if (RPR::IsResultSuccess(getNameStatus) && !shapeName.IsEmpty())
+			{
+				shapeIdentifier = shapeName;
+			}
+		}
+		
+		UE_LOG(LogRPRTools_Step, Verbose, 
+			TEXT("rprSceneDetachShape(scene=%p, shape=%s) -> %d"), 
+			Scene, *shapeIdentifier, status);
+
+		return status;
 	}
 
 	FResult SceneClear(FScene Scene)

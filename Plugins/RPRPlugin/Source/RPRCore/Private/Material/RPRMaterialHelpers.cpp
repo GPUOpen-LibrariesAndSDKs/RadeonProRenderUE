@@ -39,6 +39,16 @@ namespace RPR
 		return (result);
 	}
 
+	RPR::FResult FMaterialHelpers::CreateNode(FMaterialSystem MaterialSystem, EMaterialNodeType NodeType, const FString& NodeName, RPR::FMaterialNode& OutMaterialNode)
+	{
+		FResult status = CreateNode(MaterialSystem, NodeType, OutMaterialNode);
+		if (IsResultSuccess(status) && OutMaterialNode != nullptr)
+		{
+			status = RPR::SetObjectName(OutMaterialNode, *NodeName);
+		}
+		return status;
+	}
+
 	RPR::FResult FMaterialHelpers::DeleteNode(RPR::FMaterialNode& MaterialNode)
 	{
 		FResult result = rprObjectDelete(MaterialNode);

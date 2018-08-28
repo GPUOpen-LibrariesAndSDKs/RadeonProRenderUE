@@ -27,6 +27,7 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 #include "Widgets/Docking/SDockTab.h"
+#include "Enums/RPREnums.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRPRPlugin, All, All);
 
@@ -58,6 +59,9 @@ public:
 	int32			Zoom();
 	void			AddZoom(int32 zoom);
 	void			StartOrbitting(const FIntPoint &mousePos);
+
+	void			SetAOV(RPR::EAOV AOVMode);
+	RPR::EAOV		GetAOV() const;
 
 	void			NotifyObjectBuilt();
 
@@ -113,5 +117,6 @@ private:
 	bool					m_OrbitEnabled;
 
 	bool					m_Loaded;
+	RPR::EAOV				m_AOVMode;
 
 };

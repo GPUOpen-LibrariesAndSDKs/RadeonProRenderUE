@@ -36,6 +36,7 @@ namespace RPR
 		static const TCHAR*	ImageDataInputName;
 
 		static FResult	CreateNode(FMaterialSystem MaterialSystem, EMaterialNodeType NodeType, FMaterialNode& OutMaterialNode);
+		static FResult	CreateNode(FMaterialSystem MaterialSystem, EMaterialNodeType NodeType, const FString& NodeName, FMaterialNode& OutMaterialNode);
 		static FResult	DeleteNode(FMaterialNode& MaterialNode);
 
 		static FResult	CreateImageNode(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,

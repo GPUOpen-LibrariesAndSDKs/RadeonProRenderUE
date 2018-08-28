@@ -31,6 +31,7 @@
 #include "RPRStats.h"
 #include "Helpers/RPRHelpers.h"
 #include "Helpers/RPRErrorsHelpers.h"
+#include "Helpers/ContextHelper.h"
 
 DEFINE_STAT(STAT_ProRender_PreRender);
 DEFINE_STAT(STAT_ProRender_RebuildScene);
@@ -44,6 +45,7 @@ FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene rprScene, 
 :	m_RprFrameBuffer(nullptr)
 ,	m_RprResolvedFrameBuffer(nullptr)
 ,	m_RprContext(context)
+,	m_AOV(RPR::EAOV::Color)
 ,	m_RprScene(rprScene)
 ,	m_Scene(scene)
 ,	m_RprWhiteBalance(nullptr)
@@ -253,6 +255,30 @@ void	FRPRRendererWorker::SetPaused(bool pause)
 	m_PreRenderLock.Unlock();
 }
 
+void	FRPRRendererWorker::SetAOV(RPR::EAOV AOV)
+{
+	if (m_AOV != AOV)
+	{
+		FScopeLock sc(&m_RenderLock);
+
+		if (m_AOV == RPR::EAOV::Color)
+		{
+			// Replace the frame buffer of the color AOV because the color AOV is required to
+			// have to frame buffer linked to be able to render correctly
+			RPR::Context::SetAOV(m_RprContext, m_AOV, m_RprColorFrameBuffer);
+		}
+		else
+		{
+			// Release frame buffer for this AOV
+			RPR::Context::SetAOV(m_RprContext, m_AOV, nullptr);
+		}
+		
+		m_AOV = AOV;
+		RPR::Context::SetAOV(m_RprContext, m_AOV, m_RprFrameBuffer);
+		m_ClearFramebuffer = true;
+	}
+}
+
 bool	FRPRRendererWorker::BuildFramebufferData()
 {
 	SCOPE_CYCLE_COUNTER(STAT_ProRender_Readback);
@@ -349,7 +375,9 @@ void	FRPRRendererWorker::ResizeFramebuffer()
 
 	if (rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprFrameBuffer) != RPR_SUCCESS ||
 		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprResolvedFrameBuffer) != RPR_SUCCESS ||
-		rprContextSetAOV(m_RprContext, RPR_AOV_COLOR, m_RprFrameBuffer) != RPR_SUCCESS)
+		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprColorFrameBuffer) != RPR_SUCCESS ||
+		RPR::Context::SetAOV(m_RprContext, RPR::EAOV::Color, m_RprColorFrameBuffer) != RPR_SUCCESS ||
+		RPR::Context::SetAOV(m_RprContext, m_AOV, m_RprFrameBuffer) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRRenderer, Error, TEXT("RPR FrameBuffer creation failed"));
 		RPR::Error::LogLastError(m_RprContext);
@@ -367,7 +395,8 @@ void	FRPRRendererWorker::ResizeFramebuffer()
 void	FRPRRendererWorker::ClearFramebuffer()
 {
 	if (rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS ||
-		rprFrameBufferClear(m_RprResolvedFrameBuffer) != RPR_SUCCESS)
+		rprFrameBufferClear(m_RprResolvedFrameBuffer) != RPR_SUCCESS ||
+		rprFrameBufferClear(m_RprColorFrameBuffer) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't clear framebuffer"));
 		RPR::Error::LogLastError(m_RprContext);
@@ -525,7 +554,7 @@ uint32	FRPRRendererWorker::Run()
 				SCOPE_CYCLE_COUNTER(STAT_ProRender_Render);
 
 				// Render + Resolve
-				if (rprContextRender(m_RprContext) != RPR_SUCCESS)
+				if (RPR::Context::Render(m_RprContext) != RPR_SUCCESS)
 				{
 					RPR::Error::LogLastError(m_RprContext);
 					m_RenderLock.Unlock();
@@ -536,7 +565,7 @@ uint32	FRPRRendererWorker::Run()
 			{
 				SCOPE_CYCLE_COUNTER(STAT_ProRender_Resolve);
 				const bool bNormalizeOnly = false;
-				if (rprContextResolveFrameBuffer(m_RprContext, m_RprFrameBuffer, m_RprResolvedFrameBuffer, bNormalizeOnly) != RPR_SUCCESS)
+				if (RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprFrameBuffer, m_RprResolvedFrameBuffer, bNormalizeOnly) != RPR_SUCCESS)
 				{
 					RPR::Error::LogLastError(m_RprContext);
 					m_RenderLock.Unlock();
@@ -619,15 +648,23 @@ void	FRPRRendererWorker::ReleaseResources()
 	if (m_RprFrameBuffer != nullptr)
 	{
 		rprFrameBufferClear(m_RprFrameBuffer);
-		rprObjectDelete(m_RprFrameBuffer);
+		RPR::DeleteObject(m_RprFrameBuffer);
 		m_RprFrameBuffer = nullptr;
 
-		rprContextSetAOV(m_RprContext, RPR_AOV_COLOR, nullptr);
+		RPR::Context::SetAOV(m_RprContext, m_AOV, nullptr);
+	}
+	if (m_RprColorFrameBuffer != nullptr)
+	{
+		rprFrameBufferClear(m_RprColorFrameBuffer);
+		RPR::DeleteObject(m_RprColorFrameBuffer);
+		m_RprColorFrameBuffer = nullptr;
+
+		RPR::Context::SetAOV(m_RprContext, RPR::EAOV::Color, nullptr);
 	}
 	if (m_RprResolvedFrameBuffer != nullptr)
 	{
 		rprFrameBufferClear(m_RprResolvedFrameBuffer);
-		rprObjectDelete(m_RprResolvedFrameBuffer);
+		RPR::DeleteObject(m_RprResolvedFrameBuffer);
 		m_RprResolvedFrameBuffer = nullptr;
 	}
 	if (m_RprWhiteBalance != nullptr)

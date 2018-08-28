@@ -36,6 +36,8 @@ namespace RPR
 	typedef rpr_material_system FMaterialSystem;
 	typedef rpr_scene			FScene;
 
+	typedef rpr_framebuffer		FFrameBuffer;
+
 	typedef rpr_shape			FShape;
 	typedef rpr_light			FLight;
 	typedef rpr_image			FImage;

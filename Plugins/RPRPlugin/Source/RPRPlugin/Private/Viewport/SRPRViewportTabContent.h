@@ -24,6 +24,7 @@
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
+#include "Enums/RPREnums.h"
 
 class SRPRViewportTabContent : public SCompoundWidget
 {
@@ -35,7 +36,24 @@ class SRPRViewportTabContent : public SCompoundWidget
 
 	virtual		~SRPRViewportTabContent();
 	void		Construct(const FArguments &args);
+
 private:
+
+	struct FAOVData
+	{
+		RPR::EAOV Mode;
+		FText Name;
+
+		FAOVData(RPR::EAOV InMode, const FText& InName)
+			: Mode(InMode)
+			, Name(InName)
+		{}
+	};
+
+	using FAOVDataPtr = TSharedPtr<FAOVData>;
+
+private:
+
 	FReply					OnToggleRender();
 	FReply					OnToggleSync();
 	FReply					OnSave();
@@ -48,11 +66,13 @@ private:
 	TSharedRef<SWidget>		OnGenerateCameraWidget(TSharedPtr<FString> inItem) const;
 	TSharedRef<SWidget>		OnGenerateQualitySettingsWidget(TSharedPtr<FString> inItem) const;
 	TSharedRef<SWidget>		OnGenerateMegaPixelWidget(TSharedPtr<FString> inItem) const;
+	TSharedRef<SWidget>		OnGenerateAOVWidget(FAOVDataPtr inItem) const;
 
 	void					OnCameraChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo);
 	void					OnQualitySettingsChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo);
 	void					OnMegaPixelChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo);
 	void					OnRefreshCameraList();
+	void					OnAOVModeChanged(FAOVDataPtr item, ESelectInfo::Type inSelectionInfo);
 
 	const FSlateBrush		*GetOrbitIcon() const;
 	const FSlateBrush		*GetDisplayPostEffectPropertiesIcon() const;
@@ -65,6 +85,7 @@ private:
 	FText					GetSelectedMegaPixelName() const;
 	FText					GetCurrentRenderIteration() const;
 	FText					GetTraceStatus() const;
+	FText					GetCurrentAOVMode() const;
 
 	EVisibility				GetPostEffectPropertiesVisibility() const;
 
@@ -87,11 +108,13 @@ private:
 	bool					IsSceneValid() const;
 
 private:
+
 	TSharedPtr<class FRPRViewportClient>	m_ViewportClient;
 	TSharedPtr<class SViewport>				m_ViewportWidget;
 
 	TArray<TSharedPtr<FString>>				m_AvailableMegaPixel;
 	TArray<TSharedPtr<FString>>				m_QualitySettingsList;
+	TArray<FAOVDataPtr>						m_AOVAvailableModes;
 
 	class FRPRPluginModule					*m_Plugin;
 	class URPRSettings						*m_Settings;
