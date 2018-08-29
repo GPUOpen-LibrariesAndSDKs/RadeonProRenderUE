@@ -83,10 +83,14 @@ namespace RPR
 		return !IsResultSuccess(Result);
 	}
 
-	FResult DeleteObject(void* Object)
+	FResult DeleteObject(void*& Object)
 	{
 		FResult status = rprObjectDelete(Object);
 		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprObjectDelete(object=%p) -> %d"), Object, status);
+		if (IsResultSuccess(status))
+		{
+			Object = nullptr;
+		}
 		return status;
 	}
 
@@ -140,16 +144,23 @@ namespace RPR
 
 		RPR::FResult GetNodeName(RPR::FMaterialNode MaterialNode, FString& OutName)
 		{
+			check(MaterialNode);
 			return RPR::Generic::GetObjectName(rprMaterialNodeGetInfo, MaterialNode, OutName);
 		}
 
-		FString GetNodeName(RPR::FMaterialNode Material)
+		FString GetNodeName(RPR::FMaterialNode MaterialNode)
 		{
+			check(MaterialNode);
+
 			FString name;
-			RPR::FResult status = GetNodeName(Material, name);
+			RPR::FResult status = GetNodeName(MaterialNode, name);
 			if (RPR::IsResultFailed(status))
 			{
-				name = TEXT("Unkown");
+				name = FString::Printf(TEXT("[Unkown:%p]"), MaterialNode);
+			}
+			else if (name.IsEmpty())
+			{
+				name = FString::Printf(TEXT("[Undefined:%p]"), MaterialNode);
 			}
 			return name;
 		}

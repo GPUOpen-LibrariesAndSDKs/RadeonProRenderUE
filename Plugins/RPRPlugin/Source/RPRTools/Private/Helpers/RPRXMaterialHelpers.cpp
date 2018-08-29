@@ -57,7 +57,13 @@ namespace RPRX
 	RPR::FResult FMaterialHelpers::SetMaterialParameterNode(FContext Context, FMaterial Material, FParameter Parameter, RPR::FMaterialNode MaterialNode)
 	{
 		RPR::FResult status = rprxMaterialSetParameterN(Context, Material, Parameter, MaterialNode);
-		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxMaterialSetParameterN(context=%p, material=%p, parameter=%d, materialNode=%s) -> %d"), Context, Material, Parameter, *RPR::RPRMaterial::GetNodeName(MaterialNode), status);
+
+		UE_LOG(LogRPRTools_Step, Verbose, 
+			TEXT("rprxMaterialSetParameterN(context=%p, material=%p, parameter=%d, materialNode=%s) -> %d"), 
+			Context, Material, Parameter, 
+			MaterialNode != nullptr ? *RPR::RPRMaterial::GetNodeName(MaterialNode) : *FString::Printf(TEXT("%p"), MaterialNode),
+			status);
+
 		return (status);
 	}
 

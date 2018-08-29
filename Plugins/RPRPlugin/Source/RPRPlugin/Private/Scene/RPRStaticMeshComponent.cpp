@@ -43,6 +43,7 @@
 #include "Material/RPRMaterialBuilder.h"
 #include "Async/Async.h"
 #include "Helpers/RPRXHelpers.h"
+#include "Helpers/ContextHelper.h"
 #include "RPRCpStaticMesh.h"
 #include "Material/RPRMaterialBuilder.h"
 #include "RPRCoreModule.h"
@@ -79,20 +80,26 @@ TArray<FRPRCachedMesh>	URPRStaticMeshComponent::GetMeshInstances(UStaticMesh *me
 	if (!Cache.Contains(mesh))
 		return TArray<FRPRCachedMesh>();
 	TArray<FRPRCachedMesh>			instances;
-	const TArray<FRPRCachedMesh>	&srcShapes = Cache[mesh];
+	const TArray<FRPRCachedMesh>	&cachedShapes = Cache[mesh];
 	RPR::FContext					rprContext = IRPRCore::GetResources()->GetRPRContext();
 
-	const uint32	shapeCount = srcShapes.Num();
-	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
+	const uint32	cachedShapeNum = cachedShapes.Num();
+	for (uint32 iShape = 0; iShape < cachedShapeNum; ++iShape)
 	{
 		for (uint32 iInstance = 0; iInstance < instanceCount; ++iInstance)
 		{
-			rpr_shape	newShape = nullptr;
-			if (rprContextCreateInstance(rprContext, srcShapes[iShape].m_RprShape, &newShape) != RPR_SUCCESS)
+			RPR::FShape shapeInstance = nullptr;
+			const FString shapeInstanceName = FString::Printf(TEXT("%s_%d"), *mesh->GetName(), iInstance);
+			if (RPR::Context::CreateInstance(rprContext, cachedShapes[iShape].m_RprShape, shapeInstanceName, shapeInstance) != RPR_SUCCESS)
 			{
-				for (int32 jShape = 0; jShape < instances.Num(); ++jShape)
-					rprObjectDelete(instances[jShape].m_RprShape);
 				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh instance from '%s'"), *mesh->GetName());
+
+				// Destroy all previous instances created before returning nothing
+				for (int32 jShape = 0; jShape < instances.Num(); ++jShape)
+				{
+					UE_LOG(LogRPRStaticMeshComponent, Verbose, TEXT("Delete shape instance %s"), *RPR::Shape::GetName(instances[jShape].m_RprShape));
+					RPR::DeleteObject(instances[jShape].m_RprShape);
+				}
 				return TArray<FRPRCachedMesh>();
 			}
 			else
@@ -101,7 +108,7 @@ TArray<FRPRCachedMesh>	URPRStaticMeshComponent::GetMeshInstances(UStaticMesh *me
 				UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape instance created from '%s' section %d"), *mesh->GetName(), iShape);
 #endif
 			}
-			instances.Add(FRPRCachedMesh(newShape, srcShapes[iShape].m_UEMaterialIndex));
+			instances.Add(FRPRCachedMesh(shapeInstance, cachedShapes[iShape].m_UEMaterialIndex));
 		}
 	}
 	return instances;
@@ -120,7 +127,8 @@ void	URPRStaticMeshComponent::ClearCache(RPR::FScene scene)
 		{
 			check(shapes[iShape].m_RprShape != nullptr);
 			RPR::SceneDetachShape(scene, shapes[iShape].m_RprShape);
-			RPR::DeleteObject(shapes[iShape].m_RprShape);		
+			RPR::DeleteObject(shapes[iShape].m_RprShape);
+			shapes[iShape].m_RprShape = nullptr;
 		}
 	}
 	Cache.Empty();

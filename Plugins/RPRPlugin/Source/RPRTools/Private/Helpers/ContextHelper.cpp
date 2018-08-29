@@ -17,6 +17,7 @@
 * THE SOFTWARE.
 ********************************************************************/
 #include "Helpers/ContextHelper.h"
+#include "Helpers/RPRShapeHelpers.h"
 #include "UObject/UObjectGlobals.h"
 #include "UObject/Class.h"
 #include "EngineMinimal.h"
@@ -89,6 +90,29 @@ namespace RPR
 			UE_LOG(LogRPRTools_Step, VeryVerbose, 
 				TEXT("rprContextResolveFrameBuffer(context=%p, srcFrameBuffer=%p, dstFrameBuffer=%p, shouldNormalizeOnly=%s) -> %d"), 
 				Context, SrcFrameBuffer, DstFrameBuffer, bShouldNormalizeOnly ? TEXT("true") : TEXT("false"), status);
+
+			return status;
+		}
+
+		FResult CreateInstance(FContext Context, RPR::FShape Shape, RPR::FShape& OutShapeInstance)
+		{
+			RPR::FResult status = rprContextCreateInstance(Context, Shape, &OutShapeInstance);
+
+			UE_LOG(LogRPRTools_Step, VeryVerbose,
+				TEXT("rprContextCreateInstance(context=%p, shape=%s) -> status=%d, instance=%p"),
+				Context, *RPR::Shape::GetName(Shape), status, OutShapeInstance);
+
+			return status;
+		}
+
+		FResult CreateInstance(FContext Context, RPR::FShape Shape, const FString& InstanceName, RPR::FShape& OutShapeInstance)
+		{
+			RPR::FResult status = CreateInstance(Context, Shape, OutShapeInstance);
+
+			if (RPR::IsResultSuccess(status))
+			{
+				RPR::SetObjectName(OutShapeInstance, *InstanceName);
+			}
 
 			return status;
 		}

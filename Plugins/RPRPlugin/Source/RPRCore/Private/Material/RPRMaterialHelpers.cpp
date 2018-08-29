@@ -20,6 +20,7 @@
 #include "RadeonProRender.h"
 #include "Helpers/RPRHelpers.h"
 #include "Logging/LogMacros.h"
+#include "RPRCoreModule.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRMaterialHelpers, Log, All)
 
@@ -29,14 +30,18 @@ namespace RPR
 
 	FResult	FMaterialHelpers::CreateNode(FMaterialSystem MaterialSystem, RPR::EMaterialNodeType NodeType, RPR::FMaterialNode& OutMaterialNode)
 	{
-		FResult result = rprMaterialSystemCreateNode(MaterialSystem, (RPR::FMaterialNodeType) NodeType, &OutMaterialNode);
+		FResult status = rprMaterialSystemCreateNode(MaterialSystem, (RPR::FMaterialNodeType) NodeType, &OutMaterialNode);
+		
+		UE_LOG(LogRPRCore_Steps, Verbose, 
+			TEXT("rprMaterialSystemCreateNode(materialSystem=%p, nodeType=%d) -> status=%d, materialNode=%p"), 
+			MaterialSystem, (uint32) NodeType, status, OutMaterialNode);
 
-		if (IsResultFailed(result))
+		if (IsResultFailed(status))
 		{
-			UE_LOG(LogRPRMaterialHelpers, Warning, TEXT("Couldn't create RPR material node (%#08)"), result);
+			UE_LOG(LogRPRMaterialHelpers, Warning, TEXT("Couldn't create RPR material node (%#08)"), status);
 		}
 
-		return (result);
+		return (status);
 	}
 
 	RPR::FResult FMaterialHelpers::CreateNode(FMaterialSystem MaterialSystem, EMaterialNodeType NodeType, const FString& NodeName, RPR::FMaterialNode& OutMaterialNode)
@@ -51,7 +56,9 @@ namespace RPR
 
 	RPR::FResult FMaterialHelpers::DeleteNode(RPR::FMaterialNode& MaterialNode)
 	{
-		FResult result = rprObjectDelete(MaterialNode);
+		UE_LOG(LogRPRCore_Steps, Verbose, TEXT("Delete material node %s:%p"), *RPR::RPRMaterial::GetNodeName(MaterialNode), MaterialNode);
+
+		FResult result = RPR::DeleteObject(MaterialNode);
 		MaterialNode = nullptr;
 		return (result);
 	}
@@ -100,7 +107,17 @@ namespace RPR
 
 	RPR::FResult FMaterialHelpers::FMaterialNode::SetInputF(RPR::FMaterialNode MaterialNode, const FString& ParameterName, float x, float y, float z, float w)
 	{
-		return (rprMaterialNodeSetInputF(MaterialNode, TCHAR_TO_ANSI(*ParameterName), x, y, z, w));
+		RPR::FResult status = rprMaterialNodeSetInputF(MaterialNode, TCHAR_TO_ANSI(*ParameterName), x, y, z, w);
+
+		UE_LOG(LogRPRCore_Steps, Verbose, 
+			TEXT("rprMaterialNodeSetInputF(materialNode=%s:%p, parameterName=%s, x=%.2f, y=%.2f, z=%.2f, w=%.2f) -> %d"), 
+			*RPR::RPRMaterial::GetNodeName(MaterialNode), 
+			MaterialNode,
+			*ParameterName,
+			x, y, z, w,
+			status);
+
+		return status;
 	}
 
 }

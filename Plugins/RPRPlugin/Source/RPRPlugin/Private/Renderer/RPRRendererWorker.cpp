@@ -680,11 +680,11 @@ void	FRPRRendererWorker::ReleaseResources()
 		rprContextDetachPostEffect(m_RprContext, m_RprWhiteBalance);
 		rprContextDetachPostEffect(m_RprContext, m_RprGammaCorrection);
 
-		rprObjectDelete(m_RprWhiteBalance);
-		rprObjectDelete(m_RprGammaCorrection);
-		rprObjectDelete(m_RprSimpleTonemap);
-		rprObjectDelete(m_RprPhotolinearTonemap);
-		rprObjectDelete(m_RprNormalization);
+		RPR::DeleteObject(m_RprWhiteBalance);
+		RPR::DeleteObject(m_RprGammaCorrection);
+		RPR::DeleteObject(m_RprSimpleTonemap);
+		RPR::DeleteObject(m_RprPhotolinearTonemap);
+		RPR::DeleteObject(m_RprNormalization);
 
 		m_RprWhiteBalance = nullptr;
 		m_RprGammaCorrection = nullptr;

@@ -33,7 +33,11 @@ namespace RPR
 			RPR::FResult status = GetName(Shape, name);
 			if (RPR::IsResultFailed(status))
 			{
-				name = TEXT("Unknown");
+				name = TEXT("[Unknown]");
+			}
+			if (name.IsEmpty())
+			{
+				name = TEXT("[Undefined]");
 			}
 			return (name);
 		}

@@ -18,7 +18,12 @@
 ********************************************************************/
 #include "Material/UberMaterialParameters/RPRMaterialBool.h"
 
-FRPRMaterialBool::FRPRMaterialBool(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, bool DefaultValue)
-	: FRPRUberMaterialParameterBase(InXmlParamName, InRprxParamID, InPreviewSupportMode)
+FRPRMaterialBool::FRPRMaterialBool(
+	const FString& InXmlParamName, 
+	uint32 InRprxParamID, 
+	ESupportMode InPreviewSupportMode, 
+	bool DefaultValue,
+	FCanUseParameter InCanUseParameter)
+	: FRPRUberMaterialParameterBase(InXmlParamName, InRprxParamID, InPreviewSupportMode, InCanUseParameter)
 	, bIsEnabled(DefaultValue)
 {}

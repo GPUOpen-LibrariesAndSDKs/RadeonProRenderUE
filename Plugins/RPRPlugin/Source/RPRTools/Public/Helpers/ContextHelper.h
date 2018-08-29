@@ -51,6 +51,9 @@ namespace RPR
 		RPRTOOLS_API FResult		Render(FContext Context);
 		RPRTOOLS_API FResult		ResolveFrameBuffer(FContext Context, FFrameBuffer SrcFrameBuffer, FFrameBuffer DstFrameBuffer, bool bNormalizeOnly);
 
+		RPRTOOLS_API FResult		CreateInstance(FContext Context, RPR::FShape Shape, RPR::FShape& OutShapeInstance);
+		RPRTOOLS_API FResult		CreateInstance(FContext Context, RPR::FShape Shape, const FString& InstanceName, RPR::FShape& OutShapeInstance);
+
 		namespace Parameters
 		{
 			RPRTOOLS_API FResult	Set1u(FContext Context, const FString& ParamName, uint32 Value);
