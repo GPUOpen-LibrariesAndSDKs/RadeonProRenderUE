@@ -56,6 +56,9 @@ namespace RPRX
                 imageMaterialNode
 			);
 
+			// TODO : Bind image
+			//SetterParameters.Material.AddImage();
+
 			if (RPR::IsResultFailed(imageNodeCreationResult))
 			{
 				return (false);
@@ -64,7 +67,7 @@ namespace RPRX
 
 		FMaterialHelpers::SetMaterialParameterNode(
 			materialContext.RPRXContext,
-			SetterParameters.Material,
+			SetterParameters.Material.GetMaterial(),
 			SetterParameters.GetRprxParam(),
 			imageMaterialNode
 		);

@@ -80,7 +80,7 @@ private:
 
 private:
 
-	TMap<const URPRMaterial*, RPRI::FExportMaterialResult>	UEMaterialToRPRMaterialCaches;
+	TMap<const URPRMaterial*, RPR::FRPRXMaterial>	UEMaterialToRPRMaterialCaches;
 
 	bool bIsInitialized;
 	FCriticalSection CriticalSection;

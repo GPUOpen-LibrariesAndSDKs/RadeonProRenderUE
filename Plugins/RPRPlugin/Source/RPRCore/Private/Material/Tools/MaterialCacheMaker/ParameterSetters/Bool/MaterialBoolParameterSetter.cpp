@@ -35,7 +35,7 @@ namespace RPRX
 
 		FMaterialHelpers::SetMaterialParameterUInt(
 			SetterParameters.MaterialContext.RPRXContext,
-			SetterParameters.Material,
+			SetterParameters.Material.GetMaterial(),
 			SetterParameters.GetRprxParam(),
 			materialBool->bIsEnabled
 		);

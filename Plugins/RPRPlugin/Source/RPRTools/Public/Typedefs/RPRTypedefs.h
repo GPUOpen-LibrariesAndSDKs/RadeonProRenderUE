@@ -20,6 +20,7 @@
 
 #include "RadeonProRenderInterchange.h"
 #include "RprSupport.h"
+#include "Templates/SharedPointer.h"
 
 /*
  * Use typedefs to associate native types with clearer names (and respecting the UE4 norm) 
@@ -54,4 +55,6 @@ namespace RPR
 	typedef rpr_material_node			FMaterialNode;
 
 	typedef rpr_material_system_type	FMaterialSystemType;
+
+	typedef TSharedPtr<FImage>		FImagePtr;
 }

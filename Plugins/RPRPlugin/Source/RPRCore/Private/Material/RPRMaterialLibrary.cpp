@@ -208,16 +208,17 @@ void FRPRXMaterialLibrary::DestroyDummyMaterial()
 bool FRPRXMaterialLibrary::CacheMaterial(URPRMaterial* InMaterial, RPRI::FExportMaterialResult& OutMaterial)
 {
 	RPRX::FMaterial newMaterial;
+	RPR::FRPRXMaterial rprxMaterial;
 	
 	RPRX::FMaterialCacheMaker cacheMaker(CreateMaterialContext(), InMaterial);
-	if (!cacheMaker.CacheUberMaterial(newMaterial))
+	if (!cacheMaker.CacheUberMaterial(rprxMaterial))
 	{
 		UE_LOG(LogRPRMaterialLibrary, Verbose, TEXT("Failed to cache uber material %s"), *InMaterial->GetName());
 		return (false);
 	}
 
 	OutMaterial.type = EMaterialType::MaterialX;
-	OutMaterial.data = newMaterial;
+	OutMaterial.data = rprxMaterial.GetMaterial();
 
 	InMaterial->ResetMaterialDirtyFlag();
 

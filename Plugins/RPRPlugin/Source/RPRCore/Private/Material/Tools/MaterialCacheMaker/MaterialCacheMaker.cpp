@@ -32,14 +32,21 @@ namespace RPRX
 		, RPRMaterial(InRPRMaterial)
 	{}
 
-	bool FMaterialCacheMaker::CacheUberMaterial(RPRX::FMaterial& OutMaterial)
+	bool FMaterialCacheMaker::CacheUberMaterial(RPR::FRPRXMaterial& OutMaterial)
 	{
-		return 
-			RPR::IsResultSuccess(RPRX::FMaterialHelpers::CreateMaterial(MaterialContext.RPRXContext, EMaterialType::Uber, OutMaterial)) && 
-			UpdateUberMaterialParameters(OutMaterial);
+		RPRX::FMaterial rprxMaterial;
+
+		RPR::FResult status = RPRX::FMaterialHelpers::CreateMaterial(MaterialContext.RPRXContext, EMaterialType::Uber, rprxMaterial);
+		if (RPR::IsResultFailed(status))
+		{
+			return (false);
+		}
+
+		OutMaterial.SetMaterial(rprxMaterial);
+		return UpdateUberMaterialParameters(OutMaterial);
 	}
 
-	bool	FMaterialCacheMaker::UpdateUberMaterialParameters(RPRX::FMaterial& InOutMaterial)
+	bool	FMaterialCacheMaker::UpdateUberMaterialParameters(RPR::FRPRXMaterial& InOutMaterial)
 	{
 		return RPR::IsResultSuccess(
 			BrowseUberMaterialParameters(
@@ -49,7 +56,7 @@ namespace RPRX
 	}
 
 	RPR::FResult FMaterialCacheMaker::BrowseUberMaterialParameters(FUberMaterialParametersPropertyVisitor Visitor, 
-																				FMaterial& OutMaterial)
+																	RPR::FRPRXMaterial& OutMaterial)
 	{
 		const FRPRUberMaterialParameters& uberMaterialParameters = RPRMaterial->MaterialParameters;
 		UScriptStruct* parametersStruct = FRPRUberMaterialParameters::StaticStruct();
@@ -72,7 +79,7 @@ namespace RPRX
 	RPR::FResult FMaterialCacheMaker::ApplyUberMaterialParameter(const FRPRUberMaterialParameters& InParameters,
 																		UScriptStruct* InParametersStruct,
 																		UProperty* InParameterProperty,
-																		FMaterial& InOutMaterial)
+																		RPR::FRPRXMaterial& InOutMaterial)
 	{
 		RPR::FResult result = RPR_SUCCESS;
 

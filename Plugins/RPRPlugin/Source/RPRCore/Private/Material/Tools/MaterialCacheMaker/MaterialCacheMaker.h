@@ -34,14 +34,14 @@ namespace RPRX
 
 		FMaterialCacheMaker(RPR::FMaterialContext InMaterialContent, const URPRMaterial* InRPRMaterial);
 
-		bool	CacheUberMaterial(RPRX::FMaterial& OutMaterial);
-		bool	UpdateUberMaterialParameters(RPRX::FMaterial& InOutMaterial);
+		bool	CacheUberMaterial(RPR::FRPRXMaterial& OutMaterial);
+		bool	UpdateUberMaterialParameters(RPR::FRPRXMaterial& InOutMaterial);
 
 	private:
 
-		RPR::FResult	BrowseUberMaterialParameters(FUberMaterialParametersPropertyVisitor Visitor, FMaterial& OutMaterial);
+		RPR::FResult	BrowseUberMaterialParameters(FUberMaterialParametersPropertyVisitor Visitor, RPR::FRPRXMaterial& OutMaterial);
 		RPR::FResult	ApplyUberMaterialParameter(const FRPRUberMaterialParameters& Parameters, UScriptStruct* ParametersStruct,
-													UProperty* ParameterProperty, FMaterial& InOutMaterial);
+													UProperty* ParameterProperty, RPR::FRPRXMaterial& InOutMaterial);
 
 	private:
 

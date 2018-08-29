@@ -22,6 +22,7 @@
 #include "Typedefs/RPRTypedefs.h"
 #include "Material/MaterialContext.h"
 #include "ImageManager/RPRImageManager.h"
+#include "Material/RPRXMaterial.h"
 
 struct FRPRUberMaterialParameters;
 struct FRPRUberMaterialParameterBase;
@@ -37,7 +38,7 @@ namespace RPRX
 			const UProperty* Property;
 			const URPRMaterial* OwnerMaterial;
 			RPR::FMaterialContext& MaterialContext;
-			FMaterial& Material;
+			RPR::FRPRXMaterial& Material;
 			RPR::FImageManagerPtr ImageManager;
 
 			FArgs(const FRPRUberMaterialParameters& InParameters, 

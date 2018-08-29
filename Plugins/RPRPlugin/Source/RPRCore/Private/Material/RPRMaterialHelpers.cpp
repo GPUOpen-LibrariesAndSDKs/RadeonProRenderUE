@@ -77,12 +77,13 @@ namespace RPR
 		RPR::FResult	result;
 		if (ImageType == RPR::FImageManager::EImageType::NormalMap)
 		{
-			result = CreateNode(MaterialSystem, EMaterialNodeType::NormalMap, OutMaterialNode);
+			FString normalMapNodeName = FString::Printf(TEXT("NormalMap_%s"), *Texture->GetName());
+			result = CreateNode(MaterialSystem, EMaterialNodeType::NormalMap, *normalMapNodeName, OutMaterialNode);
 			if (IsResultSuccess(result))
 			{
 				RPR::FMaterialNode	normalMapNode = nullptr;
 
-				result = CreateNode(MaterialSystem, EMaterialNodeType::ImageTexture, normalMapNode);
+				result = CreateNode(MaterialSystem, EMaterialNodeType::ImageTexture, Texture->GetName(), normalMapNode);
 				if (IsResultSuccess(result))
 				{
 					result = rprMaterialNodeSetInputImageData(normalMapNode, TCHAR_TO_ANSI(ImageDataInputName), image);
@@ -95,7 +96,7 @@ namespace RPR
 		}
 		else
 		{
-			result = CreateNode(MaterialSystem, EMaterialNodeType::ImageTexture, OutMaterialNode);
+			result = CreateNode(MaterialSystem, EMaterialNodeType::ImageTexture, Texture->GetName(), OutMaterialNode);
 			if (IsResultSuccess(result))
 			{
 				result = rprMaterialNodeSetInputImageData(OutMaterialNode, TCHAR_TO_ANSI(ImageDataInputName), image);
