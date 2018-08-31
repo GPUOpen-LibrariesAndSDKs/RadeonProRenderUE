@@ -57,7 +57,7 @@ namespace RPRX
 				image, imageMaterialNode
 			);
 
-			SetterParameters.Material.AddImage(image);
+			SetterParameters.Material->AddImage(image);
 
 			if (RPR::IsResultFailed(imageNodeCreationResult))
 			{
@@ -65,13 +65,7 @@ namespace RPRX
 			}
 		}
 
-		FMaterialHelpers::SetMaterialParameterNode(
-			materialContext.RPRXContext,
-			SetterParameters.Material.GetRawMaterial(),
-			SetterParameters.GetRprxParam(),
-			imageMaterialNode
-		);
-
+		SetterParameters.Material->SetMaterialParameterNode(SetterParameters.GetRprxParam(), imageMaterialNode);
 		return (true);
 	}
 }

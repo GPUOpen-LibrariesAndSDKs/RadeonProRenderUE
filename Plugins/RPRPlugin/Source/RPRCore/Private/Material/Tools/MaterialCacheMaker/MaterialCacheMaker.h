@@ -26,7 +26,7 @@
 
 namespace RPRX
 {
-	DECLARE_DELEGATE_RetVal_FourParams(RPR::FResult, FUberMaterialParametersPropertyVisitor, const FRPRUberMaterialParameters&, UScriptStruct*, UProperty*, RPR::FRPRXMaterial&)
+	DECLARE_DELEGATE_RetVal_FourParams(RPR::FResult, FUberMaterialParametersPropertyVisitor, const FRPRUberMaterialParameters&, UScriptStruct*, UProperty*, RPR::FRPRXMaterialPtr)
 
 	class FMaterialCacheMaker
 	{
@@ -34,14 +34,14 @@ namespace RPRX
 
 		FMaterialCacheMaker(RPR::FMaterialContext InMaterialContent, const URPRMaterial* InRPRMaterial);
 
-		bool	CacheUberMaterial(RPR::FRPRXMaterial& OutMaterial);
-		bool	UpdateUberMaterialParameters(RPR::FRPRXMaterial& InOutMaterial);
+		RPR::FRPRXMaterialPtr	CacheUberMaterial();
+		bool					UpdateUberMaterialParameters(RPR::FRPRXMaterialPtr InOutMaterial);
 
 	private:
 
-		RPR::FResult	BrowseUberMaterialParameters(FUberMaterialParametersPropertyVisitor Visitor, RPR::FRPRXMaterial& OutMaterial);
+		RPR::FResult	BrowseUberMaterialParameters(FUberMaterialParametersPropertyVisitor Visitor, RPR::FRPRXMaterialPtr OutMaterial);
 		RPR::FResult	ApplyUberMaterialParameter(const FRPRUberMaterialParameters& Parameters, UScriptStruct* ParametersStruct,
-													UProperty* ParameterProperty, RPR::FRPRXMaterial& InOutMaterial);
+													UProperty* ParameterProperty, RPR::FRPRXMaterialPtr InOutMaterial);
 
 	private:
 

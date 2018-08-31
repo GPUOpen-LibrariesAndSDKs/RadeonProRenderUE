@@ -33,12 +33,7 @@ namespace RPRX
 			*SetterParameters.Property->GetName(),
 			materialBool->bIsEnabled ? TEXT("true") : TEXT("false"));
 
-		FMaterialHelpers::SetMaterialParameterUInt(
-			SetterParameters.MaterialContext.RPRXContext,
-			SetterParameters.Material.GetRawMaterial(),
-			SetterParameters.GetRprxParam(),
-			materialBool->bIsEnabled
-		);
+		SetterParameters.Material->SetMaterialParameterBool(SetterParameters.GetRprxParam(), materialBool->bIsEnabled);
 	}
 
 }

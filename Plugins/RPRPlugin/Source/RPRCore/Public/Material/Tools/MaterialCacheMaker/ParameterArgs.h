@@ -38,7 +38,7 @@ namespace RPRX
 			const UProperty* Property;
 			const URPRMaterial* OwnerMaterial;
 			RPR::FMaterialContext& MaterialContext;
-			RPR::FRPRXMaterial& Material;
+			RPR::FRPRXMaterialPtr Material;
 			RPR::FImageManagerPtr ImageManager;
 
 			FArgs(const FRPRUberMaterialParameters& InParameters, 
@@ -46,7 +46,7 @@ namespace RPRX
 				RPR::FImageManagerPtr InImageManager,
 				const URPRMaterial* OwnerMaterial,
 				RPR::FMaterialContext& InMaterialContext, 
-				RPR::FRPRXMaterial& InMaterial);
+				RPR::FRPRXMaterialPtr InMaterial);
 
 			template<typename ParameterType>
 			const ParameterType*	GetDirectParameter();

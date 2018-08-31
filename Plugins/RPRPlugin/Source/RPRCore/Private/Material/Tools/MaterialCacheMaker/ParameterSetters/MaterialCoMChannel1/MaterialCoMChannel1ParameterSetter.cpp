@@ -49,24 +49,16 @@ namespace RPRX
 			switch (materialMap->RPRInterpretationMode)
 			{
 			case ERPRMCoMapC1InterpretationMode::AsFloat:
-				FMaterialHelpers::SetMaterialParameterFloat(
-					materialContext.RPRXContext,
-					SetterParameters.Material.GetRawMaterial(),
-					SetterParameters.GetRprxParam(),
-					materialMap->Constant
-				);
+				SetterParameters.Material->SetMaterialParameterFloat(SetterParameters.GetRprxParam(), materialMap->Constant);
 				break;
 
 			case ERPRMCoMapC1InterpretationMode::AsFloat4:
-				FMaterialHelpers::SetMaterialParameterFloats(
-					materialContext.RPRXContext,
-					SetterParameters.Material.GetRawMaterial(),
+				SetterParameters.Material->SetMaterialParameterFloats(
 					SetterParameters.GetRprxParam(),
 					materialMap->Constant,
 					materialMap->Constant,
 					materialMap->Constant,
-					materialMap->Constant
-				);
+					materialMap->Constant);
 				break;
 
 			default:

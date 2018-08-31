@@ -33,32 +33,37 @@ namespace RPRX
 		, RPRMaterial(InRPRMaterial)
 	{}
 
-	bool FMaterialCacheMaker::CacheUberMaterial(RPR::FRPRXMaterial& OutMaterial)
+	RPR::FRPRXMaterialPtr FMaterialCacheMaker::CacheUberMaterial()
 	{
 		RPRX::FMaterial rprxMaterial;
 
 		RPR::FResult status = RPRX::FMaterialHelpers::CreateMaterial(MaterialContext.RPRXContext, EMaterialType::Uber, rprxMaterial);
 		if (RPR::IsResultFailed(status))
 		{
-			return (false);
+			return (nullptr);
 		}
 
-		OutMaterial.SetUE4MaterialLink(RPRMaterial);
-		OutMaterial.SetMaterial(rprxMaterial);
-		return UpdateUberMaterialParameters(OutMaterial);
+		RPR::FRPRXMaterialPtr materialPtr = MakeShareable(new RPR::FRPRXMaterial(RPRMaterial));
+		if (!UpdateUberMaterialParameters(materialPtr))
+		{
+			materialPtr.Reset();
+			return nullptr;
+		}
+
+		return materialPtr;
 	}
 
-	bool	FMaterialCacheMaker::UpdateUberMaterialParameters(RPR::FRPRXMaterial& InOutMaterial)
+	bool	FMaterialCacheMaker::UpdateUberMaterialParameters(RPR::FRPRXMaterialPtr Material)
 	{
 		bool bIsMaterialCorrectlyUpdated = false;
 
 		FUberMaterialParametersPropertyVisitor visitor = FUberMaterialParametersPropertyVisitor::CreateRaw(this, &FMaterialCacheMaker::ApplyUberMaterialParameter);
-		bIsMaterialCorrectlyUpdated |= RPR::IsResultSuccess(BrowseUberMaterialParameters(visitor, InOutMaterial));
+		bIsMaterialCorrectlyUpdated |= RPR::IsResultSuccess(BrowseUberMaterialParameters(visitor, Material));
 		
 		auto rprSupportContext = IRPRCore::GetResources()->GetRPRXSupportContext();
 		if (rprSupportContext != nullptr)
 		{
-			RPR::FResult status = RPRX::MaterialCommit(rprSupportContext, InOutMaterial.GetRawMaterial());
+			RPR::FResult status = Material->Commit();
 			bIsMaterialCorrectlyUpdated |= RPR::IsResultSuccess(status);
 		}
 
@@ -66,7 +71,7 @@ namespace RPRX
 	}
 
 	RPR::FResult FMaterialCacheMaker::BrowseUberMaterialParameters(FUberMaterialParametersPropertyVisitor Visitor, 
-																	RPR::FRPRXMaterial& OutMaterial)
+																	RPR::FRPRXMaterialPtr Material)
 	{
 		const FRPRUberMaterialParameters& uberMaterialParameters = RPRMaterial->MaterialParameters;
 		UScriptStruct* parametersStruct = FRPRUberMaterialParameters::StaticStruct();
@@ -75,7 +80,7 @@ namespace RPRX
 		UProperty* currentProperty = parametersStruct->PropertyLink;
 		while (currentProperty != nullptr)
 		{
-			result = Visitor.Execute(uberMaterialParameters, parametersStruct, currentProperty, OutMaterial);
+			result = Visitor.Execute(uberMaterialParameters, parametersStruct, currentProperty, Material);
 			if (RPR::IsResultFailed(result))
 			{
 				return (result);
@@ -89,7 +94,7 @@ namespace RPRX
 	RPR::FResult FMaterialCacheMaker::ApplyUberMaterialParameter(const FRPRUberMaterialParameters& InParameters,
 																		UScriptStruct* InParametersStruct,
 																		UProperty* InParameterProperty,
-																		RPR::FRPRXMaterial& InOutMaterial)
+																		RPR::FRPRXMaterialPtr Material)
 	{
 		RPR::FResult result = RPR_SUCCESS;
 
@@ -101,7 +106,7 @@ namespace RPRX
 			imageManager,
 			RPRMaterial,
 			MaterialContext,
-			InOutMaterial
+			Material
 		);
 
 		if (materialCacheParametersSetterArgs.CanUseParam())

@@ -35,12 +35,7 @@ namespace RPRX
 			*materialEnum->EnumType->GetDisplayNameTextByValue(materialEnum->EnumValue).ToString(),
 			materialEnum->EnumValue);
 
-		FMaterialHelpers::SetMaterialParameterUInt(
-			SetterParameters.MaterialContext.RPRXContext,
-			SetterParameters.Material.GetRawMaterial(),
-			SetterParameters.GetRprxParam(),
-			materialEnum->EnumValue
-		);
+		SetterParameters.Material->SetMaterialParameterUInt(SetterParameters.GetRprxParam(), materialEnum->EnumValue);
 	}
 
 }

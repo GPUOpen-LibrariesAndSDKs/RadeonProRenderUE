@@ -156,8 +156,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 			URPRMaterial* rprMaterial = Cast<URPRMaterial>(matInterface);
 			BuildRPRMaterial(shape, rprMaterial);
 
-			RPRX::FMaterial rprxMaterial;
-			rprMaterialLibrary.TryGetRawMaterial(rprMaterial, rprxMaterial);
+			RPR::FRPRXMaterialPtr rprxMaterial = rprMaterialLibrary.GetMaterial(rprMaterial);
 			m_Shapes[iShape].m_RprxMaterial = rprxMaterial;
 		}
 		else
@@ -194,20 +193,20 @@ bool URPRStaticMeshComponent::ApplyRPRMaterialOnShape(RPR::FShape& Shape, URPRMa
 {
 	FRPRXMaterialLibrary& rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 
-	RPRX::FMaterial rprxMaterial;
-	if (!rprMaterialLibrary.TryGetRawMaterial(Material, rprxMaterial))
+	RPR::FRPRXMaterialPtr rprxMaterial;
+	if (!rprMaterialLibrary.TryGetMaterial(Material, rprxMaterial))
 	{
 		UE_LOG(LogRPRStaticMeshComponent, Error, TEXT("Cannot get the material raw datas from the library."));
 		return (false);
 	}
 
 	RPRX::FContext rprxContext = IRPRCore::GetResources()->GetRPRXSupportContext();
-	RPR::FResult status = RPRX::ShapeAttachMaterial(rprxContext, Shape, rprxMaterial);
+	RPR::FResult status = RPRX::ShapeAttachMaterial(rprxContext, Shape, rprxMaterial->GetRawMaterial());
 	if (RPR::IsResultSuccess(status))
 	{
 		// Commit must be done *after* the shape attach material to work properly
 		// May change in newer versions of RPR (current is 1.312)
-		status = RPRX::MaterialCommit(rprxContext, rprxMaterial);
+		status = rprxMaterial->Commit();
 	}
 	return (RPR::IsResultSuccess(status));
 }
@@ -764,11 +763,11 @@ void	URPRStaticMeshComponent::ReleaseResources()
 		uint32	shapeCount = m_Shapes.Num();
 		for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 		{
-			if (m_Shapes[iShape].m_RprxMaterial != nullptr)
+			if (m_Shapes[iShape].m_RprxMaterial.IsValid())
 			{
 				check(m_Shapes[iShape].m_RprShape != nullptr);
 				RPRX::FContext rprSupportCtx = IRPRCore::GetResources()->GetRPRXSupportContext();
-				RPRX::ShapeDetachMaterial(rprSupportCtx, m_Shapes[iShape].m_RprShape, m_Shapes[iShape].m_RprxMaterial);
+				RPRX::ShapeDetachMaterial(rprSupportCtx, m_Shapes[iShape].m_RprShape, m_Shapes[iShape].m_RprxMaterial->GetRawMaterial());
 			}
 
 			if (m_Shapes[iShape].m_RprShape != nullptr)

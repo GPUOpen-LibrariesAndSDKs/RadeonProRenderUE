@@ -32,54 +32,43 @@
 * Library of RPR materials.
 * Create native RPR material from FRPRMaterial and keep it in cache.
 */
-class FRPRXMaterialLibrary : public IObjectScopedLockable
+class RPRCORE_API FRPRXMaterialLibrary : public IObjectScopedLockable
 {
 public:
 
 	FRPRXMaterialLibrary();
 	virtual ~FRPRXMaterialLibrary() {}
 
-	RPRCORE_API void	Initialize();
-	RPRCORE_API bool	IsInitialized() const;
-	RPRCORE_API bool	Contains(const URPRMaterial* InMaterial) const;
-	RPRCORE_API void	Close();
+	void	Initialize();
+	bool	IsInitialized() const;
+	bool	Contains(const URPRMaterial* InMaterial) const;
+	void	Close();
 
-	RPRCORE_API bool	CacheAndRegisterMaterial(URPRMaterial* InMaterial);
-	RPRCORE_API bool	RecacheMaterial(URPRMaterial* MaterialKey);
-	RPRCORE_API bool	TryGetRawMaterial(const URPRMaterial* MaterialKey, RPRX::FMaterial& OutRPRXMaterial);
-	RPRCORE_API void	ClearCache();
+	bool	CacheAndRegisterMaterial(URPRMaterial* InMaterial);
+	bool	RecacheMaterial(URPRMaterial* MaterialKey);
+	bool	TryGetMaterial(const URPRMaterial* MaterialKey, RPR::FRPRXMaterialPtr& OutRPRXMaterial);
+	bool	TryGetMaterial(const URPRMaterial* MaterialKey, RPR::FRPRXMaterialPtr& OutRPRXMaterial) const;
+	void	ClearCache();
 
-	RPRCORE_API RPR::FMaterialNode GetDummyMaterial() const;
-
-	bool	TryGetMaterial(const URPRMaterial* MaterialKey, 
-								const RPR::FRPRXMaterial*& OutRPRXMaterial) const;
-
-	bool	TryGetMaterial(const URPRMaterial* MaterialKey,
-								RPR::FRPRXMaterial*& OutRPRXMaterial);
-
-	RPR::FRPRXMaterial*	GetMaterial(const URPRMaterial* MaterialKey);
+	RPR::FMaterialNode GetDummyMaterial() const;
+	RPR::FRPRXMaterialPtr	GetMaterial(const URPRMaterial* MaterialKey);
 
 	virtual FCriticalSection& GetCriticalSection() override;
 
 private:
 
-	const RPR::FRPRXMaterial*	FindMaterialCache(const URPRMaterial* MaterialKey) const;
-	RPR::FRPRXMaterial*			FindMaterialCache(const URPRMaterial* MaterialKey);
+	const RPR::FRPRXMaterialPtr	FindMaterialCache(const URPRMaterial* MaterialKey) const;
+	RPR::FRPRXMaterialPtr		FindMaterialCache(const URPRMaterial* MaterialKey);
 
 	void	InitializeDummyMaterial();
 	void	DestroyDummyMaterial();
-	bool	CacheMaterial(URPRMaterial* InMaterial, RPR::FRPRXMaterial& OutMaterial);
 
-	void	ReleaseRPRXMaterial(const URPRMaterial* InMaterial, RPR::FRPRXMaterial& Material);
-	void	ReleaseMaterialNodes(const URPRMaterial* InMaterial, RPR::FRPRXMaterial& Material);
-	void	ReleaseMaterialNodes(const URPRMaterial* InMaterial, const FRPRMaterialMap* MaterialMap, RPR::FRPRXMaterial& Material);
-	void	ReleaseMaterialNodesHierarchy(RPR::FMaterialNode MaterialNode);
-
+	RPR::FRPRXMaterialPtr	CacheMaterial(URPRMaterial* InMaterial);
 	RPR::FMaterialContext	CreateMaterialContext() const;
 
 private:
 
-	TMap<const URPRMaterial*, RPR::FRPRXMaterial>	UEMaterialToRPRMaterialCaches;
+	TMap<const URPRMaterial*, RPR::FRPRXMaterialPtr>	UEMaterialToRPRMaterialCaches;
 
 	bool bIsInitialized;
 	FCriticalSection CriticalSection;

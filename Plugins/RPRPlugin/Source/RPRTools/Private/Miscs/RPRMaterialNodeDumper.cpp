@@ -76,7 +76,7 @@ namespace RPR
 			if (MaterialNode != nullptr && RPRXContext != nullptr)
 			{
 				bool bIsMaterialX;
-				status = RPRX::FMaterialHelpers::IsMaterialRPRX(RPRXContext, MaterialNode, bIsMaterialX);
+				status = RPRX::FMaterialHelpers::IsMaterialNodePartOfRPRX(RPRXContext, MaterialNode, bIsMaterialX);
 				if (RPR::IsResultFailed(status))
 				{
 					materialHeader += TEXT(" [Unkown nature]");

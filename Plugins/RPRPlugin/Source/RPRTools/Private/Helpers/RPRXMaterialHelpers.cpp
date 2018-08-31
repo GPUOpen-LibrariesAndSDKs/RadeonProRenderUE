@@ -36,21 +36,11 @@ namespace RPRX
 		return (status);
 	}
 
-	RPR::FResult FMaterialHelpers::DeleteMaterial(FContext RPRXContext, FMaterial MaterialData)
+	RPR::FResult FMaterialHelpers::DeleteMaterial(FContext RPRXContext, FMaterial& MaterialData)
 	{
-		// TODO : There is clearly an issue where the material X created from rprxCreateMaterial is not recognized as a material X 
-		// and cannot be deleted with rprxMaterialDelete. So memory leak here!
-
-		RPRX::FMaterial outMaterial = nullptr;
-		bool bIsRPRXMaterial;
-
-		RPR::FResult status = RPRX::FMaterialHelpers::IsMaterialRPRX(RPRXContext, MaterialData, outMaterial, bIsRPRXMaterial);
-		if (RPR::IsResultSuccess(status) && bIsRPRXMaterial)
-		{
-			UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxMaterialDelete(context=%p, material=%p)"), RPRXContext, MaterialData);
-			UE_LOG(LogMaterialHelpers, VeryVerbose, TEXT("Delete material [%p]"), MaterialData);
-			return (rprxMaterialDelete(RPRXContext, MaterialData));
-		}
+		RPR::FResult status = rprxMaterialDelete(RPRXContext, MaterialData);
+		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxMaterialDelete(context=%p, material=%p) -> %d"), RPRXContext, MaterialData, status);
+		MaterialData = nullptr;
 		return (status);
 	}
 
@@ -113,13 +103,13 @@ namespace RPRX
 		return (status);
 	}
 
-	RPR::FResult FMaterialHelpers::IsMaterialRPRX(FContext Context, RPR::FMaterialNode MaterialNode, bool& bOutIsMaterialRPRX)
+	RPR::FResult FMaterialHelpers::IsMaterialNodePartOfRPRX(FContext Context, RPR::FMaterialNode MaterialNode, bool& bOutIsMaterialRPRX)
 	{
 		RPRX::FMaterial materialX;
-		return IsMaterialRPRX(Context, MaterialNode, materialX, bOutIsMaterialRPRX);
+		return IsMaterialNodePartOfRPRX(Context, MaterialNode, materialX, bOutIsMaterialRPRX);
 	}
 
-	RPR::FResult FMaterialHelpers::IsMaterialRPRX(FContext Context, RPR::FMaterialNode MaterialNode, RPRX::FMaterial& OutMaterialX, bool& bOutIsMaterialRPRX)
+	RPR::FResult FMaterialHelpers::IsMaterialNodePartOfRPRX(FContext Context, RPR::FMaterialNode MaterialNode, RPRX::FMaterial& OutMaterialX, bool& bOutIsMaterialRPRX)
 	{
 		return rprxIsMaterialRprx(Context, MaterialNode, &OutMaterialX, (rpr_bool*) &bOutIsMaterialRPRX);
 	}

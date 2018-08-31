@@ -24,7 +24,7 @@
 #include "RPRPlugin.h"
 #include "RPRSettings.h"
 #include "GameFramework/Actor.h"
-#include "Material/RPRMaterialLibrary.h"
+#include "Material/RPRXMaterialLibrary.h"
 #include <RadeonProRenderInterchange.h>
 #include <map>
 #include "Typedefs/RPRITypedefs.h"
