@@ -2,22 +2,21 @@
 #include "Typedefs/RPRTypedefs.h"
 #include "Typedefs/RPRITypedefs.h"
 #include "Typedefs/RPRXTypedefs.h"
-#include "UObject/GCObject.h"
+#include "UObject/WeakObjectPtrTemplates.h"
+#include "UObject/WeakObjectPtr.h"
 
 class URPRMaterial;
 
 namespace RPR
 {
 
-	class FRPRXMaterial : public FGCObject
+	class FRPRXMaterial
 	{
 	public:
 
 		FRPRXMaterial();
 		
 		virtual ~FRPRXMaterial();
-
-		virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
 
 		void				SetUE4MaterialLink(const URPRMaterial* UE4MaterialLink);
 		const URPRMaterial*	GetUE4MaterialLink() const;
@@ -35,7 +34,7 @@ namespace RPR
 
 	private:
 
-		const URPRMaterial* UE4MaterialLink;
+		TWeakObjectPtr<const URPRMaterial> UE4MaterialLink;
 
 		TArray<RPR::FImagePtr> Images;
 		RPRX::FMaterial	Material;

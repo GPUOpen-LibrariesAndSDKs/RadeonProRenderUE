@@ -47,7 +47,7 @@ namespace RPR
 
 	private:
 
-		TMap<UTexture*, FImageWeakPtr>	loadedImages;
+		TMap<TWeakObjectPtr<UTexture>, FImageWeakPtr>	loadedImages;
 
 	};
 

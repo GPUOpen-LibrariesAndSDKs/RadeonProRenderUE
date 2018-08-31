@@ -47,10 +47,7 @@ namespace RPR
 		class TImageDeleter
 		{
 		public:
-			void operator()(RPR::FImage Image)
-			{
-				RPR::DeleteObject(Image);
-			}
+			void operator()(RPR::FImage Image);
 		};
 
 	public:

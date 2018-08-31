@@ -60,11 +60,11 @@ namespace RPR
 
 	void FImagesCache::RemoveDeprecatedImages()
 	{
-		for (TPair<UTexture*, FImageWeakPtr>& loadedImage : loadedImages)
+		for (auto it = loadedImages.CreateIterator() ; it ; ++it)
 		{
-			if (!loadedImage.Value.IsValid())
+			if (!it.Key().IsValid() || !it.Value().IsValid())
 			{
-				loadedImages.Remove(loadedImage.Key);
+				loadedImages.Remove(it.Key());
 			}
 		}
 	}

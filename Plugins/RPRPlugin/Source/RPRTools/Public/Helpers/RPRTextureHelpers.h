@@ -12,13 +12,11 @@ namespace RPR
 
 	private:
 
-		template<int32 ElementCount, int32 XInc = 1, int32 YInc = 1, int32 Remap0 = 0, int32 Remap1 = 1, int32 Remap2 = 2, int32 Remap3 = 3>
+		template<int32 ElementCount, int32 Remap0 = 0, int32 Remap1 = 1, int32 Remap2 = 2, int32 Remap3 = 3, int32 XInc = 1, int32 YInc = 1>
 		static void FloatToByteCopy(uint32 Width, uint32 Height, const float* Src, uint8* Dst)
 		{
-			int32 offset = 0;
 			for (uint32 y = 0; y < Height; y += YInc)
 			{
-				int32 xOffset = 0;
 				for (uint32 x = 0; x < Width; x += XInc)
 				{
 					switch (ElementCount)
@@ -31,19 +29,30 @@ namespace RPR
 						default:;
 					}
 
-					xOffset += ElementCount;
-					offset += ElementCount;
 					Src += ElementCount;
-				}
-
-				if (YInc > 1)
-				{
-					//Src += ElementCount * Width * (YInc - 1);
 				}
 			}
 		}
 
-		template<int32 ElementCount, int32 XInc = 1, int32 YInc = 1, int32 Remap0 = 0, int32 Remap1 = 1, int32 Remap2 = 2, int32 Remap3 = 3>
+		template<int32 Remap0 = 0, int32 Remap1 = 1, int32 Remap2 = 2, int32 Remap3 = 3, int32 XInc = 1, int32 YInc = 1>
+		static void Float16ToByteCopy(uint32 Width, uint32 Height, const FFloat16Color* Src, float* Dst)
+		{
+			for (uint32 y = 0; y < Height; y += YInc)
+			{
+				for (uint32 x = 0; x < Width; x += XInc)
+				{
+					*Dst = GetFloat16Component(*Src, Remap0); Dst++;
+					*Dst = GetFloat16Component(*Src, Remap1); Dst++;
+					*Dst = GetFloat16Component(*Src, Remap2); Dst++;
+					*Dst = GetFloat16Component(*Src, Remap3); Dst++;
+					++Src;
+				}
+			}
+		}
+
+		static float GetFloat16Component(const FFloat16Color& Color, int32 ComponentIndex);
+
+		template<int32 ElementCount, int32 Remap0 = 0, int32 Remap1 = 1, int32 Remap2 = 2, int32 Remap3 = 3, int32 XInc = 1, int32 YInc = 1>
 		static void ByteToByteCopy(uint32 Width, uint32 Height, const uint8* Src, uint8* Dst)
 		{
 			for (uint32 y = 0; y < Height; y += YInc)
@@ -62,114 +71,73 @@ namespace RPR
 
 					Src += ElementCount;
 				}
-
-				if (YInc > 1)
-				{
-					//Src += ElementCount * Width *(YInc - 1);
-				}
 			}
 		}
 
-		template<int32 ElementCount, int32 XInc = 1, int32 YInc = 1, int32 Remap0 = 0, int32 Remap1 = 1, int32 Remap2 = 2, int32 Remap3 = 3>
+		template<int32 ElementCount, int32 Remap0 = 0, int32 Remap1 = 1, int32 Remap2 = 2, int32 Remap3 = 3, int32 XInc = 1, int32 YInc = 1>
 		static void sRGBByteToLinearByteCopy(uint32 Width, uint32 Height, const uint8* Src, uint8* Dst)
 		{
 			for (uint32 y = 0; y < Height; y += YInc)
 			{
 				for (uint32 x = 0; x < Width; x += XInc)
 				{
-					float f[4] = {0,0,0,0};
-
 					switch (ElementCount)
 					{
-						case 4: f[3] = *(Src + Remap0);
-						case 3: f[2] = *(Src + Remap1);
-						case 2: f[1] = *(Src + Remap2);
-						case 1: f[0] = *(Src + Remap3);
+						case 4: *Dst = sRGBToLinearUint8(*(Src + Remap0)); Dst++;
+						case 3: *Dst = sRGBToLinearUint8(*(Src + Remap1)); Dst++;
+						case 2: *Dst = sRGBToLinearUint8(*(Src + Remap2)); Dst++;
+						case 1: *Dst = *(Src + Remap3); Dst++; // Don't change alpha channel
 							break;
 						default:;
 					}
 
 					Src += ElementCount;
-
-					// don't correct alpha (tho this is argueble re blinns,
-					// ghost in a snow storm article)
-					// sRGB to linear (not OPTIMISED!)
-					for (int32 i = ElementCount - 1; i > 0; --i)
-					{
-						static float const a = 0.055f;
-						static float const b = 0.04045f;
-						f[i] *= (1.f / 255.f);
-						if (f[i] <= b) { f[i] *= (1.0f / 12.92f); }
-						else
-						{
-							f[i] = (f[i] + a) / (1.f + a);
-							f[i] = powf(f[i], 2.4f);
-						}
-						f[i] = f[i] > 1.f ? 1 : f[i];
-						f[i] = f[i] < 0.f ? 0 : f[i];
-					}
-					*Dst = uint8(f[3] * 255.f); Dst++;
-					*Dst = uint8(f[2] * 255.f); Dst++;
-					*Dst = uint8(f[1] * 255.f); Dst++;
-					*Dst = uint8(f[0]); Dst++;
-				}
-				if (YInc > 1)
-				{
-					//Src += ElementCount * Width *(YInc - 1);
 				}
 			}
 		}
 
-		template<int32 ElementCount, int32 XInc = 1, int32 YInc = 1, int32 Remap0 = 0, int32 Remap1 = 1, int32 Remap2 = 2, int32 Remap3 = 3>
+		template<int32 ElementCount, int32 Remap0 = 0, int32 Remap1 = 1, int32 Remap2 = 2, int32 Remap3 = 3, int32 XInc = 1, int32 YInc = 1>
 		static void sRGBFloatToLinearByteCopy(uint32 Width, uint32 Height, const float* Src, uint8* Dst)
+		{
+			const float floatToUint8 = 1.0f / 255.0f;
+
+			for (uint32 y = 0; y < Height; y += YInc)
+			{
+				for (uint32 x = 0; x < Width; x += XInc)
+				{
+					switch (ElementCount)
+					{
+						case 4: *Dst = sRGBToLinearFloat(*(Src + Remap0)) * floatToUint8;
+						case 3: *Dst = sRGBToLinearFloat(*(Src + Remap1)) * floatToUint8;
+						case 2: *Dst = sRGBToLinearFloat(*(Src + Remap2)) * floatToUint8;
+						case 1: *Dst = *(Src + Remap3) * floatToUint8;
+							break;
+						default:;
+					}
+
+					Src += ElementCount;
+				}
+			}
+		}
+
+		template<int32 Remap0 = 0, int32 Remap1 = 1, int32 Remap2 = 2, int32 Remap3 = 3, int32 XInc = 1, int32 YInc = 1>
+		static void sRGBFloat16ToByteCopy(uint32 Width, uint32 Height, const FFloat16Color* Src, float* Dst)
 		{
 			for (uint32 y = 0; y < Height; y += YInc)
 			{
 				for (uint32 x = 0; x < Width; x += XInc)
 				{
-					float f[4] = {0,0,0,0};
-
-					switch (ElementCount)
-					{
-						case 4: f[3] = *(Src + Remap0);
-						case 3: f[2] = *(Src + Remap1);
-						case 2: f[1] = *(Src + Remap2);
-						case 1: f[0] = *(Src + Remap3);
-							break;
-						default:;
-					}
-
-					Src += ElementCount;
-
-					// don't correct alpha (tho this is argueble re blinns,
-					// ghost in a snow storm article)
-					// sRGB to linear (not OPTIMISED!)
-					for (int32 i = ElementCount - 1; i > 0; --i)
-					{
-						static float const a = 0.055f;
-						static float const b = 0.04045f;
-
-						if (f[i] <= b) { f[i] *= (1.0f / 12.92f); }
-						else
-						{
-							f[i] = (f[i] + a) / (1.f + a);
-							f[i] = powf(f[i], 2.4f);
-						}
-						f[i] = f[i] > 1.f ? 1 : f[i];
-						f[i] = f[i] < 0.f ? 0 : f[i];
-					}
-					*Dst = uint8(f[3] * 255.f); Dst++;
-					*Dst = uint8(f[2] * 255.f); Dst++;
-					*Dst = uint8(f[1] * 255.f); Dst++;
-					*Dst = uint8(f[0]); Dst++;
-				}
-
-				if (YInc > 1)
-				{
-					//Src += ElementCount * Width *(YInc - 1);
+					*Dst = sRGBToLinearFloat(GetFloat16Component(*Src, Remap0)); Dst++;
+					*Dst = sRGBToLinearFloat(GetFloat16Component(*Src, Remap1)); Dst++;
+					*Dst = sRGBToLinearFloat(GetFloat16Component(*Src, Remap2)); Dst++;
+					*Dst = GetFloat16Component(*Src, Remap3); Dst++;
+					++Src;
 				}
 			}
 		}
+
+		static float sRGBToLinearFloat(float value);
+		static uint8 sRGBToLinearUint8(uint8 value);
 
 	};
 }

@@ -17,7 +17,7 @@ void RPR::FRPRXMaterial::SetUE4MaterialLink(const URPRMaterial* InUE4MaterialLin
 
 const URPRMaterial* RPR::FRPRXMaterial::GetUE4MaterialLink() const
 {
-	return UE4MaterialLink;
+	return UE4MaterialLink.Get();
 }
 
 void RPR::FRPRXMaterial::AddImage(RPR::FImagePtr Image)
@@ -41,6 +41,7 @@ void RPR::FRPRXMaterial::RemoveImage(RPR::FImage Image)
 void RPR::FRPRXMaterial::ReleaseResources()
 {
 	Images.Empty();
+	UE4MaterialLink.Reset();
 }
 
 void RPR::FRPRXMaterial::SetMaterial(RPRX::FMaterial InMaterial)
@@ -51,11 +52,6 @@ void RPR::FRPRXMaterial::SetMaterial(RPRX::FMaterial InMaterial)
 RPRX::FMaterial RPR::FRPRXMaterial::GetRawMaterial()
 {
 	return Material;
-}
-
-void RPR::FRPRXMaterial::AddReferencedObjects(FReferenceCollector& Collector)
-{
-	Collector.AddReferencedObject(UE4MaterialLink);
 }
 
 RPRX::FMaterial RPR::FRPRXMaterial::GetRawMaterial() const

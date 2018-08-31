@@ -22,6 +22,7 @@
 #include "Helpers/RPRHelpers.h"
 #include "RPRSettings.h"
 #include "Helpers/RPRTextureHelpers.h"
+#include "RPRCoreModule.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRImageManager, Log, All)
 
@@ -116,20 +117,25 @@ namespace RPR
 		TArray<uint8>	rprData;
 		rprData.SetNum(totalByteCount);
 		
-		ConvertPixels(textureDataReadOnly, rprData, platformData->PixelFormat, desc.image_width * desc.image_height);
-		//bool bAreTextureCopied = RPR::FTextureHelpers::CopyTexture((const uint8*) textureDataReadOnly, desc, rprData, platformData->PixelFormat);
+		bool bAreTextureCopied = RPR::FTextureHelpers::CopyTexture((const uint8*) textureDataReadOnly, desc, rprData, platformData->PixelFormat, Texture->SRGB);
 		mipData.Unlock();
 
-		/*if (!bAreTextureCopied)
+		if (!bAreTextureCopied)
 		{
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't copy texture data for RPR for texture %s. Unsupported format."), *Texture->GetName());
 			return nullptr;
-		}*/
+		}
 
 		RPR::FImage image;
-		if (RPR::IsResultFailed(rprContextCreateImage(context, dstFormat, &desc, rprData.GetData(), &image)))
+		RPR::FResult status = rprContextCreateImage(context, dstFormat, &desc, rprData.GetData(), &image);
+
+		UE_LOG(LogRPRCore_Steps, Verbose, 
+			TEXT("rprContextCreateImage(context=%p) -> status=%d, image=%p"), 
+			context, status, image);
+
+		if (RPR::IsResultFailed(status))
 		{
-			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't create RPR image for texture %s"), *Texture->GetName());
+			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't create RPR image for texture %s. Error code %d"), *Texture->GetName(), status);
 			return nullptr;
 		}
 
@@ -186,8 +192,8 @@ namespace RPR
 		TArray<uint8>	rprData;
 		rprData.SetNum(totalByteCount);
 
-		ConvertPixels(srcData.GetData(), rprData, srcFormat, desc.image_width * desc.image_height);
-		//RPR::FTextureHelpers::CopyTexture(srcData.GetData(), desc, rprData, srcFormat);
+		//ConvertPixels(srcData.GetData(), rprData, srcFormat, desc.image_width * desc.image_height);
+		RPR::FTextureHelpers::CopyTexture(srcData.GetData(), desc, rprData, srcFormat, Texture->SRGB);
 
 		RPR::FImage image;
 		if (RPR::IsResultFailed(rprContextCreateImage(context, dstFormat, &desc, rprData.GetData(), &image)))
@@ -328,6 +334,11 @@ namespace RPR
 			image = LoadImageFromTextureInternal(texture, false);
 		}
 		return (image);
+	}
+
+	void FImageManager::TImageDeleter::operator()(RPR::FImage Image)
+	{
+		RPR::DeleteObject(Image);
 	}
 
 }
