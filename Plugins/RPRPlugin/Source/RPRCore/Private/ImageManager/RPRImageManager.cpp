@@ -21,6 +21,7 @@
 #include "CubemapUnwrapUtils.h"
 #include "Helpers/RPRHelpers.h"
 #include "RPRSettings.h"
+#include "Helpers/RPRTextureHelpers.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRImageManager, Log, All)
 
@@ -36,37 +37,32 @@ namespace RPR
 		ClearCache();
 	}
 
-	void FImageManager::AddImage(UTexture* Texture, RPR::FImage Image)
+	void FImageManager::AddImage(UTexture* Texture, RPR::FImagePtr Image)
 	{
-		FImage image = FindInCache(Texture, false);
-		ensureMsgf(image == nullptr, TEXT("The RPR image has already been registered!"));
+		FImagePtr image = FindInCache(Texture, false);
+		ensureMsgf(image.IsValid(), TEXT("The RPR image has already been registered!"));
 		cache.Add(Texture, image);
 	}
 
-	void FImageManager::RemoveImage(RPR::FImage Image)
+	FImagePtr FImageManager::LoadImageFromTexture(UTexture2D* Texture, bool bRebuild)
 	{
-		cache.Release(Image);
-	}
-
-	FImage FImageManager::LoadImageFromTexture(UTexture2D* Texture, EImageType ImageType, bool bRebuild)
-	{
-		FImage image = LoadImageFromTextureInternal(Texture, ImageType, bRebuild);
-		if (image == nullptr)
+		FImagePtr image = LoadImageFromTextureInternal(Texture, bRebuild);
+		if (!image.IsValid())
 		{
 			image = TryLoadErrorTexture();
 		}
 		return (image);
 	}
 
-	RPR::FImage FImageManager::LoadImageFromTextureInternal(UTexture2D* Texture, EImageType ImageType, bool bRebuild)
+	FImagePtr FImageManager::LoadImageFromTextureInternal(UTexture2D* Texture, bool bRebuild)
 	{
 		check(context != nullptr);
 		check(Texture != nullptr);
 
-		FImage image = FindInCache(Texture, bRebuild);
-		if (image != nullptr)
+		FImagePtr imagePtr = FindInCache(Texture, bRebuild);
+		if (imagePtr.IsValid())
 		{
-			return (image);
+			return (imagePtr);
 		}
 
 		// BuildImage should (will be later) some kind of caching system (done before packaging ?)
@@ -77,6 +73,7 @@ namespace RPR
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't build image: empty platform data"));
 			return nullptr;
 		}
+		
 		FTexturePlatformData	*platformData = *Texture->GetRunningPlatformData();
 		if (platformData->Mips.Num() == 0 ||
 			!platformData->Mips[0].BulkData.IsBulkDataLoaded())
@@ -84,13 +81,15 @@ namespace RPR
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't build image: no Mips in PlatformData"));
 			return nullptr;
 		}
-		uint32				componentSize;
-		FImageFormat	dstFormat;
-		if (!BuildRPRImageFormat(platformData->PixelFormat, dstFormat, componentSize, ImageType))
+
+		uint32 componentSize;
+		FImageFormat dstFormat;
+		if (!BuildRPRImageFormat(platformData->PixelFormat, dstFormat, componentSize))
 		{
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't build image: image format for '%s' not handled"), *Texture->GetName());
 			return nullptr;
 		}
+
 		FByteBulkData		&mipData = platformData->Mips[0].BulkData;
 		const uint32		bulkDataSize = mipData.GetBulkDataSize();
 		if (platformData->SizeX <= 0 || platformData <= 0 || bulkDataSize <= 0)
@@ -98,12 +97,14 @@ namespace RPR
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't build image: empty PlatformData Mips BulkData"));
 			return nullptr;
 		}
+
 		const void	*textureDataReadOnly = mipData.LockReadOnly();
 		if (textureDataReadOnly == nullptr)
 		{
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't build image: empty mip data"));
 			return nullptr;
 		}
+
 		FImageDesc	desc;
 		desc.image_width = platformData->SizeX;
 		desc.image_height = platformData->SizeY;
@@ -114,29 +115,39 @@ namespace RPR
 		const uint32	totalByteCount = desc.image_row_pitch * desc.image_height;
 		TArray<uint8>	rprData;
 		rprData.SetNum(totalByteCount);
-
-		ConvertPixels(textureDataReadOnly, rprData, platformData->PixelFormat, desc.image_width * desc.image_height, ImageType);
+		
+		ConvertPixels(textureDataReadOnly, rprData, platformData->PixelFormat, desc.image_width * desc.image_height);
+		//bool bAreTextureCopied = RPR::FTextureHelpers::CopyTexture((const uint8*) textureDataReadOnly, desc, rprData, platformData->PixelFormat);
 		mipData.Unlock();
 
+		/*if (!bAreTextureCopied)
+		{
+			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't copy texture data for RPR for texture %s. Unsupported format."), *Texture->GetName());
+			return nullptr;
+		}*/
+
+		RPR::FImage image;
 		if (RPR::IsResultFailed(rprContextCreateImage(context, dstFormat, &desc, rprData.GetData(), &image)))
 		{
-			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't create RPR image"));
+			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't create RPR image for texture %s"), *Texture->GetName());
 			return nullptr;
 		}
 
-		cache.Add(Texture, image);
-		return image;
+		imagePtr = MakeShareable(image, TImageDeleter());
+
+		cache.Add(Texture, imagePtr);
+		return imagePtr;
 	}
 
-	FImage FImageManager::LoadCubeImageFromTexture(UTextureCube* Texture, bool bRebuild)
+	FImagePtr FImageManager::LoadCubeImageFromTexture(UTextureCube* Texture, bool bRebuild)
 	{
 		check(context != nullptr);
 		check(Texture != nullptr);
 
-		FImage image = FindInCache(Texture, bRebuild);
-		if (image != nullptr)
+		FImagePtr imagePtr = FindInCache(Texture, bRebuild);
+		if (imagePtr.IsValid())
 		{
-			return (image);
+			return (imagePtr);
 		}
 
 		// BuildCubeImage should (will be later) some kind of caching system (done before packaging ?)
@@ -158,7 +169,7 @@ namespace RPR
 		}
 		uint32				componentSize;
 		FImageFormat	dstFormat;
-		if (!BuildRPRImageFormat(srcFormat, dstFormat, componentSize, EImageType::Standard))
+		if (!BuildRPRImageFormat(srcFormat, dstFormat, componentSize))
 		{
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't build cubemap: image format for '%s' not handled"), *Texture->GetName());
 			return TryLoadErrorTexture();
@@ -175,16 +186,59 @@ namespace RPR
 		TArray<uint8>	rprData;
 		rprData.SetNum(totalByteCount);
 
-		ConvertPixels(srcData.GetData(), rprData, srcFormat, desc.image_width * desc.image_height, EImageType::Standard);
+		ConvertPixels(srcData.GetData(), rprData, srcFormat, desc.image_width * desc.image_height);
+		//RPR::FTextureHelpers::CopyTexture(srcData.GetData(), desc, rprData, srcFormat);
 
+		RPR::FImage image;
 		if (RPR::IsResultFailed(rprContextCreateImage(context, dstFormat, &desc, rprData.GetData(), &image)))
 		{
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't create RPR image"));
 			return TryLoadErrorTexture();
 		}
 
-		cache.Add(Texture, image);
-		return image;
+		imagePtr = MakeShareable(image, TImageDeleter());
+
+		cache.Add(Texture, imagePtr);
+		return imagePtr;
+	}
+
+	void	FImageManager::ConvertPixels(const void *textureData, TArray<uint8> &outData, EPixelFormat pixelFormat, uint32 pixelCount)
+	{
+		switch (pixelFormat)
+		{
+			case	PF_FloatRGBA:
+			{
+				float				*dstData = reinterpret_cast<float*>(outData.GetData());
+				const FFloat16Color	*srcData = reinterpret_cast<const FFloat16Color*>(textureData);
+
+				for (uint32 iPixel = 0, iData = 0; iPixel < pixelCount; ++iPixel)
+				{
+					dstData[iData++] = srcData->R.GetFloat();
+					dstData[iData++] = srcData->G.GetFloat();
+					dstData[iData++] = srcData->B.GetFloat();
+					dstData[iData++] = srcData->A.GetFloat();
+					++srcData;
+				}
+				break;
+			}
+			case PF_B8G8R8A8:
+			{
+				const uint8	*srcData = reinterpret_cast<const uint8*>(textureData);
+				uint8		*dstData = reinterpret_cast<uint8*>(outData.GetData());
+
+				for (uint32 iPixel = 0, iData = 0; iPixel < pixelCount; ++iPixel)
+				{
+					dstData[iData + 0] = srcData[iData + 2];
+					dstData[iData + 1] = srcData[iData + 1];
+					dstData[iData + 2] = srcData[iData + 0];
+					dstData[iData + 3] = srcData[iData + 3];
+					iData += 4;
+				}
+				break;
+			}
+			default:
+			break;
+		}
 	}
 
 	void	FImageManager::ClearCache()
@@ -211,7 +265,7 @@ namespace RPR
 		return (PF_B8G8R8A8);
 	}
 
-	bool	FImageManager::BuildRPRImageFormat(EPixelFormat srcFormat, FImageFormat &outFormat, uint32 &outComponentSize, EImageType imageType)
+	bool	FImageManager::BuildRPRImageFormat(EPixelFormat srcFormat, FImageFormat &outFormat, uint32 &outComponentSize)
 	{
 		switch (srcFormat)
 		{
@@ -248,57 +302,18 @@ namespace RPR
 		return true;
 	}
 
-	void	FImageManager::ConvertPixels(const void *textureData, TArray<uint8> &outData, EPixelFormat pixelFormat, uint32 pixelCount, EImageType imageType)
+	FImagePtr FImageManager::FindInCache(UTexture* Texture, bool bRebuild)
 	{
-		switch (pixelFormat)
-		{
-		case	PF_FloatRGBA:
-		{
-			float				*dstData = reinterpret_cast<float*>(outData.GetData());
-			const FFloat16Color	*srcData = reinterpret_cast<const FFloat16Color*>(textureData);
-
-			for (uint32 iPixel = 0, iData = 0; iPixel < pixelCount; ++iPixel)
-			{
-				dstData[iData++] = ConvertPixel(srcData->R.GetFloat(), imageType);
-				dstData[iData++] = ConvertPixel(srcData->G.GetFloat(), imageType);
-				dstData[iData++] = ConvertPixel(srcData->B.GetFloat(), imageType);
-				dstData[iData++] = ConvertPixel(srcData->A.GetFloat(), imageType);
-				++srcData;
-			}
-			break;
-		}
-		case PF_B8G8R8A8:
-		{
-			const uint8	*srcData = reinterpret_cast<const uint8*>(textureData);
-			uint8		*dstData = reinterpret_cast<uint8*>(outData.GetData());
-
-			for (uint32 iPixel = 0, iData = 0; iPixel < pixelCount; ++iPixel)
-			{
-				dstData[iData + 0] = srcData[iData + 2];
-				dstData[iData + 1] = srcData[iData + 1];
-				dstData[iData + 2] = srcData[iData + 0];
-				dstData[iData + 3] = srcData[iData + 3];
-				iData += 4;
-			}
-			break;
-		}
-		default:
-			break;
-		}
-	}
-
-	FImage FImageManager::FindInCache(UTexture* Texture, bool bRebuild)
-	{
-		FImage* image = cache.Get(Texture);
-		if (image != nullptr && bRebuild)
+		FImagePtr image = cache.Get(Texture);
+		if (!image.IsValid() && bRebuild)
 		{
 			cache.Release(Texture);
 			return (nullptr);
 		}
-		return (image != nullptr ? *image : nullptr);
+		return (image);
 	}
 
-	RPR::FImage FImageManager::TryLoadErrorTexture()
+	FImagePtr FImageManager::TryLoadErrorTexture()
 	{
 		URPRSettings* settings = GetMutableDefault<URPRSettings>();
 		if (settings == nullptr || !settings->bUseErrorTexture || settings->ErrorTexture.IsNull())
@@ -307,22 +322,12 @@ namespace RPR
 		}
 
 		UTexture2D* texture = settings->ErrorTexture.LoadSynchronous();
-		RPR::FImage image = cache.Get(texture);
-		if (image == nullptr)
+		FImagePtr image = cache.Get(texture);
+		if (!image.IsValid())
 		{
-			image = LoadImageFromTextureInternal(texture, EImageType::Standard, false);
+			image = LoadImageFromTextureInternal(texture, false);
 		}
 		return (image);
-	}
-
-	float FImageManager::ConvertPixel(float pixelValue, EImageType imageType)
-	{
-		/*if (imageType == EImageType::NormalMap)
-		{
-			return FMath::GetMappedRangeValueUnclamped(FVector2D(0.0f, 1.0f), FVector2D(-1.0f, 1.0f), pixelValue);
-		}*/
-
-		return pixelValue;
 	}
 
 }

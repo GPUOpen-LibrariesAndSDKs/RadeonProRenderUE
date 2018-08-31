@@ -64,12 +64,12 @@ namespace RPR
 	}
 
 	RPR::FResult FMaterialHelpers::CreateImageNode(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
-															UTexture2D* Texture, RPR::FImageManager::EImageType ImageType, RPR::FMaterialNode& OutMaterialNode)
+															UTexture2D* Texture, RPR::FImageManager::EImageType ImageType, RPR::FImagePtr& OutImage, RPR::FMaterialNode& OutMaterialNode)
 	{
 		OutMaterialNode = nullptr;
 
-		RPR::FImage	image = ImageManager.LoadImageFromTexture(Texture, ImageType);
-		if (image == nullptr)
+		OutImage = ImageManager.LoadImageFromTexture(Texture);
+		if (!OutImage.IsValid())
 		{
 			return (RPR_ERROR_INVALID_IMAGE);
 		}
@@ -86,7 +86,7 @@ namespace RPR
 				result = CreateNode(MaterialSystem, EMaterialNodeType::ImageTexture, Texture->GetName(), normalMapNode);
 				if (IsResultSuccess(result))
 				{
-					result = rprMaterialNodeSetInputImageData(normalMapNode, TCHAR_TO_ANSI(ImageDataInputName), image);
+					result = rprMaterialNodeSetInputImageData(normalMapNode, TCHAR_TO_ANSI(ImageDataInputName), OutImage.Get());
 					if (IsResultSuccess(result))
 					{
 						result = rprMaterialNodeSetInputN(OutMaterialNode, "color", normalMapNode);
@@ -99,7 +99,7 @@ namespace RPR
 			result = CreateNode(MaterialSystem, EMaterialNodeType::ImageTexture, Texture->GetName(), OutMaterialNode);
 			if (IsResultSuccess(result))
 			{
-				result = rprMaterialNodeSetInputImageData(OutMaterialNode, TCHAR_TO_ANSI(ImageDataInputName), image);
+				result = rprMaterialNodeSetInputImageData(OutMaterialNode, TCHAR_TO_ANSI(ImageDataInputName), OutImage.Get());
 			}
 		}
 

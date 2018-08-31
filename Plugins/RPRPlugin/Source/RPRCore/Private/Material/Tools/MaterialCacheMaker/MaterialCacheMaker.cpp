@@ -21,6 +21,7 @@
 #include "Material/RPRMaterialHelpers.h"
 #include "Material/Tools/MaterialCacheMaker/Factory/ParameterFactory.h"
 #include "Helpers/RPRXMaterialHelpers.h"
+#include "Helpers/RPRXHelpers.h"
 #include "RPRCoreSystemResources.h"
 #include "RPRCoreModule.h"
 
@@ -42,17 +43,26 @@ namespace RPRX
 			return (false);
 		}
 
+		OutMaterial.SetUE4MaterialLink(RPRMaterial);
 		OutMaterial.SetMaterial(rprxMaterial);
 		return UpdateUberMaterialParameters(OutMaterial);
 	}
 
 	bool	FMaterialCacheMaker::UpdateUberMaterialParameters(RPR::FRPRXMaterial& InOutMaterial)
 	{
-		return RPR::IsResultSuccess(
-			BrowseUberMaterialParameters(
-				FUberMaterialParametersPropertyVisitor::CreateRaw(this, &FMaterialCacheMaker::ApplyUberMaterialParameter),
-				InOutMaterial
-			));
+		bool bIsMaterialCorrectlyUpdated = false;
+
+		FUberMaterialParametersPropertyVisitor visitor = FUberMaterialParametersPropertyVisitor::CreateRaw(this, &FMaterialCacheMaker::ApplyUberMaterialParameter);
+		bIsMaterialCorrectlyUpdated |= RPR::IsResultSuccess(BrowseUberMaterialParameters(visitor, InOutMaterial));
+		
+		auto rprSupportContext = IRPRCore::GetResources()->GetRPRXSupportContext();
+		if (rprSupportContext != nullptr)
+		{
+			RPR::FResult status = RPRX::MaterialCommit(rprSupportContext, InOutMaterial.GetRawMaterial());
+			bIsMaterialCorrectlyUpdated |= RPR::IsResultSuccess(status);
+		}
+
+		return bIsMaterialCorrectlyUpdated;
 	}
 
 	RPR::FResult FMaterialCacheMaker::BrowseUberMaterialParameters(FUberMaterialParametersPropertyVisitor Visitor, 

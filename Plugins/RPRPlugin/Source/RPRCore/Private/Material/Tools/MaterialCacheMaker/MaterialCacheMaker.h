@@ -26,7 +26,7 @@
 
 namespace RPRX
 {
-	DECLARE_DELEGATE_RetVal_FourParams(RPR::FResult, FUberMaterialParametersPropertyVisitor, const FRPRUberMaterialParameters&, UScriptStruct*, UProperty*, FMaterial&)
+	DECLARE_DELEGATE_RetVal_FourParams(RPR::FResult, FUberMaterialParametersPropertyVisitor, const FRPRUberMaterialParameters&, UScriptStruct*, UProperty*, RPR::FRPRXMaterial&)
 
 	class FMaterialCacheMaker
 	{

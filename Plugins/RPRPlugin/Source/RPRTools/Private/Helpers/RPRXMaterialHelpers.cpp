@@ -59,9 +59,10 @@ namespace RPRX
 		RPR::FResult status = rprxMaterialSetParameterN(Context, Material, Parameter, MaterialNode);
 
 		UE_LOG(LogRPRTools_Step, Verbose, 
-			TEXT("rprxMaterialSetParameterN(context=%p, material=%p, parameter=%d, materialNode=%s) -> %d"), 
+			TEXT("rprxMaterialSetParameterN(context=%p, material=%p, parameter=%d, materialNode=%s:%p) -> %d"), 
 			Context, Material, Parameter, 
 			MaterialNode != nullptr ? *RPR::RPRMaterial::GetNodeName(MaterialNode) : *FString::Printf(TEXT("%p"), MaterialNode),
+			MaterialNode,
 			status);
 
 		return (status);
@@ -69,9 +70,6 @@ namespace RPRX
 
 	RPR::FResult FMaterialHelpers::SetMaterialParameterUInt(FContext Context, FMaterial Material, FParameter Parameter, uint32 Value)
 	{
-		CheckParameterType(Context, Material, Parameter, RPRX_PARAMETER_TYPE_UINT);
-
-
 		RPR::FResult status = rprxMaterialSetParameterU(Context, Material, Parameter, Value);
 		ensureMsgf(RPR::IsResultSuccess(status), TEXT("An error occured when set material parameter uint %#04"), status);
 
@@ -87,9 +85,6 @@ namespace RPRX
 
 	RPR::FResult FMaterialHelpers::SetMaterialParameterFloats(FContext Context, FMaterial Material, FParameter Parameter, float x, float y, float z, float w)
 	{
-		CheckParameterType(Context, Material, Parameter, RPRX_PARAMETER_TYPE_FLOAT4);
-
-
 		RPR::FResult status = rprxMaterialSetParameterF(Context, Material, Parameter, x, y, z, w);
 		ensureMsgf(RPR::IsResultSuccess(status), TEXT("An error occured when set material parameter float4 %#04"), status);
 

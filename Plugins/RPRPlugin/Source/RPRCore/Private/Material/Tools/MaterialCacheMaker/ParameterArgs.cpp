@@ -33,7 +33,7 @@ namespace RPRX
 			RPR::FImageManagerPtr InImageManager,
 			const URPRMaterial* InOwnerMaterial,
 			RPR::FMaterialContext& InMaterialContext, 
-			FMaterial& InMaterial)
+			RPR::FRPRXMaterial& InMaterial)
 			: Parameters(InParameters)
 			, Property(InProperty)
 			, OwnerMaterial(InOwnerMaterial)

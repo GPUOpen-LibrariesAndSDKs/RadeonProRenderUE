@@ -40,7 +40,7 @@ namespace RPR
 		static FResult	DeleteNode(FMaterialNode& MaterialNode);
 
 		static FResult	CreateImageNode(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
-													UTexture2D* Texture, RPR::FImageManager::EImageType ImageType, FMaterialNode& MaterialNode);
+													UTexture2D* Texture, RPR::FImageManager::EImageType ImageType, RPR::FImagePtr& OutImage, FMaterialNode& MaterialNode);
 
 		class FMaterialNode
 		{
@@ -49,6 +49,7 @@ namespace RPR
 			static FResult	SetInputF(RPR::FMaterialNode MaterialNode, const FString& ParameterName, float x, float y, float z, float w);
 
 		};
+
 	};
 
 

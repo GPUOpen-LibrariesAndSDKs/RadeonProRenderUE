@@ -23,20 +23,23 @@ namespace RPRX
 {
 	RPR::FResult ShapeAttachMaterial(FContext Context, RPR::FShape Shape, FMaterial Material)
 	{
-		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxShapeAttachMaterial(context=%p, shape=%p, material=%p)"), Context, Shape, Material);
-		return (rprxShapeAttachMaterial(Context, Shape, Material));
+		RPR::FResult status = rprxShapeAttachMaterial(Context, Shape, Material);
+		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxShapeAttachMaterial(context=%p, shape=%p, material=%p) -> %d"), Context, Shape, Material, status);
+		return (status);
 	}
 
 	RPR::FResult ShapeDetachMaterial(FContext Context, RPR::FShape Shape, FMaterial Material)
 	{
-		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxShapeDetachMaterial(context=%p, shape=%p, material=%p)"), Context, Shape, Material);
-		return (rprxShapeDetachMaterial(Context, Shape, Material));
+		RPR::FResult status = rprxShapeDetachMaterial(Context, Shape, Material);
+		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxShapeDetachMaterial(context=%p, shape=%p, material=%p) -> %d"), Context, Shape, Material, status);
+		return (status);
 	}
 
 	RPR::FResult MaterialCommit(FContext Context, FMaterial Material)
 	{
-		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxMaterialCommit(context=%p, material=%p)"), Context, Material);
-		return (rprxMaterialCommit(Context, Material));
+		RPR::FResult status = rprxMaterialCommit(Context, Material);
+		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxMaterialCommit(context=%p, material=%p) -> %d"), Context, Material, status);
+		return status;
 	}
 
 	RPR::FResult ShapeGetMaterial(FContext Context, RPR::FShape Shape, FMaterial& OutMaterialX)

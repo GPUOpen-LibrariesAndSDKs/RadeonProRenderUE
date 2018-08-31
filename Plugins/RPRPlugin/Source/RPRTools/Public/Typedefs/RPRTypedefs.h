@@ -56,5 +56,6 @@ namespace RPR
 
 	typedef rpr_material_system_type	FMaterialSystemType;
 
-	typedef TSharedPtr<FImage>		FImagePtr;
+	typedef TSharedPtr<void>	FImagePtr;
+	typedef TWeakPtr<void>		FImageWeakPtr;
 }

@@ -47,17 +47,17 @@ namespace RPRX
 		const FRPRMaterialMap* materialMap = SetterParameters.GetDirectParameter<FRPRMaterialMap>();
 		if (materialMap->Texture != nullptr && SetterParameters.ImageManager.IsValid())
 		{
+			RPR::FImagePtr image;
 			RPR::FResult imageNodeCreationResult = RPR::FMaterialHelpers::CreateImageNode(
 				materialContext.RPRContext,
 				materialContext.MaterialSystem,
 				*SetterParameters.ImageManager.Get(),
 				materialMap->Texture,
 				RPR::FImageManager::EImageType::Standard,
-                imageMaterialNode
+				image, imageMaterialNode
 			);
 
-			// TODO : Bind image
-			//SetterParameters.Material.AddImage();
+			SetterParameters.Material.AddImage(image);
 
 			if (RPR::IsResultFailed(imageNodeCreationResult))
 			{
@@ -67,7 +67,7 @@ namespace RPRX
 
 		FMaterialHelpers::SetMaterialParameterNode(
 			materialContext.RPRXContext,
-			SetterParameters.Material.GetMaterial(),
+			SetterParameters.Material.GetRawMaterial(),
 			SetterParameters.GetRprxParam(),
 			imageMaterialNode
 		);

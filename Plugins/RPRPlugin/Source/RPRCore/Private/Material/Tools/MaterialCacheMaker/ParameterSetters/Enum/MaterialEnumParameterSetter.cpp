@@ -37,7 +37,7 @@ namespace RPRX
 
 		FMaterialHelpers::SetMaterialParameterUInt(
 			SetterParameters.MaterialContext.RPRXContext,
-			SetterParameters.Material.GetMaterial(),
+			SetterParameters.Material.GetRawMaterial(),
 			SetterParameters.GetRprxParam(),
 			materialEnum->EnumValue
 		);

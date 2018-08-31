@@ -29,54 +29,44 @@ namespace RPR
 		ReleaseAll();
 	}
 
-	void FImagesCache::Add(UTexture* Texture, FImage Image)
+	void FImagesCache::Add(UTexture* Texture, FImagePtr Image)
 	{
+		RemoveDeprecatedImages();
+
 		loadedImages.Add(Texture, Image);
 	}
 
 	void FImagesCache::Release(UTexture* Texture)
 	{
-		FImage* image = Get(Texture);
-		if (image != nullptr)
-		{
-			RPR::DeleteObject(*image);
-			loadedImages.Remove(Texture);
-		}
-	}
+		RemoveDeprecatedImages();
 
-	void FImagesCache::Release(FImage Image)
-	{
-		for (auto it(loadedImages.CreateIterator()); it; ++it)
+		FImagePtr image = Get(Texture);
+		if (image.IsValid())
 		{
-			FImage image = it.Value();
-			if (image == Image)
-			{
-				RPR::DeleteObject(image);
-				loadedImages.Remove(it.Key());
-				break;
-			}
+			image.Reset();
 		}
 	}
 
 	void FImagesCache::ReleaseAll()
 	{
-		for (auto it(loadedImages.CreateIterator()); it; ++it)
-		{
-			FImage image = it.Value();
-			RPR::DeleteObject(image);
-		}
 		loadedImages.Empty();
 	}
 
-	RPR::FImage* FImagesCache::Get(UTexture* Texture)
+	RPR::FImagePtr FImagesCache::Get(UTexture* Texture)
 	{
-		const FImagesCache* thisConst = this;
-		return (RPR::ConstRefAway(thisConst->Get(Texture)));
+		RPR::FImageWeakPtr* imgWkPtr = loadedImages.Find(Texture);
+		return imgWkPtr != nullptr ? imgWkPtr->Pin() : nullptr;
 	}
 
-	const FImage* FImagesCache::Get(UTexture* Texture) const
+	void FImagesCache::RemoveDeprecatedImages()
 	{
-		return loadedImages.Find(Texture);
+		for (TPair<UTexture*, FImageWeakPtr>& loadedImage : loadedImages)
+		{
+			if (!loadedImage.Value.IsValid())
+			{
+				loadedImages.Remove(loadedImage.Key);
+			}
+		}
 	}
 
 }

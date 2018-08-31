@@ -51,7 +51,7 @@ namespace RPRX
 
 			FMaterialHelpers::SetMaterialParameterColor(
 				materialContext.RPRXContext,
-				SetterParameters.Material.GetMaterial(),
+				SetterParameters.Material.GetRawMaterial(),
 				SetterParameters.GetRprxParam(),
 				materialMap->Constant
 			);

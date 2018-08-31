@@ -46,7 +46,7 @@ namespace RPRX
 				RPR::FImageManagerPtr InImageManager,
 				const URPRMaterial* OwnerMaterial,
 				RPR::FMaterialContext& InMaterialContext, 
-				FMaterial& InMaterial);
+				RPR::FRPRXMaterial& InMaterial);
 
 			template<typename ParameterType>
 			const ParameterType*	GetDirectParameter();

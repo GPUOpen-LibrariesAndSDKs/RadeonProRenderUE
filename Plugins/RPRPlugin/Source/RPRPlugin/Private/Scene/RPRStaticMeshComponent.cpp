@@ -40,14 +40,13 @@
 
 #include "RPRStats.h"
 #include "Scene/RPRScene.h"
-#include "Material/RPRMaterialBuilder.h"
 #include "Async/Async.h"
 #include "Helpers/RPRXHelpers.h"
 #include "Helpers/ContextHelper.h"
 #include "RPRCpStaticMesh.h"
-#include "Material/RPRMaterialBuilder.h"
 #include "RPRCoreModule.h"
 #include "RPRCoreSystemResources.h"
+#include "Typedefs/RPRXTypedefs.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
 
@@ -157,7 +156,9 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 			URPRMaterial* rprMaterial = Cast<URPRMaterial>(matInterface);
 			BuildRPRMaterial(shape, rprMaterial);
 
-			m_Shapes[iShape].m_RprxMaterial = (RPRX::FMaterial) rprMaterialLibrary.GetMaterialRawDatas(rprMaterial);
+			RPRX::FMaterial rprxMaterial;
+			rprMaterialLibrary.TryGetRawMaterial(rprMaterial, rprxMaterial);
+			m_Shapes[iShape].m_RprxMaterial = rprxMaterial;
 		}
 		else
 		{
@@ -193,16 +194,22 @@ bool URPRStaticMeshComponent::ApplyRPRMaterialOnShape(RPR::FShape& Shape, URPRMa
 {
 	FRPRXMaterialLibrary& rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 
-	uint32 materialType;
-	RPR::FMaterialRawDatas materialRawDatas;
-	if (!rprMaterialLibrary.TryGetMaterialRawDatas(Material, materialType, materialRawDatas))
+	RPRX::FMaterial rprxMaterial;
+	if (!rprMaterialLibrary.TryGetRawMaterial(Material, rprxMaterial))
 	{
 		UE_LOG(LogRPRStaticMeshComponent, Error, TEXT("Cannot get the material raw datas from the library."));
 		return (false);
 	}
 
-	RPR::MaterialBuilder::BindMaterialRawDatasToShape(materialType, materialRawDatas, Shape);
-	return (true);
+	RPRX::FContext rprxContext = IRPRCore::GetResources()->GetRPRXSupportContext();
+	RPR::FResult status = RPRX::ShapeAttachMaterial(rprxContext, Shape, rprxMaterial);
+	if (RPR::IsResultSuccess(status))
+	{
+		// Commit must be done *after* the shape attach material to work properly
+		// May change in newer versions of RPR (current is 1.312)
+		status = RPRX::MaterialCommit(rprxContext, rprxMaterial);
+	}
+	return (RPR::IsResultSuccess(status));
 }
 
 void URPRStaticMeshComponent::AttachDummyMaterial(RPR::FShape shape)
@@ -528,13 +535,6 @@ bool URPRStaticMeshComponent::UpdateDirtyMaterialsIFN()
 		while (m_dirtyMaterialsQueue.Dequeue(material))
 		{
 			rprMaterialLibrary.RecacheMaterial(material);
-
-			uint32 materialType;
-			RPR::FMaterialRawDatas materialRawDatas;
-			if (rprMaterialLibrary.TryGetMaterialRawDatas(material, materialType, materialRawDatas))
-			{
-				RPR::MaterialBuilder::CommitMaterial(materialType, reinterpret_cast<RPRX::FMaterial>(materialRawDatas));
-			}
 		}
 	}
 

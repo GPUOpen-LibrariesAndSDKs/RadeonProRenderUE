@@ -23,6 +23,7 @@
 #include "Engine/Texture.h"
 #include "Cache/RPRImagesCache.h"
 #include "Engine/Texture2D.h"
+#include "Helpers/RPRHelpers.h"
 
 namespace RPR
 {
@@ -40,16 +41,27 @@ namespace RPR
             NormalMap
         };
 
+	private:
+
+		// Called there is no more reference on a RPR::FImage shared pointer
+		class TImageDeleter
+		{
+		public:
+			void operator()(RPR::FImage Image)
+			{
+				RPR::DeleteObject(Image);
+			}
+		};
+
+	public:
+
 		FImageManager(RPR::FContext RPRContext);
 		virtual ~FImageManager();
 
-		// Add a couple UTexture/RPR::FImage in cache
-		// When added, the ImageManager will be in charge of delete the RPR::FImage memory.
-		void		AddImage(UTexture* Texture, RPR::FImage Image);
-		void		RemoveImage(RPR::FImage Image);
+		void		AddImage(UTexture* Texture, RPR::FImagePtr Image);
 
-		RPR::FImage LoadImageFromTexture(UTexture2D* Texture, EImageType ImageType = EImageType::Standard, bool bRebuild = false);
-		RPR::FImage LoadCubeImageFromTexture(UTextureCube* Texture, bool bRebuild = false);
+		RPR::FImagePtr LoadImageFromTexture(UTexture2D* Texture, bool bRebuild = false);
+		RPR::FImagePtr LoadCubeImageFromTexture(UTextureCube* Texture, bool bRebuild = false);
 
 		void ClearCache();
 
@@ -58,13 +70,12 @@ namespace RPR
 
 	private:
 
-		RPR::FImage LoadImageFromTextureInternal(UTexture2D* Texture, EImageType ImageType, bool bRebuild);
-		bool BuildRPRImageFormat(EPixelFormat srcFormat, FImageFormat &outFormat, uint32 &outComponentSize, EImageType ImageType);
-        void ConvertPixels(const void *textureData, TArray<uint8> &outData, EPixelFormat pixelFormat, uint32 pixelCount, EImageType imageType);
-		RPR::FImage	FindInCache(UTexture* Texture, bool bRebuild);
-		RPR::FImage	TryLoadErrorTexture();
+		RPR::FImagePtr LoadImageFromTextureInternal(UTexture2D* Texture, bool bRebuild);
+		bool BuildRPRImageFormat(EPixelFormat srcFormat, FImageFormat &outFormat, uint32 &outComponentSize);
+		RPR::FImagePtr FindInCache(UTexture* Texture, bool bRebuild);
+		RPR::FImagePtr TryLoadErrorTexture();
 
-        float   ConvertPixel(float pixelValue, EImageType imageType);
+		void ConvertPixels(const void *textureData, TArray<uint8> &outData, EPixelFormat pixelFormat, uint32 pixelCount);
 
 	private:
 

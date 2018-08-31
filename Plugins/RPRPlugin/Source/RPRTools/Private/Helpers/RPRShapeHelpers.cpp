@@ -64,8 +64,13 @@ namespace RPR
 
 		RPR::FResult SetMaterial(FShape Shape, RPR::FMaterialNode MaterialNode)
 		{
-			UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprShapeSetMaterial(%s, %s)"), *RPR::Shape::GetName(Shape), *RPR::RPRMaterial::GetNodeName(MaterialNode));
-			return (rprShapeSetMaterial(Shape, MaterialNode));
+			UE_LOG(LogRPRTools_Step, Verbose, 
+				TEXT("rprShapeSetMaterial(%s, %s)"), 
+				*RPR::Shape::GetName(Shape), 
+				*RPR::RPRMaterial::GetNodeName(MaterialNode)
+			);
+
+			return rprShapeSetMaterial(Shape, MaterialNode);
 		}
 
 	} // namespace Shape

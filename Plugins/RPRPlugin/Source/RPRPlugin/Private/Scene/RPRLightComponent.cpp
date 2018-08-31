@@ -165,7 +165,7 @@ bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightCompone
 		return false;
 	}
 	m_RprImage = IRPRCore::GetResources()->GetRPRImageManager()->LoadCubeImageFromTexture(skyLightComponent->Cubemap);
-	if (m_RprImage == NULL)
+	if (!m_RprImage.IsValid())
 		return false;
 
 	const float	intensity = skyLightComponent->Intensity * (m_CachedAffectsWorld ? 1.0f : 0.0f);
@@ -176,7 +176,7 @@ bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightCompone
 		return false;
 	}
 
-	if (rprEnvironmentLightSetImage(m_RprLight, m_RprImage) != RPR_SUCCESS)
+	if (rprEnvironmentLightSetImage(m_RprLight, m_RprImage.Get()) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't set environment light image"));
 		return false;
@@ -399,13 +399,7 @@ bool	URPRLightComponent::RPRThread_Update()
 		case	ERPRLightType::Environment:
 		{
 			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set env light intensity", PROPERTY_REBUILD_LIGHT_COLOR, rprEnvironmentLightSetIntensityScale, m_RprLight, m_CachedIntensity * RPR::Light::Constants::kDirLightIntensityMultiplier * affectsWorld);
-			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set env light cubemap", PROPERTY_REBUILD_ENV_LIGHT_CUBEMAP, rprEnvironmentLightSetImage, m_RprLight, m_RprImage);
-
-			if (m_PendingDelete != NULL)
-			{
-				rprObjectDelete(m_PendingDelete);
-				m_PendingDelete = NULL;
-			}
+			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set env light cubemap", PROPERTY_REBUILD_ENV_LIGHT_CUBEMAP, rprEnvironmentLightSetImage, m_RprLight, m_RprImage.Get());
 			break;
 		}
 		case	ERPRLightType::IES:
@@ -514,15 +508,9 @@ void	URPRLightComponent::ReleaseResources()
 	{
 		check(Scene != NULL);
 		rprSceneDetachLight(Scene->m_RprScene, m_RprLight);
-		rprObjectDelete(m_RprLight);
+		RPR::DeleteObject(m_RprLight);
 		m_RprLight = NULL;
 	}
-	if (m_PendingDelete != NULL)
-	{
-		check(Scene != NULL);
-		rprObjectDelete(m_PendingDelete);
-		m_PendingDelete = NULL;
-	}
-	m_RprImage = NULL;
+	m_RprImage.Reset();
 	Super::ReleaseResources();
 }
