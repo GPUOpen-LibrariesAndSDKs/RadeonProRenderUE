@@ -484,8 +484,8 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 	m_AvailableMegaPixel.Add(MakeShared<FString>("0.5"));
 	m_AvailableMegaPixel.Add(MakeShared<FString>("1.0"));
 	m_AvailableMegaPixel.Add(MakeShared<FString>("2.0"));
-	//m_AvailableMegaPixel.Add(MakeShared<FString>("4.0"));
-	//m_AvailableMegaPixel.Add(MakeShared<FString>("8.0"));
+	m_AvailableMegaPixel.Add(MakeShared<FString>("4.0"));
+	m_AvailableMegaPixel.Add(MakeShared<FString>("8.0"));
 
 	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::Color, LOCTEXT("AOV_Color", "Color")));
 	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::Opacity, LOCTEXT("AOV_Opacity", "Opacity")));

@@ -345,7 +345,8 @@ bool	ARPRScene::RPRThread_Rebuild()
 	bool			restartRender = false;
 	for (int32 iObject = 0; iObject < SceneContent.Num(); ++iObject)
 	{
-		if (SceneContent[iObject] == nullptr)
+		if (SceneContent[iObject] == nullptr ||
+			SceneContent[iObject]->GetRootComponent() == nullptr)
 		{
 			SceneContent.RemoveAt(iObject--);
 			continue;
