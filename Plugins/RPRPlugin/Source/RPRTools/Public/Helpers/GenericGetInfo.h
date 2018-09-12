@@ -22,14 +22,14 @@ namespace RPR
 			status = GetInfoFunction(Source, (rpr_int) InfoType, 0, nullptr, &size);
 			if (RPR::IsResultFailed(status))
 			{
-				UE_LOG(LogRPRGetInfo, Error, TEXT("Cannot get size info (source : %p, type : %d)"), Source, (uint32) InfoType);
+				UE_LOG(LogRPRGetInfo, Error, TEXT("Cannot get size info (source : %p, type : %d) -> %d"), Source, (uint32) InfoType, status);
 				return (status);
 			}
 
 			status = GetInfoFunction(Source, (rpr_int) InfoType, size, OutValue, nullptr);
 			if (RPR::IsResultFailed(status))
 			{
-				UE_LOG(LogRPRGetInfo, Error, TEXT("Cannot get info (source : %p, type : %d)"), Source, (uint32) InfoType);
+				UE_LOG(LogRPRGetInfo, Error, TEXT("Cannot get info (source : %p, type : %d) -> %d"), Source, (uint32) InfoType, status);
 			}
 
 			return (status);
@@ -44,7 +44,7 @@ namespace RPR
 			status = GetInfoFunction(Source, (rpr_int) InfoType, 0, nullptr, &size);
 			if (RPR::IsResultFailed(status))
 			{
-				UE_LOG(LogRPRGetInfo, Error, TEXT("Cannot get size info (source : %p, type : %d)"), Source, (uint32) InfoType);
+				UE_LOG(LogRPRGetInfo, Error, TEXT("Cannot get size info (source : %p, type : %d) -> %d"), Source, (uint32) InfoType, status);
 				return (status);
 			}
 
@@ -58,7 +58,7 @@ namespace RPR
 			status = GetInfoFunction(Source, (rpr_int) InfoType, size, OutValue.GetData(), nullptr);
 			if (RPR::IsResultFailed(status))
 			{
-				UE_LOG(LogRPRGetInfo, Error, TEXT("Cannot get info (source : %p, type : %d)"), Source, (uint32) InfoType);
+				UE_LOG(LogRPRGetInfo, Error, TEXT("Cannot get info (source : %p, type : %d) -> %d"), Source, (uint32) InfoType, status);
 			}
 
 			return (status);
