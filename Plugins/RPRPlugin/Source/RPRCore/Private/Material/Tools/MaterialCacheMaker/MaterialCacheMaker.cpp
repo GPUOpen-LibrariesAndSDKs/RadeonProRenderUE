@@ -21,6 +21,7 @@
 #include "Material/RPRMaterialHelpers.h"
 #include "Material/Tools/MaterialCacheMaker/Factory/ParameterFactory.h"
 #include "Helpers/RPRXMaterialHelpers.h"
+#include "Helpers/RPRXHelpers.h"
 #include "RPRCoreSystemResources.h"
 #include "RPRCoreModule.h"
 
@@ -32,24 +33,45 @@ namespace RPRX
 		, RPRMaterial(InRPRMaterial)
 	{}
 
-	bool FMaterialCacheMaker::CacheUberMaterial(RPRX::FMaterial& OutMaterial)
+	RPR::FRPRXMaterialPtr FMaterialCacheMaker::CacheUberMaterial()
 	{
-		return 
-			RPR::IsResultSuccess(RPRX::FMaterialHelpers::CreateMaterial(MaterialContext.RPRXContext, EMaterialType::Uber, OutMaterial)) && 
-			UpdateUberMaterialParameters(OutMaterial);
+		RPRX::FMaterial rprxMaterial;
+
+		RPR::FResult status = RPRX::FMaterialHelpers::CreateMaterial(MaterialContext.RPRXContext, EMaterialType::Uber, rprxMaterial);
+		if (RPR::IsResultFailed(status))
+		{
+			return (nullptr);
+		}
+
+		RPR::FRPRXMaterialPtr materialPtr = MakeShareable(new RPR::FRPRXMaterial(RPRMaterial));
+		if (!UpdateUberMaterialParameters(materialPtr))
+		{
+			materialPtr.Reset();
+			return nullptr;
+		}
+
+		return materialPtr;
 	}
 
-	bool	FMaterialCacheMaker::UpdateUberMaterialParameters(RPRX::FMaterial& InOutMaterial)
+	bool	FMaterialCacheMaker::UpdateUberMaterialParameters(RPR::FRPRXMaterialPtr Material)
 	{
-		return RPR::IsResultSuccess(
-			BrowseUberMaterialParameters(
-				FUberMaterialParametersPropertyVisitor::CreateRaw(this, &FMaterialCacheMaker::ApplyUberMaterialParameter),
-				InOutMaterial
-			));
+		bool bIsMaterialCorrectlyUpdated = false;
+
+		FUberMaterialParametersPropertyVisitor visitor = FUberMaterialParametersPropertyVisitor::CreateRaw(this, &FMaterialCacheMaker::ApplyUberMaterialParameter);
+		bIsMaterialCorrectlyUpdated |= RPR::IsResultSuccess(BrowseUberMaterialParameters(visitor, Material));
+		
+		auto rprSupportContext = IRPRCore::GetResources()->GetRPRXSupportContext();
+		if (rprSupportContext != nullptr)
+		{
+			RPR::FResult status = Material->Commit();
+			bIsMaterialCorrectlyUpdated |= RPR::IsResultSuccess(status);
+		}
+
+		return bIsMaterialCorrectlyUpdated;
 	}
 
 	RPR::FResult FMaterialCacheMaker::BrowseUberMaterialParameters(FUberMaterialParametersPropertyVisitor Visitor, 
-																				FMaterial& OutMaterial)
+																	RPR::FRPRXMaterialPtr Material)
 	{
 		const FRPRUberMaterialParameters& uberMaterialParameters = RPRMaterial->MaterialParameters;
 		UScriptStruct* parametersStruct = FRPRUberMaterialParameters::StaticStruct();
@@ -58,7 +80,7 @@ namespace RPRX
 		UProperty* currentProperty = parametersStruct->PropertyLink;
 		while (currentProperty != nullptr)
 		{
-			result = Visitor.Execute(uberMaterialParameters, parametersStruct, currentProperty, OutMaterial);
+			result = Visitor.Execute(uberMaterialParameters, parametersStruct, currentProperty, Material);
 			if (RPR::IsResultFailed(result))
 			{
 				return (result);
@@ -70,9 +92,9 @@ namespace RPRX
 	}
 
 	RPR::FResult FMaterialCacheMaker::ApplyUberMaterialParameter(const FRPRUberMaterialParameters& InParameters,
-																			UScriptStruct* InParametersStruct,
-																			UProperty* InParameterProperty,
-																			FMaterial& InOutMaterial)
+																		UScriptStruct* InParametersStruct,
+																		UProperty* InParameterProperty,
+																		RPR::FRPRXMaterialPtr Material)
 	{
 		RPR::FResult result = RPR_SUCCESS;
 
@@ -82,14 +104,17 @@ namespace RPRX
 			InParameters,
 			InParameterProperty,
 			imageManager,
+			RPRMaterial,
 			MaterialContext,
-			InOutMaterial
+			Material
 		);
 
 		if (materialCacheParametersSetterArgs.CanUseParam())
 		{
             if (materialCacheParametersSetterArgs.HasCustomParameterApplier())
             {
+				UE_LOG(LogRPRCore_Steps, VeryVerbose, TEXT("[%s] %s -> Parameter use custom application"), *RPRMaterial->GetName(), *InParameterProperty->GetName());
+
                 FRPRUberMaterialParameterBase* materialParameter = materialCacheParametersSetterArgs.GetMaterialParameterBase();
                 materialParameter->ApplyParameter(materialCacheParametersSetterArgs);
             }
@@ -100,9 +125,15 @@ namespace RPRX
 
                 if (mapSetter.IsValid())
                 {
+					UE_LOG(LogRPRCore_Steps, VeryVerbose, TEXT("[%s] %s -> Parameter use standard application"), *RPRMaterial->GetName(), *InParameterProperty->GetName());
+
                     mapSetter->ApplyParameterX(materialCacheParametersSetterArgs);
                 }
             }
+		}
+		else
+		{
+			UE_LOG(LogRPRCore_Steps, VeryVerbose, TEXT("[%s] %s -> Parameter not used"), *RPRMaterial->GetName(), *InParameterProperty->GetName());
 		}
 
 		return (result);

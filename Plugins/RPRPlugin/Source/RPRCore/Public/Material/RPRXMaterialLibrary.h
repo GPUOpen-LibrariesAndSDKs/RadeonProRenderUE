@@ -41,41 +41,34 @@ public:
 
 	void	Initialize();
 	bool	IsInitialized() const;
-	void	Close();
-
 	bool	Contains(const URPRMaterial* InMaterial) const;
+	void	Close();
 
 	bool	CacheAndRegisterMaterial(URPRMaterial* InMaterial);
 	bool	RecacheMaterial(URPRMaterial* MaterialKey);
-
-	bool	TryGetMaterialRawDatas(const URPRMaterial* MaterialKey, 
-								RPR::FMaterialRawDatas& OutRawDatas) const;
-
-	bool	TryGetMaterialRawDatas(const URPRMaterial* MaterialKey, uint32& OutMaterialType, 
-								RPR::FMaterialRawDatas& OutRawDatas) const;
-
-	RPR::FMaterialRawDatas	GetMaterialRawDatas(const URPRMaterial* MaterialKey) const;
-	uint32					GetMaterialType(const URPRMaterial* MaterialKey) const;
-
+	bool	TryGetMaterial(const URPRMaterial* MaterialKey, RPR::FRPRXMaterialPtr& OutRPRXMaterial);
+	bool	TryGetMaterial(const URPRMaterial* MaterialKey, RPR::FRPRXMaterialPtr& OutRPRXMaterial) const;
 	void	ClearCache();
 
 	RPR::FMaterialNode GetDummyMaterial() const;
+	RPR::FRPRXMaterialPtr	GetMaterial(const URPRMaterial* MaterialKey);
 
 	virtual FCriticalSection& GetCriticalSection() override;
 
 private:
 
-	const RPRI::FExportMaterialResult*	FindMaterialCache(const URPRMaterial* MaterialKey) const;
+	const RPR::FRPRXMaterialPtr	FindMaterialCache(const URPRMaterial* MaterialKey) const;
+	RPR::FRPRXMaterialPtr		FindMaterialCache(const URPRMaterial* MaterialKey);
 
 	void	InitializeDummyMaterial();
 	void	DestroyDummyMaterial();
-	bool	CacheMaterial(URPRMaterial* InMaterial, RPRI::FExportMaterialResult& OutMaterial);
-	void	ReleaseRawMaterialDatas(RPRI::FExportMaterialResult& Material);
+
+	RPR::FRPRXMaterialPtr	CacheMaterial(URPRMaterial* InMaterial);
 	RPR::FMaterialContext	CreateMaterialContext() const;
 
 private:
 
-	TMap<const URPRMaterial*, RPRI::FExportMaterialResult>	UEMaterialToRPRMaterialCaches;
+	TMap<const URPRMaterial*, RPR::FRPRXMaterialPtr>	UEMaterialToRPRMaterialCaches;
 
 	bool bIsInitialized;
 	FCriticalSection CriticalSection;

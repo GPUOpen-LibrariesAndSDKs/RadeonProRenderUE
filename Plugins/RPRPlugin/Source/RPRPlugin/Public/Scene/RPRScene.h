@@ -24,12 +24,13 @@
 #include "RPRPlugin.h"
 #include "RPRSettings.h"
 #include "GameFramework/Actor.h"
-#include "Material/RPRMaterialLibrary.h"
+#include "Material/RPRXMaterialLibrary.h"
 #include <RadeonProRenderInterchange.h>
 #include <map>
 #include "Typedefs/RPRITypedefs.h"
 #include "Helpers/ObjectScopedLocked.h"
 #include "RPRCoreSystemResources.h"
+#include "Enums/RPREnums.h"
 #include "RPRScene.generated.h"
 
 /**
@@ -61,6 +62,7 @@ public:
 
 	void	StartOrbitting(const FIntPoint &mousePos);
 	void	SetOrbit(bool orbit);
+	void	SetAOV(RPR::EAOV AOV);
 
 	bool	RPRThread_Rebuild();
 

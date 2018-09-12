@@ -27,6 +27,8 @@
 #include "HAL/UnrealMemory.h"
 #include "Helpers/RPRErrorsHelpers.h"
 #include "Helpers/RPRXMaterialHelpers.h"
+#include "Helpers/GenericGetInfo.h"
+#include "Helpers/RPRShapeHelpers.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRHelpers, Log, All);
 
@@ -78,27 +80,47 @@ namespace RPR
 
 	bool IsResultFailed(rpr_int Result)
 	{
-		return (!IsResultSuccess(Result));
+		return !IsResultSuccess(Result);
 	}
 
-	FResult DeleteObject(void* Object)
+	FResult DeleteObject(void*& Object)
 	{
-		return rprObjectDelete(Object);
+		FResult status = rprObjectDelete(Object);
+		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprObjectDelete(object=%p) -> %d"), Object, status);
+		if (IsResultSuccess(status))
+		{
+			Object = nullptr;
+		}
+		return status;
 	}
 
 	FResult SetObjectName(void* Object, const TCHAR* Name)
 	{
-		return rprObjectSetName(Object, TCHAR_TO_ANSI(Name));
+		FResult status = rprObjectSetName(Object, TCHAR_TO_ANSI(Name));
+		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprSetObjectName(object=%p, name=%s) -> %d"), Object, Name, status);
+		return status;
 	}
 
 	FResult SceneDetachShape(FScene Scene, FShape Shape)
 	{
-		return rprSceneDetachShape(Scene, Shape);
-	}
+		FResult status = rprSceneDetachShape(Scene, Shape);
 
-	FResult ShapeSetMaterial(FShape Shape, RPR::FMaterialNode MaterialNode)
-	{
-		return (rprShapeSetMaterial(Shape, MaterialNode));
+		FString shapeIdentifier = *FString::Printf(TEXT("%p"), Shape);
+		if (Shape != nullptr)
+		{
+			FString shapeName;
+			RPR::FResult getNameStatus = RPR::Shape::GetName(Shape, shapeName);
+			if (RPR::IsResultSuccess(getNameStatus) && !shapeName.IsEmpty())
+			{
+				shapeIdentifier = shapeName;
+			}
+		}
+		
+		UE_LOG(LogRPRTools_Step, Verbose, 
+			TEXT("rprSceneDetachShape(scene=%p, shape=%s) -> %d"), 
+			Scene, *shapeIdentifier, status);
+
+		return status;
 	}
 
 	FResult SceneClear(FScene Scene)
@@ -119,6 +141,30 @@ namespace RPR
 
 	namespace RPRMaterial
 	{
+
+		RPR::FResult GetNodeName(RPR::FMaterialNode MaterialNode, FString& OutName)
+		{
+			check(MaterialNode);
+			return RPR::Generic::GetObjectName(rprMaterialNodeGetInfo, MaterialNode, OutName);
+		}
+
+		FString GetNodeName(RPR::FMaterialNode MaterialNode)
+		{
+			check(MaterialNode);
+
+			FString name;
+			RPR::FResult status = GetNodeName(MaterialNode, name);
+			if (RPR::IsResultFailed(status))
+			{
+				name = FString::Printf(TEXT("[Unkown:%p]"), MaterialNode);
+			}
+			else if (name.IsEmpty())
+			{
+				name = FString::Printf(TEXT("[Undefined:%p]"), MaterialNode);
+			}
+			return name;
+		}
+
 		RPR::FResult GetNodeInputName(RPR::FMaterialNode MaterialNode, int32 InputIndex, FString& OutName)
 		{
 			TArray<uint8> rawDatas;
@@ -161,7 +207,14 @@ namespace RPR
 			return (status);
 		}
 
-		
+		bool IsMaterialNode(void* Object)
+		{
+			RPR::FMaterialNodeType materialNodeType;
+			RPR::FResult status = RPR::RPRMaterial::GetNodeInfo(Object, RPR::EMaterialNodeInfo::Type, &materialNodeType);
+			const bool bIsMaterialNodeValid = (RPR::IsResultSuccess(status) && materialNodeType != 0);
+			return bIsMaterialNodeValid;
+		}
+
 		bool FindInMaterialNode(RPR::FContext Context, RPR::FMaterialNode MaterialNode, FMaterialNodeFinder Finder)
 		{
 			RPR::FResult status;

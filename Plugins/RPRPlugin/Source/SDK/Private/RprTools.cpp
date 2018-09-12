@@ -283,10 +283,11 @@ RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(rpr_int tahoePluginID , RPR_TOOLS_
 			}
 		}
 		{
-			if( strstr( deviceName.c_str(), "Intel" ) != 0 )
+			// Bypass that check because Intel CPU *are* supported
+			/*if( strstr( deviceName.c_str(), "Intel" ) != 0 )
 				return  RPRTC_INCOMPATIBLE_CONTEXT_UNSUPPORTED;
 			if( strstr( deviceName.c_str(), "Iris" ) != 0 )
-				return  RPRTC_INCOMPATIBLE_CONTEXT_UNSUPPORTED;
+				return  RPRTC_INCOMPATIBLE_CONTEXT_UNSUPPORTED;*/
 		}
 	}
 	catch(RPR_TOOLS_COMPATIBILITY i )

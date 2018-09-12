@@ -20,6 +20,7 @@
 #include "RadeonProRender.h"
 #include "Helpers/RPRHelpers.h"
 #include "Logging/LogMacros.h"
+#include "RPRCoreModule.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRMaterialHelpers, Log, All)
 
@@ -29,99 +30,95 @@ namespace RPR
 
 	FResult	FMaterialHelpers::CreateNode(FMaterialSystem MaterialSystem, RPR::EMaterialNodeType NodeType, RPR::FMaterialNode& OutMaterialNode)
 	{
-		FResult result = rprMaterialSystemCreateNode(MaterialSystem, (RPR::FMaterialNodeType) NodeType, &OutMaterialNode);
+		FResult status = rprMaterialSystemCreateNode(MaterialSystem, (RPR::FMaterialNodeType) NodeType, &OutMaterialNode);
+		
+		UE_LOG(LogRPRCore_Steps, Verbose, 
+			TEXT("rprMaterialSystemCreateNode(materialSystem=%p, nodeType=%d) -> status=%d, materialNode=%p"), 
+			MaterialSystem, (uint32) NodeType, status, OutMaterialNode);
 
-		if (IsResultFailed(result))
+		if (IsResultFailed(status))
 		{
-			UE_LOG(LogRPRMaterialHelpers, Warning, TEXT("Couldn't create RPR material node (%#08)"), result);
+			UE_LOG(LogRPRMaterialHelpers, Warning, TEXT("Couldn't create RPR material node (%#08)"), status);
 		}
 
-		return (result);
+		return (status);
+	}
+
+	RPR::FResult FMaterialHelpers::CreateNode(FMaterialSystem MaterialSystem, EMaterialNodeType NodeType, const FString& NodeName, RPR::FMaterialNode& OutMaterialNode)
+	{
+		FResult status = CreateNode(MaterialSystem, NodeType, OutMaterialNode);
+		if (IsResultSuccess(status) && OutMaterialNode != nullptr)
+		{
+			status = RPR::SetObjectName(OutMaterialNode, *NodeName);
+		}
+		return status;
 	}
 
 	RPR::FResult FMaterialHelpers::DeleteNode(RPR::FMaterialNode& MaterialNode)
 	{
-		FResult result = rprObjectDelete(MaterialNode);
+		UE_LOG(LogRPRCore_Steps, Verbose, TEXT("Delete material node %s:%p"), *RPR::RPRMaterial::GetNodeName(MaterialNode), MaterialNode);
+
+		FResult result = RPR::DeleteObject(MaterialNode);
 		MaterialNode = nullptr;
 		return (result);
 	}
 
-
-	RPR::FResult FMaterialHelpers::CreateImageNode(FImageNodeCreationParameters& CreationParameters, RPR::FMaterialNode& OutMaterialNode)
-	{
-		RPR::FMaterialNode imageNode;
-		return CreateImageNode(CreationParameters, OutMaterialNode, imageNode);
-	}
-
-	RPR::FResult FMaterialHelpers::CreateImageNode(FImageNodeCreationParameters& CreationParameters, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutImageNode)
+	RPR::FResult FMaterialHelpers::CreateImageNode(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
+															UTexture2D* Texture, RPR::FImageManager::EImageType ImageType, RPR::FImagePtr& OutImage, RPR::FMaterialNode& OutMaterialNode)
 	{
 		OutMaterialNode = nullptr;
-		OutImageNode = nullptr;
 
-		RPR::FImage	image = CreationParameters.ImageManager->LoadImageFromTexture(CreationParameters.Texture, CreationParameters.ImageType);
-		if (image == nullptr)
+		OutImage = ImageManager.LoadImageFromTexture(Texture);
+		if (!OutImage.IsValid())
 		{
 			return (RPR_ERROR_INVALID_IMAGE);
 		}
 
 		RPR::FResult	result;
-		if (CreationParameters.ImageType == RPR::FImageManager::EImageType::NormalMap)
+		if (ImageType == RPR::FImageManager::EImageType::NormalMap)
 		{
-			result = CreateNode(CreationParameters.MaterialSystem, EMaterialNodeType::NormalMap, OutMaterialNode);
+			FString normalMapNodeName = FString::Printf(TEXT("NormalMap_%s"), *Texture->GetName());
+			result = CreateNode(MaterialSystem, EMaterialNodeType::NormalMap, *normalMapNodeName, OutMaterialNode);
 			if (IsResultSuccess(result))
 			{
-				result = CreateNode(CreationParameters.MaterialSystem, EMaterialNodeType::ImageTexture, OutImageNode);
+				RPR::FMaterialNode	normalMapNode = nullptr;
+
+				result = CreateNode(MaterialSystem, EMaterialNodeType::ImageTexture, Texture->GetName(), normalMapNode);
 				if (IsResultSuccess(result))
 				{
-					result = rprMaterialNodeSetInputImageData(OutImageNode, TCHAR_TO_ANSI(RPR::FMaterialHelpers::ImageDataInputName), image);
+					result = rprMaterialNodeSetInputImageData(normalMapNode, TCHAR_TO_ANSI(ImageDataInputName), OutImage.Get());
 					if (IsResultSuccess(result))
 					{
-						result = rprMaterialNodeSetInputN(OutMaterialNode, "color", OutImageNode);
+						result = rprMaterialNodeSetInputN(OutMaterialNode, "color", normalMapNode);
 					}
 				}
 			}
 		}
 		else
 		{
-			result = CreateNode(CreationParameters.MaterialSystem, EMaterialNodeType::ImageTexture, OutImageNode);
+			result = CreateNode(MaterialSystem, EMaterialNodeType::ImageTexture, Texture->GetName(), OutMaterialNode);
 			if (IsResultSuccess(result))
 			{
-				result = rprMaterialNodeSetInputImageData(OutImageNode, TCHAR_TO_ANSI(RPR::FMaterialHelpers::ImageDataInputName), image);
-				OutMaterialNode = OutImageNode;
+				result = rprMaterialNodeSetInputImageData(OutMaterialNode, TCHAR_TO_ANSI(ImageDataInputName), OutImage.Get());
 			}
 		}
 
 		return (result);
 	}
 
-	RPR::FResult FMaterialHelpers::FNode::SetInputUInt(RPR::FMaterialNode MaterialNode, const FString& ParameterName, uint8 Value)
+	RPR::FResult FMaterialHelpers::FMaterialNode::SetInputF(RPR::FMaterialNode MaterialNode, const FString& ParameterName, float x, float y, float z, float w)
 	{
-		return (rprMaterialNodeSetInputU(MaterialNode, TCHAR_TO_ANSI(*ParameterName), Value));
+		RPR::FResult status = rprMaterialNodeSetInputF(MaterialNode, TCHAR_TO_ANSI(*ParameterName), x, y, z, w);
+
+		UE_LOG(LogRPRCore_Steps, Verbose, 
+			TEXT("rprMaterialNodeSetInputF(materialNode=%s:%p, parameterName=%s, x=%.2f, y=%.2f, z=%.2f, w=%.2f) -> %d"), 
+			*RPR::RPRMaterial::GetNodeName(MaterialNode), 
+			MaterialNode,
+			*ParameterName,
+			x, y, z, w,
+			status);
+
+		return status;
 	}
 
-	RPR::FResult FMaterialHelpers::FNode::SetInputNode(RPR::FMaterialNode MaterialNode, const FString& ParameterName, RPR::FMaterialNode InMaterialNode)
-	{
-		return (rprMaterialNodeSetInputN(MaterialNode, TCHAR_TO_ANSI(*ParameterName), InMaterialNode));
-	}
-
-	RPR::FResult FMaterialHelpers::FNode::SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, float x, float y, float z, float w)
-	{
-		return (rprMaterialNodeSetInputF(MaterialNode, TCHAR_TO_ANSI(*ParameterName), x, y, z, w));
-	}
-
-	RPR::FResult FMaterialHelpers::FNode::SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector& Value, float w)
-	{
-		return (SetInputFloats(MaterialNode, ParameterName, Value.X, Value.Y, Value.Z, w));
-	}
-
-	RPR::FResult FMaterialHelpers::FNode::SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector4& Value)
-	{
-		return (SetInputFloats(MaterialNode, ParameterName, Value.X, Value.Y, Value.Z, Value.W));
-	}
-
-	RPR::FResult FMaterialHelpers::FNode::SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector2D& Value, float z /*= 0.0f*/, float w /*= 0.0f*/)
-	{
-		return (SetInputFloats(MaterialNode, ParameterName, Value.X, Value.Y, z, w));
-	}
-
-} // RPR
+}

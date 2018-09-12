@@ -27,6 +27,21 @@ namespace RPR
 			return RPR::Generic::GetObjectName(rprShapeGetInfo, Shape, OutName);
 		}
 
+		FString GetName(RPR::FShape Shape)
+		{
+			FString name;
+			RPR::FResult status = GetName(Shape, name);
+			if (RPR::IsResultFailed(status))
+			{
+				name = TEXT("[Unknown]");
+			}
+			if (name.IsEmpty())
+			{
+				name = TEXT("[Undefined]");
+			}
+			return (name);
+		}
+
 		RPR::FResult GetMaterial(RPR::FShape Shape, RPR::FMaterialNode& OutMaterialNode)
 		{
 			return (GetInfoNoAlloc(Shape, EShapeInfo::Material, &OutMaterialNode));
@@ -45,6 +60,17 @@ namespace RPR
 		RPR::FResult GetInstanceBaseShape(RPR::FShape Shape, RPR::FShape& OutShape)
 		{
 			return rprInstanceGetBaseShape(Shape, &OutShape);
+		}
+
+		RPR::FResult SetMaterial(FShape Shape, RPR::FMaterialNode MaterialNode)
+		{
+			UE_LOG(LogRPRTools_Step, Verbose, 
+				TEXT("rprShapeSetMaterial(%s, %s)"), 
+				*RPR::Shape::GetName(Shape), 
+				*RPR::RPRMaterial::GetNodeName(MaterialNode)
+			);
+
+			return rprShapeSetMaterial(Shape, MaterialNode);
 		}
 
 	} // namespace Shape

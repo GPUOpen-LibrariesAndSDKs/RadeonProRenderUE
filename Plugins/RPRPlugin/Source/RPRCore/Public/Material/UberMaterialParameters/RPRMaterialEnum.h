@@ -39,7 +39,7 @@ struct RPRCORE_API FRPRMaterialEnum : public FRPRUberMaterialParameterBase
 	
 
 	FRPRMaterialEnum() {}
-	FRPRMaterialEnum(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode);
+	FRPRMaterialEnum(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, FCanUseParameter InCanUseParameter = FCanUseParameter());
 
 	template<typename TEnumType>
 	void	SetValue(TEnumType InEnumValue)
@@ -53,14 +53,14 @@ struct RPRCORE_API FRPRMaterialEnum : public FRPRUberMaterialParameterBase
 	}
 
 	template<typename TEnumType>
-	static FRPRMaterialEnum Create(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, TEnumType InEnumValue);
+	static FRPRMaterialEnum Create(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, TEnumType InEnumValue, FCanUseParameter InCanUseParameter = FCanUseParameter());
 
 };
 
 template<typename TEnumType>
-FRPRMaterialEnum FRPRMaterialEnum::Create(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, TEnumType InEnumValue)
+FRPRMaterialEnum FRPRMaterialEnum::Create(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, TEnumType InEnumValue, FCanUseParameter InCanUseParameter)
 {
-	FRPRMaterialEnum materialEnum(InXmlParamName, InRprxParamID, InPreviewSupportMode);
+	FRPRMaterialEnum materialEnum(InXmlParamName, InRprxParamID, InPreviewSupportMode, InCanUseParameter);
 	materialEnum.SetValue<TEnumType>(InEnumValue);
 
 	const TCHAR* enumTypeName = TNameOf<TEnumType>::GetName();

@@ -35,7 +35,9 @@ namespace RPRX
 	public:
 
 		static RPR::FResult	CreateMaterial(FContext RPRXContext, EMaterialType MaterialType, FMaterial& OutMaterial);
-		static RPR::FResult	DeleteMaterial(FContext RPRXContext, FMaterial MaterialData);
+
+		// Delete the material and set the pointer to null so you won't mess up with it.
+		static RPR::FResult	DeleteMaterial(FContext RPRXContext, FMaterial& MaterialData);
 
 		static RPR::FResult	SetMaterialParameterNode(FContext Context, FMaterial Material,
 													FParameter Parameter, RPR::FMaterialNode MaterialNode);
@@ -61,8 +63,8 @@ namespace RPRX
 			return rprxMaterialGetParameterValue(Context, Material, Parameter, &OutValue);
 		}
 
-		static RPR::FResult	IsMaterialRPRX(FContext Context, RPR::FMaterialNode MaterialNode, bool& bOutIsMaterialRPRX);
-		static RPR::FResult	IsMaterialRPRX(FContext Context, RPR::FMaterialNode MaterialNode, RPRX::FMaterial& OutMaterialX, bool& bOutIsMaterialRPRX);
+		static RPR::FResult	IsMaterialNodePartOfRPRX(FContext Context, RPR::FMaterialNode MaterialNode, bool& bOutIsMaterialRPRX);
+		static RPR::FResult	IsMaterialNodePartOfRPRX(FContext Context, RPR::FMaterialNode MaterialNode, RPRX::FMaterial& OutMaterialX, bool& bOutIsMaterialRPRX);
 
 	private:
 		

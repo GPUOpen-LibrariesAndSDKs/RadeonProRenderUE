@@ -33,22 +33,21 @@ namespace RPR
 
 		virtual ~FImagesCache();
 
-		void	Add(UTexture* Texture, FImage Image);
+		void	Add(UTexture* Texture, FImagePtr Image);
 		void	Release(UTexture* Texture);
-
-		// Transfers all these data to another ImageCache.
-		// Once transfered, the current ImageCache will lose all these data.
-		void	Transfer(FImagesCache& ImageCache);
 
 		// Free each image resources and clear the cache
 		void	ReleaseAll();
 
-		FImage*			Get(UTexture* Texture);
-		const FImage*	Get(UTexture* Texture) const;
+		FImagePtr	Get(UTexture* Texture);
 
 	private:
 
-		TMap<UTexture*, FImage>	loadedImages;
+		void RemoveDeprecatedImages();
+
+	private:
+
+		TMap<TWeakObjectPtr<UTexture>, FImageWeakPtr>	loadedImages;
 
 	};
 

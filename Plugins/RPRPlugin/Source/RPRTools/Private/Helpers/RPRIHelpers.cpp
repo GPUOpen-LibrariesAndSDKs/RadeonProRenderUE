@@ -33,20 +33,6 @@ namespace RPRI
 		rpriFreeContext(Context);
 	}
 
-	void DeleteMaterial(RPRX::FContext rprxContext, FExportMaterialResult ExportMaterialResult)
-	{
-		if (ExportMaterialResult.type == RPR::EMaterialType::Material)
-		{
-			UE_LOG(LogRPRIHelpers, VeryVerbose, TEXT("Delete material (%p)"), ExportMaterialResult.data);
-			RPR::DeleteObject(ExportMaterialResult.data);
-		}
-		else
-		{
-			UE_LOG(LogRPRIHelpers, VeryVerbose, TEXT("Delete materialX (%p)"), ExportMaterialResult.data);
-			RPRX::FMaterialHelpers::DeleteMaterial(rprxContext, reinterpret_cast<RPRX::FMaterial>(ExportMaterialResult.data));
-		}
-	}
-
 	bool AllocateContext(FContext& OutContext)
 	{
 		return (rpriAllocateContext(&OutContext) == RPRI_TRUE);

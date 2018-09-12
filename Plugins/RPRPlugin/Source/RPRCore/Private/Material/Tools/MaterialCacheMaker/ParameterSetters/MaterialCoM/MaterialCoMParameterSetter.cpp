@@ -22,6 +22,7 @@
 #include "Material/UberMaterialParameters/RPRMaterialMap.h"
 #include "Helpers/RPRXMaterialHelpers.h"
 #include "Material/UberMaterialParameters/RPRMaterialCoM.h"
+#include "RPRCoreModule.h"
 
 namespace RPRX
 {
@@ -32,18 +33,23 @@ namespace RPRX
 
 		if (materialMap->Mode == ERPRMaterialMapMode::Texture)
 		{
+			UE_LOG(LogRPRCore_Steps, Verbose, TEXT("[%s] %s -> Set texture : %s"), 
+				*SetterParameters.OwnerMaterial->GetName(),
+				*SetterParameters.Property->GetName(),
+				materialMap->Texture != nullptr ? *materialMap->Texture->GetName() : TEXT("None"));
+
 			ApplyTextureParameter(SetterParameters);
 		}
 		else
 		{
+			UE_LOG(LogRPRCore_Steps, Verbose, TEXT("[%s] %s -> Set constant value : %s"),
+				*SetterParameters.OwnerMaterial->GetName(),
+				*SetterParameters.Property->GetName(),
+				*materialMap->Constant.ToString());
+
 			RPR::FMaterialContext& materialContext = SetterParameters.MaterialContext;
 
-			FMaterialHelpers::SetMaterialParameterColor(
-				materialContext.RPRXContext,
-				SetterParameters.Material,
-				SetterParameters.GetRprxParam(),
-				materialMap->Constant
-			);
+			SetterParameters.Material->SetMaterialParameterColor(SetterParameters.GetRprxParam(), materialMap->Constant);
 		}
 	}
 

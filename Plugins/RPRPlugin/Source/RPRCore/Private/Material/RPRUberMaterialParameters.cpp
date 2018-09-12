@@ -32,17 +32,22 @@ static void ApplyNormalMap(RPRX::MaterialParameter::FArgs& Args)
     normalMapParameterSetter.ApplyParameterX(Args);    
 }
 
+static bool CantUseParameter(const FRPRUberMaterialParameterBase* MaterialParameter)
+{
+	return (false);
+}
+
 FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 	// Diffuse
-	: Diffuse_Weight(		TEXT("diffuse.weight"),		RPRX_UBER_MATERIAL_DIFFUSE_WEIGHT,		ESupportMode::FullySupported,	1.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
-	, Diffuse_Color(		TEXT("diffuse.color"),		RPRX_UBER_MATERIAL_DIFFUSE_COLOR,		ESupportMode::FullySupported,	1.0f)
-	, Diffuse_Normal(		TEXT("diffuse.normal"),		RPRX_UBER_MATERIAL_DIFFUSE_NORMAL,		ESupportMode::FullySupported,	FCanUseParameter(), FApplyParameter::CreateStatic(ApplyNormalMap))
-	, Diffuse_Roughness(	TEXT("diffuse.roughness"),	RPRX_UBER_MATERIAL_DIFFUSE_ROUGHNESS,	ESupportMode::NotSupported,		0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
+	: Diffuse_Weight(		TEXT("diffuse.weight"),		RPRX_UBER_MATERIAL_DIFFUSE_WEIGHT,		ESupportMode::FullySupported, 1.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
+	, Diffuse_Color(		TEXT("diffuse.color"),		RPRX_UBER_MATERIAL_DIFFUSE_COLOR,		ESupportMode::FullySupported, 1.0f)
+	, Diffuse_Normal(		TEXT("diffuse.normal"),		RPRX_UBER_MATERIAL_DIFFUSE_NORMAL,		ESupportMode::FullySupported, FCanUseParameter(), FApplyParameter::CreateStatic(ApplyNormalMap))
+	, Diffuse_Roughness(	TEXT("diffuse.roughness"),	RPRX_UBER_MATERIAL_DIFFUSE_ROUGHNESS,	ESupportMode::NotSupported,	0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 
 	// Reflection
 	, Reflection_Weight(				TEXT("reflection.weight"),				RPRX_UBER_MATERIAL_REFLECTION_WEIGHT,				ESupportMode::FullySupported,		0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Reflection_Color(					TEXT("reflection.color"),				RPRX_UBER_MATERIAL_REFLECTION_COLOR,				ESupportMode::PreviewNotSupported, 1.0f)
-	, Reflection_Normal(				TEXT("reflection.normal"),				RPRX_UBER_MATERIAL_REFLECTION_NORMAL,				ESupportMode::PreviewNotSupported, FCanUseParameter(), FApplyParameter::CreateStatic(ApplyNormalMap))
+	, Reflection_Normal(				TEXT("reflection.normal"),				RPRX_UBER_MATERIAL_DIFFUSE_NORMAL,					ESupportMode::PreviewNotSupported,  FCanUseParameter(), FApplyParameter::CreateStatic(ApplyNormalMap))
 	, Reflection_Roughness(				TEXT("reflection.roughness"),			RPRX_UBER_MATERIAL_REFLECTION_ROUGHNESS,			ESupportMode::FullySupported,		0.5f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Reflection_Anisotropy(			TEXT("reflection.anisotropy"),			RPRX_UBER_MATERIAL_REFLECTION_ANISOTROPY,			ESupportMode::PreviewNotSupported,	0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Reflection_AnisotropyRotation(	TEXT("reflection.anisotropyRotation"),	RPRX_UBER_MATERIAL_REFLECTION_ANISOTROPY_ROTATION,	ESupportMode::PreviewNotSupported,	0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
@@ -57,7 +62,7 @@ FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 	, Refraction_Weight(					TEXT("refraction.weight"),				RPRX_UBER_MATERIAL_REFRACTION_WEIGHT,				ESupportMode::PreviewNotSupported, 0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Refraction_Roughness(					TEXT("refraction.roughness"),			RPRX_UBER_MATERIAL_REFRACTION_ROUGHNESS,			ESupportMode::PreviewNotSupported, 0.5f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Refraction_Absorption_Color(			TEXT("refraction.absorptionColor"),		RPRX_UBER_MATERIAL_REFRACTION_ABSORPTION_COLOR,		ESupportMode::PreviewNotSupported, 0.0f)
-	, Refraction_Absorption_Distance(		TEXT("refraction.absorptionDistance"),	RPRX_UBER_MATERIAL_REFRACTION_ABSORPTION_DISTANCE,	ESupportMode::PreviewNotSupported, 0.0f)
+	, Refraction_Absorption_Distance(		TEXT("refraction.absorptionDistance"),	RPRX_UBER_MATERIAL_REFRACTION_ABSORPTION_DISTANCE,	ESupportMode::PreviewNotSupported, 0.0f, ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Refraction_Ior(						TEXT("refraction.ior"),					RPRX_UBER_MATERIAL_REFRACTION_IOR,					ESupportMode::PreviewNotSupported, 1.5f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Refraction_IsThinSurface(				TEXT("refraction.thinSurface"),			RPRX_UBER_MATERIAL_REFRACTION_THIN_SURFACE,			ESupportMode::PreviewNotSupported, false)
 	
@@ -82,14 +87,14 @@ FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 	, Displacement(	TEXT("displacement"),	RPRX_UBER_MATERIAL_DISPLACEMENT, ESupportMode::PreviewNotSupported)
 
 	// SSS
-	, SSS_Weight(				TEXT("sss.weight"),					RPRX_UBER_MATERIAL_SSS_WEIGHT,					ESupportMode::PreviewNotSupported, 0.0f)
+	, SSS_Weight(				TEXT("sss.weight"),					RPRX_UBER_MATERIAL_SSS_WEIGHT,					ESupportMode::PreviewNotSupported, 0.0f, ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, SSS_Scatter_Color(		TEXT("sss.scatterColor"),			RPRX_UBER_MATERIAL_SSS_SCATTER_COLOR,			ESupportMode::PreviewNotSupported, 0.0f)
-	, SSS_Scatter_Distance(		TEXT("sss.scatterDistance"),		RPRX_UBER_MATERIAL_SSS_SCATTER_DISTANCE,		ESupportMode::PreviewNotSupported, 0.0f)
-	, SSS_Scatter_Direction(	TEXT("sss.scatterDirection"),		RPRX_UBER_MATERIAL_SSS_SCATTER_DIRECTION,		ESupportMode::PreviewNotSupported, 0.0f)
+	, SSS_Scatter_Distance(		TEXT("sss.scatterDistance"),		RPRX_UBER_MATERIAL_SSS_SCATTER_DISTANCE,		ESupportMode::PreviewNotSupported, 0.0f, ERPRMCoMapC1InterpretationMode::AsFloat4)
+	, SSS_Scatter_Direction(	TEXT("sss.scatterDirection"),		RPRX_UBER_MATERIAL_SSS_SCATTER_DIRECTION,		ESupportMode::PreviewNotSupported, 0.0f, ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, SSS_IsMultiScatter(		TEXT("sss.multiScatter"),			RPRX_UBER_MATERIAL_SSS_MULTISCATTER,			ESupportMode::PreviewNotSupported, true)
 
 	// Backscatter
-	, Backscatter_Weight(	TEXT("backscatter.weight"),	RPRX_UBER_MATERIAL_BACKSCATTER_WEIGHT,	ESupportMode::PreviewNotSupported, 0.0f)
+	, Backscatter_Weight(	TEXT("backscatter.weight"),	RPRX_UBER_MATERIAL_BACKSCATTER_WEIGHT,	ESupportMode::PreviewNotSupported, 0.0f, ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Backscatter_Color(	TEXT("backscatter.color"),	RPRX_UBER_MATERIAL_BACKSCATTER_COLOR,	ESupportMode::PreviewNotSupported, 1.0f)
 {
 #if WITH_EDITOR

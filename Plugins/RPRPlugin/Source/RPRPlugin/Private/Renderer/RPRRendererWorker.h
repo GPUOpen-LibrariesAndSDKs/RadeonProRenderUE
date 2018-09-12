@@ -23,6 +23,7 @@
 #include "HAL/Runnable.h"
 #include "RPRPlugin.h"
 #include "RPRSettings.h"
+#include "Typedefs/RPRTypedefs.h"
 
 class FRPRRendererWorker : public FRunnable
 {
@@ -53,6 +54,7 @@ public:
 	void			SetQualitySettings(ERPRQualitySettings qualitySettings);
 	uint32			Iteration() const { return m_CurrentIteration; }
 	void			SetPaused(bool paused);
+	void			SetAOV(RPR::EAOV AOV);
 
 	const uint8		*GetFramebufferData()
 	{
@@ -94,10 +96,14 @@ private:
 
 	rpr_framebuffer_format		m_RprFrameBufferFormat;
 	rpr_framebuffer_desc		m_RprFrameBufferDesc;
-	rpr_framebuffer				m_RprFrameBuffer;
-	rpr_framebuffer				m_RprResolvedFrameBuffer;
-	rpr_scene					m_RprScene;
-	rpr_context					m_RprContext;
+	RPR::FFrameBuffer			m_RprFrameBuffer;
+	RPR::FFrameBuffer			m_RprResolvedFrameBuffer;
+	RPR::FScene					m_RprScene;
+	RPR::FContext				m_RprContext;
+	RPR::EAOV					m_AOV;
+
+	// Required to render correctly, even if the main frame buffer renders another thing like depth
+	RPR::FFrameBuffer			m_RprColorFrameBuffer;
 
 	rpr_post_effect				m_RprWhiteBalance;
 	rpr_post_effect				m_RprGammaCorrection;

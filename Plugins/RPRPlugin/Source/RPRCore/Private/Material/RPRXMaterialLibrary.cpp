@@ -16,17 +16,22 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "Material/RPRMaterialLibrary.h"
+#include "Material/RPRXMaterialLibrary.h"
 #include "Logging/LogMacros.h"
 #include "Helpers/RPRHelpers.h"
 #include "Material/RPRMaterialHelpers.h"
 #include "Helpers/RPRXMaterialHelpers.h"
+#include "Helpers/RPRConstAway.h"
 #include "Material/Tools/MaterialCacheMaker/MaterialCacheMaker.h"
 #include "Misc/ScopeLock.h"
 #include "Assets/RPRMaterial.h"
 #include "RPRCoreModule.h"
 #include "RPRCoreSystemResources.h"
 #include "RPRCoreErrorHelper.h"
+#include "Material/RPRUberMaterialParameters.h"
+#include "Material/Tools/UberMaterialPropertyHelper.h"
+#include "Templates/Casts.h"
+#include "Map.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRMaterialLibrary, Log, All)
 
@@ -73,10 +78,10 @@ bool FRPRXMaterialLibrary::CacheAndRegisterMaterial(URPRMaterial* InMaterial)
 
 	UE_LOG(LogRPRMaterialLibrary, Verbose, TEXT("Cache material %s"), *InMaterial->GetName());
 
-	RPRI::FExportMaterialResult exportMaterialResult;
-	if (CacheMaterial(InMaterial, exportMaterialResult))
+	RPR::FRPRXMaterialPtr rprxMaterial = CacheMaterial(InMaterial);
+	if (rprxMaterial.IsValid())
 	{
-		UEMaterialToRPRMaterialCaches.Add(InMaterial, exportMaterialResult);
+		UEMaterialToRPRMaterialCaches.Add(InMaterial, rprxMaterial);
 		return (true);
 	}
 
@@ -88,67 +93,38 @@ bool FRPRXMaterialLibrary::RecacheMaterial(URPRMaterial* MaterialKey)
 	check(MaterialKey);
 	UE_LOG(LogRPRMaterialLibrary, Verbose, TEXT("Recache material %s"), *MaterialKey->GetName());
 
-	uint32 materialType;
-	RPR::FMaterialRawDatas material;
-	if (TryGetMaterialRawDatas(MaterialKey, materialType, material))
+	RPR::FRPRXMaterialPtr rprxMaterial;
+	if (TryGetMaterial(MaterialKey, rprxMaterial))
 	{
 		RPRX::FMaterialCacheMaker cacheMaker(CreateMaterialContext(), MaterialKey);
-		auto materialX = reinterpret_cast<RPRX::FMaterial>(material);
-		return (cacheMaker.UpdateUberMaterialParameters(materialX));
+		return cacheMaker.UpdateUberMaterialParameters(rprxMaterial);
 	}
 
-	return (false);
+	return false;
 }
 
-bool FRPRXMaterialLibrary::TryGetMaterialRawDatas(const URPRMaterial* MaterialKey, FMaterialRawDatas& OutRawDatas) const
+bool FRPRXMaterialLibrary::TryGetMaterial(const URPRMaterial* MaterialKey, RPR::FRPRXMaterialPtr& OutRPRXMaterial)
 {
-	uint32 materialType;
-	return (TryGetMaterialRawDatas(MaterialKey, materialType, OutRawDatas));
+	const FRPRXMaterialLibrary* thisConst = this;
+	return RPR::ConstRefAway(thisConst->TryGetMaterial(MaterialKey, OutRPRXMaterial));
 }
 
-bool FRPRXMaterialLibrary::TryGetMaterialRawDatas(const URPRMaterial* MaterialKey, uint32& OutMaterialType, FMaterialRawDatas& OutRawDatas) const
+bool FRPRXMaterialLibrary::TryGetMaterial(const URPRMaterial* MaterialKey, RPR::FRPRXMaterialPtr& OutRPRXMaterial) const
 {
-	const RPRI::FExportMaterialResult* result = FindMaterialCache(MaterialKey);
-	if (result == nullptr)
-	{
-		OutMaterialType = INDEX_NONE;
-		OutRawDatas = nullptr;
-		return (false);
-	}
-
-	OutMaterialType = result->type;
-	OutRawDatas = result->data;
-	return (true);
+	OutRPRXMaterial = FindMaterialCache(MaterialKey);
+	return OutRPRXMaterial.IsValid();
 }
 
-FMaterialRawDatas	FRPRXMaterialLibrary::GetMaterialRawDatas(const URPRMaterial* MaterialKey) const
+RPR::FRPRXMaterialPtr	FRPRXMaterialLibrary::GetMaterial(const URPRMaterial* MaterialKey)
 {
-	RPR::FMaterialRawDatas rawDatas;
-	TryGetMaterialRawDatas(MaterialKey, rawDatas);
-	return (rawDatas);
-}
-
-uint32 FRPRXMaterialLibrary::GetMaterialType(const URPRMaterial* MaterialKey) const
-{
-	const RPRI::FExportMaterialResult* result = FindMaterialCache(MaterialKey);
-	if (result != nullptr)
-	{
-		return (result->type);
-	}
-	return (INDEX_NONE);
+	RPR::FRPRXMaterialPtr material;
+	TryGetMaterial(MaterialKey, material);
+	return (material);
 }
 
 void FRPRXMaterialLibrary::ClearCache()
 {
-	if (UEMaterialToRPRMaterialCaches.Num() > 0)
-	{
-		for (auto it = UEMaterialToRPRMaterialCaches.CreateIterator(); it; ++it)
-		{
-			RPRI::FExportMaterialResult& material = it.Value();
-			ReleaseRawMaterialDatas(material);
-		}
-		UEMaterialToRPRMaterialCaches.Empty();
-	}
+	UEMaterialToRPRMaterialCaches.Empty();
 }
 
 RPR::FMaterialNode FRPRXMaterialLibrary::GetDummyMaterial() const
@@ -161,9 +137,16 @@ FCriticalSection& FRPRXMaterialLibrary::GetCriticalSection()
 	return (CriticalSection);
 }
 
-const RPRI::FExportMaterialResult* FRPRXMaterialLibrary::FindMaterialCache(const URPRMaterial* MaterialKey) const
+const RPR::FRPRXMaterialPtr FRPRXMaterialLibrary::FindMaterialCache(const URPRMaterial* MaterialKey) const
 {
-	return (UEMaterialToRPRMaterialCaches.Find(MaterialKey));
+	const RPR::FRPRXMaterialPtr* rprxMaterialPtr = UEMaterialToRPRMaterialCaches.Find(MaterialKey);
+	return (rprxMaterialPtr != nullptr ? *rprxMaterialPtr : nullptr);
+}
+
+RPR::FRPRXMaterialPtr FRPRXMaterialLibrary::FindMaterialCache(const URPRMaterial* MaterialKey)
+{
+	const FRPRXMaterialLibrary* thisConst = this;
+	return RPR::ConstRefAway(thisConst->FindMaterialCache(MaterialKey));
 }
 
 void FRPRXMaterialLibrary::InitializeDummyMaterial()
@@ -176,7 +159,7 @@ void FRPRXMaterialLibrary::InitializeDummyMaterial()
 
 	RPR::FMaterialSystem materialSystem = IRPRCore::GetResources()->GetMaterialSystem();
 	
-	RPR::FResult result = RPR::FMaterialHelpers::CreateNode(materialSystem, EMaterialNodeType::Diffuse, DummyMaterial);
+	RPR::FResult result = RPR::FMaterialHelpers::CreateNode(materialSystem, EMaterialNodeType::Diffuse, TEXT("DummyMaterial"), DummyMaterial);
 	if (RPR::IsResultFailed(result))
 	{
 		UE_LOG(LogRPRMaterialLibrary, Error, TEXT("Couldn't create node for dummy material"));
@@ -201,42 +184,22 @@ void FRPRXMaterialLibrary::DestroyDummyMaterial()
 	}
 }
 
-bool FRPRXMaterialLibrary::CacheMaterial(URPRMaterial* InMaterial, RPRI::FExportMaterialResult& OutMaterial)
+RPR::FRPRXMaterialPtr FRPRXMaterialLibrary::CacheMaterial(URPRMaterial* InMaterial)
 {
-	RPRX::FMaterial newMaterial;
-	
+	RPR::FRPRXMaterialPtr rprxMaterialPtr;
+
 	RPRX::FMaterialCacheMaker cacheMaker(CreateMaterialContext(), InMaterial);
-	if (!cacheMaker.CacheUberMaterial(newMaterial))
+	rprxMaterialPtr = cacheMaker.CacheUberMaterial();
+	if (!rprxMaterialPtr.IsValid())
 	{
 		UE_LOG(LogRPRMaterialLibrary, Verbose, TEXT("Failed to cache uber material %s"), *InMaterial->GetName());
-		return (false);
+		return nullptr;
 	}
-
-	OutMaterial.type = EMaterialType::MaterialX;
-	OutMaterial.data = newMaterial;
 
 	InMaterial->ResetMaterialDirtyFlag();
 
-	UE_LOG(LogRPRMaterialLibrary, Verbose, TEXT("Success to cache uber material %s -> %p"), *InMaterial->GetName(), newMaterial);
-	return (true);
-}
-
-void FRPRXMaterialLibrary::ReleaseRawMaterialDatas(RPRI::FExportMaterialResult& Material)
-{
-	check(IsInitialized());
-
-	try
-	{
-		UE_LOG(LogRPRMaterialLibrary, Verbose, TEXT("Delete material %p"), Material.data);
-
-		RPRX::FContext rprxSupportCtx = IRPRCore::GetResources()->GetRPRXSupportContext();
-		RPRI::DeleteMaterial(rprxSupportCtx, Material);
-	}
-	catch (std::exception ex)
-	{
-		UE_LOG(LogRPRMaterialLibrary, Warning, TEXT("Couldn't delete an object/material correctly (%s)"), ANSI_TO_TCHAR(ex.what()));
-		FRPRCoreErrorHelper::LogLastError();
-	}
+	UE_LOG(LogRPRMaterialLibrary, Verbose, TEXT("Success to cache uber material %s_%p"), *InMaterial->GetName(), rprxMaterialPtr->GetRawMaterial());
+	return rprxMaterialPtr;
 }
 
 RPR::FMaterialContext FRPRXMaterialLibrary::CreateMaterialContext() const
@@ -248,5 +211,5 @@ RPR::FMaterialContext FRPRXMaterialLibrary::CreateMaterialContext() const
 		materialContext.RPRContext = resources->GetRPRContext();
 		materialContext.RPRXContext = resources->GetRPRXSupportContext();
 	}
-	return (materialContext);
+	return materialContext;
 }

@@ -32,6 +32,7 @@
 #include "StaticMeshResources.h"
 
 #include "Helpers/RPRHelpers.h"
+#include "Helpers/RPRShapeHelpers.h"
 
 #include "RadeonProRenderInterchange.h"
 #include "Scene/RPRInterchangeMaterial.h"
@@ -39,13 +40,13 @@
 
 #include "RPRStats.h"
 #include "Scene/RPRScene.h"
-#include "Material/RPRMaterialBuilder.h"
 #include "Async/Async.h"
 #include "Helpers/RPRXHelpers.h"
+#include "Helpers/ContextHelper.h"
 #include "RPRCpStaticMesh.h"
-#include "Material/RPRMaterialBuilder.h"
 #include "RPRCoreModule.h"
 #include "RPRCoreSystemResources.h"
+#include "Typedefs/RPRXTypedefs.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
 
@@ -78,20 +79,26 @@ TArray<FRPRCachedMesh>	URPRStaticMeshComponent::GetMeshInstances(UStaticMesh *me
 	if (!Cache.Contains(mesh))
 		return TArray<FRPRCachedMesh>();
 	TArray<FRPRCachedMesh>			instances;
-	const TArray<FRPRCachedMesh>	&srcShapes = Cache[mesh];
+	const TArray<FRPRCachedMesh>	&cachedShapes = Cache[mesh];
 	RPR::FContext					rprContext = IRPRCore::GetResources()->GetRPRContext();
 
-	const uint32	shapeCount = srcShapes.Num();
-	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
+	const uint32	cachedShapeNum = cachedShapes.Num();
+	for (uint32 iShape = 0; iShape < cachedShapeNum; ++iShape)
 	{
 		for (uint32 iInstance = 0; iInstance < instanceCount; ++iInstance)
 		{
-			rpr_shape	newShape = nullptr;
-			if (rprContextCreateInstance(rprContext, srcShapes[iShape].m_RprShape, &newShape) != RPR_SUCCESS)
+			RPR::FShape shapeInstance = nullptr;
+			const FString shapeInstanceName = FString::Printf(TEXT("%s_%d"), *mesh->GetName(), iInstance);
+			if (RPR::Context::CreateInstance(rprContext, cachedShapes[iShape].m_RprShape, shapeInstanceName, shapeInstance) != RPR_SUCCESS)
 			{
-				for (int32 jShape = 0; jShape < instances.Num(); ++jShape)
-					rprObjectDelete(instances[jShape].m_RprShape);
 				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh instance from '%s'"), *mesh->GetName());
+
+				// Destroy all previous instances created before returning nothing
+				for (int32 jShape = 0; jShape < instances.Num(); ++jShape)
+				{
+					UE_LOG(LogRPRStaticMeshComponent, Verbose, TEXT("Delete shape instance %s"), *RPR::Shape::GetName(instances[jShape].m_RprShape));
+					RPR::DeleteObject(instances[jShape].m_RprShape);
+				}
 				return TArray<FRPRCachedMesh>();
 			}
 			else
@@ -100,7 +107,7 @@ TArray<FRPRCachedMesh>	URPRStaticMeshComponent::GetMeshInstances(UStaticMesh *me
 				UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape instance created from '%s' section %d"), *mesh->GetName(), iShape);
 #endif
 			}
-			instances.Add(FRPRCachedMesh(newShape, srcShapes[iShape].m_UEMaterialIndex));
+			instances.Add(FRPRCachedMesh(shapeInstance, cachedShapes[iShape].m_UEMaterialIndex));
 		}
 	}
 	return instances;
@@ -119,7 +126,8 @@ void	URPRStaticMeshComponent::ClearCache(RPR::FScene scene)
 		{
 			check(shapes[iShape].m_RprShape != nullptr);
 			RPR::SceneDetachShape(scene, shapes[iShape].m_RprShape);
-			RPR::DeleteObject(shapes[iShape].m_RprShape);		
+			RPR::DeleteObject(shapes[iShape].m_RprShape);
+			shapes[iShape].m_RprShape = nullptr;
 		}
 	}
 	Cache.Empty();
@@ -148,7 +156,8 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 			URPRMaterial* rprMaterial = Cast<URPRMaterial>(matInterface);
 			BuildRPRMaterial(shape, rprMaterial);
 
-			m_Shapes[iShape].m_RprxMaterial = (RPRX::FMaterial) rprMaterialLibrary.GetMaterialRawDatas(rprMaterial);
+			RPR::FRPRXMaterialPtr rprxMaterial = rprMaterialLibrary.GetMaterial(rprMaterial);
+			m_Shapes[iShape].m_RprxMaterial = rprxMaterial;
 		}
 		else
 		{
@@ -184,16 +193,22 @@ bool URPRStaticMeshComponent::ApplyRPRMaterialOnShape(RPR::FShape& Shape, URPRMa
 {
 	FRPRXMaterialLibrary& rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 
-	uint32 materialType;
-	RPR::FMaterialRawDatas materialRawDatas;
-	if (!rprMaterialLibrary.TryGetMaterialRawDatas(Material, materialType, materialRawDatas))
+	RPR::FRPRXMaterialPtr rprxMaterial;
+	if (!rprMaterialLibrary.TryGetMaterial(Material, rprxMaterial))
 	{
 		UE_LOG(LogRPRStaticMeshComponent, Error, TEXT("Cannot get the material raw datas from the library."));
 		return (false);
 	}
 
-	RPR::MaterialBuilder::BindMaterialRawDatasToShape(materialType, materialRawDatas, Shape);
-	return (true);
+	RPRX::FContext rprxContext = IRPRCore::GetResources()->GetRPRXSupportContext();
+	RPR::FResult status = RPRX::ShapeAttachMaterial(rprxContext, Shape, rprxMaterial->GetRawMaterial());
+	if (RPR::IsResultSuccess(status))
+	{
+		// Commit must be done *after* the shape attach material to work properly
+		// May change in newer versions of RPR (current is 1.312)
+		status = rprxMaterial->Commit();
+	}
+	return (RPR::IsResultSuccess(status));
 }
 
 void URPRStaticMeshComponent::AttachDummyMaterial(RPR::FShape shape)
@@ -201,7 +216,7 @@ void URPRStaticMeshComponent::AttachDummyMaterial(RPR::FShape shape)
 	FRPRXMaterialLibrary& rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 	RPR::FMaterialNode dummyMaterial = rprMaterialLibrary.GetDummyMaterial();
 
-	RPR::FResult result = RPR::ShapeSetMaterial(shape, dummyMaterial);
+	RPR::FResult result = RPR::Shape::SetMaterial(shape, dummyMaterial);
 	if (RPR::IsResultFailed(result))
 	{
 		UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Cannot attach dummy material to mesh %s"), *GetName());
@@ -416,11 +431,11 @@ bool	URPRStaticMeshComponent::Build()
 				// Set shape name
 				if (iInstance + 1 < instanceCount)
 				{
-					RPR::SetObjectName(newInstance.m_RprShape, *FString::Printf(TEXT("%s_%d"), *staticMesh->GetName(), iInstance));
+					RPR::SetObjectName(newInstance.m_RprShape, *FString::Printf(TEXT("%s_%s_%d"), *SrcComponent->GetOwner()->GetName(), *SrcComponent->GetName(), iInstance));
 				}
 				else
 				{
-					RPR::SetObjectName(newInstance.m_RprShape, *staticMesh->GetName());
+					RPR::SetObjectName(newInstance.m_RprShape, *FString::Printf(TEXT("%s_%s"), *SrcComponent->GetOwner()->GetName(), *SrcComponent->GetName()));
 				}
 			}
 		}
@@ -519,13 +534,6 @@ bool URPRStaticMeshComponent::UpdateDirtyMaterialsIFN()
 		while (m_dirtyMaterialsQueue.Dequeue(material))
 		{
 			rprMaterialLibrary.RecacheMaterial(material);
-
-			uint32 materialType;
-			RPR::FMaterialRawDatas materialRawDatas;
-			if (rprMaterialLibrary.TryGetMaterialRawDatas(material, materialType, materialRawDatas))
-			{
-				RPR::MaterialBuilder::CommitMaterial(materialType, reinterpret_cast<RPRX::FMaterial>(materialRawDatas));
-			}
 		}
 	}
 
@@ -544,9 +552,6 @@ bool URPRStaticMeshComponent::UpdateDirtyMaterialsChangesIFN()
 		UStaticMesh* currentStaticMesh = staticMeshComponent->GetStaticMesh();
 		check(currentStaticMesh);
 
-		//FRPRCoreSystemResourcesPtr resources = IRPRCore::GetResources();
-		//FRPRXMaterialLibrary& rprMaterialLibrary = resources->GetRPRMaterialLibrary();
-		//rprMaterialLibrary->ClearCache();
 		for (int32 materialIndex = 0; materialIndex < m_lastMaterialsList.Num(); ++materialIndex)
 		{
 			UMaterialInterface* material = m_lastMaterialsList[materialIndex];
@@ -758,11 +763,11 @@ void	URPRStaticMeshComponent::ReleaseResources()
 		uint32	shapeCount = m_Shapes.Num();
 		for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 		{
-			if (m_Shapes[iShape].m_RprxMaterial != nullptr)
+			if (m_Shapes[iShape].m_RprxMaterial.IsValid())
 			{
 				check(m_Shapes[iShape].m_RprShape != nullptr);
 				RPRX::FContext rprSupportCtx = IRPRCore::GetResources()->GetRPRXSupportContext();
-				RPRX::ShapeDetachMaterial(rprSupportCtx, m_Shapes[iShape].m_RprShape, m_Shapes[iShape].m_RprxMaterial);
+				RPRX::ShapeDetachMaterial(rprSupportCtx, m_Shapes[iShape].m_RprShape, m_Shapes[iShape].m_RprxMaterial->GetRawMaterial());
 			}
 
 			if (m_Shapes[iShape].m_RprShape != nullptr)

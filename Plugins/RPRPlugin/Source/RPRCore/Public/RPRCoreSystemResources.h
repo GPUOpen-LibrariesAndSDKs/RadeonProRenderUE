@@ -20,9 +20,9 @@
 #include "Typedefs/RPRTypedefs.h"
 #include "Typedefs/RPRXTypedefs.h"
 #include "Typedefs/RPRITypedefs.h"
-#include "Material/RPRMaterialLibrary.h"
+#include "Material/RPRXMaterialLibrary.h"
 #include "ImageManager/RPRImageManager.h"
-#include "Material/RPRMaterialLibrary.h"
+#include "Material/RPRXMaterialLibrary.h"
 #include "RprTools.h"
 
 class RPRCORE_API FRPRCoreSystemResources

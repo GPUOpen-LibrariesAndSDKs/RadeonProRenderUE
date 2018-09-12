@@ -46,14 +46,13 @@ namespace RPR
 	/*
 	* Delete a native object.
 	* Use the native RPR function to delete object.
+	* Assign null to the object after destruction if succeed.
 	*/
-	RPRTOOLS_API FResult		DeleteObject(void* Object);
+	RPRTOOLS_API FResult		DeleteObject(void*& Object);
 
 	RPRTOOLS_API FResult		SetObjectName(void* Object, const TCHAR* Name);
 
 	RPRTOOLS_API FResult		SceneDetachShape(FScene Scene, FShape Shape);
-
-	RPRTOOLS_API FResult		ShapeSetMaterial(FShape Shape, RPR::FMaterialNode MaterialNode);
 
 	RPRTOOLS_API FResult		SceneClear(RPR::FScene Scene);
 
@@ -94,10 +93,14 @@ namespace RPR
 			return (status);
 		}
 		
+		RPRTOOLS_API RPR::FResult	GetNodeName(RPR::FMaterialNode MaterialNode, FString& OutName);
+		RPRTOOLS_API FString		GetNodeName(RPR::FMaterialNode MaterialNode);
+
 		RPRTOOLS_API RPR::FResult GetNodeInputName(RPR::FMaterialNode MaterialNode, int32 InputIndex, FString& OutName);
 		RPRTOOLS_API RPR::FResult GetNodeInputType(RPR::FMaterialNode MaterialNode, int32 InputIndex, RPR::EMaterialNodeInputType& OutInputType);
 		RPRTOOLS_API RPR::FResult GetNodeInputValue(RPR::FMaterialNode MaterialNode, int32 InputIndex, TArray<uint8>& OutRawDatas);
 		RPRTOOLS_API RPR::FResult GetNodeInputInfo(RPR::FMaterialNode MaterialNode, int32 InputIndex, RPR::EMaterialNodeInputInfo Info, TArray<uint8>& OutRawDatas);
+		RPRTOOLS_API bool			IsMaterialNode(RPR::FMaterialNode MaterialNodeToTest);
 
 		template<typename T>
 		RPR::FResult GetNodeInputValue(RPR::FMaterialNode MaterialNode, int32 InputIndex, T& OutValue)

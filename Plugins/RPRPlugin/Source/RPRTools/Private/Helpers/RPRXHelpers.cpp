@@ -23,17 +23,23 @@ namespace RPRX
 {
 	RPR::FResult ShapeAttachMaterial(FContext Context, RPR::FShape Shape, FMaterial Material)
 	{
-		return (rprxShapeAttachMaterial(Context, Shape, Material));
+		RPR::FResult status = rprxShapeAttachMaterial(Context, Shape, Material);
+		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxShapeAttachMaterial(context=%p, shape=%p, material=%p) -> %d"), Context, Shape, Material, status);
+		return (status);
 	}
 
 	RPR::FResult ShapeDetachMaterial(FContext Context, RPR::FShape Shape, FMaterial Material)
 	{
-		return (rprxShapeDetachMaterial(Context, Shape, Material));
+		RPR::FResult status = rprxShapeDetachMaterial(Context, Shape, Material);
+		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxShapeDetachMaterial(context=%p, shape=%p, material=%p) -> %d"), Context, Shape, Material, status);
+		return (status);
 	}
 
 	RPR::FResult MaterialCommit(FContext Context, FMaterial Material)
 	{
-		return (rprxMaterialCommit(Context, Material));
+		RPR::FResult status = rprxMaterialCommit(Context, Material);
+		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxMaterialCommit(context=%p, material=%p) -> %d"), Context, Material, status);
+		return status;
 	}
 
 	RPR::FResult ShapeGetMaterial(FContext Context, RPR::FShape Shape, FMaterial& OutMaterialX)
@@ -46,12 +52,14 @@ namespace RPRX
 
 		RPR::FResult Create(RPR::FMaterialSystem MaterialSystem, RPRX::FContextCreationFlags Flags, RPRX::FContext& OutContext)
 		{
+			UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxCreateContext(materialSystem=%p, flags=%d)"), MaterialSystem, Flags);
 			return (rprxCreateContext(MaterialSystem, Flags, &OutContext));
 		}
 
-		RPR::FResult Delete(FContext context)
+		RPR::FResult Delete(FContext Context)
 		{
-			return (rprxDeleteContext(context));
+			UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxDeleteContext(context=%p)"), Context);
+			return (rprxDeleteContext(Context));
 		}
 	}
 

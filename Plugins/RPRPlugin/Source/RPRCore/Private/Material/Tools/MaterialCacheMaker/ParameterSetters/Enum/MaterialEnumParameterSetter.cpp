@@ -19,6 +19,7 @@
 #include "Material/Tools/MaterialCacheMaker/ParameterSetters/Enum/MaterialEnumParameterSetter.h"
 #include "Helpers/RPRXMaterialHelpers.h"
 #include "Material/UberMaterialParameters/RPRMaterialEnum.h"
+#include "RPRCoreModule.h"
 
 namespace RPRX
 {
@@ -26,12 +27,15 @@ namespace RPRX
 	void FMaterialEnumParameterSetter::ApplyParameterX(MaterialParameter::FArgs& SetterParameters)
 	{
 		const FRPRMaterialEnum* materialEnum = SetterParameters.GetDirectParameter<FRPRMaterialEnum>();
-		FMaterialHelpers::SetMaterialParameterUInt(
-			SetterParameters.MaterialContext.RPRXContext,
-			SetterParameters.Material,
-			SetterParameters.GetRprxParam(),
-			materialEnum->EnumValue
-		);
+
+		UE_LOG(LogRPRCore_Steps, Verbose, TEXT("[%s] %s -> Set enum : %s (type: %s, value %d)"),
+			*SetterParameters.OwnerMaterial->GetName(),
+			*SetterParameters.Property->GetName(),
+			*materialEnum->EnumType->GetName(),
+			*materialEnum->EnumType->GetDisplayNameTextByValue(materialEnum->EnumValue).ToString(),
+			materialEnum->EnumValue);
+
+		SetterParameters.Material->SetMaterialParameterUInt(SetterParameters.GetRprxParam(), materialEnum->EnumValue);
 	}
 
 }

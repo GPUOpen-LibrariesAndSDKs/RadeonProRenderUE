@@ -30,38 +30,42 @@ namespace RPRX
 		{
 			UE_LOG(LogMaterialHelpers, VeryVerbose, TEXT("New materialX created [%p]"), OutMaterial);
 		}
+	
+		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxCreateMaterial(context=%p, materialType=%d) -> %p"), RPRXContext, MaterialType, OutMaterial);
+		
 		return (status);
 	}
 
-	RPR::FResult FMaterialHelpers::DeleteMaterial(FContext RPRXContext, FMaterial MaterialData)
+	RPR::FResult FMaterialHelpers::DeleteMaterial(FContext RPRXContext, FMaterial& MaterialData)
 	{
-		// TODO : There is clearly an issue where the material X created from rprxCreateMaterial is not recognized as a material X 
-		// and cannot be deleted with rprxMaterialDelete. So memory leak here!
-
-		RPRX::FMaterial outMaterial = nullptr;
-		bool bIsRPRXMaterial;
-
-		RPR::FResult status = RPRX::FMaterialHelpers::IsMaterialRPRX(RPRXContext, MaterialData, outMaterial, bIsRPRXMaterial);
-		if (RPR::IsResultSuccess(status) && bIsRPRXMaterial)
-		{
-			UE_LOG(LogMaterialHelpers, VeryVerbose, TEXT("Delete material [%p]"), MaterialData);
-			return (rprxMaterialDelete(RPRXContext, MaterialData));
-		}
+		RPR::FResult status = rprxMaterialDelete(RPRXContext, MaterialData);
+		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxMaterialDelete(context=%p, material=%p) -> %d"), RPRXContext, MaterialData, status);
+		MaterialData = nullptr;
 		return (status);
 	}
 
 	RPR::FResult FMaterialHelpers::SetMaterialParameterNode(FContext Context, FMaterial Material, FParameter Parameter, RPR::FMaterialNode MaterialNode)
 	{
-		return (rprxMaterialSetParameterN(Context, Material, Parameter, MaterialNode));
+		RPR::FResult status = rprxMaterialSetParameterN(Context, Material, Parameter, MaterialNode);
+
+		UE_LOG(LogRPRTools_Step, Verbose, 
+			TEXT("rprxMaterialSetParameterN(context=%p, material=%p, parameter=%d, materialNode=%s:%p) -> %d"), 
+			Context, Material, Parameter, 
+			MaterialNode != nullptr ? *RPR::RPRMaterial::GetNodeName(MaterialNode) : *FString::Printf(TEXT("%p"), MaterialNode),
+			MaterialNode,
+			status);
+
+		return (status);
 	}
 
 	RPR::FResult FMaterialHelpers::SetMaterialParameterUInt(FContext Context, FMaterial Material, FParameter Parameter, uint32 Value)
 	{
-		CheckParameterType(Context, Material, Parameter, RPRX_PARAMETER_TYPE_UINT);
+		RPR::FResult status = rprxMaterialSetParameterU(Context, Material, Parameter, Value);
+		ensureMsgf(RPR::IsResultSuccess(status), TEXT("An error occured when set material parameter uint %#04"), status);
 
-		RPR::FResult result = rprxMaterialSetParameterU(Context, Material, Parameter, Value);
-		ensureMsgf(RPR::IsResultSuccess(result), TEXT("An error occured when set material parameter uint %#04"), result);
-		return (result);
+		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxMaterialSetParameterU(context=%p, material=%p, parameter=%d, value=%d) -> %d"), Context, Material, Parameter, Value, status);
+
+		return (status);
 	}
 
 	RPR::FResult FMaterialHelpers::SetMaterialParameterFloat(FContext Context, FMaterial Material, FParameter Parameter, float Value)
@@ -71,11 +75,14 @@ namespace RPRX
 
 	RPR::FResult FMaterialHelpers::SetMaterialParameterFloats(FContext Context, FMaterial Material, FParameter Parameter, float x, float y, float z, float w)
 	{
-		//CheckParameterType(Context, Material, Parameter, RPRX_PARAMETER_TYPE_FLOAT4);
+		RPR::FResult status = rprxMaterialSetParameterF(Context, Material, Parameter, x, y, z, w);
+		ensureMsgf(RPR::IsResultSuccess(status), TEXT("An error occured when set material parameter float4 %#04"), status);
 
-		RPR::FResult result = rprxMaterialSetParameterF(Context, Material, Parameter, x, y, z, w);
-		ensureMsgf(RPR::IsResultSuccess(result), TEXT("An error occured when set material parameter float4 %#04"), result);
-		return (result);
+		UE_LOG(LogRPRTools_Step, Verbose, 
+			TEXT("rprxMaterialSetParameterF(context=%p, material=%p, parameter=%d, x=%f, y=%f, z=%f, w=%f) -> %d"), 
+			Context, Material, Parameter, x, y, z, w, status);
+
+		return (status);
 	}
 
 	RPR::FResult FMaterialHelpers::SetMaterialParameterColor(FContext Context, FMaterial Material, FParameter Parameter, const FLinearColor& Color)
@@ -96,13 +103,13 @@ namespace RPRX
 		return (status);
 	}
 
-	RPR::FResult FMaterialHelpers::IsMaterialRPRX(FContext Context, RPR::FMaterialNode MaterialNode, bool& bOutIsMaterialRPRX)
+	RPR::FResult FMaterialHelpers::IsMaterialNodePartOfRPRX(FContext Context, RPR::FMaterialNode MaterialNode, bool& bOutIsMaterialRPRX)
 	{
 		RPRX::FMaterial materialX;
-		return IsMaterialRPRX(Context, MaterialNode, materialX, bOutIsMaterialRPRX);
+		return IsMaterialNodePartOfRPRX(Context, MaterialNode, materialX, bOutIsMaterialRPRX);
 	}
 
-	RPR::FResult FMaterialHelpers::IsMaterialRPRX(FContext Context, RPR::FMaterialNode MaterialNode, RPRX::FMaterial& OutMaterialX, bool& bOutIsMaterialRPRX)
+	RPR::FResult FMaterialHelpers::IsMaterialNodePartOfRPRX(FContext Context, RPR::FMaterialNode MaterialNode, RPRX::FMaterial& OutMaterialX, bool& bOutIsMaterialRPRX)
 	{
 		return rprxIsMaterialRprx(Context, MaterialNode, &OutMaterialX, (rpr_bool*) &bOutIsMaterialRPRX);
 	}

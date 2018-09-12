@@ -25,6 +25,7 @@
 #include "Scene/RPRSceneComponent.h"
 #include "Engine/Scene.h"
 #include "Components/SkyLightComponent.h"
+#include "Typedefs/RPRTypedefs.h"
 #include "RPRLightComponent.generated.h"
 
 enum	ERPRLightType
@@ -46,7 +47,9 @@ public:
 	URPRLightComponent();
 
 	virtual bool	Build() override;
+
 private:
+
 	virtual void	ReleaseResources() override;
 	virtual void	TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
 	virtual bool	RebuildTransforms() override;
@@ -58,9 +61,10 @@ private:
 	bool	BuildSpotLight(const class USpotLightComponent *spotLightComponent);
 	bool	BuildDirectionalLight(const class UDirectionalLightComponent *dirLightComponent);
 	bool	BuildSkyLight(const class USkyLightComponent *skyLightComponent);
+
 private:
-	rpr_image		m_PendingDelete;
-	rpr_image		m_RprImage;
+
+	RPR::FImagePtr	m_RprImage;
 	rpr_light		m_RprLight;
 
 	ERPRLightType	m_LightType;

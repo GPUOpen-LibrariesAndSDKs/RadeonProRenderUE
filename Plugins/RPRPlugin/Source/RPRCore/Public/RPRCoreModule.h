@@ -9,6 +9,9 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRPRCore, All, All);
 
+// Used to trace rendering steps
+DECLARE_LOG_CATEGORY_EXTERN(LogRPRCore_Steps, Verbose, Verbose);
+
 class RPRCORE_API IRPRCore : public IModuleInterface
 {
 

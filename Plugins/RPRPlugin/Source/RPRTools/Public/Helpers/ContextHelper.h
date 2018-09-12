@@ -19,6 +19,7 @@
 #pragma once
 #include "RPRToolsModule.h"
 #include "Typedefs/RPRTypedefs.h"
+#include "Enums/RPREnums.h"
 
 namespace RPR
 {
@@ -46,7 +47,12 @@ namespace RPR
 		RPRTOOLS_API FResult		SetActivePlugin(FContext Context, FPluginId PluginId);
 		RPRTOOLS_API FResult		ClearMemory(FContext Context);
 		RPRTOOLS_API FResult		SetScene(FContext Context, FScene Scene);
+		RPRTOOLS_API FResult		SetAOV(FContext Context, RPR::EAOV AOV, FFrameBuffer FrameBuffer);
+		RPRTOOLS_API FResult		Render(FContext Context);
+		RPRTOOLS_API FResult		ResolveFrameBuffer(FContext Context, FFrameBuffer SrcFrameBuffer, FFrameBuffer DstFrameBuffer, bool bNormalizeOnly);
 
+		RPRTOOLS_API FResult		CreateInstance(FContext Context, RPR::FShape Shape, RPR::FShape& OutShapeInstance);
+		RPRTOOLS_API FResult		CreateInstance(FContext Context, RPR::FShape Shape, const FString& InstanceName, RPR::FShape& OutShapeInstance);
 
 		namespace Parameters
 		{

@@ -19,6 +19,7 @@
 #include "Material/Tools/MaterialCacheMaker/ParameterSetters/Bool/MaterialBoolParameterSetter.h"
 #include "Helpers/RPRXMaterialHelpers.h"
 #include "Material/UberMaterialParameters/RPRMaterialBool.h"
+#include "RPRCoreModule.h"
 
 namespace RPRX
 {
@@ -26,12 +27,13 @@ namespace RPRX
 	void FMaterialBoolParameterSetter::ApplyParameterX(MaterialParameter::FArgs& SetterParameters)
 	{
 		const FRPRMaterialBool* materialBool = SetterParameters.GetDirectParameter<FRPRMaterialBool>();
-		FMaterialHelpers::SetMaterialParameterUInt(
-			SetterParameters.MaterialContext.RPRXContext,
-			SetterParameters.Material,
-			SetterParameters.GetRprxParam(),
-			materialBool->bIsEnabled
-		);
+
+		UE_LOG(LogRPRCore_Steps, Verbose, TEXT("[%s] %s -> Set bool : %s"),
+			*SetterParameters.OwnerMaterial->GetName(),
+			*SetterParameters.Property->GetName(),
+			materialBool->bIsEnabled ? TEXT("true") : TEXT("false"));
+
+		SetterParameters.Material->SetMaterialParameterBool(SetterParameters.GetRprxParam(), materialBool->bIsEnabled);
 	}
 
 }

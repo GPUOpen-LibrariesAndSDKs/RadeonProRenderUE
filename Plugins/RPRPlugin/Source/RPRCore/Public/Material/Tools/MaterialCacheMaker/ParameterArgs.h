@@ -22,9 +22,11 @@
 #include "Typedefs/RPRTypedefs.h"
 #include "Material/MaterialContext.h"
 #include "ImageManager/RPRImageManager.h"
+#include "Material/RPRXMaterial.h"
 
 struct FRPRUberMaterialParameters;
 struct FRPRUberMaterialParameterBase;
+class URPRMaterial;
 
 namespace RPRX
 {
@@ -34,12 +36,17 @@ namespace RPRX
 		{
 			const FRPRUberMaterialParameters& Parameters;
 			const UProperty* Property;
+			const URPRMaterial* OwnerMaterial;
 			RPR::FMaterialContext& MaterialContext;
-			FMaterial& Material;
+			RPR::FRPRXMaterialPtr Material;
 			RPR::FImageManagerPtr ImageManager;
 
-			FArgs(const FRPRUberMaterialParameters& InParameters, const UProperty* InProperty, RPR::FImageManagerPtr InImageManager,
-				RPR::FMaterialContext& InMaterialContext, FMaterial& InMaterial);
+			FArgs(const FRPRUberMaterialParameters& InParameters, 
+				const UProperty* InProperty, 
+				RPR::FImageManagerPtr InImageManager,
+				const URPRMaterial* OwnerMaterial,
+				RPR::FMaterialContext& InMaterialContext, 
+				RPR::FRPRXMaterialPtr InMaterial);
 
 			template<typename ParameterType>
 			const ParameterType*	GetDirectParameter();

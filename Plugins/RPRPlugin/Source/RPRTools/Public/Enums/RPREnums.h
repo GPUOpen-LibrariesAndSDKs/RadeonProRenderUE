@@ -20,6 +20,7 @@
 
 #include "RadeonProRender.h"
 #include "Typedefs/RPRTypedefs.h"
+#include "UObject/ObjectMacros.h"
 
 namespace RPR
 {
@@ -239,5 +240,38 @@ namespace RPR
 		Cubemap = RPR_CAMERA_MODE_CUBEMAP,
 		CubemapStereo = RPR_CAMERA_MODE_CUBEMAP_STEREO,
 		FishEye = RPR_CAMERA_MODE_FISHEYE
+	};
+	
+	UENUM()
+	enum class EAOV : uint8 // rpr_aov
+	{
+		Color = RPR_AOV_COLOR,
+		Opacity = RPR_AOV_OPACITY,
+		WorldCoordinate = RPR_AOV_WORLD_COORDINATE,
+		UV = RPR_AOV_UV,
+		MaterialIndex = RPR_AOV_MATERIAL_IDX,
+		GeometricNormal = RPR_AOV_GEOMETRIC_NORMAL,
+		ShadingNormal = RPR_AOV_SHADING_NORMAL,
+		Depth = RPR_AOV_DEPTH,
+		ObjectId = RPR_AOV_OBJECT_ID,
+		ObjectGroupId = RPR_AOV_OBJECT_GROUP_ID,
+		ShadowCatcher = RPR_AOV_SHADOW_CATCHER,
+		Background = RPR_AOV_BACKGROUND,
+		Emission = RPR_AOV_EMISSION,
+		Velocity = RPR_AOV_VELOCITY,
+		DirectIllumination = RPR_AOV_DIRECT_ILLUMINATION,
+		IndirectIllumination = RPR_AOV_INDIRECT_ILLUMINATION,
+		AmbiantOcclusion = RPR_AOV_AO,
+		DirectDiffuse = RPR_AOV_DIRECT_DIFFUSE,
+		DirectReflect = RPR_AOV_DIRECT_REFLECT,
+		IndirectDiffuse = RPR_AOV_INDIRECT_DIFFUSE,
+		IndirectReflect = RPR_AOV_INDIRECT_REFLECT,
+		Refract = RPR_AOV_REFRACT,
+		Volume = RPR_AOV_VOLUME,
+		LightGroup0 = RPR_AOV_LIGHT_GROUP0,
+		LightGroup1 = RPR_AOV_LIGHT_GROUP1,
+		LightGroup2 = RPR_AOV_LIGHT_GROUP2,
+		LightGroup3 = RPR_AOV_LIGHT_GROUP3,
+		Max = RPR_AOV_MAX
 	};
 }

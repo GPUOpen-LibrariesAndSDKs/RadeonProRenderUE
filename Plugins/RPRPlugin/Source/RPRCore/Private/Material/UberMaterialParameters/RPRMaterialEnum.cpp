@@ -18,6 +18,6 @@
 ********************************************************************/
 #include "Material/UberMaterialParameters/RPRMaterialEnum.h"
 
-FRPRMaterialEnum::FRPRMaterialEnum(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode)
-	: FRPRUberMaterialParameterBase(InXmlParamName, InRprxParamID, InPreviewSupportMode)
+FRPRMaterialEnum::FRPRMaterialEnum(const FString& InXmlParamName, uint32 InRprxParamID, ESupportMode InPreviewSupportMode, FCanUseParameter InCanUseParameter)
+	: FRPRUberMaterialParameterBase(InXmlParamName, InRprxParamID, InPreviewSupportMode, InCanUseParameter)
 {}
