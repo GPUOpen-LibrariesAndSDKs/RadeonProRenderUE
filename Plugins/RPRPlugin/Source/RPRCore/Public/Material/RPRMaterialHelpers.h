@@ -46,7 +46,7 @@ namespace RPR
 		{
 		public:
 
-			static FResult	SetInputF(RPR::FMaterialNode MaterialNode, const FString& ParameterName, float x, float y, float z, float w);
+			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, float x, float y, float z, float w);
 
 		};
 

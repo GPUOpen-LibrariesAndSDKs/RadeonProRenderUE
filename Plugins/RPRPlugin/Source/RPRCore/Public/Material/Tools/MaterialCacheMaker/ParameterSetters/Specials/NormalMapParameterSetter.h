@@ -24,11 +24,9 @@ namespace RPRX
 {
 
     class FNormalMapParameterSetter : public FMaterialMapParameterSetter
-    {
-
+	{
 	protected:
-		virtual RPR::FImageManager::EImageType GetImageType() const override;
-
+		virtual RPR::FImageManager::EImageType	GetImageType() const override;
 	};
 
 }

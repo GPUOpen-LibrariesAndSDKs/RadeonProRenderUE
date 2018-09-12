@@ -53,7 +53,7 @@ namespace RPRX
 				materialContext.MaterialSystem,
 				*SetterParameters.ImageManager.Get(),
 				materialMap->Texture,
-				RPR::FImageManager::EImageType::Standard,
+				GetImageType(),
 				image, imageMaterialNode
 			);
 
@@ -61,6 +61,11 @@ namespace RPRX
 
 			if (RPR::IsResultFailed(imageNodeCreationResult))
 			{
+				UE_LOG(LogRPRCore, Warning, 
+					TEXT("Cannot create image node texture for '%s'. Error code : %d"), 
+					*SetterParameters.Property->GetName(), 
+					imageNodeCreationResult);
+
 				return (false);
 			}
 		}
@@ -68,4 +73,10 @@ namespace RPRX
 		SetterParameters.Material->SetMaterialParameterNode(SetterParameters.GetRprxParam(), imageMaterialNode);
 		return (true);
 	}
+
+	RPR::FImageManager::EImageType FMaterialMapParameterSetter::GetImageType() const
+	{
+		return RPR::FImageManager::EImageType::Standard;
+	}
+
 }

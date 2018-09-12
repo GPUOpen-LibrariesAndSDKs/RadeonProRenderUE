@@ -27,43 +27,9 @@
 namespace RPRX
 {
 
-    void FNormalMapParameterSetter::ApplyParameterX(MaterialParameter::FArgs& SetterParameters)
-    {
-        const FRPRMaterialMap* normalMap = SetterParameters.GetDirectParameter<FRPRMaterialMap>();
-
-		UE_LOG(LogRPRCore_Steps, Verbose, TEXT("[%s] %s -> Set normal map : %s"),
-			*SetterParameters.OwnerMaterial->GetName(),
-			*SetterParameters.Property->GetName(),
-			normalMap->Texture != nullptr ? *normalMap->Texture->GetName() : TEXT("None"));
-
-        RPR::FMaterialContext& materialContext = SetterParameters.MaterialContext;
-        RPR::FMaterialNode imageMaterialNode = nullptr;
-
-        if (normalMap->Texture != nullptr && SetterParameters.ImageManager.IsValid())
-        {
-			RPR::FImagePtr imagePtr;
-            RPR::FResult imageNodeCreationResult = RPR::FMaterialHelpers::CreateImageNode(
-                materialContext.RPRContext,
-                materialContext.MaterialSystem,
-                *SetterParameters.ImageManager.Get(),
-                normalMap->Texture,
-                RPR::FImageManager::EImageType::NormalMap,
-				imagePtr, imageMaterialNode
-            );
-
-			SetterParameters.Material->AddImage(imagePtr);
-
-            if (RPR::IsResultFailed(imageNodeCreationResult))
-            {
-                UE_LOG(LogRPRCore, Warning, TEXT("Cannot load normal map image '%s' for parameter '%s'"), 
-                    *normalMap->Texture->GetName(), 
-                    *SetterParameters.Property->GetName());
-
-                return;
-            }
-        }
-
-		SetterParameters.Material->SetMaterialParameterNode(SetterParameters.GetRprxParam(), imageMaterialNode);
-    }
+	RPR::FImageManager::EImageType FNormalMapParameterSetter::GetImageType() const
+	{
+		return RPR::FImageManager::EImageType::NormalMap;
+	}
 
 }

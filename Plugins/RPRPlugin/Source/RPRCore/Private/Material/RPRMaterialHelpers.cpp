@@ -106,7 +106,7 @@ namespace RPR
 		return (result);
 	}
 
-	RPR::FResult FMaterialHelpers::FMaterialNode::SetInputF(RPR::FMaterialNode MaterialNode, const FString& ParameterName, float x, float y, float z, float w)
+	RPR::FResult FMaterialHelpers::FMaterialNode::SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, float x, float y, float z, float w)
 	{
 		RPR::FResult status = rprMaterialNodeSetInputF(MaterialNode, TCHAR_TO_ANSI(*ParameterName), x, y, z, w);
 
