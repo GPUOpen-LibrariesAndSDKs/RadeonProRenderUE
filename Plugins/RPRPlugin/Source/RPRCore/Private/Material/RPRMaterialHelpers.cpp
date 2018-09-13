@@ -106,13 +106,44 @@ namespace RPR
 		return (result);
 	}
 
+	RPR::FResult FMaterialHelpers::FMaterialNode::SetInputUInt(RPR::FMaterialNode MaterialNode, const FString& ParameterName, uint8 Value)
+	{
+		RPR::FResult status = rprMaterialNodeSetInputU(MaterialNode, TCHAR_TO_ANSI(*ParameterName), Value);
+
+		UE_LOG(LogRPRCore_Steps, Verbose,
+			TEXT("rprMaterialNodeSetInputU(materialNode=%s:%p, parameterName=%s, value=%d) -> %d"),
+			*RPR::RPRMaterial::GetNodeName(MaterialNode),
+			MaterialNode,
+			*ParameterName,
+			Value,
+			status);
+
+		return status;
+	}
+
+	RPR::FResult FMaterialHelpers::FMaterialNode::SetInputNode(RPR::FMaterialNode MaterialNode, const FString& ParameterName, RPR::FMaterialNode InMaterialNode)
+	{
+		RPR::FResult status = rprMaterialNodeSetInputN(MaterialNode, TCHAR_TO_ANSI(*ParameterName), InMaterialNode);
+
+		UE_LOG(LogRPRCore_Steps, Verbose,
+			TEXT("rprMaterialNodeSetInputN(materialNode=%s:%p, parameterName=%s, materialNode=%s:%p) -> %d"),
+			*RPR::RPRMaterial::GetNodeName(MaterialNode),
+			MaterialNode,
+			*ParameterName,
+			*RPR::RPRMaterial::GetNodeName(InMaterialNode),
+			InMaterialNode,
+			status);
+
+		return status;
+	}
+
 	RPR::FResult FMaterialHelpers::FMaterialNode::SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, float x, float y, float z, float w)
 	{
 		RPR::FResult status = rprMaterialNodeSetInputF(MaterialNode, TCHAR_TO_ANSI(*ParameterName), x, y, z, w);
 
-		UE_LOG(LogRPRCore_Steps, Verbose, 
-			TEXT("rprMaterialNodeSetInputF(materialNode=%s:%p, parameterName=%s, x=%.2f, y=%.2f, z=%.2f, w=%.2f) -> %d"), 
-			*RPR::RPRMaterial::GetNodeName(MaterialNode), 
+		UE_LOG(LogRPRCore_Steps, Verbose,
+			TEXT("rprMaterialNodeSetInputF(materialNode=%s:%p, parameterName=%s, x=%.2f, y=%.2f, z=%.2f, w=%.2f) -> %d"),
+			*RPR::RPRMaterial::GetNodeName(MaterialNode),
 			MaterialNode,
 			*ParameterName,
 			x, y, z, w,
@@ -121,4 +152,18 @@ namespace RPR
 		return status;
 	}
 
+	RPR::FResult FMaterialHelpers::FMaterialNode::SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector& Value, float w)
+	{
+		return (SetInputFloats(MaterialNode, ParameterName, Value.X, Value.Y, Value.Z, w));
+	}
+
+	RPR::FResult FMaterialHelpers::FMaterialNode::SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector4& Value)
+	{
+		return (SetInputFloats(MaterialNode, ParameterName, Value.X, Value.Y, Value.Z, Value.W));
+	}
+
+	RPR::FResult FMaterialHelpers::FMaterialNode::SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector2D& Value, float z /*= 0.0f*/, float w /*= 0.0f*/)
+	{
+		return (SetInputFloats(MaterialNode, ParameterName, Value.X, Value.Y, z, w));
+	}
 }

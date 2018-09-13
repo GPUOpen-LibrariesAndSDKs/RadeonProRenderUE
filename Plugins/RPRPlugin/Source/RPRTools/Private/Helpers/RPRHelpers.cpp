@@ -150,7 +150,10 @@ namespace RPR
 
 		FString GetNodeName(RPR::FMaterialNode MaterialNode)
 		{
-			check(MaterialNode);
+			if (MaterialNode == nullptr)
+			{
+				return TEXT("null");
+			}
 
 			FString name;
 			RPR::FResult status = GetNodeName(MaterialNode, name);

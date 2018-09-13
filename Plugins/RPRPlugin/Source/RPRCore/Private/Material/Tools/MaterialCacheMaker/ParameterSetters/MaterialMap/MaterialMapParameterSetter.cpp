@@ -24,6 +24,8 @@
 #include "Helpers/RPRXMaterialHelpers.h"
 #include "RPRCoreModule.h"
 
+DECLARE_LOG_CATEGORY_CLASS(LogMaterialMapParameterSetter, Log, All)
+
 namespace RPRX
 {
 
@@ -68,6 +70,8 @@ namespace RPRX
 
 				return (false);
 			}
+
+			ApplyUVSettings(SetterParameters, imageMaterialNode);
 		}
 
 		SetterParameters.Material->SetMaterialParameterNode(SetterParameters.GetRprxParam(), imageMaterialNode);
@@ -77,6 +81,63 @@ namespace RPRX
 	RPR::FImageManager::EImageType FMaterialMapParameterSetter::GetImageType() const
 	{
 		return RPR::FImageManager::EImageType::Standard;
+	}
+
+	bool FMaterialMapParameterSetter::ApplyUVSettings(MaterialParameter::FArgs& SetterParameters, RPR::FMaterialNode ImageMaterialNode)
+	{
+
+	#define SET_UV_PARAMETER(Function, ParameterName, Value) \
+		status = Function(uvProjectNode, ParameterName, Value); \
+		if (RPR::IsResultFailed(status)) \
+		{ \
+			UE_LOG(LogMaterialMapParameterSetter, Warning, TEXT("Cannot set UV data '%s' for parameter %s"), ParameterName, *SetterParameters.Property->GetName()); \
+			return (false); \
+		}
+
+		const FRPRMaterialMap* materialMap = SetterParameters.GetDirectParameter<FRPRMaterialMap>();
+
+		RPR::FResult status;
+		RPR::FMaterialNode uvProjectNode = nullptr;
+
+		if (materialMap->UVMode != ETextureUVMode::None)
+		{
+			RPR::EMaterialNodeType materialNodeType =
+				(materialMap->UVMode == ETextureUVMode::Triplanar) ? RPR::EMaterialNodeType::UVTriplanar : RPR::EMaterialNodeType::UVProcedural;
+
+			status = RPR::FMaterialHelpers::CreateNode(SetterParameters.MaterialContext.MaterialSystem, materialNodeType, uvProjectNode);
+			if (RPR::IsResultFailed(status))
+			{
+				UE_LOG(LogMaterialMapParameterSetter, Warning, TEXT("Cannot create UV node for parameter %s"), *SetterParameters.Property->GetName());
+				return (false);
+			}
+
+			if (materialNodeType == RPR::EMaterialNodeType::UVProcedural)
+			{
+				SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, TEXT("origin"), FVector4(materialMap->Origin.X, materialMap->Origin.Y, 0, 1.0f));
+				SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, TEXT("threshold"), FVector4(materialMap->Threshold.X, materialMap->Threshold.Y, materialMap->Threshold.Z, 1.0f));
+				SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputUInt, TEXT("uv_type"), materialMap->GetRPRValueFromTextureUVMode());
+			}
+			else if (materialNodeType == RPR::EMaterialNodeType::UVTriplanar)
+			{
+				SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, TEXT("weight"), materialMap->UVWeight);
+				SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, TEXT("offset"), FVector4(materialMap->Origin.X, materialMap->Origin.Y, 0, 1.0f));
+			}
+
+			SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, TEXT("xaxis"), FVector4(materialMap->XAxis.X, materialMap->XAxis.Y, materialMap->XAxis.Z, 1.0f));
+			SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, TEXT("zaxis"), FVector4(materialMap->ZAxis.X, materialMap->ZAxis.Y, materialMap->ZAxis.Z, 1.0f));
+			SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, TEXT("uv_scale"), materialMap->Scale);
+		}
+
+		status = RPR::FMaterialHelpers::FMaterialNode::SetInputNode(ImageMaterialNode, TEXT("uv"), uvProjectNode);
+		if (RPR::IsResultFailed(status))
+		{
+			UE_LOG(LogMaterialMapParameterSetter, Warning, TEXT("Cannot bind UV node to image node for parameter %s"), *SetterParameters.Property->GetName());
+			return (false);
+		}
+
+		return (true);
+
+	#undef SET_UV_PARAMETER
 	}
 
 }

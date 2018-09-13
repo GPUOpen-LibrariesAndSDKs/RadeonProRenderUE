@@ -46,7 +46,13 @@ namespace RPR
 		{
 		public:
 
-			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, float x, float y, float z, float w);
+			static FResult	SetInputUInt(RPR::FMaterialNode MaterialNode, const FString& ParameterName, uint8 Value);
+			static FResult	SetInputNode(RPR::FMaterialNode MaterialNode, const FString& ParameterName, RPR::FMaterialNode InMaterialNode);
+
+			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, float x, float y = 0.0f, float z = 0.0f, float w = 0.0f);
+			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector2D& Value, float z = 0.0f, float w = 0.0f);
+			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector& Value, float w = 0.0f);
+			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector4& Value);
 
 		};
 

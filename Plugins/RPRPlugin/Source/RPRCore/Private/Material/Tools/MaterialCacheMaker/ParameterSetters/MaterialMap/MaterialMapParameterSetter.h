@@ -31,6 +31,8 @@ namespace RPRX
 	protected:
 
 		bool	ApplyTextureParameter(MaterialParameter::FArgs& SetterParameters);
+		bool	ApplyUVSettings(MaterialParameter::FArgs& SetterParameters, RPR::FMaterialNode ImageMaterialNode);
+
 		virtual RPR::FImageManager::EImageType	GetImageType() const;
 
 	};
