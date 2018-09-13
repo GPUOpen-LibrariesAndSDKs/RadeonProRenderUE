@@ -126,7 +126,7 @@ FReply	SRPRViewportTabContent::OnToggleDisplayPostEffectProperties()
 	return FReply::Handled();
 }
 
-EVisibility	SRPRViewportTabContent::GetPostEffectPropertiesVisibility() const
+EVisibility	SRPRViewportTabContent::GetRenderPropertiesVisibility() const
 {
 	return m_DisplayPostEffects ? EVisibility::Visible : EVisibility::Collapsed;
 }
@@ -463,6 +463,17 @@ void	SRPRViewportTabContent::OnGammaCorrectionValueChanged(float newValue)
 	m_Settings->SaveConfig(); // Profile this, can be pretty intense with sliders
 }
 
+TOptional<float>	SRPRViewportTabContent::GetRaycastEpsilon() const
+{
+	return m_Settings->RaycastEpsilon;
+}
+
+void	SRPRViewportTabContent::OnRaycastEpsilonValueChanged(float newValue)
+{
+	m_Settings->RaycastEpsilon = newValue;
+	m_Settings->SaveConfig(); // Profile this, can be pretty intense with sliders
+}
+
 void	SRPRViewportTabContent::Construct(const FArguments &args)
 {
 	m_Plugin = &FRPRPluginModule::Get();
@@ -694,8 +705,8 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 			[
 				SNew(SButton)
 				.ButtonStyle(FEditorStyle::Get(), "FlatButton")
-				.Text(LOCTEXT("DisplayPostEffectPropsLabel", "Toggle post effect properties display"))
-				.ToolTipText(LOCTEXT("TogglePostEffectsTooltip", "Toggles post effect properties display."))
+				.Text(LOCTEXT("DisplayPostEffectPropsLabel", "Toggle post effect and render properties display"))
+				.ToolTipText(LOCTEXT("TogglePostEffectsTooltip", "Toggles post effect and render properties display."))
 				.OnClicked(this, &SRPRViewportTabContent::OnToggleDisplayPostEffectProperties)
 				.Content()
 				[
@@ -753,7 +764,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 			//.Value(120.0f)
 			[
 				SNew(SVerticalBox)
-				.Visibility(this, &SRPRViewportTabContent::GetPostEffectPropertiesVisibility)
+				.Visibility(this, &SRPRViewportTabContent::GetRenderPropertiesVisibility)
 				+ SVerticalBox::Slot().AutoHeight()
 				[
 					SNew(SVerticalBox)
@@ -961,6 +972,40 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 							.MaxValue(100.0f)
 							.MinSliderValue(0.0f)
 							.MaxSliderValue(100.0f)
+							.AllowSpin(true)
+						]
+					]
+				]
+				+ SVerticalBox::Slot().AutoHeight()
+				[
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot().Padding(5.0f)
+					[
+						SNew(STextBlock)
+						.Text(LOCTEXT("RenderSettingsTitle", "Render Settings"))
+					]
+					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot().AutoWidth()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("RaycastEpsilon", "Raycast Epsilon  "))
+						]
+						+ SHorizontalBox::Slot()
+						.FillWidth(1.0f)
+						[
+							SNew(SSpacer)
+						]
+						+ SHorizontalBox::Slot().AutoWidth()
+						[
+							SNew(SNumericEntryBox<float>)
+							.Value(this, &SRPRViewportTabContent::GetRaycastEpsilon)
+							.OnValueChanged(this, &SRPRViewportTabContent::OnRaycastEpsilonValueChanged)
+							.MinValue(0.0f) // Range is 0-10 mm
+							.MaxValue(10.0f)
+							.MinSliderValue(0.0f)
+							.MaxSliderValue(10.0f)
 							.AllowSpin(true)
 						]
 					]

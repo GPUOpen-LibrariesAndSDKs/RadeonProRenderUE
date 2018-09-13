@@ -87,7 +87,7 @@ private:
 	FText					GetTraceStatus() const;
 	FText					GetCurrentAOVMode() const;
 
-	EVisibility				GetPostEffectPropertiesVisibility() const;
+	EVisibility				GetRenderPropertiesVisibility() const;
 
 	void					OnWhiteBalanceTemperatureChanged(uint32 newValue);
 	void					OnGammaCorrectionValueChanged(float newValue);
@@ -96,6 +96,8 @@ private:
 	void					OnPhotolinearTonemapSensitivityChanged(float newValue);
 	void					OnPhotolinearTonemapExposureChanged(float newValue);
 	void					OnPhotolinearTonemapFStopChanged(float newValue);
+	void					OnRaycastEpsilonValueChanged(float newValue);
+
 
 	TOptional<uint32>		GetWhiteBalanceTemperature() const;
 	TOptional<float>		GetGammaCorrectionValue() const;
@@ -104,6 +106,7 @@ private:
 	TOptional<float>		GetPhotolinearTonemapSensitivity() const;
 	TOptional<float>		GetPhotolinearTonemapExposure() const;
 	TOptional<float>		GetPhotolinearTonemapFStop() const;
+	TOptional<float>		GetRaycastEpsilon() const;
 
 	bool					IsSceneValid() const;
 
