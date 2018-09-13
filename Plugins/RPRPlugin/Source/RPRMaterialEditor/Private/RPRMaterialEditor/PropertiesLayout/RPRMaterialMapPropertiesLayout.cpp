@@ -103,8 +103,10 @@ TSharedRef<SWidget> FRPRMaterialMapPropertiesLayout::CreateCheckedTexturePropert
 
 TSharedRef<SWidget> FRPRMaterialMapPropertiesLayout::CreateUVSettingsPropertyWidget() const
 {
+	auto uvSettingsPropertyHandle = CurrentPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialMap, UVSettings));
+
 	return SNew(SRPRMaterialUVSettings)
-		.MaterialMapPropertyHandle(CurrentPropertyHandle);
+		.MaterialMapPropertyHandle(uvSettingsPropertyHandle);
 }
 
 EVisibility FRPRMaterialMapPropertiesLayout::GetTextureFormatFixerAreaVisibility() const

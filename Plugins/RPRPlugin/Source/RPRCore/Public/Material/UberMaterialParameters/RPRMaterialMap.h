@@ -22,18 +22,8 @@
 #include "Engine/Texture2D.h"
 #include "Containers/UnrealString.h"
 #include "Containers/Map.h"
+#include "Material/RPRMaterialMapUV.h"
 #include "RPRMaterialMap.generated.h"
-
-UENUM(BlueprintType)
-enum class ETextureUVMode : uint8
-{
-	None,
-	Planar,
-	Cylindrical,
-	Spherical,
-	Projection,
-	Triplanar
-};
 
 /*
 * Base class for parameters that represents a map
@@ -46,26 +36,8 @@ struct RPRCORE_API FRPRMaterialMap : public FRPRUberMaterialParameterBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
 	UTexture2D*		Texture;
 
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "UV Mode"), BlueprintReadWrite, Category = Material)
-	ETextureUVMode	UVMode;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
-	float		UVWeight;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
-	FVector		Threshold;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
-	FVector		Origin;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
-	FVector		XAxis;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
-	FVector		ZAxis;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
-	FVector2D	Scale;
+	FRPRMaterialMapUV	UVSettings;
 
 
 	FRPRMaterialMap() {}
@@ -75,11 +47,5 @@ struct RPRCORE_API FRPRMaterialMap : public FRPRUberMaterialParameterBase
 		ESupportMode InPreviewSupportMode, 
 		FCanUseParameter InCanUseParameter = FCanUseParameter(),
         FApplyParameter InApplyParameterDelegate = FApplyParameter());
-
-	uint8	GetRPRValueFromTextureUVMode() const;
-
-private:
-
-	static TMap<ETextureUVMode, uint8> TextureUVModeToRPRValue;
-	
+		
 };

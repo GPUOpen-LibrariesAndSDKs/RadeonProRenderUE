@@ -20,6 +20,7 @@ public:
 
 private:
 
+	TSharedPtr<IPropertyHandle>	GetUChannelPropertyHandle() const;
 	TSharedPtr<IPropertyHandle>	GetUVWeightPropertyHandle() const;
 	TSharedPtr<IPropertyHandle> GetThresholdPropertyHandle() const;
 	TSharedPtr<IPropertyHandle> GetUVModePropertyHandle() const;
@@ -36,5 +37,5 @@ private:
 
 private:
 
-	TSharedPtr<IPropertyHandle> MaterialMapPropertyHandle;
+	TSharedPtr<IPropertyHandle> UVSettingsPropertyHandle;
 };
