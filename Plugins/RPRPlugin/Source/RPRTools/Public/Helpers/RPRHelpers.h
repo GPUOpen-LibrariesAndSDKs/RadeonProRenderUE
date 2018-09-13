@@ -100,6 +100,7 @@ namespace RPR
 		RPRTOOLS_API RPR::FResult GetNodeInputType(RPR::FMaterialNode MaterialNode, int32 InputIndex, RPR::EMaterialNodeInputType& OutInputType);
 		RPRTOOLS_API RPR::FResult GetNodeInputValue(RPR::FMaterialNode MaterialNode, int32 InputIndex, TArray<uint8>& OutRawDatas);
 		RPRTOOLS_API RPR::FResult GetNodeInputInfo(RPR::FMaterialNode MaterialNode, int32 InputIndex, RPR::EMaterialNodeInputInfo Info, TArray<uint8>& OutRawDatas);
+		RPRTOOLS_API bool			IsMaterialNode(RPR::FMaterialNode MaterialNodeToTest);
 
 		template<typename T>
 		RPR::FResult GetNodeInputValue(RPR::FMaterialNode MaterialNode, int32 InputIndex, T& OutValue)

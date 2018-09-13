@@ -205,7 +205,7 @@ void RPR::FRPRXMaterial::ReleaseMaterialMapNodes(const FRPRMaterialMap* Material
 		return;
 	}
 
-	if (materialNode != nullptr)
+	if (materialNode != nullptr && RPR::RPRMaterial::IsMaterialNode(materialNode))
 	{
 		ReleaseMaterialNodesHierarchy(materialNode);
 		RPR::FMaterialHelpers::DeleteNode(materialNode);

@@ -207,7 +207,14 @@ namespace RPR
 			return (status);
 		}
 
-		
+		bool IsMaterialNode(void* Object)
+		{
+			RPR::FMaterialNodeType materialNodeType;
+			RPR::FResult status = RPR::RPRMaterial::GetNodeInfo(Object, RPR::EMaterialNodeInfo::Type, &materialNodeType);
+			const bool bIsMaterialNodeValid = (RPR::IsResultSuccess(status) && materialNodeType != 0);
+			return bIsMaterialNodeValid;
+		}
+
 		bool FindInMaterialNode(RPR::FContext Context, RPR::FMaterialNode MaterialNode, FMaterialNodeFinder Finder)
 		{
 			RPR::FResult status;
