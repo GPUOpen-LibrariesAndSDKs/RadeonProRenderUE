@@ -95,13 +95,17 @@ void SRPRMaterialUVSettings::Construct(const FArguments& InArgs)
 					FPropertyHandlerHelpers::CreateVectorPropertyWidget(GetZAxisPropertyHandle())
 				]
 			]
-			+SScrollBox::Slot() // Scale
+			+SScrollBox::Slot() // Rotation
 			[
 				SNew(SBox)
-				.Visibility(this, &SRPRMaterialUVSettings::GetPropertyVisibilityFromUnexpectedUVMode, ETextureUVMode::None)
+				.Visibility(this, &SRPRMaterialUVSettings::GetPropertyVisibilityFromExpectedUVMode, ETextureUVMode::None)
 				[
-					FPropertyHandlerHelpers::CreateVector2DPropertyWidget(GetScalePropertyHandle())
+					FPropertyHandlerHelpers::CreateVectorPropertyWidget(GetRotationPropertyHandle())
 				]
+			]
+			+SScrollBox::Slot() // Scale
+			[
+				FPropertyHandlerHelpers::CreateVector2DPropertyWidget(GetScalePropertyHandle())
 			]
 		];
 }
@@ -139,6 +143,11 @@ TSharedPtr<IPropertyHandle> SRPRMaterialUVSettings::GetXAxisPropertyHandle() con
 TSharedPtr<IPropertyHandle> SRPRMaterialUVSettings::GetZAxisPropertyHandle() const
 {
 	return (UVSettingsPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialMapUV, ZAxis)));
+}
+
+TSharedPtr<IPropertyHandle> SRPRMaterialUVSettings::GetRotationPropertyHandle() const
+{
+	return (UVSettingsPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialMapUV, Rotation)));
 }
 
 TSharedPtr<IPropertyHandle> SRPRMaterialUVSettings::GetScalePropertyHandle() const

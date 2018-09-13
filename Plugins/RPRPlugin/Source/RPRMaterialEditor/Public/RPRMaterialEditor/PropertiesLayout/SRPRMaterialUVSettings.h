@@ -27,6 +27,7 @@ private:
 	TSharedPtr<IPropertyHandle> GetOriginPropertyHandle() const;
 	TSharedPtr<IPropertyHandle> GetXAxisPropertyHandle() const;
 	TSharedPtr<IPropertyHandle> GetZAxisPropertyHandle() const;
+	TSharedPtr<IPropertyHandle> GetRotationPropertyHandle() const;
 	TSharedPtr<IPropertyHandle> GetScalePropertyHandle() const;
 
 	EVisibility	GetPropertyVisibilityFromExpectedUVMode(ETextureUVMode ExpectedMode) const;

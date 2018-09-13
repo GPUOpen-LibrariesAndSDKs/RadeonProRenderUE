@@ -51,25 +51,53 @@ namespace RPR
 		ImageTexture			= RPR_MATERIAL_NODE_IMAGE_TEXTURE,
 		NormalMap				= RPR_MATERIAL_NODE_NORMAL_MAP,
 
+		Arithmetic				= RPR_MATERIAL_NODE_ARITHMETIC,
+		InputLookup				= RPR_MATERIAL_NODE_INPUT_LOOKUP,
+
 		UVProcedural			= RPR_MATERIAL_NODE_UV_PROCEDURAL,
 		UVTriplanar				= RPR_MATERIAL_NODE_UV_TRIPLANAR
+
 		// Not completed. See rpr_material_node_type in RadeonProRender for others
 	};
 
 	enum class EMaterialNodeInputInfo : FMaterialNodeInputInfo // rpr_material_node_input_info
 	{
-		Name = RPR_MATERIAL_NODE_INPUT_NAME,
-		NameString = RPR_MATERIAL_NODE_INPUT_NAME_STRING,
-		Description = RPR_MATERIAL_NODE_INPUT_DESCRIPTION,
-		Value = RPR_MATERIAL_NODE_INPUT_VALUE,
-		Type = RPR_MATERIAL_NODE_INPUT_TYPE
+		Name			= RPR_MATERIAL_NODE_INPUT_NAME,
+		NameString		= RPR_MATERIAL_NODE_INPUT_NAME_STRING,
+		Description		= RPR_MATERIAL_NODE_INPUT_DESCRIPTION,
+		Value			= RPR_MATERIAL_NODE_INPUT_VALUE,
+		Type			= RPR_MATERIAL_NODE_INPUT_TYPE
 	};
 
 	enum class EMaterialNodeInfo : FMaterialNodeInfo // rpr_material_node_info
 	{
-		Type = RPR_MATERIAL_NODE_TYPE,
-		System = RPR_MATERIAL_NODE_SYSTEM,
-		InputCount = RPR_MATERIAL_NODE_INPUT_COUNT
+		Type		= RPR_MATERIAL_NODE_TYPE,
+		System		= RPR_MATERIAL_NODE_SYSTEM,
+		InputCount	= RPR_MATERIAL_NODE_INPUT_COUNT
+	};
+
+	enum class EMaterialNodeArithmeticOperation : FMaterialNodeArithmeticOperation // rpr_material_node_arithmetic_operation
+	{
+		Add				= RPR_MATERIAL_NODE_OP_ADD,
+		Substract		= RPR_MATERIAL_NODE_OP_SUB,
+		Multiply		= RPR_MATERIAL_NODE_OP_MUL,
+		Divide			= RPR_MATERIAL_NODE_OP_DIV,
+
+		Cos				= RPR_MATERIAL_NODE_OP_COS,
+		Sin				= RPR_MATERIAL_NODE_OP_SIN,
+		Tan				= RPR_MATERIAL_NODE_OP_TAN,
+
+		// Not completed. See rpr_material_node_arithmetic_operation in RadeonProRender for others
+	};
+
+	enum class EMaterialNodeLookupValue
+	{
+		UV		= RPR_MATERIAL_NODE_LOOKUP_UV,
+		N		= RPR_MATERIAL_NODE_LOOKUP_N,
+		P		= RPR_MATERIAL_NODE_LOOKUP_P,
+		InVec	= RPR_MATERIAL_NODE_LOOKUP_INVEC,
+		OutVec	= RPR_MATERIAL_NODE_LOOKUP_OUTVEC,
+		UV1		= RPR_MATERIAL_NODE_LOOKUP_UV1
 	};
 
 	enum class EImageInfo // rpr_image_info
@@ -274,4 +302,5 @@ namespace RPR
 		LightGroup3 = RPR_AOV_LIGHT_GROUP3,
 		Max = RPR_AOV_MAX
 	};
+
 }

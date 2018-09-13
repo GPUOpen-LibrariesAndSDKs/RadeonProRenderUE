@@ -28,6 +28,9 @@ struct RPRCORE_API FRPRMaterialMapUV
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "UV Mode"), BlueprintReadWrite, Category = Material)
 	ETextureUVMode	UVMode;
 
+	UPROPERTY(EditAnywhere, meta = (UIMin = 0, UIMax = 360, ClampMin = 0, ClampMax = 360), BlueprintReadWrite, Category = Material)
+	float		Rotation;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
 	float		UVWeight;
 

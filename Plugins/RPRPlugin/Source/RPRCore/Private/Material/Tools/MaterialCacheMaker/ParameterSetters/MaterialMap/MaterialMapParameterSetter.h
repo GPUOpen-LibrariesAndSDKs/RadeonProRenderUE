@@ -19,6 +19,8 @@
 #pragma once
 
 #include "Material/Tools/MaterialCacheMaker/ParameterSetters/IMaterialParameter.h"
+#include "Material/RPRMaterialMapUV.h"
+#include "Typedefs/RPRTypedefs.h"
 
 namespace RPRX
 {
@@ -32,6 +34,7 @@ namespace RPRX
 
 		bool	ApplyTextureParameter(MaterialParameter::FArgs& SetterParameters);
 		bool	ApplyUVSettings(MaterialParameter::FArgs& SetterParameters, RPR::FMaterialNode ImageMaterialNode);
+		bool	CreateSimpleUVNodeData(MaterialParameter::FArgs& SetterParameters, const FRPRMaterialMapUV& UVSettings, RPR::FMaterialNode& OutMaterialNode);
 
 		virtual RPR::FImageManager::EImageType	GetImageType() const;
 

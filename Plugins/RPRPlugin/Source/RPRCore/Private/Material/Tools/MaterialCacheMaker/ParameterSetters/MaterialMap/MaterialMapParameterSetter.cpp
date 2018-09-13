@@ -24,6 +24,8 @@
 #include "Helpers/RPRXMaterialHelpers.h"
 #include "RPRCoreModule.h"
 #include "Helpers/RPRHelpers.h"
+#include "Enums/RPREnums.h"
+#include "Constants/RPRMaterialNodeParameterNames.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogMaterialMapParameterSetter, Log, All)
 
@@ -87,6 +89,15 @@ namespace RPRX
 
 	bool FMaterialMapParameterSetter::ApplyUVSettings(MaterialParameter::FArgs& SetterParameters, RPR::FMaterialNode ImageMaterialNode)
 	{
+		RPR::FResult status;
+
+		// Check we are not messing around with an incorrect material node.
+		{
+			RPR::EMaterialNodeType materialNodeType;
+			status = RPR::RPRMaterial::GetNodeInfo(ImageMaterialNode, RPR::EMaterialNodeInfo::Type, &materialNodeType);
+			check(materialNodeType == RPR::EMaterialNodeType::ImageTexture);
+		}
+
 
 	#define SET_UV_PARAMETER(Function, ParameterName, Value) \
 		status = Function(uvProjectNode, ParameterName, Value); \
@@ -99,10 +110,16 @@ namespace RPRX
 		const FRPRMaterialMap* materialMap = SetterParameters.GetDirectParameter<FRPRMaterialMap>();
 		const FRPRMaterialMapUV& uvSettings = materialMap->UVSettings;
 
-		RPR::FResult status;
 		RPR::FMaterialNode uvProjectNode = nullptr;
 
-		if (uvSettings.UVMode != ETextureUVMode::None)
+		if (uvSettings.UVMode == ETextureUVMode::None)
+		{
+			if (!CreateSimpleUVNodeData(SetterParameters, uvSettings, uvProjectNode))
+			{
+				return false;
+			}
+		}
+		else
 		{
 			RPR::EMaterialNodeType materialNodeType =
 				(uvSettings.UVMode == ETextureUVMode::Triplanar) ? RPR::EMaterialNodeType::UVTriplanar : RPR::EMaterialNodeType::UVProcedural;
@@ -116,26 +133,24 @@ namespace RPRX
 
 			if (materialNodeType == RPR::EMaterialNodeType::UVProcedural)
 			{
-				SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, TEXT("origin"), FVector4(uvSettings.Origin.X, uvSettings.Origin.Y, 0, 1.0f));
-				SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, TEXT("threshold"), FVector4(uvSettings.Threshold.X, uvSettings.Threshold.Y, uvSettings.Threshold.Z, 1.0f));
-				SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputUInt, TEXT("uv_type"), uvSettings.GetRPRValueFromTextureUVMode());
+				SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats,	RPR::Constants::MaterialNode::UV::Procedural::Origin,		FVector4(uvSettings.Origin.X, uvSettings.Origin.Y, 0, 1.0f));
+				SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats,	 RPR::Constants::MaterialNode::UV::Procedural::Threshold,	FVector4(uvSettings.Threshold.X, uvSettings.Threshold.Y, uvSettings.Threshold.Z, 1.0f));
+				SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputUInt,	RPR::Constants::MaterialNode::UV::Procedural::UVType,		uvSettings.GetRPRValueFromTextureUVMode());
 			}
 			else if (materialNodeType == RPR::EMaterialNodeType::UVTriplanar)
 			{
-				SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, TEXT("weight"), uvSettings.UVWeight);
-				SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, TEXT("offset"), FVector4(uvSettings.Origin.X, uvSettings.Origin.Y, 0, 1.0f));
+				SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, RPR::Constants::MaterialNode::UV::Triplanar::Weight, uvSettings.UVWeight);
+				SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, RPR::Constants::MaterialNode::UV::Triplanar::Offset, FVector4(uvSettings.Origin.X, uvSettings.Origin.Y, 0, 1.0f));
 			}
 
-			SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, TEXT("xaxis"), FVector4(uvSettings.XAxis.X, uvSettings.XAxis.Y, uvSettings.XAxis.Z, 1.0f));
-			SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, TEXT("zaxis"), FVector4(uvSettings.ZAxis.X, uvSettings.ZAxis.Y, uvSettings.ZAxis.Z, 1.0f));
-			SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, TEXT("uv_scale"), uvSettings.Scale);
+			SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, RPR::Constants::MaterialNode::UV::XAxis, FVector4(uvSettings.XAxis.X, uvSettings.XAxis.Y, uvSettings.XAxis.Z, 1.0f));
+			SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, RPR::Constants::MaterialNode::UV::ZAxis, FVector4(uvSettings.ZAxis.X, uvSettings.ZAxis.Y, uvSettings.ZAxis.Z, 1.0f));
+			SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, RPR::Constants::MaterialNode::UV::UVScale, uvSettings.Scale);
 		}
 
-		FString uvInputDataName = (uvSettings.UVChannel == 0 ? TEXT("uv") : TEXT("uv2"));
-
-		RPR::EMaterialNodeType materialNodeType;
-		status = RPR::RPRMaterial::GetNodeInfo(ImageMaterialNode, RPR::EMaterialNodeInfo::Type, &materialNodeType);
-		check(materialNodeType == RPR::EMaterialNodeType::ImageTexture);
+		FString uvInputDataName = uvSettings.UVChannel == 0 ?
+			RPR::Constants::MaterialNode::ImageTexture::UV : 
+			RPR::Constants::MaterialNode::ImageTexture::UV2;
 
 		status = RPR::FMaterialHelpers::FMaterialNode::SetInputNode(ImageMaterialNode, *uvInputDataName, uvProjectNode);
 		if (RPR::IsResultFailed(status))
@@ -147,6 +162,36 @@ namespace RPRX
 		return (true);
 
 	#undef SET_UV_PARAMETER
+	}
+
+	bool FMaterialMapParameterSetter::CreateSimpleUVNodeData(MaterialParameter::FArgs& SetterParameters, const FRPRMaterialMapUV& UVSettings, RPR::FMaterialNode& OutMaterialNode)
+	{
+		RPR::FMaterialContext& materialContext = SetterParameters.MaterialContext;
+
+		RPR::FResult status;
+
+		// Create lookup node
+		RPR::FMaterialNode inputLookupNode;
+		RPR::EMaterialNodeLookupValue lookupUVValue = (UVSettings.UVChannel == 0) ? RPR::EMaterialNodeLookupValue::UV : RPR::EMaterialNodeLookupValue::UV1;
+		status = RPR::FMaterialHelpers::CreateNode(materialContext.MaterialSystem, RPR::EMaterialNodeType::InputLookup, inputLookupNode); check(status == 0);
+
+		status = RPR::FMaterialHelpers::FMaterialNode::SetInputEnum(inputLookupNode, RPR::Constants::MaterialNode::Lookup::Value, lookupUVValue); check(status == 0);
+
+		// Create arithmetic node
+		RPR::FMaterialNode arithmeticNode;
+		status = RPR::FMaterialHelpers::FArithmeticNode::CreateArithmeticNode(
+			materialContext.MaterialSystem, 
+			RPR::EMaterialNodeArithmeticOperation::Multiply, 
+			TEXT("Arithmetic for UV - Multiply"), 
+			arithmeticNode); 
+		check(status == 0);
+
+		// Bind the lookup to the arithmetic node and multiply with the UV scale
+		status = RPR::FMaterialHelpers::FMaterialNode::SetInputNode(arithmeticNode, RPR::Constants::MaterialNode::Color0, inputLookupNode); check(status == 0);
+		status = RPR::FMaterialHelpers::FMaterialNode::SetInputFloats(arithmeticNode, RPR::Constants::MaterialNode::Color1, UVSettings.Scale); check(status == 0);
+
+		OutMaterialNode = arithmeticNode;
+		return true;
 	}
 
 }

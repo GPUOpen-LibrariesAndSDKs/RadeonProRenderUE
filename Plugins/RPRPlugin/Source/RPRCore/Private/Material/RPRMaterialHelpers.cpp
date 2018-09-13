@@ -21,6 +21,7 @@
 #include "Helpers/RPRHelpers.h"
 #include "Logging/LogMacros.h"
 #include "RPRCoreModule.h"
+#include "Constants/RPRMaterialNodeParameterNames.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRMaterialHelpers, Log, All)
 
@@ -167,4 +168,24 @@ namespace RPR
 	{
 		return (SetInputFloats(MaterialNode, ParameterName, Value.X, Value.Y, z, w));
 	}
+
+	RPR::FResult FMaterialHelpers::FArithmeticNode::CreateArithmeticNode(FMaterialSystem MaterialSystem, RPR::EMaterialNodeArithmeticOperation Operation, RPR::FMaterialNode& OutMaterialNode)
+	{
+		return CreateArithmeticNode(MaterialSystem, Operation, TEXT("Arithmetic"), OutMaterialNode);
+	}
+
+	RPR::FResult FMaterialHelpers::FArithmeticNode::CreateArithmeticNode(FMaterialSystem MaterialSystem, RPR::EMaterialNodeArithmeticOperation Operation, const FString& NodeName, RPR::FMaterialNode& OutMaterialNode)
+	{
+		RPR::FResult status = RPR::FMaterialHelpers::CreateNode(MaterialSystem, RPR::EMaterialNodeType::Arithmetic, NodeName, OutMaterialNode);
+
+		if (RPR::IsResultFailed(status))
+		{
+			OutMaterialNode = nullptr;
+			return status;
+		}
+
+		status = RPR::FMaterialHelpers::FMaterialNode::SetInputEnum(OutMaterialNode, RPR::Constants::MaterialNode::Arithmetic::Operation, Operation);
+		return status;
+	}
+
 }

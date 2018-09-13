@@ -23,6 +23,7 @@
 #include "Helpers/RPRHelpers.h"
 #include "Enums/RPREnums.h"
 #include "ImageManager/RPRImageManager.h"
+#include "Templates/IsEnum.h"
 
 namespace RPR
 {
@@ -54,6 +55,22 @@ namespace RPR
 			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector2D& Value, float z = 0.0f, float w = 0.0f);
 			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector& Value, float w = 0.0f);
 			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector4& Value);
+
+			template<typename TEnum>
+			static FResult	SetInputEnum(RPR::FMaterialNode MaterialNode, const FString& ParameterName, TEnum Value)
+			{
+				static_assert(TIsEnum<TEnum>::Value, "Value must be an enum!");
+				return SetInputUInt(MaterialNode, ParameterName, (uint8) Value);
+			}
+
+		};
+
+		class FArithmeticNode
+		{
+		public:
+
+			static FResult	CreateArithmeticNode(FMaterialSystem MaterialSystem, RPR::EMaterialNodeArithmeticOperation Operation, RPR::FMaterialNode& OutMaterialNode);
+			static FResult	CreateArithmeticNode(FMaterialSystem MaterialSystem, RPR::EMaterialNodeArithmeticOperation Operation, const FString& NodeName, RPR::FMaterialNode& OutMaterialNode);
 
 		};
 
