@@ -28,7 +28,7 @@ struct RPRCORE_API FRPRMaterialMapUV
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "UV Mode"), BlueprintReadWrite, Category = Material)
 	ETextureUVMode	UVMode;
 
-	UPROPERTY(EditAnywhere, meta = (UIMin = 0, UIMax = 360, ClampMin = 0, ClampMax = 360), BlueprintReadWrite, Category = Material)
+	UPROPERTY(EditAnywhere, meta = (ToolTip = "In degrees", UIMin = 0, UIMax = 360, ClampMin = 0, ClampMax = 360), BlueprintReadWrite, Category = Material)
 	float		Rotation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
@@ -38,12 +38,12 @@ struct RPRCORE_API FRPRMaterialMapUV
 	FVector		Threshold;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
-	FVector		Origin;
+	FVector2D	Origin;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ToolTip = "Right axis"), Category = Material)
 	FVector		XAxis;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ToolTip = "Up axis"), Category = Material)
 	FVector		ZAxis;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)

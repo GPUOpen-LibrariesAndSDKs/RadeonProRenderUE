@@ -67,7 +67,19 @@ private:
 
 private:
 
+	struct FTriPlanarData
+	{
+		FString ParameterName;
+		FTriPlanarSettings Settings;
+	};
+	
+	typedef TMap<UMaterialInterface*, FTriPlanarData> FTriPlanarDataPerMaterial;
+
+private:
+
 	FTriPlanarSettings			        Settings;
 	TSharedPtr<IStructureDetailsView>	SettingsDetailsView;
+
+	TMap<UStaticMesh*, FTriPlanarDataPerMaterial>	TriPlanarDataPerMaterialPerMesh;
 
 };

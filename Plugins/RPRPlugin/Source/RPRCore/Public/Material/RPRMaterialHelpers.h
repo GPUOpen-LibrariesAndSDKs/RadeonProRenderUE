@@ -69,11 +69,31 @@ namespace RPR
 		{
 		public:
 
+			class FRotationNode
+			{
+			public:
+
+				static FResult	CreateRotationNode(FMaterialSystem MaterialSystem, const FString& NodeName, FRotationNode& OutRotationNode);
+
+				void SetRotationAngle(float RadAngle);
+				void SetInputVector2D(RPR::FMaterialNode MaterialNode);
+
+				RPR::FMaterialNode	GetOutputNode() const;
+
+			private:
+				RPR::FMaterialNode OutputNode;
+				RPR::FMaterialNode InputVector2DNode;
+				RPR::FMaterialNode InputRotationCenter;
+				RPR::FMaterialNode InputRotationAngleA;
+				RPR::FMaterialNode InputRotationAngleB;
+			};
+
+		public:
+
 			static FResult	CreateArithmeticNode(FMaterialSystem MaterialSystem, RPR::EMaterialNodeArithmeticOperation Operation, RPR::FMaterialNode& OutMaterialNode);
 			static FResult	CreateArithmeticNode(FMaterialSystem MaterialSystem, RPR::EMaterialNodeArithmeticOperation Operation, const FString& NodeName, RPR::FMaterialNode& OutMaterialNode);
 
-			static FResult	CreateVector2DRotationNode(FMaterialSystem MaterialSystem, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutInputRotationAngleNode, RPR::FMaterialNode& OutInputVector2d, RPR::FMaterialNode& OutInputRotationCenter);
-			static FResult	CreateVector2DRotationNode(FMaterialSystem MaterialSystem, const FString& NodeName, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutInputRotationAngleNode, RPR::FMaterialNode& OutInputVector2d, RPR::FMaterialNode& OutInputRotationCenter);
+			static FResult	CreateVector2DRotationNode(FMaterialSystem MaterialSystem, const FString& NodeName, FRotationNode& OutRotationNode);
 
 		};
 

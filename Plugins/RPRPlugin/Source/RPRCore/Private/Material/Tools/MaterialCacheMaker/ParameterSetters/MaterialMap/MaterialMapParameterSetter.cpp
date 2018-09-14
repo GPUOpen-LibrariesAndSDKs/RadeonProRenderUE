@@ -146,8 +146,9 @@ namespace RPRX
 				SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, RPR::Constants::MaterialNode::UV::Triplanar::Offset, FVector4(uvSettings.Origin.X, uvSettings.Origin.Y, 0, 1.0f));
 			}
 
-			SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, RPR::Constants::MaterialNode::UV::XAxis, FVector4(uvSettings.XAxis.X, uvSettings.XAxis.Y, uvSettings.XAxis.Z, 1.0f));
-			SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, RPR::Constants::MaterialNode::UV::ZAxis, FVector4(uvSettings.ZAxis.X, uvSettings.ZAxis.Y, uvSettings.ZAxis.Z, 1.0f));
+			// Switch the Y and Z to not confuse the user using the Z axis as the up axis in UE4
+			SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, RPR::Constants::MaterialNode::UV::XAxis, FVector4(-uvSettings.XAxis.X, uvSettings.XAxis.Z, uvSettings.XAxis.Y, 1.0f));
+			SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, RPR::Constants::MaterialNode::UV::ZAxis, FVector4(-uvSettings.ZAxis.X, uvSettings.ZAxis.Z, uvSettings.ZAxis.Y, 1.0f));
 			SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, RPR::Constants::MaterialNode::UV::UVScale, uvSettings.Scale);
 		}
 
@@ -177,23 +178,40 @@ namespace RPRX
 		RPR::FMaterialNode inputLookupNode;
 		RPR::EMaterialNodeLookupValue lookupUVValue = (UVSettings.UVChannel == 0) ? RPR::EMaterialNodeLookupValue::UV : RPR::EMaterialNodeLookupValue::UV1;
 		status = RPR::FMaterialHelpers::CreateNode(materialContext.MaterialSystem, RPR::EMaterialNodeType::InputLookup, TEXT("Input Lookup UV"), inputLookupNode); check(status == 0);
-
 		status = RPR::FMaterialHelpers::FMaterialNode::SetInputEnum(inputLookupNode, RPR::Constants::MaterialNode::Lookup::Value, lookupUVValue); check(status == 0);
 
-		// Create arithmetic node
-		RPR::FMaterialNode arithmeticNode;
+		// Create add node to offset UV
+		RPR::FMaterialNode offsetNode;
+		status = RPR::FMaterialHelpers::FArithmeticNode::CreateArithmeticNode(
+			materialContext.MaterialSystem,
+			RPR::EMaterialNodeArithmeticOperation::Add,
+			TEXT("Arithmetic for UV offset - Add"),
+			offsetNode);
+		check(status == 0);
+
+		status = RPR::FMaterialHelpers::FMaterialNode::SetInputNode(offsetNode, RPR::Constants::MaterialNode::Color0, inputLookupNode); check(status == 0);
+		status = RPR::FMaterialHelpers::FMaterialNode::SetInputFloats(offsetNode, RPR::Constants::MaterialNode::Color1, -UVSettings.Origin.X, -UVSettings.Origin.Y); check(status == 0);
+
+		// Create multiply node to scale UV
+		RPR::FMaterialNode uvScaledNode;
 		status = RPR::FMaterialHelpers::FArithmeticNode::CreateArithmeticNode(
 			materialContext.MaterialSystem, 
 			RPR::EMaterialNodeArithmeticOperation::Multiply, 
 			TEXT("Arithmetic for UV scale - Multiply"), 
-			arithmeticNode); 
-		check(status == 0);
+			uvScaledNode); 
+		check(status == 0);		
 
-		// Bind the lookup to the arithmetic node and multiply with the UV scale
-		status = RPR::FMaterialHelpers::FMaterialNode::SetInputNode(arithmeticNode, RPR::Constants::MaterialNode::Color0, inputLookupNode); check(status == 0);
-		status = RPR::FMaterialHelpers::FMaterialNode::SetInputFloats(arithmeticNode, RPR::Constants::MaterialNode::Color1, UVSettings.Scale); check(status == 0);
+		status = RPR::FMaterialHelpers::FMaterialNode::SetInputNode(uvScaledNode, RPR::Constants::MaterialNode::Color0, offsetNode); check(status == 0);
+		status = RPR::FMaterialHelpers::FMaterialNode::SetInputFloats(uvScaledNode, RPR::Constants::MaterialNode::Color1, UVSettings.Scale); check(status == 0);
 
-		OutMaterialNode = arithmeticNode;
+		// Create rotation node to rotate UV
+		RPR::FMaterialHelpers::FArithmeticNode::FRotationNode rotationNode;
+		status = RPR::FMaterialHelpers::FArithmeticNode::CreateVector2DRotationNode(materialContext.MaterialSystem, TEXT("UV Rotation"), rotationNode); check(status == 0);
+
+		rotationNode.SetInputVector2D(uvScaledNode);
+		rotationNode.SetRotationAngle(FMath::DegreesToRadians(UVSettings.Rotation));
+
+		OutMaterialNode = rotationNode.GetOutputNode();
 		return true;
 	}
 

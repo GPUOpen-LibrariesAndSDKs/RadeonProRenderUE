@@ -188,16 +188,44 @@ namespace RPR
 		return status;
 	}
 
-	RPR::FResult FMaterialHelpers::FArithmeticNode::CreateVector2DRotationNode(FMaterialSystem MaterialSystem, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutInputRotationAngleNode, RPR::FMaterialNode& OutInputVector2d, RPR::FMaterialNode& OutInputRotationCenter)
+	RPR::FResult FMaterialHelpers::FArithmeticNode::CreateVector2DRotationNode(FMaterialSystem MaterialSystem, const FString& NodeName, FRotationNode& OutRotationNode)
 	{
-		return CreateVector2DRotationNode(MaterialSystem, TEXT("Vector2D Rotation"), OutMaterialNode, OutInputRotationAngleNode, OutInputVector2d, OutInputRotationCenter);
+		return FMaterialHelpers::FArithmeticNode::FRotationNode::CreateRotationNode(MaterialSystem, NodeName, OutRotationNode);
 	}
 
-	RPR::FResult FMaterialHelpers::FArithmeticNode::CreateVector2DRotationNode(FMaterialSystem MaterialSystem, const FString& NodeName, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutInputRotationAngleNode, RPR::FMaterialNode& OutInputVector2d, RPR::FMaterialNode& OutInputRotationCenter)
+	RPR::FResult FMaterialHelpers::FArithmeticNode::FRotationNode::CreateRotationNode(FMaterialSystem MaterialSystem, const FString& NodeName, FRotationNode& OutRotationNode)
 	{
-		//RPR::FMaterialNode addNode;
-		//CreateArithmeticNode(MaterialSystem, EMaterialNodeArithmeticOperation::Add, *FString::Printf(TEXT("%s Add"), NodeName), addNode);
-		return RPR_SUCCESS;
+		RPR::FResult status;
+
+		status = CreateArithmeticNode(MaterialSystem, EMaterialNodeArithmeticOperation::Dot3, TEXT("Dot3 - A"), OutRotationNode.InputRotationAngleA);
+		status = CreateArithmeticNode(MaterialSystem, EMaterialNodeArithmeticOperation::Dot3, TEXT("Dot3 - B"), OutRotationNode.InputRotationAngleB);
+
+		status = CreateArithmeticNode(MaterialSystem, EMaterialNodeArithmeticOperation::Combine, TEXT("Combine"), OutRotationNode.OutputNode);
+		status = RPR::FMaterialHelpers::FMaterialNode::SetInputNode(OutRotationNode.OutputNode, RPR::Constants::MaterialNode::Color0, OutRotationNode.InputRotationAngleA);
+		status = RPR::FMaterialHelpers::FMaterialNode::SetInputNode(OutRotationNode.OutputNode, RPR::Constants::MaterialNode::Color1, OutRotationNode.InputRotationAngleB);
+
+		return status;
+	}
+
+	void FMaterialHelpers::FArithmeticNode::FRotationNode::SetRotationAngle(float RadAngle)
+	{
+		RPR::FResult status;
+
+		status = FMaterialHelpers::FMaterialNode::SetInputFloats(InputRotationAngleA, RPR::Constants::MaterialNode::Color1, FMath::Cos(RadAngle), FMath::Sin(RadAngle)); check(status == 0);
+		status = FMaterialHelpers::FMaterialNode::SetInputFloats(InputRotationAngleB, RPR::Constants::MaterialNode::Color1, -FMath::Sin(RadAngle), FMath::Cos(RadAngle)); check(status == 0);
+	}
+
+	void FMaterialHelpers::FArithmeticNode::FRotationNode::SetInputVector2D(RPR::FMaterialNode MaterialNode)
+	{
+		RPR::FResult status;
+
+		status = FMaterialHelpers::FMaterialNode::SetInputNode(InputRotationAngleA, RPR::Constants::MaterialNode::Color0, MaterialNode); check(status == 0);
+		status = FMaterialHelpers::FMaterialNode::SetInputNode(InputRotationAngleB, RPR::Constants::MaterialNode::Color0, MaterialNode); check(status == 0);
+	}
+
+	RPR::FMaterialNode FMaterialHelpers::FArithmeticNode::FRotationNode::GetOutputNode() const
+	{
+		return OutputNode;
 	}
 
 }

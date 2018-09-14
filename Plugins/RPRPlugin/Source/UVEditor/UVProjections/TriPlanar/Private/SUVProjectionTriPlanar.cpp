@@ -78,15 +78,15 @@ TSharedRef<SWidget> SUVProjectionTriPlanar::GetAlgorithmSettingsWidget()
 					SNew(STextBlock)
 					.Margin(FMargin(5.0f, 0.0f))
 					.AutoWrapText(true)
-					.Text(LOCTEXT("TriPlanarWarning", "The TriPlanar modifier only affects the selected RPR materials (not UV)."))
+					.Text(LOCTEXT("TriPlanarWarning", "The TriPlanar modifier only affects the selected RPR materials (not mesh UV)."))
 				]
 			]
 		]
-		+SVerticalBox::Slot()
+		/*+SVerticalBox::Slot()
 		.FillHeight(1.0f)
 		[
-			SettingsDetailsView->GetWidget().ToSharedRef()
-		]
+			// Put tri planar widget here
+		]*/
 	;
 }
 
@@ -122,35 +122,29 @@ void SUVProjectionTriPlanar::InitTriPlanarSettings()
 {
 	TryLoadTriPlanarSettings();
 
-	FPropertyEditorModule& propertyModule = FModuleManager::Get().LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	FDetailsViewArgs detailsViewArgs(
-		/*const bool InUpdateFromSelection =*/ false
-		, /*const bool InLockable =*/ false
-		, /*const bool InAllowSearch =*/ false
-		, /*const ENameAreaSettings InNameAreaSettings =*/ FDetailsViewArgs::ENameAreaSettings::HideNameArea
-		, /*const bool InHideSelectionTip =*/ false
-		, /*FNotifyHook* InNotifyHook =*/ this
-		, /*const bool InSearchInitialKeyFocus =*/ false
-		, /*FName InViewIdentifier =*/ NAME_None
-	);
-
-    SettingsDetailsView = propertyModule.CreateStructureDetailView(detailsViewArgs, FStructureDetailsViewArgs(), nullptr);
-    SettingsDetailsView->SetStructureData(MakeShareable(new FStructOnScope(FTriPlanarSettings::StaticStruct(), (uint8*) &Settings)));
 }
 
 void SUVProjectionTriPlanar::TryLoadTriPlanarSettings()
 {
+	//TriPlanarDataPerMaterial.Empty();
+
 	FRPRMeshDataContainerPtr selectedMeshDatas = RPRStaticMeshEditorPtr.Pin()->GetSelectedMeshes();
 	if (selectedMeshDatas.IsValid())
 	{
+		selectedMeshDatas->OnEachMeshData([] (FRPRMeshDataPtr MeshData)
+		{
+			//TriPlanarDataPerMaterial.FindOrAdd()
+			//MeshData->GetStaticMesh()->GetMaterial()
+		});
+
 		FRPRMeshDataPtr meshData;
 		int32 sectionIndex;
 		if (selectedMeshDatas->FindFirstSelectedSection(meshData, sectionIndex))
 		{
 			UMaterialInterface* materialInterface = meshData->GetStaticMesh()->GetMaterial(sectionIndex);
 
-            FTriPlanarSettingsEditorLoader triPlanarSettingsHelper(&Settings);
-            triPlanarSettingsHelper.LoadFromMaterial(materialInterface);
+			FTriPlanarSettingsEditorLoader triPlanarSettingsHelper(&Settings);
+			triPlanarSettingsHelper.LoadFromMaterial(materialInterface);
 		}
 	}
 }

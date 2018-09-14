@@ -87,6 +87,9 @@ namespace RPR
 		Sin				= RPR_MATERIAL_NODE_OP_SIN,
 		Tan				= RPR_MATERIAL_NODE_OP_TAN,
 
+		Dot3			= RPR_MATERIAL_NODE_OP_DOT3,
+		Combine			= RPR_MATERIAL_NODE_OP_COMBINE
+
 		// Not completed. See rpr_material_node_arithmetic_operation in RadeonProRender for others
 	};
 

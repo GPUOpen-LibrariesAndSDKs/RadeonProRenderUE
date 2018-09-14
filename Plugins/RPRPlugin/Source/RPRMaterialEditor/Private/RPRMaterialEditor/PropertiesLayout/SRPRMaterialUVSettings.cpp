@@ -57,16 +57,12 @@ void SRPRMaterialUVSettings::Construct(const FArguments& InArgs)
 			]
 			+SScrollBox::Slot() // Origin
 			[
-				SNew(SBox)
-				.Visibility(this, &SRPRMaterialUVSettings::GetPropertyVisibilityFromUnexpectedUVMode, ETextureUVMode::None)
-				[
-					FPropertyHandlerHelpers::CreateVectorPropertyWidget(GetOriginPropertyHandle())
-				]
+				FPropertyHandlerHelpers::CreateVector2DPropertyWidget(GetOriginPropertyHandle())
 			]
 			+SScrollBox::Slot() // Threshold
 			[
 				SNew(SBox)
-				.Visibility(this, &SRPRMaterialUVSettings::GetPropertyVisibilityFromUnexpectedUVModes, TArray<ETextureUVMode>({ETextureUVMode::Triplanar, ETextureUVMode::None}))
+				.Visibility(this, &SRPRMaterialUVSettings::GetPropertyVisibilityFromExpectedUVMode, ETextureUVMode::Projection)
 				[
 					FPropertyHandlerHelpers::CreateVectorPropertyWidget(GetThresholdPropertyHandle())
 				]
@@ -74,7 +70,7 @@ void SRPRMaterialUVSettings::Construct(const FArguments& InArgs)
 			+SScrollBox::Slot() // X-Axis
 			[
 				SNew(SBox)
-				.Visibility(this, &SRPRMaterialUVSettings::GetPropertyVisibilityFromUnexpectedUVMode, ETextureUVMode::None)
+				.Visibility(this, &SRPRMaterialUVSettings::GetPropertyVisibilityFromUnexpectedUVModes, TArray<ETextureUVMode>({ETextureUVMode::None, ETextureUVMode::Spherical}))
 				[
 					FPropertyHandlerHelpers::CreateVectorPropertyWidget(GetXAxisPropertyHandle())
 				]
@@ -82,7 +78,7 @@ void SRPRMaterialUVSettings::Construct(const FArguments& InArgs)
 			+SScrollBox::Slot() // Z-Axis
 			[
 				SNew(SBox)
-				.Visibility(this, &SRPRMaterialUVSettings::GetPropertyVisibilityFromUnexpectedUVMode, ETextureUVMode::None)
+				.Visibility(this, &SRPRMaterialUVSettings::GetPropertyVisibilityFromUnexpectedUVModes, TArray<ETextureUVMode>({ETextureUVMode::None, ETextureUVMode::Spherical}))
 				[
 					FPropertyHandlerHelpers::CreateVectorPropertyWidget(GetZAxisPropertyHandle())
 				]
