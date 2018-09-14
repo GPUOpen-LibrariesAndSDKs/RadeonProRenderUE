@@ -72,6 +72,9 @@ namespace RPR
 			static FResult	CreateArithmeticNode(FMaterialSystem MaterialSystem, RPR::EMaterialNodeArithmeticOperation Operation, RPR::FMaterialNode& OutMaterialNode);
 			static FResult	CreateArithmeticNode(FMaterialSystem MaterialSystem, RPR::EMaterialNodeArithmeticOperation Operation, const FString& NodeName, RPR::FMaterialNode& OutMaterialNode);
 
+			static FResult	CreateVector2DRotationNode(FMaterialSystem MaterialSystem, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutInputRotationAngleNode, RPR::FMaterialNode& OutInputVector2d, RPR::FMaterialNode& OutInputRotationCenter);
+			static FResult	CreateVector2DRotationNode(FMaterialSystem MaterialSystem, const FString& NodeName, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutInputRotationAngleNode, RPR::FMaterialNode& OutInputVector2d, RPR::FMaterialNode& OutInputRotationCenter);
+
 		};
 
 	};

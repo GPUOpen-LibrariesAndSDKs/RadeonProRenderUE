@@ -113,16 +113,16 @@ void	FRPRRendererWorker::SaveToFile(const FString &filename)
 	{
 		// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
 		m_RenderLock.Lock();
-		const bool saved = RPR::IsResultSuccess(rprFrameBufferSaveToFile(m_RprResolvedFrameBuffer, TCHAR_TO_ANSI(*filename)));
+		RPR::FResult status = rprFrameBufferSaveToFile(m_RprResolvedFrameBuffer, TCHAR_TO_ANSI(*filename));
 		m_RenderLock.Unlock();
 
-		if (saved)
+		if (RPR::IsResultSuccess(status))
 		{
 			UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully saved to '%s'"), *filename);
 		}
 		else
 		{
-			UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't save framebuffer to '%s'"), *filename);
+			UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't save framebuffer to '%s' (error code : %d)"), *filename, status);
 		}
 	}
 }

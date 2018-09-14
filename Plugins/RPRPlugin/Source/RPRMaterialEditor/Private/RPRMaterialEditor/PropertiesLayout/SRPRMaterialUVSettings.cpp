@@ -52,15 +52,7 @@ void SRPRMaterialUVSettings::Construct(const FArguments& InArgs)
 				SNew(SBox)
 				.Visibility(this, &SRPRMaterialUVSettings::GetPropertyVisibilityFromExpectedUVMode, ETextureUVMode::Triplanar)
 				[
-					SNew(SHorizontalBox)
-					+SHorizontalBox::Slot()
-					[
-						GetUVWeightPropertyHandle()->CreatePropertyNameWidget()
-					]
-					+SHorizontalBox::Slot()
-					[
-						GetUVWeightPropertyHandle()->CreatePropertyValueWidget()
-					]
+					CreateSimpleNameValueWidget(GetUVWeightPropertyHandle()).ToSharedRef()
 				]
 			]
 			+SScrollBox::Slot() // Origin
@@ -100,13 +92,27 @@ void SRPRMaterialUVSettings::Construct(const FArguments& InArgs)
 				SNew(SBox)
 				.Visibility(this, &SRPRMaterialUVSettings::GetPropertyVisibilityFromExpectedUVMode, ETextureUVMode::None)
 				[
-					FPropertyHandlerHelpers::CreateVectorPropertyWidget(GetRotationPropertyHandle())
+					CreateSimpleNameValueWidget(GetRotationPropertyHandle()).ToSharedRef()
 				]
 			]
 			+SScrollBox::Slot() // Scale
 			[
 				FPropertyHandlerHelpers::CreateVector2DPropertyWidget(GetScalePropertyHandle())
 			]
+		];
+}
+
+TSharedPtr<SWidget> SRPRMaterialUVSettings::CreateSimpleNameValueWidget(TSharedPtr<IPropertyHandle> PropertyHandle)
+{
+	return
+		SNew(SHorizontalBox)
+		+SHorizontalBox::Slot()
+		[
+			PropertyHandle->CreatePropertyNameWidget()
+		]
+		+SHorizontalBox::Slot()
+		[
+			PropertyHandle->CreatePropertyValueWidget()
 		];
 }
 

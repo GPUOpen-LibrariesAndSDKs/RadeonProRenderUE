@@ -6,7 +6,10 @@
 
 TSharedRef<SWidget> FPropertyHandlerHelpers::CreateVector2DPropertyWidget(TSharedPtr<IPropertyHandle> PropertyHandle, const FText& NameToOverride)
 {
-	return
+	TSharedPtr<SSpinBox<float>> comp1SpinBox;
+	TSharedPtr<SSpinBox<float>> comp2SpinBox;
+
+	TSharedRef<SWidget> widget =
 		SNew(SHorizontalBox)
 		+SHorizontalBox::Slot()
 		.Padding(0, 0, 10, 5.f)
@@ -17,18 +20,44 @@ TSharedRef<SWidget> FPropertyHandlerHelpers::CreateVector2DPropertyWidget(TShare
 		+SHorizontalBox::Slot()
 		.Padding(0, 0, 10, 5.f)
 		[
-			SNew(SSpinBox<float>)
+			SAssignNew(comp1SpinBox, SSpinBox<float>)
 			.Value(TAttribute<float>::Create(TAttribute<float>::FGetter::CreateStatic(&FPropertyHandlerHelpers::GetVector2DComponentValue, PropertyHandle, EAxis::X)))
 			.OnValueChanged(SSpinBox<float>::FOnValueChanged::CreateStatic(&FPropertyHandlerHelpers::OnVector2DComponentValueChanged, PropertyHandle, EAxis::X))
 		]
 		+SHorizontalBox::Slot()
 		.Padding(0, 0, 0, 5.f)
 		[
-			SNew(SSpinBox<float>)
+			SAssignNew(comp2SpinBox, SSpinBox<float>)
 			.Value(TAttribute<float>::Create(TAttribute<float>::FGetter::CreateStatic(&FPropertyHandlerHelpers::GetVector2DComponentValue, PropertyHandle, EAxis::Y)))
 			.OnValueChanged(SSpinBox<float>::FOnValueChanged::CreateStatic(&FPropertyHandlerHelpers::OnVector2DComponentValueChanged, PropertyHandle, EAxis::Y))
 		]
 	;
+
+	if (PropertyHandle->HasMetaData(TEXT("UIMin")))
+	{
+		float minValue = PropertyHandle->GetFLOATMetaData(TEXT("UIMin"));
+		comp1SpinBox->SetMinValue(minValue);
+		comp2SpinBox->SetMinValue(minValue);
+	}
+	else
+	{
+		comp1SpinBox->SetMinValue(TAttribute<TOptional<float>>());
+		comp2SpinBox->SetMinValue(TAttribute<TOptional<float>>());
+	}
+
+	if (PropertyHandle->HasMetaData(TEXT("UIMax")))
+	{
+		float maxValue = PropertyHandle->GetFLOATMetaData(TEXT("UIMax"));
+		comp1SpinBox->SetMaxValue(maxValue);
+		comp2SpinBox->SetMaxValue(maxValue);
+	}
+	else
+	{
+		comp1SpinBox->SetMaxValue(TAttribute<TOptional<float>>());
+		comp2SpinBox->SetMaxValue(TAttribute<TOptional<float>>());
+	}
+
+	return widget;
 }
 
 TSharedRef<SWidget> FPropertyHandlerHelpers::CreateVectorPropertyWidget(TSharedPtr<IPropertyHandle> PropertyHandle, const FText& NameToOverride)

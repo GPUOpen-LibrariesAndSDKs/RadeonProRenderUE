@@ -188,4 +188,16 @@ namespace RPR
 		return status;
 	}
 
+	RPR::FResult FMaterialHelpers::FArithmeticNode::CreateVector2DRotationNode(FMaterialSystem MaterialSystem, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutInputRotationAngleNode, RPR::FMaterialNode& OutInputVector2d, RPR::FMaterialNode& OutInputRotationCenter)
+	{
+		return CreateVector2DRotationNode(MaterialSystem, TEXT("Vector2D Rotation"), OutMaterialNode, OutInputRotationAngleNode, OutInputVector2d, OutInputRotationCenter);
+	}
+
+	RPR::FResult FMaterialHelpers::FArithmeticNode::CreateVector2DRotationNode(FMaterialSystem MaterialSystem, const FString& NodeName, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutInputRotationAngleNode, RPR::FMaterialNode& OutInputVector2d, RPR::FMaterialNode& OutInputRotationCenter)
+	{
+		//RPR::FMaterialNode addNode;
+		//CreateArithmeticNode(MaterialSystem, EMaterialNodeArithmeticOperation::Add, *FString::Printf(TEXT("%s Add"), NodeName), addNode);
+		return RPR_SUCCESS;
+	}
+
 }

@@ -20,6 +20,8 @@ public:
 
 private:
 
+	TSharedPtr<SWidget>	CreateSimpleNameValueWidget(TSharedPtr<IPropertyHandle> PropertyHandle);
+
 	TSharedPtr<IPropertyHandle>	GetUChannelPropertyHandle() const;
 	TSharedPtr<IPropertyHandle>	GetUVWeightPropertyHandle() const;
 	TSharedPtr<IPropertyHandle> GetThresholdPropertyHandle() const;

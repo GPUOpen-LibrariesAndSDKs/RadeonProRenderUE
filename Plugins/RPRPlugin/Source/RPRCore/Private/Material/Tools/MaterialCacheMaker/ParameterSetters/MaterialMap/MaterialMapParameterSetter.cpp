@@ -124,7 +124,10 @@ namespace RPRX
 			RPR::EMaterialNodeType materialNodeType =
 				(uvSettings.UVMode == ETextureUVMode::Triplanar) ? RPR::EMaterialNodeType::UVTriplanar : RPR::EMaterialNodeType::UVProcedural;
 
-			status = RPR::FMaterialHelpers::CreateNode(SetterParameters.MaterialContext.MaterialSystem, materialNodeType, uvProjectNode);
+			FString nodeName = 
+				(uvSettings.UVMode == ETextureUVMode::Triplanar) ? TEXT("UV Triplanar") : TEXT("UV Procedural");
+
+			status = RPR::FMaterialHelpers::CreateNode(SetterParameters.MaterialContext.MaterialSystem, materialNodeType, nodeName, uvProjectNode);
 			if (RPR::IsResultFailed(status))
 			{
 				UE_LOG(LogMaterialMapParameterSetter, Warning, TEXT("Cannot create UV node for parameter %s"), *SetterParameters.Property->GetName());
@@ -173,7 +176,7 @@ namespace RPRX
 		// Create lookup node
 		RPR::FMaterialNode inputLookupNode;
 		RPR::EMaterialNodeLookupValue lookupUVValue = (UVSettings.UVChannel == 0) ? RPR::EMaterialNodeLookupValue::UV : RPR::EMaterialNodeLookupValue::UV1;
-		status = RPR::FMaterialHelpers::CreateNode(materialContext.MaterialSystem, RPR::EMaterialNodeType::InputLookup, inputLookupNode); check(status == 0);
+		status = RPR::FMaterialHelpers::CreateNode(materialContext.MaterialSystem, RPR::EMaterialNodeType::InputLookup, TEXT("Input Lookup UV"), inputLookupNode); check(status == 0);
 
 		status = RPR::FMaterialHelpers::FMaterialNode::SetInputEnum(inputLookupNode, RPR::Constants::MaterialNode::Lookup::Value, lookupUVValue); check(status == 0);
 
@@ -182,7 +185,7 @@ namespace RPRX
 		status = RPR::FMaterialHelpers::FArithmeticNode::CreateArithmeticNode(
 			materialContext.MaterialSystem, 
 			RPR::EMaterialNodeArithmeticOperation::Multiply, 
-			TEXT("Arithmetic for UV - Multiply"), 
+			TEXT("Arithmetic for UV scale - Multiply"), 
 			arithmeticNode); 
 		check(status == 0);
 

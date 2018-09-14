@@ -12,6 +12,7 @@ TMap<ETextureUVMode, uint8> FRPRMaterialMapUV::TextureUVModeToRPRValue({
 
 FRPRMaterialMapUV::FRPRMaterialMapUV()
 	: UVMode(ETextureUVMode::None)
+	, Rotation(0.0f)
 	, UVWeight(0.0f)
 	, Threshold(0.5f, 0.5f, 0.5f)
 	, XAxis(1.0f, 0.0f, 0.0f)
