@@ -36,6 +36,9 @@ public:
 	static bool	BindRouterAndExecute(UMaterialInterface* Material, const TMap<FName, FMaterialParameterBrowseDelegate>& Router, bool bUpdateMaterial = false);
 	static void	BindRouterAndExecute(UMaterialEditorInstanceConstant* MaterialEditorInstance, const TMap<FName, FMaterialParameterBrowseDelegate>& Router);
 
+	static FName GetParameterGroupName(UMaterialInterface* Material, UDEditorParameterValue* ParameterValue);
+	static FName GetParameterGroupName(UMaterialEditorInstanceConstant* MaterialEditorInstance, UDEditorParameterValue* ParameterValue);
+
 	/* The caller become owner of UMaterialEditorInstanceConstant (so must manage garbage collector) */
 	static UMaterialEditorInstanceConstant*	CreateMaterialEditorInstanceConstant(UMaterialInstanceConstant* MaterialInstanceConstant = nullptr);
 };

@@ -146,7 +146,7 @@ namespace RPRX
 				SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, RPR::Constants::MaterialNode::UV::Triplanar::Offset, FVector4(uvSettings.Origin.X, uvSettings.Origin.Y, 0, 1.0f));
 			}
 
-			// Switch the Y and Z to not confuse the user using the Z axis as the up axis in UE4
+			// Kind of adaptation from UE4 convention to RPR convention
 			SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, RPR::Constants::MaterialNode::UV::XAxis, FVector4(-uvSettings.XAxis.X, uvSettings.XAxis.Z, uvSettings.XAxis.Y, 1.0f));
 			SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, RPR::Constants::MaterialNode::UV::ZAxis, FVector4(-uvSettings.ZAxis.X, uvSettings.ZAxis.Z, uvSettings.ZAxis.Y, 1.0f));
 			SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, RPR::Constants::MaterialNode::UV::UVScale, uvSettings.Scale);

@@ -62,6 +62,7 @@ public:
 	void	GetMeshesBounds(FVector& OutCenter, FVector& OutExtents);
 	void	RefreshViewport();
 
+	// Called when the mesh selection changed
 	DECLARE_EVENT(FRPRStaticMeshEditor, FOnSelectionChanged)
 	FOnSelectionChanged&	OnSelectionChanged() { return OnSelectionChangedEvent; }
 
