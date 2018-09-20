@@ -205,6 +205,16 @@ namespace RPR
 				return (status);
 			}
 
+			RPR::FResult GetLocalTransform(const FString& GroupName, FTransform& OutTransform)
+			{
+				return RPR_ERROR_INTERNAL_ERROR;
+			}
+
+			RPR::FResult GetWorldTransform(const FString& GroupName, FTransform& OutTransform)
+			{
+				return RPR_ERROR_INTERNAL_ERROR;
+			}
+
 		} // Group
 
 	} // GLTF

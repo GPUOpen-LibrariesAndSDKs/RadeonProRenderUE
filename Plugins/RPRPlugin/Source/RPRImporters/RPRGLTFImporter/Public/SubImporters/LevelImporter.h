@@ -44,8 +44,8 @@ namespace RPR
 				static UWorld*	CreateNewWorld(const gltf::glTFAssetData& GLTFFileData);
 				static void		SaveWorld(const gltf::glTFAssetData& GLTFFileData, UWorld* World);
 
-				static void SetupMeshes(UWorld* World, RPR::FScene Scene, RPR::GLTF::FStaticMeshResourcesPtr MeshResources);
-				static void SetupMesh(UWorld* World, RPR::FShape Shape, int32 Index, RPR::GLTF::FStaticMeshResourcesPtr MeshResources);
+				static void		SetupMeshes(UWorld* World, RPR::FScene Scene, RPR::GLTF::FStaticMeshResourcesPtr MeshResources, TArray<AActor*>& OutActors);
+				static AActor*	SetupMesh(UWorld* World, RPR::FShape Shape, int32 Index, RPR::GLTF::FStaticMeshResourcesPtr MeshResources);
 
 				static void SetupLights(UWorld* World, RPR::FScene Scene, RPR::GLTF::FImageResourcesPtr ImageResources);
 				static void SetupLight(UWorld* World, RPR::FLight Light, int32 LightIndex, RPR::GLTF::FImageResourcesPtr ImageResources);
@@ -55,6 +55,8 @@ namespace RPR
 
 				static void SetupCameras(UWorld* World, RPR::FScene Scene);
 				static void SetupCamera(UWorld* World, RPR::FCamera Camera, int32 CameraIndex);
+
+				static void SetupHierarchy(const TArray<AActor*> Actors);
 
 				static void UpdateTransformAccordingToImportSettings(AActor* Actor);
 				static void UpdateTransformAccordingToImportSettings(FTransform& InOutTransform);

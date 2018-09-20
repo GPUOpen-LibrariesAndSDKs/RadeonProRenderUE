@@ -17,7 +17,7 @@ namespace RPR
 		RPR::FResult GetInfoNoAlloc(FGetInfoFunction GetInfoFunction, void* Source, U InfoType, T* OutValue)
 		{
 			RPR::FResult status;
-			uint64 size;
+			uint64 size = 0;
 
 			status = GetInfoFunction(Source, (rpr_int) InfoType, 0, nullptr, &size);
 			if (RPR::IsResultFailed(status))
@@ -79,20 +79,10 @@ namespace RPR
 					FPlane(tm.m20, tm.m21, tm.m22, tm.m23),
 					FPlane(tm.m30, tm.m31, tm.m32, tm.m33)
 				);
-				
-				// Scale -1 on X
-				originalMatrix.M[0][0] *= -1;
 
-				// Transpose everything because... because!
-				originalMatrix = originalMatrix.GetTransposed();
-
-				const float metersToCentimeters = 100;
-				originalMatrix.ScaleTranslation(FVector(-1, 1, 1) * metersToCentimeters);
+				originalMatrix.ScaleTranslation(FVector::OneVector * -100);
 				
-				// Make the transform from that and rotate 180 along Z, around the center of the transform
 				OutTransform = FTransform(originalMatrix);
-				FQuat rotation = FQuat(FVector::ForwardVector, FMath::DegreesToRadians(180));
-				OutTransform.SetRotation(rotation * OutTransform.GetRotation());
 
 				return status;
 			}
