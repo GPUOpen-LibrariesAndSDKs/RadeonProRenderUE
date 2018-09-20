@@ -41,10 +41,14 @@ bool RPR::GLTF::Import::FLevelImporter::ImportLevel(
 		return (false);
 	}
 
-	SetupMeshes(OutWorld, Scene, Resources.MeshResources);
+	TArray<AActor*> actors;
+
+	SetupMeshes(OutWorld, Scene, Resources.MeshResources, actors);
 	SetupLights(OutWorld, Scene, Resources.ImageResources);
 	// SetupCameras(OutWorld, Scene);
 	
+	SetupHierarchy(actors);
+
 	SaveWorld(GLTFFileData, OutWorld);
 	return (true);
 }
@@ -69,7 +73,7 @@ void RPR::GLTF::Import::FLevelImporter::SaveWorld(const gltf::glTFAssetData& GLT
 	FAssetRegistryModule::AssetCreated(World);
 }
 
-void RPR::GLTF::Import::FLevelImporter::SetupMeshes(UWorld* World, RPR::FScene Scene, RPR::GLTF::FStaticMeshResourcesPtr MeshResources)
+void RPR::GLTF::Import::FLevelImporter::SetupMeshes(UWorld* World, RPR::FScene Scene, RPR::GLTF::FStaticMeshResourcesPtr MeshResources, TArray<AActor*>& OutActors)
 {
 	TArray<FShape> shapes;
 	RPR::FResult status = RPR::GLTF::Import::GetShapes(shapes);
@@ -81,11 +85,12 @@ void RPR::GLTF::Import::FLevelImporter::SetupMeshes(UWorld* World, RPR::FScene S
 
 	for (int32 i = 0; i < shapes.Num(); ++i)
 	{
-		SetupMesh(World, shapes[i], i, MeshResources);
+		AActor* actor = SetupMesh(World, shapes[i], i, MeshResources);
+		OutActors.Add(actor);
 	}
 }
 
-void RPR::GLTF::Import::FLevelImporter::SetupMesh(UWorld* World, RPR::FShape Shape, int32 Index, RPR::GLTF::FStaticMeshResourcesPtr MeshResources)
+AActor* RPR::GLTF::Import::FLevelImporter::SetupMesh(UWorld* World, RPR::FShape Shape, int32 Index, RPR::GLTF::FStaticMeshResourcesPtr MeshResources)
 {
 	FString actorMeshName;
 	RPR::FResult status = RPR::Shape::GetName(Shape, actorMeshName);
@@ -104,6 +109,8 @@ void RPR::GLTF::Import::FLevelImporter::SetupMesh(UWorld* World, RPR::FShape Sha
 
 	RPR::GLTF::Import::FRPRShapeDataToMeshComponent::Setup(Shape, staticMeshComponent, MeshResources, meshActor);
 	UpdateTransformAccordingToImportSettings(meshActor);
+
+	return meshActor;
 }
 
 void RPR::GLTF::Import::FLevelImporter::SetupLights(UWorld* World, RPR::FScene Scene, RPR::GLTF::FImageResourcesPtr ImageResources)
@@ -239,6 +246,30 @@ void RPR::GLTF::Import::FLevelImporter::SetupCamera(UWorld* World, RPR::FCamera 
 	UpdateTranslationScaleAccordingToImportSettings(cameraActor);
 }
 
+void RPR::GLTF::Import::FLevelImporter::SetupHierarchy(const TArray<AActor*> Actors)
+{
+	TArray<FShape> shapes;
+	RPR::FResult status = RPR::GLTF::Import::GetShapes(shapes);
+	if (RPR::IsResultFailed(status))
+	{
+		UE_LOG(LogLevelImporter, Error, TEXT("Cannot get shapes in the scene"));
+		return;
+	}
+
+	for (int32 shapeIndex = 0; shapeIndex < shapes.Num(); ++shapeIndex)
+	{
+		FString groupName;
+		status = RPR::GLTF::Group::GetParentGroupFromShape(shapes[shapeIndex], groupName);
+		if (RPR::IsResultFailed(status))
+		{
+			UE_LOG(LogLevelImporter, Error, TEXT("Cannot get parent group from shape"));
+			continue;
+		}
+
+		UE_LOG(LogLevelImporter, Log, TEXT("%s <- %s"), *groupName, *RPR::Shape::GetName(shapes[shapeIndex]));
+	}
+}
+
 void RPR::GLTF::Import::FLevelImporter::UpdateTransformAccordingToImportSettings(AActor* Actor)
 {
 	FTransform transform = Actor->GetTransform();
@@ -265,6 +296,6 @@ void RPR::GLTF::Import::FLevelImporter::UpdateTranslationScaleAccordingToImportS
 void RPR::GLTF::Import::FLevelImporter::UpdateTranslationScaleAccordingToImportSettings(FTransform& InOutTransform)
 {
 	UGTLFImportSettings* gltfSettings = GetMutableDefault<UGTLFImportSettings>();
-	InOutTransform.ScaleTranslation(gltfSettings->ScaleFactor);
+	//InOutTransform.ScaleTranslation(gltfSettings->ScaleFactor);
 }
 

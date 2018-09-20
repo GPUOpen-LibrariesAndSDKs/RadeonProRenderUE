@@ -62,6 +62,9 @@ namespace RPR
 		{
 			RPR_GLTF_API FStatus GetParentGroupFromShape(RPR::FShape Shape, FString& OutGroupName);
 			RPR_GLTF_API FStatus GetParentGroupFromGroup(const FString& GroupChild, FString& OutGroupName);
+
+			RPR_GLTF_API RPR::FResult	GetLocalTransform(const FString& GroupName, FTransform& OutTransform);
+			RPR_GLTF_API RPR::FResult	GetWorldTransform(const FString& GroupName, FTransform& OutTransform);
 		}
 
 	}
