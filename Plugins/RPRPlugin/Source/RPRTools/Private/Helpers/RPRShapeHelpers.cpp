@@ -52,7 +52,7 @@ namespace RPR
 			return GetInfoNoAlloc(Shape, EShapeInfo::Type, &OutShapeType);
 		}
 
-		RPR::FResult GetLocalTransform(RPR::FShape Shape, FTransform& OutTransform)
+		RPR::FResult GetWorldTransform(RPR::FShape Shape, FTransform& OutTransform)
 		{
 			return RPR::Generic::GetObjectTransform(rprShapeGetInfo, Shape, EShapeInfo::Transform, OutTransform);
 		}
