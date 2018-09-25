@@ -54,6 +54,10 @@ namespace RPR
 		RPRTOOLS_API FResult		CreateInstance(FContext Context, RPR::FShape Shape, RPR::FShape& OutShapeInstance);
 		RPRTOOLS_API FResult		CreateInstance(FContext Context, RPR::FShape Shape, const FString& InstanceName, RPR::FShape& OutShapeInstance);
 
+		RPRTOOLS_API FResult		CreateMesh(FContext Context, const TCHAR* MeshName,
+										const TArray<FVector>& Vertices, const TArray<FVector>& Normals, const TArray<uint32>& Indices, 
+										const TArray<FVector2D>& Texcoords, const TArray<uint32>& NumFaceVertices, FShape& OutMesh);
+
 		namespace Parameters
 		{
 			RPRTOOLS_API FResult	Set1u(FContext Context, const FString& ParamName, uint32 Value);

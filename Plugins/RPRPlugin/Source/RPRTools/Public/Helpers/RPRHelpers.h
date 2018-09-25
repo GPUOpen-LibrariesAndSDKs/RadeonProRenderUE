@@ -52,8 +52,6 @@ namespace RPR
 
 	RPRTOOLS_API FResult		SetObjectName(void* Object, const TCHAR* Name);
 
-	RPRTOOLS_API FResult		SceneDetachShape(FScene Scene, FShape Shape);
-
 	RPRTOOLS_API FResult		SceneClear(RPR::FScene Scene);
 
 	RPRTOOLS_API FResult		RegisterPlugin(const FString& DllPath);

@@ -45,6 +45,8 @@
 #include "Framework/Notifications/NotificationManager.h"
 #include "Helpers/RPRHelpers.h"
 #include "Widgets/Notifications/SNotificationList.h"
+#include "Helpers/RPRSceneStandardizer.h"
+#include "Helpers/RPRSceneHelpers.h"
 
 #define LOCTEXT_NAMESPACE "SRPRViewportTabContent"
 
@@ -169,20 +171,37 @@ FReply SRPRViewportTabContent::OnSceneExport()
 
 	if (bHasSaved && filenames.Num() > 0)
 	{
+		RPR::FResult status;
+
 		const FString& filename = filenames[0];
 		m_LastExportDirectory = FPaths::GetPath(filename);
 
+		RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
+		RPR::FScene standardizedScene;
+		status = RPR::FSceneStandardizer::CreateStandardizedScene(rprContext, m_Plugin->GetCurrentScene()->m_RprScene, standardizedScene);
+		if (RPR::IsResultFailed(status))
+		{
+			UE_LOG(LogSRPRViewportTabContent, Error, TEXT("Cannot convert scene. Export aborted."));
+			return FReply::Handled();
+		}
+
 		TArray<RPR::FScene> scenes;
-		scenes.Add(m_Plugin->GetCurrentScene()->m_RprScene);
+		scenes.Add(standardizedScene);
+
+		int32 numShapes;
+		status = RPR::Scene::GetShapesCount(standardizedScene, numShapes);
+		if (RPR::IsResultSuccess(status))
+		{
+			UE_LOG(LogSRPRViewportTabContent, Log, TEXT("Export %d meshes"), numShapes);
+		}
 
 		auto resources = IRPRCore::GetResources();
-		RPR::FResult status =
-			RPR::GLTF::ExportToGLTF(
-				filename,
-				resources->GetRPRContext(), 
-				resources->GetMaterialSystem(), 
-				resources->GetRPRXSupportContext(),
-				scenes);
+		status = RPR::GLTF::ExportToGLTF(
+			filename,
+			resources->GetRPRContext(), 
+			resources->GetMaterialSystem(), 
+			resources->GetRPRXSupportContext(),
+			scenes);
 
 		FText infoText;
 		const FSlateBrush* infoIcon;

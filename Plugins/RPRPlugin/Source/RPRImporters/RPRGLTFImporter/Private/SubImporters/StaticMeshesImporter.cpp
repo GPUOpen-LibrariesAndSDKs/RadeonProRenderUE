@@ -48,8 +48,6 @@ bool RPR::GLTF::Import::FStaticMeshesImporters::ImportMeshes(
 		return (false);
 	}
 
-	//checkf(GLTFFileData.meshes.size() == shapes.Num(), TEXT("Count of mesh imported by gltf and RPR is different"));
-
 	UGTLFImportSettings* gltfImportSettings = GetMutableDefault<UGTLFImportSettings>();
 	RPR::FMeshImporter::FSettings importSettings;
 	{

@@ -108,7 +108,7 @@ AActor* RPR::GLTF::Import::FLevelImporter::SetupMesh(UWorld* World, RPR::FShape 
 	UE_LOG(LogLevelImporter, Log, TEXT("--- Mesh : %s"), *actorMeshName);
 
 	RPR::GLTF::Import::FRPRShapeDataToMeshComponent::Setup(Shape, staticMeshComponent, MeshResources, meshActor);
-	UpdateTransformAccordingToImportSettings(meshActor);
+	//UpdateTransformAccordingToImportSettings(meshActor);
 
 	return meshActor;
 }
