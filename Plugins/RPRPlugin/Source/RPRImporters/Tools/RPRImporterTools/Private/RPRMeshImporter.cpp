@@ -5,8 +5,11 @@
 #include "Helpers/RPRHelpers.h"
 #include "File/RPRFileHelper.h"
 #include "Misc/ScopedSlowTask.h"
+#include "Async/ParallelFor.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRMeshImporter, Log, All)
+DECLARE_CYCLE_STAT(TEXT("RPR::FMeshImporter ~ Transform Positions"), STAT_TransformPosition, STATGROUP_RPRMeshImporter)
+DECLARE_CYCLE_STAT(TEXT("RPR::FMeshImporter ~ Transform Vectors"), STAT_TransformVectors, STATGROUP_RPRMeshImporter)
 
 #define LOCTEXT_NAMESPACE "RPR::FMeshImporter"
 
@@ -199,18 +202,24 @@ void RPR::FMeshImporter::SaveRawMeshToStaticMesh(FRawMesh& RawMesh, UStaticMesh*
 
 void RPR::FMeshImporter::TransformPosition(TArray<FVector>& Vertices, const FTransform& Transform)
 {
-	for (int32 i = 0; i < Vertices.Num(); ++i)
+	SCOPE_CYCLE_COUNTER(STAT_TransformPosition);
+
+	ParallelFor(Vertices.Num(), [&Vertices, &Transform] (int32 Index)
 	{
-		Vertices[i] = Transform.TransformPosition(Vertices[i]);
-	}
+		Vertices[Index] = Transform.TransformPosition(Vertices[Index]);
+		Swap(Vertices[Index].Y, Vertices[Index].Z);
+	});
 }
 
 void RPR::FMeshImporter::TransformVectors(TArray<FVector>& Vertices, const FTransform& Transform)
 {
-	for (int32 i = 0; i < Vertices.Num(); ++i)
+	SCOPE_CYCLE_COUNTER(STAT_TransformVectors);
+
+	ParallelFor(Vertices.Num(), [&Vertices, &Transform] (int32 Index)
 	{
-		Vertices[i] = Transform.TransformVector(Vertices[i]);
-	}
+		Vertices[Index] = Transform.TransformVector(Vertices[Index]);
+		Swap(Vertices[Index].Y, Vertices[Index].Z);
+	});
 }
 
 void RPR::FMeshImporter::GenerateDefaultUVs(TArray<FVector2D>& UVs, uint32 NumUVs)
@@ -220,7 +229,8 @@ void RPR::FMeshImporter::GenerateDefaultUVs(TArray<FVector2D>& UVs, uint32 NumUV
 
 FTransform RPR::FMeshImporter::CreateTransformFromImportSettings(const FSettings& Settings)
 {
-	return FTransform(Settings.Rotation, FVector::ZeroVector, FVector::OneVector * Settings.ScaleFactor * -1.0f * 50);
+	const int32 centimeterInMeter = 100;
+	return FTransform(Settings.Rotation, FVector::ZeroVector, FVector::OneVector * Settings.ScaleFactor * centimeterInMeter);
 }
 
 #undef LOCTEXT_NAMESPACE

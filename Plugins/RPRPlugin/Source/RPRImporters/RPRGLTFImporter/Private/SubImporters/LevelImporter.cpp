@@ -108,7 +108,7 @@ AActor* RPR::GLTF::Import::FLevelImporter::SetupMesh(UWorld* World, RPR::FShape 
 	UE_LOG(LogLevelImporter, Log, TEXT("--- Mesh : %s"), *actorMeshName);
 
 	RPR::GLTF::Import::FRPRShapeDataToMeshComponent::Setup(Shape, staticMeshComponent, MeshResources, meshActor);
-	//UpdateTransformAccordingToImportSettings(meshActor);
+	UpdateTransformAccordingToImportSettings(meshActor);
 
 	return meshActor;
 }
@@ -295,7 +295,8 @@ void RPR::GLTF::Import::FLevelImporter::UpdateTranslationScaleAccordingToImportS
 
 void RPR::GLTF::Import::FLevelImporter::UpdateTranslationScaleAccordingToImportSettings(FTransform& InOutTransform)
 {
+	const int32 centimeterInMeter = 100;
 	UGTLFImportSettings* gltfSettings = GetMutableDefault<UGTLFImportSettings>();
-	//InOutTransform.ScaleTranslation(gltfSettings->ScaleFactor);
+	InOutTransform.ScaleTranslation(gltfSettings->ScaleFactor * centimeterInMeter);
 }
 

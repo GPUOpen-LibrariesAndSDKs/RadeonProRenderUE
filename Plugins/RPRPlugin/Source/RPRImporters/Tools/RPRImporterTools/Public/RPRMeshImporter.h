@@ -5,6 +5,8 @@
 #include "Containers/Array.h"
 #include "RawMesh.h"
 
+DECLARE_STATS_GROUP(TEXT("RPR::FMeshImporter"), STATGROUP_RPRMeshImporter, STATCAT_Advanced)
+
 namespace RPR
 {
 	class RPRIMPORTERTOOLS_API FMeshImporter
