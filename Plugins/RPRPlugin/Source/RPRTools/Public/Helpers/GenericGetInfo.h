@@ -80,37 +80,20 @@ namespace RPR
 					FPlane(tm.m30, tm.m31, tm.m32, tm.m33)
 				);
 
+				// If perspective column is set, then we need to transpose
 				if (tm.m03 != 0 || tm.m13 != 0 || tm.m23 != 0)
 				{
 					originalMatrix = originalMatrix.GetTransposed();
 				}
 
-				RadeonProRender::float3 nPosition;
-				RadeonProRender::float3 nRotation;
-				RadeonProRender::float3 nScale;
-				RadeonProRender::float3 nShear;
-				RadeonProRender::float4 perspective;
-				RadeonProRender::decompose(tm, nPosition, nScale, nShear, nRotation, perspective);
-
-				//originalMatrix = originalMatrix.GetTransposed();
-
-				//originalMatrix.ScaleTranslation(FVector::OneVector * 10);
 				FVector position = originalMatrix.GetOrigin();
-				/*Swap(position.Y, position.Z);*/
+				Swap(position.Y, position.Z);
 				FVector scale = originalMatrix.GetScaleVector();
+				Swap(scale.Y, scale.Z);
 				FQuat rotation = originalMatrix.Rotator().Quaternion();
-				//rotation = FQuat(-rotation.X, -rotation.Y, -rotation.Z, rotation.W);
+				rotation = FQuat(-rotation.X, -rotation.Z, -rotation.Y, rotation.W);
 
-				//OutTransform = FTransform(rotation, position, scale);
-				OutTransform = FTransform(rotation, originalMatrix.GetOrigin(), scale);
-
-				/*
-				OutTransform = FTransform(
-					FRotator(nRotation.x, nRotation.y, nRotation.z), // Rotation
-					FVector(nPosition.x, nPosition.y, nPosition.z), // Position
-					FVector(nScale.x, nScale.y, nScale.z) // Scale
-				);
-				*/
+				OutTransform = FTransform(rotation, position, scale);
 
 				return status;
 			}
