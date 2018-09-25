@@ -134,7 +134,6 @@ URPRMaterial* RPR::GLTF::Import::FMaterialsImporter::CreateNewMaterial(const FSt
 	FString materialPath = FPaths::Combine(settings->DefaultRootDirectoryForImportedMaterials.Path, MaterialName);
 	materialPath = FRPRFileHelper::FixFilenameIfInvalid<URPRMaterial>(materialPath, TEXT("Material"));
 
-	FRPRFileHelper::DeletePackageIfExists(materialPath);
 	UPackage* package = CreatePackage(nullptr, *materialPath);
 
 	URPRMaterialFactory* rprMaterialFactory = NewObject<URPRMaterialFactory>();

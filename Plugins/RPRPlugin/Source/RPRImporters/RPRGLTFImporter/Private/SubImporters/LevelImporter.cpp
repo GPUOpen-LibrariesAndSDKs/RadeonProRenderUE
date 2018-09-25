@@ -283,7 +283,8 @@ void RPR::GLTF::Import::FLevelImporter::UpdateTransformAccordingToImportSettings
 
 	UGTLFImportSettings* gltfSettings = GetMutableDefault<UGTLFImportSettings>();
 	FQuat rotation = gltfSettings->Rotation.Quaternion();
-	InOutTransform.SetRotation(InOutTransform.GetRotation() * rotation.Inverse());
+	rotation = FQuat(rotation.X, rotation.Z, rotation.Y, rotation.W);
+	InOutTransform.SetRotation(InOutTransform.GetRotation() * rotation);
 }
 
 void RPR::GLTF::Import::FLevelImporter::UpdateTranslationScaleAccordingToImportSettings(AActor* Actor)
