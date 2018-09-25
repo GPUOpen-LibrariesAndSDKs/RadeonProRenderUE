@@ -8,8 +8,8 @@
 #include "Async/ParallelFor.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRMeshImporter, Log, All)
-DECLARE_CYCLE_STAT(TEXT("RPR::FMeshImporter ~ Transform Positions"), STAT_TransformPosition, STATGROUP_RPRMeshImporter)
-DECLARE_CYCLE_STAT(TEXT("RPR::FMeshImporter ~ Transform Vectors"), STAT_TransformVectors, STATGROUP_RPRMeshImporter)
+DECLARE_CYCLE_STAT(TEXT("RPR.FMeshImporter ~ Transform Positions"), STAT_TransformPosition, STATGROUP_RPRMeshImporter)
+DECLARE_CYCLE_STAT(TEXT("RPR.FMeshImporter ~ Transform Vectors"), STAT_TransformVectors, STATGROUP_RPRMeshImporter)
 
 #define LOCTEXT_NAMESPACE "RPR::FMeshImporter"
 
