@@ -47,6 +47,7 @@
 #include "RPRCoreModule.h"
 #include "RPRCoreSystemResources.h"
 #include "Typedefs/RPRXTypedefs.h"
+#include "Helpers/RPRSceneHelpers.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
 
@@ -125,7 +126,7 @@ void	URPRStaticMeshComponent::ClearCache(RPR::FScene scene)
 		for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 		{
 			check(shapes[iShape].m_RprShape != nullptr);
-			RPR::SceneDetachShape(scene, shapes[iShape].m_RprShape);
+			RPR::Scene::DetachShape(scene, shapes[iShape].m_RprShape);
 			RPR::DeleteObject(shapes[iShape].m_RprShape);
 			shapes[iShape].m_RprShape = nullptr;
 		}
@@ -307,8 +308,8 @@ bool	URPRStaticMeshComponent::Build()
 			if (uvCount > 0) // For now force set only one uv set
 				uvs.SetNum(vertexCount * 1/*uvCount*/);
 
-			TArray<int32>	indices;
-			TArray<int32>	numFaceVertices;
+			TArray<uint32>	indices;
+			TArray<uint32>	numFaceVertices;
 
 			indices.SetNum(indexCount);
 			numFaceVertices.SetNum(section.NumTriangles);
@@ -346,17 +347,12 @@ bool	URPRStaticMeshComponent::Build()
 
 			rpr_shape	shape = nullptr;
 
-			if (rprContextCreateMesh(rprContext,
-									 (rpr_float const *)positions.GetData(), positions.Num(), sizeof(float) * 3,
-									 (rpr_float const *)normals.GetData(), normals.Num(), sizeof(float) * 3,
-									 (rpr_float const *)uvs.GetData(), uvs.Num(), sizeof(float) * 2,
-									 (rpr_int const *)indices.GetData(), sizeof(int32),
-									 (rpr_int const *)indices.GetData(), sizeof(int32),
-									 (rpr_int const *)indices.GetData(), sizeof(int32),
-									 (rpr_int const *)numFaceVertices.GetData(), numFaceVertices.Num(),
-									 &shape) != RPR_SUCCESS)
+			if (RPR::Context::CreateMesh(rprContext, *staticMesh->GetName(), 
+				positions, normals, indices, uvs, numFaceVertices, shape) != RPR_SUCCESS)
 			{
-				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh from '%s', section %d. Num indices = %d, Num vertices = %d"), *SrcComponent->GetName(), iSection, indices.Num(), positions.Num());
+				UE_LOG(LogRPRStaticMeshComponent, Warning, 
+					TEXT("Couldn't create RPR static mesh from '%s', section %d. Num indices = %d, Num vertices = %d"), 
+					*SrcComponent->GetName(), iSection, indices.Num(), positions.Num());
 				return false;
 			}
 
@@ -406,7 +402,7 @@ bool	URPRStaticMeshComponent::Build()
 
 			// New shape in the cache ? Add it in the scene + make it invisible
 			if (rprShapeSetVisibility(shape, false) != RPR_SUCCESS ||
-				rprSceneAttachShape(Scene->m_RprScene, shape) != RPR_SUCCESS)
+				RPR::Scene::AttachShape(Scene->m_RprScene, shape) != RPR_SUCCESS)
 			{
 				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't attach Cached RPR shape to the RPR scene"));
 				return false;
@@ -470,7 +466,7 @@ bool	URPRStaticMeshComponent::Build()
 			rprShapeSetVisibility(shape, staticMeshComponent->IsVisible()) != RPR_SUCCESS ||
 			(primaryOnly && rprShapeSetVisibilityPrimaryOnly(shape, primaryOnly) != RPR_SUCCESS) ||
 			rprShapeSetShadow(shape, staticMeshComponent->bCastStaticShadow) != RPR_SUCCESS ||
-			rprSceneAttachShape(Scene->m_RprScene, shape) != RPR_SUCCESS)
+			RPR::Scene::AttachShape(Scene->m_RprScene, shape) != RPR_SUCCESS)
 		{
 			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't attach RPR shape to the RPR scene"));
 			return false;
@@ -772,7 +768,7 @@ void	URPRStaticMeshComponent::ReleaseResources()
 
 			if (m_Shapes[iShape].m_RprShape != nullptr)
 			{
-				RPR::SceneDetachShape(Scene->m_RprScene, m_Shapes[iShape].m_RprShape);
+				RPR::Scene::DetachShape(Scene->m_RprScene, m_Shapes[iShape].m_RprShape);
 				RPR::DeleteObject(m_Shapes[iShape].m_RprShape);
 			}
 		}

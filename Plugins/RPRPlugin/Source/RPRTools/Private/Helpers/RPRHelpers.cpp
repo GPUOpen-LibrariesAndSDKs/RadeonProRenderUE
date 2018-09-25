@@ -101,28 +101,6 @@ namespace RPR
 		return status;
 	}
 
-	FResult SceneDetachShape(FScene Scene, FShape Shape)
-	{
-		FResult status = rprSceneDetachShape(Scene, Shape);
-
-		FString shapeIdentifier = *FString::Printf(TEXT("%p"), Shape);
-		if (Shape != nullptr)
-		{
-			FString shapeName;
-			RPR::FResult getNameStatus = RPR::Shape::GetName(Shape, shapeName);
-			if (RPR::IsResultSuccess(getNameStatus) && !shapeName.IsEmpty())
-			{
-				shapeIdentifier = shapeName;
-			}
-		}
-		
-		UE_LOG(LogRPRTools_Step, Verbose, 
-			TEXT("rprSceneDetachShape(scene=%p, shape=%s) -> %d"), 
-			Scene, *shapeIdentifier, status);
-
-		return status;
-	}
-
 	FResult SceneClear(FScene Scene)
 	{
 		return (rprSceneClear(Scene));

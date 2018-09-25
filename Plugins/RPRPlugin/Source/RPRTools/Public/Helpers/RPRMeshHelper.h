@@ -22,5 +22,7 @@ namespace RPR
 		RPRTOOLS_API RPR::FResult GetUVCount(RPR::FShape Shape, uint32 UVChannel, uint32& OutUVsCount);
 		RPRTOOLS_API RPR::FResult GetNumUV(RPR::FShape Shape, uint32& OutNumUVChannels);
 		RPRTOOLS_API RPR::FResult GetUVsIndexesStride(RPR::FShape Shape, uint32& OutStride);
+
+		RPRTOOLS_API RPR::FResult GetNumFaceVertices(RPR::FShape, TArray<uint32>& OutNumFaceVertices);
 	}
 }

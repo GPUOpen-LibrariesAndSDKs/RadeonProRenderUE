@@ -1,5 +1,6 @@
 #include "Helpers/RPRShapeHelpers.h"
 #include "RadeonProRender.h"
+#include "Helpers/RPRHelpers.h"
 
 DEFINE_LOG_CATEGORY(LogRPRShapeHelpers)
 
@@ -55,6 +56,22 @@ namespace RPR
 		RPR::FResult GetWorldTransform(RPR::FShape Shape, FTransform& OutTransform)
 		{
 			return RPR::Generic::GetObjectTransform(rprShapeGetInfo, Shape, EShapeInfo::Transform, OutTransform);
+		}
+
+		RPR::FResult SetTransform(RPR::FShape Shape, const FTransform& Transform)
+		{
+			RadeonProRender::matrix matrix = BuildMatrixWithScale(Transform);
+
+			RPR::FResult status = rprShapeSetTransform(Shape, RPR_TRUE, &matrix.m00);
+
+			UE_LOG(LogRPRTools_Step, Verbose,
+				TEXT("rprShapeSetTransform(shape=%s, tranpose=true, matrix=%s) -> %d"),
+				*RPR::Shape::GetName(Shape),
+				*Transform.ToString(),
+				status
+			);
+
+			return status;
 		}
 
 		RPR::FResult GetInstanceBaseShape(RPR::FShape Shape, RPR::FShape& OutShape)

@@ -20,6 +20,7 @@ void RPR::GLTF::Import::FRPRShapeDataToMeshComponent::Setup(RPR::FShape Shape,
 	{
 		return;
 	}
+	//transform.ScaleTranslation(FVector::OneVector * -10);
 
 	if (RootActor != nullptr)
 	{
