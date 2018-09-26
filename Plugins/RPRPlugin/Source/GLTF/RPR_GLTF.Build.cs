@@ -27,13 +27,16 @@ public class RPR_GLTF : ModuleRules
     { get { return (Path.Combine(ModuleDirectory, "../../ThirdParty")); }}
 
     public string GLTFDirectory
-    { get { return (Path.Combine(ThirdPartyDirectory, "gltf")); }}
+    { get { return (Path.Combine(ThirdPartyDirectory, "ProRenderSDK/RadeonProRender/")); }}
 
-    public string ThirdPartyBinDirectory
-    { get { return (Path.Combine(GLTFDirectory, "Binaries")); }}
+    public string ThirdPartyDllDirectory
+    { get { return (Path.Combine(GLTFDirectory, "binWin64")); }}
+
+    public string ThirdPartyLibDirectory
+    { get { return (Path.Combine(GLTFDirectory, "libWin64")); } }
 
     public string ThirdPartyIncludesDirectory
-    { get { return (Path.Combine(GLTFDirectory, "Includes")); }}
+    { get { return (Path.Combine(GLTFDirectory, "inc")); }}
 
 
     public RPR_GLTF(ReadOnlyTargetRules Target) : base(Target)
@@ -90,13 +93,13 @@ public class RPR_GLTF : ModuleRules
 
     void DefineIncludesAndDependenciesForThirdParty(ReadOnlyTargetRules Target)
     {
-        string gltfBinDir = Path.Combine(ThirdPartyBinDirectory, Target.Platform.ToString());
-        
-        string gltfStaLib = Path.Combine(gltfBinDir, "ProRenderGLTF" + RPR_SDK.GetStaticLibraryExtensionByPlatform(Target.Platform));
+        const string libraryName = "ProRenderGLTF";
+
+        string gltfStaLib = Path.Combine(ThirdPartyLibDirectory, libraryName + RPR_SDK.GetStaticLibraryExtensionByPlatform(Target.Platform));
         PublicAdditionalLibraries.Add(gltfStaLib);
 
-        string gltfDynLib = "ProRenderGLTF" + RPR_SDK.GetDynamicLibraryExtensionByPlatform(Target.Platform);
-        PublicLibraryPaths.Add(gltfBinDir);
+        string gltfDynLib = libraryName + RPR_SDK.GetDynamicLibraryExtensionByPlatform(Target.Platform);
+        PublicLibraryPaths.Add(ThirdPartyDllDirectory);
         PublicDelayLoadDLLs.Add(gltfDynLib);
 
         PrivateIncludePaths.Add(ThirdPartyIncludesDirectory);
