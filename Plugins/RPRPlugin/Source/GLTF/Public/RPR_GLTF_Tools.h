@@ -47,6 +47,7 @@ namespace RPR
 		RPR_GLTF_API bool		IsResultSuccess(FStatus status);
 		RPR_GLTF_API bool		IsResultFailed(FStatus status);
 		RPR_GLTF_API FString	GetStatusText(FStatus status);
+		RPR_GLTF_API FStatus	ReleaseImportedData();
 
 		namespace Import
 		{

@@ -54,7 +54,10 @@ bool RPR::GLTF::Import::FMaterialsImporter::ImportMaterials(
 
 	for (int32 materialIndex = 0; materialIndex < materials.Num(); ++materialIndex)
 	{
-		FString materialName = FString(GLTFFileData.materials[materialIndex].name.c_str());
+		FString materialName = materialIndex < GLTFFileData.materials.size() ? 
+			FString(GLTFFileData.materials[materialIndex].name.c_str()) : 
+			FString::Printf(TEXT("Material_%d"), materialIndex);
+
 		RPRX::FMaterial nativeRPRMaterial = materials[materialIndex];
 
 		auto& resourceData = MaterialResources->RegisterNewResource(materialIndex);

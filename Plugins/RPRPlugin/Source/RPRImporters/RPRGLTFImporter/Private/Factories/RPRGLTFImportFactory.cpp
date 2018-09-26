@@ -124,6 +124,8 @@ UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InPa
 		return (level);
 	}
 
+	RPR::GLTF::ReleaseImportedData();
+
 	bOutOperationCanceled = true;
 	return (nullptr);
 }

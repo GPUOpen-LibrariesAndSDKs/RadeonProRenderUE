@@ -18,6 +18,7 @@
 ********************************************************************/
 #include "RPR_GLTF_Tools.h"
 #include "Containers/Array.h"
+#include "ProRenderGLTF.h"
 
 namespace RPR
 {
@@ -76,6 +77,13 @@ namespace RPR
 				default:
 				return TEXT("Unknown");
 			}
+		}
+
+		RPR::GLTF::FStatus ReleaseImportedData()
+		{
+			// error C3861: 'rprGLTF_ReleaseImportedData': identifier not found <- Why??????!!! The include is here!
+			//rprGLTF_ReleaseImportedData();
+			return 0;
 		}
 
 		namespace Import
@@ -144,7 +152,7 @@ namespace RPR
 			RPR::GLTF::FStatus GetParentGroupFromShape(RPR::FShape Shape, FString& OutGroupName)
 			{
 				RPR::GLTF::FStatus status;
-				
+			
 				size_t size;
 				status = rprGLTF_GetParentGroupFromShape(Shape, 0, nullptr, &size);
 				if (RPR::GLTF::IsResultFailed(status))
