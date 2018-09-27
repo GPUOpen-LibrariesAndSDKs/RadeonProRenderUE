@@ -248,6 +248,14 @@ void RPR::GLTF::Import::FLevelImporter::SetupCamera(UWorld* World, RPR::FCamera 
 
 void RPR::GLTF::Import::FLevelImporter::SetupHierarchy(const TArray<AActor*> Actors)
 {
+	if (Actors.Num() == 0)
+	{
+		return;
+	}
+
+	UWorld* world = Actors[0]->GetWorld();
+	check(world);
+
 	TArray<FShape> shapes;
 	RPR::FResult status = RPR::GLTF::Import::GetShapes(shapes);
 	if (RPR::IsResultFailed(status))
@@ -255,7 +263,11 @@ void RPR::GLTF::Import::FLevelImporter::SetupHierarchy(const TArray<AActor*> Act
 		UE_LOG(LogLevelImporter, Error, TEXT("Cannot get shapes in the scene"));
 		return;
 	}
+	check(shapes.Num() == Actors.Num());
+	
+	TMap<FString, AActor*> groups;
 
+	// Bind shapes to the groups
 	for (int32 shapeIndex = 0; shapeIndex < shapes.Num(); ++shapeIndex)
 	{
 		FString groupName;
@@ -267,6 +279,77 @@ void RPR::GLTF::Import::FLevelImporter::SetupHierarchy(const TArray<AActor*> Act
 		}
 
 		UE_LOG(LogLevelImporter, Log, TEXT("%s <- %s"), *groupName, *RPR::Shape::GetName(shapes[shapeIndex]));
+
+		if (!groups.Contains(groupName))
+		{
+			CreateGroupActor(world, groupName, groups);
+		}
+
+		AActor* shapeActor = Actors[shapeIndex];
+		shapeActor->GetRootComponent()->SetMobility(EComponentMobility::Movable);
+
+		AActor* groupActor = groups[groupName];
+		const bool bWeldSimulatedBodies = false;
+		shapeActor->AttachToActor(groupActor, FAttachmentTransformRules(EAttachmentRule::KeepWorld, bWeldSimulatedBodies));
+	}
+
+	SetupGroupHierarchy(groups);
+}
+
+AActor* RPR::GLTF::Import::FLevelImporter::CreateGroupActor(UWorld* World, const FString& GroupName, TMap<FString, AActor*>& Groups)
+{
+	FActorSpawnParameters asp;
+	{
+		asp.Name = *GroupName;
+		asp.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	}
+	AActor* groupActor = World->SpawnActor<AActor>(asp);
+	groupActor->SetActorLabel(GroupName, false);
+
+	USceneComponent* RootComponent = NewObject<USceneComponent>(groupActor, USceneComponent::GetDefaultSceneRootVariableName(), RF_Transactional);
+	RootComponent->Mobility = EComponentMobility::Movable;
+	RootComponent->bVisualizeComponent = true;
+
+	groupActor->SetRootComponent(RootComponent);
+	groupActor->AddInstanceComponent(RootComponent);
+
+	RootComponent->RegisterComponent();
+	Groups.Add(GroupName, groupActor);
+
+	// Find parent group and bind to it
+	FString parentGroupName;
+	RPR::FResult status = RPR::GLTF::Group::GetParentGroupFromGroup(GroupName, parentGroupName);
+	if (RPR::IsResultSuccess(status) && !parentGroupName.IsEmpty())
+	{
+		CreateGroupActor(World, parentGroupName, Groups);
+	}
+
+	return groupActor;
+}
+
+void RPR::GLTF::Import::FLevelImporter::SetupGroupHierarchy(TMap<FString, AActor*>& Groups)
+{
+	RPR::FResult status;
+
+	for (TPair<FString, AActor*>& group : Groups)
+	{
+		FString parentGroupName;
+		status = RPR::GLTF::Group::GetParentGroupFromGroup(group.Key, parentGroupName);
+
+		if (RPR::IsResultFailed(status) || parentGroupName.IsEmpty())
+		{
+			continue;
+		}
+
+		AActor** parentGroupActorPtr = Groups.Find(parentGroupName);
+		if (parentGroupActorPtr != nullptr)
+		{
+			AActor* parentGroupActor = *parentGroupActorPtr;
+			AActor* childGroupActor = group.Value;
+
+			const bool bWieldSimulatedBodies = false;
+			childGroupActor->AttachToActor(parentGroupActor, FAttachmentTransformRules(EAttachmentRule::KeepWorld, bWieldSimulatedBodies));
+		}
 	}
 }
 

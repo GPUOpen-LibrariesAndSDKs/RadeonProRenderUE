@@ -33,14 +33,6 @@ namespace RPR
 
 			private:
 
-				template<typename T>
-				T*	SpawnActor(UWorld* World, const FActorSpawnParameters& ASP)
-				{
-					ULevel* level = World->GetCurrentLevel();
-					T* newActor = NewObject<T>(World, ASP.Name, ASP.ObjectFlags);
-					level->Actors.Add(newActor);
-				}
-
 				static UWorld*	CreateNewWorld(const gltf::glTFAssetData& GLTFFileData);
 				static void		SaveWorld(const gltf::glTFAssetData& GLTFFileData, UWorld* World);
 
@@ -57,6 +49,8 @@ namespace RPR
 				static void SetupCamera(UWorld* World, RPR::FCamera Camera, int32 CameraIndex);
 
 				static void SetupHierarchy(const TArray<AActor*> Actors);
+				static AActor*	CreateGroupActor(UWorld* World, const FString& GroupName, TMap<FString, AActor*>& Groups);
+				static void SetupGroupHierarchy(TMap<FString, AActor*>& Groups);
 
 				static void UpdateTransformAccordingToImportSettings(AActor* Actor);
 				static void UpdateTransformAccordingToImportSettings(FTransform& InOutTransform);
