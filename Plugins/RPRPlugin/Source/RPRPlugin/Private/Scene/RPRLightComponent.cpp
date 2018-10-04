@@ -268,7 +268,7 @@ bool	URPRLightComponent::Build()
 	if (m_RprLight == NULL)
 		return false;
 
-	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->GetComponentTransform(), RPR::Constants::SceneTranslationScale);
+	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->GetComponentTransform(), RPR::Constants::SceneTranslationScaleFromUE4ToRPR);
 	if (rprLightSetTransform(m_RprLight, RPR_TRUE, &matrix.m00) != RPR_SUCCESS ||
 		RPR::Scene::AttachLight(Scene->m_RprScene, m_RprLight) != RPR_SUCCESS ||
 		RPR::SetObjectName(m_RprLight, *GetOwner()->GetName()) != RPR_SUCCESS)
@@ -300,7 +300,7 @@ bool	URPRLightComponent::PostBuild()
 
 	if (m_RprLight == NULL)
 		return false;
-	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->GetComponentTransform(), RPR::Constants::SceneTranslationScale);
+	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->GetComponentTransform(), RPR::Constants::SceneTranslationScaleFromUE4ToRPR);
 	if (rprLightSetTransform(m_RprLight, RPR_TRUE, &matrix.m00) != RPR_SUCCESS ||
 		RPR::Scene::AttachLight(Scene->m_RprScene, m_RprLight) != RPR_SUCCESS ||
 		RPR::SetObjectName(m_RprLight, *GetOwner()->GetName()) != RPR_SUCCESS)
@@ -341,7 +341,7 @@ bool	URPRLightComponent::RebuildTransforms()
 		default:
 			return false; // We shouldn't be here, really
 	}
-	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->GetComponentTransform(), RPR::Constants::SceneTranslationScale);
+	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->GetComponentTransform(), RPR::Constants::SceneTranslationScaleFromUE4ToRPR);
 	if (rprLightSetTransform(m_RprLight, RPR_TRUE, &matrix.m00) != RPR_SUCCESS)
 	{
 		SrcComponent->SetComponentToWorld(oldComponentTransform);

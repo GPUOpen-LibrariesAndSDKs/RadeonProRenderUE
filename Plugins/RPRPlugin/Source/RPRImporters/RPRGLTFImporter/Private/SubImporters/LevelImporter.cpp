@@ -122,9 +122,7 @@ AActor* RPR::GLTF::Import::FLevelImporter::SetupMesh(UWorld* World, RPR::FShape 
 
 AActor* RPR::GLTF::Import::FLevelImporter::SetupMesh(UWorld* World, FString ActorMeshName, RPR::FShape Shape, int32 Index, RPR::GLTF::FStaticMeshResourcesPtr MeshResources)
 {
-	FActorSpawnParameters asp;
-	asp.Name = *ActorMeshName;
-	AStaticMeshActor* meshActor = World->SpawnActor<AStaticMeshActor>(asp);
+	AStaticMeshActor* meshActor = World->SpawnActor<AStaticMeshActor>();
 	meshActor->SetActorLabel(ActorMeshName);
 	UStaticMeshComponent* staticMeshComponent = meshActor->FindComponentByClass<UStaticMeshComponent>();
 
@@ -153,9 +151,7 @@ AActor* RPR::GLTF::Import::FLevelImporter::SetupMeshForShapeInstance(UWorld* Wor
 		actorMeshName = FString::Printf(TEXT("shape_instance_%d"), Index);
 	}
 
-	FActorSpawnParameters asp;
-	asp.Name = *actorMeshName;
-	AStaticMeshActor* meshActor = World->SpawnActor<AStaticMeshActor>(asp);
+	AStaticMeshActor* meshActor = World->SpawnActor<AStaticMeshActor>();
 	meshActor->SetActorLabel(actorMeshName);
 	UStaticMeshComponent* staticMeshComponent = meshActor->FindComponentByClass<UStaticMeshComponent>();
 
@@ -189,7 +185,7 @@ void RPR::GLTF::Import::FLevelImporter::SetupLight(UWorld* World, RPR::FLight Li
 	RPR::FResult status = RPR::Light::GetObjectName(Light, actorName);
 	if (RPR::IsResultFailed(status) || actorName.IsEmpty())
 	{
-		actorName = FString::Printf(TEXT("light_%d"), LightIndex);		
+		actorName = FString::Printf(TEXT("light_%d"), LightIndex);
 	}
 
 	ELightType lightType;
