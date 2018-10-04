@@ -5,13 +5,16 @@
 #include "Helpers/RPRHelpers.h"
 #include "Helpers/RPRShapeHelpers.h"
 #include "Helpers/RPRMeshHelper.h"
+#include "Constants/RPRConstants.h"
+#include "ParallelFor.h"
+#include "Helpers/RPRXHelpers.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRSceneStandardizer, Log, All)
 
 namespace RPR
 {
 
-	FResult FSceneStandardizer::CreateStandardizedScene(FContext Context, FScene Scene, RPR::FScene& OutNormalizedScene)
+	FResult FSceneStandardizer::CreateStandardizedScene(FContext Context, RPRX::FContext RPRXContext, FScene Scene, RPR::FScene& OutNormalizedScene)
 	{
 		RPR::FResult status;
 
@@ -22,16 +25,7 @@ namespace RPR
 			return status;
 		}
 
-		TArray<FShape> instances;
-		status = GetAllShapeInstances(Scene, instances);
-		if (RPR::IsResultFailed(status))
-		{
-			UE_LOG(LogRPRSceneStandardizer, Error, TEXT("Cannot get all shape instances"));
-			RPR::DeleteObject(OutNormalizedScene);
-			return status;
-		}
-
-		AddMeshShapesFromInstancesToScene(Context, OutNormalizedScene, instances);
+		StandardizeShapes(Context, RPRXContext, Scene, OutNormalizedScene);
 		CopyAllLights(Context, Scene, OutNormalizedScene);
 		return status;
 	}
@@ -40,6 +34,8 @@ namespace RPR
 	{
 		RPR::FResult status;
 
+		TArray<void*> objects;
+
 		TArray<RPR::FShape> shapes;
 		status = RPR::Scene::GetShapes(Scene, shapes);
 		if (RPR::IsResultFailed(status))
@@ -47,96 +43,66 @@ namespace RPR
 			return status;
 		}
 
-		for (int32 i = 0; i < shapes.Num(); ++i)
+		objects.Append(shapes);
+
+		for (int32 i = 0; i < objects.Num(); ++i)
 		{
-			RPR::DeleteObject(shapes[i]);
+			RPR::DeleteObject(objects[i]);
 		}
 		
 		return status;
 	}
 
-	RPR::FResult FSceneStandardizer::GetAllShapeInstances(RPR::FScene OriginalScene, TArray<FShape>& OutShapeInstances)
+	void FSceneStandardizer::StandardizeShapes(RPR::FContext Context, RPRX::FContext RPRXContext, RPR::FScene SrcScene, RPR::FScene DstScene)
 	{
 		RPR::FResult status;
-		
+		RPR::EShapeType shapeType;
+
 		TArray<FShape> allShapes;
-		status = RPR::Scene::GetShapes(OriginalScene, allShapes);
+		status = RPR::Scene::GetShapes(SrcScene, allShapes);		
 		if (RPR::IsResultFailed(status))
 		{
 			UE_LOG(LogRPRSceneStandardizer, Error, TEXT("Cannot get list of shapes (%d)"), status);
-			return status;
+			return;
 		}
 
-		RPR::EShapeType shapeType;
-		for (int32 shapeIndex = 0; shapeIndex < allShapes.Num(); ++shapeIndex)
+		TMap<FShape, FMeshData> meshDataCache;
+		for (int32 shapeInstancesIdx = 0; shapeInstancesIdx < allShapes.Num(); ++shapeInstancesIdx)
 		{
-			FShape shape = allShapes[shapeIndex];
+			FShape shape = allShapes[shapeInstancesIdx];
+			
 			status = RPR::Shape::GetType(shape, shapeType);
 			if (RPR::IsResultFailed(status))
 			{
-				UE_LOG(LogRPRSceneStandardizer, Warning, TEXT("Cannot get type of shape '%s':%p (%d)"), *RPR::Shape::GetName(shape), shape, status);
+				UE_LOG(LogRPRSceneStandardizer, Warning,
+					TEXT("Cannot get shape type '%s':%p (%d)"),
+					*RPR::Shape::GetName(shape), shape, status);
 				continue;
-			}
-
-			if (shapeType == EShapeType::Instance)
-			{
-				OutShapeInstances.Add(shape);
-			}
-		}
-
-		return status;
-	}
-
-	void FSceneStandardizer::AddMeshShapesFromInstancesToScene(RPR::FContext Context, RPR::FScene DstScene, const TArray<FShape>& ShapeInstances)
-	{
-		RPR::FResult status;
-
-		struct FMeshData
-		{
-			TArray<FVector> Vertices;
-			TArray<FVector> Normals;
-			TArray<uint32> Indices;
-			TArray<FVector2D> TexCoords;
-			TArray<uint32> NumFacesVertices;
-		};
-
-		TMap<FShape, FMeshData> meshDataCache;
-
-		for (int32 shapeInstancesIdx = 0; shapeInstancesIdx < ShapeInstances.Num(); ++shapeInstancesIdx)
-		{
-			FShape shapeInstance = ShapeInstances[shapeInstancesIdx];
-			FShape meshInstance = nullptr;
-
-			status = RPR::Shape::GetInstanceBaseShape(shapeInstance, meshInstance);
-			if (RPR::IsResultFailed(status))
-			{
-				UE_LOG(LogRPRSceneStandardizer, Warning, 
-					TEXT("Cannot get instance base shape from shape '%s':%p (%d)"), 
-					*RPR::Shape::GetName(shapeInstance), shapeInstance, status);
-				continue;
-			}
-
-			FMeshData* meshDataPtr = meshDataCache.Find(meshInstance);
-			if (meshDataPtr == nullptr)
-			{
-				FMeshData& meshData = meshDataCache.Add(meshInstance);
-				status = RPR::Mesh::GetVertices(meshInstance, meshData.Vertices);
-				status |= RPR::Mesh::GetNormals(meshInstance, meshData.Normals);
-				status |= RPR::Mesh::GetVertexIndexes(meshInstance, meshData.Indices);
-				status |= RPR::Mesh::GetUV(meshInstance, 0, meshData.TexCoords);
-				status |= RPR::Mesh::GetNumFaceVertices(meshInstance, meshData.NumFacesVertices);
-				if (RPR::IsResultFailed(status))
-				{
-					UE_LOG(LogRPRSceneStandardizer, Warning, TEXT("Cannot get mesh data"));
-					continue;
-				}
-
-				meshDataPtr = meshDataCache.Find(meshInstance);
 			}
 			
+			if (shapeType != EShapeType::Instance)
+			{
+				// If not an instance, just ignore, because all shapes in the UE4 scenes are shape instances,
+				// all mesh shapes are hidden
+				continue;
+			}
+
 			FShape meshShape;
+			status = RPR::Shape::GetInstanceBaseShape(shape, meshShape);
+			if (RPR::IsResultFailed(status))
+			{
+				UE_LOG(LogRPRSceneStandardizer, Warning,
+					TEXT("Cannot get instance base shape from shape '%s':%p (%d)"),
+					*RPR::Shape::GetName(shape), shape, status);
+				continue;
+			}
+
+			FMeshData* meshDataPtr = FindOrCacheMeshShape(meshDataCache, RPRXContext, meshShape);
+			check(meshDataPtr);
+			
+			// Create the mesh
 			status = RPR::Context::CreateMesh(Context, 
-				*RPR::Shape::GetName(shapeInstance), 
+				*RPR::Shape::GetName(shape), 
 				meshDataPtr->Vertices, 
 				meshDataPtr->Normals,
 				meshDataPtr->Indices,
@@ -147,33 +113,79 @@ namespace RPR
 			if (RPR::IsResultFailed(status))
 			{
 				UE_LOG(LogRPRSceneStandardizer, Warning, TEXT("Cannot create mesh for shape instance %s"),
-					*RPR::Shape::GetName(shapeInstance));
-				continue;
-			}
-			
-			status = RPR::Scene::AttachShape(DstScene, meshShape);
-			if (RPR::IsResultFailed(status))
-			{
-				UE_LOG(LogRPRSceneStandardizer, Warning, TEXT("Cannot attach new shape %s to the scene"),
-					*RPR::Shape::GetName(shapeInstance));
+					*RPR::Shape::GetName(shape));
 
 				RPR::DeleteObject(meshShape);
 				continue;
 			}
 
+			// Add the material
+			if (meshDataPtr->Material != nullptr)
+			{
+				status = RPRX::ShapeAttachMaterial(RPRXContext, meshShape, meshDataPtr->Material);
+				if (RPR::IsResultFailed(status))
+				{
+					UE_LOG(LogRPRSceneStandardizer, Warning, TEXT("Cannot set material %p on shape instance %s"),
+						meshDataPtr->Material,
+						*RPR::Shape::GetName(shape));
+				}
+			}
+			
+			// Attach the shape to the scene
+			status = RPR::Scene::AttachShape(DstScene, meshShape);
+			if (RPR::IsResultFailed(status))
+			{
+				UE_LOG(LogRPRSceneStandardizer, Warning, TEXT("Cannot attach new shape %s to the scene"),
+					*RPR::Shape::GetName(shape));
+
+				RPR::DeleteObject(meshShape);
+				continue;
+			}
+
+			// Copy the transform and re-scale it correctly
 			FTransform transform;
-			status = RPR::Shape::GetWorldTransform(shapeInstance, transform);
+			status = RPR::Shape::GetWorldTransform(shape, transform);
+			transform.ScaleTranslation(RPR::Constants::SceneTranslationScaleFromRPRToUE4 * (1.0f / RPR::Constants::CentimetersInMeter));
 			status |= RPR::Shape::SetTransform(meshShape, transform);
 
 			if (RPR::IsResultFailed(status))
 			{
 				UE_LOG(LogRPRSceneStandardizer, Warning, TEXT("Cannot get/set the shape transform"),
-					*RPR::Shape::GetName(shapeInstance));
+					*RPR::Shape::GetName(shape));
 
 				RPR::DeleteObject(meshShape);
 				continue;
 			}
 		}
+	}
+
+	RPR::FSceneStandardizer::FMeshData* FSceneStandardizer::FindOrCacheMeshShape(TMap<FShape, FMeshData>& MeshDataCache, RPRX::FContext RPRXContext, FShape MeshShape)
+	{
+		FMeshData* meshDataPtr = MeshDataCache.Find(MeshShape);
+		if (meshDataPtr == nullptr)
+		{
+			RPR::FResult status;
+
+			FMeshData& meshData = MeshDataCache.Add(MeshShape);
+			status = RPR::Mesh::GetVertices(MeshShape, meshData.Vertices);
+			status |= RPR::Mesh::GetNormals(MeshShape, meshData.Normals);
+			status |= RPR::Mesh::GetVertexIndexes(MeshShape, meshData.Indices);
+			status |= RPR::Mesh::GetUV(MeshShape, 0, meshData.TexCoords);
+			status |= RPR::Mesh::GetNumFaceVertices(MeshShape, meshData.NumFacesVertices);
+			status |= RPRX::ShapeGetMaterial(RPRXContext, MeshShape, meshData.Material);
+
+			if (RPR::IsResultFailed(status))
+			{
+				UE_LOG(LogRPRSceneStandardizer, Warning, TEXT("Cannot get mesh data"));
+				return nullptr;
+			}
+
+			ScaleVectors(meshData.Vertices, RPR::Constants::SceneTranslationScaleFromRPRToUE4 * (1.0f / RPR::Constants::CentimetersInMeter));
+
+			meshDataPtr = MeshDataCache.Find(MeshShape);
+		}
+
+		return meshDataPtr;
 	}
 
 	void FSceneStandardizer::CopyAllLights(RPR::FContext Context, RPR::FScene SrcScene, RPR::FScene DstScene)
@@ -187,6 +199,14 @@ namespace RPR
 		{
 			RPR::Scene::AttachLight(DstScene, lights[i]);
 		}
+	}
+
+	void FSceneStandardizer::ScaleVectors(TArray<FVector>& Vectors, float Scale)
+	{
+		ParallelFor(Vectors.Num(), [&Vectors, Scale] (int32 index)
+		{
+			Vectors[index] *= Scale;
+		});
 	}
 
 } // namespace RPR

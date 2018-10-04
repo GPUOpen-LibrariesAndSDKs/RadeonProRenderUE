@@ -176,9 +176,12 @@ FReply SRPRViewportTabContent::OnSceneExport()
 		const FString& filename = filenames[0];
 		m_LastExportDirectory = FPaths::GetPath(filename);
 
-		RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
+		auto resources = IRPRCore::GetResources();
+		RPR::FContext rprContext = resources->GetRPRContext();
+		RPRX::FContext rprxContext = resources->GetRPRXSupportContext();
+
 		RPR::FScene standardizedScene;
-		status = RPR::FSceneStandardizer::CreateStandardizedScene(rprContext, m_Plugin->GetCurrentScene()->m_RprScene, standardizedScene);
+		status = RPR::FSceneStandardizer::CreateStandardizedScene(rprContext, rprxContext, m_Plugin->GetCurrentScene()->m_RprScene, standardizedScene);
 		if (RPR::IsResultFailed(status))
 		{
 			UE_LOG(LogSRPRViewportTabContent, Error, TEXT("Cannot convert scene. Export aborted."));
@@ -195,7 +198,6 @@ FReply SRPRViewportTabContent::OnSceneExport()
 			UE_LOG(LogSRPRViewportTabContent, Log, TEXT("Export %d meshes"), numShapes);
 		}
 
-		auto resources = IRPRCore::GetResources();
 		status = RPR::GLTF::ExportToGLTF(
 			filename,
 			resources->GetRPRContext(), 
