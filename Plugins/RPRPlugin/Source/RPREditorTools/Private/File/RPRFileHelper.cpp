@@ -36,3 +36,29 @@ bool FRPRFileHelper::DeletePackageIfExists(const FString& AssetPath)
 	}
 	return (false);
 }
+
+FString FRPRFileHelper::GenerateUniqueFilename(const FString& FilePath)
+{
+	int32 lastBackslashIndex;
+	if (!FilePath.FindLastChar(TEXT('/'), lastBackslashIndex))
+	{
+		return FilePath;
+	}
+
+	FString path = FPaths::GetPath(FilePath);
+	FString filename = FPaths::GetBaseFilename(FilePath);
+	FString finalFilePath;
+
+	finalFilePath = FilePath;
+	UObject* foundObject = LoadObject<UObject>(nullptr, *FilePath);
+
+	int32 index = 2;
+	while (foundObject != nullptr)
+	{
+		finalFilePath = FString::Printf(TEXT("%s_%d"), *FilePath, index);
+		foundObject = LoadObject<UObject>(nullptr, *finalFilePath);
+		++index;
+	}
+
+	return finalFilePath;
+}

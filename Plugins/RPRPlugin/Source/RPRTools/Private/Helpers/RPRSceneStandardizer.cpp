@@ -32,6 +32,26 @@ namespace RPR
 		}
 
 		AddMeshShapesFromInstancesToScene(Context, OutNormalizedScene, instances);
+		CopyAllLights(Context, Scene, OutNormalizedScene);
+		return status;
+	}
+
+	RPR::FResult FSceneStandardizer::ReleaseStandardizedScene(RPR::FScene Scene)
+	{
+		RPR::FResult status;
+
+		TArray<RPR::FShape> shapes;
+		status = RPR::Scene::GetShapes(Scene, shapes);
+		if (RPR::IsResultFailed(status))
+		{
+			return status;
+		}
+
+		for (int32 i = 0; i < shapes.Num(); ++i)
+		{
+			RPR::DeleteObject(shapes[i]);
+		}
+		
 		return status;
 	}
 
@@ -153,6 +173,19 @@ namespace RPR
 				RPR::DeleteObject(meshShape);
 				continue;
 			}
+		}
+	}
+
+	void FSceneStandardizer::CopyAllLights(RPR::FContext Context, RPR::FScene SrcScene, RPR::FScene DstScene)
+	{
+		RPR::FResult status;
+
+		TArray<RPR::FLight> lights;
+		status = RPR::Scene::GetLights(SrcScene, lights);
+
+		for (int32 i = 0; i < lights.Num(); ++i)
+		{
+			RPR::Scene::AttachLight(DstScene, lights[i]);
 		}
 	}
 

@@ -83,9 +83,27 @@ void RPR::GLTF::Import::FLevelImporter::SetupMeshes(UWorld* World, RPR::FScene S
 		return;
 	}
 
+	RPR::EShapeType shapeType;
 	for (int32 i = 0; i < shapes.Num(); ++i)
 	{
-		AActor* actor = SetupMesh(World, shapes[i], i, MeshResources);
+		status = RPR::Shape::GetType(shapes[i], shapeType);
+		if (RPR::IsResultFailed(status))
+		{
+			UE_LOG(LogLevelImporter, Error, TEXT("Cannot get shape type (%s)"), *RPR::Shape::GetName(shapes[i]));
+			continue;
+		}
+
+		AActor* actor = nullptr;
+
+		if (shapeType == EShapeType::Mesh)
+		{
+			actor = SetupMesh(World, shapes[i], i, MeshResources);
+		}
+		else if (shapeType == EShapeType::Instance)
+		{
+			actor = SetupMeshForShapeInstance(World, shapes[i], i, MeshResources);
+		}
+
 		OutActors.Add(actor);
 	}
 }
@@ -99,15 +117,51 @@ AActor* RPR::GLTF::Import::FLevelImporter::SetupMesh(UWorld* World, RPR::FShape 
 		actorMeshName = FString::Printf(TEXT("shape_%d"), Index);
 	}
 
+	return SetupMesh(World, actorMeshName, Shape, Index, MeshResources);
+}
+
+AActor* RPR::GLTF::Import::FLevelImporter::SetupMesh(UWorld* World, FString ActorMeshName, RPR::FShape Shape, int32 Index, RPR::GLTF::FStaticMeshResourcesPtr MeshResources)
+{
+	FActorSpawnParameters asp;
+	asp.Name = *ActorMeshName;
+	AStaticMeshActor* meshActor = World->SpawnActor<AStaticMeshActor>(asp);
+	meshActor->SetActorLabel(ActorMeshName);
+	UStaticMeshComponent* staticMeshComponent = meshActor->FindComponentByClass<UStaticMeshComponent>();
+
+	UE_LOG(LogLevelImporter, Log, TEXT("--- Mesh : %s"), *ActorMeshName);
+
+	RPR::GLTF::Import::FRPRShapeDataToMeshComponent::Setup(Shape, staticMeshComponent, MeshResources, meshActor);
+	UpdateTransformAccordingToImportSettings(meshActor);
+
+	return meshActor;
+}
+
+AActor* RPR::GLTF::Import::FLevelImporter::SetupMeshForShapeInstance(UWorld* World, RPR::FShape ShapeInstance, int32 Index, RPR::GLTF::FStaticMeshResourcesPtr MeshResources)
+{
+	RPR::FShape meshShape;
+	RPR::FResult status = RPR::Shape::GetInstanceBaseShape(ShapeInstance, meshShape);
+	if (RPR::IsResultFailed(status))
+	{
+		UE_LOG(LogLevelImporter, Error, TEXT("Cannot get shape mesh (%s)"), *RPR::Shape::GetName(meshShape));
+		return nullptr;
+	}
+
+	FString actorMeshName;
+	status = RPR::Shape::GetName(ShapeInstance, actorMeshName);
+	if (RPR::IsResultFailed(status) || actorMeshName.IsEmpty())
+	{
+		actorMeshName = FString::Printf(TEXT("shape_instance_%d"), Index);
+	}
+
 	FActorSpawnParameters asp;
 	asp.Name = *actorMeshName;
 	AStaticMeshActor* meshActor = World->SpawnActor<AStaticMeshActor>(asp);
 	meshActor->SetActorLabel(actorMeshName);
 	UStaticMeshComponent* staticMeshComponent = meshActor->FindComponentByClass<UStaticMeshComponent>();
 
-	UE_LOG(LogLevelImporter, Log, TEXT("--- Mesh : %s"), *actorMeshName);
+	UE_LOG(LogLevelImporter, Log, TEXT("--- Mesh Instance : %s"), *actorMeshName);
 
-	RPR::GLTF::Import::FRPRShapeDataToMeshComponent::Setup(Shape, staticMeshComponent, MeshResources, meshActor);
+	RPR::GLTF::Import::FRPRShapeDataToMeshComponent::SetupShapeInstance(ShapeInstance, staticMeshComponent, MeshResources, meshActor);
 	UpdateTransformAccordingToImportSettings(meshActor);
 
 	return meshActor;
@@ -246,7 +300,7 @@ void RPR::GLTF::Import::FLevelImporter::SetupCamera(UWorld* World, RPR::FCamera 
 	UpdateTranslationScaleAccordingToImportSettings(cameraActor);
 }
 
-void RPR::GLTF::Import::FLevelImporter::SetupHierarchy(const TArray<AActor*> Actors)
+void RPR::GLTF::Import::FLevelImporter::SetupHierarchy(const TArray<AActor*>& Actors)
 {
 	if (Actors.Num() == 0)
 	{
@@ -275,6 +329,12 @@ void RPR::GLTF::Import::FLevelImporter::SetupHierarchy(const TArray<AActor*> Act
 		if (RPR::IsResultFailed(status))
 		{
 			UE_LOG(LogLevelImporter, Error, TEXT("Cannot get parent group from shape"));
+			continue;
+		}
+
+		// If no parent group
+		if (groupName.IsEmpty())
+		{
 			continue;
 		}
 

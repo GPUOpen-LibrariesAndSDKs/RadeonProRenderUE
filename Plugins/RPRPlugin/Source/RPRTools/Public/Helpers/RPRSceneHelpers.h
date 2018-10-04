@@ -8,6 +8,9 @@ namespace RPR
 		RPRTOOLS_API RPR::FResult	AttachShape(FScene Scene, FShape Shape);
 		RPRTOOLS_API RPR::FResult	DetachShape(FScene Scene, FShape Shape);
 
+		RPRTOOLS_API RPR::FResult	AttachLight(FScene Scene, FLight Light);
+		RPRTOOLS_API RPR::FResult	DetachLight(FScene Scene, FLight Light);
+
 		RPRTOOLS_API RPR::FResult	GetShapes(RPR::FScene Scene, TArray<FShape>& OutShapes);
 		RPRTOOLS_API RPR::FResult	GetLights(RPR::FScene Scene, TArray<FLight>& OutLights);
 

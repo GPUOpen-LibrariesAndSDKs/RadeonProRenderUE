@@ -28,8 +28,8 @@
 #include "Templates/Function.h"
 #include "Typedefs/RPRXTypedefs.h"
 
-RPRTOOLS_API RadeonProRender::matrix BuildMatrixNoScale(const struct FTransform &transform);
-RPRTOOLS_API RadeonProRender::matrix BuildMatrixWithScale(const struct FTransform &transform);
+RPRTOOLS_API RadeonProRender::matrix BuildMatrixNoScale(const struct FTransform &transform, float translationScale = 1.0f);
+RPRTOOLS_API RadeonProRender::matrix BuildMatrixWithScale(const struct FTransform &transform, float translationScale = 1.0f);
 
 namespace RPR
 {

@@ -44,7 +44,7 @@ namespace RPR
 				// Set required compression settings on the new imported textures
 				static void ConvertTexturesToBeSupported(const TArray<UObject*>& Objects);
 
-				static bool ShouldTextureByConverted(UTexture* Texture);
+				static bool ShouldTextureBeConverted(UTexture* Texture);
 			};
 
 		}

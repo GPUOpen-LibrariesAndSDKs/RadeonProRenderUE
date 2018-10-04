@@ -35,6 +35,8 @@
 #include "RPRCoreErrorHelper.h"
 #include "Engine/Scene.h"
 #include "Helpers/RPRLightHelpers.h"
+#include "Helpers/RPRSceneHelpers.h"
+#include "Constants/RPRConstants.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRLightComponent, Log, All);
 
@@ -266,9 +268,9 @@ bool	URPRLightComponent::Build()
 	if (m_RprLight == NULL)
 		return false;
 
-	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->GetComponentTransform());
+	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->GetComponentTransform(), RPR::Constants::SceneTranslationScale);
 	if (rprLightSetTransform(m_RprLight, RPR_TRUE, &matrix.m00) != RPR_SUCCESS ||
-		rprSceneAttachLight(Scene->m_RprScene, m_RprLight) != RPR_SUCCESS ||
+		RPR::Scene::AttachLight(Scene->m_RprScene, m_RprLight) != RPR_SUCCESS ||
 		RPR::SetObjectName(m_RprLight, *GetOwner()->GetName()) != RPR_SUCCESS)
 	{
 		SrcComponent->SetComponentToWorld(oldComponentTransform);
@@ -298,9 +300,9 @@ bool	URPRLightComponent::PostBuild()
 
 	if (m_RprLight == NULL)
 		return false;
-	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->GetComponentTransform());
+	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->GetComponentTransform(), RPR::Constants::SceneTranslationScale);
 	if (rprLightSetTransform(m_RprLight, RPR_TRUE, &matrix.m00) != RPR_SUCCESS ||
-		rprSceneAttachLight(Scene->m_RprScene, m_RprLight) != RPR_SUCCESS ||
+		RPR::Scene::AttachLight(Scene->m_RprScene, m_RprLight) != RPR_SUCCESS ||
 		RPR::SetObjectName(m_RprLight, *GetOwner()->GetName()) != RPR_SUCCESS)
 	{
 		SrcComponent->SetComponentToWorld(oldComponentTransform);
@@ -339,7 +341,7 @@ bool	URPRLightComponent::RebuildTransforms()
 		default:
 			return false; // We shouldn't be here, really
 	}
-	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->GetComponentTransform());
+	RadeonProRender::matrix	matrix = BuildMatrixNoScale(SrcComponent->GetComponentTransform(), RPR::Constants::SceneTranslationScale);
 	if (rprLightSetTransform(m_RprLight, RPR_TRUE, &matrix.m00) != RPR_SUCCESS)
 	{
 		SrcComponent->SetComponentToWorld(oldComponentTransform);
@@ -507,7 +509,7 @@ void	URPRLightComponent::ReleaseResources()
 	if (m_RprLight != NULL)
 	{
 		check(Scene != NULL);
-		rprSceneDetachLight(Scene->m_RprScene, m_RprLight);
+		RPR::Scene::DetachLight(Scene->m_RprScene, m_RprLight);
 		RPR::DeleteObject(m_RprLight);
 		m_RprLight = NULL;
 	}

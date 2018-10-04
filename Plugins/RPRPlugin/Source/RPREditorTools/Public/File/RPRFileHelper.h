@@ -17,5 +17,6 @@ public:
 	static FString	FixFilenameIfInvalid(const FString& FilePath, UClass* ObjectClass, const FString& BaseFilename);
 
 	static bool		DeletePackageIfExists(const FString& AssetPath);
+	static FString	GenerateUniqueFilename(const FString& FilePath);
 
 };
