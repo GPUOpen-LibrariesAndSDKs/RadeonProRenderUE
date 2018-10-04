@@ -7,6 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "Engine/SkyLight.h"
 #include "Resources/ImageResources.h"
+#include "Components/InstancedStaticMeshComponent.h"
 
 namespace RPR
 {
@@ -38,6 +39,8 @@ namespace RPR
 
 				static void		SetupMeshes(UWorld* World, RPR::FScene Scene, RPR::GLTF::FStaticMeshResourcesPtr MeshResources, TArray<AActor*>& OutActors);
 				static AActor*	SetupMesh(UWorld* World, RPR::FShape Shape, int32 Index, RPR::GLTF::FStaticMeshResourcesPtr MeshResources);
+				static AActor*	SetupMesh(UWorld* World, FString ActorMeshName, RPR::FShape Shape, int32 Index, RPR::GLTF::FStaticMeshResourcesPtr MeshResources);
+				static AActor*	SetupMeshForShapeInstance(UWorld* World, RPR::FShape Shape, int32 Index, RPR::GLTF::FStaticMeshResourcesPtr MeshResources);
 
 				static void SetupLights(UWorld* World, RPR::FScene Scene, RPR::GLTF::FImageResourcesPtr ImageResources);
 				static void SetupLight(UWorld* World, RPR::FLight Light, int32 LightIndex, RPR::GLTF::FImageResourcesPtr ImageResources);
@@ -48,7 +51,7 @@ namespace RPR
 				static void SetupCameras(UWorld* World, RPR::FScene Scene);
 				static void SetupCamera(UWorld* World, RPR::FCamera Camera, int32 CameraIndex);
 
-				static void SetupHierarchy(const TArray<AActor*> Actors);
+				static void SetupHierarchy(const TArray<AActor*>& Actors);
 				static AActor*	CreateGroupActor(UWorld* World, const FString& GroupName, TMap<FString, AActor*>& Groups);
 				static void SetupGroupHierarchy(TMap<FString, AActor*>& Groups);
 

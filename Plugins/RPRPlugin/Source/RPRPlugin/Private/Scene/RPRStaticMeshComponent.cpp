@@ -48,6 +48,7 @@
 #include "RPRCoreSystemResources.h"
 #include "Typedefs/RPRXTypedefs.h"
 #include "Helpers/RPRSceneHelpers.h"
+#include "Constants/RPRConstants.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
 
@@ -457,7 +458,7 @@ bool	URPRStaticMeshComponent::Build()
 	static const FName		kPrimaryOnly("RPR_NoBlock");
 	const bool				primaryOnly = staticMeshComponent->ComponentHasTag(kPrimaryOnly) || actor->ActorHasTag(kPrimaryOnly);
 
-	RadeonProRender::matrix	componentMatrix = BuildMatrixWithScale(SrcComponent->GetComponentToWorld());
+	RadeonProRender::matrix	componentMatrix = BuildMatrixWithScale(SrcComponent->GetComponentToWorld(), RPR::Constants::SceneTranslationScale);
 	const uint32			shapeCount = m_Shapes.Num();
 	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 	{
@@ -636,7 +637,7 @@ bool	URPRStaticMeshComponent::SetInstanceTransforms(UInstancedStaticMeshComponen
 		if (!instancedMeshComponent->GetInstanceTransform(instanceIndex, instanceWTransforms, true))
 			return rprShapeSetTransform(shape, RPR_TRUE, &componentMatrix->m00) == RPR_SUCCESS; // Default
 
-		RadeonProRender::matrix	fullMatrix = BuildMatrixWithScale(instanceWTransforms);
+		RadeonProRender::matrix	fullMatrix = BuildMatrixWithScale(instanceWTransforms, RPR::Constants::SceneTranslationScale);
 		return rprShapeSetTransform(shape, RPR_TRUE, &fullMatrix.m00) == RPR_SUCCESS;
 	}
 	return rprShapeSetTransform(shape, RPR_TRUE, &componentMatrix->m00) == RPR_SUCCESS;
@@ -718,7 +719,7 @@ bool	URPRStaticMeshComponent::RebuildTransforms()
 	check(!IsInGameThread());
 
 	UInstancedStaticMeshComponent	*instancedMeshComponent = Cast<UInstancedStaticMeshComponent>(SrcComponent); // Foliage, instanced meshes, ..
-	RadeonProRender::matrix			componentMatrix = BuildMatrixWithScale(SrcComponent->GetComponentToWorld());
+	RadeonProRender::matrix			componentMatrix = BuildMatrixWithScale(SrcComponent->GetComponentToWorld(), RPR::Constants::SceneTranslationScale);
 
 	const uint32	shapeCount = m_Shapes.Num();
 	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)

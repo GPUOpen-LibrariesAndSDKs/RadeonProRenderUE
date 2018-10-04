@@ -2,6 +2,8 @@
 #include "Helpers/RPRXMaterialHelpers.h"
 #include "Helpers/RPRHelpers.h"
 
+DECLARE_LOG_CATEGORY_CLASS(LogRPRMaterialCoMSetter, Log, All)
+
 bool RPR::GLTF::Importer::FRPRMaterialCoMSetter::SetParameterValue(
 	FSerializationContext& SerializationCtx, 
 	FRPRUberMaterialParameterBase* UberParameter, 
@@ -19,6 +21,9 @@ bool RPR::GLTF::Importer::FRPRMaterialCoMSetter::SetParameterValue(
 			status = RPRX::FMaterialHelpers::GetMaterialParameterValue(SerializationCtx.RPRXContext, SerializationCtx.NativeRPRMaterial, Parameter, value);
 			map->Constant = value;
 			map->Mode = ERPRMaterialMapMode::Constant;
+
+			UE_LOG(LogRPRMaterialCoMSetter, Log, TEXT("%s -> %s"), *UberParameter->GetParameterName(), *value.ToString());
+
 			return (true);
 		}
 		break;

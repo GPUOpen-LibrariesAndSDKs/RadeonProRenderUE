@@ -31,6 +31,28 @@ namespace RPR
 			return status;
 		}
 
+		RPR::FResult AttachLight(FScene Scene, FLight Light)
+		{
+			RPR::FResult status = rprSceneAttachLight(Scene, Light);
+
+			UE_LOG(LogRPRTools_Step, Verbose,
+				TEXT("rprSceneAttachLight(scene=%p, light=%s) -> %d"),
+				Scene, Light, status);
+
+			return status;
+		}
+
+		RPR::FResult DetachLight(FScene Scene, FLight Light)
+		{
+			RPR::FResult status = rprSceneDetachLight(Scene, Light);
+
+			UE_LOG(LogRPRTools_Step, Verbose,
+				TEXT("rprSceneAttachLight(scene=%p, light=%s) -> %d"),
+				Scene, Light, status);
+
+			return status;
+		}
+
 		RPR::FResult GetShapes(RPR::FScene Scene, TArray<FShape>& OutShapes)
 		{
 			return RPR::Generic::GetInfoToArray(rprSceneGetInfo, Scene, RPR::ESceneInfo::ShapeList, OutShapes);

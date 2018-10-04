@@ -105,7 +105,7 @@ void RPR::GLTF::Import::FImagesImporter::ConvertTexturesToBeSupported(const TArr
 		if (Objects[i]->IsA<UTexture>())
 		{
 			UTexture* texture = Cast<UTexture>(Objects[i]);
-			if (ShouldTextureByConverted(texture))
+			if (ShouldTextureBeConverted(texture))
 			{
 				RPR::FTextureImporter::SetDefaultRequiredTextureFormat(texture);
 			}
@@ -115,7 +115,7 @@ void RPR::GLTF::Import::FImagesImporter::ConvertTexturesToBeSupported(const TArr
 	}
 }
 
-bool RPR::GLTF::Import::FImagesImporter::ShouldTextureByConverted(UTexture* Texture)
+bool RPR::GLTF::Import::FImagesImporter::ShouldTextureBeConverted(UTexture* Texture)
 {
 	TEnumAsByte<TextureCompressionSettings>& compressionSettings = Texture->CompressionSettings;
 	
