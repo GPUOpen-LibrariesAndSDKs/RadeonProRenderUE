@@ -219,7 +219,7 @@ FReply SRPRViewportTabContent::OnSceneExport()
 			infoIcon = FCoreStyle::Get().GetBrush(TEXT("MessageLog.Error"));
 		}
 
-		status = RPR::FSceneStandardizer::ReleaseStandardizedScene(standardizedScene);
+		status = RPR::FSceneStandardizer::ReleaseStandardizedScene(rprxContext, standardizedScene);
 		if (RPR::IsResultFailed(status))
 		{
 			UE_LOG(LogSRPRViewportTabContent, Log, TEXT("Could not release the exported scene correctly. May produce memory leaks."));

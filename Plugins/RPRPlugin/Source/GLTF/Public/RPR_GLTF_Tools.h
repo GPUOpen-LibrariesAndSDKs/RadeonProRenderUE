@@ -32,7 +32,7 @@ namespace RPR
 			const FString& Filename,
 			RPR::FContext Context,
 			RPR::FMaterialSystem MaterialSystem,
-			RPRX::FContext RPRContext,
+			RPRX::FContext RPRXContext,
 			RPR::FScene& OutScene
 		);
 
@@ -40,7 +40,7 @@ namespace RPR
 			const FString& Filename,
 			RPR::FContext Context,
 			RPR::FMaterialSystem MaterialSystem,
-			RPRX::FContext RPRContext,
+			RPRX::FContext RPRXContext,
 			const TArray<RPR::FScene>& Scenes
 		);
 
