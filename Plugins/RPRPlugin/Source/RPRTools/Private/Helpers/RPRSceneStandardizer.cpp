@@ -8,6 +8,7 @@
 #include "Constants/RPRConstants.h"
 #include "ParallelFor.h"
 #include "Helpers/RPRXHelpers.h"
+#include "Helpers/RPRLightHelpers.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRSceneStandardizer, Log, All)
 
@@ -30,7 +31,7 @@ namespace RPR
 		return status;
 	}
 
-	RPR::FResult FSceneStandardizer::ReleaseStandardizedScene(RPR::FScene Scene)
+	RPR::FResult FSceneStandardizer::ReleaseStandardizedScene(RPRX::FContext RPRXContext, RPR::FScene Scene)
 	{
 		RPR::FResult status;
 
@@ -43,13 +44,37 @@ namespace RPR
 			return status;
 		}
 
+		// Detach RPRX materials from the shapes to delete
+		for (int32 i = 0; i < shapes.Num(); ++i)
+		{
+			RPRX::FMaterial rprxMaterial;
+			status = RPRX::ShapeGetMaterial(RPRXContext, shapes[i], rprxMaterial);
+			if (RPR::IsResultSuccess(status) && rprxMaterial != nullptr)
+			{
+				RPRX::ShapeDetachMaterial(RPRXContext, shapes[i], rprxMaterial);
+			}
+		}
+
 		objects.Append(shapes);
 
 		for (int32 i = 0; i < objects.Num(); ++i)
 		{
 			RPR::DeleteObject(objects[i]);
 		}
+
+		// Restore light positions
+		FTransform transform;
+		TArray<RPR::FLight> lights;
+		status = RPR::Scene::GetLights(Scene, lights);
+		for (int32 i = 0; i < lights.Num(); ++i)
+		{
+			status = RPR::Light::GetWorldTransform(lights[i], transform);
+			transform.ScaleTranslation(RPR::Constants::SceneTranslationScaleFromUE4ToRPR * RPR::Constants::CentimetersInMeter);
+			status |= RPR::Light::SetWorldTransform(lights[i], transform);
+			status |= RPR::Scene::DetachLight(Scene, lights[i]);
+		}
 		
+		status = RPR::DeleteObject(Scene);
 		return status;
 	}
 
@@ -97,7 +122,7 @@ namespace RPR
 				continue;
 			}
 
-			FMeshData* meshDataPtr = FindOrCacheMeshShape(meshDataCache, RPRXContext, meshShape);
+			FMeshData* meshDataPtr = FindOrCacheMeshShape(meshDataCache, RPRXContext, shape, meshShape);
 			check(meshDataPtr);
 			
 			// Create the mesh
@@ -129,6 +154,7 @@ namespace RPR
 						meshDataPtr->Material,
 						*RPR::Shape::GetName(shape));
 				}
+				status = RPRX::MaterialCommit(RPRXContext, meshDataPtr->Material);
 			}
 			
 			// Attach the shape to the scene
@@ -159,7 +185,10 @@ namespace RPR
 		}
 	}
 
-	RPR::FSceneStandardizer::FMeshData* FSceneStandardizer::FindOrCacheMeshShape(TMap<FShape, FMeshData>& MeshDataCache, RPRX::FContext RPRXContext, FShape MeshShape)
+	RPR::FSceneStandardizer::FMeshData* FSceneStandardizer::FindOrCacheMeshShape(
+		TMap<FShape, FMeshData>& MeshDataCache, 
+		RPRX::FContext RPRXContext, 
+		FShape ShapeInstance, FShape MeshShape)
 	{
 		FMeshData* meshDataPtr = MeshDataCache.Find(MeshShape);
 		if (meshDataPtr == nullptr)
@@ -172,7 +201,7 @@ namespace RPR
 			status |= RPR::Mesh::GetVertexIndexes(MeshShape, meshData.Indices);
 			status |= RPR::Mesh::GetUV(MeshShape, 0, meshData.TexCoords);
 			status |= RPR::Mesh::GetNumFaceVertices(MeshShape, meshData.NumFacesVertices);
-			status |= RPRX::ShapeGetMaterial(RPRXContext, MeshShape, meshData.Material);
+			status |= RPRX::ShapeGetMaterial(RPRXContext, ShapeInstance, meshData.Material);
 
 			if (RPR::IsResultFailed(status))
 			{
@@ -195,9 +224,14 @@ namespace RPR
 		TArray<RPR::FLight> lights;
 		status = RPR::Scene::GetLights(SrcScene, lights);
 
+		FTransform transform;
 		for (int32 i = 0; i < lights.Num(); ++i)
 		{
-			RPR::Scene::AttachLight(DstScene, lights[i]);
+			status = RPR::Light::GetWorldTransform(lights[i], transform);
+			transform.ScaleTranslation(RPR::Constants::SceneTranslationScaleFromRPRToUE4 * (1.0f / RPR::Constants::CentimetersInMeter));
+			status |= RPR::Light::SetWorldTransform(lights[i], transform);
+			status |= RPR::Scene::AttachLight(DstScene, lights[i]);
+			check(RPR::IsResultSuccess(status));
 		}
 	}
 

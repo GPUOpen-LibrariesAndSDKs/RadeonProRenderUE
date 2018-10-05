@@ -21,14 +21,14 @@ void RPR::GLTF::Import::FRPRLightDataToLightComponent::Setup(
 	RPR::FResult status;
 
 	FString objectName;
-	status = RPR::Light::GetObjectName(Light, objectName);
+	status = RPR::Light::GetName(Light, objectName);
 	if (RPR::IsResultSuccess(status) && !objectName.IsEmpty())
 	{
 		LightComponent->Rename(*objectName, nullptr, REN_NonTransactional | REN_DoNotDirty);
 	}
 
 	FTransform transform;
-	status = RPR::Light::GetTransform(Light, transform);
+	status = RPR::Light::GetWorldTransform(Light, transform);
 	if (RPR::IsResultSuccess(status))
 	{
 		if (RootActor)

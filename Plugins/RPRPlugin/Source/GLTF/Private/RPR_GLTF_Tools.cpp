@@ -29,20 +29,20 @@ namespace RPR
 			const FString& Filename,
 			RPR::FContext Context,
 			RPR::FMaterialSystem MaterialSystem,
-			RPRX::FContext RPRContext,
+			RPRX::FContext RPRXContext,
 			RPR::FScene& OutScene)
 		{
-			return rprImportFromGLTF(TCHAR_TO_ANSI(*Filename), Context, MaterialSystem, RPRContext, &OutScene);
+			return rprImportFromGLTF(TCHAR_TO_ANSI(*Filename), Context, MaterialSystem, RPRXContext, &OutScene);
 		}
 
 		FStatus ExportToGLTF(
 			const FString& Filename,
 			RPR::FContext Context,
 			RPR::FMaterialSystem MaterialSystem,
-			RPRX::FContext RPRContext,
+			RPRX::FContext RPRXContext,
 			const TArray<RPR::FScene>& Scenes)
 		{
-			return rprExportToGLTF(TCHAR_TO_ANSI(*Filename), Context, MaterialSystem, RPRContext, Scenes.GetData(), Scenes.Num());
+			return rprExportToGLTF(TCHAR_TO_ANSI(*Filename), Context, MaterialSystem, RPRXContext, Scenes.GetData(), Scenes.Num());
 		}
 
 		bool IsResultSuccess(FStatus status)

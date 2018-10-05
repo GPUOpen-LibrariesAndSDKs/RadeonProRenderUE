@@ -8,8 +8,10 @@ namespace RPR
 	namespace Light
 	{
 
-		RPRTOOLS_API RPR::FResult	GetObjectName(RPR::FLight Light, FString& OutObjectName);
-		RPRTOOLS_API RPR::FResult	GetTransform(RPR::FLight Light, FTransform& OutTransform);
+		RPRTOOLS_API RPR::FResult	GetName(RPR::FLight Light, FString& OutObjectName);
+		RPRTOOLS_API FString		GetName(RPR::FLight Light);
+		RPRTOOLS_API RPR::FResult	GetWorldTransform(RPR::FLight Light, FTransform& OutTransform);
+		RPRTOOLS_API RPR::FResult	SetWorldTransform(RPR::FLight Light, FTransform Transform);
 		RPRTOOLS_API RPR::FResult	GetLightType(RPR::FLight Light, RPR::ELightType& OutLightType);
 		RPRTOOLS_API bool			IsLightPowerSupportedByLightType(RPR::ELightType LightType);
 		RPRTOOLS_API RPR::FResult	GetLightPower(RPR::FLight Light, RPR::ELightType LightType, FLinearColor& OutColor);

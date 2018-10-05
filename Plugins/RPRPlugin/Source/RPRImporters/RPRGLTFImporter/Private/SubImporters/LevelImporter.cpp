@@ -182,7 +182,7 @@ void RPR::GLTF::Import::FLevelImporter::SetupLights(UWorld* World, RPR::FScene S
 void RPR::GLTF::Import::FLevelImporter::SetupLight(UWorld* World, RPR::FLight Light, int32 LightIndex, RPR::GLTF::FImageResourcesPtr ImageResources)
 {
 	FString actorName;
-	RPR::FResult status = RPR::Light::GetObjectName(Light, actorName);
+	RPR::FResult status = RPR::Light::GetName(Light, actorName);
 	if (RPR::IsResultFailed(status) || actorName.IsEmpty())
 	{
 		actorName = FString::Printf(TEXT("light_%d"), LightIndex);
