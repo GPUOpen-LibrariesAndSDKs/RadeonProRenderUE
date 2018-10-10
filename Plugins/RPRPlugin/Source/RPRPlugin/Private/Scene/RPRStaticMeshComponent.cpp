@@ -323,7 +323,7 @@ bool	URPRStaticMeshComponent::Build()
 
 				indices[iIndex] = remappedIndex;
 
-				FVector	pos = srcPositions.VertexPosition(index) * 0.1f;
+				FVector	pos = srcPositions.VertexPosition(index) * RPR::Constants::SceneTranslationScaleFromUE4ToRPR;
 				FVector	normal = srcVertices.VertexTangentZ(index);
 				positions[remappedIndex] = FVector(pos.X, pos.Z, pos.Y);
 				if (FLIP_SURFACE_NORMALS)
@@ -428,11 +428,11 @@ bool	URPRStaticMeshComponent::Build()
 				// Set shape name
 				if (iInstance + 1 < instanceCount)
 				{
-					RPR::SetObjectName(newInstance.m_RprShape, *FString::Printf(TEXT("%s_%s_%d"), *SrcComponent->GetOwner()->GetName(), *SrcComponent->GetName(), iInstance));
+					RPR::SetObjectName(newInstance.m_RprShape, *FString::Printf(TEXT("%s_%d"), *SrcComponent->GetOwner()->GetName(), iInstance));
 				}
 				else
 				{
-					RPR::SetObjectName(newInstance.m_RprShape, *FString::Printf(TEXT("%s_%s"), *SrcComponent->GetOwner()->GetName(), *SrcComponent->GetName()));
+					RPR::SetObjectName(newInstance.m_RprShape, *FString::Printf(TEXT("%s"), *SrcComponent->GetOwner()->GetName()));
 				}
 			}
 		}

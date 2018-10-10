@@ -31,7 +31,7 @@ UStaticMesh* RPR::FMeshImporter::ImportMesh(const FString& MeshName, RPR::FShape
 	if (!ImportTriangles(MeshName, Shape, rawMesh.WedgeIndices)) return nullptr;
 
 	slowTask.EnterProgressFrame(1.0f, LOCTEXT("ImportNormals", "Import normals..."));
-	if (!ImportNormals(MeshName, Shape, Settings, rawMesh.WedgeIndices, rawMesh.WedgeTangentZ)) return nullptr;
+	if (!ImportNormals(MeshName, Shape, Settings, rawMesh.VertexPositions.Num(), rawMesh.WedgeIndices, rawMesh.WedgeTangentZ)) return nullptr;
 
 	slowTask.EnterProgressFrame(1.0f, LOCTEXT("ImportUV", "Import UV..."));
 	if (!ImportUVs(MeshName, Shape, rawMesh.WedgeTexCoords, rawMesh.WedgeIndices.Num())) return nullptr;
@@ -78,7 +78,7 @@ bool RPR::FMeshImporter::ImportVertices(const FString& MeshName, RPR::FShape Sha
 	return (true);
 }
 
-bool RPR::FMeshImporter::ImportNormals(const FString& MeshName, RPR::FShape Shape, const FSettings& Settings, const TArray<uint32>& Indices, TArray<FVector>& OutNormals)
+bool RPR::FMeshImporter::ImportNormals(const FString& MeshName, RPR::FShape Shape, const FSettings& Settings, const int32 NumVertices, const TArray<uint32>& Indices, TArray<FVector>& OutNormals)
 {
 	RPR::FResult status;
 	uint32 count;
@@ -89,31 +89,42 @@ bool RPR::FMeshImporter::ImportNormals(const FString& MeshName, RPR::FShape Shap
 		UE_LOG(LogRPRMeshImporter, Error, TEXT("Cannot get normals count for mesh '%s'"), *MeshName);
 		return (false);
 	}
-	if (count > 0)
+
+	if (count == 0)
 	{
-		status = RPR::Mesh::GetNormals(Shape, OutNormals);
-		if (RPR::IsResultFailed(status))
-		{
-			UE_LOG(LogRPRMeshImporter, Error, TEXT("Cannot get normals for mesh '%s'"), *MeshName);
-			return (false);
-		}
+		return (true);
+	}
 
-		FTransform transform = CreateTransformFromImportSettings(Settings);
-		TransformVectors(OutNormals, transform);
+	TArray<FVector> normals;
+	status = RPR::Mesh::GetNormals(Shape, normals);
+	if (RPR::IsResultFailed(status))
+	{
+		UE_LOG(LogRPRMeshImporter, Error, TEXT("Cannot get normals for mesh '%s'"), *MeshName);
+		return (false);
+	}
 
-		// If there is not the same number, 
-		// it means that the organization is different
-		if (OutNormals.Num() != Indices.Num())
+	FTransform transform = CreateTransformFromImportSettings(Settings);
+	TransformVectors(normals, transform);
+
+	OutNormals.Empty(NumVertices);
+	OutNormals.AddUninitialized(NumVertices);
+
+	// If there is not the same number, 
+	// it means that the organization is different
+	if (normals.Num() != Indices.Num())
+	{
+		OutNormals.Empty(Indices.Num());
+		OutNormals.AddUninitialized(Indices.Num());
+
+		ParallelFor(Indices.Num(), [&Indices, &OutNormals, &normals] (int32 index)
 		{
-			TArray<FVector> normals = MoveTemp(OutNormals);
-			OutNormals.Empty(Indices.Num());
-			OutNormals.AddUninitialized(Indices.Num());
-			for (int32 index = 0; index < Indices.Num(); ++index)
-			{
-				uint32 vertexId = Indices[index];
-				OutNormals[index] = normals[vertexId];
-			}
-		}
+			const uint32 vertexId = Indices[index];
+			OutNormals[index] = normals[vertexId];
+		});
+	}
+	else
+	{
+		OutNormals = MoveTemp(normals);
 	}
 
 	return (true);
