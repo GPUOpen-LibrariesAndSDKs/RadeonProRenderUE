@@ -81,9 +81,7 @@ namespace RPR
 
 		RPR::GLTF::FStatus ReleaseImportedData()
 		{
-			// error C3861: 'rprGLTF_ReleaseImportedData': identifier not found <- Why??????!!! The include is here!
-			//rprGLTF_ReleaseImportedData();
-			return 0;
+			return rprGLTF_ReleaseImportedData();
 		}
 
 		namespace Import
