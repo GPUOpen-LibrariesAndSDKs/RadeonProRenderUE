@@ -36,9 +36,9 @@ static const float RPR_PI = 3.14159265f;
 
 // Probably not the ideal way of converting UE4 matrices to RPR
 // If you find a better way, have fun :)
-RadeonProRender::matrix	BuildMatrixNoScale(const FTransform &transform)
+RadeonProRender::matrix	BuildMatrixNoScale(const FTransform &transform, float translationScale)
 {
-	const FVector	position = transform.GetLocation() * 0.1f;
+	const FVector	position = transform.GetLocation() * translationScale;
 	const FQuat		&quat = transform.GetRotation();
 
 	RadeonProRender::float3		rprPos(position.X, position.Z, position.Y);
@@ -52,9 +52,9 @@ RadeonProRender::matrix	BuildMatrixNoScale(const FTransform &transform)
 	return matrix;
 }
 
-RadeonProRender::matrix	BuildMatrixWithScale(const FTransform &transform)
+RadeonProRender::matrix	BuildMatrixWithScale(const FTransform &transform, float translationScale)
 {
-	const FVector	&position = transform.GetLocation() * 0.1f;
+	const FVector	&position = transform.GetLocation() * translationScale;
 	const FVector	&scale = transform.GetScale3D();
 	const FQuat		&quat = transform.GetRotation();
 
@@ -98,28 +98,6 @@ namespace RPR
 	{
 		FResult status = rprObjectSetName(Object, TCHAR_TO_ANSI(Name));
 		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprSetObjectName(object=%p, name=%s) -> %d"), Object, Name, status);
-		return status;
-	}
-
-	FResult SceneDetachShape(FScene Scene, FShape Shape)
-	{
-		FResult status = rprSceneDetachShape(Scene, Shape);
-
-		FString shapeIdentifier = *FString::Printf(TEXT("%p"), Shape);
-		if (Shape != nullptr)
-		{
-			FString shapeName;
-			RPR::FResult getNameStatus = RPR::Shape::GetName(Shape, shapeName);
-			if (RPR::IsResultSuccess(getNameStatus) && !shapeName.IsEmpty())
-			{
-				shapeIdentifier = shapeName;
-			}
-		}
-		
-		UE_LOG(LogRPRTools_Step, Verbose, 
-			TEXT("rprSceneDetachShape(scene=%p, shape=%s) -> %d"), 
-			Scene, *shapeIdentifier, status);
-
 		return status;
 	}
 

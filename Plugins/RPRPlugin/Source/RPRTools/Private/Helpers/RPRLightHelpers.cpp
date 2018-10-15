@@ -21,14 +21,45 @@ namespace RPR
 
 		//////////////////////////////////////////////////////////////////////////
 
-		RPR::FResult GetObjectName(RPR::FLight Light, FString& OutObjectName)
+		RPR::FResult GetName(RPR::FLight Light, FString& OutObjectName)
 		{
 			return RPR::Generic::GetObjectName(rprLightGetInfo, Light, OutObjectName);
 		}
 
-		RPR::FResult GetTransform(RPR::FLight Light, FTransform& OutTransform)
+		FString		GetName(RPR::FLight Light)
+		{
+			FString name;
+			RPR::FResult status = GetName(Light, name);
+			if (RPR::IsResultFailed(status))
+			{
+				name = TEXT("[Unknown]");
+			}
+			if (name.IsEmpty())
+			{
+				name = TEXT("[Undefined]");
+			}
+			return (name);
+		}
+
+		RPR::FResult GetWorldTransform(RPR::FLight Light, FTransform& OutTransform)
 		{
 			return RPR::Generic::GetObjectTransform(rprLightGetInfo, Light, ELightInfo::Transform, OutTransform);
+		}
+
+		RPR::FResult SetWorldTransform(RPR::FLight Light, FTransform Transform)
+		{
+			RadeonProRender::matrix matrix = BuildMatrixWithScale(Transform);
+
+			RPR::FResult status = rprLightSetTransform(Light, RPR_TRUE, &matrix.m00);
+
+			UE_LOG(LogRPRTools_Step, Verbose,
+				TEXT("rprLightSetTransform(light=%s, tranpose=true, matrix=%s) -> %d"),
+				*RPR::Light::GetName(Light),
+				*Transform.ToString(),
+				status
+			);
+
+			return status;
 		}
 
 		RPR::FResult GetLightType(RPR::FLight Light, RPR::ELightType& OutLightType)

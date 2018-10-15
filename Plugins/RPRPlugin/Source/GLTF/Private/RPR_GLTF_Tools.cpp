@@ -18,6 +18,7 @@
 ********************************************************************/
 #include "RPR_GLTF_Tools.h"
 #include "Containers/Array.h"
+#include "ProRenderGLTF.h"
 
 namespace RPR
 {
@@ -28,20 +29,20 @@ namespace RPR
 			const FString& Filename,
 			RPR::FContext Context,
 			RPR::FMaterialSystem MaterialSystem,
-			RPRX::FContext RPRContext,
+			RPRX::FContext RPRXContext,
 			RPR::FScene& OutScene)
 		{
-			return rprImportFromGLTF(TCHAR_TO_ANSI(*Filename), Context, MaterialSystem, RPRContext, &OutScene);
+			return rprImportFromGLTF(TCHAR_TO_ANSI(*Filename), Context, MaterialSystem, RPRXContext, &OutScene);
 		}
 
 		FStatus ExportToGLTF(
 			const FString& Filename,
 			RPR::FContext Context,
 			RPR::FMaterialSystem MaterialSystem,
-			RPRX::FContext RPRContext,
+			RPRX::FContext RPRXContext,
 			const TArray<RPR::FScene>& Scenes)
 		{
-			return rprExportToGLTF(TCHAR_TO_ANSI(*Filename), Context, MaterialSystem, RPRContext, Scenes.GetData(), Scenes.Num());
+			return rprExportToGLTF(TCHAR_TO_ANSI(*Filename), Context, MaterialSystem, RPRXContext, Scenes.GetData(), Scenes.Num());
 		}
 
 		bool IsResultSuccess(FStatus status)
@@ -76,6 +77,11 @@ namespace RPR
 				default:
 				return TEXT("Unknown");
 			}
+		}
+
+		RPR::GLTF::FStatus ReleaseImportedData()
+		{
+			return rprGLTF_ReleaseImportedData();
 		}
 
 		namespace Import
@@ -144,7 +150,7 @@ namespace RPR
 			RPR::GLTF::FStatus GetParentGroupFromShape(RPR::FShape Shape, FString& OutGroupName)
 			{
 				RPR::GLTF::FStatus status;
-				
+			
 				size_t size;
 				status = rprGLTF_GetParentGroupFromShape(Shape, 0, nullptr, &size);
 				if (RPR::GLTF::IsResultFailed(status))
@@ -203,6 +209,16 @@ namespace RPR
 					OutGroupName.Empty();
 				}
 				return (status);
+			}
+
+			RPR::FResult GetLocalTransform(const FString& GroupName, FTransform& OutTransform)
+			{
+				return RPR_ERROR_INTERNAL_ERROR;
+			}
+
+			RPR::FResult GetWorldTransform(const FString& GroupName, FTransform& OutTransform)
+			{
+				return RPR_ERROR_INTERNAL_ERROR;
 			}
 
 		} // Group

@@ -45,6 +45,8 @@
 #include "Framework/Notifications/NotificationManager.h"
 #include "Helpers/RPRHelpers.h"
 #include "Widgets/Notifications/SNotificationList.h"
+#include "Helpers/RPRSceneStandardizer.h"
+#include "Helpers/RPRSceneHelpers.h"
 
 #define LOCTEXT_NAMESPACE "SRPRViewportTabContent"
 
@@ -169,20 +171,39 @@ FReply SRPRViewportTabContent::OnSceneExport()
 
 	if (bHasSaved && filenames.Num() > 0)
 	{
+		RPR::FResult status;
+
 		const FString& filename = filenames[0];
 		m_LastExportDirectory = FPaths::GetPath(filename);
 
-		TArray<RPR::FScene> scenes;
-		scenes.Add(m_Plugin->GetCurrentScene()->m_RprScene);
-
 		auto resources = IRPRCore::GetResources();
-		RPR::FResult status =
-			RPR::GLTF::ExportToGLTF(
-				filename,
-				resources->GetRPRContext(), 
-				resources->GetMaterialSystem(), 
-				resources->GetRPRXSupportContext(),
-				scenes);
+		RPR::FContext rprContext = resources->GetRPRContext();
+		RPRX::FContext rprxContext = resources->GetRPRXSupportContext();
+
+		RPR::FScene standardizedScene;
+		status = RPR::FSceneStandardizer::CreateStandardizedScene(rprContext, rprxContext, m_Plugin->GetCurrentScene()->m_RprScene, standardizedScene);
+		if (RPR::IsResultFailed(status))
+		{
+			UE_LOG(LogSRPRViewportTabContent, Error, TEXT("Cannot convert scene. Export aborted."));
+			return FReply::Handled();
+		}
+
+		TArray<RPR::FScene> scenes;
+		scenes.Add(standardizedScene);
+
+		int32 numShapes;
+		status = RPR::Scene::GetShapesCount(standardizedScene, numShapes);
+		if (RPR::IsResultSuccess(status))
+		{
+			UE_LOG(LogSRPRViewportTabContent, Log, TEXT("Export %d meshes"), numShapes);
+		}
+
+		status = RPR::GLTF::ExportToGLTF(
+			filename,
+			resources->GetRPRContext(), 
+			resources->GetMaterialSystem(), 
+			resources->GetRPRXSupportContext(),
+			scenes);
 
 		FText infoText;
 		const FSlateBrush* infoIcon;
@@ -196,6 +217,12 @@ FReply SRPRViewportTabContent::OnSceneExport()
 		{
 			infoText = LOCTEXT("ExportFail", "Scene couldn't be exported.");
 			infoIcon = FCoreStyle::Get().GetBrush(TEXT("MessageLog.Error"));
+		}
+
+		status = RPR::FSceneStandardizer::ReleaseStandardizedScene(rprxContext, standardizedScene);
+		if (RPR::IsResultFailed(status))
+		{
+			UE_LOG(LogSRPRViewportTabContent, Log, TEXT("Could not release the exported scene correctly. May produce memory leaks."));
 		}
 
 		FNotificationInfo Info(infoText);

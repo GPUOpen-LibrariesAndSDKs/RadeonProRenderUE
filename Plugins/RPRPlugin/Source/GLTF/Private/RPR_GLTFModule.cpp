@@ -23,7 +23,7 @@
 FString FRPR_GLTFModule::GetDLLsDirectory()
 {
 	checkf(PLATFORM_64BITS & PLATFORM_WINDOWS, TEXT("Only Windows 64bits supported."));
-	return FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/gltf/Binaries/Win64");
+	return FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/ProRenderSDK/RadeonProRender/binWin64");
 }
 
 void FRPR_GLTFModule::StartupModule()

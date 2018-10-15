@@ -5,6 +5,8 @@
 #include "Containers/Array.h"
 #include "RawMesh.h"
 
+DECLARE_STATS_GROUP(TEXT("RPR.FMeshImporter"), STATGROUP_RPRMeshImporter, STATCAT_Advanced)
+
 namespace RPR
 {
 	class RPRIMPORTERTOOLS_API FMeshImporter
@@ -24,9 +26,9 @@ namespace RPR
 	private:
 
 		static bool ImportVertices(const FString& MeshName, RPR::FShape Shape, const FSettings& Settings, TArray<FVector>& OutVertices);
-		static bool ImportNormals(const FString& MeshName, RPR::FShape Shape, const FSettings& Settings, const TArray<uint32>& Indices, TArray<FVector>& OutNormals);
+		static bool ImportNormals(const FString& MeshName, RPR::FShape Shape, const FSettings& Settings, int32 NumVertices, const TArray<uint32>& Indices, TArray<FVector>& OutNormals);
 		static bool ImportTriangles(const FString& MeshName, RPR::FShape Shape, TArray<uint32>& OutTriangles);
-		static bool ImportUVs(const FString& MeshName, RPR::FShape Shape, TArray<FVector2D>* UVs, uint32 ExpectedNumUVs = 0);
+		static bool ImportUVs(const FString& MeshName, RPR::FShape Shape, TArray<FVector2D>* UVs, const TArray<uint32> &Indices);
 
 		static void InitializeUnknownData(FRawMesh& RawMesh);
 		static UStaticMesh* CreateStaticMesh(const FString& MeshName);
