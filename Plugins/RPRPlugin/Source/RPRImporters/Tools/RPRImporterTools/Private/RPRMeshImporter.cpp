@@ -34,7 +34,7 @@ UStaticMesh* RPR::FMeshImporter::ImportMesh(const FString& MeshName, RPR::FShape
 	if (!ImportNormals(MeshName, Shape, Settings, rawMesh.VertexPositions.Num(), rawMesh.WedgeIndices, rawMesh.WedgeTangentZ)) return nullptr;
 
 	slowTask.EnterProgressFrame(1.0f, LOCTEXT("ImportUV", "Import UV..."));
-	if (!ImportUVs(MeshName, Shape, rawMesh.WedgeTexCoords, rawMesh.WedgeIndices.Num())) return nullptr;
+	if (!ImportUVs(MeshName, Shape, rawMesh.WedgeTexCoords, rawMesh.WedgeIndices)) return nullptr;
 
 	InitializeUnknownData(rawMesh);
 
@@ -142,7 +142,7 @@ bool RPR::FMeshImporter::ImportTriangles(const FString& MeshName, RPR::FShape Sh
 	return (true);
 }
 
-bool RPR::FMeshImporter::ImportUVs(const FString& MeshName, RPR::FShape Shape, TArray<FVector2D>* UVs, uint32 ExpectedNumUVs)
+bool RPR::FMeshImporter::ImportUVs(const FString& MeshName, RPR::FShape Shape, TArray<FVector2D>* UVs, const TArray<uint32> &Indices)
 {
 	RPR::FResult status;
 	uint32 count;
@@ -166,16 +166,28 @@ bool RPR::FMeshImporter::ImportUVs(const FString& MeshName, RPR::FShape Shape, T
 
 		if (count > 0)
 		{
-			status = RPR::Mesh::GetUV(Shape, uvIndex, UVs[uvIndex]);
+			TArray<FVector2D>	uvs;
+			status = RPR::Mesh::GetUV(Shape, uvIndex, uvs);
 			if (RPR::IsResultFailed(status))
 			{
 				UE_LOG(LogRPRMeshImporter, Error, TEXT("Cannot get uv for UV channels '%d' from the mesh '%s'"), *MeshName, uvIndex);
 				return (false);
 			}
+			// ProRender returns unique uvs, we need to expand them for UE4 to accept them
+			// See FRawMesh::IsValidOrFixable()
+
+			const uint32	uvCount = Indices.Num();
+			UVs[uvIndex].SetNum(Indices.Num());
+
+			const uint32	*srcIndices = Indices.GetData();
+			const FVector2D	*srcUVs = uvs.GetData();
+			FVector2D		*dstUVs = UVs[uvIndex].GetData();
+			for (int32 iUV = 0; iUV < Indices.Num(); ++iUV)
+				*dstUVs++ = srcUVs[*srcIndices++];
 		}
 		else
 		{
-			GenerateDefaultUVs(UVs[uvIndex], ExpectedNumUVs);
+			GenerateDefaultUVs(UVs[uvIndex], Indices.Num());
 		}
 	}
 
