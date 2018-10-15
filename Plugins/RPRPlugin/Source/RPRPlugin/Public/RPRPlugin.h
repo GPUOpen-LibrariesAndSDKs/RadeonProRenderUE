@@ -31,7 +31,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRPRPlugin, All, All);
 
-class FRPRPluginModule : public IModuleInterface
+class RPRPLUGIN_API FRPRPluginModule : public IModuleInterface
 {
 public:
 	FRPRPluginModule();
@@ -46,6 +46,7 @@ public:
 	bool			RenderPaused() const { return m_RPRPaused; }
 	void			Rebuild();
 	void			Reset();
+	void			CreateNewSceneFromCurrentOpenedWorldIFN();
 
 	const FString	&ActiveCameraName() const { return m_ActiveCameraName; }
 	void			RefreshCameraList();
@@ -94,7 +95,6 @@ private:
 	void					OnWorldInitialized(UWorld *inWorld, const UWorld::InitializationValues IVS);
 	void					OnWorldDestroyed(UWorld *inWorld);
 
-	void					CreateNewSceneFromCurrentOpenedWorldIFN();
 	void					CreateNewScene(UWorld *world);
 	bool					IsWorldSupported(EWorldType::Type WorldType) const;
 
