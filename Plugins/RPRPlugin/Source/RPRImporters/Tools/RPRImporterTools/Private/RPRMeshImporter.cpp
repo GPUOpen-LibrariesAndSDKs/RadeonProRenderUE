@@ -15,6 +15,7 @@ DECLARE_CYCLE_STAT(TEXT("RPR.FMeshImporter ~ Transform Vectors"), STAT_Transform
 
 RPR::FMeshImporter::FSettings::FSettings()
 	: ScaleFactor(100.0f)
+	, SmoothNormals(true)
 {}
 
 UStaticMesh* RPR::FMeshImporter::ImportMesh(const FString& MeshName, RPR::FShape Shape, const FSettings& Settings)
@@ -35,6 +36,17 @@ UStaticMesh* RPR::FMeshImporter::ImportMesh(const FString& MeshName, RPR::FShape
 
 	slowTask.EnterProgressFrame(1.0f, LOCTEXT("ImportUV", "Import UV..."));
 	if (!ImportUVs(MeshName, Shape, rawMesh.WedgeTexCoords, rawMesh.WedgeIndices)) return nullptr;
+
+	rawMesh.FaceSmoothingMasks.Empty();
+	if (Settings.SmoothNormals)
+	{
+		const uint32	faceCount = rawMesh.WedgeIndices.Num() / 3;
+		rawMesh.FaceSmoothingMasks.SetNum(faceCount);
+
+		uint32	*dstSmoothingMasks = rawMesh.FaceSmoothingMasks.GetData();
+		for (uint32 i = 0; i < faceCount; ++i)
+			*dstSmoothingMasks++ = 1;
+	}
 
 	InitializeUnknownData(rawMesh);
 
@@ -187,7 +199,7 @@ bool RPR::FMeshImporter::ImportUVs(const FString& MeshName, RPR::FShape Shape, T
 		}
 		else
 		{
-			GenerateDefaultUVs(UVs[uvIndex], Indices.Num());
+			//GenerateDefaultUVs(UVs[uvIndex], Indices.Num());
 		}
 	}
 
@@ -197,9 +209,10 @@ bool RPR::FMeshImporter::ImportUVs(const FString& MeshName, RPR::FShape Shape, T
 void RPR::FMeshImporter::InitializeUnknownData(FRawMesh& RawMesh)
 {
 	// These data are not available so we create default ones
-	int32 numFaces = RawMesh.WedgeIndices.Num() / 3;
+	const uint32 numFaces = RawMesh.WedgeIndices.Num() / 3;
 
-	RawMesh.FaceSmoothingMasks.AddDefaulted(numFaces);
+	if (RawMesh.FaceSmoothingMasks.Num() == 0)
+		RawMesh.FaceSmoothingMasks.AddDefaulted(numFaces);
 	RawMesh.FaceMaterialIndices.AddDefaulted(numFaces);
 }
 

@@ -53,6 +53,7 @@ bool RPR::GLTF::Import::FStaticMeshesImporters::ImportMeshes(
 	{
 		importSettings.ScaleFactor = gltfImportSettings->ScaleFactor;
 		importSettings.Rotation = gltfImportSettings->Rotation;
+		importSettings.SmoothNormals = gltfImportSettings->SmoothNormals;
 	}
 
 	FScopedSlowTask slowTask(shapes.Num(), LOCTEXT("ImportingMeshes", "Import meshes..."));
