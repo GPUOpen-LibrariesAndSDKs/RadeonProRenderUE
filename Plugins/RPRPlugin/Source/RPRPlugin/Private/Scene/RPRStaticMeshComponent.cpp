@@ -76,15 +76,23 @@ URPRStaticMeshComponent::URPRStaticMeshComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-TArray<FRPRCachedMesh>	URPRStaticMeshComponent::GetMeshInstances(UStaticMesh *mesh, uint32 instanceCount)
+bool	URPRStaticMeshComponent::CreateMeshInstancesIFP(UStaticMeshComponent *meshComponent, uint32 instanceCount, TArray<FRPRCachedMesh> &outInstances)
 {
+	const UStaticMesh	*mesh = meshComponent->GetStaticMesh();
+	check(mesh != nullptr);
 	if (!Cache.Contains(mesh))
-		return TArray<FRPRCachedMesh>();
-	TArray<FRPRCachedMesh>			instances;
+		return false;
 	const TArray<FRPRCachedMesh>	&cachedShapes = Cache[mesh];
 	RPR::FContext					rprContext = IRPRCore::GetResources()->GetRPRContext();
 
+	// Simple approach right now: if any of the sub meshes in the StaticMesh has an emissive material, we recreate everything.
 	const uint32	cachedShapeNum = cachedShapes.Num();
+	for (uint32 iShape = 0; iShape < cachedShapeNum; ++iShape)
+	{
+		const uint32	materialIndex = cachedShapes[iShape].m_UEMaterialIndex;
+		if (_IsMaterialEmissive(meshComponent->GetMaterial(materialIndex)))
+			return false;
+	}
 	for (uint32 iShape = 0; iShape < cachedShapeNum; ++iShape)
 	{
 		for (uint32 iInstance = 0; iInstance < instanceCount; ++iInstance)
@@ -96,12 +104,13 @@ TArray<FRPRCachedMesh>	URPRStaticMeshComponent::GetMeshInstances(UStaticMesh *me
 				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh instance from '%s'"), *mesh->GetName());
 
 				// Destroy all previous instances created before returning nothing
-				for (int32 jShape = 0; jShape < instances.Num(); ++jShape)
+				for (int32 jShape = 0; jShape < outInstances.Num(); ++jShape)
 				{
-					UE_LOG(LogRPRStaticMeshComponent, Verbose, TEXT("Delete shape instance %s"), *RPR::Shape::GetName(instances[jShape].m_RprShape));
-					RPR::DeleteObject(instances[jShape].m_RprShape);
+					UE_LOG(LogRPRStaticMeshComponent, Verbose, TEXT("Delete shape instance %s"), *RPR::Shape::GetName(outInstances[jShape].m_RprShape));
+					RPR::DeleteObject(outInstances[jShape].m_RprShape);
 				}
-				return TArray<FRPRCachedMesh>();
+				outInstances.Empty();
+				return false;
 			}
 			else
 			{
@@ -109,10 +118,10 @@ TArray<FRPRCachedMesh>	URPRStaticMeshComponent::GetMeshInstances(UStaticMesh *me
 				UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape instance created from '%s' section %d"), *mesh->GetName(), iShape);
 #endif
 			}
-			instances.Add(FRPRCachedMesh(shapeInstance, cachedShapes[iShape].m_UEMaterialIndex));
+			outInstances.Add(FRPRCachedMesh(shapeInstance, cachedShapes[iShape].m_UEMaterialIndex));
 		}
 	}
-	return instances;
+	return true;
 }
 
 void	URPRStaticMeshComponent::ClearCache(RPR::FScene scene)
@@ -137,7 +146,7 @@ void	URPRStaticMeshComponent::ClearCache(RPR::FScene scene)
 
 bool	URPRStaticMeshComponent::BuildMaterials()
 {
-	FRPRXMaterialLibrary& rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+	FRPRXMaterialLibrary	&rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 
 	const UStaticMeshComponent	*component = Cast<UStaticMeshComponent>(SrcComponent);
 	check(component != nullptr);
@@ -155,10 +164,10 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 
 		if (matInterface != nullptr && matInterface->IsA<URPRMaterial>())
 		{
-			URPRMaterial* rprMaterial = Cast<URPRMaterial>(matInterface);
+			URPRMaterial	*rprMaterial = Cast<URPRMaterial>(matInterface);
 			BuildRPRMaterial(shape, rprMaterial);
 
-			RPR::FRPRXMaterialPtr rprxMaterial = rprMaterialLibrary.GetMaterial(rprMaterial);
+			RPR::FRPRXMaterialPtr	rprxMaterial = rprMaterialLibrary.GetMaterial(rprMaterial);
 			m_Shapes[iShape].m_RprxMaterial = rprxMaterial;
 		}
 		else
@@ -228,6 +237,19 @@ void URPRStaticMeshComponent::AttachDummyMaterial(RPR::FShape shape)
 static bool const FLIP_SURFACE_NORMALS = false;
 static bool const FLIP_UV_Y = true;
 
+bool	URPRStaticMeshComponent::_IsMaterialEmissive(const UMaterialInterface *material)
+{
+	const URPRMaterial	*rprMat = Cast<URPRMaterial>(material);
+	if (rprMat != nullptr)
+	{
+		if (rprMat->MaterialParameters.Emission_Weight.Mode == ERPRMaterialMapMode::Constant)
+			return rprMat->MaterialParameters.Emission_Weight.Constant > 0.0f;
+		else
+			return true; // Always assume if mode is switched to MAP that we have some emissive values. Not ideal but we won't read pixels..
+	}
+	return false;
+}
+
 bool	URPRStaticMeshComponent::Build()
 {
 	// Async load: SrcComponent can be nullptr if it was deleted from the scene
@@ -277,18 +299,15 @@ bool	URPRStaticMeshComponent::Build()
 	std::set<WindingOrder> windingOrders;
 
 	const uint32			instanceCount = instancedMeshComponent != nullptr ? instancedMeshComponent->GetInstanceCount() : 1;
-	TArray<FRPRCachedMesh>	shapes = GetMeshInstances(staticMesh, instanceCount);
-	if (shapes.Num() == 0) // No mesh in cache ?
+	TArray<FRPRCachedMesh>	instances;
+	if (!CreateMeshInstancesIFP(staticMeshComponent, instanceCount, instances))
 	{
 		FIndexArrayView					srcIndices = lodRes.IndexBuffer.GetArrayView();
 		const FStaticMeshVertexBuffer	&srcVertices = FRPRCpStaticMesh::GetStaticMeshVertexBufferConst(lodRes);
 		const FPositionVertexBuffer		&srcPositions = FRPRCpStaticMesh::GetPositionVertexBufferConst(lodRes);
 		const uint32					uvCount = srcVertices.GetNumTexCoords();
 
-		// Guess: we need to create several RprObject
-		// One for each section
-		// To check with ProRender API
-		uint32	sectionCount = lodRes.Sections.Num();
+		const uint32	sectionCount = lodRes.Sections.Num();
 		for (uint32 iSection = 0; iSection < sectionCount; ++iSection)
 		{
 			const FStaticMeshSection	&section = lodRes.Sections[iSection];
@@ -346,15 +365,18 @@ bool	URPRStaticMeshComponent::Build()
 			for (uint32 iTriangle = 0; iTriangle < section.NumTriangles; ++iTriangle)
 				numFaceVertices[iTriangle] = 3;
 
-			rpr_shape	shape = nullptr;
-
-			if (RPR::Context::CreateMesh(rprContext, *staticMesh->GetName(), 
-				positions, normals, indices, uvs, numFaceVertices, shape) != RPR_SUCCESS)
+			rpr_shape	baseShape = nullptr;
+			const bool	isMatEmissive = _IsMaterialEmissive(staticMeshComponent->GetMaterial(section.MaterialIndex));
+			if (!isMatEmissive)
 			{
-				UE_LOG(LogRPRStaticMeshComponent, Warning, 
-					TEXT("Couldn't create RPR static mesh from '%s', section %d. Num indices = %d, Num vertices = %d"), 
-					*SrcComponent->GetName(), iSection, indices.Num(), positions.Num());
-				return false;
+				if (RPR::Context::CreateMesh(rprContext, *staticMesh->GetName(),
+					positions, normals, indices, uvs, numFaceVertices, baseShape) != RPR_SUCCESS)
+				{
+					UE_LOG(LogRPRStaticMeshComponent, Warning, 
+						TEXT("Couldn't create RPR static mesh from '%s', section %d. Num indices = %d, Num vertices = %d"), 
+						*SrcComponent->GetName(), iSection, indices.Num(), positions.Num());
+					return false;
+				}
 			}
 
 			// DEBUG CODE for checking winding orders.
@@ -396,45 +418,72 @@ bool	URPRStaticMeshComponent::Build()
 #ifdef RPR_VERBOSE
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape created from '%s' section %d"), *staticMesh->GetName(), iSection);
 #endif
-			FRPRCachedMesh	newShape(shape, section.MaterialIndex);
-			if (!Cache.Contains(staticMesh))
-				Cache.Add(staticMesh);
-			Cache[staticMesh].Add(newShape);
-
-			// New shape in the cache ? Add it in the scene + make it invisible
-			if (rprShapeSetVisibility(shape, false) != RPR_SUCCESS ||
-				RPR::Scene::AttachShape(Scene->m_RprScene, shape) != RPR_SUCCESS)
+			FRPRCachedMesh	newShape(baseShape, section.MaterialIndex);
+			if (!isMatEmissive)
 			{
-				UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't attach Cached RPR shape to the RPR scene"));
-				return false;
-			}
-
-			for (uint32 iInstance = 0; iInstance < instanceCount; ++iInstance)
-			{
-				FRPRCachedMesh	newInstance(newShape.m_UEMaterialIndex);
-				if (rprContextCreateInstance(rprContext, shape, &newInstance.m_RprShape) != RPR_SUCCESS)
+				if (!Cache.Contains(staticMesh))
+					Cache.Add(staticMesh);
+				Cache[staticMesh].Add(newShape);
+				
+				// New shape in the cache ? Add it in the scene + make it invisible
+				if (rprShapeSetVisibility(baseShape, false) != RPR_SUCCESS ||
+					RPR::Scene::AttachShape(Scene->m_RprScene, baseShape) != RPR_SUCCESS)
 				{
-					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh instance from '%s'"), *staticMesh->GetName());
+					UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't attach Cached RPR shape to the RPR scene"));
 					return false;
 				}
-				else
-				{
-#ifdef RPR_VERBOSE
-					UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape instance '%d' created from '%s' section %d"), iInstance, *staticMesh->GetName(), iSection);
-#endif
-				}
-				m_Shapes.Add(FRPRShape(newInstance, iInstance));
 
-				// Set shape name
-				if (iInstance + 1 < instanceCount)
+				for (uint32 iInstance = 0; iInstance < instanceCount; ++iInstance)
 				{
-					RPR::SetObjectName(newInstance.m_RprShape, *FString::Printf(TEXT("%s_%d"), *SrcComponent->GetOwner()->GetName(), iInstance));
-				}
-				else
-				{
-					RPR::SetObjectName(newInstance.m_RprShape, *FString::Printf(TEXT("%s"), *SrcComponent->GetOwner()->GetName()));
+					FRPRCachedMesh	newInstance(newShape.m_UEMaterialIndex);
+					if (rprContextCreateInstance(rprContext, baseShape, &newInstance.m_RprShape) != RPR_SUCCESS)
+					{
+						UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh instance from '%s'"), *staticMesh->GetName());
+						return false;
+					}
+					else
+					{
+#ifdef RPR_VERBOSE
+						UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape instance '%d' created from '%s' section %d"), iInstance, *staticMesh->GetName(), iSection);
+#endif
+					}
+					m_Shapes.Add(FRPRShape(newInstance, iInstance));
+
+					// Set shape name
+					if (iInstance + 1 < instanceCount)
+						RPR::SetObjectName(newInstance.m_RprShape, *FString::Printf(TEXT("%s_%d"), *SrcComponent->GetOwner()->GetName(), iInstance));
+					else
+						RPR::SetObjectName(newInstance.m_RprShape, *FString::Printf(TEXT("%s"), *SrcComponent->GetOwner()->GetName()));
 				}
 			}
+			else
+			{
+				for (uint32 iInstance = 0; iInstance < instanceCount; ++iInstance)
+				{
+					rpr_shape		shape = nullptr;
+					if (RPR::Context::CreateMesh(rprContext, *staticMesh->GetName(),
+						positions, normals, indices, uvs, numFaceVertices, shape) != RPR_SUCCESS)
+					{
+						UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't create RPR static mesh from '%s', section %d. Num indices = %d, Num vertices = %d"), *SrcComponent->GetName(), iSection, indices.Num(), positions.Num());
+						return false;
+					}
+					else
+					{
+#ifdef RPR_VERBOSE
+						UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape instance '%d' created from '%s' section %d"), iInstance, *staticMesh->GetName(), iSection);
+#endif
+					}
+					FRPRCachedMesh	newUncachedShape(shape, section.MaterialIndex);
+					m_Shapes.Add(FRPRShape(newUncachedShape, iInstance));
+
+					// Set shape name
+					if (iInstance + 1 < instanceCount)
+						RPR::SetObjectName(newUncachedShape.m_RprShape, *FString::Printf(TEXT("%s_%d"), *SrcComponent->GetOwner()->GetName(), iInstance));
+					else
+						RPR::SetObjectName(newUncachedShape.m_RprShape, *FString::Printf(TEXT("%s"), *SrcComponent->GetOwner()->GetName()));
+				}
+			}
+
 		}
 
 		if (windingOrders.size() > 1)
@@ -450,9 +499,13 @@ bool	URPRStaticMeshComponent::Build()
 	}
 	else
 	{
-		const uint32	shapeCount = shapes.Num();
+		check(instances.Num() > 0);
+		const uint32	shapeCount = instances.Num();
 		for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
-			m_Shapes.Add(FRPRShape(shapes[iShape], iShape % instanceCount));
+		{
+			const uint32	meshIndex = iShape % instanceCount;
+			m_Shapes.Add(FRPRShape(instances[iShape], meshIndex));
+		}
 	}
 
 	static const FName		kPrimaryOnly("RPR_NoBlock");

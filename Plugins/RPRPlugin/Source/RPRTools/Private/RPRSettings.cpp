@@ -47,6 +47,7 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 	, PhotolinearTonemapSensitivity(20.0f)
 	, PhotolinearTonemapExposure(0.1f)
 	, PhotolinearTonemapFStop(3.4f)
+	, RaycastEpsilon(0.02f)
 	, bUseErrorTexture(true)
 {
 	DefaultRootDirectoryForImportLevels.Path = TEXT("/Game/Maps");
