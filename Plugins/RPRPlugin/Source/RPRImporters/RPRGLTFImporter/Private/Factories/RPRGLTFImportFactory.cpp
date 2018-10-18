@@ -34,6 +34,8 @@
 #include "Resources/ImageResources.h"
 #include "Resources/MaterialResources.h"
 #include "Resources/StaticMeshResources.h"
+#include "Scene/RPRScene.h"
+#include "RPRPlugin.h"
 
 #define LOCTEXT_NAMESPACE "URPRGLTFImportFactory"
 
@@ -67,7 +69,7 @@ bool URPRGLTFImportFactory::FactoryCanImport(const FString& InFilename)
 
 UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InParent, FName InName, EObjectFlags InFlags, const FString& InFilename, const TCHAR* InParms, FFeedbackContext* InWarn, bool& bOutOperationCanceled)
 {
-    FEditorDelegates::OnAssetPreImport.Broadcast(this, InClass, InParent, InName, InParms);
+	FEditorDelegates::OnAssetPreImport.Broadcast(this, InClass, InParent, InName, InParms);
 
 	if (!SGLTFImportWindow::Open(InFilename))
 	{
@@ -81,6 +83,11 @@ UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InPa
 		UE_LOG(LogRPRGLTFImporter, Error, TEXT("Failed to load glTF file '%s'."), *InFilename);
 		return (nullptr);
 	}
+
+	// First, stop rendering
+	FRPRPluginModule	&plugin = FRPRPluginModule::Get();
+	plugin.Reset();
+	plugin.Rebuild();
 
 	RPR::GLTF::FStatus status;
 	RPR::FScene scene;
@@ -121,6 +128,11 @@ UObject* URPRGLTFImportFactory::FactoryCreateFile(UClass* InClass, UObject* InPa
 		levelImporterResources.MeshResources = meshesResources;
 		levelImporterResources.ImageResources = imageResources;
 		RPR::GLTF::Import::FLevelImporter::ImportLevel(gltfFileData, scene, levelImporterResources, level);
+
+		// Then spawn back our scene
+		if (level != nullptr)
+			plugin.CreateNewSceneFromCurrentOpenedWorldIFN();
+
 		return (level);
 	}
 
