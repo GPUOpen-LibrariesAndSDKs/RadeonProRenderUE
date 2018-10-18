@@ -6,7 +6,7 @@
 #include "Helpers/RPRShapeHelpers.h"
 #include "Helpers/RPRMeshHelper.h"
 #include "Constants/RPRConstants.h"
-#include "ParallelFor.h"
+#include "Async/ParallelFor.h"
 #include "Helpers/RPRXHelpers.h"
 #include "Helpers/RPRLightHelpers.h"
 
