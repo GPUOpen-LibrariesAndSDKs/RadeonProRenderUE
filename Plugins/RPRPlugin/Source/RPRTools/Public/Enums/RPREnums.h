@@ -306,4 +306,21 @@ namespace RPR
 		Max = RPR_AOV_MAX
 	};
 
+	enum class ESceneInfo
+	{
+		ShapeCount 							= RPR_SCENE_SHAPE_COUNT,
+		LightCount 							= RPR_SCENE_LIGHT_COUNT,
+		ShapeList 							= RPR_SCENE_SHAPE_LIST,
+		LightList 							= RPR_SCENE_LIGHT_LIST,
+		Camera 								= RPR_SCENE_CAMERA,
+		BackgroundImage 					= RPR_SCENE_BACKGROUND_IMAGE,
+		EnvironmentOverrideReflection 		= RPR_SCENE_ENVIRONMENT_OVERRIDE_REFLECTION,
+		EnvironmentOverrideRefraction 		= RPR_SCENE_ENVIRONMENT_OVERRIDE_REFRACTION,
+		EnvironmentOverrideTransparency 	= RPR_SCENE_ENVIRONMENT_OVERRIDE_TRANSPARENCY,
+		EnvironmentOverrideBackground 		= RPR_SCENE_ENVIRONMENT_OVERRIDE_BACKGROUND,
+		Aabb 								= RPR_SCENE_AABB,
+		HeterovolumeList 					= RPR_SCENE_HETEROVOLUME_LIST,
+		HeterovolumeCount 					= RPR_SCENE_HETEROVOLUME_COUNT
+	};
+
 }
