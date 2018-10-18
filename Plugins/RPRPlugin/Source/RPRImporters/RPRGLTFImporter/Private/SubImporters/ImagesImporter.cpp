@@ -49,15 +49,24 @@ bool RPR::GLTF::Import::FImagesImporter::ImportImages(const FString& GLTFFileDir
 	TArray<FString> imagePaths;
 	GetImagePathsFromGLTF(GLTFFileDirectory, GLTFFileData, imagePaths);
 
-	URPRSettings* rprSettings = GetMutableDefault<URPRSettings>();
-	FAssetToolsModule& assetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools");
-	TArray<UObject*> textures = assetToolsModule.Get().ImportAssets(imagePaths, rprSettings->DefaultRootDirectoryForImportedTextures.Path);
+	for (int32 i = 0; i < imagePaths.Num(); ++i)
+	{
+		if (imagePaths[i].IsEmpty())
+			imagePaths.RemoveAt(i--);
+	}
 
-	ConvertTexturesToBeSupported(textures);
+	if (imagePaths.Num() > 0)
+	{
+		URPRSettings* rprSettings = GetMutableDefault<URPRSettings>();
+		FAssetToolsModule& assetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools");
+		TArray<UObject*> textures = assetToolsModule.Get().ImportAssets(imagePaths, rprSettings->DefaultRootDirectoryForImportedTextures.Path);
 
-	// Find the textures in the directory.
-	// Do not use results of ImportAssets since if the user refuse to override the texture, it will return nothing.
-	LoadTextures(imagePaths, ImageResources);
+		ConvertTexturesToBeSupported(textures);
+
+		// Find the textures in the directory.
+		// Do not use results of ImportAssets since if the user refuse to override the texture, it will return nothing.
+		LoadTextures(imagePaths, ImageResources);
+	}
 	return (true);
 }
 
