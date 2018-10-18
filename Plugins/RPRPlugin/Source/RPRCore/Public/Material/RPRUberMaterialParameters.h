@@ -94,6 +94,9 @@ struct RPRCORE_API FRPRUberMaterialParameters
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction")
 	FRPRMaterialCoMChannel1	Refraction_Ior;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction")
+	FRPRMaterialBool		Refraction_Caustics;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction")
 	FRPRMaterialBool		Refraction_IsThinSurface;
@@ -106,17 +109,21 @@ struct RPRCORE_API FRPRUberMaterialParameters
 	FRPRMaterialCoM			Coating_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
+	FRPRMaterialCoM			Coating_Transmission_Color;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
 	FRPRMaterialMap			Coating_Normal;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
+	FRPRMaterialCoMChannel1	Coating_Thickness;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
 	FRPRMaterialCoMChannel1	Coating_Roughness;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
-	FRPRMaterialCoMChannel1	Coating_Metalness;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
 	FRPRMaterialCoMChannel1	Coating_Ior;
-	
+
+	// Only PBR supported
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
 	FRPRMaterialEnum		Coating_Mode;
 
