@@ -31,7 +31,6 @@
 #include "Material/RPRUberMaterialParameters.h"
 #include "Material/Tools/UberMaterialPropertyHelper.h"
 #include "Templates/Casts.h"
-#include "Map.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRMaterialLibrary, Log, All)
 

@@ -17,6 +17,7 @@ namespace RPR
 		{
 			FRotator Rotation;
 			float ScaleFactor;
+			bool SmoothNormals;
 
 			FSettings();
 		};
