@@ -20,6 +20,7 @@
 #include "MaterialEditor/DEditorStaticSwitchParameterValue.h"
 #include "MaterialEditor/DEditorScalarParameterValue.h"
 #include "MaterialEditor/DEditorVectorParameterValue.h"
+#include "MaterialEditHelper.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRMatParamCopier_MaterialCoMChannel1, Log, All)
 
@@ -30,7 +31,7 @@ void FRPRMatParamCopier_MaterialCoMChannel1::Apply(const FRPRUberMaterialParamet
 	const FRPRMaterialCoMChannel1* materialMap = Property->ContainerPtrToValuePtr<const FRPRMaterialCoMChannel1>(&RPRUberMaterialParameters);
 
 	const FString useMapParameterName = FRPRMatParamCopierUtility::CombinePropertyNameSection(materialMap->GetParameterName(), RPR::FEditorMaterialConstants::MaterialPropertyUseMapSection);
-	auto useMapParameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorStaticSwitchParameterValue>(RPRMaterialEditorInstance, useMapParameterName);
+	auto useMapParameter = FMaterialEditHelper::FindEditorParameterValueByPropertyName<UDEditorStaticSwitchParameterValue>(RPRMaterialEditorInstance, useMapParameterName);
 	if (useMapParameter)
 	{
         useMapParameter->bOverride = true;
@@ -43,7 +44,7 @@ void FRPRMatParamCopier_MaterialCoMChannel1::Apply(const FRPRUberMaterialParamet
 	{
 	case ERPRMCoMapC1InterpretationMode::AsFloat:
 	{
-		auto constantParameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorScalarParameterValue>(RPRMaterialEditorInstance, constantParameterName);
+		auto constantParameter = FMaterialEditHelper::FindEditorParameterValueByPropertyName<UDEditorScalarParameterValue>(RPRMaterialEditorInstance, constantParameterName);
 		if (constantParameter)
 		{
 			constantParameter->bOverride = true;
@@ -54,7 +55,7 @@ void FRPRMatParamCopier_MaterialCoMChannel1::Apply(const FRPRUberMaterialParamet
 
 	case ERPRMCoMapC1InterpretationMode::AsFloat4:
 	{
-		auto constantParameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorVectorParameterValue>(RPRMaterialEditorInstance, constantParameterName);
+		auto constantParameter = FMaterialEditHelper::FindEditorParameterValueByPropertyName<UDEditorVectorParameterValue>(RPRMaterialEditorInstance, constantParameterName);
 		if (constantParameter)
 		{
 			constantParameter->bOverride = true;

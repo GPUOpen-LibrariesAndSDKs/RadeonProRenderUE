@@ -39,6 +39,16 @@ public:
 	static FName GetParameterGroupName(UMaterialInterface* Material, UDEditorParameterValue* ParameterValue);
 	static FName GetParameterGroupName(UMaterialEditorInstanceConstant* MaterialEditorInstance, UDEditorParameterValue* ParameterValue);
 
+	static FEditorParameterGroup*	FindParameterGroupByParameterName(UMaterialEditorInstanceConstant* MaterialEditorInstance, UDEditorParameterValue* ParameterValue);
+
+	static UDEditorParameterValue*	FindEditorParameterValueByPropertyName(UMaterialEditorInstanceConstant* MaterialEditorInstance, const FString& PropertyName);
+	
+	template<typename TParameterType>
+	static TParameterType*			FindEditorParameterValueByPropertyName(UMaterialEditorInstanceConstant* MaterialEditorInstance, const FString& PropertyName)
+	{
+		return (Cast<TParameterType>(FindEditorParameterValueByPropertyName(MaterialEditorInstance, PropertyName)));
+	}
+
 	/* The caller become owner of UMaterialEditorInstanceConstant (so must manage garbage collector) */
 	static UMaterialEditorInstanceConstant*	CreateMaterialEditorInstanceConstant(UMaterialInstanceConstant* MaterialInstanceConstant = nullptr);
 };

@@ -22,11 +22,13 @@
 #include "RPRMaterialEditor/RPRMaterialParamCopiers/IRPRMatParamCopier.h"
 #include "RPRMaterialEditor/RPRMaterialParamCopiers/RPRMatParamCopier_MaterialCoM.h"
 #include "RPRMaterialEditor/RPRMaterialParamCopiers/RPRMatParamCopier_MaterialCoMChannel1.h"
+#include "RPRMaterialEditor/RPRMaterialParamCopiers/RPRMatParamCopier_NormalMap.h"
 #include "Material/UberMaterialParameters/RPRMaterialBool.h"
 #include "Material/UberMaterialParameters/RPRMaterialEnum.h"
+#include "Material/UberMaterialParameters/RPRMaterialCoMChannel1.h"
+#include "Material/UberMaterialParameters/RPRMaterialNormalMap.h"
 #include "RPRMaterialEditor/RPRMaterialParamCopiers/RPRMatParamCopier_Enum.h"
 #include "RPRMaterialEditor/RPRMaterialParamCopiers/RPRMatParamCopier_Bool.h"
-#include "Material/UberMaterialParameters/RPRMaterialCoMChannel1.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRUberMaterialToMaterialInstanceCopier, Log, All)
 
@@ -44,6 +46,7 @@ void FRPRUberMaterialToMaterialInstanceCopier::CopyParameters(const FRPRUberMate
 	{
 		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialCoM), MakeShareable(new FRPRMatParamCopier_MaterialCoM));
 		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialCoMChannel1), MakeShareable(new FRPRMatParamCopier_MaterialCoMChannel1));
+		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialNormalMap), MakeShareable(new FRPRMatParamCopier_NormalMap));
 		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialMap), MakeShareable(new FRPRMatParamCopier_MaterialMap));
 		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialBool), MakeShareable(new FRPRMatParamCopier_Bool));
 		applyRouter.Add(GET_CLASS_NAME_CHECKED(FRPRMaterialEnum), MakeShareable(new FRPRMatParamCopier_Enum));

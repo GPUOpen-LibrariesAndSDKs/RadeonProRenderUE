@@ -16,20 +16,63 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ********************************************************************/
-#include "Material/Tools/MaterialCacheMaker/ParameterSetters/Specials/NormalMapParameterSetter.h"
+#include "Material/Tools/MaterialCacheMaker/ParameterSetters/NormalMap/NormalMapParameterSetter.h"
 #include "Material/RPRMaterialHelpers.h"
 #include "Material/MaterialContext.h"
 #include "Typedefs/RPRTypedefs.h"
 #include "Helpers/RPRXMaterialHelpers.h"
 #include "RPRCoreModule.h"
 #include "Material/UberMaterialParameters/RPRMaterialMap.h"
+#include "RPRMaterialNormalMap.h"
 
 namespace RPRX
 {
 
-	RPR::FImageManager::EImageType FNormalMapParameterSetter::GetImageType() const
+	RPR::FResult FNormalMapParameterSetter::CreateImageNodeFromTexture(MaterialParameter::FArgs& SetterParameters, RPR::FImagePtr& OutImage, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutImageNode)
 	{
-		return RPR::FImageManager::EImageType::NormalMap;
+		RPR::FMaterialContext& materialContext = SetterParameters.MaterialContext;
+
+		RPR::FMaterialNode materialNode = nullptr;
+		RPR::FMaterialNode imageNode = nullptr;
+
+		const FRPRMaterialNormalMap* materialMap = SetterParameters.GetDirectParameter<FRPRMaterialNormalMap>();
+		if (materialMap->Texture == nullptr || !SetterParameters.ImageManager.IsValid())
+		{
+			OutImage.Reset();
+			OutMaterialNode = nullptr;
+			OutImageNode = nullptr;
+			return RPR_SUCCESS;
+		}
+
+		RPR::FResult status = RPR_SUCCESS;
+
+		switch (materialMap->Mode)
+		{
+			case ENormalMapMode::Bump:
+			{
+				status = RPR::FMaterialHelpers::CreateBumpMap(
+					materialContext.RPRContext,
+					materialContext.MaterialSystem,
+					*SetterParameters.ImageManager.Get(),
+					materialMap->Texture, materialMap->BumpScale,
+					OutImage, OutMaterialNode, OutImageNode);
+			}
+			break;
+			
+			case ENormalMapMode::Normal:
+			default:
+			{
+				status = RPR::FMaterialHelpers::CreateNormalMap(
+					materialContext.RPRContext,
+					materialContext.MaterialSystem,
+					*SetterParameters.ImageManager.Get(),
+					materialMap->Texture,
+					OutImage, OutMaterialNode, OutImageNode);
+			}
+			break;
+		}
+
+		return status;
 	}
 
 }

@@ -17,16 +17,32 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
+#include "IPropertyTypeCustomization.h"
+#include "RPRMaterialEditor/PropertiesLayout/RPRMaterialMapPropertiesLayout.h"
+#include "Material/UberMaterialParameters/RPRMaterialNormalMap.h"
+#include "PropertyHandle.h"
 
-#include "Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialMap/MaterialMapParameterSetter.h"
-
-namespace RPRX
+class FRPRMaterialNormalMapPropertiesLayout : public FRPRMaterialMapPropertiesLayout
 {
+public:
+	
+	static TSharedRef<class IPropertyTypeCustomization> MakeInstance();
 
-    class FNormalMapParameterSetter : public FMaterialMapParameterSetter
-	{
-	protected:
-		virtual RPR::FImageManager::EImageType	GetImageType() const override;
-	};
+protected:
 
-}
+	virtual TSharedRef<SWidget> GetPropertyValueRowWidget() override;
+
+	virtual TSharedPtr<IPropertyHandle> GetNormalMapModePropertyHandle() const;
+	virtual TSharedPtr<IPropertyHandle> GetBumpScalePropertyHandle() const;
+
+	virtual TSharedPtr<SWidget> GetNormalMapModePropertyWidget() const;
+	virtual TSharedPtr<SWidget> GetBumpScalePropertyWidget() const;
+
+	EVisibility		GetBumpScalePropertyWidgetVisibility() const;
+
+	TOptional<float>	GetBumpScaleValue() const;
+	void				OnBumpScaleValueChanged(float NewValue);
+
+	ENormalMapMode		GetNormalMapMode() const;
+
+};

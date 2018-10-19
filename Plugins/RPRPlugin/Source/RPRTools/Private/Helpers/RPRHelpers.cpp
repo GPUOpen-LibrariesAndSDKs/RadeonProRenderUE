@@ -196,7 +196,7 @@ namespace RPR
 			return bIsMaterialNodeValid;
 		}
 
-		bool FindInMaterialNode(RPR::FContext Context, RPR::FMaterialNode MaterialNode, FMaterialNodeFinder Finder)
+		bool FindInMaterialNode(RPR::FMaterialNode MaterialNode, FMaterialNodeFinder Finder)
 		{
 			RPR::FResult status;
 
@@ -236,7 +236,7 @@ namespace RPR
 					RPR::FMaterialNode childNode = nullptr;
 					status = RPR::RPRMaterial::GetNodeInputValue(MaterialNode, inputIndex, childNode);
 
-					if (childNode != nullptr && FindInMaterialNode(Context, childNode, Finder))
+					if (childNode != nullptr && FindInMaterialNode(childNode, Finder))
 					{
 						return (true);
 					}
@@ -266,7 +266,7 @@ namespace RPR
 				return (false);
 			};
 
-			return (FindInMaterialNode(Context, MaterialNode, finder));
+			return (FindInMaterialNode(MaterialNode, finder));
 		}
 
 	} // namespace RPRMaterial

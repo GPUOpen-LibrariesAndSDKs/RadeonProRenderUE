@@ -41,8 +41,14 @@ namespace RPR
 		static FResult	DeleteNode(FMaterialNode& MaterialNode);
 
 		static FResult	CreateImageNode(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
-													UTexture2D* Texture, RPR::FImageManager::EImageType ImageType, 
-													RPR::FImagePtr& OutImage, FMaterialNode& MaterialNode, FMaterialNode& OutImageNode);
+										UTexture2D* Texture, RPR::FImagePtr& OutImage, RPR::FMaterialNode& MaterialNode, RPR::FMaterialNode& OutImageNode);
+
+		static FResult	CreateNormalMap(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
+										UTexture2D* Texture, RPR::FImagePtr& OutImage, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutImageNode);
+
+		static FResult	CreateBumpMap(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
+										UTexture2D* Texture, float BumpScale,
+										RPR::FImagePtr& OutImage, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutImageNode);
 
 		class FMaterialNode
 		{
@@ -50,6 +56,7 @@ namespace RPR
 
 			static FResult	SetInputUInt(RPR::FMaterialNode MaterialNode, const FString& ParameterName, uint8 Value);
 			static FResult	SetInputNode(RPR::FMaterialNode MaterialNode, const FString& ParameterName, RPR::FMaterialNode InMaterialNode);
+			static FResult	SetInputImageData(RPR::FMaterialNode MaterialNode, const FString& ParameterName, RPR::FImage InImage);
 
 			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, float x, float y = 0.0f, float z = 0.0f, float w = 0.0f);
 			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector2D& Value, float z = 0.0f, float w = 0.0f);

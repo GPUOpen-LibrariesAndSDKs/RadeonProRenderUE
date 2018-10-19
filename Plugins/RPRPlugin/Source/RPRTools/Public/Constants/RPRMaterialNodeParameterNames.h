@@ -6,8 +6,10 @@ namespace RPR
 	{
 		namespace MaterialNode
 		{
+			static const TCHAR* Color = TEXT("color");
 			static const TCHAR* Color0 = TEXT("color0");
 			static const TCHAR* Color1 = TEXT("color1");
+			static const TCHAR* BumpScale = TEXT("bumpscale");
 
 			namespace Arithmetic
 			{
@@ -21,6 +23,7 @@ namespace RPR
 
 			namespace ImageTexture
 			{
+				static const TCHAR* ImageData = TEXT("data");
 				static const TCHAR* UV = TEXT("uv");
 				static const TCHAR* UV2 = TEXT("uv2");
 			}

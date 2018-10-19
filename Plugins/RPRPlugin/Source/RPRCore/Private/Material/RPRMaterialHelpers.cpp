@@ -65,8 +65,8 @@ namespace RPR
 	}
 
 	RPR::FResult FMaterialHelpers::CreateImageNode(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
-															UTexture2D* Texture, RPR::FImageManager::EImageType ImageType, 
-															RPR::FImagePtr& OutImage, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutImageNode)
+													UTexture2D* Texture, RPR::FImagePtr& OutImage,
+													RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutImageNode)
 	{
 		OutMaterialNode = nullptr;
 		OutImageNode = nullptr;
@@ -78,34 +78,58 @@ namespace RPR
 		}
 
 		RPR::FResult	result;
-		if (ImageType == RPR::FImageManager::EImageType::NormalMap)
+
+		result = CreateNode(MaterialSystem, EMaterialNodeType::ImageTexture, Texture->GetName(), OutMaterialNode);
+		if (IsResultSuccess(result))
 		{
-			FString normalMapNodeName = FString::Printf(TEXT("NormalMap_%s"), *Texture->GetName());
-			result = CreateNode(MaterialSystem, EMaterialNodeType::NormalMap, *normalMapNodeName, OutMaterialNode);
-			if (IsResultSuccess(result))
-			{
-				result = CreateNode(MaterialSystem, EMaterialNodeType::ImageTexture, Texture->GetName(), OutImageNode);
-				if (IsResultSuccess(result))
-				{
-					result = rprMaterialNodeSetInputImageData(OutImageNode, TCHAR_TO_ANSI(ImageDataInputName), OutImage.Get());
-					if (IsResultSuccess(result))
-					{
-						result = rprMaterialNodeSetInputN(OutMaterialNode, "color", OutImageNode);
-					}
-				}
-			}
+			result = RPR::FMaterialHelpers::FMaterialNode::SetInputImageData(OutMaterialNode, RPR::Constants::MaterialNode::ImageTexture::ImageData, OutImage.Get());
 		}
-		else
-		{
-			result = CreateNode(MaterialSystem, EMaterialNodeType::ImageTexture, Texture->GetName(), OutMaterialNode);
-			if (IsResultSuccess(result))
-			{
-				result = rprMaterialNodeSetInputImageData(OutMaterialNode, TCHAR_TO_ANSI(ImageDataInputName), OutImage.Get());
-			}
-			OutImageNode = OutMaterialNode;
-		}
+		OutImageNode = OutMaterialNode;
 
 		return (result);
+	}
+
+	RPR::FResult FMaterialHelpers::CreateNormalMap(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
+													UTexture2D* Texture, RPR::FImagePtr& OutImage, 
+													RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutImageNode)
+	{
+		OutMaterialNode = nullptr;
+		OutImageNode = nullptr;
+
+		FString normalMapNodeName = FString::Printf(TEXT("NormalMap_%s"), *Texture->GetName());
+		RPR::FResult result = CreateNode(MaterialSystem, EMaterialNodeType::NormalMap, *normalMapNodeName, OutMaterialNode);
+		if (IsResultSuccess(result))
+		{
+			result = CreateImageNode(RPRContext, MaterialSystem, ImageManager, Texture, OutImage, OutMaterialNode, OutImageNode);
+			if (IsResultSuccess(result))
+			{
+				result = RPR::FMaterialHelpers::FMaterialNode::SetInputNode(OutMaterialNode, RPR::Constants::MaterialNode::Color, OutImageNode);
+			}
+		}
+
+		return result;
+	}
+	
+	RPR::FResult FMaterialHelpers::CreateBumpMap(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
+		UTexture2D* Texture, float BumpScale,
+		RPR::FImagePtr& OutImage, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutImageNode)
+	{
+		OutMaterialNode = nullptr;
+		OutImageNode = nullptr;
+
+		FString bumpMapNodeName = FString::Printf(TEXT("BumpMap_%s"), *Texture->GetName());
+		RPR::FResult result = CreateNode(MaterialSystem, EMaterialNodeType::BumpMap, *bumpMapNodeName, OutMaterialNode);
+		if (IsResultFailed(result)) { return result; }
+
+		RPR::FMaterialNode tempNode;
+		result = CreateImageNode(RPRContext, MaterialSystem, ImageManager, Texture, OutImage, tempNode, OutImageNode);
+		if (IsResultFailed(result)) { return result; }
+
+		result = RPR::FMaterialHelpers::FMaterialNode::SetInputNode(OutMaterialNode, RPR::Constants::MaterialNode::Color, OutImageNode);
+		if (IsResultFailed(result)) { return result; }
+
+		result = RPR::FMaterialHelpers::FMaterialNode::SetInputFloats(OutMaterialNode, RPR::Constants::MaterialNode::BumpScale, BumpScale);
+		return result;
 	}
 
 	RPR::FResult FMaterialHelpers::FMaterialNode::SetInputUInt(RPR::FMaterialNode MaterialNode, const FString& ParameterName, uint8 Value)
@@ -134,6 +158,21 @@ namespace RPR
 			*ParameterName,
 			*RPR::RPRMaterial::GetNodeName(InMaterialNode),
 			InMaterialNode,
+			status);
+
+		return status;
+	}
+
+	RPR::FResult FMaterialHelpers::FMaterialNode::SetInputImageData(RPR::FMaterialNode MaterialNode, const FString& ParameterName, RPR::FImage InImage)
+	{
+		RPR::FResult status = rprMaterialNodeSetInputImageData(MaterialNode, TCHAR_TO_ANSI(*ParameterName), InImage);
+
+		UE_LOG(LogRPRCore_Steps, Verbose,
+			TEXT("rprMaterialNodeSetInputImageData(materialNode=%s:%p, parameterName=%s, image=%p) -> %d"),
+			*RPR::RPRMaterial::GetNodeName(MaterialNode),
+			MaterialNode,
+			*ParameterName,
+			InImage,
 			status);
 
 		return status;

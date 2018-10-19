@@ -265,4 +265,4 @@ extern RPR_API_ENTRY rpr_int rprxShapeGetMaterial(rprx_context context, rpr_shap
 }
 #endif
 
-#endif  /*__RPRSUPPORT_H  */
+#endif  /*__RPRSUPPOR;T_H  */

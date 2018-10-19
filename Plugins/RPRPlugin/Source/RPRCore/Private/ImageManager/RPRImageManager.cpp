@@ -20,6 +20,7 @@
 #include "Engine/TextureCube.h"
 #include "CubemapUnwrapUtils.h"
 #include "Helpers/RPRHelpers.h"
+#include "Helpers/RPRImageHelpers.h"
 #include "RPRSettings.h"
 #include "Helpers/RPRTextureHelpers.h"
 #include "RPRCoreModule.h"
@@ -140,6 +141,15 @@ namespace RPR
 		}
 
 		imagePtr = MakeShareable(image, TImageDeleter());
+		
+		RPR::EImageWrapType imageWrapType = RPR::Image::ConvertUE4TextureAddressToRPRImageWrap(Texture->AddressX.GetValue());
+		status = SetImageWrapType(image, imageWrapType);
+		if (RPR::IsResultFailed(status))
+		{
+			UE_LOG(LogRPRImageManager, Warning, 
+				TEXT("Couldn't set the image wrap type on the RPR image for texture %s. Error code %d"), 
+				*Texture->GetName(), status);
+		}
 
 		cache.Add(Texture, imagePtr);
 		return imagePtr;
@@ -269,6 +279,11 @@ namespace RPR
 	EPixelFormat FImageManager::GetDefaultSupportedPixelFormat()
 	{
 		return (PF_B8G8R8A8);
+	}
+
+	RPR::FResult FImageManager::SetImageWrapType(RPR::FImage Image, RPR::EImageWrapType WrapType)
+	{
+		return rprImageSetWrap(Image, (rpr_image_wrap_type) WrapType);
 	}
 
 	bool	FImageManager::BuildRPRImageFormat(EPixelFormat srcFormat, FImageFormat &outFormat, uint32 &outComponentSize)

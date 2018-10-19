@@ -28,6 +28,7 @@
 #include "RPRMaterialEditor/PropertiesLayout/RPRMaterialCoMPropertiesLayout.h"
 #include "RPRMaterialEditor/PropertiesLayout/RPRMaterialMapChannel1PropertiesLayout.h"
 #include "RPRMaterialEditor/PropertiesLayout/RPRMaterialMapPropertiesLayout.h"
+#include "RPRMaterialEditor/PropertiesLayout/RPRMaterialNormalMapPropertiesLayout.h"
 #include "RPR_SDKModule.h"
 
 DEFINE_LOG_CATEGORY(LogRPRMaterialEditor)
@@ -110,6 +111,10 @@ void FRPRMaterialEditorModule::RegisterCustomPropertyLayouts()
 
 	propertyEditorModule.RegisterCustomPropertyTypeLayout(*FRPRMaterialMap::StaticStruct()->GetName(),
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialMapPropertiesLayout::MakeInstance)
+	);
+
+	propertyEditorModule.RegisterCustomPropertyTypeLayout(*FRPRMaterialNormalMap::StaticStruct()->GetName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(FRPRMaterialNormalMapPropertiesLayout::MakeInstance)
 	);
 }
 

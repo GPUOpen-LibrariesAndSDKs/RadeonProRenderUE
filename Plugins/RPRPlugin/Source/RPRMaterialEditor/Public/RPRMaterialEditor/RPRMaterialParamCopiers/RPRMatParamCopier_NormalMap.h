@@ -17,27 +17,12 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
+#include "RPRMaterialEditor/RPRMaterialParamCopiers/RPRMatParamCopier_MaterialMap.h"
 
-#include "Material/Tools/MaterialCacheMaker/ParameterSetters/IMaterialParameter.h"
-#include "Material/RPRMaterialMapUV.h"
-#include "Typedefs/RPRTypedefs.h"
-
-namespace RPRX
+class FRPRMatParamCopier_NormalMap : public FRPRMatParamCopier_MaterialMap
 {
+public:
 
-	class FMaterialMapParameterSetter : public IMaterialParameter
-	{
-	public:
-		void	ApplyParameterX(MaterialParameter::FArgs& SetterParameters) override;
+	virtual void Apply(const FRPRUberMaterialParameters& RPRUberMaterialParameters, UStructProperty* Property, UMaterialEditorInstanceConstant* RPRMaterialEditorInstance) override;
 
-	protected:
-
-		bool	ApplyTextureParameter(MaterialParameter::FArgs& SetterParameters);
-		bool	ApplyUVSettings(MaterialParameter::FArgs& SetterParameters, RPR::FMaterialNode ImageMaterialNode);
-		bool	CreateSimpleUVNodeData(MaterialParameter::FArgs& SetterParameters, const FRPRMaterialMapUV& UVSettings, RPR::FMaterialNode& OutMaterialNode);
-
-		virtual RPR::FResult	CreateImageNodeFromTexture(MaterialParameter::FArgs& SetterParameters, RPR::FImagePtr& OutImage, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutImageNode);
-
-	};
-
-}
+};

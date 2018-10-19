@@ -126,7 +126,7 @@ namespace RPR
 			return (status);
 		}
 
-		RPRTOOLS_API bool FindInMaterialNode(RPR::FContext Context, RPR::FMaterialNode MaterialNode, FMaterialNodeFinder Finder);
+		RPRTOOLS_API bool FindInMaterialNode(RPR::FMaterialNode MaterialNode, FMaterialNodeFinder Finder);
 		RPRTOOLS_API bool FindFirstImageAvailable(RPR::FContext Context, RPR::FMaterialNode MaterialNode, RPR::FImage& OutImage);
 	}
 

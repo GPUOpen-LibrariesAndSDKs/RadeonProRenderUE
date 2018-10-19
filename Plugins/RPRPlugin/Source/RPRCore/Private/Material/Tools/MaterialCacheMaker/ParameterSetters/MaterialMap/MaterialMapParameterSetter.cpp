@@ -54,14 +54,7 @@ namespace RPRX
 		if (materialMap->Texture != nullptr && SetterParameters.ImageManager.IsValid())
 		{
 			RPR::FImagePtr image;
-			RPR::FResult imageNodeCreationResult = RPR::FMaterialHelpers::CreateImageNode(
-				materialContext.RPRContext,
-				materialContext.MaterialSystem,
-				*SetterParameters.ImageManager.Get(),
-				materialMap->Texture,
-				GetImageType(),
-				image, materialNode, imageNode
-			);
+			RPR::FResult imageNodeCreationResult = CreateImageNodeFromTexture(SetterParameters, image, materialNode, imageNode);
 
 			SetterParameters.Material->AddImage(image);
 
@@ -75,16 +68,39 @@ namespace RPRX
 				return (false);
 			}
 
-			ApplyUVSettings(SetterParameters, imageNode);
+			if (imageNode != nullptr)
+			{
+				ApplyUVSettings(SetterParameters, imageNode);
+			}
 		}
 
 		SetterParameters.Material->SetMaterialParameterNode(SetterParameters.GetRprxParam(), materialNode);
 		return (true);
 	}
 
-	RPR::FImageManager::EImageType FMaterialMapParameterSetter::GetImageType() const
+	RPR::FResult FMaterialMapParameterSetter::CreateImageNodeFromTexture(MaterialParameter::FArgs& SetterParameters, 
+						RPR::FImagePtr& OutImage, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutImageNode)
 	{
-		return RPR::FImageManager::EImageType::Standard;
+		RPR::FMaterialContext& materialContext = SetterParameters.MaterialContext;
+
+		RPR::FMaterialNode materialNode = nullptr;
+		RPR::FMaterialNode imageNode = nullptr;
+
+		const FRPRMaterialMap* materialMap = SetterParameters.GetDirectParameter<FRPRMaterialMap>();
+		if (materialMap->Texture == nullptr || !SetterParameters.ImageManager.IsValid())
+		{
+			OutImage.Reset();
+			OutMaterialNode = nullptr;
+			OutImageNode = nullptr;
+			return RPR_SUCCESS;
+		}
+
+		return RPR::FMaterialHelpers::CreateImageNode(
+			materialContext.RPRContext,
+			materialContext.MaterialSystem,
+			*SetterParameters.ImageManager.Get(),
+			materialMap->Texture,
+			OutImage, OutMaterialNode, OutImageNode);
 	}
 
 	bool FMaterialMapParameterSetter::ApplyUVSettings(MaterialParameter::FArgs& SetterParameters, RPR::FMaterialNode ImageMaterialNode)
@@ -121,11 +137,8 @@ namespace RPRX
 		}
 		else
 		{
-			RPR::EMaterialNodeType materialNodeType =
-				(uvSettings.UVMode == ETextureUVMode::Triplanar) ? RPR::EMaterialNodeType::UVTriplanar : RPR::EMaterialNodeType::UVProcedural;
-
-			FString nodeName = 
-				(uvSettings.UVMode == ETextureUVMode::Triplanar) ? TEXT("UV Triplanar") : TEXT("UV Procedural");
+			RPR::EMaterialNodeType materialNodeType =	(uvSettings.UVMode == ETextureUVMode::Triplanar) ? RPR::EMaterialNodeType::UVTriplanar : RPR::EMaterialNodeType::UVProcedural;
+			FString nodeName =							(uvSettings.UVMode == ETextureUVMode::Triplanar) ? TEXT("UV Triplanar") : TEXT("UV Procedural");
 
 			status = RPR::FMaterialHelpers::CreateNode(SetterParameters.MaterialContext.MaterialSystem, materialNodeType, nodeName, uvProjectNode);
 			if (RPR::IsResultFailed(status))

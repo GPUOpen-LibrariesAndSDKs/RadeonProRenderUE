@@ -99,6 +99,12 @@ FName FMaterialEditHelper::GetParameterGroupName(UMaterialInterface* Material, U
 
 FName FMaterialEditHelper::GetParameterGroupName(UMaterialEditorInstanceConstant* MaterialEditorInstance, UDEditorParameterValue* ParameterValue)
 {
+	FEditorParameterGroup* editorParameterGroup = FindParameterGroupByParameterName(MaterialEditorInstance, ParameterValue);
+	return editorParameterGroup != nullptr ? editorParameterGroup->GroupName : NAME_None;
+}
+
+FEditorParameterGroup* FMaterialEditHelper::FindParameterGroupByParameterName(UMaterialEditorInstanceConstant* MaterialEditorInstance, UDEditorParameterValue* ParameterValue)
+{
 	TArray<FEditorParameterGroup>& parameterGroups = MaterialEditorInstance->ParameterGroups;
 	for (int32 groupIndex = 0; groupIndex < parameterGroups.Num(); ++groupIndex)
 	{
@@ -109,11 +115,29 @@ FName FMaterialEditHelper::GetParameterGroupName(UMaterialEditorInstanceConstant
 			// the source is on the same material. And ExpressionId is faster and safer than ParameterInfo.Name
 			if (materialParameters[paramIndex]->ExpressionId == ParameterValue->ExpressionId)
 			{
-				return parameterGroups[groupIndex].GroupName;
+				return &parameterGroups[groupIndex];
 			}
 		}
 	}
-	return NAME_None;
+	return nullptr;
+}
+
+UDEditorParameterValue* FMaterialEditHelper::FindEditorParameterValueByPropertyName(UMaterialEditorInstanceConstant* MaterialEditorInstance, const FString& PropertyName)
+{
+	TArray<FEditorParameterGroup>& parameterGroups = MaterialEditorInstance->ParameterGroups;
+	for (int32 groupIndex = 0; groupIndex < parameterGroups.Num(); ++groupIndex)
+	{
+		TArray<UDEditorParameterValue*> materialParameters = parameterGroups[groupIndex].Parameters;
+		for (int32 paramIndex = 0; paramIndex < materialParameters.Num(); ++paramIndex)
+		{
+			const FString parameterName = materialParameters[paramIndex]->ParameterInfo.Name.ToString();
+			if (parameterName.Compare(*PropertyName, ESearchCase::IgnoreCase) == 0)
+			{
+				return materialParameters[paramIndex];
+			}
+		}
+	}
+	return nullptr;
 }
 
 UMaterialEditorInstanceConstant* FMaterialEditHelper::CreateMaterialEditorInstanceConstant(UMaterialInstanceConstant* MaterialInstanceConstant)

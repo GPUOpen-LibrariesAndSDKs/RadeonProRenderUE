@@ -50,6 +50,7 @@ namespace RPR
 
 		ImageTexture			= RPR_MATERIAL_NODE_IMAGE_TEXTURE,
 		NormalMap				= RPR_MATERIAL_NODE_NORMAL_MAP,
+		BumpMap					= RPR_MATERIAL_NODE_BUMP_MAP,
 
 		Arithmetic				= RPR_MATERIAL_NODE_ARITHMETIC,
 		InputLookup				= RPR_MATERIAL_NODE_INPUT_LOOKUP,
@@ -57,7 +58,7 @@ namespace RPR
 		UVProcedural			= RPR_MATERIAL_NODE_UV_PROCEDURAL,
 		UVTriplanar				= RPR_MATERIAL_NODE_UV_TRIPLANAR
 
-		// Not completed. See rpr_material_node_type in RadeonProRender for others
+		// Not completed. See rpr_material_node_type in RadeonProRender.h for others
 	};
 
 	enum class EMaterialNodeInputInfo : FMaterialNodeInputInfo // rpr_material_node_input_info
