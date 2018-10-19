@@ -1,6 +1,9 @@
 #include "RPRMaterialEditor/PropertiesLayout/RPRMaterialNormalMapPropertiesLayout.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Input/SNumericEntryBox.h"
+#include "Widgets/Layout/SBox.h"
+
+#define LOCTEXT_NAMESPACE "RPRMaterialNormalMapPropertiesLayout"
 
 TSharedRef<class IPropertyTypeCustomization> FRPRMaterialNormalMapPropertiesLayout::MakeInstance()
 {
@@ -14,19 +17,28 @@ TSharedRef<SWidget> FRPRMaterialNormalMapPropertiesLayout::GetPropertyValueRowWi
 		+SHorizontalBox::Slot()
 		.HAlign(HAlign_Left)
 		.AutoWidth()
+		.Padding(0.0f, 0.0f, 10.0f, 0.0f)
 		[
 			SNew(SVerticalBox)
 			+SVerticalBox::Slot()
+			.VAlign(VAlign_Fill)
+			.FillHeight(1.0f)
 			[
 				CreateCheckedTexturePropertyWidget()
 			]
 			+SVerticalBox::Slot()
+			.VAlign(VAlign_Top)
+			.HAlign(HAlign_Left)
+			.AutoHeight()
+			.Padding(0.0f, 5.0f)
 			[
 				GetNormalMapModePropertyWidget().ToSharedRef()
 			]
 			+SVerticalBox::Slot()
+			.VAlign(VAlign_Top)
+			.AutoHeight()
 			[
-				SNew(SBorder)
+				SNew(SBox)
 				.Visibility(this, &FRPRMaterialNormalMapPropertiesLayout::GetBumpScalePropertyWidgetVisibility)
 				[
 					GetBumpScalePropertyWidget().ToSharedRef()
@@ -63,15 +75,28 @@ TSharedPtr<SWidget> FRPRMaterialNormalMapPropertiesLayout::GetBumpScalePropertyW
 	constexpr float maxValue = 1.0f;
 
 	return 
-		SNew(SNumericEntryBox<float>)
-		.MinDesiredValueWidth(90.0f)
-		.AllowSpin(true)
-		.Value(this, &FRPRMaterialNormalMapPropertiesLayout::GetBumpScaleValue)
-		.OnValueChanged(this, &FRPRMaterialNormalMapPropertiesLayout::OnBumpScaleValueChanged)
-		.MinValue(minValue)
-		.MaxValue(maxValue)
-		.MinSliderValue(minValue)
-		.MaxSliderValue(maxValue);
+		SNew(SHorizontalBox)
+		+SHorizontalBox::Slot()
+		.AutoWidth()
+		.Padding(0.0f, 0.0f, 10.0f, 0.0f)
+		.VAlign(VAlign_Center)
+		[
+			SNew(STextBlock)
+			.Text(LOCTEXT("BumpScaleLabel", "Bump Scale"))
+		]
+		+SHorizontalBox::Slot()
+		.FillWidth(1.0f)
+		[
+			SNew(SNumericEntryBox<float>)
+			.ToolTipText(LOCTEXT("BumpScaleTooltip", "The bump scale factor"))
+			.MinDesiredValueWidth(90.0f)
+			.AllowSpin(true)
+			.Value(this, &FRPRMaterialNormalMapPropertiesLayout::GetBumpScaleValue)
+			.OnValueChanged(this, &FRPRMaterialNormalMapPropertiesLayout::OnBumpScaleValueChanged)
+			.MinValue(minValue)
+			.MinSliderValue(minValue)
+			.MaxSliderValue(maxValue)
+		];
 }
 
 EVisibility FRPRMaterialNormalMapPropertiesLayout::GetBumpScalePropertyWidgetVisibility() const
@@ -97,3 +122,5 @@ ENormalMapMode FRPRMaterialNormalMapPropertiesLayout::GetNormalMapMode() const
 	GetNormalMapModePropertyHandle()->GetValue(normalMapMode);
 	return (ENormalMapMode) normalMapMode;
 }
+
+#undef LOCTEXT_NAMESPACE
