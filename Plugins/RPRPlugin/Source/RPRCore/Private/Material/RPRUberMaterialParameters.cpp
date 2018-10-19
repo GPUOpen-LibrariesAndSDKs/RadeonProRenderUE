@@ -17,7 +17,6 @@
 * THE SOFTWARE.
 ********************************************************************/
 #include "Material/RPRUberMaterialParameters.h"
-#include "Material/Tools/MaterialCacheMaker/ParameterSetters/Specials/NormalMapParameterSetter.h"
 
 #define LOCTEXT_NAMESPACE "RPRUberMaterialParameters"
 
@@ -35,13 +34,13 @@ FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 	// Diffuse
 	: Diffuse_Weight(		TEXT("diffuse.weight"),		RPRX_UBER_MATERIAL_DIFFUSE_WEIGHT,		ESupportMode::FullySupported, 1.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Diffuse_Color(		TEXT("diffuse.color"),		RPRX_UBER_MATERIAL_DIFFUSE_COLOR,		ESupportMode::FullySupported, 1.0f)
-	, Diffuse_Normal(		TEXT("diffuse.normal"),		RPRX_UBER_MATERIAL_DIFFUSE_NORMAL,		ESupportMode::FullySupported, FCanUseParameter(), FApplyParameter::CreateStatic(ApplyNormalMap))
+	, Diffuse_Normal(		TEXT("diffuse.normal"),		RPRX_UBER_MATERIAL_DIFFUSE_NORMAL,		ESupportMode::FullySupported, FCanUseParameter())
 	, Diffuse_Roughness(	TEXT("diffuse.roughness"),	RPRX_UBER_MATERIAL_DIFFUSE_ROUGHNESS,	ESupportMode::NotSupported,	0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 
 	// Reflection
 	, Reflection_Weight(				TEXT("reflection.weight"),				RPRX_UBER_MATERIAL_REFLECTION_WEIGHT,				ESupportMode::FullySupported,		1.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Reflection_Color(					TEXT("reflection.color"),				RPRX_UBER_MATERIAL_REFLECTION_COLOR,				ESupportMode::PreviewNotSupported, 1.0f)
-	, Reflection_Normal(				TEXT("reflection.normal"),				RPRX_UBER_MATERIAL_REFLECTION_NORMAL,				ESupportMode::PreviewNotSupported,  FCanUseParameter(), FApplyParameter::CreateStatic(ApplyNormalMap))
+	, Reflection_Normal(				TEXT("reflection.normal"),				RPRX_UBER_MATERIAL_REFLECTION_NORMAL,				ESupportMode::PreviewNotSupported,  FCanUseParameter())
 	, Reflection_Roughness(				TEXT("reflection.roughness"),			RPRX_UBER_MATERIAL_REFLECTION_ROUGHNESS,			ESupportMode::FullySupported,		0.25f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Reflection_Anisotropy(			TEXT("reflection.anisotropy"),			RPRX_UBER_MATERIAL_REFLECTION_ANISOTROPY,			ESupportMode::PreviewNotSupported,	0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Reflection_AnisotropyRotation(	TEXT("reflection.anisotropyRotation"),	RPRX_UBER_MATERIAL_REFLECTION_ANISOTROPY_ROTATION,	ESupportMode::PreviewNotSupported,	0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)

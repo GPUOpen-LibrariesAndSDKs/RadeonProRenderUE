@@ -29,6 +29,7 @@
 #include "Material/UberMaterialParameters/RPRMaterialCoM.h"
 #include "Material/UberMaterialParameters/RPRMaterialBool.h"
 #include "Material/UberMaterialParameters/RPRMaterialEnum.h"
+#include "Material/UberMaterialParameters/RPRMaterialNormalMap.h"
 #include "RPRUberMaterialParameters.generated.h"
 
 USTRUCT(BlueprintType)
