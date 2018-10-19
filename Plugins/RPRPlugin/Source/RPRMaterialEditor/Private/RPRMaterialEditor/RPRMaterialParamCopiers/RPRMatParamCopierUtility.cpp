@@ -36,19 +36,3 @@ FString FRPRMatParamCopierUtility::CombinePropertyNameSectionInternal(const FStr
 
 	return (output);
 }
-
-UDEditorParameterValue* FRPRMatParamCopierUtility::FindEditorParameterValue(UMaterialEditorInstanceConstant* MaterialEditorInstance, const FString& PropertyName)
-{
-	FEditorParameterGroup& parameterGroup = MaterialEditorInstance->ParameterGroups[0];
-
-	TArray<UDEditorParameterValue*>& parameterValues = parameterGroup.Parameters;
-	for (int32 i = 0; i < parameterValues.Num(); ++i)
-	{
-		if (FRPRCpMaterial::GetParameterName(*parameterValues[i]) == *PropertyName)
-		{
-			return (parameterValues[i]);
-		}
-	}
-
-	return (nullptr);
-}

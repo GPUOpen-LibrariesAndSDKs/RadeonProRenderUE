@@ -65,6 +65,8 @@ namespace RPR
 		static bool IsFormatSupported(EPixelFormat format);
 		static EPixelFormat GetDefaultSupportedPixelFormat();
 
+		static RPR::FResult	SetImageWrapType(RPR::FImage Image, RPR::EImageWrapType WrapType);
+
 	private:
 
 		RPR::FImagePtr LoadImageFromTextureInternal(UTexture2D* Texture, bool bRebuild);

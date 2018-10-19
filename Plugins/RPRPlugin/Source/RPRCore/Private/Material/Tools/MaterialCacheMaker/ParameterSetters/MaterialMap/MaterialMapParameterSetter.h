@@ -19,17 +19,25 @@
 #pragma once
 
 #include "Material/Tools/MaterialCacheMaker/ParameterSetters/IMaterialParameter.h"
+#include "Material/RPRMaterialMapUV.h"
+#include "Typedefs/RPRTypedefs.h"
 
 namespace RPRX
 {
 
 	class FMaterialMapParameterSetter : public IMaterialParameter
 	{
-		virtual void	ApplyParameterX(MaterialParameter::FArgs& SetterParameters);
+	public:
+		void	ApplyParameterX(MaterialParameter::FArgs& SetterParameters) override;
 
 	protected:
 
 		bool	ApplyTextureParameter(MaterialParameter::FArgs& SetterParameters);
+		bool	ApplyUVSettings(MaterialParameter::FArgs& SetterParameters, RPR::FMaterialNode ImageMaterialNode);
+		bool	CreateSimpleUVNodeData(MaterialParameter::FArgs& SetterParameters, const FRPRMaterialMapUV& UVSettings, RPR::FMaterialNode& OutMaterialNode);
+
+		virtual RPR::FResult	CreateImageNodeFromTexture(MaterialParameter::FArgs& SetterParameters, RPR::FImagePtr& OutImage, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutImageNode);
+
 	};
 
 }

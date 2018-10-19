@@ -33,11 +33,14 @@ protected:
 
 	virtual TSharedRef<SWidget> GetPropertyValueRowWidget() override;
 
-	TSharedPtr<IPropertyHandle> GetTexturePropertyHandle() const;
 	TSharedRef<SWidget>			CreateCheckedTexturePropertyWidget() const;
+	TSharedRef<SWidget>			CreateUVSettingsPropertyWidget() const;
 	EVisibility					GetTextureFormatFixerAreaVisibility() const;
 	FReply						OnFixTextureFormatButtonClicked();
 	UTexture2D*					GetTexture();
 	const UTexture2D*			GetTexture() const;
+
+	TSharedPtr<IPropertyHandle> GetTexturePropertyHandle() const;
+
 
 };

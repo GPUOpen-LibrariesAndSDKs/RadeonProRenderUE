@@ -29,6 +29,7 @@
 #include "Material/UberMaterialParameters/RPRMaterialCoM.h"
 #include "Material/UberMaterialParameters/RPRMaterialBool.h"
 #include "Material/UberMaterialParameters/RPRMaterialEnum.h"
+#include "Material/UberMaterialParameters/RPRMaterialNormalMap.h"
 #include "RPRUberMaterialParameters.generated.h"
 
 USTRUCT(BlueprintType)
@@ -43,7 +44,7 @@ struct RPRCORE_API FRPRUberMaterialParameters
 	FRPRMaterialCoM			Diffuse_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Diffuse")
-	FRPRMaterialMap			Diffuse_Normal;
+	FRPRMaterialNormalMap	Diffuse_Normal;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Diffuse")
 	FRPRMaterialCoMChannel1	Diffuse_Roughness;
@@ -56,7 +57,7 @@ struct RPRCORE_API FRPRUberMaterialParameters
 	FRPRMaterialCoM			Reflection_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
-	FRPRMaterialMap			Reflection_Normal;
+	FRPRMaterialNormalMap	Reflection_Normal;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
 	FRPRMaterialCoMChannel1	Reflection_Roughness;
@@ -106,7 +107,7 @@ struct RPRCORE_API FRPRUberMaterialParameters
 	FRPRMaterialCoM			Coating_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
-	FRPRMaterialMap			Coating_Normal;
+	FRPRMaterialNormalMap	Coating_Normal;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
 	FRPRMaterialCoMChannel1	Coating_Roughness;

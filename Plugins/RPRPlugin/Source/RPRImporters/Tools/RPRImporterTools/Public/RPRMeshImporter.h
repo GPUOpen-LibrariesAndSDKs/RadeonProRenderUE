@@ -28,7 +28,7 @@ namespace RPR
 		static bool ImportVertices(const FString& MeshName, RPR::FShape Shape, const FSettings& Settings, TArray<FVector>& OutVertices);
 		static bool ImportNormals(const FString& MeshName, RPR::FShape Shape, const FSettings& Settings, int32 NumVertices, const TArray<uint32>& Indices, TArray<FVector>& OutNormals);
 		static bool ImportTriangles(const FString& MeshName, RPR::FShape Shape, TArray<uint32>& OutTriangles);
-		static bool ImportUVs(const FString& MeshName, RPR::FShape Shape, TArray<FVector2D>* UVs, uint32 ExpectedNumUVs = 0);
+		static bool ImportUVs(const FString& MeshName, RPR::FShape Shape, TArray<FVector2D>* UVs, const TArray<uint32> &Indices);
 
 		static void InitializeUnknownData(FRawMesh& RawMesh);
 		static UStaticMesh* CreateStaticMesh(const FString& MeshName);

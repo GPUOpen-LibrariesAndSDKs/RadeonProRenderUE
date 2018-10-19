@@ -24,6 +24,7 @@
 #include "Widgets/Input/SButton.h"
 #include "ImageManager/RPRImageManager.h"
 #include "Helpers/RPRConstAway.h"
+#include "RPRMaterialEditor/PropertiesLayout/SRPRMaterialUVSettings.h"
 
 #define LOCTEXT_NAMESPACE "RPRMaterialMapPropertiesLayout"
 
@@ -36,17 +37,19 @@ TSharedRef<SWidget> FRPRMaterialMapPropertiesLayout::GetPropertyValueRowWidget()
 {
 	return
 		SNew(SHorizontalBox)
-		+ SHorizontalBox::Slot()
-		.AutoWidth()
+		+SHorizontalBox::Slot()
 		.HAlign(HAlign_Left)
+		.AutoWidth()
 		[
 			CreateCheckedTexturePropertyWidget()
-		];
-}
-
-TSharedPtr<IPropertyHandle> FRPRMaterialMapPropertiesLayout::GetTexturePropertyHandle() const
-{
-	return (CurrentPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialMap, Texture)));
+		]
+		+SHorizontalBox::Slot()
+		.HAlign(HAlign_Right)
+		.FillWidth(1.0f)
+		[
+			CreateUVSettingsPropertyWidget()
+		]
+	;
 }
 
 TSharedRef<SWidget> FRPRMaterialMapPropertiesLayout::CreateCheckedTexturePropertyWidget() const
@@ -98,6 +101,14 @@ TSharedRef<SWidget> FRPRMaterialMapPropertiesLayout::CreateCheckedTexturePropert
 		];
 }
 
+TSharedRef<SWidget> FRPRMaterialMapPropertiesLayout::CreateUVSettingsPropertyWidget() const
+{
+	auto uvSettingsPropertyHandle = CurrentPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialMap, UVSettings));
+
+	return SNew(SRPRMaterialUVSettings)
+		.MaterialMapPropertyHandle(uvSettingsPropertyHandle);
+}
+
 EVisibility FRPRMaterialMapPropertiesLayout::GetTextureFormatFixerAreaVisibility() const
 {
 	const UTexture2D* texture = GetTexture();
@@ -138,6 +149,11 @@ const UTexture2D* FRPRMaterialMapPropertiesLayout::GetTexture() const
 	const UObject* textureObject;
 	propertyHandle->GetValue(textureObject);
 	return (Cast<const UTexture2D>(textureObject));
+}
+
+TSharedPtr<IPropertyHandle> FRPRMaterialMapPropertiesLayout::GetTexturePropertyHandle() const
+{
+	return (CurrentPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FRPRMaterialMap, Texture)));
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -57,6 +57,40 @@ namespace RPR
 			return (false);
 		}
 
+		TextureAddress ConvertRPRImageWrapToUE4TextureAddress(RPR::EImageWrapType WrapType)
+		{
+			switch (WrapType)
+			{
+				case RPR::EImageWrapType::Repeat:
+				return TA_Wrap;
+
+				case RPR::EImageWrapType::MirroredRepeat:
+				return TA_Mirror;
+
+				case RPR::EImageWrapType::Edge:
+				case RPR::EImageWrapType::ClampZero:
+				case RPR::EImageWrapType::ClampOne:
+				default:
+				return TA_Clamp;
+			}
+		}
+
+		RPR::EImageWrapType ConvertUE4TextureAddressToRPRImageWrap(TextureAddress InTextureAddress)
+		{
+			switch (InTextureAddress)
+			{
+				case TA_Wrap:
+				return EImageWrapType::Repeat;
+				case TA_Mirror:
+				return EImageWrapType::MirroredRepeat;
+
+				case TA_Clamp:
+				case TA_MAX:
+				default:
+				return EImageWrapType::Edge;
+			}
+		}
+
 		//////////////////////////////////////////////////////////////////////////
 
 		RPR::FResult GetDescription(RPR::FImage Image, FImageDesc& OutDescription)

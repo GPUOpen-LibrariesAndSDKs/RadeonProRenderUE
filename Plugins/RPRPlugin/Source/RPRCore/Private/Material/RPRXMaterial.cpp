@@ -208,6 +208,8 @@ void RPR::FRPRXMaterial::ReleaseMaterialMapNodes(const FRPRMaterialMap* Material
 	if (materialNode != nullptr && RPR::RPRMaterial::IsMaterialNode(materialNode))
 	{
 		ReleaseMaterialNodesHierarchy(materialNode);
+
+		UE_LOG(LogRPRXMaterial, Verbose, TEXT("Delete node %s"), *RPR::RPRMaterial::GetNodeName(materialNode));
 		RPR::FMaterialHelpers::DeleteNode(materialNode);
 	}
 }

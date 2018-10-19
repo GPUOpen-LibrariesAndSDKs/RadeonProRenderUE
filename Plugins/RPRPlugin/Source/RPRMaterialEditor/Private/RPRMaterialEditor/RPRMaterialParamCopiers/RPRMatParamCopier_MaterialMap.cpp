@@ -20,13 +20,14 @@
 #include "MaterialEditor/DEditorTextureParameterValue.h"
 #include "RPRMaterialEditor/RPRUberMaterialToMaterialInstanceCopier.h"
 #include "MaterialEditor/DEditorStaticSwitchParameterValue.h"
+#include "MaterialEditHelper.h"
 
 void FRPRMatParamCopier_MaterialMap::Apply(const FRPRUberMaterialParameters& RPRUberMaterialParameters, UStructProperty* Property, UMaterialEditorInstanceConstant* RPRMaterialEditorInstance)
 {
 	const FRPRMaterialMap* materialMap = Property->ContainerPtrToValuePtr<const FRPRMaterialMap>(&RPRUberMaterialParameters);
 
 	const FString mapParameterName = FRPRMatParamCopierUtility::CombinePropertyNameSection(materialMap->GetParameterName(), RPR::FEditorMaterialConstants::MaterialPropertyMapSection);
-	auto mapParameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorTextureParameterValue>(RPRMaterialEditorInstance, mapParameterName);
+	auto mapParameter = FMaterialEditHelper::FindEditorParameterValueByPropertyName<UDEditorTextureParameterValue>(RPRMaterialEditorInstance, mapParameterName);
 	if (mapParameter)
 	{
         mapParameter->bOverride = true;
@@ -34,7 +35,7 @@ void FRPRMatParamCopier_MaterialMap::Apply(const FRPRUberMaterialParameters& RPR
 	}
 
 	const FString useMapParameterName = FRPRMatParamCopierUtility::CombinePropertyNameSection(materialMap->GetParameterName(), RPR::FEditorMaterialConstants::MaterialPropertyUseMapSection);
-	auto useMapParameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorStaticSwitchParameterValue>(RPRMaterialEditorInstance, useMapParameterName);
+	auto useMapParameter = FMaterialEditHelper::FindEditorParameterValueByPropertyName<UDEditorStaticSwitchParameterValue>(RPRMaterialEditorInstance, useMapParameterName);
 	if (useMapParameter)
 	{
 		useMapParameter->bOverride = true;

@@ -17,19 +17,12 @@
 * THE SOFTWARE.
 ********************************************************************/
 #include "Material/RPRUberMaterialParameters.h"
-#include "Material/Tools/MaterialCacheMaker/ParameterSetters/Specials/NormalMapParameterSetter.h"
 
 #define LOCTEXT_NAMESPACE "RPRUberMaterialParameters"
 
 static bool CanUseOnlyIfValidModeSet(const FRPRUberMaterialParameterBase* Parameter, FRPRMaterialEnum* EnumParameter, uint8 ExpectedValidMode)
 {
 	return (EnumParameter->EnumValue == ExpectedValidMode);
-}
-
-static void ApplyNormalMap(RPRX::MaterialParameter::FArgs& Args)
-{
-    RPRX::FNormalMapParameterSetter normalMapParameterSetter;
-    normalMapParameterSetter.ApplyParameterX(Args);    
 }
 
 static bool CantUseParameter(const FRPRUberMaterialParameterBase* MaterialParameter)
@@ -41,13 +34,13 @@ FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 	// Diffuse
 	: Diffuse_Weight(		TEXT("diffuse.weight"),		RPRX_UBER_MATERIAL_DIFFUSE_WEIGHT,		ESupportMode::FullySupported, 1.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Diffuse_Color(		TEXT("diffuse.color"),		RPRX_UBER_MATERIAL_DIFFUSE_COLOR,		ESupportMode::FullySupported, 1.0f)
-	, Diffuse_Normal(		TEXT("diffuse.normal"),		RPRX_UBER_MATERIAL_DIFFUSE_NORMAL,		ESupportMode::FullySupported, FCanUseParameter(), FApplyParameter::CreateStatic(ApplyNormalMap))
+	, Diffuse_Normal(		TEXT("diffuse.normal"),		RPRX_UBER_MATERIAL_DIFFUSE_NORMAL,		ESupportMode::FullySupported)
 	, Diffuse_Roughness(	TEXT("diffuse.roughness"),	RPRX_UBER_MATERIAL_DIFFUSE_ROUGHNESS,	ESupportMode::NotSupported,	0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 
 	// Reflection
 	, Reflection_Weight(				TEXT("reflection.weight"),				RPRX_UBER_MATERIAL_REFLECTION_WEIGHT,				ESupportMode::FullySupported,		0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Reflection_Color(					TEXT("reflection.color"),				RPRX_UBER_MATERIAL_REFLECTION_COLOR,				ESupportMode::PreviewNotSupported, 1.0f)
-	, Reflection_Normal(				TEXT("reflection.normal"),				RPRX_UBER_MATERIAL_REFLECTION_NORMAL,				ESupportMode::PreviewNotSupported,  FCanUseParameter(), FApplyParameter::CreateStatic(ApplyNormalMap))
+	, Reflection_Normal(				TEXT("reflection.normal"),				RPRX_UBER_MATERIAL_REFLECTION_NORMAL,				ESupportMode::PreviewNotSupported)
 	, Reflection_Roughness(				TEXT("reflection.roughness"),			RPRX_UBER_MATERIAL_REFLECTION_ROUGHNESS,			ESupportMode::FullySupported,		0.5f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Reflection_Anisotropy(			TEXT("reflection.anisotropy"),			RPRX_UBER_MATERIAL_REFLECTION_ANISOTROPY,			ESupportMode::PreviewNotSupported,	0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Reflection_AnisotropyRotation(	TEXT("reflection.anisotropyRotation"),	RPRX_UBER_MATERIAL_REFLECTION_ANISOTROPY_ROTATION,	ESupportMode::PreviewNotSupported,	0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
@@ -68,7 +61,7 @@ FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 	
 	// Coating
 	, Coating_Color(		TEXT("coating.color"),		RPRX_UBER_MATERIAL_COATING_COLOR,		ESupportMode::PreviewNotSupported, 1.0f)
-	, Coating_Normal(		TEXT("coating.normal"),		RPRX_UBER_MATERIAL_COATING_NORMAL,		ESupportMode::PreviewNotSupported, FCanUseParameter(), FApplyParameter::CreateStatic(ApplyNormalMap))
+	, Coating_Normal(		TEXT("coating.normal"),		RPRX_UBER_MATERIAL_COATING_NORMAL,		ESupportMode::PreviewNotSupported)
 	, Coating_Weight(		TEXT("coating.weight"),		RPRX_UBER_MATERIAL_COATING_WEIGHT,		ESupportMode::PreviewNotSupported, 0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Coating_Roughness(	TEXT("coating.roughness"),	RPRX_UBER_MATERIAL_COATING_ROUGHNESS,	ESupportMode::PreviewNotSupported, 0.5f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Coating_Metalness(	TEXT("coating.metalness"),	RPRX_UBER_MATERIAL_COATING_METALNESS,	ESupportMode::PreviewNotSupported, 1.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)

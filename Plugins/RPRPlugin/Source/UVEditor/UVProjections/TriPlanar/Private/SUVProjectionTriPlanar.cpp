@@ -30,12 +30,17 @@
 #include "Widgets/Layout/SBox.h"
 #include "Material/TriPlanarSettings.h"
 #include "TriPlanarSettingsEditorLoader.h"
+#include "TriPlanarSettingsInterfaceEditor.h"
+#include "RPRStaticMeshEditor/RPRStaticMeshEditor.h"
 
 #define LOCTEXT_NAMESPACE "SUVProjectionTriPlanar"
 
 void SUVProjectionTriPlanar::Construct(const FArguments& InArgs)
 {
 	RPRStaticMeshEditorPtr = InArgs._RPRStaticMeshEditorPtr;
+	check(RPRStaticMeshEditorPtr.IsValid());
+
+	RPRStaticMeshEditorPtr.Pin()->OnSelectionChanged().AddSP(this, &SUVProjectionTriPlanar::OnMeshSelectionChanged);
 
 	InitTriPlanarSettings();
 	InitUVProjection();
@@ -43,7 +48,7 @@ void SUVProjectionTriPlanar::Construct(const FArguments& InArgs)
 
 void SUVProjectionTriPlanar::OnSectionSelectionChanged()
 {
-	TryLoadTriPlanarSettings();
+	UpdateTriPlanarSettingsFromMeshSelection();
 }
 
 TSharedRef<SWidget> SUVProjectionTriPlanar::GetAlgorithmSettingsWidget()
@@ -78,14 +83,14 @@ TSharedRef<SWidget> SUVProjectionTriPlanar::GetAlgorithmSettingsWidget()
 					SNew(STextBlock)
 					.Margin(FMargin(5.0f, 0.0f))
 					.AutoWrapText(true)
-					.Text(LOCTEXT("TriPlanarWarning", "The TriPlanar modifier only affects the selected RPR materials (not UV)."))
+					.Text(LOCTEXT("TriPlanarWarning", "The TriPlanar modifier only affects the selected RPR materials (not mesh UV)."))
 				]
 			]
 		]
 		+SVerticalBox::Slot()
 		.FillHeight(1.0f)
 		[
-			SettingsDetailsView->GetWidget().ToSharedRef()
+			TriPlanarSettingsView.ToSharedRef()
 		]
 	;
 }
@@ -108,6 +113,16 @@ UShapePreviewBase* SUVProjectionTriPlanar::GetShapePreview()
 	return (nullptr);
 }
 
+void SUVProjectionTriPlanar::OnMeshSelectionChanged()
+{
+	UpdateTriPlanarSettingsFromMeshSelection();
+}
+
+TSharedRef<IDetailCustomization> SUVProjectionTriPlanar::MakeTriPlanarSettingsDetails()
+{
+	return MakeShareable(new FTriPlanarSettingsCustomizationLayout());
+}
+
 void SUVProjectionTriPlanar::OnPreAlgorithmStart()
 {
 	UpdateAlgorithmSettings();
@@ -120,37 +135,43 @@ bool SUVProjectionTriPlanar::RequiredManualApply() const
 
 void SUVProjectionTriPlanar::InitTriPlanarSettings()
 {
-	TryLoadTriPlanarSettings();
-
+	TriPlanarSettings = NewObject<UTriPlanarSettingsObject>();
+	UpdateTriPlanarSettingsFromMeshSelection();
+	
 	FPropertyEditorModule& propertyModule = FModuleManager::Get().LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	FDetailsViewArgs detailsViewArgs(
-		/*const bool InUpdateFromSelection =*/ false
-		, /*const bool InLockable =*/ false
-		, /*const bool InAllowSearch =*/ false
-		, /*const ENameAreaSettings InNameAreaSettings =*/ FDetailsViewArgs::ENameAreaSettings::HideNameArea
-		, /*const bool InHideSelectionTip =*/ false
-		, /*FNotifyHook* InNotifyHook =*/ this
-		, /*const bool InSearchInitialKeyFocus =*/ false
-		, /*FName InViewIdentifier =*/ NAME_None
-	);
 
-    SettingsDetailsView = propertyModule.CreateStructureDetailView(detailsViewArgs, FStructureDetailsViewArgs(), nullptr);
-    SettingsDetailsView->SetStructureData(MakeShareable(new FStructOnScope(FTriPlanarSettings::StaticStruct(), (uint8*) &Settings)));
+	FDetailsViewArgs detailsView(
+		/*const bool InUpdateFromSelection*/ true
+		, /*const bool InLockable*/ false
+		, /*const bool InAllowSearch*/ false
+		, /*const ENameAreaSettings InNameAreaSettings*/ FDetailsViewArgs::HideNameArea
+		, /*const bool InHideSelectionTip*/ false
+		, /*FNotifyHook* InNotifyHook*/ NULL
+		, /*const bool InSearchInitialKeyFocus*/ false
+		, /*FName InViewIdentifier*/ NAME_None
+	);
+	
+	TriPlanarSettingsView = propertyModule.CreateDetailView(detailsView);
+
+	TriPlanarSettingsView->RegisterInstancedCustomPropertyLayout(
+		UTriPlanarSettingsObject::StaticClass(),
+		FOnGetDetailCustomizationInstance::CreateStatic(&SUVProjectionTriPlanar::MakeTriPlanarSettingsDetails));
+
+	TriPlanarSettingsView->SetObject(TriPlanarSettings);
 }
 
-void SUVProjectionTriPlanar::TryLoadTriPlanarSettings()
+void SUVProjectionTriPlanar::UpdateTriPlanarSettingsFromMeshSelection()
 {
 	FRPRMeshDataContainerPtr selectedMeshDatas = RPRStaticMeshEditorPtr.Pin()->GetSelectedMeshes();
 	if (selectedMeshDatas.IsValid())
 	{
-		FRPRMeshDataPtr meshData;
-		int32 sectionIndex;
-		if (selectedMeshDatas->FindFirstSelectedSection(meshData, sectionIndex))
-		{
-			UMaterialInterface* materialInterface = meshData->GetStaticMesh()->GetMaterial(sectionIndex);
+		TArray<FTriPlanarSettingsInterfaceEditor>& triplanarSettingsInterfaces = TriPlanarSettings->TriplanarSettingsInterfaces;
+		triplanarSettingsInterfaces.AddDefaulted(selectedMeshDatas->Num());
 
-            FTriPlanarSettingsEditorLoader triPlanarSettingsHelper(&Settings);
-            triPlanarSettingsHelper.LoadFromMaterial(materialInterface);
+		for (int32 meshIndex = 0; meshIndex < selectedMeshDatas->Num(); meshIndex++)
+		{
+			const FRPRMeshDataPtr meshDataPtr = selectedMeshDatas->Get(meshIndex);
+			triplanarSettingsInterfaces[meshIndex].LoadMesh(meshDataPtr->GetStaticMesh());
 		}
 	}
 }

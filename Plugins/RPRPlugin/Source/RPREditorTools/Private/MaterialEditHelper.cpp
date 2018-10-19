@@ -43,11 +43,15 @@ bool FMaterialEditHelper::OnEachMaterialParameter(UMaterialInterface* Material, 
 
 void FMaterialEditHelper::OnEachMaterialParameter(UMaterialEditorInstanceConstant* MaterialEditorInstance, FMaterialParameterBrowseDelegate Delegate)
 {
-	FEditorParameterGroup& parameterGroup = MaterialEditorInstance->ParameterGroups[0];
-	TArray<UDEditorParameterValue*>& parameters = parameterGroup.Parameters;
-	for (int32 i = 0; i < parameters.Num(); ++i)
+	TArray<FEditorParameterGroup>& parameterGroups = MaterialEditorInstance->ParameterGroups;
+	for (int32 groupIndex = 0 ; groupIndex < parameterGroups.Num() ; ++groupIndex)
 	{
-		Delegate.Execute(parameters[i]);
+		FEditorParameterGroup& parameterGroup = parameterGroups[groupIndex];
+		TArray<UDEditorParameterValue*>& parameters = parameterGroup.Parameters;
+		for (int32 i = 0; i < parameters.Num(); ++i)
+		{
+			Delegate.Execute(parameters[i]);
+		}
 	}
 }
 
@@ -79,6 +83,61 @@ void FMaterialEditHelper::BindRouterAndExecute(UMaterialEditorInstanceConstant* 
 			func->Execute(ParameterValue);
 		}
 	}));
+}
+
+FName FMaterialEditHelper::GetParameterGroupName(UMaterialInterface* Material, UDEditorParameterValue* ParameterValue)
+{
+	UMaterialInstanceConstant* MaterialInstanceConstant = Cast<UMaterialInstanceConstant>(Material);
+	if (MaterialInstanceConstant == nullptr)
+	{
+		return NAME_None;
+	}
+
+	UMaterialEditorInstanceConstant* MaterialEditorInstance = CreateMaterialEditorInstanceConstant(MaterialInstanceConstant);
+	return GetParameterGroupName(MaterialEditorInstance, ParameterValue);
+}
+
+FName FMaterialEditHelper::GetParameterGroupName(UMaterialEditorInstanceConstant* MaterialEditorInstance, UDEditorParameterValue* ParameterValue)
+{
+	FEditorParameterGroup* editorParameterGroup = FindParameterGroupByParameterName(MaterialEditorInstance, ParameterValue);
+	return editorParameterGroup != nullptr ? editorParameterGroup->GroupName : NAME_None;
+}
+
+FEditorParameterGroup* FMaterialEditHelper::FindParameterGroupByParameterName(UMaterialEditorInstanceConstant* MaterialEditorInstance, UDEditorParameterValue* ParameterValue)
+{
+	TArray<FEditorParameterGroup>& parameterGroups = MaterialEditorInstance->ParameterGroups;
+	for (int32 groupIndex = 0; groupIndex < parameterGroups.Num(); ++groupIndex)
+	{
+		TArray<UDEditorParameterValue*> materialParameters = parameterGroups[groupIndex].Parameters;
+		for (int32 paramIndex = 0; paramIndex < materialParameters.Num(); ++paramIndex)
+		{
+			// Use ExpressionId to compare instead of address because ParameterValue can come from another MaterialEditorInstance whose
+			// the source is on the same material. And ExpressionId is faster and safer than ParameterInfo.Name
+			if (materialParameters[paramIndex]->ExpressionId == ParameterValue->ExpressionId)
+			{
+				return &parameterGroups[groupIndex];
+			}
+		}
+	}
+	return nullptr;
+}
+
+UDEditorParameterValue* FMaterialEditHelper::FindEditorParameterValueByPropertyName(UMaterialEditorInstanceConstant* MaterialEditorInstance, const FString& PropertyName)
+{
+	TArray<FEditorParameterGroup>& parameterGroups = MaterialEditorInstance->ParameterGroups;
+	for (int32 groupIndex = 0; groupIndex < parameterGroups.Num(); ++groupIndex)
+	{
+		TArray<UDEditorParameterValue*> materialParameters = parameterGroups[groupIndex].Parameters;
+		for (int32 paramIndex = 0; paramIndex < materialParameters.Num(); ++paramIndex)
+		{
+			const FString parameterName = materialParameters[paramIndex]->ParameterInfo.Name.ToString();
+			if (parameterName.Compare(*PropertyName, ESearchCase::IgnoreCase) == 0)
+			{
+				return materialParameters[paramIndex];
+			}
+		}
+	}
+	return nullptr;
 }
 
 UMaterialEditorInstanceConstant* FMaterialEditHelper::CreateMaterialEditorInstanceConstant(UMaterialInstanceConstant* MaterialInstanceConstant)

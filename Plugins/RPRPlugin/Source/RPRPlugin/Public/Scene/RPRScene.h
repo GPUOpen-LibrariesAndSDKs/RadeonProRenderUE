@@ -37,7 +37,7 @@
 * Handles the context and scene creation
 */
 UCLASS(Transient)
-class ARPRScene : public AActor
+class RPRPLUGIN_API ARPRScene : public AActor
 {
 	GENERATED_BODY()
 public:

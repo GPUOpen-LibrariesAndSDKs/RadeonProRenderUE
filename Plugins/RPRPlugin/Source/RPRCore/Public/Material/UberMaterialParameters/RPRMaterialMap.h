@@ -21,6 +21,8 @@
 #include "Material/UberMaterialParameters/RPRUberMaterialParameterBase.h"
 #include "Engine/Texture2D.h"
 #include "Containers/UnrealString.h"
+#include "Containers/Map.h"
+#include "Material/RPRMaterialMapUV.h"
 #include "RPRMaterialMap.generated.h"
 
 /*
@@ -34,6 +36,10 @@ struct RPRCORE_API FRPRMaterialMap : public FRPRUberMaterialParameterBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
 	UTexture2D*		Texture;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Material)
+	FRPRMaterialMapUV	UVSettings;
+
+
 	FRPRMaterialMap() {}
 	FRPRMaterialMap(
 		const FString& InXmlParamName, 
@@ -41,4 +47,5 @@ struct RPRCORE_API FRPRMaterialMap : public FRPRUberMaterialParameterBase
 		ESupportMode InPreviewSupportMode, 
 		FCanUseParameter InCanUseParameter = FCanUseParameter(),
         FApplyParameter InApplyParameterDelegate = FApplyParameter());
+		
 };

@@ -23,6 +23,7 @@
 #include "Helpers/RPRHelpers.h"
 #include "Enums/RPREnums.h"
 #include "ImageManager/RPRImageManager.h"
+#include "Templates/IsEnum.h"
 
 namespace RPR
 {
@@ -40,13 +41,66 @@ namespace RPR
 		static FResult	DeleteNode(FMaterialNode& MaterialNode);
 
 		static FResult	CreateImageNode(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
-													UTexture2D* Texture, RPR::FImageManager::EImageType ImageType, RPR::FImagePtr& OutImage, FMaterialNode& MaterialNode);
+										UTexture2D* Texture, RPR::FImagePtr& OutImage, RPR::FMaterialNode& MaterialNode, RPR::FMaterialNode& OutImageNode);
+
+		static FResult	CreateNormalMap(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
+										UTexture2D* Texture, RPR::FImagePtr& OutImage, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutImageNode);
+
+		static FResult	CreateBumpMap(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
+										UTexture2D* Texture, float BumpScale,
+										RPR::FImagePtr& OutImage, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutImageNode);
 
 		class FMaterialNode
 		{
 		public:
 
-			static FResult	SetInputF(RPR::FMaterialNode MaterialNode, const FString& ParameterName, float x, float y, float z, float w);
+			static FResult	SetInputUInt(RPR::FMaterialNode MaterialNode, const FString& ParameterName, uint8 Value);
+			static FResult	SetInputNode(RPR::FMaterialNode MaterialNode, const FString& ParameterName, RPR::FMaterialNode InMaterialNode);
+			static FResult	SetInputImageData(RPR::FMaterialNode MaterialNode, const FString& ParameterName, RPR::FImage InImage);
+
+			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, float x, float y = 0.0f, float z = 0.0f, float w = 0.0f);
+			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector2D& Value, float z = 0.0f, float w = 0.0f);
+			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector& Value, float w = 0.0f);
+			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector4& Value);
+
+			template<typename TEnum>
+			static FResult	SetInputEnum(RPR::FMaterialNode MaterialNode, const FString& ParameterName, TEnum Value)
+			{
+				static_assert(TIsEnum<TEnum>::Value, "Value must be an enum!");
+				return SetInputUInt(MaterialNode, ParameterName, (uint8) Value);
+			}
+
+		};
+
+		class FArithmeticNode
+		{
+		public:
+
+			class FRotationNode
+			{
+			public:
+
+				static FResult	CreateRotationNode(FMaterialSystem MaterialSystem, const FString& NodeName, FRotationNode& OutRotationNode);
+
+				void SetRotationAngle(float RadAngle);
+				void SetInputVector2D(RPR::FMaterialNode MaterialNode);
+
+				RPR::FMaterialNode	GetOutputNode() const;
+
+			private:
+				RPR::FMaterialNode OutputNode;
+				RPR::FMaterialNode InputVector2DNode;
+				RPR::FMaterialNode InputRotationCenter;
+				RPR::FMaterialNode InputRotationAngleA;
+				RPR::FMaterialNode InputRotationAngleB;
+			};
+
+		public:
+
+			static FResult	CreateArithmeticNode(FMaterialSystem MaterialSystem, RPR::EMaterialNodeArithmeticOperation Operation, RPR::FMaterialNode& OutMaterialNode);
+			static FResult	CreateArithmeticNode(FMaterialSystem MaterialSystem, RPR::EMaterialNodeArithmeticOperation Operation, const FString& NodeName, RPR::FMaterialNode& OutMaterialNode);
+
+			static FResult	CreateVector2DRotationNode(FMaterialSystem MaterialSystem, const FString& NodeName, FRotationNode& OutRotationNode);
 
 		};
 

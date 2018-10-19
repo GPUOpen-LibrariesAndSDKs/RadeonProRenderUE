@@ -9,7 +9,7 @@
 bool RPR::GLTF::Importer::FRPRMaterialMapSetter::SetParameterValue(FSerializationContext& SerializationCtx,
 	FRPRUberMaterialParameterBase* UberParameter, RPRX::EMaterialParameterType ParameterType, RPRX::FParameter Parameter)
 {
-	FRPRMaterialCoM* map = (FRPRMaterialCoM*) UberParameter;
+	FRPRMaterialMap* map = (FRPRMaterialMap*) UberParameter;
 	RPR::FResult status;
 				
 	RPRX::FMaterial materialNode = nullptr;
