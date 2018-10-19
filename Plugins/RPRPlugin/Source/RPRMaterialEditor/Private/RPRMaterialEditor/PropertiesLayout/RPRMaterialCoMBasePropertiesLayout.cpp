@@ -46,8 +46,8 @@ TSharedRef<SWidget> FRPRMaterialCoMBasePropertiesLayout::GetPropertyValueRowWidg
 			]
 		]
 		+SHorizontalBox::Slot()
-		.AutoWidth()
-		.HAlign(HAlign_Left)
+		.FillWidth(1.0f)
+		.HAlign(HAlign_Right)
 		[
 			SNew(SWidgetSwitcher)
 			.WidgetIndex(this, &FRPRMaterialCoMBasePropertiesLayout::GetModeIndex)
@@ -57,7 +57,7 @@ TSharedRef<SWidget> FRPRMaterialCoMBasePropertiesLayout::GetPropertyValueRowWidg
 			]
 			+SWidgetSwitcher::Slot()
 			[
-				CreateCheckedTexturePropertyWidget()
+				FRPRMaterialMapPropertiesLayout::GetPropertyValueRowWidget()
 			]
 		];
 }

@@ -17,19 +17,12 @@
 * THE SOFTWARE.
 ********************************************************************/
 #include "Material/RPRUberMaterialParameters.h"
-#include "Material/Tools/MaterialCacheMaker/ParameterSetters/Specials/NormalMapParameterSetter.h"
 
 #define LOCTEXT_NAMESPACE "RPRUberMaterialParameters"
 
 static bool CanUseOnlyIfValidModeSet(const FRPRUberMaterialParameterBase* Parameter, FRPRMaterialEnum* EnumParameter, uint8 ExpectedValidMode)
 {
 	return (EnumParameter->EnumValue == ExpectedValidMode);
-}
-
-static void ApplyNormalMap(RPRX::MaterialParameter::FArgs& Args)
-{
-    RPRX::FNormalMapParameterSetter normalMapParameterSetter;
-    normalMapParameterSetter.ApplyParameterX(Args);    
 }
 
 static bool CantUseParameter(const FRPRUberMaterialParameterBase* MaterialParameter)
@@ -41,14 +34,14 @@ FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 	// Diffuse
 	: Diffuse_Weight(		TEXT("diffuse.weight"),		RPRX_UBER_MATERIAL_DIFFUSE_WEIGHT,		ESupportMode::FullySupported, 1.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Diffuse_Color(		TEXT("diffuse.color"),		RPRX_UBER_MATERIAL_DIFFUSE_COLOR,		ESupportMode::FullySupported, 1.0f)
-	, Diffuse_Normal(		TEXT("diffuse.normal"),		RPRX_UBER_MATERIAL_DIFFUSE_NORMAL,		ESupportMode::FullySupported, FCanUseParameter(), FApplyParameter::CreateStatic(ApplyNormalMap))
+	, Diffuse_Normal(		TEXT("diffuse.normal"),		RPRX_UBER_MATERIAL_DIFFUSE_NORMAL,		ESupportMode::FullySupported, FCanUseParameter())
 	, Diffuse_Roughness(	TEXT("diffuse.roughness"),	RPRX_UBER_MATERIAL_DIFFUSE_ROUGHNESS,	ESupportMode::NotSupported,	0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 
 	// Reflection
-	, Reflection_Weight(				TEXT("reflection.weight"),				RPRX_UBER_MATERIAL_REFLECTION_WEIGHT,				ESupportMode::FullySupported,		0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
+	, Reflection_Weight(				TEXT("reflection.weight"),				RPRX_UBER_MATERIAL_REFLECTION_WEIGHT,				ESupportMode::FullySupported,		1.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Reflection_Color(					TEXT("reflection.color"),				RPRX_UBER_MATERIAL_REFLECTION_COLOR,				ESupportMode::PreviewNotSupported, 1.0f)
-	, Reflection_Normal(				TEXT("reflection.normal"),				RPRX_UBER_MATERIAL_DIFFUSE_NORMAL,					ESupportMode::PreviewNotSupported,  FCanUseParameter(), FApplyParameter::CreateStatic(ApplyNormalMap))
-	, Reflection_Roughness(				TEXT("reflection.roughness"),			RPRX_UBER_MATERIAL_REFLECTION_ROUGHNESS,			ESupportMode::FullySupported,		0.5f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
+	, Reflection_Normal(				TEXT("reflection.normal"),				RPRX_UBER_MATERIAL_REFLECTION_NORMAL,				ESupportMode::PreviewNotSupported,  FCanUseParameter())
+	, Reflection_Roughness(				TEXT("reflection.roughness"),			RPRX_UBER_MATERIAL_REFLECTION_ROUGHNESS,			ESupportMode::FullySupported,		0.25f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Reflection_Anisotropy(			TEXT("reflection.anisotropy"),			RPRX_UBER_MATERIAL_REFLECTION_ANISOTROPY,			ESupportMode::PreviewNotSupported,	0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Reflection_AnisotropyRotation(	TEXT("reflection.anisotropyRotation"),	RPRX_UBER_MATERIAL_REFLECTION_ANISOTROPY_ROTATION,	ESupportMode::PreviewNotSupported,	0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 
@@ -63,18 +56,20 @@ FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 	, Refraction_Roughness(					TEXT("refraction.roughness"),			RPRX_UBER_MATERIAL_REFRACTION_ROUGHNESS,			ESupportMode::PreviewNotSupported, 0.5f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Refraction_Absorption_Color(			TEXT("refraction.absorptionColor"),		RPRX_UBER_MATERIAL_REFRACTION_ABSORPTION_COLOR,		ESupportMode::PreviewNotSupported, 0.0f)
 	, Refraction_Absorption_Distance(		TEXT("refraction.absorptionDistance"),	RPRX_UBER_MATERIAL_REFRACTION_ABSORPTION_DISTANCE,	ESupportMode::PreviewNotSupported, 0.0f, ERPRMCoMapC1InterpretationMode::AsFloat4)
+	, Refraction_Caustics(					TEXT("refraction.caustics"),			RPRX_UBER_MATERIAL_REFRACTION_CAUSTICS,				ESupportMode::PreviewNotSupported, false)
 	, Refraction_Ior(						TEXT("refraction.ior"),					RPRX_UBER_MATERIAL_REFRACTION_IOR,					ESupportMode::PreviewNotSupported, 1.5f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Refraction_IsThinSurface(				TEXT("refraction.thinSurface"),			RPRX_UBER_MATERIAL_REFRACTION_THIN_SURFACE,			ESupportMode::PreviewNotSupported, false)
-	
-	// Coating
-	, Coating_Color(		TEXT("coating.color"),		RPRX_UBER_MATERIAL_COATING_COLOR,		ESupportMode::PreviewNotSupported, 1.0f)
-	, Coating_Normal(		TEXT("coating.normal"),		RPRX_UBER_MATERIAL_COATING_NORMAL,		ESupportMode::PreviewNotSupported, FCanUseParameter(), FApplyParameter::CreateStatic(ApplyNormalMap))
-	, Coating_Weight(		TEXT("coating.weight"),		RPRX_UBER_MATERIAL_COATING_WEIGHT,		ESupportMode::PreviewNotSupported, 0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
-	, Coating_Roughness(	TEXT("coating.roughness"),	RPRX_UBER_MATERIAL_COATING_ROUGHNESS,	ESupportMode::PreviewNotSupported, 0.5f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
-	, Coating_Metalness(	TEXT("coating.metalness"),	RPRX_UBER_MATERIAL_COATING_METALNESS,	ESupportMode::PreviewNotSupported, 1.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
-	, Coating_Ior(			TEXT("coating.ior"),		RPRX_UBER_MATERIAL_COATING_IOR,			ESupportMode::PreviewNotSupported, 1.5f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 
-	, Coating_Mode(FRPRMaterialEnum::Create<ERPRReflectionMode>(TEXT("coating.mode"), RPRX_UBER_MATERIAL_COATING_MODE, ESupportMode::PreviewNotSupported, ERPRReflectionMode::PBR))
+	// Coating
+	, Coating_Color(						TEXT("coating.color"),				RPRX_UBER_MATERIAL_COATING_COLOR,					ESupportMode::PreviewNotSupported, 1.0f)
+	, Coating_Transmission_Color(			TEXT("coating.transmissioncolor"),	RPRX_UBER_MATERIAL_COATING_TRANSMISSION_COLOR,		ESupportMode::PreviewNotSupported, 1.0f)
+	, Coating_Normal(						TEXT("coating.normal"),				RPRX_UBER_MATERIAL_COATING_NORMAL,					ESupportMode::PreviewNotSupported, FCanUseParameter())
+	, Coating_Thickness(					TEXT("coating.thickness"),			RPRX_UBER_MATERIAL_COATING_THICKNESS,				ESupportMode::PreviewNotSupported, 1.0f)
+	, Coating_Weight(						TEXT("coating.weight"),				RPRX_UBER_MATERIAL_COATING_WEIGHT,					ESupportMode::PreviewNotSupported, 0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
+	, Coating_Roughness(					TEXT("coating.roughness"),			RPRX_UBER_MATERIAL_COATING_ROUGHNESS,				ESupportMode::PreviewNotSupported, 0.5f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
+	, Coating_Ior(							TEXT("coating.ior"),				RPRX_UBER_MATERIAL_COATING_IOR,						ESupportMode::PreviewNotSupported, 1.5f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
+
+	, Coating_Mode(FRPRMaterialEnum::Create<ERPRCoatingMode>(TEXT("coating.mode"), RPRX_UBER_MATERIAL_COATING_MODE, ESupportMode::PreviewNotSupported, ERPRCoatingMode::PBR))
 
 	// Emission
 	, Emission_Color(	TEXT("emission.color"),		RPRX_UBER_MATERIAL_EMISSION_COLOR,	ESupportMode::FullySupported, 1.0f)
@@ -96,6 +91,11 @@ FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 	// Backscatter
 	, Backscatter_Weight(	TEXT("backscatter.weight"),	RPRX_UBER_MATERIAL_BACKSCATTER_WEIGHT,	ESupportMode::PreviewNotSupported, 0.0f, ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Backscatter_Color(	TEXT("backscatter.color"),	RPRX_UBER_MATERIAL_BACKSCATTER_COLOR,	ESupportMode::PreviewNotSupported, 1.0f)
+
+	// Sheen (Not implemented yet)
+	//, Sheen(		TEXT("sheen"),			RPRX_UBER_MATERIAL_SHEEN, ESupportMode::PreviewNotSupported, //)
+	//, Sheen_Tint(	TEXT("sheen.tint"),		RPRX_UBER_MATERIAL_SHEEN_TINT, ESupportMode::PreviewNotSupported, //)
+	//, Sheen_Weight(	TEXT("sheen.weight"),	RPRX_UBER_MATERIAL_SHEEN_WEIGHT, ESupportMode::PreviewNotSupported, //)
 {
 #if WITH_EDITOR
 	SetupEditorSettings();
@@ -121,6 +121,15 @@ void FRPRUberMaterialParameters::SetupEditorSettings()
 	Reflection_Roughness.GetConstantRestriction().SetRange01();
 	Refraction_Roughness.GetConstantRestriction().SetRange01();
 	Coating_Roughness.GetConstantRestriction().SetRange01();
+
+	Coating_Thickness.GetConstantRestriction().SetMinimum(0.0f);
+	Coating_Thickness.GetConstantRestriction().SetMinimum(10.0f);
+
+	Reflection_Anisotropy.GetConstantRestriction().SetMinimum(-1.0f);
+	Reflection_Anisotropy.GetConstantRestriction().SetMaximum(1.0f);
+
+	Reflection_AnisotropyRotation.GetConstantRestriction().SetMinimum(-1.0f);
+	Reflection_AnisotropyRotation.GetConstantRestriction().SetMaximum(1.0f);
 
 	Reflection_Ior.GetConstantRestriction().SetMinimum(0.0f);
 	Refraction_Ior.GetConstantRestriction().SetMinimum(0.0f);

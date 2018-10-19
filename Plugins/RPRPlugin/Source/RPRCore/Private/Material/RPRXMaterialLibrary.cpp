@@ -31,7 +31,6 @@
 #include "Material/RPRUberMaterialParameters.h"
 #include "Material/Tools/UberMaterialPropertyHelper.h"
 #include "Templates/Casts.h"
-#include "Map.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRMaterialLibrary, Log, All)
 
@@ -166,7 +165,7 @@ void FRPRXMaterialLibrary::InitializeDummyMaterial()
 		return;
 	}
 
-	result = RPR::FMaterialHelpers::FMaterialNode::SetInputF(DummyMaterial, TEXT("color"), 0.5f, 0.5f, 0.5f, 1.0f);
+	result = RPR::FMaterialHelpers::FMaterialNode::SetInputFloats(DummyMaterial, TEXT("color"), 0.5f, 0.5f, 0.5f, 1.0f);
 	if (RPR::IsResultFailed(result))
 	{
 		UE_LOG(LogRPRMaterialLibrary, Warning, TEXT("Cannot set the default color on the dummy material"));

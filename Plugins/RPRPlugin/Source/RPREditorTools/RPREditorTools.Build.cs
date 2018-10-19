@@ -59,6 +59,7 @@ public class RPREditorTools : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
+                "RPRCore",
                 "Core",
                 "RawMesh",
                 "MeshDescription",

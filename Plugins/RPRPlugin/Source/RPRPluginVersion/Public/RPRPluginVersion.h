@@ -1,3 +1,4 @@
+
 /**********************************************************************
 * Copyright (c) 2018 Advanced Micro Devices, Inc. All rights reserved.
 * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,5 +24,5 @@
 #define RPR_PLUGIN_MAJOR_VERSION 0
 #define RPR_PLUGIN_MINOR_VERSION 8
 
-#define RPR_PLUGIN_BUILD_VERSION 1449
-#define RPR_PLUGIN_BUILD_GUID TEXT("5c0add3a-3697-4fb4-8dac-c461319f3fd1")
+#define RPR_PLUGIN_BUILD_VERSION 1779
+#define RPR_PLUGIN_BUILD_GUID TEXT("fecde7c7-db76-4f89-9a2d-6da77c9de9f0")

@@ -28,6 +28,13 @@ enum class ERPRReflectionMode : uint8
 };
 
 UENUM(BlueprintType)
+enum class ERPRCoatingMode : uint8
+{
+	PBR = RPRX_UBER_MATERIAL_COATING_MODE_PBR,
+	//Metalness = RPRX_UBER_MATERIAL_COATING_MODE_METALNESS,
+};
+
+UENUM(BlueprintType)
 enum class ERPREmissionMode : uint8
 {
 	SingleSided = RPRX_UBER_MATERIAL_EMISSION_MODE_SINGLESIDED,
@@ -40,6 +47,15 @@ struct TNameOf<ERPRReflectionMode>
 	FORCEINLINE static TCHAR const* GetName()
 	{
 		return TEXT("ERPRReflectionMode");
+	}
+};
+
+template<>
+struct TNameOf<ERPRCoatingMode>
+{
+	FORCEINLINE static TCHAR const* GetName()
+	{
+		return TEXT("ERPRCoatingMode");
 	}
 };
 

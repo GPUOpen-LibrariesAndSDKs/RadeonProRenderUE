@@ -51,6 +51,8 @@ namespace RPR
 	typedef rpr_material_node_type			FMaterialNodeType;
 	typedef rpr_material_node_input_type	FMaterialNodeInputType;
 
+	typedef rpr_material_node_arithmetic_operation	FMaterialNodeArithmeticOperation;
+
 	typedef void*						FMaterialRawDatas;
 	typedef rpr_material_node			FMaterialNode;
 

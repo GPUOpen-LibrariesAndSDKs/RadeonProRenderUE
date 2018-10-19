@@ -5,13 +5,17 @@
 #include "Helpers/RPRHelpers.h"
 #include "File/RPRFileHelper.h"
 #include "Misc/ScopedSlowTask.h"
+#include "Async/ParallelFor.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRMeshImporter, Log, All)
+DECLARE_CYCLE_STAT(TEXT("RPR.FMeshImporter ~ Transform Positions"), STAT_TransformPosition, STATGROUP_RPRMeshImporter)
+DECLARE_CYCLE_STAT(TEXT("RPR.FMeshImporter ~ Transform Vectors"), STAT_TransformVectors, STATGROUP_RPRMeshImporter)
 
 #define LOCTEXT_NAMESPACE "RPR::FMeshImporter"
 
 RPR::FMeshImporter::FSettings::FSettings()
 	: ScaleFactor(100.0f)
+	, SmoothNormals(true)
 {}
 
 UStaticMesh* RPR::FMeshImporter::ImportMesh(const FString& MeshName, RPR::FShape Shape, const FSettings& Settings)
@@ -28,10 +32,21 @@ UStaticMesh* RPR::FMeshImporter::ImportMesh(const FString& MeshName, RPR::FShape
 	if (!ImportTriangles(MeshName, Shape, rawMesh.WedgeIndices)) return nullptr;
 
 	slowTask.EnterProgressFrame(1.0f, LOCTEXT("ImportNormals", "Import normals..."));
-	if (!ImportNormals(MeshName, Shape, Settings, rawMesh.WedgeIndices, rawMesh.WedgeTangentZ)) return nullptr;
+	if (!ImportNormals(MeshName, Shape, Settings, rawMesh.VertexPositions.Num(), rawMesh.WedgeIndices, rawMesh.WedgeTangentZ)) return nullptr;
 
 	slowTask.EnterProgressFrame(1.0f, LOCTEXT("ImportUV", "Import UV..."));
-	if (!ImportUVs(MeshName, Shape, rawMesh.WedgeTexCoords, rawMesh.WedgeIndices.Num())) return nullptr;
+	if (!ImportUVs(MeshName, Shape, rawMesh.WedgeTexCoords, rawMesh.WedgeIndices)) return nullptr;
+
+	rawMesh.FaceSmoothingMasks.Empty();
+	if (Settings.SmoothNormals)
+	{
+		const uint32	faceCount = rawMesh.WedgeIndices.Num() / 3;
+		rawMesh.FaceSmoothingMasks.SetNum(faceCount);
+
+		uint32	*dstSmoothingMasks = rawMesh.FaceSmoothingMasks.GetData();
+		for (uint32 i = 0; i < faceCount; ++i)
+			*dstSmoothingMasks++ = 1;
+	}
 
 	InitializeUnknownData(rawMesh);
 
@@ -75,7 +90,7 @@ bool RPR::FMeshImporter::ImportVertices(const FString& MeshName, RPR::FShape Sha
 	return (true);
 }
 
-bool RPR::FMeshImporter::ImportNormals(const FString& MeshName, RPR::FShape Shape, const FSettings& Settings, const TArray<uint32>& Indices, TArray<FVector>& OutNormals)
+bool RPR::FMeshImporter::ImportNormals(const FString& MeshName, RPR::FShape Shape, const FSettings& Settings, const int32 NumVertices, const TArray<uint32>& Indices, TArray<FVector>& OutNormals)
 {
 	RPR::FResult status;
 	uint32 count;
@@ -86,31 +101,42 @@ bool RPR::FMeshImporter::ImportNormals(const FString& MeshName, RPR::FShape Shap
 		UE_LOG(LogRPRMeshImporter, Error, TEXT("Cannot get normals count for mesh '%s'"), *MeshName);
 		return (false);
 	}
-	if (count > 0)
+
+	if (count == 0)
 	{
-		status = RPR::Mesh::GetNormals(Shape, OutNormals);
-		if (RPR::IsResultFailed(status))
-		{
-			UE_LOG(LogRPRMeshImporter, Error, TEXT("Cannot get normals for mesh '%s'"), *MeshName);
-			return (false);
-		}
+		return (true);
+	}
 
-		FTransform transform = CreateTransformFromImportSettings(Settings);
-		TransformVectors(OutNormals, transform);
+	TArray<FVector> normals;
+	status = RPR::Mesh::GetNormals(Shape, normals);
+	if (RPR::IsResultFailed(status))
+	{
+		UE_LOG(LogRPRMeshImporter, Error, TEXT("Cannot get normals for mesh '%s'"), *MeshName);
+		return (false);
+	}
 
-		// If there is not the same number, 
-		// it means that the organization is different
-		if (OutNormals.Num() != Indices.Num())
+	FTransform transform = CreateTransformFromImportSettings(Settings);
+	TransformVectors(normals, transform);
+
+	OutNormals.Empty(NumVertices);
+	OutNormals.AddUninitialized(NumVertices);
+
+	// If there is not the same number, 
+	// it means that the organization is different
+	if (normals.Num() != Indices.Num())
+	{
+		OutNormals.Empty(Indices.Num());
+		OutNormals.AddUninitialized(Indices.Num());
+
+		ParallelFor(Indices.Num(), [&Indices, &OutNormals, &normals] (int32 index)
 		{
-			TArray<FVector> normals = MoveTemp(OutNormals);
-			OutNormals.Empty(Indices.Num());
-			OutNormals.AddUninitialized(Indices.Num());
-			for (int32 index = 0; index < Indices.Num(); ++index)
-			{
-				uint32 vertexId = Indices[index];
-				OutNormals[index] = normals[vertexId];
-			}
-		}
+			const uint32 vertexId = Indices[index];
+			OutNormals[index] = normals[vertexId];
+		});
+	}
+	else
+	{
+		OutNormals = MoveTemp(normals);
 	}
 
 	return (true);
@@ -128,7 +154,7 @@ bool RPR::FMeshImporter::ImportTriangles(const FString& MeshName, RPR::FShape Sh
 	return (true);
 }
 
-bool RPR::FMeshImporter::ImportUVs(const FString& MeshName, RPR::FShape Shape, TArray<FVector2D>* UVs, uint32 ExpectedNumUVs)
+bool RPR::FMeshImporter::ImportUVs(const FString& MeshName, RPR::FShape Shape, TArray<FVector2D>* UVs, const TArray<uint32> &Indices)
 {
 	RPR::FResult status;
 	uint32 count;
@@ -152,16 +178,28 @@ bool RPR::FMeshImporter::ImportUVs(const FString& MeshName, RPR::FShape Shape, T
 
 		if (count > 0)
 		{
-			status = RPR::Mesh::GetUV(Shape, uvIndex, UVs[uvIndex]);
+			TArray<FVector2D>	uvs;
+			status = RPR::Mesh::GetUV(Shape, uvIndex, uvs);
 			if (RPR::IsResultFailed(status))
 			{
 				UE_LOG(LogRPRMeshImporter, Error, TEXT("Cannot get uv for UV channels '%d' from the mesh '%s'"), *MeshName, uvIndex);
 				return (false);
 			}
+			// ProRender returns unique uvs, we need to expand them for UE4 to accept them
+			// See FRawMesh::IsValidOrFixable()
+
+			const uint32	uvCount = Indices.Num();
+			UVs[uvIndex].SetNum(Indices.Num());
+
+			const uint32	*srcIndices = Indices.GetData();
+			const FVector2D	*srcUVs = uvs.GetData();
+			FVector2D		*dstUVs = UVs[uvIndex].GetData();
+			for (int32 iUV = 0; iUV < Indices.Num(); ++iUV)
+				*dstUVs++ = srcUVs[*srcIndices++];
 		}
 		else
 		{
-			GenerateDefaultUVs(UVs[uvIndex], ExpectedNumUVs);
+			//GenerateDefaultUVs(UVs[uvIndex], Indices.Num());
 		}
 	}
 
@@ -171,9 +209,10 @@ bool RPR::FMeshImporter::ImportUVs(const FString& MeshName, RPR::FShape Shape, T
 void RPR::FMeshImporter::InitializeUnknownData(FRawMesh& RawMesh)
 {
 	// These data are not available so we create default ones
-	int32 numFaces = RawMesh.WedgeIndices.Num() / 3;
+	const uint32 numFaces = RawMesh.WedgeIndices.Num() / 3;
 
-	RawMesh.FaceSmoothingMasks.AddDefaulted(numFaces);
+	if (RawMesh.FaceSmoothingMasks.Num() == 0)
+		RawMesh.FaceSmoothingMasks.AddDefaulted(numFaces);
 	RawMesh.FaceMaterialIndices.AddDefaulted(numFaces);
 }
 
@@ -199,18 +238,24 @@ void RPR::FMeshImporter::SaveRawMeshToStaticMesh(FRawMesh& RawMesh, UStaticMesh*
 
 void RPR::FMeshImporter::TransformPosition(TArray<FVector>& Vertices, const FTransform& Transform)
 {
-	for (int32 i = 0; i < Vertices.Num(); ++i)
+	SCOPE_CYCLE_COUNTER(STAT_TransformPosition);
+
+	ParallelFor(Vertices.Num(), [&Vertices, &Transform] (int32 Index)
 	{
-		Vertices[i] = Transform.TransformPosition(Vertices[i]);
-	}
+		Vertices[Index] = Transform.TransformPosition(Vertices[Index]);
+		Swap(Vertices[Index].Y, Vertices[Index].Z);
+	});
 }
 
 void RPR::FMeshImporter::TransformVectors(TArray<FVector>& Vertices, const FTransform& Transform)
 {
-	for (int32 i = 0; i < Vertices.Num(); ++i)
+	SCOPE_CYCLE_COUNTER(STAT_TransformVectors);
+
+	ParallelFor(Vertices.Num(), [&Vertices, &Transform] (int32 Index)
 	{
-		Vertices[i] = Transform.TransformVector(Vertices[i]);
-	}
+		Vertices[Index] = Transform.TransformVector(Vertices[Index]);
+		Swap(Vertices[Index].Y, Vertices[Index].Z);
+	});
 }
 
 void RPR::FMeshImporter::GenerateDefaultUVs(TArray<FVector2D>& UVs, uint32 NumUVs)
@@ -220,8 +265,8 @@ void RPR::FMeshImporter::GenerateDefaultUVs(TArray<FVector2D>& UVs, uint32 NumUV
 
 FTransform RPR::FMeshImporter::CreateTransformFromImportSettings(const FSettings& Settings)
 {
-	const float metersToCentimeters = 100;
-	return FTransform(Settings.Rotation, FVector::ZeroVector, FVector::OneVector * Settings.ScaleFactor * -1.0f * metersToCentimeters);
+	const int32 centimeterInMeter = 100;
+	return FTransform(Settings.Rotation, FVector::ZeroVector, FVector::OneVector * Settings.ScaleFactor * centimeterInMeter);
 }
 
 #undef LOCTEXT_NAMESPACE

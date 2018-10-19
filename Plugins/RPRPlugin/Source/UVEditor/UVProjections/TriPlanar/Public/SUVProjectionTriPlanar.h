@@ -24,6 +24,7 @@
 #include "IDetailsView.h"
 #include "Misc/NotifyHook.h"
 #include "IStructureDetailsView.h"
+#include "TriPlanarSettings/TriPlanarSettingsObject.h"
 
 /*
  * Widget displayed when the TriPlanar projection is selected
@@ -55,6 +56,9 @@ protected:
 	virtual TSharedRef<SWidget>			GetAlgorithmSettingsWidget();
 	virtual void						OnAlgorithmCompleted(IUVProjectionAlgorithmPtr InAlgorithm, bool bIsSuccess);
 	virtual UShapePreviewBase*			GetShapePreview();
+
+	void									OnMeshSelectionChanged();
+	static TSharedRef<IDetailCustomization>	MakeTriPlanarSettingsDetails();
 	
 	virtual void OnPreAlgorithmStart() override;
 	virtual bool RequiredManualApply() const override;
@@ -62,12 +66,16 @@ protected:
 private:
 
 	void	InitTriPlanarSettings();
-	void	TryLoadTriPlanarSettings();
+	void	UpdateTriPlanarSettingsFromMeshSelection();
 	void	UpdateAlgorithmSettings();
+
+private:
 
 private:
 
 	FTriPlanarSettings			        Settings;
 	TSharedPtr<IStructureDetailsView>	SettingsDetailsView;
 
+	UTriPlanarSettingsObject*			TriPlanarSettings;
+	TSharedPtr<IDetailsView>			TriPlanarSettingsView;
 };

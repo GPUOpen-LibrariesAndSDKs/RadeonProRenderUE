@@ -22,6 +22,7 @@
 #include "Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialCoMChannel1/MaterialCoMChannel1ParameterSetter.h"
 #include "Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialCoM/MaterialCoMParameterSetter.h"
 #include "Material/Tools/MaterialCacheMaker/ParameterSetters/MaterialMap/MaterialMapParameterSetter.h"
+#include "Material/Tools/MaterialCacheMaker/ParameterSetters/NormalMap/NormalMapParameterSetter.h"
 #include "Material/Tools/MaterialCacheMaker/ParameterSetters/Enum/MaterialEnumParameterSetter.h"
 #include "Material/Tools/MaterialCacheMaker/ParameterSetters/Bool/MaterialBoolParameterSetter.h"
 
@@ -39,6 +40,7 @@ namespace RPRX
 
 			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialCoMChannel1, FMaterialCoMChannel1ParameterSetter);
 			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialCoM, FMaterialCoMParameterSetter);
+			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialNormalMap, FNormalMapParameterSetter);
 			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialMap, FMaterialMapParameterSetter);
 			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialEnum, FMaterialEnumParameterSetter);
 			ADD_TO_FACTORY_CHECK_CLASS(FRPRMaterialBool, FMaterialBoolParameterSetter);

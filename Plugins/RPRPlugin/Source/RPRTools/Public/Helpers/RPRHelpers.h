@@ -28,8 +28,8 @@
 #include "Templates/Function.h"
 #include "Typedefs/RPRXTypedefs.h"
 
-RPRTOOLS_API RadeonProRender::matrix BuildMatrixNoScale(const struct FTransform &transform);
-RPRTOOLS_API RadeonProRender::matrix BuildMatrixWithScale(const struct FTransform &transform);
+RPRTOOLS_API RadeonProRender::matrix BuildMatrixNoScale(const struct FTransform &transform, float translationScale = 1.0f);
+RPRTOOLS_API RadeonProRender::matrix BuildMatrixWithScale(const struct FTransform &transform, float translationScale = 1.0f);
 
 namespace RPR
 {
@@ -51,8 +51,6 @@ namespace RPR
 	RPRTOOLS_API FResult		DeleteObject(void*& Object);
 
 	RPRTOOLS_API FResult		SetObjectName(void* Object, const TCHAR* Name);
-
-	RPRTOOLS_API FResult		SceneDetachShape(FScene Scene, FShape Shape);
 
 	RPRTOOLS_API FResult		SceneClear(RPR::FScene Scene);
 
@@ -128,7 +126,7 @@ namespace RPR
 			return (status);
 		}
 
-		RPRTOOLS_API bool FindInMaterialNode(RPR::FContext Context, RPR::FMaterialNode MaterialNode, FMaterialNodeFinder Finder);
+		RPRTOOLS_API bool FindInMaterialNode(RPR::FMaterialNode MaterialNode, FMaterialNodeFinder Finder);
 		RPRTOOLS_API bool FindFirstImageAvailable(RPR::FContext Context, RPR::FMaterialNode MaterialNode, RPR::FImage& OutImage);
 	}
 

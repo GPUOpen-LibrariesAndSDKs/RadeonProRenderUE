@@ -21,16 +21,20 @@ void RPR::GLTF::Import::FRPRLightDataToLightComponent::Setup(
 	RPR::FResult status;
 
 	FString objectName;
-	status = RPR::Light::GetObjectName(Light, objectName);
+	status = RPR::Light::GetName(Light, objectName);
 	if (RPR::IsResultSuccess(status) && !objectName.IsEmpty())
 	{
 		LightComponent->Rename(*objectName, nullptr, REN_NonTransactional | REN_DoNotDirty);
 	}
 
 	FTransform transform;
-	status = RPR::Light::GetTransform(Light, transform);
+	status = RPR::Light::GetWorldTransform(Light, transform);
 	if (RPR::IsResultSuccess(status))
 	{
+		// We know that lights are coming from ProRender and they have a kind of weird rotation applied on it
+		// so we have to reverse them when importing
+		transform.SetRotation(FQuat::MakeFromEuler(FVector(-90.0f, 90.0f, 0.0f)).Inverse() * transform.GetRotation());
+
 		if (RootActor)
 		{
 			RootActor->SetActorTransform(transform);

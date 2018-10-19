@@ -3,6 +3,7 @@
 #include "Enums/RPREnums.h"
 #include "Containers/Array.h"
 #include "PixelFormat.h"
+#include "Engine/Texture.h"
 
 namespace RPR
 {
@@ -17,5 +18,8 @@ namespace RPR
 		RPRTOOLS_API RPR::FResult IsMipMapEnabled(RPR::FImage Image, bool& bIsMipMapEnabled);
 
 		RPRTOOLS_API bool	ConvertRPRImageFormatToUE4PixelFormat(RPR::FImageFormat ImageFormat, EPixelFormat& OutPixelFormat);
+
+		RPRTOOLS_API TextureAddress			ConvertRPRImageWrapToUE4TextureAddress(RPR::EImageWrapType WrapType);
+		RPRTOOLS_API RPR::EImageWrapType	ConvertUE4TextureAddressToRPRImageWrap(TextureAddress InTextureAddress);
 	};
 }

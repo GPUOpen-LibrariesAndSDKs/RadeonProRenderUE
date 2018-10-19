@@ -62,6 +62,7 @@ FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene rprScene, 
 ,	m_IsBuildingObjects(false)
 ,	m_ClearFramebuffer(false)
 ,	m_PauseRender(true)
+,	m_CachedRaycastEpsilon(0.0f)
 ,	m_Trace(false)
 ,	m_TracePath("")
 ,	m_UpdateTrace(false)
@@ -113,16 +114,16 @@ void	FRPRRendererWorker::SaveToFile(const FString &filename)
 	{
 		// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
 		m_RenderLock.Lock();
-		const bool saved = RPR::IsResultSuccess(rprFrameBufferSaveToFile(m_RprResolvedFrameBuffer, TCHAR_TO_ANSI(*filename)));
+		RPR::FResult status = rprFrameBufferSaveToFile(m_RprResolvedFrameBuffer, TCHAR_TO_ANSI(*filename));
 		m_RenderLock.Unlock();
 
-		if (saved)
+		if (RPR::IsResultSuccess(status))
 		{
 			UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully saved to '%s'"), *filename);
 		}
 		else
 		{
-			UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't save framebuffer to '%s'"), *filename);
+			UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't save framebuffer to '%s' (error code : %d)"), *filename, status);
 		}
 	}
 }
@@ -525,6 +526,19 @@ bool	FRPRRendererWorker::PreRenderLoop()
 
 	if (!isPaused || m_CurrentIteration < settings->MaximumRenderIterations)
 	{
+		// Settings expose raycast epsilon in millimeters
+		const float	raycastEpsilon = settings->RaycastEpsilon / 1000.0f;
+		if (FMath::Abs(m_CachedRaycastEpsilon - raycastEpsilon) > FLT_EPSILON)
+		{
+			m_CachedRaycastEpsilon = raycastEpsilon;
+			if (rprContextSetParameter1f(m_RprContext, "raycastepsilon", m_CachedRaycastEpsilon) != RPR_SUCCESS)
+			{
+				UE_LOG(LogRPRRenderer, Warning, TEXT("Couldn't set raycast epsilon"));
+				RPR::Error::LogLastError(m_RprContext);
+			}
+			else
+				m_ClearFramebuffer = true; // Restart rendering
+		}
 		UpdatePostEffectSettings();
 	}
 

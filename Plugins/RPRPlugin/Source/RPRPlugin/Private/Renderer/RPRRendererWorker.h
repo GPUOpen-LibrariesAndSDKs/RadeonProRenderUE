@@ -120,6 +120,8 @@ private:
 	bool						m_ClearFramebuffer;
 	bool						m_PauseRender;
 
+	float						m_CachedRaycastEpsilon;
+
 	bool						m_Trace;
 	bool						m_UpdateTrace;
 	FString						m_TracePath;

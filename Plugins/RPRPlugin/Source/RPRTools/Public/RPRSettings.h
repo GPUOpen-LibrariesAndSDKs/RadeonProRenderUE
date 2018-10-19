@@ -121,6 +121,9 @@ public:
 	UPROPERTY(Config)
 	float		PhotolinearTonemapFStop;
 
+	UPROPERTY(Config)
+	float		RaycastEpsilon;
+
 	UPROPERTY(Config, EditAnywhere, Category = Materials)
  	TSoftObjectPtr<UMaterialInterface>	UberMaterial;
 

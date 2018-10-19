@@ -19,13 +19,14 @@
 #include "RPRMaterialEditor/RPRMaterialParamCopiers/RPRMatParamCopier_Enum.h"
 #include "Material/UberMaterialParameters/RPRMaterialEnum.h"
 #include "MaterialEditor/DEditorScalarParameterValue.h"
+#include "MaterialEditHelper.h"
 
 void FRPRMatParamCopier_Enum::Apply(const FRPRUberMaterialParameters& RPRUberMaterialParameters, UStructProperty* Property, UMaterialEditorInstanceConstant* RPRMaterialEditorInstance)
 {
 	const FRPRMaterialEnum* materialEnum = Property->ContainerPtrToValuePtr<const FRPRMaterialEnum>(&RPRUberMaterialParameters);
 
 	const FString& parameterName = materialEnum->GetParameterName();
-	auto parameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorScalarParameterValue>(RPRMaterialEditorInstance, parameterName);
+	auto parameter = FMaterialEditHelper::FindEditorParameterValueByPropertyName<UDEditorScalarParameterValue>(RPRMaterialEditorInstance, parameterName);
 	if (parameter)
 	{
         parameter->bOverride = true;

@@ -32,7 +32,7 @@ namespace RPR
 			const FString& Filename,
 			RPR::FContext Context,
 			RPR::FMaterialSystem MaterialSystem,
-			RPRX::FContext RPRContext,
+			RPRX::FContext RPRXContext,
 			RPR::FScene& OutScene
 		);
 
@@ -40,13 +40,14 @@ namespace RPR
 			const FString& Filename,
 			RPR::FContext Context,
 			RPR::FMaterialSystem MaterialSystem,
-			RPRX::FContext RPRContext,
+			RPRX::FContext RPRXContext,
 			const TArray<RPR::FScene>& Scenes
 		);
 
 		RPR_GLTF_API bool		IsResultSuccess(FStatus status);
 		RPR_GLTF_API bool		IsResultFailed(FStatus status);
 		RPR_GLTF_API FString	GetStatusText(FStatus status);
+		RPR_GLTF_API FStatus	ReleaseImportedData();
 
 		namespace Import
 		{
@@ -62,6 +63,9 @@ namespace RPR
 		{
 			RPR_GLTF_API FStatus GetParentGroupFromShape(RPR::FShape Shape, FString& OutGroupName);
 			RPR_GLTF_API FStatus GetParentGroupFromGroup(const FString& GroupChild, FString& OutGroupName);
+
+			RPR_GLTF_API RPR::FResult	GetLocalTransform(const FString& GroupName, FTransform& OutTransform);
+			RPR_GLTF_API RPR::FResult	GetWorldTransform(const FString& GroupName, FTransform& OutTransform);
 		}
 
 	}

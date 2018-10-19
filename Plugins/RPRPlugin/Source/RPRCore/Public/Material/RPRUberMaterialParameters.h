@@ -29,6 +29,7 @@
 #include "Material/UberMaterialParameters/RPRMaterialCoM.h"
 #include "Material/UberMaterialParameters/RPRMaterialBool.h"
 #include "Material/UberMaterialParameters/RPRMaterialEnum.h"
+#include "Material/UberMaterialParameters/RPRMaterialNormalMap.h"
 #include "RPRUberMaterialParameters.generated.h"
 
 USTRUCT(BlueprintType)
@@ -43,7 +44,7 @@ struct RPRCORE_API FRPRUberMaterialParameters
 	FRPRMaterialCoM			Diffuse_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Diffuse")
-	FRPRMaterialMap			Diffuse_Normal;
+	FRPRMaterialNormalMap	Diffuse_Normal;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Diffuse")
 	FRPRMaterialCoMChannel1	Diffuse_Roughness;
@@ -56,7 +57,7 @@ struct RPRCORE_API FRPRUberMaterialParameters
 	FRPRMaterialCoM			Reflection_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
-	FRPRMaterialMap			Reflection_Normal;
+	FRPRMaterialNormalMap	Reflection_Normal;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Reflection")
 	FRPRMaterialCoMChannel1	Reflection_Roughness;
@@ -94,6 +95,9 @@ struct RPRCORE_API FRPRUberMaterialParameters
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction")
 	FRPRMaterialCoMChannel1	Refraction_Ior;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction")
+	FRPRMaterialBool		Refraction_Caustics;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Refraction")
 	FRPRMaterialBool		Refraction_IsThinSurface;
@@ -106,17 +110,21 @@ struct RPRCORE_API FRPRUberMaterialParameters
 	FRPRMaterialCoM			Coating_Color;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
-	FRPRMaterialMap			Coating_Normal;
+	FRPRMaterialCoM			Coating_Transmission_Color;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
+	FRPRMaterialNormalMap	Coating_Normal;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
+	FRPRMaterialCoMChannel1	Coating_Thickness;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
 	FRPRMaterialCoMChannel1	Coating_Roughness;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
-	FRPRMaterialCoMChannel1	Coating_Metalness;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
 	FRPRMaterialCoMChannel1	Coating_Ior;
-	
+
+	// Only PBR supported
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material|Coating")
 	FRPRMaterialEnum		Coating_Mode;
 

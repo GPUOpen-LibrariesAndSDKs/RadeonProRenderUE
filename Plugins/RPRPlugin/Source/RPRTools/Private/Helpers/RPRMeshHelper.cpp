@@ -89,7 +89,12 @@ namespace RPR
 			return GetInfoNoAlloc(Shape, EMeshInfo::UVIndexStride, &OutStride);
 		}
 
+		//////////////////////////////////////////////////////////////////////////
 
+		RPR::FResult GetNumFaceVertices(RPR::FShape Shape, TArray<uint32>& OutNumFaceVertices)
+		{
+			return GetInfoToArray(Shape, EMeshInfo::NumFaceVerticesArray, OutNumFaceVertices);
+		}
 
 	} // namespace Mesh
 

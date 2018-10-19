@@ -117,6 +117,34 @@ namespace RPR
 			return status;
 		}
 
+		FResult CreateMesh(FContext Context, const TCHAR* MeshName,
+					const TArray<FVector>& Vertices, const TArray<FVector>& Normals, const TArray<uint32>& Indices, 
+					const TArray<FVector2D>& Texcoords, const TArray<uint32>& NumFaceVertices, FShape& OutMesh)
+		{
+			RPR::FResult status = rprContextCreateMesh(Context,
+				(rpr_float const *) Vertices.GetData(),		Vertices.Num(),		sizeof(float) * 3,
+				(rpr_float const *) Normals.GetData(),		Normals.Num(),		sizeof(float) * 3,
+				(rpr_float const *) Texcoords.GetData(),	Texcoords.Num(),	sizeof(float) * 2,
+				(rpr_int const *) Indices.GetData(), sizeof(uint32),
+				(rpr_int const *) Indices.GetData(), sizeof(uint32),
+				(rpr_int const *) Indices.GetData(), sizeof(uint32),
+				(rpr_int const *) NumFaceVertices.GetData(), NumFaceVertices.Num(),
+				&OutMesh);
+
+			UE_LOG(LogRPRTools_Step, VeryVerbose,
+				TEXT("rprContextCreateMesh(context=%p, verticesNum=%d, normalsNum=%d, texCoordsNum=%d, indicesNum=%d, numFaceVertices=%d) -> status=%d, mesh=%p"),
+				Context,
+				Vertices.Num(), Normals.Num(), Texcoords.Num(), Indices.Num(), NumFaceVertices.Num(),
+				status, OutMesh);
+
+			if (RPR::IsResultSuccess(status))
+			{
+				status = RPR::SetObjectName(OutMesh, MeshName);
+			}
+
+			return status;
+		}
+
 		namespace Parameters
 		{
 			FResult Set1u(FContext Context, const FString& ParamName, uint32 Value)

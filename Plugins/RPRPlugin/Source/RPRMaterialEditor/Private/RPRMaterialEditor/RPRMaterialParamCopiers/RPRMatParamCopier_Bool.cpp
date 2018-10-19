@@ -18,13 +18,14 @@
 ********************************************************************/
 #include "RPRMaterialEditor/RPRMaterialParamCopiers/RPRMatParamCopier_Bool.h"
 #include "MaterialEditor/DEditorStaticSwitchParameterValue.h"
+#include "MaterialEditHelper.h"
 
 void FRPRMatParamCopier_Bool::Apply(const FRPRUberMaterialParameters& RPRUberMaterialParameters, UStructProperty* Property, UMaterialEditorInstanceConstant* RPRMaterialEditorInstance)
 {
 	const FRPRMaterialBool* materialBool = Property->ContainerPtrToValuePtr<const FRPRMaterialBool>(&RPRUberMaterialParameters);
 
 	const FString& boolParameterName = materialBool->GetParameterName();
-	auto parameter = FRPRMatParamCopierUtility::FindEditorParameterValue<UDEditorStaticSwitchParameterValue>(RPRMaterialEditorInstance, boolParameterName);
+	auto parameter = FMaterialEditHelper::FindEditorParameterValueByPropertyName<UDEditorStaticSwitchParameterValue>(RPRMaterialEditorInstance, boolParameterName);
 	if (parameter)
 	{
         parameter->bOverride = true;

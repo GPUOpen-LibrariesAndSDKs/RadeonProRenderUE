@@ -18,6 +18,11 @@ namespace RPR
 					UStaticMeshComponent* StaticMeshComponent, 
 					RPR::GLTF::FStaticMeshResourcesPtr MeshResources, 
 					AActor* RootActor = nullptr);
+
+				static void	SetupShapeInstance(RPR::FShape ShapeInstance,
+					UStaticMeshComponent* StaticMeshComponent,
+					RPR::GLTF::FStaticMeshResourcesPtr MeshResources,
+					AActor* RootActor = nullptr);
 			};
 
 		}

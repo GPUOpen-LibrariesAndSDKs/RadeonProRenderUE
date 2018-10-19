@@ -28,14 +28,6 @@ public:
 	template<typename... TSection>
 	static FString	CombinePropertyNameSection(TSection&&... Sections);
 
-	template<typename TParameterType>
-	static TParameterType*			FindEditorParameterValue(UMaterialEditorInstanceConstant* MaterialEditorInstance, const FString& PropertyName)
-	{
-		return (Cast<TParameterType>(FindEditorParameterValue(MaterialEditorInstance, PropertyName)));
-	}
-
-	static UDEditorParameterValue*	FindEditorParameterValue(UMaterialEditorInstanceConstant* MaterialEditorInstance, const FString& PropertyName);
-
 private:
 
 	static FString	CombinePropertyNameSectionInternal(const FString* SectionsArray, int32 NumSections);

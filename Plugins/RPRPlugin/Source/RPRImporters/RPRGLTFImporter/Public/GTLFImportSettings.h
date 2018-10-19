@@ -23,6 +23,9 @@ public:
 	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite, Category = Import)
 	float	ScaleFactor;
 
+	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite, Category = Import)
+	uint32	SmoothNormals : 1;
+
 	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite, AdvancedDisplay, Category = Import)
 	FRotator Rotation;
 };

@@ -45,6 +45,8 @@
 #include "Framework/Notifications/NotificationManager.h"
 #include "Helpers/RPRHelpers.h"
 #include "Widgets/Notifications/SNotificationList.h"
+#include "Helpers/RPRSceneStandardizer.h"
+#include "Helpers/RPRSceneHelpers.h"
 
 #define LOCTEXT_NAMESPACE "SRPRViewportTabContent"
 
@@ -126,7 +128,7 @@ FReply	SRPRViewportTabContent::OnToggleDisplayPostEffectProperties()
 	return FReply::Handled();
 }
 
-EVisibility	SRPRViewportTabContent::GetPostEffectPropertiesVisibility() const
+EVisibility	SRPRViewportTabContent::GetRenderPropertiesVisibility() const
 {
 	return m_DisplayPostEffects ? EVisibility::Visible : EVisibility::Collapsed;
 }
@@ -169,20 +171,39 @@ FReply SRPRViewportTabContent::OnSceneExport()
 
 	if (bHasSaved && filenames.Num() > 0)
 	{
+		RPR::FResult status;
+
 		const FString& filename = filenames[0];
 		m_LastExportDirectory = FPaths::GetPath(filename);
 
-		TArray<RPR::FScene> scenes;
-		scenes.Add(m_Plugin->GetCurrentScene()->m_RprScene);
-
 		auto resources = IRPRCore::GetResources();
-		RPR::FResult status =
-			RPR::GLTF::ExportToGLTF(
-				filename,
-				resources->GetRPRContext(), 
-				resources->GetMaterialSystem(), 
-				resources->GetRPRXSupportContext(),
-				scenes);
+		RPR::FContext rprContext = resources->GetRPRContext();
+		RPRX::FContext rprxContext = resources->GetRPRXSupportContext();
+
+		RPR::FScene standardizedScene;
+		status = RPR::FSceneStandardizer::CreateStandardizedScene(rprContext, rprxContext, m_Plugin->GetCurrentScene()->m_RprScene, standardizedScene);
+		if (RPR::IsResultFailed(status))
+		{
+			UE_LOG(LogSRPRViewportTabContent, Error, TEXT("Cannot convert scene. Export aborted."));
+			return FReply::Handled();
+		}
+
+		TArray<RPR::FScene> scenes;
+		scenes.Add(standardizedScene);
+
+		int32 numShapes;
+		status = RPR::Scene::GetShapesCount(standardizedScene, numShapes);
+		if (RPR::IsResultSuccess(status))
+		{
+			UE_LOG(LogSRPRViewportTabContent, Log, TEXT("Export %d meshes"), numShapes);
+		}
+
+		status = RPR::GLTF::ExportToGLTF(
+			filename,
+			resources->GetRPRContext(), 
+			resources->GetMaterialSystem(), 
+			resources->GetRPRXSupportContext(),
+			scenes);
 
 		FText infoText;
 		const FSlateBrush* infoIcon;
@@ -196,6 +217,12 @@ FReply SRPRViewportTabContent::OnSceneExport()
 		{
 			infoText = LOCTEXT("ExportFail", "Scene couldn't be exported.");
 			infoIcon = FCoreStyle::Get().GetBrush(TEXT("MessageLog.Error"));
+		}
+
+		status = RPR::FSceneStandardizer::ReleaseStandardizedScene(rprxContext, standardizedScene);
+		if (RPR::IsResultFailed(status))
+		{
+			UE_LOG(LogSRPRViewportTabContent, Log, TEXT("Could not release the exported scene correctly. May produce memory leaks."));
 		}
 
 		FNotificationInfo Info(infoText);
@@ -463,6 +490,17 @@ void	SRPRViewportTabContent::OnGammaCorrectionValueChanged(float newValue)
 	m_Settings->SaveConfig(); // Profile this, can be pretty intense with sliders
 }
 
+TOptional<float>	SRPRViewportTabContent::GetRaycastEpsilon() const
+{
+	return m_Settings->RaycastEpsilon;
+}
+
+void	SRPRViewportTabContent::OnRaycastEpsilonValueChanged(float newValue)
+{
+	m_Settings->RaycastEpsilon = newValue;
+	m_Settings->SaveConfig(); // Profile this, can be pretty intense with sliders
+}
+
 void	SRPRViewportTabContent::Construct(const FArguments &args)
 {
 	m_Plugin = &FRPRPluginModule::Get();
@@ -694,8 +732,8 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 			[
 				SNew(SButton)
 				.ButtonStyle(FEditorStyle::Get(), "FlatButton")
-				.Text(LOCTEXT("DisplayPostEffectPropsLabel", "Toggle post effect properties display"))
-				.ToolTipText(LOCTEXT("TogglePostEffectsTooltip", "Toggles post effect properties display."))
+				.Text(LOCTEXT("DisplayPostEffectPropsLabel", "Toggle post effect and render properties display"))
+				.ToolTipText(LOCTEXT("TogglePostEffectsTooltip", "Toggles post effect and render properties display."))
 				.OnClicked(this, &SRPRViewportTabContent::OnToggleDisplayPostEffectProperties)
 				.Content()
 				[
@@ -753,7 +791,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 			//.Value(120.0f)
 			[
 				SNew(SVerticalBox)
-				.Visibility(this, &SRPRViewportTabContent::GetPostEffectPropertiesVisibility)
+				.Visibility(this, &SRPRViewportTabContent::GetRenderPropertiesVisibility)
 				+ SVerticalBox::Slot().AutoHeight()
 				[
 					SNew(SVerticalBox)
@@ -961,6 +999,40 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 							.MaxValue(100.0f)
 							.MinSliderValue(0.0f)
 							.MaxSliderValue(100.0f)
+							.AllowSpin(true)
+						]
+					]
+				]
+				+ SVerticalBox::Slot().AutoHeight()
+				[
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot().Padding(5.0f)
+					[
+						SNew(STextBlock)
+						.Text(LOCTEXT("RenderSettingsTitle", "Render Settings"))
+					]
+					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot().AutoWidth()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("RaycastEpsilon", "Raycast Epsilon  "))
+						]
+						+ SHorizontalBox::Slot()
+						.FillWidth(1.0f)
+						[
+							SNew(SSpacer)
+						]
+						+ SHorizontalBox::Slot().AutoWidth()
+						[
+							SNew(SNumericEntryBox<float>)
+							.Value(this, &SRPRViewportTabContent::GetRaycastEpsilon)
+							.OnValueChanged(this, &SRPRViewportTabContent::OnRaycastEpsilonValueChanged)
+							.MinValue(0.0f) // Range is 0-10 mm
+							.MaxValue(10.0f)
+							.MinSliderValue(0.0f)
+							.MaxSliderValue(10.0f)
 							.AllowSpin(true)
 						]
 					]

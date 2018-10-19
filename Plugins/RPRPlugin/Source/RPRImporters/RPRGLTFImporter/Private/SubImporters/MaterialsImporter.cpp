@@ -54,7 +54,12 @@ bool RPR::GLTF::Import::FMaterialsImporter::ImportMaterials(
 
 	for (int32 materialIndex = 0; materialIndex < materials.Num(); ++materialIndex)
 	{
-		FString materialName = FString(GLTFFileData.materials[materialIndex].name.c_str());
+		FString materialName = materialIndex < GLTFFileData.materials.size() ? 
+			FString(GLTFFileData.materials[materialIndex].name.c_str()) : 
+			FString::Printf(TEXT("Material_%d"), materialIndex);
+
+		UE_LOG(LogRPRGLTFImporter, Log, TEXT("Import material '%s'..."), *materialName);
+
 		RPRX::FMaterial nativeRPRMaterial = materials[materialIndex];
 
 		auto& resourceData = MaterialResources->RegisterNewResource(materialIndex);
@@ -132,13 +137,13 @@ URPRMaterial* RPR::GLTF::Import::FMaterialsImporter::CreateNewMaterial(const FSt
 {
 	URPRSettings* settings = GetMutableDefault<URPRSettings>();
 	FString materialPath = FPaths::Combine(settings->DefaultRootDirectoryForImportedMaterials.Path, MaterialName);
-	materialPath = FRPRFileHelper::FixFilenameIfInvalid<URPRMaterial>(materialPath, TEXT("Material"));
+	materialPath = FRPRFileHelper::GenerateUniqueFilename(materialPath);
+	FString newMaterialName = FPaths::GetBaseFilename(materialPath);
 
-	FRPRFileHelper::DeletePackageIfExists(materialPath);
 	UPackage* package = CreatePackage(nullptr, *materialPath);
 
 	URPRMaterialFactory* rprMaterialFactory = NewObject<URPRMaterialFactory>();
-	URPRMaterial* rprMaterial = (URPRMaterial*) rprMaterialFactory->FactoryCreateNew(URPRMaterial::StaticClass(), package, *MaterialName, RF_Public | RF_Standalone | RF_Transactional, nullptr, GWarn);
+	URPRMaterial* rprMaterial = (URPRMaterial*) rprMaterialFactory->FactoryCreateNew(URPRMaterial::StaticClass(), package, *newMaterialName, RF_Public | RF_Standalone | RF_Transactional, nullptr, GWarn);
 
 	package->FullyLoad();
 	return rprMaterial;

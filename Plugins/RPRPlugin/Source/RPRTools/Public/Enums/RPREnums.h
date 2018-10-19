@@ -49,25 +49,59 @@ namespace RPR
 		Emissive				= RPR_MATERIAL_NODE_EMISSIVE,
 
 		ImageTexture			= RPR_MATERIAL_NODE_IMAGE_TEXTURE,
-		NormalMap				= RPR_MATERIAL_NODE_NORMAL_MAP
+		NormalMap				= RPR_MATERIAL_NODE_NORMAL_MAP,
+		BumpMap					= RPR_MATERIAL_NODE_BUMP_MAP,
 
-		// Not completed. See rpr_material_node_type in RadeonProRender for others
+		Arithmetic				= RPR_MATERIAL_NODE_ARITHMETIC,
+		InputLookup				= RPR_MATERIAL_NODE_INPUT_LOOKUP,
+
+		UVProcedural			= RPR_MATERIAL_NODE_UV_PROCEDURAL,
+		UVTriplanar				= RPR_MATERIAL_NODE_UV_TRIPLANAR
+
+		// Not completed. See rpr_material_node_type in RadeonProRender.h for others
 	};
 
 	enum class EMaterialNodeInputInfo : FMaterialNodeInputInfo // rpr_material_node_input_info
 	{
-		Name = RPR_MATERIAL_NODE_INPUT_NAME,
-		NameString = RPR_MATERIAL_NODE_INPUT_NAME_STRING,
-		Description = RPR_MATERIAL_NODE_INPUT_DESCRIPTION,
-		Value = RPR_MATERIAL_NODE_INPUT_VALUE,
-		Type = RPR_MATERIAL_NODE_INPUT_TYPE
+		Name			= RPR_MATERIAL_NODE_INPUT_NAME,
+		NameString		= RPR_MATERIAL_NODE_INPUT_NAME_STRING,
+		Description		= RPR_MATERIAL_NODE_INPUT_DESCRIPTION,
+		Value			= RPR_MATERIAL_NODE_INPUT_VALUE,
+		Type			= RPR_MATERIAL_NODE_INPUT_TYPE
 	};
 
 	enum class EMaterialNodeInfo : FMaterialNodeInfo // rpr_material_node_info
 	{
-		Type = RPR_MATERIAL_NODE_TYPE,
-		System = RPR_MATERIAL_NODE_SYSTEM,
-		InputCount = RPR_MATERIAL_NODE_INPUT_COUNT
+		Type		= RPR_MATERIAL_NODE_TYPE,
+		System		= RPR_MATERIAL_NODE_SYSTEM,
+		InputCount	= RPR_MATERIAL_NODE_INPUT_COUNT
+	};
+
+	enum class EMaterialNodeArithmeticOperation : FMaterialNodeArithmeticOperation // rpr_material_node_arithmetic_operation
+	{
+		Add				= RPR_MATERIAL_NODE_OP_ADD,
+		Substract		= RPR_MATERIAL_NODE_OP_SUB,
+		Multiply		= RPR_MATERIAL_NODE_OP_MUL,
+		Divide			= RPR_MATERIAL_NODE_OP_DIV,
+
+		Cos				= RPR_MATERIAL_NODE_OP_COS,
+		Sin				= RPR_MATERIAL_NODE_OP_SIN,
+		Tan				= RPR_MATERIAL_NODE_OP_TAN,
+
+		Dot3			= RPR_MATERIAL_NODE_OP_DOT3,
+		Combine			= RPR_MATERIAL_NODE_OP_COMBINE
+
+		// Not completed. See rpr_material_node_arithmetic_operation in RadeonProRender for others
+	};
+
+	enum class EMaterialNodeLookupValue
+	{
+		UV		= RPR_MATERIAL_NODE_LOOKUP_UV,
+		N		= RPR_MATERIAL_NODE_LOOKUP_N,
+		P		= RPR_MATERIAL_NODE_LOOKUP_P,
+		InVec	= RPR_MATERIAL_NODE_LOOKUP_INVEC,
+		OutVec	= RPR_MATERIAL_NODE_LOOKUP_OUTVEC,
+		UV1		= RPR_MATERIAL_NODE_LOOKUP_UV1
 	};
 
 	enum class EImageInfo // rpr_image_info
@@ -272,4 +306,22 @@ namespace RPR
 		LightGroup3 = RPR_AOV_LIGHT_GROUP3,
 		Max = RPR_AOV_MAX
 	};
+
+	enum class ESceneInfo
+	{
+		ShapeCount 							= RPR_SCENE_SHAPE_COUNT,
+		LightCount 							= RPR_SCENE_LIGHT_COUNT,
+		ShapeList 							= RPR_SCENE_SHAPE_LIST,
+		LightList 							= RPR_SCENE_LIGHT_LIST,
+		Camera 								= RPR_SCENE_CAMERA,
+		BackgroundImage 					= RPR_SCENE_BACKGROUND_IMAGE,
+		EnvironmentOverrideReflection 		= RPR_SCENE_ENVIRONMENT_OVERRIDE_REFLECTION,
+		EnvironmentOverrideRefraction 		= RPR_SCENE_ENVIRONMENT_OVERRIDE_REFRACTION,
+		EnvironmentOverrideTransparency 	= RPR_SCENE_ENVIRONMENT_OVERRIDE_TRANSPARENCY,
+		EnvironmentOverrideBackground 		= RPR_SCENE_ENVIRONMENT_OVERRIDE_BACKGROUND,
+		Aabb 								= RPR_SCENE_AABB,
+		HeterovolumeList 					= RPR_SCENE_HETEROVOLUME_LIST,
+		HeterovolumeCount 					= RPR_SCENE_HETEROVOLUME_COUNT
+	};
+
 }

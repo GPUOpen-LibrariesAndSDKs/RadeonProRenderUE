@@ -66,8 +66,9 @@ public:
 
 private:
 
-	TArray<FRPRCachedMesh>	GetMeshInstances(UStaticMesh *mesh, uint32 instanceCount);
+	bool					CreateMeshInstancesIFP(UStaticMeshComponent *meshComponent, uint32 instanceCount, TArray<FRPRCachedMesh> &outInstances);
 	bool					BuildMaterials();
+	bool					_IsMaterialEmissive(const UMaterialInterface *material);
 
 	virtual void	TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
 	virtual void	ReleaseResources() override;
