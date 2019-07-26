@@ -320,7 +320,7 @@ void	ARPRScene::RefreshScene()
 			it->IsPendingKill() ||
 			!it->HasBeenCreated())
 			continue;
-		
+
 		if (Cast<UStaticMeshComponent>(*it) != nullptr)
 		{
 			objectAdded |= QueueBuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass(), true);
@@ -400,9 +400,9 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 
 		m_RendererWorker = MakeShareable(
 			new FRPRRendererWorker(
-				RPRCoreResources->GetRPRContext(), 
-				m_RprScene, 
-				m_RenderTexture->SizeX, m_RenderTexture->SizeY, 
+				RPRCoreResources->GetRPRContext(),
+				m_RprScene,
+				m_RenderTexture->SizeX, m_RenderTexture->SizeY,
 				RPRCoreResources->GetNumDevicesCompatible(),
 				this
 			));
@@ -671,21 +671,20 @@ void ARPRScene::CopyRPRRenderBufferToViewportRenderTexture()
 
 	m_RendererWorker->m_DataLock.Lock();
 	const uint8	*textureData = m_RendererWorker->GetFramebufferData();
-	ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
-		UpdateDynamicTextureCode,
-		UTexture2DDynamic*, renderTexture, m_RenderTexture,
-		const uint8*, textureData, textureData,
+	ENQUEUE_RENDER_COMMAND(UpdateDynamicTextureCode)
+	(
+		[this, textureData](FRHICommandListImmediate& RHICmdList)
 		{
 			FUpdateTextureRegion2D	region;
 			region.SrcX = 0;
 			region.SrcY = 0;
 			region.DestX = 0;
 			region.DestY = 0;
-			region.Width = renderTexture->SizeX;
-			region.Height = renderTexture->SizeY;
+			region.Width = m_RenderTexture->SizeX;
+			region.Height = m_RenderTexture->SizeY;
 
 			const uint32	pitch = region.Width * sizeof(uint8) * 4;
-			FRHITexture2D	*resource = (FRHITexture2D*)renderTexture->Resource->TextureRHI.GetReference();
+			FRHITexture2D* resource = (FRHITexture2D*)m_RenderTexture->Resource->TextureRHI.GetReference();
 			RHIUpdateTexture2D(resource, 0, region, pitch, textureData);
 		}
 	);
@@ -781,7 +780,7 @@ void	ARPRScene::ImmediateRelease(URPRSceneComponent *component)
 void	ARPRScene::BeginDestroy()
 {
 	Super::BeginDestroy();
-	
+
 	if (m_RendererWorker.IsValid())
 	{
 		m_RendererWorker->EnsureCompletion();

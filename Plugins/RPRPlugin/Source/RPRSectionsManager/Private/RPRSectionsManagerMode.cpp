@@ -36,8 +36,8 @@ const FName FRPRSectionsManagerMode::EM_SectionsManagerModeID(TEXT("EM_SectionsM
 
 FRPRSectionsManagerMode::FRPRSectionsManagerMode()
 	: bIsPainting(false)
-	, bIsBrushOnMesh(false)
 	, CurrentPaintMode(EPaintMode::Idle)
+	, bIsBrushOnMesh(false)
 {}
 
 void FRPRSectionsManagerMode::Enter()
@@ -77,8 +77,8 @@ void FRPRSectionsManagerMode::Exit()
 
 	for (auto it(MeshSelectionInfosMap.CreateIterator()); it; ++it)
 	{
-		FRPRMeshDataPtr meshData = it.Key(); 
-		
+		FRPRMeshDataPtr meshData = it.Key();
+
 		// Destroy the face visualizer component
 		FMeshSelectionInfo& meshSelectionInfo = it.Value();
 		meshSelectionInfo.MeshVisualizer->DestroyComponent();
@@ -89,7 +89,7 @@ void FRPRSectionsManagerMode::Exit()
 
 		// Reset preview visibility if hidden because of the mode settings
 		meshData->GetPreview()->SetVisibility(true);
-		
+
 	}
 	FRPRSectionsSelectionManager::Get().ClearAllSelection();
 }
@@ -111,7 +111,7 @@ void FRPRSectionsManagerMode::Tick(FEditorViewportClient* ViewportClient, float 
 	const bool bIsCtrlButtonDown = IsCtrlDown(viewport);
 	const bool bIsAltButtonDown = IsAltDown(viewport);
 	const bool bIsShiftButtonDown = IsShiftDown(viewport);
-	
+
 	const bool bIsMovingCamera = bIsAltButtonDown || bIsRightButtonDown;
 	const bool bShouldEnableEraserMode = bIsShiftButtonDown && !bIsMovingCamera;
 	const bool bPrepareForChangingBrushSize = bIsCtrlButtonDown && !bIsMovingCamera;
@@ -177,10 +177,10 @@ bool FRPRSectionsManagerMode::InputKey(FEditorViewportClient* ViewportClient, FV
 	const bool bUserWantsEraser =
 		bIsActivePainting && bAreErasePaintingButtonUsed;
 
-	const bool bUserWantsSelect = 
+	const bool bUserWantsSelect =
 		bIsActivePainting &&
 		!bUserWantsEraser && !bUserWantsChangeBrushSize;
-	
+
 	if (bUserWantsSelect)
 	{
 		CurrentPaintMode = EPaintMode::Selector;
@@ -204,7 +204,7 @@ bool FRPRSectionsManagerMode::InputKey(FEditorViewportClient* ViewportClient, FV
 		CurrentPaintMode = EPaintMode::BrushResizer;
 		bHandled = true;
 	}
-	
+
 	if (bIsPainting && !bHandled)
 	{
 		CurrentPaintMode = EPaintMode::Idle;
@@ -282,7 +282,7 @@ bool FRPRSectionsManagerMode::TrySelectPainting(FEditorViewportClient* InViewpor
 				Triangles
 			);
 		}
-		
+
 	})));
 }
 
@@ -347,7 +347,7 @@ bool FRPRSectionsManagerMode::TrySelectionPaintingAction(FEditorViewportClient* 
 		}
 
 		TArray<uint32> newTriangles;
-	
+
 		if (GetFaces(InViewportClient, InViewport, newTriangles))
 		{
 			FRPRMeshDataPtr meshData = FindMeshDataByPreviewComponent(previewComponent);

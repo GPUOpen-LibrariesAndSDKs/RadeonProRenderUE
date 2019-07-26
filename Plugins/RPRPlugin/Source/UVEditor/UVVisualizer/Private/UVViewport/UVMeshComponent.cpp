@@ -47,7 +47,7 @@ class FUVMeshVertexFactory : public FLocalVertexFactory
 public:
 
 #if ENGINE_MINOR_VERSION == 18
-	
+
 	FUVMeshVertexFactory(ERHIFeatureLevel::Type InFeatureLevel) {}
 
 #elif ENGINE_MINOR_VERSION >= 19
@@ -61,7 +61,7 @@ public:
 	void Init(const FUVMeshVertexBuffer* VertexBuffer)
 	{
 		FDataType NewData;
-		
+
 		NewData.PositionComponent = STRUCTMEMBER_VERTEXSTREAMCOMPONENT(VertexBuffer, FDynamicMeshVertex, Position, VET_Float3);
 		NewData.TangentBasisComponents[0] = STRUCTMEMBER_VERTEXSTREAMCOMPONENT(VertexBuffer, FDynamicMeshVertex, TangentX, VET_PackedNormal);
 		NewData.TangentBasisComponents[1] = STRUCTMEMBER_VERTEXSTREAMCOMPONENT(VertexBuffer, FDynamicMeshVertex, TangentZ, VET_PackedNormal);
@@ -100,10 +100,10 @@ public:
 
 	FUVMeshComponentProxy(UUVMeshComponent* InComponent)
 		: FPrimitiveSceneProxy(InComponent)
-		, MaterialRenderProxy(nullptr)
-		, bCenterUVs(InComponent->bCenterUVs)
 		, bAreResourcesInitialized(false)
+		, bCenterUVs(InComponent->bCenterUVs)
 		, VertexFactory(GetScene().GetFeatureLevel())
+		, MaterialRenderProxy(nullptr)
 	{
 		bWillEverBeLit = false;
 		bCastStaticShadow = false;
@@ -111,7 +111,7 @@ public:
 		UMaterialInterface* material = InComponent->GetMaterial(0);
 		if (material)
 		{
-			MaterialRenderProxy = material->GetRenderProxy(IsSelected(), IsHovered());
+			MaterialRenderProxy = material->GetRenderProxy();
 		}
 
 		if (MaterialRenderProxy == nullptr)
@@ -119,7 +119,7 @@ public:
 			UMaterial* defaultMat = UMaterial::GetDefaultMaterial(MD_Surface);
 			if (defaultMat)
 			{
-				MaterialRenderProxy = defaultMat->GetRenderProxy(IsSelected(), IsHovered());
+				MaterialRenderProxy = defaultMat->GetRenderProxy();
 			}
 		}
 
@@ -139,7 +139,7 @@ public:
 		{
 			VertexBuffers.InitFromDynamicVertex(&VertexFactory, VertexBuffer.Vertices, 1);
 			IndexBuffer.InitResource();
-			
+
 			bAreResourcesInitialized = true;
 		}
 	}
@@ -242,7 +242,7 @@ public:
 		if (bAreResourcesInitialized && MeshDatasPtr != nullptr)
 		{
 			FRPRMeshDataContainer& meshDatas = *MeshDatasPtr;
-			
+
 			int32 totalUV = CountUVDatas(MeshDatasPtr, UVChannel);
 
 			const int32 numTriangles = totalUV / 3;
@@ -255,7 +255,7 @@ public:
 			uint16* indexes = (uint16*)RHILockIndexBuffer(IndexBuffer.IndexBufferRHI, 0, numIndices * sizeof(uint16), RLM_WriteOnly);
 
 			ExtractDatas(MeshDatasPtr, UVChannel, vertexBufferData, indexes);
-			
+
 			RHIUnlockIndexBuffer(IndexBuffer.IndexBufferRHI);
 			RHIUnlockVertexBuffer(VertexBuffer.VertexBufferRHI);
 
@@ -276,7 +276,7 @@ public:
 
 		return (!FUVUtility::IsUVTriangleValid(uvA, uvB, uvC));
 	}
-	
+
 	int32 CountNumUVDatas(int32 UVChannel, const FRawMesh& RawMesh) const
 	{
 		return (RawMesh.WedgeTexCoords[UVChannel].Num());
@@ -301,7 +301,8 @@ public:
 				batchElement.MinVertexIndex = 0;
 				batchElement.MaxVertexIndex = VertexBuffer.Vertices.Num() - 1;
 				batchElement.NumPrimitives = IndexBuffer.Indices.Num() / 2;
-				batchElement.PrimitiveUniformBufferResource = &GetUniformBuffer();
+
+				batchElement.PrimitiveUniformBufferResource = reinterpret_cast<const TUniformBuffer<FPrimitiveUniformShaderParameters>*>(GetUniformBuffer());
 
 				PDI->DrawMesh(mesh, 1.0f);
 			}
@@ -317,7 +318,7 @@ public:
 		if (bWireframe)
 		{
 			WireframeMaterialInstance = new FColoredMaterialRenderProxy(
-				GEngine->WireframeMaterial ? GEngine->WireframeMaterial->GetRenderProxy(IsSelected()) : NULL,
+				GEngine->WireframeMaterial ? GEngine->WireframeMaterial->GetRenderProxy() : NULL,
 				FLinearColor(0, 0.5f, 1.f)
 			);
 
@@ -387,9 +388,9 @@ public:
 		ViewRelevance.bRenderCustomDepth = ShouldRenderCustomDepth();
 
 		const FSceneViewFamily& ViewFamily = *View->Family;
-		ViewRelevance.bDynamicRelevance = 
-			ViewFamily.EngineShowFlags.Bounds || 
-			ViewFamily.EngineShowFlags.Wireframe || 
+		ViewRelevance.bDynamicRelevance =
+			ViewFamily.EngineShowFlags.Bounds ||
+			ViewFamily.EngineShowFlags.Wireframe ||
 			IsSelected();
 		ViewRelevance.bStaticRelevance = true;
 
@@ -604,13 +605,11 @@ void UUVMeshComponent::UpdateUVs()
 	{
 		FRPRMeshDataContainer* meshDatasPtr = new FRPRMeshDataContainer(*RPRMeshDatas.Pin());
 
-		ENQUEUE_UNIQUE_RENDER_COMMAND_THREEPARAMETER(
-			FUpdateUV,
-			FUVMeshComponentProxy*, UVMeshProxy, SceneProxy,
-			FRPRMeshDataContainer*, MeshDatas, meshDatasPtr,
-			int32, UVChannel, UVChannel,
+		ENQUEUE_RENDER_COMMAND(FUpdateUV)
+		(
+			[this, meshDatasPtr](FRHICommandListImmediate& RHICmdList)
 			{
-				UVMeshProxy->UpdateUVs_RenderThread(MeshDatas, UVChannel);
+				SceneProxy->UpdateUVs_RenderThread(meshDatasPtr, UVChannel);
 			}
 		);
 	}

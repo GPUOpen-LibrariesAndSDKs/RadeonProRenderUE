@@ -22,8 +22,8 @@
 
 UShapePreviewPlane::UShapePreviewPlane()
 	: InitialPlane(FVector(1, 0, 0), 0)
+	, Scale(100.0f)
 	, Thickness(0.1f)
-	, Scale(100)
 	, ArrowHeadSize(200.0f)
 	, ArrowThickness(1.0f)
 {}
@@ -37,7 +37,7 @@ void UShapePreviewPlane::DrawShapePreview()
 {
 	const FTransform& componentTransform = GetComponentTransform();
 	const FVector boxSize(Thickness, Scale, Scale);
-	
+
 	// Use DrawDebugSolidBox instead of DrawDebugSolidPlane because the transform is managed correctly
 	DrawDebugSolidBox(
 		GetWorld(),

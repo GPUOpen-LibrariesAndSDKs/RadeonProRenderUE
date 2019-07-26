@@ -158,9 +158,9 @@ void sRGBByteToLinearByteCopy(size_t _width,
 	}
 }
 
-} // end anonymous namespace 
+} // end anonymous namespace
 
-std::shared_ptr<rpri::generic::IMaterialNodeMux> 
+std::shared_ptr<rpri::generic::IMaterialNodeMux>
 UEInterchangeCollection::FindMux(char const * _name)
 {
 	auto it = muxStorage.find(_name);
@@ -234,14 +234,14 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 		if (_expression->IsA(UMaterialExpressionConstant::StaticClass()))
 		{
 			fieldName = "R";
-			valueName = _id + _fname.GetPlainANSIString() + fieldName;
+			valueName = _id + TCHAR_TO_ANSI(*_fname.ToString()) + fieldName;
 			auto con = static_cast<UMaterialExpressionConstant *>(_expression);
 			valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(), con->R);
 		}
 		else if (_expression->IsA(UMaterialExpressionConstant2Vector::StaticClass()))
 		{
 			fieldName = "RG";
-			valueName = _id + _fname.GetPlainANSIString() + fieldName;
+			valueName = _id + TCHAR_TO_ANSI(*_fname.ToString()) + fieldName;
 			auto con = static_cast<UMaterialExpressionConstant2Vector *>(_expression);
 			valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(),
 				con->R, con->G);
@@ -249,7 +249,7 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 		else if (_expression->IsA(UMaterialExpressionConstant3Vector::StaticClass()))
 		{
 			fieldName = "Constant";
-			valueName = _id + _fname.GetPlainANSIString() + fieldName;
+			valueName = _id + TCHAR_TO_ANSI(*_fname.ToString()) + fieldName;
 			auto con = static_cast<UMaterialExpressionConstant3Vector *>(_expression);
 			valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(),
 				con->Constant);
@@ -257,7 +257,7 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 		else if (_expression->IsA(UMaterialExpressionConstant4Vector::StaticClass()))
 		{
 			fieldName = "Constant";
-			valueName = _id + _fname.GetPlainANSIString() + fieldName;
+			valueName = _id + TCHAR_TO_ANSI(*_fname.ToString()) + fieldName;
 			auto con = static_cast<UMaterialExpressionConstant4Vector *>(_expression);
 
 			valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(),
@@ -270,34 +270,31 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 			bool okay = _collection.ue4MatInterface->GetVectorParameterValue(con->ParameterName, overCol);
 			if (okay)
 			{
-				fieldName = con->ParameterName.GetPlainANSIString();
+				fieldName = TCHAR_TO_ANSI(*con->ParameterName.ToString());
 			}
 			else
 			{
 				fieldName = "DefaultValue";
 			}
 
-			valueName = _id + _fname.GetPlainANSIString() + fieldName;
-			valuePtr = UE4InterchangeMaterialValue::New(_collection, 
-														valueName.c_str(),
-														overCol);
-		} else if (_expression->IsA(UMaterialExpressionScalarParameter::StaticClass()))
+			valueName = _id + TCHAR_TO_ANSI(*_fname.ToString()) + fieldName;
+			valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(), overCol);
+		}
+		else if (_expression->IsA(UMaterialExpressionScalarParameter::StaticClass()))
 		{
 			auto con = static_cast<UMaterialExpressionScalarParameter *>(_expression);
 			float overF = con->DefaultValue;
 			bool okay = _collection.ue4MatInterface->GetScalarParameterValue(con->ParameterName, overF);
 			if(okay)
 			{
-				fieldName = con->ParameterName.GetPlainANSIString();
+				fieldName = TCHAR_TO_ANSI(*con->ParameterName.ToString());
 			} else
 			{
 				fieldName = "DefaultValue";
 			}
 
-			valueName = _id + _fname.GetPlainANSIString() + fieldName;
-			valuePtr = UE4InterchangeMaterialValue::New(_collection,
-				valueName.c_str(),
-				overF);
+			valueName = _id + TCHAR_TO_ANSI(*_fname.ToString()) + fieldName;
+			valuePtr = UE4InterchangeMaterialValue::New(_collection, valueName.c_str(), overF);
 		}
 		else
 		{
@@ -312,7 +309,7 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 	{
 		// node
 		IMaterialValuePtr valuePtr;
-		std::string valueName = _id + _fname.GetPlainANSIString();
+		std::string valueName = _id + TCHAR_TO_ANSI(*_fname.ToString());
 
 		auto node = IMaterialNodePtr(new UE4InterchangeMaterialNode(_collection, valueName.c_str(), _expression));
 		_collection.nodeStorage[valueName.c_str()] = node;
@@ -322,7 +319,7 @@ IMaterialNodeMuxPtr ConvertUMaterialExpression(
 
 }
 
-void UE4InterchangeMaterialNode::ConvertFExpressionInput(UEInterchangeCollection& _collection, 
+void UE4InterchangeMaterialNode::ConvertFExpressionInput(UEInterchangeCollection& _collection,
 														FExpressionInput* _input,
 														char const *_name,
 														FName const _fname)
@@ -347,7 +344,7 @@ void UE4InterchangeMaterialNode::ConvertFExpressionInput(UEInterchangeCollection
 				values.push_back(childMux->GetAsValue());
 			}
 
-			inputNames.emplace_back(_fname.GetPlainANSIString());
+			inputNames.emplace_back(TCHAR_TO_ANSI(*_fname.ToString()));
 		}
 	}
 }
@@ -360,7 +357,7 @@ void UE4InterchangeMaterialNode::ConvertTexture(
 {
 	std::string const texName = _texname + "Texture";
 	auto texIt = _collection.textureStorage.find(texName);
-	if (texIt == _collection.textureStorage.end()) 
+	if (texIt == _collection.textureStorage.end())
 	{
 		auto image = std::make_shared<UE4InterchangeImage>(_texture);
 		auto sampler = std::make_shared<UE4InterchangeSampler>(_texture);
@@ -387,7 +384,7 @@ void UE4InterchangeMaterialNode::ConvertTexture(
 }
 
 void UE4InterchangeMaterialNode::ConvertTextureSampleExpression(
-								UEInterchangeCollection& _collection, 
+								UEInterchangeCollection& _collection,
 								std::string const & _name,
 								UMaterialExpressionTextureSample* con)
 {
@@ -418,7 +415,7 @@ void UE4InterchangeMaterialNode::ConvertTextureSampleExpression(
 		bool okay = _collection.ue4MatInterface->GetTextureParameterValue(con->ParameterName, tex);
 		if (okay)
 		{
-			paramName = con->ParameterName.GetPlainANSIString();
+			paramName = TCHAR_TO_ANSI(*con->ParameterName.ToString());
 		}
 		std::string texName = TCHAR_TO_ANSI(*tex->GetName());
 		std::string valName = _name + paramName + texName + "Texture";
@@ -487,10 +484,10 @@ UE4InterchangeMaterialNode::UE4InterchangeMaterialNode(
 {
 	id = _id;
 	name = TCHAR_TO_ANSI(*expression->GetName());
-	type = expression->GetClass()->GetFName().GetPlainANSIString();
+	type = TCHAR_TO_ANSI(*expression->GetClass()->GetFName().ToString());
 	type = std::regex_replace(type, std::regex("MaterialExpression"), "UE4");
 
-	// some classes don't expose inputs via the generic methods 
+	// some classes don't expose inputs via the generic methods
 	// so handle each one we care about with custom handler
 	// switch go first!
 	if (_expression->IsA(UMaterialExpressionTextureSampleParameter2D::StaticClass()))
@@ -543,7 +540,7 @@ UE4InterchangeMaterialNode::UE4InterchangeMaterialNode(
 	}*/
 	else
 	{
-		// do the inputs 
+		// do the inputs
 		for (int i = 0; i < _expression->GetInputs().Num(); ++i)
 		{
 			FName fname = FRPRCpMaterialEditor::GetMaterialExpressionInputName(expression, i);
@@ -640,7 +637,7 @@ if ((_base->_name.UseConstant) || (_base->_name.Expression == nullptr)) \
 } \
 else HOOKUP_PBR_EXPRESSION_NO_CONSTANT(_base, _name, _index)
 
-UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collection, 
+UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collection,
 												std::string const & _id,
 												UMaterial const * _ue4Mat)
 {
@@ -663,7 +660,7 @@ UE4InterchangePBRNode::UE4InterchangePBRNode(	UEInterchangeCollection & _collect
 // refraction
 // clear coat here
 	// clear coat roughness
-		
+
 }
 UE4InterchangePBRNode::UE4InterchangePBRNode(UEInterchangeCollection & _collection,
 	std::string const & _id,
@@ -1075,13 +1072,13 @@ bool UE4InterchangeMaterialNodeMux::IsNode() const
 	return nodeptr != nullptr;
 }
 
-rpri::generic::IMaterialValue const* 
+rpri::generic::IMaterialValue const*
 UE4InterchangeMaterialNodeMux::GetAsValue() const
 {
 	return valueptr.get();
 }
 
-rpri::generic::IMaterialNode const* 
+rpri::generic::IMaterialNode const*
 UE4InterchangeMaterialNodeMux::GetAsNode() const
 {
 	return nodeptr.get();
@@ -1107,7 +1104,7 @@ size_t UE4InterchangePBRNode::GetNumberOfInputs() const
 	return NUMBER_OF_INPUTS_NODE;
 }
 
-rpri::generic::IMaterialNodeMux const* 
+rpri::generic::IMaterialNodeMux const*
 UE4InterchangePBRNode::GetInputAt(size_t _index) const
 {
 	return muxes[_index].get();
@@ -1124,7 +1121,7 @@ bool UE4InterchangePBRNode::HasTextureInput() const
 	return false;
 }
 
-rpri::generic::ITexture const* 
+rpri::generic::ITexture const*
 UE4InterchangePBRNode::GetTextureInput() const
 {
 	return nullptr;
@@ -1205,7 +1202,7 @@ size_t UE4InterchangeMaterialGraph::GetNumberOfMaterialValues() const
 	return valueStorage.size();
 }
 
-rpri::generic::IMaterialValue const* 
+rpri::generic::IMaterialValue const*
 UE4InterchangeMaterialGraph::GetMaterialValueAt(size_t _index) const
 {
 	return valueStorage.at(_index).get();
@@ -1216,7 +1213,7 @@ size_t UE4InterchangeMaterialGraph::GetNumberOfMaterialNodes() const
 	return nodeStorage.size();
 }
 
-rpri::generic::IMaterialNode const* 
+rpri::generic::IMaterialNode const*
 UE4InterchangeMaterialGraph::GetMaterialNodeAt(size_t _index) const
 {
 	return nodeStorage.at(_index).get();
@@ -1226,7 +1223,7 @@ char const* UE4InterchangeMaterialGraph::GetMetadata() const
 {
 	return "";
 }
-rpri::generic::IMaterialNode const * 
+rpri::generic::IMaterialNode const *
 UE4InterchangeMaterialGraph::GetRootNode() const
 {
 	return rootNode.get();
@@ -1343,7 +1340,7 @@ rpri::generic::IImage::ColourSpace UE4InterchangeImage::GetColourSpace() const
 size_t UE4InterchangeImage::GetPixelSizeInBits() const
 {
 	FTextureSource & source = ueTexture->Source;
-	
+
 	bool tryPlatformData = TRY_PLATFORM_DATA_FOR_IMAGES;
 	if (tryPlatformData)
 	{
@@ -1368,7 +1365,7 @@ size_t UE4InterchangeImage::GetPixelSizeInBits() const
 }
 
 size_t UE4InterchangeImage::GetRowStrideInBits() const
-{	
+{
 	FTextureSource & source = ueTexture->Source;
 	bool tryPlatformData = TRY_PLATFORM_DATA_FOR_IMAGES;
 	if (tryPlatformData)
@@ -1389,7 +1386,7 @@ size_t UE4InterchangeImage::GetRawSizeInBytes() const
 }
 
 uint8_t const * UE4InterchangeImage::GetRawByteData() const
-{	
+{
 	// we don't support this access method (too complicated)
 	return nullptr;
 }
@@ -1409,7 +1406,7 @@ std::string UE4InterchangeImage::GetOriginalPath() const
 }
 
 bool UE4InterchangeImage::GetBulk2DAsFloats(float * _dest) const
-{	
+{
 	return false; // TODO will fall back to slow general case
 }
 
@@ -1475,7 +1472,7 @@ bool UE4InterchangeImage::GetBulk2DAsUint8s(uint8_t * _dest) const
 					sRGBByteToLinearByteCopy<4, 2, 1, 0, 3>(mip.SizeX, mip.SizeY, (uint8_t*)rawData, _dest);
 				}
 				break;
-			default: 
+			default:
 				okay = false; // platform data is a bust
 			}
 			mip.BulkData.Unlock();
