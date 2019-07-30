@@ -86,6 +86,12 @@
 			"WhitelistPlatforms": [ "Win64" ]
 		},
 		{
+			"Name": "RPR_GLTF",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [ "Win64" ]
+		},
+		{
 			"Name": "RPRMaterialImporter",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
