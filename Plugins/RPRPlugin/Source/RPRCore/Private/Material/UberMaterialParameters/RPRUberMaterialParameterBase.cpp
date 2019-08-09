@@ -23,14 +23,14 @@ FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase()
 {}
 
 FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(
-    const FString& InParamName, 
-    RPRX::FParameterType InRprxParamType, 
-    ESupportMode InPreviewSupportMode, 
+    const FString& InParamName,
+    RPRX::FParameterType InRprxParamType,
+    ESupportMode InPreviewSupportMode,
     FCanUseParameter InCanUseParameter,
     FApplyParameter InApplyParameterDelegate)
-	: ParamName(InParamName)
+	: SupportMode(InPreviewSupportMode)
+	, ParamName(InParamName)
 	, RprxParamType(InRprxParamType)
-	, SupportMode(InPreviewSupportMode)
 	, CanUseParameterDelegate(InCanUseParameter)
     , ApplyParameterDelegate(InApplyParameterDelegate)
 {}

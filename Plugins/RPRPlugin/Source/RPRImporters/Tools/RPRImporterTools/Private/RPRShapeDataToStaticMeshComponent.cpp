@@ -4,9 +4,9 @@
 #include "Resources/StaticMeshResources.h"
 #include "RPR_GLTF_Tools.h"
 
-void RPR::GLTF::Import::FRPRShapeDataToMeshComponent::Setup(RPR::FShape Shape, 
-	UStaticMeshComponent* StaticMeshComponent, 
-	RPR::GLTF::FStaticMeshResourcesPtr MeshResources, 
+void RPR::GLTF::Import::FRPRShapeDataToMeshComponent::Setup(RPR::FShape Shape,
+	UStaticMeshComponent* StaticMeshComponent,
+	RPR::GLTF::FStaticMeshResourcesPtr MeshResources,
 	AActor* RootActor)
 {
 	auto resourceData = MeshResources->FindResourceByShape(Shape);
@@ -29,9 +29,9 @@ void RPR::GLTF::Import::FRPRShapeDataToMeshComponent::Setup(RPR::FShape Shape,
 }
 
 void RPR::GLTF::Import::FRPRShapeDataToMeshComponent::SetupShapeInstance(
-	RPR::FShape ShapeInstance, 
-	UStaticMeshComponent* StaticMeshComponent, 
-	RPR::GLTF::FStaticMeshResourcesPtr MeshResources, 
+	RPR::FShape ShapeInstance,
+	UStaticMeshComponent* StaticMeshComponent,
+	RPR::GLTF::FStaticMeshResourcesPtr MeshResources,
 	AActor* RootActor /*= nullptr*/)
 {
 	RPR::FShape meshShape;

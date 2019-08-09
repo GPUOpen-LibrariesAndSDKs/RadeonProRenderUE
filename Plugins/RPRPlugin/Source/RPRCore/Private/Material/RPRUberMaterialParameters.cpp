@@ -47,12 +47,12 @@ FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 
 	, Reflection_Metalness(	TEXT("reflection.metalness"),	RPRX_UBER_MATERIAL_REFLECTION_METALNESS,	ESupportMode::FullySupported,		1.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4,	FCanUseParameter::CreateStatic(CanUseOnlyIfValidModeSet, &Reflection_Mode, (uint8) ERPRReflectionMode::Metalness))
 	, Reflection_Ior(		TEXT("reflection.ior"),			RPRX_UBER_MATERIAL_REFLECTION_IOR,			ESupportMode::PreviewNotSupported,	1.5f,	ERPRMCoMapC1InterpretationMode::AsFloat4,	FCanUseParameter::CreateStatic(CanUseOnlyIfValidModeSet, &Reflection_Mode, (uint8) ERPRReflectionMode::PBR))
-	
+
 	, Reflection_Mode(FRPRMaterialEnum::Create<ERPRReflectionMode>(TEXT("reflection.mode"), RPRX_UBER_MATERIAL_REFLECTION_MODE, ESupportMode::PreviewNotSupported, ERPRReflectionMode::PBR))
 
 	// Refraction
-	, Refraction_Color(						TEXT("refraction.color"),				RPRX_UBER_MATERIAL_REFRACTION_COLOR,				ESupportMode::PreviewNotSupported, 1.0f)
 	, Refraction_Weight(					TEXT("refraction.weight"),				RPRX_UBER_MATERIAL_REFRACTION_WEIGHT,				ESupportMode::PreviewNotSupported, 0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
+	, Refraction_Color(						TEXT("refraction.color"),				RPRX_UBER_MATERIAL_REFRACTION_COLOR,				ESupportMode::PreviewNotSupported, 1.0f)
 	, Refraction_Roughness(					TEXT("refraction.roughness"),			RPRX_UBER_MATERIAL_REFRACTION_ROUGHNESS,			ESupportMode::PreviewNotSupported, 0.5f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Refraction_Absorption_Color(			TEXT("refraction.absorptionColor"),		RPRX_UBER_MATERIAL_REFRACTION_ABSORPTION_COLOR,		ESupportMode::PreviewNotSupported, 0.0f)
 	, Refraction_Absorption_Distance(		TEXT("refraction.absorptionDistance"),	RPRX_UBER_MATERIAL_REFRACTION_ABSORPTION_DISTANCE,	ESupportMode::PreviewNotSupported, 0.0f, ERPRMCoMapC1InterpretationMode::AsFloat4)
@@ -61,20 +61,18 @@ FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 	, Refraction_IsThinSurface(				TEXT("refraction.thinSurface"),			RPRX_UBER_MATERIAL_REFRACTION_THIN_SURFACE,			ESupportMode::PreviewNotSupported, false)
 
 	// Coating
+	, Coating_Weight(						TEXT("coating.weight"),				RPRX_UBER_MATERIAL_COATING_WEIGHT,					ESupportMode::PreviewNotSupported, 0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Coating_Color(						TEXT("coating.color"),				RPRX_UBER_MATERIAL_COATING_COLOR,					ESupportMode::PreviewNotSupported, 1.0f)
 	, Coating_Transmission_Color(			TEXT("coating.transmissioncolor"),	RPRX_UBER_MATERIAL_COATING_TRANSMISSION_COLOR,		ESupportMode::PreviewNotSupported, 1.0f)
 	, Coating_Normal(						TEXT("coating.normal"),				RPRX_UBER_MATERIAL_COATING_NORMAL,					ESupportMode::PreviewNotSupported, FCanUseParameter())
 	, Coating_Thickness(					TEXT("coating.thickness"),			RPRX_UBER_MATERIAL_COATING_THICKNESS,				ESupportMode::PreviewNotSupported, 1.0f)
-	, Coating_Weight(						TEXT("coating.weight"),				RPRX_UBER_MATERIAL_COATING_WEIGHT,					ESupportMode::PreviewNotSupported, 0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Coating_Roughness(					TEXT("coating.roughness"),			RPRX_UBER_MATERIAL_COATING_ROUGHNESS,				ESupportMode::PreviewNotSupported, 0.5f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Coating_Ior(							TEXT("coating.ior"),				RPRX_UBER_MATERIAL_COATING_IOR,						ESupportMode::PreviewNotSupported, 1.5f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
-
 	, Coating_Mode(FRPRMaterialEnum::Create<ERPRCoatingMode>(TEXT("coating.mode"), RPRX_UBER_MATERIAL_COATING_MODE, ESupportMode::PreviewNotSupported, ERPRCoatingMode::PBR))
 
 	// Emission
-	, Emission_Color(	TEXT("emission.color"),		RPRX_UBER_MATERIAL_EMISSION_COLOR,	ESupportMode::FullySupported, 1.0f)
 	, Emission_Weight(	TEXT("emission.weight"),	RPRX_UBER_MATERIAL_EMISSION_WEIGHT, ESupportMode::FullySupported, 0.0f, ERPRMCoMapC1InterpretationMode::AsFloat4)
-
+	, Emission_Color(	TEXT("emission.color"),		RPRX_UBER_MATERIAL_EMISSION_COLOR,	ESupportMode::FullySupported, 1.0f)
 	, Emission_Mode(FRPRMaterialEnum::Create<ERPREmissionMode>(TEXT("emission.mode"), RPRX_UBER_MATERIAL_EMISSION_MODE, ESupportMode::FullySupported, ERPREmissionMode::SingleSided))
 
 	// Miscs

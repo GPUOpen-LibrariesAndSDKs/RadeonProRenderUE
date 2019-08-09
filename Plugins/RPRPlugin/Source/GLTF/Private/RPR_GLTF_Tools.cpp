@@ -32,7 +32,8 @@ namespace RPR
 			RPRX::FContext RPRXContext,
 			RPR::FScene& OutScene)
 		{
-			return rprImportFromGLTF(TCHAR_TO_ANSI(*Filename), Context, MaterialSystem, RPRXContext, &OutScene);
+			//return rprImportFromGLTF(TCHAR_TO_ANSI(*Filename), Context, MaterialSystem, RPRXContext, &OutScene);
+			return 0;
 		}
 
 		FStatus ExportToGLTF(
@@ -42,7 +43,8 @@ namespace RPR
 			RPRX::FContext RPRXContext,
 			const TArray<RPR::FScene>& Scenes)
 		{
-			return rprExportToGLTF(TCHAR_TO_ANSI(*Filename), Context, MaterialSystem, RPRXContext, Scenes.GetData(), Scenes.Num());
+			//return rprExportToGLTF(TCHAR_TO_ANSI(*Filename), Context, MaterialSystem, RPRXContext, Scenes.GetData(), Scenes.Num(), );
+			return 0;
 		}
 
 		bool IsResultSuccess(FStatus status)
@@ -93,7 +95,7 @@ namespace RPR
 			*/
 			template<typename ImportType>
 			RPR::GLTF::FStatus GLTF_Import(
-				TArray<ImportType>& OutItems, 
+				TArray<ImportType>& OutItems,
 				RPR::GLTF::FStatus (*RPRNativeImportFunction)(ImportType* /* Items */, int /* sizeBytes */, int * /* numberOfItems */)
 			)
 			{
@@ -150,7 +152,7 @@ namespace RPR
 			RPR::GLTF::FStatus GetParentGroupFromShape(RPR::FShape Shape, FString& OutGroupName)
 			{
 				RPR::GLTF::FStatus status;
-			
+
 				size_t size;
 				status = rprGLTF_GetParentGroupFromShape(Shape, 0, nullptr, &size);
 				if (RPR::GLTF::IsResultFailed(status))

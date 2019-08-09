@@ -27,13 +27,13 @@ public class RPR_GLTF : ModuleRules
     { get { return (Path.Combine(ModuleDirectory, "../../ThirdParty")); }}
 
     public string GLTFDirectory
-    { get { return (Path.Combine(ThirdPartyDirectory, "ProRenderSDK/RadeonProRender/")); }}
+    { get { return (Path.Combine(ThirdPartyDirectory, "RadeonProRenderThirdPartyComponents/RadeonProRender-GLTF/Win")); }}
 
     public string ThirdPartyDllDirectory
-    { get { return (Path.Combine(GLTFDirectory, "binWin64")); }}
+    { get { return (Path.Combine(GLTFDirectory, "lib")); }}
 
     public string ThirdPartyLibDirectory
-    { get { return (Path.Combine(GLTFDirectory, "libWin64")); } }
+    { get { return (Path.Combine(GLTFDirectory, "lib")); } }
 
     public string ThirdPartyIncludesDirectory
     { get { return (Path.Combine(GLTFDirectory, "inc")); }}
@@ -86,7 +86,7 @@ public class RPR_GLTF : ModuleRules
                 "CoreUObject",
                 "Engine",
 				"RHI",
-				// ... add private dependencies that you statically link with here ...	
+				// ... add private dependencies that you statically link with here ...
 			}
         );
     }
@@ -103,6 +103,7 @@ public class RPR_GLTF : ModuleRules
         PublicDelayLoadDLLs.Add(gltfDynLib);
 
         PrivateIncludePaths.Add(ThirdPartyIncludesDirectory);
+        PublicIncludePaths.Add(ThirdPartyIncludesDirectory);
     }
 
 }

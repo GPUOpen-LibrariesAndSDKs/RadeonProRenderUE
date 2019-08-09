@@ -42,7 +42,7 @@ bool FRPR_SDKModule::IsLoaded()
 FString FRPR_SDKModule::GetDLLsDirectory()
 {
 	checkf(PLATFORM_64BITS & PLATFORM_WINDOWS, TEXT("Only Windows 64bits supported."));
-	return FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/ProRenderSDK/RadeonProRender/binWin64");
+	return FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProRenderThirdPartyComponents/RadeonProRender SDK/Win/bin");
 }
 
 void FRPR_SDKModule::StartupModule()

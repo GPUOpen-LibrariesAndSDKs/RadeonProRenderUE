@@ -24,15 +24,17 @@
 
 struct	FRPRShape
 {
+	int32					m_UEMaterialIndex;
+	uint32					m_InstanceIndex;
 	rpr_shape				m_RprShape;
 	rpr_material_node		m_RprMaterial;
 	RPR::FRPRXMaterialPtr	m_RprxMaterial;
-	int32					m_UEMaterialIndex;
-	uint32					m_InstanceIndex;
 
 	FRPRShape(const FRPRCachedMesh &cached, uint32 iInstance)
-		: m_RprShape(cached.m_RprShape)
-		, m_UEMaterialIndex(cached.m_UEMaterialIndex)
+		: m_UEMaterialIndex(cached.m_UEMaterialIndex)
+		, m_InstanceIndex(iInstance)
+		, m_RprShape(cached.m_RprShape)
 		, m_RprMaterial(NULL)
-		, m_InstanceIndex(iInstance) { }
+		, m_RprxMaterial(NULL)
+	{ }
 };
