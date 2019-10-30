@@ -24,6 +24,10 @@
 #include <memory>
 #include <sstream>
 
+#include "Materials/MaterialExpressionConstant3Vector.h"
+#include "Materials/MaterialExpressionVectorParameter.h"
+
+
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshActor.h"
 #include "Camera/CameraActor.h"
@@ -49,6 +53,7 @@
 #include "Typedefs/RPRXTypedefs.h"
 #include "Helpers/RPRSceneHelpers.h"
 #include "Constants/RPRConstants.h"
+#include "EditorFramework/AssetImportData.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
 
@@ -146,6 +151,7 @@ void	URPRStaticMeshComponent::ClearCache(RPR::FScene scene)
 
 bool	URPRStaticMeshComponent::BuildMaterials()
 {
+	RPR::FResult status;
 	FRPRXMaterialLibrary	&rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 
 	const UStaticMeshComponent	*component = Cast<UStaticMeshComponent>(SrcComponent);
@@ -157,7 +163,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 	{
 		rpr_shape	shape = m_Shapes[iShape].m_RprShape;
-		rpr_int		status = RPR_SUCCESS;
+		status = RPR_SUCCESS;
 
 		// If we have a wrong index, it ll just return nullptr, and fallback to a dummy material
 		UMaterialInterface	*matInterface = component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
@@ -170,9 +176,81 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 			RPR::FRPRXMaterialPtr	rprxMaterial = rprMaterialLibrary.GetMaterial(rprMaterial);
 			m_Shapes[iShape].m_RprxMaterial = rprxMaterial;
 		}
-		else
+		else if (matInterface) // parse plain material
 		{
-			AttachDummyMaterial(shape);
+			UMaterial* material = matInterface->GetMaterial();
+			if (material) {
+				if (material->BaseColor.IsConnected()) {
+					UMaterialExpression* expression = material->BaseColor.Expression;
+					//UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape created from '%s' section %s"), className);
+					UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("Parse base color connection"));
+					FString materialName = material->GetFName().ToString();
+
+					// create Uber Material (output)
+					RPR::FRPRXMaterialNodePtr materialNodePtr;
+					RPRX::FContext rprxContext;
+
+					FRPRXMaterialLibrary& rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+
+					rprxContext     = IRPRCore::GetResources()->GetRPRXSupportContext();
+
+					for (int i = 0; i < material->Expressions.Num(); ++i) {
+						if (!material->Expressions[i])
+							continue;
+
+						FString name = material->Expressions[i]->GetName();
+						FString fullName = material->Expressions[i]->GetFullName();
+						UClass* uclassName = material->Expressions[i]->GetClass();
+
+						UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("DEBUG: %s"), *name);
+						UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("DEBUG: %s"), *fullName);
+						
+						if (uclassName) {
+							FName className = uclassName->GetFName();
+							UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("DEBUG: %s"), *className.ToString());
+						}
+
+						if (expression->IsA(UMaterialExpressionVectorParameter::StaticClass())) {
+							UMaterialExpressionVectorParameter* color = Cast<UMaterialExpressionVectorParameter>(expression);
+							if (color) {
+								UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("DEBUG"));
+								color->DefaultValue;
+							}
+						}
+						
+						TArray<FExpressionInput*> inputs = material->Expressions[i]->GetInputs();
+						for (int j = 0; j < inputs.Num(); ++j) {
+							if (inputs[j]->IsConnected()) {
+								FString inputName = inputs[j]->InputName.ToString();
+								UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("DEBUG: %s"), *inputName);
+							}
+						}
+					}
+
+					// Create uber material
+					materialNodePtr = rprMaterialLibrary.getMaterial(materialName);
+					if (!materialNodePtr) {
+						//rprMaterialLibrary.CacheAndRegisterMaterial(Material)
+						 materialNodePtr = rprMaterialLibrary.createUberMaterial(materialName);
+						//m_OnMaterialChangedDelegateHandles.Subscribe(Material);
+	
+						status = RPRX::ShapeAttachMaterial(rprxContext, m_Shapes[iShape].m_RprShape, materialNodePtr->GetRawMaterial());
+						RPR::scheck(status);
+	
+						status = materialNodePtr->Commit();
+						RPR::scheck(status);
+					}
+
+					m_Shapes[iShape].m_RprxNodeMaterial = materialNodePtr;
+
+					status = RPRX::ShapeAttachMaterial(rprxContext, m_Shapes[iShape].m_RprShape, materialNodePtr->GetRawMaterial());
+					RPR::scheck(status);
+				}
+			}
+		}
+		else 
+		{
+			AttachDummyMaterial(shape);			
 		}
 	}
 
@@ -484,7 +562,41 @@ bool	URPRStaticMeshComponent::Build()
 				}
 			}
 
-		}
+			// ----------------------------------------------------------------------------------------------------
+			// MATERIAL START PARSE LOGIC
+			// ----------------------------------------------------------------------------------------------------
+/*			UMaterial *material = dynamic_cast<UMaterial*>(staticMeshComponent->GetMaterial(section.MaterialIndex));
+			uint32 matid = material->GetUniqueID();
+
+			assert(material);
+			if (material->PhysMaterial) {
+				UPhysicalMaterial* physicalMaterial = material->PhysMaterial;
+			}
+
+			TArray<UMaterialExpression*> arr_expressions = material->Expressions;
+			for (unsigned int index = 0; index < arr_expressions.GetAllocatedSize(); ++index) {
+				UMaterialExpression *expression = arr_expressions[index];
+				UTexture* utexture = expression->GetReferencedTexture();
+				//if (utexture->GetClass() == )
+				UTexture2D* texture2d = Cast<UTexture2D>(utexture);
+			}
+
+			UMaterialExpression *expressionAdd = arr_expressions[0];
+			UMaterialExpression *expression3Vec = arr_expressions[1];
+			UMaterialExpression *expressionTexSample = arr_expressions[2];
+			UMaterialExpression *expressionMult = arr_expressions[3];
+			FGuid materialExpressionId = expressionAdd->GetMaterialExpressionId();
+
+			UTexture *texture = expressionTexSample->GetReferencedTexture();
+			UTexture2D *texture2d = Cast<UTexture2D>(texture);
+
+			UAssetImportData* assetImportData = texture2d->AssetImportData;
+			auto filenames = assetImportData->ExtractFilenames();//absolute path to image
+			// END
+			//------------------------------------------------------------------------------------------------------
+			*/
+
+		} // end of cycle
 
 		if (windingOrders.size() > 1)
 		{
@@ -507,6 +619,7 @@ bool	URPRStaticMeshComponent::Build()
 			m_Shapes.Add(FRPRShape(instances[iShape], meshIndex));
 		}
 	}
+
 
 	static const FName		kPrimaryOnly("RPR_NoBlock");
 	const bool				primaryOnly = staticMeshComponent->ComponentHasTag(kPrimaryOnly) || actor->ActorHasTag(kPrimaryOnly);

@@ -30,6 +30,8 @@
 #include "Helpers/GenericGetInfo.h"
 #include "Helpers/RPRShapeHelpers.h"
 
+#include <stdexcept>
+
 DEFINE_LOG_CATEGORY_STATIC(LogRPRHelpers, Log, All);
 
 static const float RPR_PI = 3.14159265f;
@@ -81,6 +83,18 @@ namespace RPR
 	bool IsResultFailed(rpr_int Result)
 	{
 		return !IsResultSuccess(Result);
+	}
+
+	void scheck(rpr_int result)
+	{
+		if (!IsResultSuccess(result))
+			throw std::exception();
+	}
+
+	void scheck(rpr_int status, const std::string& message)
+	{
+		if (!IsResultSuccess(status))
+			throw std::runtime_error(message);
 	}
 
 	FResult DeleteObject(void*& Object)

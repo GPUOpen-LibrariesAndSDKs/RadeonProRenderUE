@@ -28,6 +28,8 @@
 #include "Helpers/RPRIHelpers.h"
 #include "Helpers/ObjectScopedLocked.h"
 
+#include <unordered_map>
+
 /*
 * Library of RPR materials.
 * Create native RPR material from FRPRMaterial and keep it in cache.
@@ -51,10 +53,13 @@ public:
 	void	ClearCache();
 
 	RPR::FMaterialNode GetDummyMaterial() const;
+	RPR::FMaterialNode GetTestMaterial() const;
 	RPR::FRPRXMaterialPtr	GetMaterial(const URPRMaterial* MaterialKey);
 
 	virtual FCriticalSection& GetCriticalSection() override;
-
+	
+	RPR::FRPRXMaterialNodePtr		getMaterial(FString materialName);
+	RPR::FRPRXMaterialNodePtr createUberMaterial(FString materialName);
 private:
 
 	const RPR::FRPRXMaterialPtr	FindMaterialCache(const URPRMaterial* MaterialKey) const;
@@ -63,16 +68,25 @@ private:
 	void	InitializeDummyMaterial();
 	void	DestroyDummyMaterial();
 
+	void	InitializeTestMaterial();
+	void	DestroyTestMaterial();
+
 	RPR::FRPRXMaterialPtr	CacheMaterial(URPRMaterial* InMaterial);
 	RPR::FMaterialContext	CreateMaterialContext() const;
 
-private:
-
 	TMap<const URPRMaterial*, RPR::FRPRXMaterialPtr>	UEMaterialToRPRMaterialCaches;
+	
+	// Data nodes in plain buffer. Represents material graphs.
+	// TODO: destroy of material graph should be:
+	// 1. Unassign root materials from Meshes
+	// 2. Unlink all mat. nodes from each other
+	// 3. Destroy nodes
+	TMap<FString, RPR::FRPRXMaterialNodePtr> m_materials;
 
 	bool bIsInitialized;
 	FCriticalSection CriticalSection;
 	RPR::FMaterialNode DummyMaterial;
+	RPR::FMaterialNode TestMaterial;
 };
 
 using FRPRXMaterialLibrarySL = FObjectScopedLocked<FRPRXMaterialLibrary>;

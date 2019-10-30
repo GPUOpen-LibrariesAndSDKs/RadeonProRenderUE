@@ -44,6 +44,13 @@ namespace RPR
 	RPRTOOLS_API bool		IsResultFailed(rpr_int Result);
 
 	/*
+	* Generate exception if something goes wrong
+	*/
+	RPRTOOLS_API void		scheck(rpr_int status);
+	RPRTOOLS_API void		scheck(rpr_int status, const std::string& message);
+
+	
+	/*
 	* Delete a native object.
 	* Use the native RPR function to delete object.
 	* Assign null to the object after destruction if succeed.

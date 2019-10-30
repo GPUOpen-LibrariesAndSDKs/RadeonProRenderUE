@@ -27,6 +27,7 @@ struct	FRPRShape
 	rpr_shape				m_RprShape;
 	rpr_material_node		m_RprMaterial;
 	RPR::FRPRXMaterialPtr	m_RprxMaterial;
+	RPR::FRPRXMaterialNodePtr	m_RprxNodeMaterial;
 	int32					m_UEMaterialIndex;
 	uint32					m_InstanceIndex;
 

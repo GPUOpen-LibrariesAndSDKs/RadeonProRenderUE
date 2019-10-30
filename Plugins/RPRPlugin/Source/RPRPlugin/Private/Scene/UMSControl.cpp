@@ -19,10 +19,10 @@
 #include "Scene/UMSControl.h"
 #include "Scene/tinyxml2.h"
 #include <fstream>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <CoreMinimal.h>
 #include <Engine/Texture.h>
-namespace fs = std::experimental::filesystem;
+namespace fs = std;
 
 namespace rpr
 {

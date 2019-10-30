@@ -35,14 +35,6 @@ namespace RPRX
 
 	RPR::FRPRXMaterialPtr FMaterialCacheMaker::CacheUberMaterial()
 	{
-		RPRX::FMaterial rprxMaterial;
-
-		RPR::FResult status = RPRX::FMaterialHelpers::CreateMaterial(MaterialContext.RPRXContext, EMaterialType::Uber, rprxMaterial);
-		if (RPR::IsResultFailed(status))
-		{
-			return (nullptr);
-		}
-
 		RPR::FRPRXMaterialPtr materialPtr = MakeShareable(new RPR::FRPRXMaterial(RPRMaterial));
 		if (!UpdateUberMaterialParameters(materialPtr))
 		{

@@ -39,6 +39,7 @@ using namespace RPR;
 FRPRXMaterialLibrary::FRPRXMaterialLibrary()
 	: bIsInitialized(false)
 	, DummyMaterial(nullptr)
+	, TestMaterial(nullptr)
 {}
 
 void FRPRXMaterialLibrary::Initialize()
@@ -47,6 +48,7 @@ void FRPRXMaterialLibrary::Initialize()
 
 	bIsInitialized = true;
 	InitializeDummyMaterial();
+	InitializeTestMaterial();
 }
 
 bool FRPRXMaterialLibrary::IsInitialized() const
@@ -60,6 +62,7 @@ void FRPRXMaterialLibrary::Close()
 	{
 		UE_LOG(LogRPRMaterialLibrary, Verbose, TEXT("Close"));
 
+		DestroyTestMaterial();
 		DestroyDummyMaterial();
 		ClearCache();
 	}
@@ -131,6 +134,12 @@ RPR::FMaterialNode FRPRXMaterialLibrary::GetDummyMaterial() const
 	return (DummyMaterial);
 }
 
+RPR::FMaterialNode FRPRXMaterialLibrary::GetTestMaterial() const
+{
+	return (TestMaterial);
+}
+
+
 FCriticalSection& FRPRXMaterialLibrary::GetCriticalSection()
 {
 	return (CriticalSection);
@@ -146,6 +155,16 @@ RPR::FRPRXMaterialPtr FRPRXMaterialLibrary::FindMaterialCache(const URPRMaterial
 {
 	const FRPRXMaterialLibrary* thisConst = this;
 	return RPR::ConstRefAway(thisConst->FindMaterialCache(MaterialKey));
+}
+
+
+RPR::FRPRXMaterialNodePtr FRPRXMaterialLibrary::getMaterial(FString expressionGuid) 
+{
+	auto ptr = m_materials.Find(expressionGuid);
+	if (!ptr)
+		return nullptr;
+
+	return *ptr;
 }
 
 void FRPRXMaterialLibrary::InitializeDummyMaterial()
@@ -182,6 +201,70 @@ void FRPRXMaterialLibrary::DestroyDummyMaterial()
 		DummyMaterial = nullptr;
 	}
 }
+
+void FRPRXMaterialLibrary::InitializeTestMaterial()
+{
+	assert(!TestMaterial);
+
+/*	using namespace RPR;
+	FResult result;
+
+	FMaterialSystem materialSystem = IRPRCore::GetResources()->GetMaterialSystem();
+	FContext context = IRPRCore::GetResources()->GetRPRContext();
+	FImageManagerPtr imageManager = IRPRCore::GetResources()->GetRPRImageManager();
+
+	result = FMaterialHelpers::CreateImageNode(context, materialSystem, *imageManager, );
+
+	// diffuse node
+	result = FMaterialHelpers::CreateNode(materialSystem, EMaterialNodeType::Diffuse, TEXT("TestMaterial"), TestMaterial);
+	checker(result);
+
+	result = FMaterialHelpers::CreateNode(materialSystem, EMaterialNodeType::RPR_MATERIAL_NODE_OP_ADD, TEXT("TestMaterial"), TestMaterial);
+	checker(result);
+
+	result = FMaterialHelpers::FMaterialNode::SetInputFloats(TestMaterial, TEXT("color"), 0.5f, 0.5f, 0.5f, 1.0f);
+	checker(result);*/
+}
+
+void FRPRXMaterialLibrary::DestroyTestMaterial()
+{
+	if (!TestMaterial)
+		return;
+
+	RPR::FMaterialHelpers::DeleteNode(TestMaterial);
+	TestMaterial = nullptr;
+}
+
+RPR::FRPRXMaterialNodePtr FRPRXMaterialLibrary::createUberMaterial(FString name)
+{
+	RPR::FRPRXMaterialNodePtr materialPtr = MakeShareable(new RPR::FRPRXMaterialNode(name));
+
+	if (!materialPtr->IsMaterialValid())
+		throw std::exception();
+
+	FResult result;
+	result = materialPtr->SetMaterialParameterColor(RPRX_UBER_MATERIAL_DIFFUSE_COLOR, FLinearColor(1.0f, 0.0f, 0.0f));
+	scheck(result);
+
+	result = materialPtr->SetMaterialParameterFloat(RPRX_UBER_MATERIAL_DIFFUSE_WEIGHT, 1.0);
+	scheck(result);
+
+	return  materialPtr;
+}
+
+void consdstructSimpleMaterialNode() 
+{
+/*	RPR::FMaterialSystem materialSystem = IRPRCore::GetResources()->GetMaterialSystem();
+	
+	RPR::FResult result;
+	RPR::FMaterialNode material;
+	result = RPR::FMaterialHelpers::CreateNode(materialSystem, EMaterialNodeType::Diffuse, TEXT("DummyMaterial"), material);
+	scheck(result);
+
+	result = RPR::FMaterialHelpers::FMaterialNode::SetInputFloats(DummyMaterial, TEXT("color"), 0.5f, 0.5f, 0.5f, 1.0f);
+	scheck(result);*/
+}
+
 
 RPR::FRPRXMaterialPtr FRPRXMaterialLibrary::CacheMaterial(URPRMaterial* InMaterial)
 {

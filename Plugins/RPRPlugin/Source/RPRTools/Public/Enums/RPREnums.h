@@ -56,7 +56,10 @@ namespace RPR
 		InputLookup				= RPR_MATERIAL_NODE_INPUT_LOOKUP,
 
 		UVProcedural			= RPR_MATERIAL_NODE_UV_PROCEDURAL,
-		UVTriplanar				= RPR_MATERIAL_NODE_UV_TRIPLANAR
+		UVTriplanar				= RPR_MATERIAL_NODE_UV_TRIPLANAR,
+
+		Add						= RPR_MATERIAL_NODE_OP_ADD,
+		Mult					= RPR_MATERIAL_NODE_OP_MUL
 
 		// Not completed. See rpr_material_node_type in RadeonProRender.h for others
 	};
