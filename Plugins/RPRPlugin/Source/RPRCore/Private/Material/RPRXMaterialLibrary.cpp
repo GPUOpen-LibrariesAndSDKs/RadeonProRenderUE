@@ -255,7 +255,7 @@ RPR::FRPRXMaterialNodePtr FRPRXMaterialLibrary::createMaterial(FString name, RPR
 	RPR::FRPRXMaterialNodePtr materialPtr = MakeShareable(new RPR::FRPRXMaterialNode(name, type));
 
 	if (!materialPtr->IsMaterialValid())
-		throw std::exception();
+		throw std::exception("FRPRXMaterialLibrary::createMaterial: materialPtr isn't valid");
 
 	m_materials.Add(name, materialPtr);
 
@@ -285,7 +285,7 @@ bool FRPRXMaterialLibrary::hasNode(FString materialNode) const
 RPR::FMaterialNode FRPRXMaterialLibrary::getNode(FString materialNode)
 {
 	auto ptr = m_materialNodes.Find(materialNode);
-	return (ptr) ? *ptr : nullptr;
+	return ptr ? *ptr : nullptr;
 }
 
 RPR::FMaterialNode FRPRXMaterialLibrary::getOrCreateIfNotExists(FString materialNode, RPR::EMaterialNodeType type)

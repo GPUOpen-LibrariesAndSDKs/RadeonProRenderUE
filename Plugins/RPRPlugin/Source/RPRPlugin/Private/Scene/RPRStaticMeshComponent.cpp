@@ -24,8 +24,15 @@
 #include <memory>
 #include <sstream>
 
+#include "Materials/MaterialExpressionConstant.h"
+#include "Materials/MaterialExpressionConstant2Vector.h"
 #include "Materials/MaterialExpressionConstant3Vector.h"
+#include "Materials/MaterialExpressionConstant4Vector.h"
 #include "Materials/MaterialExpressionVectorParameter.h"
+#include "Materials/MaterialExpressionAdd.h"
+#include "Materials/MaterialExpressionMultiply.h"
+#include "Materials/MaterialExpressionTextureSample.h"
+#include "Materials/MaterialExpressionTextureObject.h"
 
 
 #include "Engine/StaticMesh.h"
@@ -183,19 +190,16 @@ RPR::FMaterialNode URPRStaticMeshComponent::visitExpression(UMaterialExpression*
 
 void URPRStaticMeshComponent::processUE4Material(FRPRShape& shape, UMaterial* material)
 {
-	RPR::FResult status;
-	if (!material)
+	if (!material || !material->BaseColor.IsConnected())
 		return;
 
-	if (!material->BaseColor.IsConnected())
-		return;
-
-	FString materialName = material->GetFName().ToString();
+	FString materialName = material->GetName();
 	if (materialName.IsEmpty())
 		return;
 
 	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 	RPRX::FContext        rprxContext     = IRPRCore::GetResources()->GetRPRXSupportContext();
+	RPR::FResult          status;
 
 	if (materialLibrary.hasMaterial(materialName))
 		return; // Uber material already exists. Ignore
@@ -206,20 +210,12 @@ void URPRStaticMeshComponent::processUE4Material(FRPRShape& shape, UMaterial* ma
 
 	shape.m_RprxNodeMaterial = uberMaterialPtr;
 
-	// lest start process graph expressions
-	UMaterialExpression* expression = material->BaseColor.Expression;
-	RPR::FMaterialNode colorNode = visitExpression(expression, materialLibrary);
-	if (colorNode) {
-		status = uberMaterialPtr->SetMaterialParameterNode(RPRX_UBER_MATERIAL_DIFFUSE_COLOR, colorNode);
-		RPR::scheck(status);
-	}
-	else {
-		status = uberMaterialPtr->SetMaterialParameterColor(RPRX_UBER_MATERIAL_DIFFUSE_COLOR, FLinearColor(0.5f, 0.4f, 0.8f));
-		RPR::scheck(status);
-	}
+	// place for processing expressions
 
-	status = uberMaterialPtr->SetMaterialParameterFloat(RPRX_UBER_MATERIAL_DIFFUSE_WEIGHT, 1.0f);
+	status = RPRX::ShapeAttachMaterial(rprxContext, shape.m_RprShape, uberMaterialPtr->GetRawMaterial());
 	RPR::scheck(status);
+
+	materialLibrary.commitAll();
 
 	status = RPRX::ShapeAttachMaterial(rprxContext, shape.m_RprShape, uberMaterialPtr->GetRawMaterial());
 	RPR::scheck(status);
@@ -243,7 +239,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		rpr_shape	shape = m_Shapes[iShape].m_RprShape;
 		status = RPR_SUCCESS;
 
-		// If we have a wrong index, it ll just return nullptr, and fallback to a dummy material
+		// If we have a wrong index, it will just return nullptr, and fallback to a dummy material
 		UMaterialInterface	*matInterface = component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
 
 		if (matInterface != nullptr && matInterface->IsA<URPRMaterial>())
