@@ -88,9 +88,11 @@ private:
 	void	WatchMaterialsChanges();
 	void	UpdateLastMaterialList();
 
-	void processUE4Material(FRPRShape& shape, UMaterial* material);
-	RPR::FMaterialNode visitExpression(UMaterialExpression* expression, FRPRXMaterialLibrary& materialLibrary);
-	RPR::FMaterialNode ProcessExpressions(UMaterialExpression* expr, FRPRXMaterialLibrary& materialLibrary);
+	void ProcessUE4Material(FRPRShape& shape, UMaterial* material);
+	RPR::FMaterialNode ConvertExpressionToRPRNode(UMaterialExpression* expr, FRPRXMaterialLibrary& materialLibrary);
+	RPR::FMaterialNode ProcessColorNode(const FString& nodeId, const FLinearColor& color, FRPRXMaterialLibrary& materialLibrary);
+	void TwoOperandsMathNodeSetInput(RPR::FMaterialNode node, const TArray<FExpressionInput*> inputs, const float ConstA, const float ConstB, FRPRXMaterialLibrary& materialLibrary);
+
 
 	RPR::FResult	DetachCurrentMaterial(RPR::FShape Shape);
 	FRPRShape*		FindShapeByMaterialIndex(int32 MaterialIndex);

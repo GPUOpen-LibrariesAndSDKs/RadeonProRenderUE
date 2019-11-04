@@ -32,9 +32,9 @@ namespace RPR
 	FResult	FMaterialHelpers::CreateNode(FMaterialSystem MaterialSystem, RPR::EMaterialNodeType NodeType, RPR::FMaterialNode& OutMaterialNode)
 	{
 		FResult status = rprMaterialSystemCreateNode(MaterialSystem, (RPR::FMaterialNodeType) NodeType, &OutMaterialNode);
-		
-		UE_LOG(LogRPRCore_Steps, Verbose, 
-			TEXT("rprMaterialSystemCreateNode(materialSystem=%p, nodeType=%d) -> status=%d, materialNode=%p"), 
+
+		UE_LOG(LogRPRCore_Steps, Verbose,
+			TEXT("rprMaterialSystemCreateNode(materialSystem=%p, nodeType=%d) -> status=%d, materialNode=%p"),
 			MaterialSystem, (uint32) NodeType, status, OutMaterialNode);
 
 		if (IsResultFailed(status))
@@ -90,7 +90,7 @@ namespace RPR
 	}
 
 	RPR::FResult FMaterialHelpers::CreateNormalMap(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
-													UTexture2D* Texture, RPR::FImagePtr& OutImage, 
+													UTexture2D* Texture, RPR::FImagePtr& OutImage,
 													RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutImageNode)
 	{
 		OutMaterialNode = nullptr;
@@ -109,7 +109,7 @@ namespace RPR
 
 		return result;
 	}
-	
+
 	RPR::FResult FMaterialHelpers::CreateBumpMap(RPR::FContext RPRContext, FMaterialSystem MaterialSystem, RPR::FImageManager& ImageManager,
 		UTexture2D* Texture, float BumpScale,
 		RPR::FImagePtr& OutImage, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutImageNode)
@@ -132,7 +132,7 @@ namespace RPR
 		return result;
 	}
 
-	RPR::FResult FMaterialHelpers::FMaterialNode::SetInputUInt(RPR::FMaterialNode MaterialNode, const FString& ParameterName, uint8 Value)
+	RPR::FResult FMaterialHelpers::FMaterialNode::SetInputUInt(RPR::FMaterialNode MaterialNode, const FString& ParameterName, unsigned int Value)
 	{
 		RPR::FResult status = rprMaterialNodeSetInputU(MaterialNode, TCHAR_TO_ANSI(*ParameterName), Value);
 

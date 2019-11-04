@@ -54,7 +54,7 @@ namespace RPR
 		{
 		public:
 
-			static FResult	SetInputUInt(RPR::FMaterialNode MaterialNode, const FString& ParameterName, uint8 Value);
+			static FResult	SetInputUInt(RPR::FMaterialNode MaterialNode, const FString& ParameterName, unsigned int Value);
 			static FResult	SetInputNode(RPR::FMaterialNode MaterialNode, const FString& ParameterName, RPR::FMaterialNode InMaterialNode);
 			static FResult	SetInputImageData(RPR::FMaterialNode MaterialNode, const FString& ParameterName, RPR::FImage InImage);
 
