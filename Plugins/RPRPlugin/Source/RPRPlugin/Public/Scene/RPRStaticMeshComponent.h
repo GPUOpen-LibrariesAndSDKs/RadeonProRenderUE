@@ -88,11 +88,11 @@ private:
 	void	WatchMaterialsChanges();
 	void	UpdateLastMaterialList();
 
+	void processUE4Material(FRPRShape& shape, UMaterial* material);
+	RPR::FMaterialNode visitExpression(UMaterialExpression* expression, FRPRXMaterialLibrary& materialLibrary);
+
 	RPR::FResult	DetachCurrentMaterial(RPR::FShape Shape);
-
 	FRPRShape*		FindShapeByMaterialIndex(int32 MaterialIndex);
-
-private:
 
 	static TMap<UStaticMesh*, TArray<FRPRCachedMesh>>	Cache;
 

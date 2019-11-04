@@ -57,9 +57,18 @@ public:
 	RPR::FRPRXMaterialPtr	GetMaterial(const URPRMaterial* MaterialKey);
 
 	virtual FCriticalSection& GetCriticalSection() override;
-	
+
+	RPR::FRPRXMaterialNodePtr       createMaterial(FString name, RPRX::EMaterialType type = RPRX::EMaterialType::Uber);
+	bool                            hasMaterial(FString materialName) const;
 	RPR::FRPRXMaterialNodePtr		getMaterial(FString materialName);
-	RPR::FRPRXMaterialNodePtr createUberMaterial(FString materialName);
+	void	                        commitAll();
+
+	RPR::FMaterialNode              createNode(FString materialNode, RPR::EMaterialNodeType type = RPR::EMaterialNodeType::Diffuse);
+	bool                            hasNode(FString materialNode) const;
+	RPR::FMaterialNode              getNode(FString materialNode);
+	RPR::FMaterialNode              getOrCreateIfNotExists(FString materialNode, RPR::EMaterialNodeType type = RPR::EMaterialNodeType::Diffuse);
+	void                            setNodeFloat(RPR::FMaterialNode materialNode, const FString& parameter, float r, float g, float b, float a);
+
 private:
 
 	const RPR::FRPRXMaterialPtr	FindMaterialCache(const URPRMaterial* MaterialKey) const;
@@ -75,13 +84,14 @@ private:
 	RPR::FMaterialContext	CreateMaterialContext() const;
 
 	TMap<const URPRMaterial*, RPR::FRPRXMaterialPtr>	UEMaterialToRPRMaterialCaches;
-	
+
 	// Data nodes in plain buffer. Represents material graphs.
 	// TODO: destroy of material graph should be:
 	// 1. Unassign root materials from Meshes
 	// 2. Unlink all mat. nodes from each other
 	// 3. Destroy nodes
 	TMap<FString, RPR::FRPRXMaterialNodePtr> m_materials;
+	TMap<FString, RPR::FMaterialNode>        m_materialNodes;
 
 	bool bIsInitialized;
 	FCriticalSection CriticalSection;
