@@ -188,6 +188,84 @@ RPR::FMaterialNode URPRStaticMeshComponent::visitExpression(UMaterialExpression*
 	return materialNode;
 }
 
+RPR::FMaterialNode URPRStaticMeshComponent::ProcessExpressions(UMaterialExpression* expr, FRPRXMaterialLibrary& materialLibrary)
+{
+	//RPR::FResult       status;
+	RPR::FMaterialNode node = materialLibrary.getNode(expr->GetName());
+
+	if (node)
+	{
+		return node;
+	}
+	else if (expr->IsA<UMaterialExpressionConstant3Vector>())
+	{
+		auto expression = Cast<UMaterialExpressionConstant3Vector>(expr);
+		assert(expression);
+	}
+	else if (expr->IsA<UMaterialExpressionAdd>())
+	{
+		auto expression = Cast<UMaterialExpressionAdd>(expr);
+		assert(expression);
+
+		if (&expression->A)
+		{
+			int a = 5;
+			a = 11;
+		}
+		else {
+
+			int a = 5;
+			a = 10;
+		}
+		if (&expression->B)
+		{
+
+		}
+
+		//A & B are expressions of inputs.
+		//ConstB & ConstA - default values, if input expressions is null
+
+		/*node = materialLibrary.getOrCreateIfNotExists(expression->GetName(), RPR::EMaterialNodeType::Arithmetic);
+		assert(node);
+
+		materialLibrary.setNodeFloat(node, TEXT("color"), expression->);*/
+		return node;
+	}
+	else if (expr->IsA<UMaterialExpressionMultiply>())
+	{
+		auto expression = Cast<UMaterialExpressionMultiply>(expr);
+		assert(expression);
+	}
+	else if (expr->IsA<UMaterialExpressionTextureSample>())
+	{
+		auto expression = Cast<UMaterialExpressionTextureSample>(expr);
+		assert(expression);
+	}
+	else if (expr->IsA<UMaterialExpressionTextureObject>())
+	{
+		auto expression = Cast<UMaterialExpressionTextureObject>(expr);
+		assert(expression);
+	}
+	else if (expr->IsA<UMaterialExpressionVectorParameter>())
+	{
+		auto expression = Cast<UMaterialExpressionVectorParameter>(expr);
+		assert(expression);
+		node = materialLibrary.getOrCreateIfNotExists(expression->GetName(), RPR::EMaterialNodeType::Diffuse);
+		assert(node);
+
+		materialLibrary.setNodeFloat(
+			node,
+			TEXT("color"),
+			expression->DefaultValue.R,
+			expression->DefaultValue.G,
+			expression->DefaultValue.B,
+			expression->DefaultValue.A);
+
+		return node;
+	}
+	return nullptr;
+}
+
 void URPRStaticMeshComponent::processUE4Material(FRPRShape& shape, UMaterial* material)
 {
 	if (!material || !material->BaseColor.IsConnected())
@@ -197,9 +275,9 @@ void URPRStaticMeshComponent::processUE4Material(FRPRShape& shape, UMaterial* ma
 	if (materialName.IsEmpty())
 		return;
 
+	RPR::FResult          status;
 	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 	RPRX::FContext        rprxContext     = IRPRCore::GetResources()->GetRPRXSupportContext();
-	RPR::FResult          status;
 
 	if (materialLibrary.hasMaterial(materialName))
 		return; // Uber material already exists. Ignore
@@ -210,12 +288,13 @@ void URPRStaticMeshComponent::processUE4Material(FRPRShape& shape, UMaterial* ma
 
 	shape.m_RprxNodeMaterial = uberMaterialPtr;
 
-	// place for processing expressions
-
-	status = RPRX::ShapeAttachMaterial(rprxContext, shape.m_RprShape, uberMaterialPtr->GetRawMaterial());
+	//First expression is always for BaseColor, the input to BaseColor is input for material
+	RPR::FMaterialNode firstInputNode = ProcessExpressions(material->BaseColor.Expression, materialLibrary);
+	status = uberMaterialPtr->SetMaterialParameterNode(RPRX_UBER_MATERIAL_DIFFUSE_COLOR, firstInputNode);
 	RPR::scheck(status);
 
-	materialLibrary.commitAll();
+	status = uberMaterialPtr->SetMaterialParameterFloat(RPRX_UBER_MATERIAL_DIFFUSE_WEIGHT, 1.0f);
+	RPR::scheck(status);
 
 	status = RPRX::ShapeAttachMaterial(rprxContext, shape.m_RprShape, uberMaterialPtr->GetRawMaterial());
 	RPR::scheck(status);

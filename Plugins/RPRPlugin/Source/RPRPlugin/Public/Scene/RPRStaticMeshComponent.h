@@ -90,6 +90,7 @@ private:
 
 	void processUE4Material(FRPRShape& shape, UMaterial* material);
 	RPR::FMaterialNode visitExpression(UMaterialExpression* expression, FRPRXMaterialLibrary& materialLibrary);
+	RPR::FMaterialNode ProcessExpressions(UMaterialExpression* expr, FRPRXMaterialLibrary& materialLibrary);
 
 	RPR::FResult	DetachCurrentMaterial(RPR::FShape Shape);
 	FRPRShape*		FindShapeByMaterialIndex(int32 MaterialIndex);
