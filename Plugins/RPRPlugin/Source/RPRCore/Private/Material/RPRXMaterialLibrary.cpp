@@ -306,7 +306,13 @@ void FRPRXMaterialLibrary::setNodeFloat(RPR::FMaterialNode materialNode, const F
 	RPR::FResult status;
 	status = RPR::FMaterialHelpers::FMaterialNode::SetInputFloats(materialNode, parameter, r, g, b, a);
 	RPR::scheck(status);
+}
 
+void FRPRXMaterialLibrary::setNodeConnection(RPR::FMaterialNode materialNode, const FString& parameter, RPR::FMaterialNode otherNode)
+{
+	RPR::FResult status;
+	status = RPR::FMaterialHelpers::FMaterialNode::SetInputNode(materialNode, parameter, otherNode);
+	RPR::scheck(status);
 }
 
 RPR::FRPRXMaterialPtr FRPRXMaterialLibrary::CacheMaterial(URPRMaterial* InMaterial)

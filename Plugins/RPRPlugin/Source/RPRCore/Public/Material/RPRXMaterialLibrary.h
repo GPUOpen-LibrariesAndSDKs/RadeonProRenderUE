@@ -68,6 +68,7 @@ public:
 	RPR::FMaterialNode              getNode(FString materialNode);
 	RPR::FMaterialNode              getOrCreateIfNotExists(FString materialNode, RPR::EMaterialNodeType type = RPR::EMaterialNodeType::Diffuse);
 	void                            setNodeFloat(RPR::FMaterialNode materialNode, const FString& parameter, float r, float g, float b, float a);
+	void                            setNodeConnection(RPR::FMaterialNode MaterialNode, const FString& ParameterName, RPR::FMaterialNode InMaterialNode);
 
 private:
 
