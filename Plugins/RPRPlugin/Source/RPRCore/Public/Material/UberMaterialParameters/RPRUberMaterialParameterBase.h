@@ -38,7 +38,7 @@ enum class ESupportMode : uint8
 * Base for all parameters used in the Uber material.
 * It contains extra datas to import datas from the .rprmat
 * and make links with the UE4 materials.
-* If you want to add a new type for the Uber material,
+* If you want to add a new type for the Uber material, 
 * you should start from here.
 */
 USTRUCT(BlueprintType)
@@ -50,9 +50,9 @@ public:
 
 	FRPRUberMaterialParameterBase();
 	FRPRUberMaterialParameterBase(
-		const FString& InParamName,
+		const FString& InParamName, 
 		RPRX::FParameterType InRprxParamType,
-		ESupportMode InPreviewSupportMode,
+		ESupportMode InPreviewSupportMode, 
 		FCanUseParameter InCanUseParameter = FCanUseParameter(),
         FApplyParameter InApplyParameterDelegate = FApplyParameter());
 
@@ -81,10 +81,10 @@ public:
 private:
 
 	UPROPERTY()
-	FString		ParamName;
+	uint32		RprxParamType;
 
 	UPROPERTY()
-	uint32		RprxParamType;
+	FString		ParamName;
 
 	FCanUseParameter    CanUseParameterDelegate;
     FApplyParameter     ApplyParameterDelegate;

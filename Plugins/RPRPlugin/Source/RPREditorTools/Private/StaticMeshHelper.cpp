@@ -42,8 +42,7 @@ void FStaticMeshHelper::SaveRawMeshToStaticMesh(FRawMesh& RawMesh, class UStatic
 
 	if (RawMesh.IsValidOrFixable())
 	{
-		FMeshDescription* meshDescription = StaticMesh->GetMeshDescription(0);
-
+		FMeshDescription* meshDescription = StaticMesh->GetOriginalMeshDescription(0);
 		if (meshDescription == nullptr)
 		{
 			StaticMesh->SourceModels[SourceModelIdx].RawMeshBulkData->SaveRawMesh(RawMesh);
@@ -57,7 +56,7 @@ void FStaticMeshHelper::SaveRawMeshToStaticMesh(FRawMesh& RawMesh, class UStatic
 				materialMap.Add(materialIndex, staticMaterial.MaterialSlotName);
 			}
 			FMeshDescriptionOperations::ConvertFromRawMesh(RawMesh, *meshDescription, materialMap);
-			StaticMesh->GetMeshDescription(0);
+			StaticMesh->CommitOriginalMeshDescription(0);
 		}
 	}
 
@@ -286,8 +285,8 @@ void FStaticMeshHelper::FindUnusedSections(const TArray<int32>& FaceMaterialIndi
 
 void FStaticMeshHelper::CreateFaceSelectionAssignationDelta(
 	const FRawMesh& RawMesh,
-	const TArray<uint32>& Triangles,
-	int32 SectionIndex,
+	const TArray<uint32>& Triangles, 
+	int32 SectionIndex, 
 	TArray<FFaceAssignInfo>& OutDelta)
 {
 	QUICK_SCOPE_CYCLE_COUNTER(STAT_StaticMeshHelper_CreateFaceSelectionAssignationDelta);
@@ -297,7 +296,7 @@ void FStaticMeshHelper::CreateFaceSelectionAssignationDelta(
 	for (int32 i = 0; i < Triangles.Num(); ++i)
 	{
 		const int32 currentTriangle = Triangles[i];
-
+		
 		const bool bIsTriangleHasCorrectSection = (RawMesh.FaceMaterialIndices[currentTriangle] == SectionIndex);
 		const bool bIsTriangleAlreadyOnDestination = (triangleDestination == currentTriangle);
 
@@ -349,7 +348,7 @@ void FStaticMeshHelper::ApplyFaceSelectionAssignationDelta(const TArray<FFaceAss
 	for (int32 i = Delta.Num() - 1; i >= 0; --i)
 	{
 		const FFaceAssignInfo& currentDelta = Delta[i];
-
+		
 		if (currentDelta.MeshIndices.Num() > 0)
 		{
 			currentDelta.InsertIntoRawMesh(RawMesh, triangleDestination * 3);

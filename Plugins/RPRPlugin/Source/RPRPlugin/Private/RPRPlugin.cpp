@@ -54,22 +54,22 @@ FString	FRPRPluginModule::s_URLRadeonProRender = "https://pro.radeon.com/en-us/s
 #endif
 
 FRPRPluginModule::FRPRPluginModule()
-:	m_ObjectBeingBuilt(0)
-,	m_ObjectsToBuild()
-,	m_ActiveCameraName("")
-,	m_RPRPaused(true)
-,	m_CleanViewport(false)
+:	m_ActiveCameraName("")
 ,	m_Viewport(NULL)
-#if WITH_EDITOR
-,	m_Extender(NULL)
-#endif
 ,	m_RenderTexture(NULL)
 ,	m_GameWorld(NULL)
 ,	m_EditorWorld(NULL)
-,	m_Zoom(0)
+#if WITH_EDITOR
+,	m_Extender(NULL)
+#endif
+,	m_ObjectBeingBuilt(0)
+,	m_ObjectsToBuild()
+,	m_RPRPaused(true)
 ,	m_OrbitDelta(FIntPoint::ZeroValue)
 ,	m_PanningDelta(FIntPoint::ZeroValue)
+,	m_Zoom(0)
 ,	m_OrbitEnabled(false)
+,	m_CleanViewport(false)
 ,	m_Loaded(false)
 ,	m_AOVMode(RPR::EAOV::Color)
 {
@@ -179,7 +179,7 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 
 		// This one for level change
 		GEngine->OnWorldAdded().AddRaw(this, &FRPRPluginModule::OnWorldAdded);
-
+		
 		CreateNewSceneFromCurrentOpenedWorldIFN();
 	}
 
@@ -262,7 +262,7 @@ void	FRPRPluginModule::CreateNewScene(UWorld *world)
 
 bool	FRPRPluginModule::IsWorldSupported(EWorldType::Type WorldType) const
 {
-	return
+	return 
 		WorldType == EWorldType::Game ||
 		WorldType == EWorldType::PIE ||
 		WorldType == EWorldType::Editor;
@@ -534,5 +534,5 @@ void	FRPRPluginModule::ShutdownModule()
 }
 
 #undef LOCTEXT_NAMESPACE
-
+	
 IMPLEMENT_MODULE(FRPRPluginModule, RPRPlugin)

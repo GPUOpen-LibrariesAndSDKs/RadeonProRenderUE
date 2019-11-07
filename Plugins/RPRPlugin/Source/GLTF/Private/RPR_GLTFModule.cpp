@@ -46,5 +46,4 @@ void FRPR_GLTFModule::ShutdownModule()
 	dllHandles.Empty();
 }
 
-IMPLEMENT_MODULE(FRPR_GLTFModule, RPR_GLTF);
-// IMPLEMENT_MODULE(FRPR_GLTFModule, RPR_GLTFModule);
+IMPLEMENT_MODULE(FRPR_GLTFModule, RPR_GLTFModule);
