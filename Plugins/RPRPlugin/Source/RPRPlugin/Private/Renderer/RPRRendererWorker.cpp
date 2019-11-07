@@ -96,7 +96,9 @@ void	FRPRRendererWorker::SaveToFile(const FString &filename)
 	{
 		// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
 		m_RenderLock.Lock();
-		const bool saved = (RPR_SUCCESS == rprsExport(TCHAR_TO_ANSI(*filename), m_RprContext, m_RprScene, 0, nullptr, nullptr, 0, nullptr, nullptr, RPRLOADSTORE_EXPORTFLAG_EXTERNALFILES));
+		const bool	saved = rprsExport(TCHAR_TO_ANSI(*filename), m_RprContext, m_RprScene,
+			0, nullptr, nullptr,
+			0, nullptr, nullptr) == RPR_SUCCESS;
 		m_RenderLock.Unlock();
 
 		if (saved)

@@ -150,7 +150,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 
 	const UStaticMeshComponent	*component = Cast<UStaticMeshComponent>(SrcComponent);
 	check(component != nullptr);
-
+	
 	// Assign the materials on the instances: The cached geometry might be the same
 	// But materials can be overriden on a component basis
 	const uint32	shapeCount = m_Shapes.Num();
@@ -372,8 +372,8 @@ bool	URPRStaticMeshComponent::Build()
 				if (RPR::Context::CreateMesh(rprContext, *staticMesh->GetName(),
 					positions, normals, indices, uvs, numFaceVertices, baseShape) != RPR_SUCCESS)
 				{
-					UE_LOG(LogRPRStaticMeshComponent, Warning,
-						TEXT("Couldn't create RPR static mesh from '%s', section %d. Num indices = %d, Num vertices = %d"),
+					UE_LOG(LogRPRStaticMeshComponent, Warning, 
+						TEXT("Couldn't create RPR static mesh from '%s', section %d. Num indices = %d, Num vertices = %d"), 
 						*SrcComponent->GetName(), iSection, indices.Num(), positions.Num());
 					return false;
 				}
@@ -424,7 +424,7 @@ bool	URPRStaticMeshComponent::Build()
 				if (!Cache.Contains(staticMesh))
 					Cache.Add(staticMesh);
 				Cache[staticMesh].Add(newShape);
-
+				
 				// New shape in the cache ? Add it in the scene + make it invisible
 				if (rprShapeSetVisibility(baseShape, false) != RPR_SUCCESS ||
 					RPR::Scene::AttachShape(Scene->m_RprScene, baseShape) != RPR_SUCCESS)
@@ -518,8 +518,8 @@ bool	URPRStaticMeshComponent::Build()
 		rpr_shape	shape = m_Shapes[iShape].m_RprShape;
 		if (!SetInstanceTransforms(instancedMeshComponent, &componentMatrix, shape, m_Shapes[iShape].m_InstanceIndex) ||
 			rprShapeSetVisibility(shape, staticMeshComponent->IsVisible()) != RPR_SUCCESS ||
-			(primaryOnly && rprShapeSetVisibilityFlag(shape, RPR_SHAPE_VISIBILITY_PRIMARY_ONLY_FLAG, primaryOnly) != RPR_SUCCESS) ||
-			//rprShapeSetVisibilityFlag(shape, RPR_SHAPE_SHADOW_FLAG, staticMeshComponent->bCastStaticShadow) != RPR_SUCCESS ||
+			(primaryOnly && rprShapeSetVisibilityPrimaryOnly(shape, primaryOnly) != RPR_SUCCESS) ||
+			rprShapeSetShadow(shape, staticMeshComponent->bCastStaticShadow) != RPR_SUCCESS ||
 			RPR::Scene::AttachShape(Scene->m_RprScene, shape) != RPR_SUCCESS)
 		{
 			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't attach RPR shape to the RPR scene"));
