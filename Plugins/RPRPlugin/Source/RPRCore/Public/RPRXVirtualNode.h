@@ -6,7 +6,7 @@
 #include "Typedefs/RPRTypedefs.h"
 
 /**
- * For the color node, we do not create a real node and use a virtual node to hold the data.
+ * In case of a color node, we don't create a real node and use a virtual node to hold the data.
  */
 namespace RPR {
 class RPRCORE_API RPRXVirtualNode
@@ -16,6 +16,7 @@ public:
 	RPR::FMaterialNode realNode;
 	enum VNType {
 		COLOR,
+		IMAGE,
 		ARITHMETIC_2_OPERANDS,
 		DEFAULT
 	} type;
@@ -32,8 +33,6 @@ public:
 	void SetData(float r, float g, float b, float a) {
 		data.RGBA[0] = r; data.RGBA[1] = g; data.RGBA[2] = b; data.RGBA[3] = a;
 	}
-
-	void SetData(RPR::FMaterialNode rn) { realNode = rn; }
 
 
 

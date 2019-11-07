@@ -75,10 +75,11 @@ namespace RPR
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't build image: empty platform data"));
 			return nullptr;
 		}
-		
+
 		FTexturePlatformData	*platformData = *Texture->GetRunningPlatformData();
-		if (platformData->Mips.Num() == 0 ||
-			!platformData->Mips[0].BulkData.IsBulkDataLoaded())
+		bool isInlined = platformData->TryInlineMipData();
+
+		if (platformData->Mips.Num() == 0 || !platformData->Mips[0].BulkData.IsBulkDataLoaded())
 		{
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't build image: no Mips in PlatformData"));
 			return nullptr;
@@ -92,8 +93,8 @@ namespace RPR
 			return nullptr;
 		}
 
-		FByteBulkData		&mipData = platformData->Mips[0].BulkData;
-		const uint32		bulkDataSize = mipData.GetBulkDataSize();
+		FByteBulkData &mipData = platformData->Mips[0].BulkData;
+		const uint32  bulkDataSize = mipData.GetBulkDataSize();
 		if (platformData->SizeX <= 0 || platformData <= 0 || bulkDataSize <= 0)
 		{
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't build image: empty PlatformData Mips BulkData"));
@@ -117,7 +118,7 @@ namespace RPR
 		const uint32	totalByteCount = desc.image_row_pitch * desc.image_height;
 		TArray<uint8>	rprData;
 		rprData.SetNum(totalByteCount);
-		
+
 		bool bAreTextureCopied = RPR::FTextureHelpers::CopyTexture((const uint8*) textureDataReadOnly, desc, rprData, platformData->PixelFormat, Texture->SRGB);
 		mipData.Unlock();
 
@@ -129,10 +130,9 @@ namespace RPR
 
 		RPR::FImage image;
 		RPR::FResult status = rprContextCreateImage(context, dstFormat, &desc, rprData.GetData(), &image);
+		RPR::scheck(status);
 
-		UE_LOG(LogRPRCore_Steps, Verbose, 
-			TEXT("rprContextCreateImage(context=%p) -> status=%d, image=%p"), 
-			context, status, image);
+		UE_LOG(LogRPRCore_Steps, Verbose, TEXT("rprContextCreateImage(context=%p) -> status=%d, image=%p"), context, status, image);
 
 		if (RPR::IsResultFailed(status))
 		{
@@ -141,13 +141,13 @@ namespace RPR
 		}
 
 		imagePtr = MakeShareable(image, TImageDeleter());
-		
+
 		RPR::EImageWrapType imageWrapType = RPR::Image::ConvertUE4TextureAddressToRPRImageWrap(Texture->AddressX.GetValue());
 		status = SetImageWrapType(image, imageWrapType);
 		if (RPR::IsResultFailed(status))
 		{
-			UE_LOG(LogRPRImageManager, Warning, 
-				TEXT("Couldn't set the image wrap type on the RPR image for texture %s. Error code %d"), 
+			UE_LOG(LogRPRImageManager, Warning,
+				TEXT("Couldn't set the image wrap type on the RPR image for texture %s. Error code %d"),
 				*Texture->GetName(), status);
 		}
 
@@ -293,6 +293,7 @@ namespace RPR
 		// Only pixel formats handled for now
 		case PF_R8G8B8A8:
 		case PF_B8G8R8A8:
+		case PF_DXT1:
 		{
 			// TODO post siggraph, try sending only 3 float/uints
 			//if (imageType == EImageType::NormalMap)

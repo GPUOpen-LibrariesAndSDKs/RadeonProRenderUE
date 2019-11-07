@@ -90,11 +90,11 @@ private:
 	void	UpdateLastMaterialList();
 
 	void ProcessUE4Material(FRPRShape& shape, UMaterial* material);
-	RPR::FMaterialNode ConvertExpressionToRPRNode(UMaterialExpression* expr, FRPRXMaterialLibrary& materialLibrary);
-	RPR::RPRXVirtualNode* ConvertExpressionToVirtualNode(UMaterialExpression* expr, FRPRXMaterialLibrary& materialLibrary);
-	RPR::FMaterialNode ProcessColorNode(const FString& nodeId, const FLinearColor& color, FRPRXMaterialLibrary& materialLibrary);
-	RPR::RPRXVirtualNode* ProcessVirtualColorNode(const FString& nodeId, const FLinearColor& color, FRPRXMaterialLibrary& materialLibrary);
-	void TwoOperandsMathNodeSetInputs(RPR::RPRXVirtualNode* vNode, const TArray<FExpressionInput*> inputs, const float ConstA, const float ConstB, FRPRXMaterialLibrary& materialLibrary);
+	RPR::FMaterialNode ConvertExpressionToRPRNode(UMaterialExpression* expr);
+	RPR::RPRXVirtualNode* ConvertExpressionToVirtualNode(UMaterialExpression* expr);
+	RPR::FMaterialNode ProcessColorNode(const FString& nodeId, const FLinearColor& color);
+	RPR::RPRXVirtualNode* ProcessVirtualColorNode(const FString& nodeId, const FLinearColor& color);
+	void TwoOperandsMathNodeSetInputs(RPR::RPRXVirtualNode* vNode, const TArray<FExpressionInput*> inputs, const float ConstA, const float ConstB);
 
 
 	RPR::FResult	DetachCurrentMaterial(RPR::FShape Shape);

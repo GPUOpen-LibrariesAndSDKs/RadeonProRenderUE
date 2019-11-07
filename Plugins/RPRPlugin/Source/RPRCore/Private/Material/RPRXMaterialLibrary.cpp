@@ -305,12 +305,21 @@ RPR::FMaterialNode FRPRXMaterialLibrary::getNode(FString materialNode)
 
 RPR::RPRXVirtualNode* FRPRXMaterialLibrary::getOrCreateVirtualIfNotExists(FString materialNode, RPR::EMaterialNodeType type)
 {
-	auto realNode = getOrCreateIfNotExists(materialNode, type);
-
+	RPR::FMaterialNode realNode = nullptr;
 	RPR::RPRXVirtualNode::VNType vType = RPR::RPRXVirtualNode::VNType::DEFAULT;
 
-	if (type == RPR::EMaterialNodeType::Arithmetic)
+	switch (type)
+	{
+	case RPR::EMaterialNodeType::ImageTexture:
+		vType = RPR::RPRXVirtualNode::VNType::IMAGE;
+		break;
+	case RPR::EMaterialNodeType::Arithmetic:
 		vType = RPR::RPRXVirtualNode::VNType::ARITHMETIC_2_OPERANDS;
+		realNode = getOrCreateIfNotExists(materialNode, type);
+		break;
+	default:
+		break;
+	}
 
 	RPR::RPRXVirtualNode* node = getVirtualNode(materialNode);
 	if (!node) {
@@ -369,8 +378,19 @@ void FRPRXMaterialLibrary::setNodeConnection(RPR::RPRXVirtualNode* vNode, const 
 	case RPR::RPRXVirtualNode::VNType::COLOR:
 		setNodeFloat(vNode->realNode, parameter, otherNode->data.RGBA[0], otherNode->data.RGBA[1], otherNode->data.RGBA[2], otherNode->data.RGBA[3]);
 		break;
+
 	case RPR::RPRXVirtualNode::VNType::ARITHMETIC_2_OPERANDS: /* true for ADD, SUB, MUL, DIV */
 		setNodeConnection(vNode->realNode, parameter, otherNode->realNode);
+		break;
+
+	case RPR::RPRXVirtualNode::VNType::IMAGE:
+
+
+		setNodeConnection(vNode->realNode, parameter, otherNode->realNode);
+
+
+
+		//setconnectiontoimage
 		break;
 	default:
 		break;
@@ -382,6 +402,26 @@ void FRPRXMaterialLibrary::setNodeConnection(RPR::FMaterialNode materialNode, co
 	RPR::FResult status;
 	status = RPR::FMaterialHelpers::FMaterialNode::SetInputNode(materialNode, parameter, otherNode);
 	RPR::scheck(status);
+}
+
+RPR::FMaterialNode  FRPRXMaterialLibrary::createImage(UTexture2D* texture)
+{
+	if (!texture)
+		return nullptr;
+
+	RPR::FImageManagerPtr imageManager = IRPRCore::GetResources()->GetRPRImageManager();
+	RPR::FMaterialSystem  materialSystem = IRPRCore::GetResources()->GetMaterialSystem();
+	RPR::FContext         context = IRPRCore::GetResources()->GetRPRContext();
+
+	RPR::FImagePtr     outImage;
+	RPR::FMaterialNode outMaterialNode;
+	RPR::FMaterialNode outImageNode;
+
+	RPR::FResult status;
+	status = RPR::FMaterialHelpers::CreateImageNode(context, materialSystem, *imageManager, texture, outImage, outMaterialNode, outImageNode);
+	RPR::scheck(status);
+
+	return outMaterialNode;
 }
 
 RPR::FRPRXMaterialPtr FRPRXMaterialLibrary::CacheMaterial(URPRMaterial* InMaterial)

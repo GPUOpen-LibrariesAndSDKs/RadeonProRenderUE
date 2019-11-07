@@ -78,6 +78,8 @@ public:
 	void                            setNodeConnection(RPR::RPRXVirtualNode* materialNode, const FString& parameter, RPR::RPRXVirtualNode* otherNode);
 	void                            setNodeConnection(RPR::FMaterialNode MaterialNode, const FString& ParameterName, RPR::FMaterialNode InMaterialNode);
 
+	RPR::FMaterialNode              createImage(UTexture2D* texture);
+
 private:
 
 	const RPR::FRPRXMaterialPtr	FindMaterialCache(const URPRMaterial* MaterialKey) const;
