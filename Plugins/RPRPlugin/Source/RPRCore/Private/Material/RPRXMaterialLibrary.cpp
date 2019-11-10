@@ -265,7 +265,7 @@ RPR::FRPRXMaterialNodePtr FRPRXMaterialLibrary::createMaterial(FString name, RPR
 
 RPR::RPRXVirtualNode* FRPRXMaterialLibrary::createVirtualNode(FString materialNode, RPR::RPRXVirtualNode::VNType nodeType)
 {
-	m_virtualNodes.Emplace(materialNode, std::make_unique<RPR::RPRXVirtualNode>(nodeType));
+	m_virtualNodes.Emplace(materialNode, std::make_unique<RPR::RPRXVirtualNode>(materialNode, nodeType));
 	return m_virtualNodes.Find(materialNode)->get();
 }
 
@@ -307,7 +307,7 @@ RPR::RPRXVirtualNode* FRPRXMaterialLibrary::getOrCreateVirtualIfNotExists(FStrin
 {
 	auto realNode = getOrCreateIfNotExists(materialNode, type);
 
-	RPR::RPRXVirtualNode::VNType vType;
+	RPR::RPRXVirtualNode::VNType vType = RPR::RPRXVirtualNode::VNType::DEFAULT;
 
 	if (type == RPR::EMaterialNodeType::Arithmetic)
 		vType = RPR::RPRXVirtualNode::VNType::ARITHMETIC_2_OPERANDS;
@@ -364,15 +364,12 @@ void FRPRXMaterialLibrary::setNodeUInt(RPR::FMaterialNode materialNode, const FS
 
 void FRPRXMaterialLibrary::setNodeConnection(RPR::RPRXVirtualNode* vNode, const FString& parameter, RPR::RPRXVirtualNode* otherNode)
 {
-	//parse virtual node no figure out what exactly here need to do...
-	//
-
 	switch (otherNode->type)
 	{
-	case RPR::RPRXVirtualNode::VNType::COLOR: /* true for ADD, SUB, MUL, DIV */
+	case RPR::RPRXVirtualNode::VNType::COLOR:
 		setNodeFloat(vNode->realNode, parameter, otherNode->data.RGBA[0], otherNode->data.RGBA[1], otherNode->data.RGBA[2], otherNode->data.RGBA[3]);
 		break;
-	case RPR::RPRXVirtualNode::VNType::ARITHMETIC_2_OPERANDS:
+	case RPR::RPRXVirtualNode::VNType::ARITHMETIC_2_OPERANDS: /* true for ADD, SUB, MUL, DIV */
 		setNodeConnection(vNode->realNode, parameter, otherNode->realNode);
 		break;
 	default:

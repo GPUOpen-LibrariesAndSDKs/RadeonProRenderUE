@@ -30,7 +30,9 @@
 #include "Materials/MaterialExpressionConstant4Vector.h"
 #include "Materials/MaterialExpressionVectorParameter.h"
 #include "Materials/MaterialExpressionAdd.h"
+#include "Materials/MaterialExpressionSubtract.h"
 #include "Materials/MaterialExpressionMultiply.h"
+#include "Materials/MaterialExpressionDivide.h"
 #include "Materials/MaterialExpressionTextureSample.h"
 #include "Materials/MaterialExpressionTextureObject.h"
 
@@ -196,6 +198,7 @@ void URPRStaticMeshComponent::ProcessUE4Material(FRPRShape& shape, UMaterial* ma
 
 RPR::FMaterialNode URPRStaticMeshComponent::ConvertExpressionToRPRNode(UMaterialExpression* expr, FRPRXMaterialLibrary& materialLibrary)
 {
+	//CURRENTLY NOT USED
 	RPR::FMaterialNode node = materialLibrary.getNode(expr->GetName());
 
 	if (node)
@@ -303,6 +306,16 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		TwoOperandsMathNodeSetInputs(node, expression->GetInputs(), expression->ConstA, expression->ConstB, materialLibrary);
 		return node;
 	}
+	else if (expr->IsA<UMaterialExpressionSubtract>())
+	{
+		auto expression = Cast<UMaterialExpressionSubtract>(expr);
+		assert(expression);
+		node = materialLibrary.getOrCreateVirtualIfNotExists(expression->GetName(), RPR::EMaterialNodeType::Arithmetic);
+		assert(node);
+		materialLibrary.setNodeUInt(node->realNode, L"op", RPR_MATERIAL_NODE_OP_SUB);
+		TwoOperandsMathNodeSetInputs(node, expression->GetInputs(), expression->ConstA, expression->ConstB, materialLibrary);
+		return node;
+	}
 	else if (expr->IsA<UMaterialExpressionMultiply>())
 	{
 		auto expression = Cast<UMaterialExpressionMultiply>(expr);
@@ -310,6 +323,16 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		node = materialLibrary.getOrCreateVirtualIfNotExists(expression->GetName(), RPR::EMaterialNodeType::Arithmetic);
 		assert(node);
 		materialLibrary.setNodeUInt(node->realNode, L"op", RPR_MATERIAL_NODE_OP_MUL);
+		TwoOperandsMathNodeSetInputs(node, expression->GetInputs(), expression->ConstA, expression->ConstB, materialLibrary);
+		return node;
+	}
+	else if (expr->IsA<UMaterialExpressionDivide>())
+	{
+		auto expression = Cast<UMaterialExpressionDivide>(expr);
+		assert(expression);
+		node = materialLibrary.getOrCreateVirtualIfNotExists(expression->GetName(), RPR::EMaterialNodeType::Arithmetic);
+		assert(node);
+		materialLibrary.setNodeUInt(node->realNode, L"op", RPR_MATERIAL_NODE_OP_DIV);
 		TwoOperandsMathNodeSetInputs(node, expression->GetInputs(), expression->ConstA, expression->ConstB, materialLibrary);
 		return node;
 	}

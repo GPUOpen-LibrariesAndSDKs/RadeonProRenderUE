@@ -6,11 +6,12 @@
 #include "Typedefs/RPRTypedefs.h"
 
 /**
- *
+ * For the color node, we do not create a real node and use a virtual node to hold the data.
  */
 namespace RPR {
 class RPRCORE_API RPRXVirtualNode
 {
+	FString name;
 public:
 	RPR::FMaterialNode realNode;
 	enum VNType {
@@ -24,12 +25,12 @@ public:
 	} data;
 
 public:
-	RPRXVirtualNode(VNType t = VNType::DEFAULT) : realNode(nullptr), type(t) {
-		data.RGBA[0] = 0; data.RGBA[2] = 0; data.RGBA[2] = 0; data.RGBA[3] = 0;
+	RPRXVirtualNode(FString name = "", VNType t = VNType::DEFAULT) : name(name), realNode(nullptr), type(t) {
+		data.RGBA[0] = 0.0f; data.RGBA[1] = 0.0f; data.RGBA[2] = 0.0f; data.RGBA[3] = 0.0f;
 	}
 
 	void SetData(float r, float g, float b, float a) {
-		data.RGBA[0] = r; data.RGBA[2] = g; data.RGBA[2] = b; data.RGBA[3] = a;
+		data.RGBA[0] = r; data.RGBA[1] = g; data.RGBA[2] = b; data.RGBA[3] = a;
 	}
 
 	void SetData(RPR::FMaterialNode rn) { realNode = rn; }
