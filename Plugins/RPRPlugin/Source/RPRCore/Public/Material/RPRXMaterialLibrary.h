@@ -19,6 +19,7 @@
 #pragma once
 
 #include "Typedefs/RPRTypedefs.h"
+#include "RPRXVirtualNode.h"
 #include "Assets/RPRMaterial.h"
 #include "Material/MaterialContext.h"
 #include "Containers/Map.h"
@@ -29,6 +30,7 @@
 #include "Helpers/ObjectScopedLocked.h"
 
 #include <unordered_map>
+#include <memory>
 
 /*
 * Library of RPR materials.
@@ -64,11 +66,16 @@ public:
 	void	                        commitAll();
 
 	RPR::FMaterialNode              createNode(FString materialNode, RPR::EMaterialNodeType type = RPR::EMaterialNodeType::Diffuse);
+	RPR::RPRXVirtualNode*           createVirtualNode(FString materialNode, RPR::RPRXVirtualNode::VNType nodeType);
 	bool                            hasNode(FString materialNode) const;
 	RPR::FMaterialNode              getNode(FString materialNode);
+	RPR::RPRXVirtualNode*           getVirtualNode(FString materialNode);
 	RPR::FMaterialNode              getOrCreateIfNotExists(FString materialNode, RPR::EMaterialNodeType type = RPR::EMaterialNodeType::Diffuse);
+	RPR::RPRXVirtualNode*           getOrCreateVirtualIfNotExists(FString materialNode, RPR::EMaterialNodeType type);
+	RPR::RPRXVirtualNode*           getOrCreateVirtualIfNotExists(FString materialNode, RPR::RPRXVirtualNode::VNType type);
 	void                            setNodeFloat(RPR::FMaterialNode materialNode, const FString& parameter, float r, float g, float b, float a);
 	void                            setNodeUInt(RPR::FMaterialNode materialNode, const FString& parameter, unsigned int value);
+	void                            setNodeConnection(RPR::RPRXVirtualNode* materialNode, const FString& parameter, RPR::RPRXVirtualNode* otherNode);
 	void                            setNodeConnection(RPR::FMaterialNode MaterialNode, const FString& ParameterName, RPR::FMaterialNode InMaterialNode);
 
 private:
@@ -94,6 +101,7 @@ private:
 	// 3. Destroy nodes
 	TMap<FString, RPR::FRPRXMaterialNodePtr> m_materials;
 	TMap<FString, RPR::FMaterialNode>        m_materialNodes;
+	TMap<FString, std::unique_ptr<RPR::RPRXVirtualNode>> m_virtualNodes;
 
 	bool bIsInitialized;
 	FCriticalSection CriticalSection;

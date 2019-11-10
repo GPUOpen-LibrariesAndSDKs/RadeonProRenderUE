@@ -31,6 +31,7 @@
 #include "Material/RPRUberMaterialParameters.h"
 #include "Material/Tools/UberMaterialPropertyHelper.h"
 #include "Templates/Casts.h"
+#include <memory>
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRMaterialLibrary, Log, All)
 
@@ -262,6 +263,12 @@ RPR::FRPRXMaterialNodePtr FRPRXMaterialLibrary::createMaterial(FString name, RPR
 	return  materialPtr;
 }
 
+RPR::RPRXVirtualNode* FRPRXMaterialLibrary::createVirtualNode(FString materialNode, RPR::RPRXVirtualNode::VNType nodeType)
+{
+	m_virtualNodes.Emplace(materialNode, std::make_unique<RPR::RPRXVirtualNode>(nodeType));
+	return m_virtualNodes.Find(materialNode)->get();
+}
+
 RPR::FMaterialNode FRPRXMaterialLibrary::createNode(FString materialNode, RPR::EMaterialNodeType materialType)
 {
 	RPR::FMaterialSystem materialSystem = IRPRCore::GetResources()->GetMaterialSystem();
@@ -282,10 +289,50 @@ bool FRPRXMaterialLibrary::hasNode(FString materialNode) const
 	return ptr != nullptr;
 }
 
+RPR::RPRXVirtualNode* FRPRXMaterialLibrary::getVirtualNode(FString materialNode)
+{
+	std::unique_ptr<RPR::RPRXVirtualNode> ptr = std::make_unique<RPR::RPRXVirtualNode>();
+
+	return m_virtualNodes.Contains(materialNode) ?
+		m_virtualNodes.Find(materialNode)->get() : nullptr;
+}
+
 RPR::FMaterialNode FRPRXMaterialLibrary::getNode(FString materialNode)
 {
 	auto ptr = m_materialNodes.Find(materialNode);
 	return ptr ? *ptr : nullptr;
+}
+
+RPR::RPRXVirtualNode* FRPRXMaterialLibrary::getOrCreateVirtualIfNotExists(FString materialNode, RPR::EMaterialNodeType type)
+{
+	auto realNode = getOrCreateIfNotExists(materialNode, type);
+
+	RPR::RPRXVirtualNode::VNType vType;
+
+	if (type == RPR::EMaterialNodeType::Arithmetic)
+		vType = RPR::RPRXVirtualNode::VNType::ARITHMETIC_2_OPERANDS;
+
+	RPR::RPRXVirtualNode* node = getVirtualNode(materialNode);
+	if (!node) {
+		node = createVirtualNode(materialNode, vType);
+	}
+	assert(node);
+
+	node->realNode = realNode;
+	return node;
+}
+
+RPR::RPRXVirtualNode* FRPRXMaterialLibrary::getOrCreateVirtualIfNotExists(FString materialNode, RPR::RPRXVirtualNode::VNType type)
+{
+	RPR::RPRXVirtualNode* node;
+
+	node = getVirtualNode(materialNode);
+	if (!node) {
+		node = createVirtualNode(materialNode, type);
+	}
+	assert(node);
+
+	return node;
 }
 
 RPR::FMaterialNode FRPRXMaterialLibrary::getOrCreateIfNotExists(FString materialNode, RPR::EMaterialNodeType type)
@@ -313,6 +360,24 @@ void FRPRXMaterialLibrary::setNodeUInt(RPR::FMaterialNode materialNode, const FS
 	RPR::FResult status;
 	status = RPR::FMaterialHelpers::FMaterialNode::SetInputUInt(materialNode, parameter, value);
 	RPR::scheck(status);
+}
+
+void FRPRXMaterialLibrary::setNodeConnection(RPR::RPRXVirtualNode* vNode, const FString& parameter, RPR::RPRXVirtualNode* otherNode)
+{
+	//parse virtual node no figure out what exactly here need to do...
+	//
+
+	switch (otherNode->type)
+	{
+	case RPR::RPRXVirtualNode::VNType::COLOR: /* true for ADD, SUB, MUL, DIV */
+		setNodeFloat(vNode->realNode, parameter, otherNode->data.RGBA[0], otherNode->data.RGBA[1], otherNode->data.RGBA[2], otherNode->data.RGBA[3]);
+		break;
+	case RPR::RPRXVirtualNode::VNType::ARITHMETIC_2_OPERANDS:
+		setNodeConnection(vNode->realNode, parameter, otherNode->realNode);
+		break;
+	default:
+		break;
+	}
 }
 
 void FRPRXMaterialLibrary::setNodeConnection(RPR::FMaterialNode materialNode, const FString& parameter, RPR::FMaterialNode otherNode)

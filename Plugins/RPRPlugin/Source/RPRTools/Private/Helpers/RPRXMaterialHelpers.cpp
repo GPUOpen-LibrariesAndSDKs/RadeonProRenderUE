@@ -30,9 +30,9 @@ namespace RPRX
 		{
 			UE_LOG(LogMaterialHelpers, VeryVerbose, TEXT("New materialX created [%p]"), OutMaterial);
 		}
-	
+
 		UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprxCreateMaterial(context=%p, materialType=%d) -> %p"), RPRXContext, MaterialType, OutMaterial);
-		
+
 		return (status);
 	}
 
@@ -48,9 +48,9 @@ namespace RPRX
 	{
 		RPR::FResult status = rprxMaterialSetParameterN(Context, Material, Parameter, MaterialNode);
 
-		UE_LOG(LogRPRTools_Step, Verbose, 
-			TEXT("rprxMaterialSetParameterN(context=%p, material=%p, parameter=%d, materialNode=%s:%p) -> %d"), 
-			Context, Material, Parameter, 
+		UE_LOG(LogRPRTools_Step, Verbose,
+			TEXT("rprxMaterialSetParameterN(context=%p, material=%p, parameter=%d, materialNode=%s:%p) -> %d"),
+			Context, Material, Parameter,
 			MaterialNode != nullptr ? *RPR::RPRMaterial::GetNodeName(MaterialNode) : *FString::Printf(TEXT("%p"), MaterialNode),
 			MaterialNode,
 			status);
@@ -70,7 +70,7 @@ namespace RPRX
 
 	RPR::FResult FMaterialHelpers::SetMaterialParameterFloat(FContext Context, FMaterial Material, FParameter Parameter, float Value)
 	{
-		return (SetMaterialParameterFloats(Context, Material, Parameter, Value, 0, 0, 0));
+		return (SetMaterialParameterFloats(Context, Material, Parameter, Value, Value, Value, Value));
 	}
 
 	RPR::FResult FMaterialHelpers::SetMaterialParameterFloats(FContext Context, FMaterial Material, FParameter Parameter, float x, float y, float z, float w)
@@ -78,8 +78,8 @@ namespace RPRX
 		RPR::FResult status = rprxMaterialSetParameterF(Context, Material, Parameter, x, y, z, w);
 		ensureMsgf(RPR::IsResultSuccess(status), TEXT("An error occured when set material parameter float4 %#04"), status);
 
-		UE_LOG(LogRPRTools_Step, Verbose, 
-			TEXT("rprxMaterialSetParameterF(context=%p, material=%p, parameter=%d, x=%f, y=%f, z=%f, w=%f) -> %d"), 
+		UE_LOG(LogRPRTools_Step, Verbose,
+			TEXT("rprxMaterialSetParameterF(context=%p, material=%p, parameter=%d, x=%f, y=%f, z=%f, w=%f) -> %d"),
 			Context, Material, Parameter, x, y, z, w, status);
 
 		return (status);
