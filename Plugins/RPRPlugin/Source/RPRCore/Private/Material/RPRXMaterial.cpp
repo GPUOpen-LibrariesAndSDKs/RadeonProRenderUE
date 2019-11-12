@@ -18,8 +18,8 @@
 DECLARE_LOG_CATEGORY_CLASS(LogRPRXMaterial, Log, Verbose)
 
 RPR::FRPRXMaterial::FRPRXMaterial(const URPRMaterial* InUE4MaterialLink)
-	: UE4MaterialLink(InUE4MaterialLink)
-	, Material(nullptr)
+	: Material(nullptr)
+	, UE4MaterialLink(InUE4MaterialLink)
 {
 	check(InUE4MaterialLink);
 
@@ -27,8 +27,8 @@ RPR::FRPRXMaterial::FRPRXMaterial(const URPRMaterial* InUE4MaterialLink)
 	RPR::FResult status = RPRX::FMaterialHelpers::CreateMaterial(rprxContext, RPRX::EMaterialType::Uber, Material);
 	if (RPR::IsResultFailed(status))
 	{
-		UE_LOG(LogRPRXMaterial, Warning,
-			TEXT("Native RPRX Material could not be created for material '%s'"),
+		UE_LOG(LogRPRXMaterial, Warning, 
+			TEXT("Native RPRX Material could not be created for material '%s'"), 
 			*UE4MaterialLink->GetName());
 	}
 }

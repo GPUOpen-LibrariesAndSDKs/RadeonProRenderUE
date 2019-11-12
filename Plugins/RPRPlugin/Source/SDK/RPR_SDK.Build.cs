@@ -46,16 +46,17 @@ public class RPR_SDK : ModuleRules
     };
 
     public string ThirdPartyDirectory
-    { get { return (Path.Combine(ModuleDirectory, "../../ThirdParty")); } }
+    { get { return ("../../ThirdParty/"); } }
 
     public string SDKDirectory
-    { get { return (Path.Combine(ThirdPartyDirectory, "RadeonProRenderThirdPartyComponents/RadeonProRender SDK/")); } }
+    { get { return (ThirdPartyDirectory + "ProRenderSDK/"); } }
+
 
     public RPR_SDK(ReadOnlyTargetRules Target) : base(Target)
     {
         bEnableExceptions = true;
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-
+       
      	PrivateIncludePaths.AddRange(
 			new string[] {
                 "SDK/Public",
@@ -69,7 +70,7 @@ public class RPR_SDK : ModuleRules
                  "Core",
                  "RPRPluginVersion"
             });
-
+        
         AddRPRIncludes(PublicIncludePaths);
 
         AddRPRStaticLibraries(Target);
@@ -86,8 +87,8 @@ public class RPR_SDK : ModuleRules
         {
             return;
         }
-
-        string libPath = SDKDirectory + "Win/bin";
+        
+        string libPath = ModuleDirectory + "/" + SDKDirectory + "RadeonProRender/bin" + platformName;
         if (!Directory.Exists(libPath))
         {
             Console.WriteLine("Dynamic library directory doesn't exist ! " + libPath);
@@ -108,9 +109,9 @@ public class RPR_SDK : ModuleRules
     public void AddRPRIncludes(List<string> IncludePaths)
     {
         IncludePaths.AddRange(new string[] {
-            SDKDirectory + "Win",
-            SDKDirectory + "Win/inc",
-            SDKDirectory + "../RadeonProRenderInterchange/include"
+            ModuleDirectory + "/" + SDKDirectory + "RadeonProRender",
+            ModuleDirectory + "/" + SDKDirectory + "RadeonProRender/inc",
+            ModuleDirectory + "/" + SDKDirectory + "RadeonProRenderInterchange/include",
         });
     }
 
@@ -124,18 +125,15 @@ public class RPR_SDK : ModuleRules
         {
             return;
         }
-
-        //string librariesDirectoryPath = ModuleDirectory + "/" + SDKDirectory + "Win/lib" + platformName + "/";
-        string librariesDirectoryPath = SDKDirectory + "Win/lib/";
+        
+        string librariesDirectoryPath = ModuleDirectory + "/" + SDKDirectory + "RadeonProRender/lib" + platformName + "/";
 
         for (int i = 0; i < StaticLibraryNames.Length; ++i)
         {
             PublicAdditionalLibraries.Add(librariesDirectoryPath + StaticLibraryNames[i] + librarySuffix + libExtension);
         }
 
-        PublicAdditionalLibraries.Add(SDKDirectory + "../RadeonProRenderInterchange/libWin64/RadeonProRenderInterchange64.lib");
-
-        //PublicAdditionalLibraries.Add(string.Format("{0}RadeonProRenderInterchange/lib{1}/RadeonProRenderInterchange{2}{3}", ModuleDirectory + "/" + SDKDirectory, platformName, librarySuffix, libExtension));
+        PublicAdditionalLibraries.Add(string.Format("{0}RadeonProRenderInterchange/lib{1}/RadeonProRenderInterchange{2}{3}", ModuleDirectory + "/" + SDKDirectory, platformName, librarySuffix, libExtension));
     }
 
     public static string GetStaticLibraryExtensionByPlatform(UnrealTargetPlatform Platform)

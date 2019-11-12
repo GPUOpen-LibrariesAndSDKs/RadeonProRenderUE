@@ -58,25 +58,25 @@ public:
 		int32 ElementIndex,
 		uint8 InDepthPriorityGroup,
 		bool bUseSelectedMaterial,
-		//bool bUseHoveredMaterial,
+		bool bUseHoveredMaterial,
 		bool bAllowPreCulledIndices,
 		FMeshBatch& OutMeshBatch) const override
 	{
-		return
+		return 
 			FStaticMeshSceneProxy::GetMeshElement(
 				LODIndex,
 				BatchIndex,
 				ElementIndex,
 				InDepthPriorityGroup,
 				bUseSelectedMaterial || SelectedSections.Contains(ElementIndex),
-				//bUseHoveredMaterial,
+				bUseHoveredMaterial,
 				bAllowPreCulledIndices,
 				OutMeshBatch
 			);
 	}
 
 private:
-
+		
 	void	SaveInitialDatas()
 	{
 		FStaticMeshLODResources& lod = RenderData->LODResources[0];
@@ -122,9 +122,12 @@ void URPRStaticMeshPreviewComponent::TransformUV(const FTransform2D& NewTransfor
 	{
 		UE_LOG(RPRStaticMeshPreviewComponentLog, Log, TEXT("Transform UV : %s"), *NewTransform2D.GetTranslation().ToString());
 
-		ENQUEUE_RENDER_COMMAND(FRPRStaticMeshPreviewComponent_TransformUV)
-		(
-			[this, NewTransform2D, UVChannel](FRHICommandListImmediate& RHICmdList){
+		ENQUEUE_UNIQUE_RENDER_COMMAND_THREEPARAMETER(
+			FRPRStaticMeshPreviewComponent_TransformUV,
+			FRPRStaticMeshPreviewProxy*, SceneProxy, SceneProxy,
+			FTransform2D, NewTransform2D, NewTransform2D,
+			int32, UVChannel, UVChannel,
+			{
 				SceneProxy->TransformUV(NewTransform2D, UVChannel);
 			}
 		);

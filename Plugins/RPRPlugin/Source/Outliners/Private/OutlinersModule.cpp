@@ -22,15 +22,14 @@
 
 void FOutlinersModule::StartupModule()
 {
-
+	
 }
 
 void FOutlinersModule::ShutdownModule()
 {
-
+	
 }
 
 #undef LOCTEXT_NAMESPACE
 
-//IMPLEMENT_MODULE(FOutlinersModule, OutlinersModule);
-IMPLEMENT_MODULE(FOutlinersModule, Outliners);
+IMPLEMENT_MODULE(FOutlinersModule, OutlinersModule);

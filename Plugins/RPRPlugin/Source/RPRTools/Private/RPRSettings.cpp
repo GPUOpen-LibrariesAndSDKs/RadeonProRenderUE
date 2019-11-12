@@ -24,8 +24,8 @@ DEFINE_LOG_CATEGORY_STATIC(LogRPRSettings, Log, All);
 
 URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 	: Super(PCIP)
-	, RenderCachePath(FPaths::ProjectSavedDir() + "/RadeonProRender/Cache/")
-	, TraceFolder(FPaths::ProjectSavedDir() + "/RadeonProRender/Trace/")
+	, RenderCachePath(FPaths::GameSavedDir() + "/RadeonProRender/Cache/")
+	, TraceFolder(FPaths::GameSavedDir() + "/RadeonProRender/Trace/")
 	, MaximumRenderIterations(32)
 	, bEnableGPU1(true)
 	, bEnableGPU2(true)

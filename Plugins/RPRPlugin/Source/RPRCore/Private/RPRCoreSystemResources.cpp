@@ -32,8 +32,8 @@ FRPRCoreSystemResources::FRPRCoreSystemResources()
 	, RPRContext(nullptr)
 	, RPRMaterialSystem(nullptr)
 	, RPRXSupportCtx(nullptr)
-	, RPRIContext(nullptr)
 	, RPRImageManager(nullptr)
+	, RPRIContext(nullptr)
 {}
 
 bool FRPRCoreSystemResources::Initialize()
@@ -315,7 +315,7 @@ bool FRPRCoreSystemResources::InitializeRPRXContext()
 void FRPRCoreSystemResources::Shutdown()
 {
 	NumDevicesCompatible = 0;
-
+	
 	DestroyRPRXMaterialLibrary();
 	DestroyRPRImageManager();
 	DestroyMaterialSystem();
@@ -333,8 +333,8 @@ bool FRPRCoreSystemResources::IsInitialized() const
 }
 
 void FRPRCoreSystemResources::SetRPRILoggers(
-	RPRI::FRPRILogCallback InfoCallback,
-	RPRI::FRPRILogCallback WarningCallback,
+	RPRI::FRPRILogCallback InfoCallback, 
+	RPRI::FRPRILogCallback WarningCallback, 
 	RPRI::FRPRILogCallback ErrorCallback)
 {
 	if (!RPRI::SetLoggers(RPRIContext, InfoCallback, WarningCallback, ErrorCallback))

@@ -42,30 +42,30 @@ DEFINE_STAT(STAT_ProRender_Readback);
 DEFINE_LOG_CATEGORY_STATIC(LogRPRRenderer, Log, All);
 
 FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene rprScene, uint32 width, uint32 height, uint32 numDevices, ARPRScene *scene)
-:	m_Scene(scene)
-,	m_CurrentIteration(0)
-,	m_PreviousRenderedIteration(0)
-,	m_NumDevices(numDevices)
-,	m_Width(width)
-,	m_Height(height)
-,	m_RprFrameBuffer(nullptr)
+:	m_RprFrameBuffer(nullptr)
 ,	m_RprResolvedFrameBuffer(nullptr)
-,	m_RprScene(rprScene)
 ,	m_RprContext(context)
 ,	m_AOV(RPR::EAOV::Color)
+,	m_RprScene(rprScene)
+,	m_Scene(scene)
 ,	m_RprWhiteBalance(nullptr)
 ,	m_RprGammaCorrection(nullptr)
 ,	m_RprSimpleTonemap(nullptr)
 ,	m_RprPhotolinearTonemap(nullptr)
 ,	m_RprNormalization(nullptr)
+,	m_CurrentIteration(0)
+,	m_PreviousRenderedIteration(0)
+,	m_NumDevices(numDevices)
+,	m_Width(width)
+,	m_Height(height)
 ,	m_Resize(true)
 ,	m_IsBuildingObjects(false)
 ,	m_ClearFramebuffer(false)
 ,	m_PauseRender(true)
 ,	m_CachedRaycastEpsilon(0.0f)
 ,	m_Trace(false)
-,	m_UpdateTrace(false)
 ,	m_TracePath("")
+,	m_UpdateTrace(false)
 {
 	m_Plugin = &FRPRPluginModule::Get();
 	m_Thread = FRunnableThread::Create(this, TEXT("FRPRRendererWorker"));
@@ -96,7 +96,9 @@ void	FRPRRendererWorker::SaveToFile(const FString &filename)
 	{
 		// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
 		m_RenderLock.Lock();
-		const bool saved = (RPR_SUCCESS == rprsExport(TCHAR_TO_ANSI(*filename), m_RprContext, m_RprScene, 0, nullptr, nullptr, 0, nullptr, nullptr, RPRLOADSTORE_EXPORTFLAG_EXTERNALFILES));
+		const bool	saved = rprsExport(TCHAR_TO_ANSI(*filename), m_RprContext, m_RprScene,
+			0, nullptr, nullptr,
+			0, nullptr, nullptr) == RPR_SUCCESS;
 		m_RenderLock.Unlock();
 
 		if (saved)
@@ -271,7 +273,7 @@ void	FRPRRendererWorker::SetAOV(RPR::EAOV AOV)
 			// Release frame buffer for this AOV
 			RPR::Context::SetAOV(m_RprContext, m_AOV, nullptr);
 		}
-
+		
 		m_AOV = AOV;
 		RPR::Context::SetAOV(m_RprContext, m_AOV, m_RprFrameBuffer);
 		m_ClearFramebuffer = true;

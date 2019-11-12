@@ -90,10 +90,11 @@ public class RPREditorTools : ModuleRules
                 "AdvancedPreviewScene",
                 "RHI",
                 "RenderCore",
+                "ShaderCore",
                 "RPRPlugin",
-				// ... add private dependencies that you statically link with here ...
+				// ... add private dependencies that you statically link with here ...	
 			}
         );
     }
-
+    
 }

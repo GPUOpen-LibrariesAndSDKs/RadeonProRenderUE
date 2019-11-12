@@ -118,19 +118,19 @@ public:
 
 	FDSMVisualizerProxy(UDynamicSelectionMeshVisualizerComponent* InComponent)
 		: FPrimitiveSceneProxy(InComponent)
-		, VertexFactory(GetScene().GetFeatureLevel())
 		, MaterialRenderProxy(nullptr)
 		, MaterialRelevance(InComponent->GetMaterialRelevance(GetScene().GetFeatureLevel()))
+		, VertexFactory(GetScene().GetFeatureLevel())
 	{
 		UMaterialInterface* material = InComponent->GetMaterial(0);
 		if (material)
 		{
-			MaterialRenderProxy = material->GetRenderProxy();
+			MaterialRenderProxy = material->GetRenderProxy(IsSelected(), IsHovered());
 		}
 
 		if (MaterialRenderProxy == nullptr)
 		{
-			MaterialRenderProxy = UMaterial::GetDefaultMaterial(MD_Surface)->GetRenderProxy();
+			MaterialRenderProxy = UMaterial::GetDefaultMaterial(MD_Surface)->GetRenderProxy(IsSelected(), IsHovered());
 		}
 
 		InitializeMesh(InComponent);
@@ -154,7 +154,7 @@ public:
 	void AddTriangles(const TArray<uint32>& Triangles, const TArray<uint32>& NewTriangles)
 	{
 		check(NewTriangles.Num() % 3 == 0);
-
+	
 		IndexBuffer.ReleaseResource();
 		IndexBuffer.Indices.Append(NewTriangles);
 		IndexBuffer.InitResource();
@@ -224,7 +224,7 @@ public:
 			}
 		}
 	}
-
+	
 	virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView* View) const override
 	{
 		FPrimitiveViewRelevance Result;
@@ -263,7 +263,7 @@ private:
 	FDSMVertexBuffer VertexBuffer;
 	FDSMIndexBuffer IndexBuffer;
 	FDSMVertexFactory VertexFactory;
-
+	
 	FStaticMeshVertexBuffers VertexBuffers;
 
 	FMaterialRenderProxy* MaterialRenderProxy;
@@ -453,9 +453,11 @@ void UDynamicSelectionMeshVisualizerComponent::AddTriangle_RenderThread(const TA
 {
 	if (SceneProxy && NewTriangles.Num() > 0)
 	{
-		ENQUEUE_RENDER_COMMAND(FUDynamicSelectionMeshVisualizer_AddTriangle_RenderThread)
-		(
-			[this, InitialTriangles, NewTriangles](FRHICommandListImmediate& RHICmdList)
+		ENQUEUE_UNIQUE_RENDER_COMMAND_THREEPARAMETER(
+			FUDynamicSelectionMeshVisualizer_AddTriangle_RenderThread,
+			FDSMVisualizerProxy*, SceneProxy, SceneProxy,
+			TArray<uint32>, InitialTriangles, InitialTriangles,
+			TArray<uint32>, NewTriangles, NewTriangles,
 			{
 				SceneProxy->AddTriangles(InitialTriangles, NewTriangles);
 			}
@@ -467,11 +469,12 @@ void UDynamicSelectionMeshVisualizerComponent::UpdateIndices_RenderThread()
 {
 	if (SceneProxy)
 	{
-		ENQUEUE_RENDER_COMMAND(FUDynamicSelectionMeshVisualizer_AddTriangle_RenderThread)
-		(
-			[this](FRHICommandListImmediate& RHICmdList)
+		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
+			FUDynamicSelectionMeshVisualizer_AddTriangle_RenderThread,
+			FDSMVisualizerProxy*, SceneProxy, SceneProxy,
+			UDynamicSelectionMeshVisualizerComponent*, Component, this,
 			{
-				SceneProxy->UpdateIndices(this);
+				SceneProxy->UpdateIndices(Component);
 			}
 		);
 	}

@@ -23,7 +23,7 @@
 FString FRPR_GLTFModule::GetDLLsDirectory()
 {
 	checkf(PLATFORM_64BITS & PLATFORM_WINDOWS, TEXT("Only Windows 64bits supported."));
-	return FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProRenderThirdPartyComponents/RadeonProRender-GLTF/Win/lib");
+	return FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/ProRenderSDK/RadeonProRender/binWin64");
 }
 
 void FRPR_GLTFModule::StartupModule()
@@ -34,7 +34,7 @@ void FRPR_GLTFModule::StartupModule()
 		TArray<FString> dllNames;
 
 		dllNames.Add(TEXT("ProRenderGLTF.dll"));
-		//dllNames.Add(TEXT("FreeImage.dll"));
+		dllNames.Add(TEXT("FreeImage.dll"));
 
 		dllHandles = FRPRDynamicLibraryLoader::LoadLibraries(GetDLLsDirectory(), dllNames);
 	}
@@ -46,5 +46,4 @@ void FRPR_GLTFModule::ShutdownModule()
 	dllHandles.Empty();
 }
 
-IMPLEMENT_MODULE(FRPR_GLTFModule, RPR_GLTF);
-// IMPLEMENT_MODULE(FRPR_GLTFModule, RPR_GLTFModule);
+IMPLEMENT_MODULE(FRPR_GLTFModule, RPR_GLTFModule);

@@ -173,12 +173,12 @@ namespace RPR
 		Material = RPR_SHAPE_MATERIAL,
 		LinearMotion = RPR_SHAPE_LINEAR_MOTION,
 		AngularMotion = RPR_SHAPE_ANGULAR_MOTION,
-		//VisibilityFlag = RPR_SHAPE_VISIBILITY_FLAG,
+		VisibilityFlag = RPR_SHAPE_VISIBILITY_FLAG,
 		ShadowFlag = RPR_SHAPE_SHADOW_FLAG,
 		SubdivisionFactor = RPR_SHAPE_SUBDIVISION_FACTOR,
 		DisplacementScale = RPR_SHAPE_DISPLACEMENT_SCALE,
 		VisibilityPrimaryOnlyFlag = RPR_SHAPE_VISIBILITY_PRIMARY_ONLY_FLAG,
-		//VisibilityInSpecularFlag = RPR_SHAPE_VISIBILITY_IN_SPECULAR_FLAG,
+		VisibilityInSpecularFlag = RPR_SHAPE_VISIBILITY_IN_SPECULAR_FLAG,
 		ShadowCatcherFlag = RPR_SHAPE_SHADOW_CATCHER_FLAG,
 		VolumeMaterial = RPR_SHAPE_VOLUME_MATERIAL,
 		ObjectGroupId = RPR_SHAPE_OBJECT_GROUP_ID,
@@ -212,27 +212,27 @@ namespace RPR
 		Type = RPR_LIGHT_TYPE,
 		Transform = RPR_LIGHT_TRANSFORM,
 		GroupId = RPR_LIGHT_GROUP_ID,
-
+		
 		PointLight_RadiantPower = RPR_POINT_LIGHT_RADIANT_POWER,
-
+		
 		DirectionalLight_RadiantPower = RPR_DIRECTIONAL_LIGHT_RADIANT_POWER,
 		DirectionalLight_ShadowSoftness = RPR_DIRECTIONAL_LIGHT_SHADOW_SOFTNESS,
-
+		
 		SpotLight_RadiantPower = RPR_SPOT_LIGHT_RADIANT_POWER,
 		SpotLight_ConeShape = RPR_SPOT_LIGHT_CONE_SHAPE,
-
+		 
 		Environment_Image = RPR_ENVIRONMENT_LIGHT_IMAGE,
 		Environment_LightIntensityScale = RPR_ENVIRONMENT_LIGHT_INTENSITY_SCALE,
 		Environment_LightPortalList = RPR_ENVIRONMENT_LIGHT_PORTAL_LIST,
 		Environment_LightPotalCount = RPR_ENVIRONMENT_LIGHT_PORTAL_COUNT,
-
+		
 		SkyLight_Turbidity = RPR_SKY_LIGHT_TURBIDITY,
 		SkyLight_Albedo = RPR_SKY_LIGHT_ALBEDO,
 		SkyLight_LightScale = RPR_SKY_LIGHT_SCALE,
 		SkyLight_Direction = RPR_SKY_LIGHT_DIRECTION,
 		SkyLight_PortalList = RPR_SKY_LIGHT_PORTAL_LIST,
 		SkyLight_PortalCount = RPR_SKY_LIGHT_PORTAL_COUNT,
-
+		
 		IES_RadiantPower = RPR_IES_LIGHT_RADIANT_POWER,
 		IES_ImageDescription = RPR_IES_LIGHT_IMAGE_DESC
 	};
@@ -273,7 +273,7 @@ namespace RPR
 		CubemapStereo = RPR_CAMERA_MODE_CUBEMAP_STEREO,
 		FishEye = RPR_CAMERA_MODE_FISHEYE
 	};
-
+	
 	UENUM()
 	enum class EAOV : uint8 // rpr_aov
 	{
