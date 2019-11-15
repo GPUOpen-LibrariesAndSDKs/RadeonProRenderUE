@@ -17,6 +17,7 @@ public:
 	enum VNType {
 		COLOR,
 		IMAGE,
+		TEXTURE_CHANNEL,
 		ARITHMETIC_2_OPERANDS,
 		DEFAULT
 	} type;

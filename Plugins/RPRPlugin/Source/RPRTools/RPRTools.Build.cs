@@ -34,17 +34,16 @@ public class RPRTools : ModuleRules
         PrivateIncludePaths.AddRange(
 			new string[] {
 				"RPRTools/Public",
-            }
-			);
-
-        PrivateIncludePaths.AddRange(
-			new string[] {
                 "RPRTools/Private",
-
+                System.IO.Path.Combine(ModuleDirectory, @"..\..\ThirdParty\DXTDecompressor\inc"),
             }
 			);
 
-		PublicDependencyModuleNames.AddRange(
+        PublicAdditionalLibraries.Add(System.IO.Path.Combine(ModuleDirectory, @"..\..\ThirdParty\DXTDecompressor\lib\x64\DXTDecompressor.lib"));
+
+        PublicIncludePaths.Add(System.IO.Path.Combine(ModuleDirectory, @"..\..\ThirdParty\DXTDecompressor\inc"));
+
+        PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
                 "RPR_SDK"
@@ -60,7 +59,7 @@ public class RPRTools : ModuleRules
 				"CoreUObject",
                 "Engine",
                 "RenderCore",
-				// ... add private dependencies that you statically link with here ...	
+				// ... add private dependencies that you statically link with here ...
 			});
     }
 }

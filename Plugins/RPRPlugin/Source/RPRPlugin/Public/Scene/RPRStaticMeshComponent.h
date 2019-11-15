@@ -90,8 +90,7 @@ private:
 	void	UpdateLastMaterialList();
 
 	void ProcessUE4Material(FRPRShape& shape, UMaterial* material);
-	RPR::FMaterialNode ConvertExpressionToRPRNode(UMaterialExpression* expr);
-	RPR::RPRXVirtualNode* ConvertExpressionToVirtualNode(UMaterialExpression* expr);
+	RPR::RPRXVirtualNode* ConvertExpressionToVirtualNode(UMaterialExpression* expr, void* parameter = nullptr);
 	RPR::FMaterialNode ProcessColorNode(const FString& nodeId, const FLinearColor& color);
 	RPR::RPRXVirtualNode* ProcessVirtualColorNode(const FString& nodeId, const FLinearColor& color);
 	void TwoOperandsMathNodeSetInputs(RPR::RPRXVirtualNode* vNode, const TArray<FExpressionInput*> inputs, const float ConstA, const float ConstB);

@@ -313,6 +313,12 @@ RPR::RPRXVirtualNode* FRPRXMaterialLibrary::getOrCreateVirtualIfNotExists(FStrin
 	case RPR::EMaterialNodeType::ImageTexture:
 		vType = RPR::RPRXVirtualNode::VNType::IMAGE;
 		break;
+	case RPR::EMaterialNodeType::SelectX:
+	case RPR::EMaterialNodeType::SelectY:
+	case RPR::EMaterialNodeType::SelectZ:
+	case RPR::EMaterialNodeType::SelectW:
+		vType = RPR::RPRXVirtualNode::VNType::TEXTURE_CHANNEL;
+		break;
 	case RPR::EMaterialNodeType::Arithmetic:
 		vType = RPR::RPRXVirtualNode::VNType::ARITHMETIC_2_OPERANDS;
 		realNode = getOrCreateIfNotExists(materialNode, type);
@@ -373,6 +379,11 @@ void FRPRXMaterialLibrary::setNodeUInt(RPR::FMaterialNode materialNode, const FS
 
 void FRPRXMaterialLibrary::setNodeConnection(RPR::RPRXVirtualNode* vNode, const FString& parameter, RPR::RPRXVirtualNode* otherNode)
 {
+	if (!otherNode) {
+		setNodeConnection(vNode->realNode, parameter, GetDummyMaterial());
+		return;
+	}
+
 	switch (otherNode->type)
 	{
 	case RPR::RPRXVirtualNode::VNType::COLOR:
@@ -380,20 +391,9 @@ void FRPRXMaterialLibrary::setNodeConnection(RPR::RPRXVirtualNode* vNode, const 
 		break;
 
 	case RPR::RPRXVirtualNode::VNType::ARITHMETIC_2_OPERANDS: /* true for ADD, SUB, MUL, DIV */
-		setNodeConnection(vNode->realNode, parameter, otherNode->realNode);
-		break;
-
 	case RPR::RPRXVirtualNode::VNType::IMAGE:
-
-
-		setNodeConnection(vNode->realNode, parameter, otherNode->realNode);
-
-
-
-		//setconnectiontoimage
-		break;
 	default:
-		break;
+		setNodeConnection(vNode->realNode, parameter, otherNode->realNode);
 	}
 }
 
@@ -422,6 +422,22 @@ RPR::FMaterialNode  FRPRXMaterialLibrary::createImage(UTexture2D* texture)
 	RPR::scheck(status);
 
 	return outMaterialNode;
+}
+
+RPR::FMaterialNode FRPRXMaterialLibrary::createImageNodeFromImageData(FString nodeId, RPR::FImagePtr imagePtr)
+{
+	RPR::FResult          result;
+	RPR::FMaterialNode    node;
+
+	FString imageNodeId = nodeId + "_ImageData";
+	node = getNode(imageNodeId);
+	if (!node)
+	{
+		node = createNode(imageNodeId, EMaterialNodeType::ImageTexture);
+		result = RPR::FMaterialHelpers::FMaterialNode::SetInputImageData(node, TEXT("data"), imagePtr.Get());
+		RPR::scheck(result);
+	}
+	return node;
 }
 
 RPR::FRPRXMaterialPtr FRPRXMaterialLibrary::CacheMaterial(URPRMaterial* InMaterial)
