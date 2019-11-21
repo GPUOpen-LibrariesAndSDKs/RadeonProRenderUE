@@ -289,7 +289,7 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		assert(teture2d);
 
 		RPR::FImagePtr outImage = IRPRCore::GetResources()->GetRPRImageManager()->LoadImageFromTexture(texture2d);
-		if (!outImage || !outImage.IsValid)
+		if (!outImage || !outImage.IsValid())
 			return nullptr;
 
 		RPR::FMaterialNode realNode = materialLibrary.createImageNodeFromImageData(vNodeId, outImage);
