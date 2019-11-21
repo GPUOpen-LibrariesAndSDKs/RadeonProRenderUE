@@ -358,6 +358,7 @@ void FRPRXMaterialLibrary::setNodeConnection(RPR::RPRXVirtualNode* vNode, const 
 		break;
 
 	case RPR::RPRXVirtualNode::VNType::ARITHMETIC_2_OPERANDS: /* true for ADD, SUB, MUL, DIV */
+	case RPR::RPRXVirtualNode::VNType::TEXTURE_CHANNEL:
 	case RPR::RPRXVirtualNode::VNType::IMAGE:
 	default:
 		setNodeConnection(vNode->realNode, parameter, otherNode->realNode);
