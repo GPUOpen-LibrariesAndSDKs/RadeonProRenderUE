@@ -30,6 +30,15 @@ namespace RPR
 		MaterialX
 	};
 
+	enum OutputIndex
+	{
+		ZERO = 0,
+		ONE,
+		TWO,
+		THREE,
+		FOUR
+	};
+
 	enum class EMaterialNodeInputType : FMaterialNodeInputType // rpr_material_node_input_type
 	{
 		Float4		= RPR_MATERIAL_NODE_INPUT_TYPE_FLOAT4,
@@ -60,10 +69,10 @@ namespace RPR
 
 		Add						= RPR_MATERIAL_NODE_OP_ADD,
 		Mult					= RPR_MATERIAL_NODE_OP_MUL,
-		SelectX                 = RPR_MATERIAL_NODE_OP_SELECT_X,
-		SelectY                 = RPR_MATERIAL_NODE_OP_SELECT_Y,
-		SelectZ                 = RPR_MATERIAL_NODE_OP_SELECT_Z,
-		SelectW                 = RPR_MATERIAL_NODE_OP_SELECT_W
+		SelectX					= RPR_MATERIAL_NODE_OP_SELECT_X,
+		SelectY					= RPR_MATERIAL_NODE_OP_SELECT_Y,
+		SelectZ					= RPR_MATERIAL_NODE_OP_SELECT_Z,
+		SelectW					= RPR_MATERIAL_NODE_OP_SELECT_W
 
 		// Not completed. See rpr_material_node_type in RadeonProRender.h for others
 	};

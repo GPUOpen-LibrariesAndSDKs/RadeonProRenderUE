@@ -79,7 +79,7 @@ public:
 	void                            setNodeConnection(RPR::FMaterialNode MaterialNode, const FString& ParameterName, RPR::FMaterialNode InMaterialNode);
 
 	RPR::FMaterialNode              createImage(UTexture2D* texture);
-	RPR::FMaterialNode              createImageNodeFromImageData(FString nodeId, RPR::FImagePtr imagePtr);
+	RPR::FMaterialNode              createImageNodeFromImageData(const FString& nodeId, RPR::FImagePtr imagePtr);
 
 private:
 

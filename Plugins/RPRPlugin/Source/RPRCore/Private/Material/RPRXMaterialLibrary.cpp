@@ -273,9 +273,8 @@ RPR::FMaterialNode FRPRXMaterialLibrary::createNode(FString materialNode, RPR::E
 {
 	RPR::FMaterialSystem materialSystem = IRPRCore::GetResources()->GetMaterialSystem();
 
-	RPR::FResult result;
 	RPR::FMaterialNode material;
-	result = RPR::FMaterialHelpers::CreateNode(materialSystem, materialType, materialNode, material);
+	RPR::FResult result = RPR::FMaterialHelpers::CreateNode(materialSystem, materialType, materialNode, material);
 	scheck(result);
 
 	m_materialNodes.Add(materialNode, material);
@@ -424,19 +423,18 @@ RPR::FMaterialNode  FRPRXMaterialLibrary::createImage(UTexture2D* texture)
 	return outMaterialNode;
 }
 
-RPR::FMaterialNode FRPRXMaterialLibrary::createImageNodeFromImageData(FString nodeId, RPR::FImagePtr imagePtr)
+RPR::FMaterialNode FRPRXMaterialLibrary::createImageNodeFromImageData(const FString& nodeId, RPR::FImagePtr imagePtr)
 {
-	RPR::FResult          result;
-	RPR::FMaterialNode    node;
+	const FString imageNodeId = nodeId + "_ImageData";
+	RPR::FMaterialNode node = getNode(imageNodeId);
 
-	FString imageNodeId = nodeId + "_ImageData";
-	node = getNode(imageNodeId);
 	if (!node)
 	{
 		node = createNode(imageNodeId, EMaterialNodeType::ImageTexture);
-		result = RPR::FMaterialHelpers::FMaterialNode::SetInputImageData(node, TEXT("data"), imagePtr.Get());
+		RPR::FResult result = RPR::FMaterialHelpers::FMaterialNode::SetInputImageData(node, TEXT("data"), imagePtr.Get());
 		RPR::scheck(result);
 	}
+
 	return node;
 }
 

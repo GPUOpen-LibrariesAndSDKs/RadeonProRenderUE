@@ -10,3 +10,4 @@ namespace DXTDecompressor
 {
 	void DecompressImage(unsigned char* output_rgba_raw_data, int texture_width, int texture_height, void const* dxt_blocks_raw_data);
 }
+
