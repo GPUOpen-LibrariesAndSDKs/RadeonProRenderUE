@@ -273,7 +273,7 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		auto expression = Cast<UMaterialExpressionTextureSample>(expr);
 		assert(expression);
 
-		const FString& vNodeId = expression->GetName();
+		const FString vNodeId = expression->GetName();
 
 		if (expression->TextureObject.Expression)
 		{
