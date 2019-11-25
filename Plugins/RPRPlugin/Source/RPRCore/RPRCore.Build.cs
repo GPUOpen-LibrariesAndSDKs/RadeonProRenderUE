@@ -28,7 +28,6 @@ namespace UnrealBuildTool.Rules
 
             PrivateIncludePaths.AddRange(
 				new string[] {
-
                     "RPRCore/Public/Material/Tools/MaterialCacheMaker",
 
                     "RPRCore/Private/Material",

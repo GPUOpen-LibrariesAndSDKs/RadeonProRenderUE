@@ -184,12 +184,14 @@ void URPRStaticMeshComponent::ProcessUE4Material(FRPRShape& shape, UMaterial* ma
 	shape.m_RprxNodeMaterial = uberMaterialPtr;
 
 	//First expression is always for BaseColor, the input to BaseColor is input for material
-	RPR::RPRXVirtualNode* baseColorInputNode = ConvertExpressionToVirtualNode(material->BaseColor.Expression);
+	RPR::RPRXVirtualNode* baseColorInputNode = ConvertExpressionToVirtualNode(material->BaseColor.Expression, reinterpret_cast<void*>(&material->BaseColor.OutputIndex));
 
 	status = uberMaterialPtr->SetMaterialParameterNode(RPRX_UBER_MATERIAL_DIFFUSE_COLOR, baseColorInputNode->realNode);
 	RPR::scheck(status);
 	status = uberMaterialPtr->SetMaterialParameterFloat(RPRX_UBER_MATERIAL_DIFFUSE_WEIGHT, 1.0f);
 	RPR::scheck(status);
+
+
 
 	status = RPRX::ShapeAttachMaterial(rprxContext, shape.m_RprShape, uberMaterialPtr->GetRawMaterial());
 	RPR::scheck(status);
@@ -197,76 +199,7 @@ void URPRStaticMeshComponent::ProcessUE4Material(FRPRShape& shape, UMaterial* ma
 	materialLibrary.commitAll();
 }
 
-RPR::FMaterialNode URPRStaticMeshComponent::ConvertExpressionToRPRNode(UMaterialExpression* expr)
-	//CURRENTLY NOT USED
-{
-	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
-	RPR::FMaterialNode node = materialLibrary.getNode(expr->GetName());
-
-	if (node)
-	{
-		return node;
-	}
-	else if (expr->IsA<UMaterialExpressionConstant2Vector>())
-	{
-		auto expression = Cast<UMaterialExpressionConstant2Vector>(expr);
-		assert(expression);
-		return ProcessColorNode(expression->GetName(), FLinearColor(expression->R, expression->G, 0, 0));
-	}
-	else if (expr->IsA<UMaterialExpressionConstant3Vector>())
-	{
-		auto expression = Cast<UMaterialExpressionConstant3Vector>(expr);
-		assert(expression);
-		return ProcessColorNode(expression->GetName(), expression->Constant);
-	}
-	else if (expr->IsA<UMaterialExpressionConstant4Vector>())
-	{
-		auto expression = Cast<UMaterialExpressionConstant4Vector>(expr);
-		assert(expression);
-		return ProcessColorNode(expression->GetName(), expression->Constant);
-	}
-	else if (expr->IsA<UMaterialExpressionVectorParameter>())
-	{
-		auto expression = Cast<UMaterialExpressionVectorParameter>(expr);
-		assert(expression);
-		return ProcessColorNode(expression->GetName(), expression->DefaultValue);
-	}
-	else if (expr->IsA<UMaterialExpressionAdd>())
-	{
-		auto expression = Cast<UMaterialExpressionAdd>(expr);
-		assert(expression);
-		node = materialLibrary.getOrCreateIfNotExists(expression->GetName(), RPR::EMaterialNodeType::Arithmetic);
-		assert(node);
-		materialLibrary.setNodeUInt(node, L"op", RPR_MATERIAL_NODE_OP_ADD);
-
-		//TwoOperandsMathNodeSetInputs(node, expression->GetInputs(), expression->ConstA, expression->ConstB, materialLibrary);
-		return node;
-	}
-	else if (expr->IsA<UMaterialExpressionMultiply>())
-	{
-		auto expression = Cast<UMaterialExpressionMultiply>(expr);
-		assert(expression);
-		node = materialLibrary.getOrCreateIfNotExists(expression->GetName(), RPR::EMaterialNodeType::Arithmetic);
-		assert(node);
-		materialLibrary.setNodeUInt(node, L"op", RPR_MATERIAL_NODE_OP_MUL);
-
-		//TwoOperandsMathNodeSetInputs(node, expression->GetInputs(), expression->ConstA, expression->ConstB, materialLibrary);
-		return node;
-	}
-	else if (expr->IsA<UMaterialExpressionTextureSample>())
-	{
-		auto expression = Cast<UMaterialExpressionTextureSample>(expr);
-		assert(expression);
-	}
-	else if (expr->IsA<UMaterialExpressionTextureObject>())
-	{
-		auto expression = Cast<UMaterialExpressionTextureObject>(expr);
-		assert(expression);
-	}
-	return nullptr;
-}
-
-RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UMaterialExpression* expr)
+RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UMaterialExpression* expr, const void* parameter)
 {
 	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 	RPR::RPRXVirtualNode* node = materialLibrary.getVirtualNode(expr->GetName());
@@ -304,7 +237,6 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		auto expression = Cast<UMaterialExpressionAdd>(expr);
 		assert(expression);
 		node = materialLibrary.getOrCreateVirtualIfNotExists(expression->GetName(), RPR::EMaterialNodeType::Arithmetic);
-		assert(node);
 		materialLibrary.setNodeUInt(node->realNode, L"op", RPR_MATERIAL_NODE_OP_ADD);
 		TwoOperandsMathNodeSetInputs(node, expression->GetInputs(), expression->ConstA, expression->ConstB);
 		return node;
@@ -314,7 +246,6 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		auto expression = Cast<UMaterialExpressionSubtract>(expr);
 		assert(expression);
 		node = materialLibrary.getOrCreateVirtualIfNotExists(expression->GetName(), RPR::EMaterialNodeType::Arithmetic);
-		assert(node);
 		materialLibrary.setNodeUInt(node->realNode, L"op", RPR_MATERIAL_NODE_OP_SUB);
 		TwoOperandsMathNodeSetInputs(node, expression->GetInputs(), expression->ConstA, expression->ConstB);
 		return node;
@@ -324,7 +255,6 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		auto expression = Cast<UMaterialExpressionMultiply>(expr);
 		assert(expression);
 		node = materialLibrary.getOrCreateVirtualIfNotExists(expression->GetName(), RPR::EMaterialNodeType::Arithmetic);
-		assert(node);
 		materialLibrary.setNodeUInt(node->realNode, L"op", RPR_MATERIAL_NODE_OP_MUL);
 		TwoOperandsMathNodeSetInputs(node, expression->GetInputs(), expression->ConstA, expression->ConstB);
 		return node;
@@ -334,7 +264,6 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		auto expression = Cast<UMaterialExpressionDivide>(expr);
 		assert(expression);
 		node = materialLibrary.getOrCreateVirtualIfNotExists(expression->GetName(), RPR::EMaterialNodeType::Arithmetic);
-		assert(node);
 		materialLibrary.setNodeUInt(node->realNode, L"op", RPR_MATERIAL_NODE_OP_DIV);
 		TwoOperandsMathNodeSetInputs(node, expression->GetInputs(), expression->ConstA, expression->ConstB);
 		return node;
@@ -343,14 +272,35 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 	{
 		auto expression = Cast<UMaterialExpressionTextureSample>(expr);
 		assert(expression);
-		node = materialLibrary.getOrCreateVirtualIfNotExists(expression->GetName(), RPR::EMaterialNodeType::ImageTexture);
+
+		const FString vNodeId = expression->GetName();
+
+		if (expression->TextureObject.Expression)
+		{
+			//TexutreObjext override Texture, if exist
+			//provide creating of the texture from textureObject
+			//check textureObject's outputs and variations
+		}
+
+		//first image virtual node to hold image texture
+		node = materialLibrary.getOrCreateVirtualIfNotExists(vNodeId, RPR::EMaterialNodeType::ImageTexture);
 
 		UTexture2D *texture2d = Cast<UTexture2D>(expression->GetReferencedTexture());
 		assert(teture2d);
-		RPR::FMaterialNode realNode = materialLibrary.createImage(texture2d);
+
+		RPR::FImagePtr outImage = IRPRCore::GetResources()->GetRPRImageManager()->LoadImageFromTexture(texture2d);
+		if (!outImage || !outImage.IsValid())
+			return nullptr;
+
+		RPR::FMaterialNode realNode = materialLibrary.createImageNodeFromImageData(vNodeId, outImage);
 		node->realNode = realNode;
 
-		return node;
+		const int32 outputIndex = parameter ? *reinterpret_cast<const int32*>(parameter) : 0;
+
+		if (outputIndex == RPR::OutputIndex::ZERO)
+			return node;
+
+		return TextureSamplesChannel(vNodeId, outputIndex, node);
 	}
 	else if (expr->IsA<UMaterialExpressionTextureObject>())
 	{
@@ -380,16 +330,58 @@ RPR::FMaterialNode URPRStaticMeshComponent::ProcessColorNode(const FString& node
 	return node;
 }
 
+RPR::RPRXVirtualNode* URPRStaticMeshComponent::TextureSamplesChannel(const FString& vNodeId, const int32 outputIndex, const RPR::RPRXVirtualNode* imgNode)
+{
+	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+	RPR::RPRXVirtualNode* selectVNode = nullptr;
+	RPR::FMaterialNode realNode = nullptr;
+
+	switch (outputIndex)
+	{
+	case RPR::OutputIndex::ONE:
+		selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(vNodeId + L"_R", RPR::EMaterialNodeType::SelectX);
+		realNode = materialLibrary.getOrCreateIfNotExists(vNodeId + L"_R", RPR::EMaterialNodeType::Arithmetic);
+		materialLibrary.setNodeUInt(realNode, L"op", RPR_MATERIAL_NODE_OP_SELECT_X);
+		break;
+	case RPR::OutputIndex::TWO:
+		selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(vNodeId + L"_G", RPR::EMaterialNodeType::SelectY);
+		realNode = materialLibrary.getOrCreateIfNotExists(vNodeId + L"_G", RPR::EMaterialNodeType::Arithmetic);
+		materialLibrary.setNodeUInt(realNode, L"op", RPR_MATERIAL_NODE_OP_SELECT_Y);
+		break;
+	case RPR::OutputIndex::THREE:
+		selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(vNodeId + L"_B", RPR::EMaterialNodeType::SelectZ);
+		realNode = materialLibrary.getOrCreateIfNotExists(vNodeId + L"_B", RPR::EMaterialNodeType::Arithmetic);
+		materialLibrary.setNodeUInt(realNode, L"op", RPR_MATERIAL_NODE_OP_SELECT_Z);
+		break;
+	case RPR::OutputIndex::FOUR:
+		selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(vNodeId + L"_A", RPR::EMaterialNodeType::SelectW);
+		realNode = materialLibrary.getOrCreateIfNotExists(vNodeId + L"_A", RPR::EMaterialNodeType::Arithmetic);
+		materialLibrary.setNodeUInt(realNode, L"op", RPR_MATERIAL_NODE_OP_SELECT_W);
+		break;
+	}
+
+	selectVNode->realNode = realNode;
+	materialLibrary.setNodeConnection(selectVNode->realNode, L"color0", imgNode->realNode);
+
+	return selectVNode;
+}
+
 void URPRStaticMeshComponent::TwoOperandsMathNodeSetInputs(RPR::RPRXVirtualNode* vNode, const TArray<FExpressionInput*> inputs, const float ConstA, const float ConstB)
 {
 	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
-	if (inputs[0])
-		materialLibrary.setNodeConnection(vNode, L"color0", ConvertExpressionToVirtualNode(inputs[0]->Expression));
+	if (inputs[0]->Expression)
+	{
+		materialLibrary.setNodeConnection(vNode, L"color0", ConvertExpressionToVirtualNode(inputs[0]->Expression,
+			inputs[0]->Expression->IsA<UMaterialExpressionTextureSample>() ? &inputs[0]->OutputIndex : nullptr));
+	}
 	else
 		materialLibrary.setNodeFloat(vNode->realNode, L"color0", ConstA, ConstA, ConstA, ConstA);
 
-	if (inputs[1])
-		materialLibrary.setNodeConnection(vNode, L"color1", ConvertExpressionToVirtualNode(inputs[1]->Expression));
+	if (inputs[1]->Expression)
+	{
+		materialLibrary.setNodeConnection(vNode, L"color1", ConvertExpressionToVirtualNode(inputs[1]->Expression,
+			inputs[1]->Expression->IsA<UMaterialExpressionTextureSample>() ? &inputs[1]->OutputIndex : nullptr));
+	}
 	else
 		materialLibrary.setNodeFloat(vNode->realNode, L"color1", ConstB, ConstB, ConstB, ConstB);
 }

@@ -30,6 +30,15 @@ namespace RPR
 		MaterialX
 	};
 
+	enum OutputIndex
+	{
+		ZERO = 0,
+		ONE,
+		TWO,
+		THREE,
+		FOUR
+	};
+
 	enum class EMaterialNodeInputType : FMaterialNodeInputType // rpr_material_node_input_type
 	{
 		Float4		= RPR_MATERIAL_NODE_INPUT_TYPE_FLOAT4,
@@ -59,7 +68,11 @@ namespace RPR
 		UVTriplanar				= RPR_MATERIAL_NODE_UV_TRIPLANAR,
 
 		Add						= RPR_MATERIAL_NODE_OP_ADD,
-		Mult					= RPR_MATERIAL_NODE_OP_MUL
+		Mult					= RPR_MATERIAL_NODE_OP_MUL,
+		SelectX					= RPR_MATERIAL_NODE_OP_SELECT_X,
+		SelectY					= RPR_MATERIAL_NODE_OP_SELECT_Y,
+		SelectZ					= RPR_MATERIAL_NODE_OP_SELECT_Z,
+		SelectW					= RPR_MATERIAL_NODE_OP_SELECT_W
 
 		// Not completed. See rpr_material_node_type in RadeonProRender.h for others
 	};
@@ -215,27 +228,27 @@ namespace RPR
 		Type = RPR_LIGHT_TYPE,
 		Transform = RPR_LIGHT_TRANSFORM,
 		GroupId = RPR_LIGHT_GROUP_ID,
-		
+
 		PointLight_RadiantPower = RPR_POINT_LIGHT_RADIANT_POWER,
-		
+
 		DirectionalLight_RadiantPower = RPR_DIRECTIONAL_LIGHT_RADIANT_POWER,
 		DirectionalLight_ShadowSoftness = RPR_DIRECTIONAL_LIGHT_SHADOW_SOFTNESS,
-		
+
 		SpotLight_RadiantPower = RPR_SPOT_LIGHT_RADIANT_POWER,
 		SpotLight_ConeShape = RPR_SPOT_LIGHT_CONE_SHAPE,
-		 
+
 		Environment_Image = RPR_ENVIRONMENT_LIGHT_IMAGE,
 		Environment_LightIntensityScale = RPR_ENVIRONMENT_LIGHT_INTENSITY_SCALE,
 		Environment_LightPortalList = RPR_ENVIRONMENT_LIGHT_PORTAL_LIST,
 		Environment_LightPotalCount = RPR_ENVIRONMENT_LIGHT_PORTAL_COUNT,
-		
+
 		SkyLight_Turbidity = RPR_SKY_LIGHT_TURBIDITY,
 		SkyLight_Albedo = RPR_SKY_LIGHT_ALBEDO,
 		SkyLight_LightScale = RPR_SKY_LIGHT_SCALE,
 		SkyLight_Direction = RPR_SKY_LIGHT_DIRECTION,
 		SkyLight_PortalList = RPR_SKY_LIGHT_PORTAL_LIST,
 		SkyLight_PortalCount = RPR_SKY_LIGHT_PORTAL_COUNT,
-		
+
 		IES_RadiantPower = RPR_IES_LIGHT_RADIANT_POWER,
 		IES_ImageDescription = RPR_IES_LIGHT_IMAGE_DESC
 	};
@@ -276,7 +289,7 @@ namespace RPR
 		CubemapStereo = RPR_CAMERA_MODE_CUBEMAP_STEREO,
 		FishEye = RPR_CAMERA_MODE_FISHEYE
 	};
-	
+
 	UENUM()
 	enum class EAOV : uint8 // rpr_aov
 	{
