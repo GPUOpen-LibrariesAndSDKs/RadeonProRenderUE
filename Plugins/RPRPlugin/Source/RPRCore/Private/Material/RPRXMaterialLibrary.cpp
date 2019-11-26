@@ -49,7 +49,6 @@ void FRPRXMaterialLibrary::Initialize()
 
 	bIsInitialized = true;
 	InitializeDummyMaterial();
-	InitializeTestMaterial();
 }
 
 bool FRPRXMaterialLibrary::IsInitialized() const
@@ -63,7 +62,6 @@ void FRPRXMaterialLibrary::Close()
 	{
 		UE_LOG(LogRPRMaterialLibrary, Verbose, TEXT("Close"));
 
-		DestroyTestMaterial();
 		DestroyDummyMaterial();
 		ClearCache();
 	}
@@ -134,12 +132,6 @@ RPR::FMaterialNode FRPRXMaterialLibrary::GetDummyMaterial() const
 {
 	return (DummyMaterial);
 }
-
-RPR::FMaterialNode FRPRXMaterialLibrary::GetTestMaterial() const
-{
-	return (TestMaterial);
-}
-
 
 FCriticalSection& FRPRXMaterialLibrary::GetCriticalSection()
 {
@@ -218,39 +210,6 @@ void FRPRXMaterialLibrary::DestroyDummyMaterial()
 	}
 }
 
-void FRPRXMaterialLibrary::InitializeTestMaterial()
-{
-	assert(!TestMaterial);
-
-/*	using namespace RPR;
-	FResult result;
-
-	FMaterialSystem materialSystem = IRPRCore::GetResources()->GetMaterialSystem();
-	FContext context = IRPRCore::GetResources()->GetRPRContext();
-	FImageManagerPtr imageManager = IRPRCore::GetResources()->GetRPRImageManager();
-
-	result = FMaterialHelpers::CreateImageNode(context, materialSystem, *imageManager, );
-
-	// diffuse node
-	result = FMaterialHelpers::CreateNode(materialSystem, EMaterialNodeType::Diffuse, TEXT("TestMaterial"), TestMaterial);
-	checker(result);
-
-	result = FMaterialHelpers::CreateNode(materialSystem, EMaterialNodeType::RPR_MATERIAL_NODE_OP_ADD, TEXT("TestMaterial"), TestMaterial);
-	checker(result);
-
-	result = FMaterialHelpers::FMaterialNode::SetInputFloats(TestMaterial, TEXT("color"), 0.5f, 0.5f, 0.5f, 1.0f);
-	checker(result);*/
-}
-
-void FRPRXMaterialLibrary::DestroyTestMaterial()
-{
-	if (!TestMaterial)
-		return;
-
-	RPR::FMaterialHelpers::DeleteNode(TestMaterial);
-	TestMaterial = nullptr;
-}
-
 RPR::FRPRXMaterialNodePtr FRPRXMaterialLibrary::createMaterial(FString name, RPRX::EMaterialType type)
 {
 	RPR::FRPRXMaterialNodePtr materialPtr = MakeShareable(new RPR::FRPRXMaterialNode(name, type));
@@ -265,8 +224,8 @@ RPR::FRPRXMaterialNodePtr FRPRXMaterialLibrary::createMaterial(FString name, RPR
 
 RPR::RPRXVirtualNode* FRPRXMaterialLibrary::createVirtualNode(FString materialNode, RPR::RPRXVirtualNode::VNType nodeType)
 {
-	m_virtualNodes.Emplace(materialNode, std::make_unique<RPR::RPRXVirtualNode>(materialNode, nodeType));
-	return m_virtualNodes.Find(materialNode)->get();
+	m_virtualNodes.Emplace(materialNode, MakeUnique<RPR::RPRXVirtualNode>(materialNode, nodeType));
+	return m_virtualNodes.Find(materialNode)->Get();
 }
 
 RPR::FMaterialNode FRPRXMaterialLibrary::createNode(FString materialNode, RPR::EMaterialNodeType materialType)
@@ -290,10 +249,8 @@ bool FRPRXMaterialLibrary::hasNode(FString materialNode) const
 
 RPR::RPRXVirtualNode* FRPRXMaterialLibrary::getVirtualNode(FString materialNode)
 {
-	std::unique_ptr<RPR::RPRXVirtualNode> ptr = std::make_unique<RPR::RPRXVirtualNode>();
-
 	return m_virtualNodes.Contains(materialNode) ?
-		m_virtualNodes.Find(materialNode)->get() : nullptr;
+		m_virtualNodes.Find(materialNode)->Get() : nullptr;
 }
 
 RPR::FMaterialNode FRPRXMaterialLibrary::getNode(FString materialNode)
