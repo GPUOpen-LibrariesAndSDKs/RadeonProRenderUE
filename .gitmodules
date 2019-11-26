@@ -1,0 +1,3 @@
+[submodule "Plugins/RPRPlugin/ThirdParty/RadeonProRenderSDK"]
+	path = Plugins/RPRPlugin/ThirdParty/RadeonProRenderSDK
+	url = git@github.com:Radeon-Pro/RadeonProRenderSDK.git
