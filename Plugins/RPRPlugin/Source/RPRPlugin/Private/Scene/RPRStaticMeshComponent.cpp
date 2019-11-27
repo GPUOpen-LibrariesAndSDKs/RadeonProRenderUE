@@ -38,6 +38,7 @@
 #include "Materials/MaterialExpressionOneMinus.h"
 #include "Materials/MaterialExpressionClamp.h"
 #include "Materials/MaterialExpressionLinearInterpolate.h"
+#include "Materials/MaterialExpressionTextureCoordinate.h"
 
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshActor.h"
@@ -91,6 +92,7 @@ namespace
 
 		// use multiply node to store float value to rpr context
 		RPR::RPRXVirtualNode* node = materialLibrary.getOrCreateVirtualIfNotExists(id, RPR::EMaterialNodeType::Arithmetic);
+		node->SetData(value, value, value, value);
 		materialLibrary.setNodeUInt(node->realNode, L"op", RPR_MATERIAL_NODE_OP_MUL);
 		materialLibrary.setNodeFloat(node->realNode, L"color0", 1.0f, 1.0f, 1.0f, 1.0f);
 		materialLibrary.setNodeFloat(node->realNode, L"color1", value, value, value, value);
@@ -221,29 +223,54 @@ void URPRStaticMeshComponent::ProcessUE4Material(FRPRShape& shape, UMaterial* ma
 	if (material->Metallic.Expression)
 	{
 		RPR::RPRXVirtualNode* metallicInput = ConvertExpressionToVirtualNode(material->Metallic.Expression, material->Metallic.OutputIndex);
+
 		status = uberMaterialPtr->SetMaterialParameterNode(RPRX_UBER_MATERIAL_REFLECTION_METALNESS, metallicInput->realNode);
 		RPR::scheck(status);
-
 		status = uberMaterialPtr->SetMaterialParameterNode(RPRX_UBER_MATERIAL_REFLECTION_WEIGHT, metallicInput->realNode);
 		RPR::scheck(status);
-
 		status = uberMaterialPtr->SetMaterialParameterNode(RPRX_UBER_MATERIAL_REFLECTION_COLOR, baseColorInputNode->realNode);
 		RPR::scheck(status);
-
 		status = uberMaterialPtr->SetMaterialParameterFloat(RPRX_UBER_MATERIAL_REFLECTION_ANISOTROPY, 0.0f);
 		RPR::scheck(status);
-
 		status = uberMaterialPtr->SetMaterialParameterFloat(RPRX_UBER_MATERIAL_REFLECTION_ANISOTROPY_ROTATION, 0.0f);
 		RPR::scheck(status);
-
 		status = uberMaterialPtr->SetMaterialParameterUInt(RPRX_UBER_MATERIAL_REFLECTION_MODE, RPRX_UBER_MATERIAL_REFLECTION_MODE_METALNESS);
+		RPR::scheck(status);
+	}
+	else if (material->Specular.Expression)
+	{
+		RPR::RPRXVirtualNode* specularInput = ConvertExpressionToVirtualNode(material->Specular.Expression, material->Specular.OutputIndex);
+
+		RPR::RPRXVirtualNode* node = materialLibrary.getOrCreateVirtualIfNotExists(L"IOR_node", RPR::EMaterialNodeType::Arithmetic);
+		materialLibrary.setNodeUInt(node->realNode, L"op", RPR_MATERIAL_NODE_OP_SUB);
+		materialLibrary.setNodeFloat(node->realNode, L"color0", 1.0f, 1.0f, 1.0f, 1.0f);
+		materialLibrary.setNodeConnection(node->realNode, L"color1", specularInput->realNode);
+
+		status = uberMaterialPtr->SetMaterialParameterNode(RPRX_UBER_MATERIAL_REFLECTION_IOR, node->realNode);
+		RPR::scheck(status);
+		status = uberMaterialPtr->SetMaterialParameterNode(RPRX_UBER_MATERIAL_REFLECTION_WEIGHT, specularInput->realNode);
+		RPR::scheck(status);
+		status = uberMaterialPtr->SetMaterialParameterNode(RPRX_UBER_MATERIAL_REFLECTION_COLOR, baseColorInputNode->realNode);
+		RPR::scheck(status);
+		status = uberMaterialPtr->SetMaterialParameterFloat(RPRX_UBER_MATERIAL_REFLECTION_ANISOTROPY, 0.0f);
+		RPR::scheck(status);
+		status = uberMaterialPtr->SetMaterialParameterFloat(RPRX_UBER_MATERIAL_REFLECTION_ANISOTROPY_ROTATION, 0.0f);
+		RPR::scheck(status);
+		status = uberMaterialPtr->SetMaterialParameterUInt(RPRX_UBER_MATERIAL_REFLECTION_MODE, RPRX_UBER_MATERIAL_REFLECTION_MODE_PBR);
 		RPR::scheck(status);
 	}
 
 	if (material->Roughness.Expression)
 	{
-		RPR::RPRXVirtualNode* RoughnessInput = ConvertExpressionToVirtualNode(material->Roughness.Expression, material->Roughness.OutputIndex);
-		status = uberMaterialPtr->SetMaterialParameterNode(RPRX_UBER_MATERIAL_REFLECTION_ROUGHNESS, RoughnessInput->realNode);
+		RPR::RPRXVirtualNode* roughnessInput = ConvertExpressionToVirtualNode(material->Roughness.Expression, material->Roughness.OutputIndex);
+		status = uberMaterialPtr->SetMaterialParameterNode(RPRX_UBER_MATERIAL_REFLECTION_ROUGHNESS, roughnessInput->realNode);
+		RPR::scheck(status);
+	}
+
+	if (material->Normal.Expression)
+	{
+		RPR::RPRXVirtualNode* normalInput = ConvertExpressionToVirtualNode(material->Roughness.Expression, material->Roughness.OutputIndex);
+		status = uberMaterialPtr->SetMaterialParameterNode(RPRX_UBER_MATERIAL_REFLECTION_NORMAL, normalInput->realNode);
 		RPR::scheck(status);
 	}
 
@@ -352,6 +379,7 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		node = materialLibrary.getOrCreateVirtualIfNotExists(vNodeId + "_ImageData", RPR::EMaterialNodeType::ImageTexture);
 
 		UTexture* texture = nullptr;
+
 		if (expression->TextureObject.Expression)
 			texture = expression->TextureObject.Expression->GetReferencedTexture();
 		else
@@ -361,11 +389,17 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		assert(teture2d);
 
 		RPR::FImagePtr outImage = IRPRCore::GetResources()->GetRPRImageManager()->LoadImageFromTexture(texture2d);
+
 		if (!outImage || !outImage.IsValid())
 			return nullptr;
 
-		RPR::FMaterialNode realNode = materialLibrary.createImageNodeFromImageData(vNodeId, outImage);
-		node->realNode = realNode;
+		node->realNode = materialLibrary.createImageNodeFromImageData(vNodeId, outImage);
+
+		if (expression->Coordinates.Expression)
+		{
+			RPR::RPRXVirtualNode* uvInput = ConvertExpressionToVirtualNode(expression->Coordinates.Expression, GetInputParameter(expression->Coordinates));
+			materialLibrary.setNodeConnection(node, L"uv", uvInput);
+		}
 
 		if (inputParameter == RPR::OutputIndex::ZERO)
 			return node;
@@ -382,8 +416,7 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		materialLibrary.setNodeFloat(node->realNode, L"color0", 1.0f, 1.0f, 1.0f, 1.0f);
 
 		// for OneMinuse node Input.Expression is always exist
-		materialLibrary.setNodeConnection(node, L"color1", ConvertExpressionToVirtualNode(expression->Input.Expression,
-			GetInputParameter(expression->Input)));
+		materialLibrary.setNodeConnection(node, L"color1", ConvertExpressionToVirtualNode(expression->Input.Expression, GetInputParameter(expression->Input)));
 
 		return node;
 	}
@@ -428,6 +461,22 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		materialLibrary.setNodeConnection(node, L"weight", inputAlpha);
 		materialLibrary.setNodeConnection(node, L"color0", inputA);
 		materialLibrary.setNodeConnection(node, L"color1", inputB);
+
+		return node;
+	}
+	else if (expr->IsA<UMaterialExpressionTextureCoordinate>())
+	{
+		auto expression = Cast<UMaterialExpressionTextureCoordinate>(expr);
+		assert(expression);
+
+		RPR::RPRXVirtualNode* lookupNode = materialLibrary.getOrCreateVirtualIfNotExists(expression->GetName() + L"_InputLookupUV", RPR::RPRXVirtualNode::VNType::DEFAULT);
+		lookupNode->realNode = materialLibrary.getOrCreateIfNotExists(expression->GetName() + L"_InputLookupUV", RPR::EMaterialNodeType::InputLookup);
+		materialLibrary.setNodeUInt(lookupNode->realNode, L"value", RPR_MATERIAL_NODE_LOOKUP_UV);
+
+		node = materialLibrary.getOrCreateVirtualIfNotExists(expression->GetName() + L"_InputLookupUV_Mul", RPR::EMaterialNodeType::Arithmetic);
+		materialLibrary.setNodeUInt(node->realNode, L"op", RPR_MATERIAL_NODE_OP_MUL);
+		materialLibrary.setNodeConnection(node, L"color0", lookupNode);
+		materialLibrary.setNodeFloat(node->realNode, L"color1", expression->UTiling, -expression->VTiling, 0.0f, 0.0f);
 
 		return node;
 	}
@@ -635,7 +684,7 @@ void URPRStaticMeshComponent::AttachDummyMaterial(RPR::FShape shape)
 }
 
 static bool const FLIP_SURFACE_NORMALS = false;
-static bool const FLIP_UV_Y = true;
+static bool const FLIP_UV_Y = false;
 
 bool	URPRStaticMeshComponent::_IsMaterialEmissive(const UMaterialInterface *material)
 {
