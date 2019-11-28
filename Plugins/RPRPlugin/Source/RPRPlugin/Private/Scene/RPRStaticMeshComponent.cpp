@@ -39,6 +39,7 @@
 #include "Materials/MaterialExpressionClamp.h"
 #include "Materials/MaterialExpressionLinearInterpolate.h"
 #include "Materials/MaterialExpressionTextureCoordinate.h"
+#include "Materials/MaterialExpressionPanner.h"
 
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshActor.h"
@@ -77,15 +78,6 @@ TMap<UStaticMesh*, TArray<FRPRCachedMesh>>	URPRStaticMeshComponent::Cache;
 
 namespace
 {
-	int32 GetInputParameter(FExpressionInput& input)
-	{
-		if (input.Expression->IsA<UMaterialExpressionTextureSample>())
-			return input.OutputIndex;
-
-		return 0;
-	}
-
-
 	RPR::RPRXVirtualNode* GetValueNode(const FString& id, const float value)
 	{
 		FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
@@ -241,12 +233,7 @@ void URPRStaticMeshComponent::ProcessUE4Material(FRPRShape& shape, UMaterial* ma
 	{
 		RPR::RPRXVirtualNode* specularInput = ConvertExpressionToVirtualNode(material->Specular.Expression, material->Specular.OutputIndex);
 
-		RPR::RPRXVirtualNode* node = materialLibrary.getOrCreateVirtualIfNotExists(L"IOR_node", RPR::EMaterialNodeType::Arithmetic);
-		materialLibrary.setNodeUInt(node->realNode, L"op", RPR_MATERIAL_NODE_OP_SUB);
-		materialLibrary.setNodeFloat(node->realNode, L"color0", 1.0f, 1.0f, 1.0f, 1.0f);
-		materialLibrary.setNodeConnection(node->realNode, L"color1", specularInput->realNode);
-
-		status = uberMaterialPtr->SetMaterialParameterNode(RPRX_UBER_MATERIAL_REFLECTION_IOR, node->realNode);
+		status = uberMaterialPtr->SetMaterialParameterNode(RPRX_UBER_MATERIAL_REFLECTION_IOR, GetValueNode(L"IOR_1.5_ForNonLiquidMaterials", 1.5)->realNode);
 		RPR::scheck(status);
 		status = uberMaterialPtr->SetMaterialParameterNode(RPRX_UBER_MATERIAL_REFLECTION_WEIGHT, specularInput->realNode);
 		RPR::scheck(status);
@@ -269,8 +256,19 @@ void URPRStaticMeshComponent::ProcessUE4Material(FRPRShape& shape, UMaterial* ma
 
 	if (material->Normal.Expression)
 	{
-		RPR::RPRXVirtualNode* normalInput = ConvertExpressionToVirtualNode(material->Roughness.Expression, material->Roughness.OutputIndex);
-		status = uberMaterialPtr->SetMaterialParameterNode(RPRX_UBER_MATERIAL_REFLECTION_NORMAL, normalInput->realNode);
+		RPR::RPRXVirtualNode* normalInput = ConvertExpressionToVirtualNode(material->Normal.Expression, material->Normal.OutputIndex);
+
+		RPR::FMaterialNode normalNode = materialLibrary.getOrCreateIfNotExists(
+			material->Normal.Expression->GetName() + L"_MaterialNormalMapNode",
+			RPR::EMaterialNodeType::NormalMap);
+
+		materialLibrary.setNodeConnection(normalNode, L"color", normalInput->realNode);
+
+		status = uberMaterialPtr->SetMaterialParameterNode(
+			material->Metallic.Expression ?
+				RPRX_UBER_MATERIAL_REFLECTION_NORMAL :
+				RPRX_UBER_MATERIAL_DIFFUSE_NORMAL,
+			normalNode);
 		RPR::scheck(status);
 	}
 
@@ -397,7 +395,7 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 
 		if (expression->Coordinates.Expression)
 		{
-			RPR::RPRXVirtualNode* uvInput = ConvertExpressionToVirtualNode(expression->Coordinates.Expression, GetInputParameter(expression->Coordinates));
+			RPR::RPRXVirtualNode* uvInput = ConvertExpressionToVirtualNode(expression->Coordinates.Expression, expression->Coordinates.OutputIndex);
 			materialLibrary.setNodeConnection(node, L"uv", uvInput);
 		}
 
@@ -416,7 +414,7 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		materialLibrary.setNodeFloat(node->realNode, L"color0", 1.0f, 1.0f, 1.0f, 1.0f);
 
 		// for OneMinuse node Input.Expression is always exist
-		materialLibrary.setNodeConnection(node, L"color1", ConvertExpressionToVirtualNode(expression->Input.Expression, GetInputParameter(expression->Input)));
+		materialLibrary.setNodeConnection(node, L"color1", ConvertExpressionToVirtualNode(expression->Input.Expression, expression->Input.OutputIndex));
 
 		return node;
 	}
@@ -431,7 +429,7 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		GetMinAndMaxNodesForClamp(expression, &minNode, &maxNode);
 
 		// input node is always exist for Clamp Expression
-		RPR::RPRXVirtualNode* inputNode = ConvertExpressionToVirtualNode(expression->Input.Expression, GetInputParameter(expression->Input));
+		RPR::RPRXVirtualNode* inputNode = ConvertExpressionToVirtualNode(expression->Input.Expression, expression->Input.OutputIndex);
 
 		// first, get values in the range between min and the rest.
 		RPR::RPRXVirtualNode* cutOffMin = materialLibrary.getOrCreateVirtualIfNotExists(expression->GetName() + "_cutOffMin", RPR::EMaterialNodeType::Arithmetic);
@@ -479,6 +477,13 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		materialLibrary.setNodeFloat(node->realNode, L"color1", expression->UTiling, -expression->VTiling, 0.0f, 0.0f);
 
 		return node;
+	}
+	else if (expr->IsA<UMaterialExpressionPanner>())
+	{
+		auto expression = Cast<UMaterialExpressionPanner>(expr);
+		assert(expression);
+
+		return ConvertExpressionToVirtualNode(expression->Coordinate.Expression, expression->Coordinate.OutputIndex);
 	}
 
 	return node;
@@ -542,7 +547,7 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::TextureSamplesChannel(const FStri
 RPR::RPRXVirtualNode* URPRStaticMeshComponent::ParseInputNodeOrCreateDefaultAlternative(FExpressionInput input, FString defaultId, float default)
 {
 	if (input.Expression)
-		return ConvertExpressionToVirtualNode(input.Expression, GetInputParameter(input));
+		return ConvertExpressionToVirtualNode(input.Expression, input.OutputIndex);
 	else
 		return GetValueNode(defaultId, default);
 }
@@ -552,12 +557,12 @@ void URPRStaticMeshComponent::TwoOperandsMathNodeSetInputs(RPR::RPRXVirtualNode*
 	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 
 	if (inputs[0]->Expression)
-		materialLibrary.setNodeConnection(vNode, L"color0", ConvertExpressionToVirtualNode(inputs[0]->Expression, GetInputParameter(*inputs[0])));
+		materialLibrary.setNodeConnection(vNode, L"color0", ConvertExpressionToVirtualNode(inputs[0]->Expression, inputs[0]->OutputIndex));
 	else
 		materialLibrary.setNodeFloat(vNode->realNode, L"color0", ConstA, ConstA, ConstA, ConstA);
 
 	if (inputs[1]->Expression)
-		materialLibrary.setNodeConnection(vNode, L"color1", ConvertExpressionToVirtualNode(inputs[1]->Expression, GetInputParameter(*inputs[1])));
+		materialLibrary.setNodeConnection(vNode, L"color1", ConvertExpressionToVirtualNode(inputs[1]->Expression, inputs[1]->OutputIndex));
 	else
 		materialLibrary.setNodeFloat(vNode->realNode, L"color1", ConstB, ConstB, ConstB, ConstB);
 }
