@@ -34,7 +34,7 @@ namespace RPR
 
 		void	ReleaseResources();
 
-		/* 
+		/*
 		* Provide access to the native RPRX material pointer.
 		* DO NOT DESTROY IT OR ANYTHING LIKE THAT.
 		*/
@@ -47,7 +47,7 @@ namespace RPR
 		void	ReleaseRPRXMaterial();
 		void	ReleaseMaterialNodes();
 		void	ReleaseMaterialMapNodes(const FRPRMaterialMap* MaterialMap);
-		void	ReleaseMaterialNodesHierarchy(RPR::FMaterialNode MaterialNode);		
+		void	ReleaseMaterialNodesHierarchy(RPR::FMaterialNode MaterialNode);
 
 		// Quick access to RPRX context
 		RPRX::FContext	GetRprxContext() const;
@@ -68,7 +68,7 @@ namespace RPR
 	{
 	public:
 
-		FRPRXMaterialNode(FString name, RPRX::EMaterialType type = RPRX::EMaterialType::Uber);		
+		FRPRXMaterialNode(FString name, RPRX::EMaterialType type = RPRX::EMaterialType::Uber);
 		~FRPRXMaterialNode();
 
 		void	AddImage(RPR::FImagePtr Image);
@@ -97,7 +97,7 @@ namespace RPR
 		void	ReleaseRPRXMaterial();
 		void	ReleaseMaterialNodes();
 		void	ReleaseMaterialMapNodes(const FRPRMaterialMap* MaterialMap);
-		void	ReleaseMaterialNodesHierarchy(RPR::FMaterialNode MaterialNode);		
+		void	ReleaseMaterialNodesHierarchy(RPR::FMaterialNode MaterialNode);
 
 		// Quick access to RPRX context
 		RPRX::FContext	GetRprxContext() const;

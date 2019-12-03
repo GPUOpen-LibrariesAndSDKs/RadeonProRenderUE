@@ -29,9 +29,6 @@
 #include "Helpers/RPRIHelpers.h"
 #include "Helpers/ObjectScopedLocked.h"
 
-#include <unordered_map>
-#include <memory>
-
 /*
 * Library of RPR materials.
 * Create native RPR material from FRPRMaterial and keep it in cache.
@@ -55,7 +52,6 @@ public:
 	void	ClearCache();
 
 	RPR::FMaterialNode GetDummyMaterial() const;
-	RPR::FMaterialNode GetTestMaterial() const;
 	RPR::FRPRXMaterialPtr	GetMaterial(const URPRMaterial* MaterialKey);
 
 	virtual FCriticalSection& GetCriticalSection() override;
@@ -89,9 +85,6 @@ private:
 	void	InitializeDummyMaterial();
 	void	DestroyDummyMaterial();
 
-	void	InitializeTestMaterial();
-	void	DestroyTestMaterial();
-
 	RPR::FRPRXMaterialPtr	CacheMaterial(URPRMaterial* InMaterial);
 	RPR::FMaterialContext	CreateMaterialContext() const;
 
@@ -104,7 +97,7 @@ private:
 	// 3. Destroy nodes
 	TMap<FString, RPR::FRPRXMaterialNodePtr> m_materials;
 	TMap<FString, RPR::FMaterialNode>        m_materialNodes;
-	TMap<FString, std::unique_ptr<RPR::RPRXVirtualNode>> m_virtualNodes;
+	TMap<FString, TUniquePtr<RPR::RPRXVirtualNode>> m_virtualNodes;
 
 	bool bIsInitialized;
 	FCriticalSection CriticalSection;
