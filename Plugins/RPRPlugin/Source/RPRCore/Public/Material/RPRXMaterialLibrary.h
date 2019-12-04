@@ -78,12 +78,12 @@ public:
 	RPR::FMaterialNode              createImageNodeFromImageData(const FString& nodeId, RPR::FImagePtr imagePtr);
 
 private:
-
 	const RPR::FRPRXMaterialPtr	FindMaterialCache(const URPRMaterial* MaterialKey) const;
 	RPR::FRPRXMaterialPtr		FindMaterialCache(const URPRMaterial* MaterialKey);
 
 	void	InitializeDummyMaterial();
 	void	DestroyDummyMaterial();
+	void    DestroyMaterialGraph();
 
 	RPR::FRPRXMaterialPtr	CacheMaterial(URPRMaterial* InMaterial);
 	RPR::FMaterialContext	CreateMaterialContext() const;

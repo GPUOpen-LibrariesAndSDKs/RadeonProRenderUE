@@ -62,6 +62,7 @@ void FRPRXMaterialLibrary::Close()
 	{
 		UE_LOG(LogRPRMaterialLibrary, Verbose, TEXT("Close"));
 
+		DestroyMaterialGraph();
 		DestroyDummyMaterial();
 		ClearCache();
 	}
@@ -208,6 +209,22 @@ void FRPRXMaterialLibrary::DestroyDummyMaterial()
 		RPR::FMaterialHelpers::DeleteNode(DummyMaterial);
 		DummyMaterial = nullptr;
 	}
+}
+
+void FRPRXMaterialLibrary::DestroyMaterialGraph()
+{
+	for (auto iterator = m_materialNodes.CreateIterator(); iterator; ++iterator) {
+		if (iterator.Value())
+			RPR::FMaterialHelpers::DeleteNode(iterator.Value());
+	}
+	m_materialNodes.Empty();
+
+	for (auto iterator = m_materials.CreateIterator(); iterator; ++iterator) {
+		if (iterator.Value())
+			iterator.Value()->ReleaseResources();
+	}
+	m_materials.Empty();
+	m_virtualNodes.Empty();
 }
 
 RPR::FRPRXMaterialNodePtr FRPRXMaterialLibrary::createMaterial(FString name, RPRX::EMaterialType type)
