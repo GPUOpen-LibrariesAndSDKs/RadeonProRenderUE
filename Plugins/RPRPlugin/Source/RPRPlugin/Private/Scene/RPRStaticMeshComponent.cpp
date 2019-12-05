@@ -40,6 +40,7 @@
 #include "Materials/MaterialExpressionLinearInterpolate.h"
 #include "Materials/MaterialExpressionTextureCoordinate.h"
 #include "Materials/MaterialExpressionPanner.h"
+#include "Materials/MaterialExpressionComponentMask.h"
 
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshActor.h"
@@ -90,6 +91,123 @@ namespace
 		materialLibrary.setNodeFloat(node->realNode, L"color1", value, value, value, value);
 
 		return node;
+	}
+
+	RPR::RPRXVirtualNode* GetRgbaNode(const FString& id, const float r, const float g = 0, const float b = 0, const float a = 0)
+	{
+		FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+
+		// use multiply node to store float value to rpr context
+		RPR::RPRXVirtualNode* node = materialLibrary.getOrCreateVirtualIfNotExists(id, RPR::EMaterialNodeType::Arithmetic);
+		node->SetData(r, g, b, a);
+		materialLibrary.setNodeUInt(node->realNode, L"op", RPR_MATERIAL_NODE_OP_MUL);
+		materialLibrary.setNodeFloat(node->realNode, L"color0", 1.0f, 1.0f, 1.0f, 1.0f);
+		materialLibrary.setNodeFloat(node->realNode, L"color1", r, g, b, a);
+
+		return node;
+	}
+
+	/*
+		Equals to zero outputParameter means all RGBA data.
+	*/
+	RPR::RPRXVirtualNode* SelectRgbaChannel(const FString& resultVirtualNodeId, const int32 outputIndex, const RPR::RPRXVirtualNode* rgbaSourceNode)
+	{
+		FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+		RPR::RPRXVirtualNode* selectVNode = nullptr;
+
+		switch (outputIndex)
+		{
+		case RPR::OutputIndex::ONE:
+			selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(resultVirtualNodeId + L"_R", RPR::EMaterialNodeType::SelectX);
+			selectVNode->realNode = materialLibrary.getOrCreateIfNotExists(resultVirtualNodeId + L"_R", RPR::EMaterialNodeType::Arithmetic);
+			materialLibrary.setNodeUInt(selectVNode->realNode, L"op", RPR_MATERIAL_NODE_OP_SELECT_X);
+			break;
+		case RPR::OutputIndex::TWO:
+			selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(resultVirtualNodeId + L"_G", RPR::EMaterialNodeType::SelectY);
+			selectVNode->realNode = materialLibrary.getOrCreateIfNotExists(resultVirtualNodeId + L"_G", RPR::EMaterialNodeType::Arithmetic);
+			materialLibrary.setNodeUInt(selectVNode->realNode, L"op", RPR_MATERIAL_NODE_OP_SELECT_Y);
+			break;
+		case RPR::OutputIndex::THREE:
+			selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(resultVirtualNodeId + L"_B", RPR::EMaterialNodeType::SelectZ);
+			selectVNode->realNode = materialLibrary.getOrCreateIfNotExists(resultVirtualNodeId + L"_B", RPR::EMaterialNodeType::Arithmetic);
+			materialLibrary.setNodeUInt(selectVNode->realNode, L"op", RPR_MATERIAL_NODE_OP_SELECT_Z);
+			break;
+		case RPR::OutputIndex::FOUR:
+			selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(resultVirtualNodeId + L"_A", RPR::EMaterialNodeType::SelectW);
+			selectVNode->realNode = materialLibrary.getOrCreateIfNotExists(resultVirtualNodeId + L"_A", RPR::EMaterialNodeType::Arithmetic);
+			materialLibrary.setNodeUInt(selectVNode->realNode, L"op", RPR_MATERIAL_NODE_OP_SELECT_W);
+			break;
+		}
+
+		materialLibrary.setNodeConnection(selectVNode->realNode, L"color0", rgbaSourceNode->realNode);
+
+		return selectVNode;
+	}
+
+
+	RPR::FMaterialNode ProcessColorNode(const FString& nodeId, const FLinearColor& color)
+	{
+		FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+		RPR::FMaterialNode node = materialLibrary.getOrCreateIfNotExists(nodeId, RPR::EMaterialNodeType::Diffuse);
+		assert(node);
+		materialLibrary.setNodeFloat(node, TEXT("color"), color.R, color.G, color.B, color.A);
+		return node;
+	}
+
+	RPR::RPRXVirtualNode* ProcessVirtualColorNode(const FString& nodeId, const FLinearColor& color)
+	{
+		FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+
+		RPR::RPRXVirtualNode* node = materialLibrary.getOrCreateVirtualIfNotExists(nodeId, RPR::EMaterialNodeType::Arithmetic);
+		materialLibrary.setNodeUInt(node->realNode, L"op", RPR_MATERIAL_NODE_OP_MUL);
+		materialLibrary.setNodeFloat(node->realNode, L"color0", 1.0f, 1.0f, 1.0f, 1.0f);
+		materialLibrary.setNodeFloat(node->realNode, L"color1", color.R, color.G, color.B, color.A);
+
+		return node;
+	}
+
+	RPR::RPRXVirtualNode* GetSeparatedChannel(FString maskResultId, int channelIndex, int maskIndex, RPR::RPRXVirtualNode* rgbaSource)
+	{
+		RPR::RPRXVirtualNode* selected = SelectRgbaChannel(maskResultId, channelIndex, rgbaSource);
+		RPR::RPRXVirtualNode* mask = nullptr;
+
+		switch (maskIndex)
+		{
+		case 1:
+			mask = GetRgbaNode(maskResultId + L"_rMask", 1.0f);
+			break;
+		case 2:
+			mask = GetRgbaNode(maskResultId + L"_gMask", 0.0f, 1.0f);
+			break;
+		case 3:
+			mask = GetRgbaNode(maskResultId + L"_bMask", 0.0f, 0.0f, 1.0f);
+			break;
+		case 4:
+			mask = GetRgbaNode(maskResultId + L"_aMask", 0.0f, 0.0f, 0.0f, 1.0f);
+			break;
+		}
+
+		assert(mask);
+
+		FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+		RPR::RPRXVirtualNode* result = materialLibrary.getOrCreateVirtualIfNotExists(maskResultId + L"result", RPR::EMaterialNodeType::Arithmetic);
+		materialLibrary.setNodeUInt(result->realNode, L"op", RPR_MATERIAL_NODE_OP_MUL);
+		materialLibrary.setNodeConnection(result, L"color0", selected);
+		materialLibrary.setNodeConnection(result, L"color1", mask);
+
+		return result;
+	}
+
+
+	RPR::RPRXVirtualNode* AddTwoNodes(FString id, RPR::RPRXVirtualNode* a, RPR::RPRXVirtualNode* b)
+	{
+		FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+		RPR::RPRXVirtualNode* result = materialLibrary.getOrCreateVirtualIfNotExists(id, RPR::EMaterialNodeType::Arithmetic);
+		materialLibrary.setNodeUInt(result->realNode, L"op", RPR_MATERIAL_NODE_OP_ADD);
+		materialLibrary.setNodeConnection(result, L"color0", a);
+		materialLibrary.setNodeConnection(result, L"color1", b);
+
+		return result;
 	}
 }
 
@@ -402,7 +520,7 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		if (inputParameter == RPR::OutputIndex::ZERO)
 			return node;
 
-		return TextureSamplesChannel(vNodeId, inputParameter, node);
+		return SelectRgbaChannel(vNodeId, inputParameter, node);
 	}
 	else if (expr->IsA<UMaterialExpressionOneMinus>())
 	{
@@ -485,63 +603,79 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 
 		return ConvertExpressionToVirtualNode(expression->Coordinate.Expression, expression->Coordinate.OutputIndex);
 	}
-
-	return node;
-}
-
-RPR::FMaterialNode URPRStaticMeshComponent::ProcessColorNode(const FString& nodeId, const FLinearColor& color)
-{
-	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
-	RPR::FMaterialNode node = materialLibrary.getOrCreateIfNotExists(nodeId, RPR::EMaterialNodeType::Diffuse);
-	assert(node);
-	materialLibrary.setNodeFloat(node, TEXT("color"), color.R, color.G, color.B, color.A);
-	return node;
-}
-
-RPR::RPRXVirtualNode* URPRStaticMeshComponent::ProcessVirtualColorNode(const FString& nodeId, const FLinearColor& color)
-{
-	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
-
-	RPR::RPRXVirtualNode* node = materialLibrary.getOrCreateVirtualIfNotExists(nodeId, RPR::EMaterialNodeType::Arithmetic);
-	materialLibrary.setNodeUInt(node->realNode, L"op", RPR_MATERIAL_NODE_OP_MUL);
-	materialLibrary.setNodeFloat(node->realNode, L"color0", 1.0f, 1.0f, 1.0f, 1.0f);
-	materialLibrary.setNodeFloat(node->realNode, L"color1", color.R, color.G, color.B, color.A);
-
-	return node;
-}
-
-RPR::RPRXVirtualNode* URPRStaticMeshComponent::TextureSamplesChannel(const FString& vNodeId, const int32 outputIndex, const RPR::RPRXVirtualNode* imgNode)
-{
-	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
-	RPR::RPRXVirtualNode* selectVNode = nullptr;
-
-	switch (outputIndex)
+	else if (expr->IsA<UMaterialExpressionComponentMask>())
 	{
-	case RPR::OutputIndex::ONE:
-		selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(vNodeId + L"_R", RPR::EMaterialNodeType::SelectX);
-		selectVNode->realNode = materialLibrary.getOrCreateIfNotExists(vNodeId + L"_R", RPR::EMaterialNodeType::Arithmetic);
-		materialLibrary.setNodeUInt(selectVNode->realNode, L"op", RPR_MATERIAL_NODE_OP_SELECT_X);
-		break;
-	case RPR::OutputIndex::TWO:
-		selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(vNodeId + L"_G", RPR::EMaterialNodeType::SelectY);
-		selectVNode->realNode = materialLibrary.getOrCreateIfNotExists(vNodeId + L"_G", RPR::EMaterialNodeType::Arithmetic);
-		materialLibrary.setNodeUInt(selectVNode->realNode, L"op", RPR_MATERIAL_NODE_OP_SELECT_Y);
-		break;
-	case RPR::OutputIndex::THREE:
-		selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(vNodeId + L"_B", RPR::EMaterialNodeType::SelectZ);
-		selectVNode->realNode = materialLibrary.getOrCreateIfNotExists(vNodeId + L"_B", RPR::EMaterialNodeType::Arithmetic);
-		materialLibrary.setNodeUInt(selectVNode->realNode, L"op", RPR_MATERIAL_NODE_OP_SELECT_Z);
-		break;
-	case RPR::OutputIndex::FOUR:
-		selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(vNodeId + L"_A", RPR::EMaterialNodeType::SelectW);
-		selectVNode->realNode = materialLibrary.getOrCreateIfNotExists(vNodeId + L"_A", RPR::EMaterialNodeType::Arithmetic);
-		materialLibrary.setNodeUInt(selectVNode->realNode, L"op", RPR_MATERIAL_NODE_OP_SELECT_W);
-		break;
+		auto expression = Cast<UMaterialExpressionComponentMask>(expr);
+		assert(expression);
+
+		RPR::RPRXVirtualNode* inputExpression = ConvertExpressionToVirtualNode(expression->Input.Expression, expression->Input.OutputIndex);
+
+		bool isR = false, isG = false, isB = false, isA = false;
+		int  channels = 0, channelIdx = 0;
+
+		if (expression->R)
+		{
+			isR = true;
+			++channels;
+			channelIdx = 1;
+		}
+		if (expression->G)
+		{
+			isG = true;
+			++channels;
+			channelIdx = 2;
+		}
+		if (expression->B)
+		{
+			isB = true;
+			++channels;
+			channelIdx = 3;
+		}
+		if (expression->A)
+		{
+			isA = true;
+			++channels;
+			channelIdx = 4;
+		}
+
+		if (channels == 1)
+			return SelectRgbaChannel(expression->GetName(), channelIdx, inputExpression);
+
+		FString id = expression->GetName() + L"_";
+		node = GetValueNode(id + L"MathRootNode", 0.0f);
+
+		int idxReducer = channels;
+		RPR::RPRXVirtualNode *r = nullptr, *g = nullptr, *b = nullptr, *a = nullptr;
+
+		if (isR)
+		{
+			--idxReducer;
+			r = GetSeparatedChannel(id + L"Separated", 1, channels - idxReducer, inputExpression);
+			node = AddTwoNodes(id += L"R", r, node);
+		}
+		if (isG)
+		{
+			--idxReducer;
+			g = GetSeparatedChannel(id + L"Separated", 2, channels - idxReducer, inputExpression);
+			node = AddTwoNodes(id += L"G", g, node);
+		}
+		if (isB)
+		{
+			--idxReducer;
+			b = GetSeparatedChannel(id + L"Separated", 3, channels - idxReducer, inputExpression);
+			node = AddTwoNodes(id += L"B", b, node);
+		}
+		if (isA)
+		{
+			--idxReducer;
+			a = GetSeparatedChannel(id + L"Separated", 4, channels - idxReducer, inputExpression);
+			node = AddTwoNodes(id += L"A", a, node);
+		}
+
+		return node;
 	}
 
-	materialLibrary.setNodeConnection(selectVNode->realNode, L"color0", imgNode->realNode);
-
-	return selectVNode;
+	return node;
 }
 
 RPR::RPRXVirtualNode* URPRStaticMeshComponent::ParseInputNodeOrCreateDefaultAlternative(FExpressionInput input, FString defaultId, float default)
