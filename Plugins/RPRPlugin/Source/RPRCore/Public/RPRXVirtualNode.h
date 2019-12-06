@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -8,7 +6,9 @@
 /**
  * In case of a color node, we don't create a real node and use a virtual node to hold the data.
  */
-namespace RPR {
+namespace RPR
+{
+
 class RPRCORE_API RPRXVirtualNode
 {
 	FString name;
@@ -35,7 +35,8 @@ public:
 		data.RGBA[0] = r; data.RGBA[1] = g; data.RGBA[2] = b; data.RGBA[3] = a;
 	}
 
-
+	RPRXVirtualNode(const RPRXVirtualNode&)            = delete;
+	RPRXVirtualNode& operator=(const RPRXVirtualNode&) = delete;
 
 	~RPRXVirtualNode();
 };
