@@ -144,16 +144,6 @@ namespace
 		return selectVNode;
 	}
 
-
-	RPR::FMaterialNode ProcessColorNode(const FString& nodeId, const FLinearColor& color)
-	{
-		FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
-		RPR::FMaterialNode node = materialLibrary.getOrCreateIfNotExists(nodeId, RPR::EMaterialNodeType::Diffuse);
-		assert(node);
-		materialLibrary.setNodeFloat(node, TEXT("color"), color.R, color.G, color.B, color.A);
-		return node;
-	}
-
 	RPR::RPRXVirtualNode* ProcessVirtualColorNode(const FString& nodeId, const FLinearColor& color)
 	{
 		FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
