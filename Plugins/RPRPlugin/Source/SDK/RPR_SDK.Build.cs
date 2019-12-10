@@ -111,7 +111,6 @@ public class RPR_SDK : ModuleRules
         IncludePaths.AddRange(new string[] {
             ModuleDirectory + "/" + SDKDirectory + "RadeonProRender",
             ModuleDirectory + "/" + SDKDirectory + "RadeonProRender/inc",
-            ModuleDirectory + "/" + SDKDirectory + "RadeonProRenderInterchange/include",
         });
     }
 
@@ -132,8 +131,6 @@ public class RPR_SDK : ModuleRules
         {
             PublicAdditionalLibraries.Add(librariesDirectoryPath + StaticLibraryNames[i] + librarySuffix + libExtension);
         }
-
-        PublicAdditionalLibraries.Add(string.Format("{0}RadeonProRenderInterchange/lib{1}/RadeonProRenderInterchange{2}{3}", ModuleDirectory + "/" + SDKDirectory, platformName, librarySuffix, libExtension));
     }
 
     public static string GetStaticLibraryExtensionByPlatform(UnrealTargetPlatform Platform)

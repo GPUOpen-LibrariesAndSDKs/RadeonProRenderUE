@@ -19,7 +19,6 @@
 #include "Scene/UMSControl.h"
 #include "Scene/tinyxml2.h"
 #include <fstream>
-#include <filesystem>
 #include <CoreMinimal.h>
 #include <Engine/Texture.h>
 namespace fs = std;
@@ -28,7 +27,7 @@ namespace rpr
 {
 	DEFINE_LOG_CATEGORY_STATIC(LogUMSControl, Log, All);
 
-	
+
 	UMSControl::UMSControl()
 	{
 	}
@@ -116,5 +115,5 @@ namespace rpr
 			foundValue = itr->second;
 		}
 		return foundValue;
-	}	
+	}
 }

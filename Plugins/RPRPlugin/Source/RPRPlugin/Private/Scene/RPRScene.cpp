@@ -49,7 +49,6 @@
 #include "RPRStats.h"
 #include "Helpers/RPRHelpers.h"
 #include "Helpers/RPRXHelpers.h"
-#include "Helpers/RPRIHelpers.h"
 #include "RenderingThread.h"
 #include "RPR_SDKModule.h"
 #include "Components/InstancedStaticMeshComponent.h"
@@ -320,7 +319,7 @@ void	ARPRScene::RefreshScene()
 			it->IsPendingKill() ||
 			!it->HasBeenCreated())
 			continue;
-		
+
 		if (Cast<UStaticMeshComponent>(*it) != nullptr)
 		{
 			objectAdded |= QueueBuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass(), true);
@@ -400,9 +399,9 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 
 		m_RendererWorker = MakeShareable(
 			new FRPRRendererWorker(
-				RPRCoreResources->GetRPRContext(), 
-				m_RprScene, 
-				m_RenderTexture->SizeX, m_RenderTexture->SizeY, 
+				RPRCoreResources->GetRPRContext(),
+				m_RprScene,
+				m_RenderTexture->SizeX, m_RenderTexture->SizeY,
 				RPRCoreResources->GetNumDevicesCompatible(),
 				this
 			));
@@ -781,7 +780,7 @@ void	ARPRScene::ImmediateRelease(URPRSceneComponent *component)
 void	ARPRScene::BeginDestroy()
 {
 	Super::BeginDestroy();
-	
+
 	if (m_RendererWorker.IsValid())
 	{
 		m_RendererWorker->EnsureCompletion();

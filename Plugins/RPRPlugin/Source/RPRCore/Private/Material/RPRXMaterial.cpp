@@ -29,8 +29,8 @@ RPR::FRPRXMaterial::FRPRXMaterial(const URPRMaterial* InUE4MaterialLink)
 	RPR::FResult status = RPRX::FMaterialHelpers::CreateMaterial(rprxContext, RPRX::EMaterialType::Uber, Material);
 	if (RPR::IsResultFailed(status))
 	{
-		UE_LOG(LogRPRXMaterial, Warning, 
-			TEXT("Native RPRX Material could not be created for material '%s'"), 
+		UE_LOG(LogRPRXMaterial, Warning,
+			TEXT("Native RPRX Material could not be created for material '%s'"),
 			*UE4MaterialLink->GetName());
 	}
 }
@@ -256,12 +256,12 @@ RPRX::FContext RPR::FRPRXMaterial::GetRprxContext() const
 // -----------------------------------------------------------------------------------------------
 
 RPR::FRPRXMaterialNode::FRPRXMaterialNode(FString name, RPRX::EMaterialType type) :
- Material(nullptr), 
+ Material(nullptr),
  m_name(name),
  m_type(type)
 {
 	auto rprxContext = IRPRCore::GetResources()->GetRPRXSupportContext();
-	
+
 	RPR::FResult status;
 	status = RPRX::FMaterialHelpers::CreateMaterial(rprxContext, m_type, Material);
 	scheck(status, "Native RPRX Material could not be created for material");
@@ -330,7 +330,7 @@ bool RPR::FRPRXMaterialNode::IsMaterialValid() const
 	return Material != nullptr;
 }
 
-RPRX::FMaterial& RPR::FRPRXMaterialNode::GetRawMaterial() 
+RPRX::FMaterial& RPR::FRPRXMaterialNode::GetRawMaterial()
 {
 	return Material;
 }
@@ -406,7 +406,7 @@ void RPR::FRPRXMaterialNode::ReleaseMaterialMapNodes(const FRPRMaterialMap* Mate
 	RPRX::EMaterialParameterType materialParameterType;
 	status = RPRX::FMaterialHelpers::GetMaterialParameterType(resources->GetRPRXSupportContext(), Material, parameterType, materialParameterType);
 	scheck(status);
-	
+
 	if (materialParameterType != RPRX::EMaterialParameterType::Node)
 		return;
 

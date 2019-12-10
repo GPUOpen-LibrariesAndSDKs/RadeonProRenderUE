@@ -17,9 +17,9 @@
 * THE SOFTWARE.
 ********************************************************************/
 #pragma once
+
 #include "Typedefs/RPRTypedefs.h"
 #include "Typedefs/RPRXTypedefs.h"
-#include "Typedefs/RPRITypedefs.h"
 #include "Material/RPRXMaterialLibrary.h"
 #include "ImageManager/RPRImageManager.h"
 #include "Material/RPRXMaterialLibrary.h"
@@ -34,27 +34,19 @@ public:
 	bool	Initialize();
 	void	Shutdown();
 	bool	IsInitialized() const;
-	
-	void	SetRPRILoggers(
-		RPRI::FRPRILogCallback InfoCallback, 
-		RPRI::FRPRILogCallback WarningCallback, 
-		RPRI::FRPRILogCallback ErrorCallback);
-
 public:
 
 	FORCEINLINE RPR::FContext			GetRPRContext() const { return RPRContext; }
 	FORCEINLINE RPR::FMaterialSystem	GetMaterialSystem() const { return RPRMaterialSystem; }
 	FORCEINLINE RPRX::FContext			GetRPRXSupportContext() const { return RPRXSupportCtx; }
-	FORCEINLINE RPRI::FContext			GetRPRIContext() const { return RPRIContext; }
 	FORCEINLINE RPR::FImageManagerPtr	GetRPRImageManager() const { return RPRImageManager; }
 	FORCEINLINE FRPRXMaterialLibrary&	GetRPRMaterialLibrary() { return RPRXMaterialLibrary; }
 	FORCEINLINE int32					GetNumDevicesCompatible() const { return NumDevicesCompatible; }
-	
+
 private:
 
 	bool	InitializeRPRRendering();
 	bool	InitializeContext();
-	bool	InitializeRPRIContext();
 	bool	InitializeMaterialSystem();
 	bool	InitializeRPRXContext();
 	bool	InitializeContextParameters();
@@ -64,7 +56,6 @@ private:
 
 	void	DestroyRPRContext();
 	void	DestroyMaterialSystem();
-	void	DestroyRPRIContext();
 	void	DestroyRPRXSupportContext();
 	void	DestroyRPRImageManager();
 	void	DestroyRPRXMaterialLibrary();
@@ -85,7 +76,6 @@ private:
 	RPR::FContext			RPRContext;
 	RPR::FMaterialSystem	RPRMaterialSystem;
 	RPRX::FContext			RPRXSupportCtx;
-	RPRI::FContext			RPRIContext;
 
 	RPR::FImageManagerPtr	RPRImageManager;
 	FRPRXMaterialLibrary	RPRXMaterialLibrary;

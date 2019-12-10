@@ -20,6 +20,7 @@
 #include "Logging/LogMacros.h"
 #include "Helpers/RPRHelpers.h"
 #include "RadeonProRender.h"
+#include <vector>
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRErrors, Log, All)
 
@@ -36,14 +37,12 @@ namespace RPR
 			RPR::FResult result = rprContextGetInfo(Context, RPR_CONTEXT_LAST_ERROR_MESSAGE, 0, 0, &sizeParamA);
 			if (RPR::IsResultSuccess(result) && sizeParamA > 1)
 			{
-				char* buffer = new char[sizeParamA];
-				result = rprContextGetInfo(Context, RPR_CONTEXT_LAST_ERROR_MESSAGE, sizeParamA, buffer, 0);
+				std::vector<char> buffer(sizeParamA);
+				result = rprContextGetInfo(Context, RPR_CONTEXT_LAST_ERROR_MESSAGE, buffer.size(), buffer.data(), 0);
 				if (RPR::IsResultSuccess(result))
 				{
-					errorMessage = ANSI_TO_TCHAR(buffer);
+					errorMessage = ANSI_TO_TCHAR(buffer.data());
 				}
-				delete buffer;
-				buffer = nullptr;
 			}
 
 			return (errorMessage);

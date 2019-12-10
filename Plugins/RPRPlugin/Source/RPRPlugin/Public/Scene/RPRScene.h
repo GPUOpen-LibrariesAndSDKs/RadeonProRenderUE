@@ -25,9 +25,6 @@
 #include "RPRSettings.h"
 #include "GameFramework/Actor.h"
 #include "Material/RPRXMaterialLibrary.h"
-#include <RadeonProRenderInterchange.h>
-#include <map>
-#include "Typedefs/RPRITypedefs.h"
 #include "Helpers/ObjectScopedLocked.h"
 #include "RPRCoreSystemResources.h"
 #include "Enums/RPREnums.h"
@@ -51,7 +48,7 @@ public:
 
 public:
 	RPR::FScene		m_RprScene;
-	
+
 	class URPRSceneComponent	*m_ActiveCamera;
 
 	void	OnRender(uint32 &outObjectToBuildCount);

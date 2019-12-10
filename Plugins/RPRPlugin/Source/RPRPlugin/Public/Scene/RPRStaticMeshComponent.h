@@ -25,7 +25,6 @@
 #include "Components/SceneComponent.h"
 #include "Scene/RPRSceneComponent.h"
 #include "RprSupport.h"
-#include <RadeonProRenderInterchange.h>
 #include "Scene/StaticMeshComponent/RPRShape.h"
 #include "Assets/RPRMaterial.h"
 #include "Containers/Queue.h"
