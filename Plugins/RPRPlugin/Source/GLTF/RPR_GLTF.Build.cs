@@ -27,7 +27,7 @@ public class RPR_GLTF : ModuleRules
     { get { return (Path.Combine(ModuleDirectory, "../../ThirdParty")); }}
 
     public string GLTFDirectory
-    { get { return (Path.Combine(ThirdPartyDirectory, "ProRenderSDK/RadeonProRender/")); }}
+    { get { return (Path.Combine(ThirdPartyDirectory, "RadeonProRenderSDK/RadeonProRender/")); }}
 
     public string ThirdPartyDllDirectory
     { get { return (Path.Combine(GLTFDirectory, "binWin64")); }}
