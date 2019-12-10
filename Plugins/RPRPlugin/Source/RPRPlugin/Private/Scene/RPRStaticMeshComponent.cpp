@@ -47,8 +47,6 @@
 #include "Helpers/RPRHelpers.h"
 #include "Helpers/RPRShapeHelpers.h"
 
-#include "RadeonProRenderInterchange.h"
-#include "Scene/RPRInterchangeMaterial.h"
 #include "RprSupport.h"
 
 #include "RPRStats.h"
@@ -65,6 +63,8 @@
 #include "EditorFramework/AssetImportData.h"
 
 #include "Material/RPRMaterialHelpers.h"
+#include "Logging/LogMacros.h"
+#include <cassert>
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
 

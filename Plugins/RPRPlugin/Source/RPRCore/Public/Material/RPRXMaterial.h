@@ -1,6 +1,5 @@
 #pragma once
 #include "Typedefs/RPRTypedefs.h"
-#include "Typedefs/RPRITypedefs.h"
 #include "Typedefs/RPRXTypedefs.h"
 #include "UObject/WeakObjectPtrTemplates.h"
 #include "UObject/WeakObjectPtr.h"

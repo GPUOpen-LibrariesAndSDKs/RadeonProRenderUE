@@ -20,14 +20,15 @@
 
 #include "Typedefs/RPRTypedefs.h"
 #include "RPRXVirtualNode.h"
-#include "Assets/RPRMaterial.h"
-#include "Material/MaterialContext.h"
 #include "Containers/Map.h"
 #include "ImageManager/RPRImageManager.h"
 #include "HAL/CriticalSection.h"
 #include "Helpers/IObjectScopedLockable.h"
-#include "Helpers/RPRIHelpers.h"
 #include "Helpers/ObjectScopedLocked.h"
+#include "RPRXMaterial.h"
+#include "MaterialContext.h"
+
+class URPRMaterial;
 
 /*
 * Library of RPR materials.

@@ -17,7 +17,6 @@
 * THE SOFTWARE.
 ********************************************************************/
 #include "Material/RPRXMaterialLibrary.h"
-#include "Logging/LogMacros.h"
 #include "Helpers/RPRHelpers.h"
 #include "Material/RPRMaterialHelpers.h"
 #include "Helpers/RPRXMaterialHelpers.h"
@@ -30,8 +29,6 @@
 #include "RPRCoreErrorHelper.h"
 #include "Material/RPRUberMaterialParameters.h"
 #include "Material/Tools/UberMaterialPropertyHelper.h"
-#include "Templates/Casts.h"
-#include <memory>
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRMaterialLibrary, Log, All)
 
@@ -304,7 +301,8 @@ RPR::RPRXVirtualNode* FRPRXMaterialLibrary::getOrCreateVirtualIfNotExists(FStrin
 	if (!node) {
 		node = createVirtualNode(materialNode, vType);
 	}
-	assert(node);
+	if (!node)
+		return nullptr;
 
 	node->realNode = realNode;
 	return node;
@@ -318,8 +316,6 @@ RPR::RPRXVirtualNode* FRPRXMaterialLibrary::getOrCreateVirtualIfNotExists(FStrin
 	if (!node) {
 		node = createVirtualNode(materialNode, type);
 	}
-	assert(node);
-
 	return node;
 }
 
@@ -331,8 +327,6 @@ RPR::FMaterialNode FRPRXMaterialLibrary::getOrCreateIfNotExists(FString material
 	if (!node) {
 		node = createNode(materialNode, type);
 	}
-	assert(node);
-
 	return node;
 }
 

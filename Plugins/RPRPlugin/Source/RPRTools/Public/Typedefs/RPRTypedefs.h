@@ -18,12 +18,11 @@
 ********************************************************************/
 #pragma once
 
-#include "RadeonProRenderInterchange.h"
-#include "RprSupport.h"
 #include "Templates/SharedPointer.h"
+#include <RadeonProRender.h>
 
 /*
- * Use typedefs to associate native types with clearer names (and respecting the UE4 norm) 
+ * Use typedefs to associate native types with clearer names (and respecting the UE4 norm)
  */
 namespace RPR
 {

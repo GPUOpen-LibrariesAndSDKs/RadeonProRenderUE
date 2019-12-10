@@ -15,17 +15,11 @@ class FRPRCoreModule : public IRPRCore
 	virtual void ShutdownModule() override;
 
 protected:
-	
+
 	virtual FRPRCoreSystemResourcesPtr InternalGetResources() override
 	{
 		return (Resources);
 	}
-
-private:
-
-	static void	LogRPRIInfo(const char* Log);
-	static void	LogRPRIWarning(const char* Log);
-	static void	LogRPRIError(const char* Log);
 
 private:
 
@@ -45,10 +39,7 @@ void FRPRCoreModule::StartupModule()
 		RPRCoreModuleInstance = this;
 
 		Resources = MakeShareable(new FRPRCoreSystemResources);
-		if (Resources->Initialize())
-		{
-			Resources->SetRPRILoggers(LogRPRIInfo, LogRPRIWarning, LogRPRIError);
-		}
+		Resources->Initialize();
 	}
 }
 
@@ -62,20 +53,3 @@ void FRPRCoreModule::ShutdownModule()
 
 	RPRCoreModuleInstance = nullptr;
 }
-
-
-void FRPRCoreModule::LogRPRIInfo(const char* Log)
-{
-	UE_LOG(LogRPRCore, Log, TEXT("%s"), ANSI_TO_TCHAR(Log));
-}
-
-void FRPRCoreModule::LogRPRIWarning(const char* Log)
-{
-	UE_LOG(LogRPRCore, Warning, TEXT("%s"), ANSI_TO_TCHAR(Log));
-}
-
-void FRPRCoreModule::LogRPRIError(const char* Log)
-{
-	UE_LOG(LogRPRCore, Error, TEXT("%s"), ANSI_TO_TCHAR(Log));
-}
-

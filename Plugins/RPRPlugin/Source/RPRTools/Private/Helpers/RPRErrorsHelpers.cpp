@@ -42,7 +42,7 @@ namespace RPR
 				{
 					errorMessage = ANSI_TO_TCHAR(buffer);
 				}
-				delete buffer;
+				delete[] buffer;
 				buffer = nullptr;
 			}
 

@@ -33,7 +33,6 @@ FRPRCoreSystemResources::FRPRCoreSystemResources()
 	, RPRMaterialSystem(nullptr)
 	, RPRXSupportCtx(nullptr)
 	, RPRImageManager(nullptr)
-	, RPRIContext(nullptr)
 {}
 
 bool FRPRCoreSystemResources::Initialize()
@@ -67,18 +66,10 @@ bool FRPRCoreSystemResources::InitializeRPRRendering()
 		return (false);
 	}
 
-	if (!InitializeRPRIContext())
-	{
-		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Cannot initialize RPRI context"));
-		DestroyRPRContext();
-		return (false);
-	}
-
 	if (!InitializeMaterialSystem())
 	{
 		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Cannot initialize RPR material system"));
 		DestroyRPRContext();
-		DestroyRPRIContext();
 		return (false);
 	}
 
@@ -87,7 +78,6 @@ bool FRPRCoreSystemResources::InitializeRPRRendering()
 		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Cannot initialize RPRX context"));
 		DestroyMaterialSystem();
 		DestroyRPRContext();
-		DestroyRPRIContext();
 		return (false);
 	}
 
@@ -271,24 +261,6 @@ void FRPRCoreSystemResources::InitializeRPRXMaterialLibrary()
 	RPRXMaterialLibrary.Initialize();
 }
 
-bool FRPRCoreSystemResources::InitializeRPRIContext()
-{
-	if (!RPRI::AllocateContext(RPRIContext))
-	{
-		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Cannot allocate RPRI context"));
-		return (false);
-	}
-
-	URPRSettings* settings = GetMutableDefault<URPRSettings>();
-
-	if (!RPRI::SetErrorOptions(RPRIContext, 5, false, false))
-	{
-		UE_LOG(LogRPRCoreSystemResources, Warning, TEXT("Cannot set error options on RPRI context"));
-	}
-
-	return (true);
-}
-
 bool FRPRCoreSystemResources::InitializeMaterialSystem()
 {
 	RPR::FResult result = RPR::Context::MaterialSystem::Create(RPRContext, 0, RPRMaterialSystem);
@@ -315,12 +287,11 @@ bool FRPRCoreSystemResources::InitializeRPRXContext()
 void FRPRCoreSystemResources::Shutdown()
 {
 	NumDevicesCompatible = 0;
-	
+
 	DestroyRPRXMaterialLibrary();
 	DestroyRPRImageManager();
 	DestroyMaterialSystem();
 	DestroyRPRXSupportContext();
-	DestroyRPRIContext();
 	DestroyRPRContext();
 
 	bIsInitialized = false;
@@ -330,17 +301,6 @@ void FRPRCoreSystemResources::Shutdown()
 bool FRPRCoreSystemResources::IsInitialized() const
 {
 	return bIsInitialized;
-}
-
-void FRPRCoreSystemResources::SetRPRILoggers(
-	RPRI::FRPRILogCallback InfoCallback, 
-	RPRI::FRPRILogCallback WarningCallback, 
-	RPRI::FRPRILogCallback ErrorCallback)
-{
-	if (!RPRI::SetLoggers(RPRIContext, InfoCallback, WarningCallback, ErrorCallback))
-	{
-		UE_LOG(LogRPRCoreSystemResources, Warning, TEXT("Cannot set loggers on RPRI context"));
-	}
 }
 
 void FRPRCoreSystemResources::DestroyRPRContext()
@@ -358,15 +318,6 @@ void FRPRCoreSystemResources::DestroyMaterialSystem()
 	{
 		RPR::DeleteObject(RPRMaterialSystem);
 		RPRMaterialSystem = nullptr;
-	}
-}
-
-void FRPRCoreSystemResources::DestroyRPRIContext()
-{
-	if (RPRIContext != nullptr)
-	{
-		RPRI::DeleteContext(RPRIContext);
-		RPRIContext = nullptr;
 	}
 }
 

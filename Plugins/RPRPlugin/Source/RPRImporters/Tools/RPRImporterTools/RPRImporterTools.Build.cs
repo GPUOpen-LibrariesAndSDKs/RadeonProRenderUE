@@ -39,7 +39,7 @@ public class RPRImporterTools : ModuleRules
 
         PrivateIncludePaths.AddRange(
 			new string[] {
-                "RPRImporters/Tools/RPRImporterTools/Private",				
+                "RPRImporters/Tools/RPRImporterTools/Private",
             }
 			);
 
@@ -63,7 +63,7 @@ public class RPRImporterTools : ModuleRules
                 "RenderCore",
                 "RawMesh",
                 "RPR_GLTF"
-				// ... add private dependencies that you statically link with here ...	
+				// ... add private dependencies that you statically link with here ...
 			});
     }
 }
