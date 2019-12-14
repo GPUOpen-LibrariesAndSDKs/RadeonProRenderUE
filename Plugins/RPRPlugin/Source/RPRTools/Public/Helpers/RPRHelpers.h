@@ -26,7 +26,6 @@
 #include "Enums/RPREnums.h"
 #include "RprTools.h"
 #include "Templates/Function.h"
-#include "Typedefs/RPRXTypedefs.h"
 
 RPRTOOLS_API RadeonProRender::matrix BuildMatrixNoScale(const struct FTransform &transform, float translationScale = 1.0f);
 RPRTOOLS_API RadeonProRender::matrix BuildMatrixWithScale(const struct FTransform &transform, float translationScale = 1.0f);
@@ -105,7 +104,6 @@ namespace RPR
 		RPRTOOLS_API RPR::FResult GetNodeInputType(RPR::FMaterialNode MaterialNode, int32 InputIndex, RPR::EMaterialNodeInputType& OutInputType);
 		RPRTOOLS_API RPR::FResult GetNodeInputValue(RPR::FMaterialNode MaterialNode, int32 InputIndex, TArray<uint8>& OutRawDatas);
 		RPRTOOLS_API RPR::FResult GetNodeInputInfo(RPR::FMaterialNode MaterialNode, int32 InputIndex, RPR::EMaterialNodeInputInfo Info, TArray<uint8>& OutRawDatas);
-		RPRTOOLS_API bool			IsMaterialNode(RPR::FMaterialNode MaterialNodeToTest);
 
 		template<typename T>
 		RPR::FResult GetNodeInputValue(RPR::FMaterialNode MaterialNode, int32 InputIndex, T& OutValue)

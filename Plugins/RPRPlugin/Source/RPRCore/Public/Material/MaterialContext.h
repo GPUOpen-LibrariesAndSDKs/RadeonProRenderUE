@@ -19,7 +19,8 @@
 #pragma once
 
 #include "Typedefs/RPRTypedefs.h"
-#include "Typedefs/RPRXTypedefs.h"
+
+// TODO: remove this garbage
 
 namespace RPR
 {
@@ -30,7 +31,6 @@ namespace RPR
 	struct FMaterialContext
 	{
 		RPR::FContext		RPRContext;
-		RPRX::FContext		RPRXContext;
 		FMaterialSystem		MaterialSystem;
 	};
 }

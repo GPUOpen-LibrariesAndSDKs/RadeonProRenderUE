@@ -32,7 +32,6 @@ public class RPR_SDK : ModuleRules
     {
         "RadeonProRender",
         "RprLoadStore",
-        "Tahoe",
     };
 
     static string[] DynamicLibraryNames = new string[]

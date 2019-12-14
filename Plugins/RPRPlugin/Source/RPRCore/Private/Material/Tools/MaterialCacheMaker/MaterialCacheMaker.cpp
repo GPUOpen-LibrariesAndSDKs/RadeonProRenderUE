@@ -20,8 +20,6 @@
 #include "Helpers/RPRHelpers.h"
 #include "Material/RPRMaterialHelpers.h"
 #include "Material/Tools/MaterialCacheMaker/Factory/ParameterFactory.h"
-#include "Helpers/RPRXMaterialHelpers.h"
-#include "Helpers/RPRXHelpers.h"
 #include "RPRCoreSystemResources.h"
 #include "RPRCoreModule.h"
 
@@ -45,19 +43,12 @@ namespace RPRX
 		return materialPtr;
 	}
 
-	bool	FMaterialCacheMaker::UpdateUberMaterialParameters(RPR::FRPRXMaterialPtr Material)
+	bool FMaterialCacheMaker::UpdateUberMaterialParameters(RPR::FRPRXMaterialPtr Material)
 	{
-		bool bIsMaterialCorrectlyUpdated = false;
+		bool bIsMaterialCorrectlyUpdated;
 
 		FUberMaterialParametersPropertyVisitor visitor = FUberMaterialParametersPropertyVisitor::CreateRaw(this, &FMaterialCacheMaker::ApplyUberMaterialParameter);
-		bIsMaterialCorrectlyUpdated |= RPR::IsResultSuccess(BrowseUberMaterialParameters(visitor, Material));
-		
-		auto rprSupportContext = IRPRCore::GetResources()->GetRPRXSupportContext();
-		if (rprSupportContext != nullptr)
-		{
-			RPR::FResult status = Material->Commit();
-			bIsMaterialCorrectlyUpdated |= RPR::IsResultSuccess(status);
-		}
+		bIsMaterialCorrectlyUpdated = RPR::IsResultSuccess(BrowseUberMaterialParameters(visitor, Material));
 
 		return bIsMaterialCorrectlyUpdated;
 	}

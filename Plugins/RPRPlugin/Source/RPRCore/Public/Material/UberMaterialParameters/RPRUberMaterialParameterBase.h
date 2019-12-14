@@ -19,7 +19,6 @@
 #pragma once
 
 #include "Containers/UnrealString.h"
-#include "Typedefs/RPRXTypedefs.h"
 #include "Material/Tools/MaterialCacheMaker/ParameterArgs.h"
 #include "RPRUberMaterialParameterBase.generated.h"
 
@@ -51,14 +50,14 @@ public:
 	FRPRUberMaterialParameterBase();
 	FRPRUberMaterialParameterBase(
 		const FString& InParamName, 
-		RPRX::FParameterType InRprxParamType,
+		unsigned int InRprxParamType,
 		ESupportMode InPreviewSupportMode, 
 		FCanUseParameter InCanUseParameter = FCanUseParameter(),
         FApplyParameter InApplyParameterDelegate = FApplyParameter());
 
 	virtual ~FRPRUberMaterialParameterBase() {}
 
-	RPRX::FParameterType	GetRprxParamType() const;
+	unsigned int	        GetRprxParamType() const;
 	const FString&			GetParameterName() const;
 	bool					CanUseParameter() const;
     bool                    HasCustomParameterApplier() const;

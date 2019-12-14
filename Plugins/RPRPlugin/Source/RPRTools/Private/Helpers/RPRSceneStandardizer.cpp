@@ -7,7 +7,6 @@
 #include "Helpers/RPRMeshHelper.h"
 #include "Constants/RPRConstants.h"
 #include "Async/ParallelFor.h"
-#include "Helpers/RPRXHelpers.h"
 #include "Helpers/RPRLightHelpers.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRSceneStandardizer, Log, All)
@@ -15,7 +14,7 @@ DECLARE_LOG_CATEGORY_CLASS(LogRPRSceneStandardizer, Log, All)
 namespace RPR
 {
 
-	FResult FSceneStandardizer::CreateStandardizedScene(FContext Context, RPRX::FContext RPRXContext, FScene Scene, RPR::FScene& OutNormalizedScene)
+	FResult FSceneStandardizer::CreateStandardizedScene(FContext Context, FScene Scene, RPR::FScene& OutNormalizedScene)
 	{
 		RPR::FResult status;
 
@@ -26,12 +25,12 @@ namespace RPR
 			return status;
 		}
 
-		StandardizeShapes(Context, RPRXContext, Scene, OutNormalizedScene);
+		StandardizeShapes(Context, Scene, OutNormalizedScene);
 		CopyAllLights(Context, Scene, OutNormalizedScene);
 		return status;
 	}
 
-	RPR::FResult FSceneStandardizer::ReleaseStandardizedScene(RPRX::FContext RPRXContext, RPR::FScene Scene)
+	RPR::FResult FSceneStandardizer::ReleaseStandardizedScene(RPR::FScene Scene)
 	{
 		RPR::FResult status;
 
@@ -44,15 +43,12 @@ namespace RPR
 			return status;
 		}
 
-		// Detach RPRX materials from the shapes to delete
+		// Detach RPR materials from the shapes to delete
 		for (int32 i = 0; i < shapes.Num(); ++i)
 		{
-			RPRX::FMaterial rprxMaterial;
-			status = RPRX::ShapeGetMaterial(RPRXContext, shapes[i], rprxMaterial);
-			if (RPR::IsResultSuccess(status) && rprxMaterial != nullptr)
-			{
-				RPRX::ShapeDetachMaterial(RPRXContext, shapes[i], rprxMaterial);
-			}
+			status = rprShapeSetMaterial(shapes[i], nullptr);
+			if (RPR::IsResultFailed(status))
+				return status;
 		}
 
 		objects.Append(shapes);
@@ -78,7 +74,7 @@ namespace RPR
 		return status;
 	}
 
-	void FSceneStandardizer::StandardizeShapes(RPR::FContext Context, RPRX::FContext RPRXContext, RPR::FScene SrcScene, RPR::FScene DstScene)
+	void FSceneStandardizer::StandardizeShapes(RPR::FContext Context, RPR::FScene SrcScene, RPR::FScene DstScene)
 	{
 		RPR::FResult status;
 		RPR::EShapeType shapeType;
@@ -122,7 +118,7 @@ namespace RPR
 				continue;
 			}
 
-			FMeshData* meshDataPtr = FindOrCacheMeshShape(meshDataCache, RPRXContext, shape, meshShape);
+			FMeshData* meshDataPtr = FindOrCacheMeshShape(meshDataCache, shape, meshShape);
 			check(meshDataPtr);
 			
 			// Create the mesh
@@ -147,14 +143,13 @@ namespace RPR
 			// Add the material
 			if (meshDataPtr->Material != nullptr)
 			{
-				status = RPRX::ShapeAttachMaterial(RPRXContext, meshShape, meshDataPtr->Material);
+				status = rprShapeSetMaterial(meshShape, meshDataPtr->Material);
 				if (RPR::IsResultFailed(status))
 				{
 					UE_LOG(LogRPRSceneStandardizer, Warning, TEXT("Cannot set material %p on shape instance %s"),
 						meshDataPtr->Material,
 						*RPR::Shape::GetName(shape));
 				}
-				status = RPRX::MaterialCommit(RPRXContext, meshDataPtr->Material);
 			}
 			
 			// Attach the shape to the scene
@@ -187,7 +182,6 @@ namespace RPR
 
 	RPR::FSceneStandardizer::FMeshData* FSceneStandardizer::FindOrCacheMeshShape(
 		TMap<FShape, FMeshData>& MeshDataCache, 
-		RPRX::FContext RPRXContext, 
 		FShape ShapeInstance, FShape MeshShape)
 	{
 		FMeshData* meshDataPtr = MeshDataCache.Find(MeshShape);
@@ -197,18 +191,24 @@ namespace RPR
 
 			FMeshData& meshData = MeshDataCache.Add(MeshShape);
 			status = RPR::Mesh::GetVertices(MeshShape, meshData.Vertices);
-			status |= RPR::Mesh::GetNormals(MeshShape, meshData.Normals);
-			status |= RPR::Mesh::GetVertexIndexes(MeshShape, meshData.Indices);
-			status |= RPR::Mesh::GetUV(MeshShape, 0, meshData.TexCoords);
-			status |= RPR::Mesh::GetNumFaceVertices(MeshShape, meshData.NumFacesVertices);
-			status |= RPRX::ShapeGetMaterial(RPRXContext, ShapeInstance, meshData.Material);
+			if (RPR::IsResultFailed(status)) return nullptr;
 
-			if (RPR::IsResultFailed(status))
-			{
-				UE_LOG(LogRPRSceneStandardizer, Warning, TEXT("Cannot get mesh data"));
-				return nullptr;
-			}
+			status = RPR::Mesh::GetNormals(MeshShape, meshData.Normals);
+			if (RPR::IsResultFailed(status)) return nullptr;
 
+			status = RPR::Mesh::GetVertexIndexes(MeshShape, meshData.Indices);
+			if (RPR::IsResultFailed(status)) return nullptr;
+
+			status = RPR::Mesh::GetUV(MeshShape, 0, meshData.TexCoords);
+			if (RPR::IsResultFailed(status)) return nullptr;
+
+			status = RPR::Mesh::GetNumFaceVertices(MeshShape, meshData.NumFacesVertices);
+			if (RPR::IsResultFailed(status)) return nullptr;
+
+			size_t dataSize;
+			status = rprShapeGetInfo(MeshShape, RPR_SHAPE_MATERIAL, sizeof(rpr_material_node), meshData.Material, &dataSize);
+			if (RPR::IsResultFailed(status)) return nullptr;
+			
 			ScaleVectors(meshData.Vertices, RPR::Constants::SceneTranslationScaleFromRPRToUE4 * (1.0f / RPR::Constants::CentimetersInMeter));
 
 			meshDataPtr = MeshDataCache.Find(MeshShape);

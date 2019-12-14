@@ -6,45 +6,45 @@ namespace RPR
 	{
 		namespace MaterialNode
 		{
-			static const TCHAR* Color = TEXT("color");
-			static const TCHAR* Color0 = TEXT("color0");
-			static const TCHAR* Color1 = TEXT("color1");
-			static const TCHAR* BumpScale = TEXT("bumpscale");
+			static const unsigned int Color = RPR_MATERIAL_INPUT_COLOR;
+			static const unsigned int Color0 = RPR_MATERIAL_INPUT_COLOR0;
+			static const unsigned int Color1 = RPR_MATERIAL_INPUT_COLOR1;
+			static const unsigned int BumpScale = RPR_MATERIAL_INPUT_SCALE;
 
 			namespace Arithmetic
 			{
-				static const TCHAR* Operation = TEXT("op");
+				static const unsigned int Operation = RPR_MATERIAL_INPUT_OP;
 			}
 
 			namespace Lookup
 			{
-				static const TCHAR* Value = TEXT("value");
+				static const unsigned int Value = RPR_MATERIAL_INPUT_VALUE;
 			}
 
 			namespace ImageTexture
 			{
-				static const TCHAR* ImageData = TEXT("data");
-				static const TCHAR* UV = TEXT("uv");
-				static const TCHAR* UV2 = TEXT("uv2");
+				static const unsigned int ImageData = RPR_MATERIAL_INPUT_DATA;
+				static const unsigned int UV = RPR_MATERIAL_INPUT_UV;
+				static const unsigned int UV2 = RPR_MATERIAL_INPUT_UV;
 			}
 
 			namespace UV
 			{
-				static const TCHAR* XAxis = TEXT("xaxis");
-				static const TCHAR* ZAxis = TEXT("zaxis");
-				static const TCHAR* UVScale = TEXT("uv_scale");
+				static const unsigned int XAxis =  RPR_MATERIAL_INPUT_XAXIS;
+				static const unsigned int ZAxis = RPR_MATERIAL_INPUT_ZAXIS;
+				static const unsigned int UVScale = RPR_MATERIAL_INPUT_UV_SCALE;
 
 				namespace Procedural
 				{
-					static const TCHAR* Origin = TEXT("origin");
-					static const TCHAR* Threshold = TEXT("threshold");
-					static const TCHAR* UVType = TEXT("uv_type");
+					static const unsigned int Origin = RPR_MATERIAL_INPUT_ORIGIN;
+					static const unsigned int Threshold = RPR_MATERIAL_INPUT_THRESHOLD;
+					static const unsigned int UVType = RPR_MATERIAL_INPUT_UV_TYPE;
 				}
 
 				namespace Triplanar
 				{
-					static const TCHAR* Weight = TEXT("weight");
-					static const TCHAR* Offset = TEXT("offset");
+					static const unsigned int Weight = RPR_MATERIAL_INPUT_WEIGHT;
+					static const unsigned int Offset = RPR_MATERIAL_INPUT_OFFSET;
 				}
 			}
 

@@ -19,7 +19,7 @@
 #pragma once
 
 #include "CoreTypes.h"
-#include "RprSupport.h"
+#include "RadeonProRender.h"
 
 struct FRPRCachedMesh
 {

@@ -18,7 +18,7 @@
 ********************************************************************/
 #pragma once
 
-#include "RprSupport.h"
+#include "RadeonProRender.h"
 #include "Scene/StaticMeshComponent/RPRCachedMesh.h"
 #include "Material/RPRXMaterial.h"
 

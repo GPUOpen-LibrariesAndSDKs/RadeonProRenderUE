@@ -22,11 +22,9 @@
 #include "Engine/Texture2D.h"
 #include "Engine/TextureCube.h"
 #include "CubemapUnwrapUtils.h"
-#include "RprSupport.h"
 #include "RprTools.h"
 #include "HAL/UnrealMemory.h"
 #include "Helpers/RPRErrorsHelpers.h"
-#include "Helpers/RPRXMaterialHelpers.h"
 #include "Helpers/GenericGetInfo.h"
 #include "Helpers/RPRShapeHelpers.h"
 
@@ -261,8 +259,8 @@ namespace RPR
 		}
 
 		bool FindFirstImageAvailable(RPR::FContext Context, RPR::FMaterialNode MaterialNode, RPR::FImage& OutImage)
-		{			
-			FMaterialNodeFinder finder = 
+		{
+			FMaterialNodeFinder finder =
 				[&Context, &OutImage] (RPR::FMaterialNode node, int32 inputIndex, const FString& inputName, RPR::EMaterialNodeInputType inputType)
 			{
 				if (inputName.Compare(TEXT("data"), ESearchCase::IgnoreCase) == 0 && inputType == EMaterialNodeInputType::Image)

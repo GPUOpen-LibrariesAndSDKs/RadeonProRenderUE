@@ -96,9 +96,9 @@ void	FRPRRendererWorker::SaveToFile(const FString &filename)
 	{
 		// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
 		m_RenderLock.Lock();
-		const bool	saved = rprsExport(TCHAR_TO_ANSI(*filename), m_RprContext, m_RprScene,
+		const bool	saved = false; /* rprsExport(TCHAR_TO_ANSI(*filename), m_RprContext, m_RprScene,
 			0, nullptr, nullptr,
-			0, nullptr, nullptr) == RPR_SUCCESS;
+			0, nullptr, nullptr) == RPR_SUCCESS;*/
 		m_RenderLock.Unlock();
 
 		if (saved)
@@ -237,7 +237,7 @@ void	FRPRRendererWorker::SetQualitySettings(ERPRQualitySettings qualitySettings)
 	}
 	}
 	m_RenderLock.Lock();
-	if (rprContextSetParameter1u(m_RprContext, "maxRecursion", numRayBounces) != RPR_SUCCESS)
+	if (rprContextSetParameterByKey1u(m_RprContext, RPR_CONTEXT_MAX_RECURSION, numRayBounces) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't set quality settings"));
 	}
@@ -273,7 +273,7 @@ void	FRPRRendererWorker::SetAOV(RPR::EAOV AOV)
 			// Release frame buffer for this AOV
 			RPR::Context::SetAOV(m_RprContext, m_AOV, nullptr);
 		}
-		
+
 		m_AOV = AOV;
 		RPR::Context::SetAOV(m_RprContext, m_AOV, m_RprFrameBuffer);
 		m_ClearFramebuffer = true;
@@ -435,7 +435,7 @@ void	FRPRRendererWorker::UpdatePostEffectSettings()
 			rprContextAttachPostEffect(m_RprContext, m_RprPhotolinearTonemap) != RPR_SUCCESS ||
 			rprContextAttachPostEffect(m_RprContext, m_RprWhiteBalance) != RPR_SUCCESS ||
 			rprContextAttachPostEffect(m_RprContext, m_RprGammaCorrection) != RPR_SUCCESS ||
-			rprContextSetParameter1u(m_RprContext, "tonemapping.type", RPR_TONEMAPPING_OPERATOR_PHOTOLINEAR) != RPR_SUCCESS)
+			rprContextSetParameterByKey1u(m_RprContext, RPR_CONTEXT_TONE_MAPPING_TYPE, RPR_TONEMAPPING_OPERATOR_PHOTOLINEAR) != RPR_SUCCESS)
 		{
 			UE_LOG(LogRPRRenderer, Error, TEXT("RPR Post effects creation failed"));
 			RPR::Error::LogLastError(m_RprContext);
@@ -450,12 +450,12 @@ void	FRPRRendererWorker::UpdatePostEffectSettings()
 
 	if (rprPostEffectSetParameter1f(m_RprWhiteBalance, "colortemp", settings->WhiteBalanceTemperature) != RPR_SUCCESS ||
 		rprPostEffectSetParameter1u(m_RprWhiteBalance, "colorspace", RPR_COLOR_SPACE_SRGB) != RPR_SUCCESS ||
-		rprContextSetParameter1f(m_RprContext, "displaygamma", settings->GammaCorrectionValue) != RPR_SUCCESS ||
+		rprContextSetParameterByKey1u(m_RprContext, RPR_CONTEXT_DISPLAY_GAMMA, settings->GammaCorrectionValue) != RPR_SUCCESS ||
 		rprPostEffectSetParameter1f(m_RprSimpleTonemap, "exposure", settings->SimpleTonemapExposure) != RPR_SUCCESS ||
 		rprPostEffectSetParameter1f(m_RprSimpleTonemap, "contrast", settings->SimpleTonemapContrast) != RPR_SUCCESS ||
-		rprContextSetParameter1f(m_RprContext, "tonemapping.photolinear.sensitivity", settings->PhotolinearTonemapSensitivity) != RPR_SUCCESS ||
-		rprContextSetParameter1f(m_RprContext, "tonemapping.photolinear.exposure", settings->PhotolinearTonemapExposure) != RPR_SUCCESS ||
-		rprContextSetParameter1f(m_RprContext, "tonemapping.photolinear.fstop", settings->PhotolinearTonemapFStop) != RPR_SUCCESS)
+		rprContextSetParameterByKey1f(m_RprContext, RPR_CONTEXT_TONE_MAPPING_PHOTO_LINEAR_SENSITIVITY, settings->PhotolinearTonemapSensitivity) != RPR_SUCCESS ||
+		rprContextSetParameterByKey1f(m_RprContext, RPR_CONTEXT_TONE_MAPPING_PHOTO_LINEAR_EXPOSURE, settings->PhotolinearTonemapExposure) != RPR_SUCCESS ||
+		rprContextSetParameterByKey1f(m_RprContext,  RPR_CONTEXT_TONE_MAPPING_PHOTO_LINEAR_FSTOP, settings->PhotolinearTonemapFStop) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRRenderer, Warning, TEXT("Couldn't apply post effect properties"));
 		RPR::Error::LogLastError(m_RprContext);
@@ -490,8 +490,8 @@ bool	FRPRRendererWorker::PreRenderLoop()
 
 	if (m_UpdateTrace)
 	{
-		if (rprContextSetParameterString(nullptr, "tracingfolder", TCHAR_TO_ANSI(*m_TracePath)) != RPR_SUCCESS ||
-			rprContextSetParameter1u(nullptr, "tracing", m_Trace) != RPR_SUCCESS)
+		if (rprContextSetParameterByKeyString(nullptr, RPR_CONTEXT_TRACING_PATH, TCHAR_TO_ANSI(*m_TracePath)) != RPR_SUCCESS ||
+			rprContextSetParameterByKey1u(nullptr,  RPR_CONTEXT_TRACING_ENABLED, m_Trace) != RPR_SUCCESS)
 		{
 			UE_LOG(LogRPRRenderer, Warning, TEXT("Couldn't enable RPR trace."));
 			RPR::Error::LogLastError(m_RprContext);
@@ -531,7 +531,7 @@ bool	FRPRRendererWorker::PreRenderLoop()
 		if (FMath::Abs(m_CachedRaycastEpsilon - raycastEpsilon) > FLT_EPSILON)
 		{
 			m_CachedRaycastEpsilon = raycastEpsilon;
-			if (rprContextSetParameter1f(m_RprContext, "raycastepsilon", m_CachedRaycastEpsilon) != RPR_SUCCESS)
+			if (rprContextSetParameterByKey1f(m_RprContext, RPR_CONTEXT_RAY_CAST_EPISLON, m_CachedRaycastEpsilon) != RPR_SUCCESS)
 			{
 				UE_LOG(LogRPRRenderer, Warning, TEXT("Couldn't set raycast epsilon"));
 				RPR::Error::LogLastError(m_RprContext);

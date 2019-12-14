@@ -56,7 +56,6 @@ void FRPR_SDKModule::StartupModule()
 		dllNames.Add(TEXT("Tahoe64.dll"));
 		dllNames.Add(TEXT("RadeonProRender64.dll"));
 		dllNames.Add(TEXT("RprLoadStore64.dll"));
-		dllNames.Add(TEXT("RprSupport64.dll"));
 
 		dllHandles = FRPRDynamicLibraryLoader::LoadLibraries(GetDLLsDirectory(), dllNames);
 		bIsSDKLoadValid = (dllHandles.Num() > 0);

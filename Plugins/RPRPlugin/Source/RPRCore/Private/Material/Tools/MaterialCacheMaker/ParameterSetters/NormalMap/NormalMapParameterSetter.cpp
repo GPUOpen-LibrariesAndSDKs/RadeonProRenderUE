@@ -20,7 +20,6 @@
 #include "Material/RPRMaterialHelpers.h"
 #include "Material/MaterialContext.h"
 #include "Typedefs/RPRTypedefs.h"
-#include "Helpers/RPRXMaterialHelpers.h"
 #include "RPRCoreModule.h"
 #include "Material/UberMaterialParameters/RPRMaterialMap.h"
 #include "RPRMaterialNormalMap.h"

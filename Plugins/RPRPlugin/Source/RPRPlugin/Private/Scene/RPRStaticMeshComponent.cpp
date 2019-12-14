@@ -47,17 +47,13 @@
 #include "Helpers/RPRHelpers.h"
 #include "Helpers/RPRShapeHelpers.h"
 
-#include "RprSupport.h"
-
 #include "RPRStats.h"
 #include "Scene/RPRScene.h"
 #include "Async/Async.h"
-#include "Helpers/RPRXHelpers.h"
 #include "Helpers/ContextHelper.h"
 #include "RPRCpStaticMesh.h"
 #include "RPRCoreModule.h"
 #include "RPRCoreSystemResources.h"
-#include "Typedefs/RPRXTypedefs.h"
 #include "Helpers/RPRSceneHelpers.h"
 #include "Constants/RPRConstants.h"
 #include "EditorFramework/AssetImportData.h"
@@ -171,13 +167,12 @@ void URPRStaticMeshComponent::ProcessUE4Material(FRPRShape& shape, UMaterial* ma
 
 	RPR::FResult          status;
 	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
-	RPRX::FContext        rprxContext     = IRPRCore::GetResources()->GetRPRXSupportContext();
 	RPR::FImageManagerPtr imageManager    = IRPRCore::GetResources()->GetRPRImageManager();
 
 	if (materialLibrary.hasMaterial(materialName))
 		return; // Uber material already exists. Ignore
 
-	RPR::FRPRXMaterialNodePtr uberMaterialPtr = materialLibrary.createMaterial(materialName, RPRX::EMaterialType::Uber);
+	RPR::FRPRXMaterialNodePtr uberMaterialPtr = materialLibrary.createMaterial(materialName, RPR_MATERIAL_NODE_UBERV2);
 	if (!uberMaterialPtr)
 		return;
 
@@ -186,17 +181,13 @@ void URPRStaticMeshComponent::ProcessUE4Material(FRPRShape& shape, UMaterial* ma
 	//First expression is always for BaseColor, the input to BaseColor is input for material
 	RPR::RPRXVirtualNode* baseColorInputNode = ConvertExpressionToVirtualNode(material->BaseColor.Expression, reinterpret_cast<void*>(&material->BaseColor.OutputIndex));
 
-	status = uberMaterialPtr->SetMaterialParameterNode(RPRX_UBER_MATERIAL_DIFFUSE_COLOR, baseColorInputNode->realNode);
+	status = uberMaterialPtr->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_DIFFUSE_COLOR, baseColorInputNode->realNode);
 	RPR::scheck(status);
-	status = uberMaterialPtr->SetMaterialParameterFloat(RPRX_UBER_MATERIAL_DIFFUSE_WEIGHT, 1.0f);
-	RPR::scheck(status);
-
-
-
-	status = RPRX::ShapeAttachMaterial(rprxContext, shape.m_RprShape, uberMaterialPtr->GetRawMaterial());
+	status = uberMaterialPtr->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_DIFFUSE_WEIGHT, 1.0f);
 	RPR::scheck(status);
 
-	materialLibrary.commitAll();
+	rprShapeSetMaterial(shape.m_RprShape, uberMaterialPtr->GetRawMaterial());
+	RPR::scheck(status);
 }
 
 RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UMaterialExpression* expr, const void* parameter)
@@ -237,7 +228,7 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		auto expression = Cast<UMaterialExpressionAdd>(expr);
 		assert(expression);
 		node = materialLibrary.getOrCreateVirtualIfNotExists(expression->GetName(), RPR::EMaterialNodeType::Arithmetic);
-		materialLibrary.setNodeUInt(node->realNode, L"op", RPR_MATERIAL_NODE_OP_ADD);
+		materialLibrary.setNodeUInt(node->realNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_ADD);
 		TwoOperandsMathNodeSetInputs(node, expression->GetInputs(), expression->ConstA, expression->ConstB);
 		return node;
 	}
@@ -246,7 +237,7 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		auto expression = Cast<UMaterialExpressionSubtract>(expr);
 		assert(expression);
 		node = materialLibrary.getOrCreateVirtualIfNotExists(expression->GetName(), RPR::EMaterialNodeType::Arithmetic);
-		materialLibrary.setNodeUInt(node->realNode, L"op", RPR_MATERIAL_NODE_OP_SUB);
+		materialLibrary.setNodeUInt(node->realNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_SUB);
 		TwoOperandsMathNodeSetInputs(node, expression->GetInputs(), expression->ConstA, expression->ConstB);
 		return node;
 	}
@@ -255,7 +246,7 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		auto expression = Cast<UMaterialExpressionMultiply>(expr);
 		assert(expression);
 		node = materialLibrary.getOrCreateVirtualIfNotExists(expression->GetName(), RPR::EMaterialNodeType::Arithmetic);
-		materialLibrary.setNodeUInt(node->realNode, L"op", RPR_MATERIAL_NODE_OP_MUL);
+		materialLibrary.setNodeUInt(node->realNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_MUL);
 		TwoOperandsMathNodeSetInputs(node, expression->GetInputs(), expression->ConstA, expression->ConstB);
 		return node;
 	}
@@ -264,7 +255,7 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		auto expression = Cast<UMaterialExpressionDivide>(expr);
 		assert(expression);
 		node = materialLibrary.getOrCreateVirtualIfNotExists(expression->GetName(), RPR::EMaterialNodeType::Arithmetic);
-		materialLibrary.setNodeUInt(node->realNode, L"op", RPR_MATERIAL_NODE_OP_DIV);
+		materialLibrary.setNodeUInt(node->realNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_DIV);
 		TwoOperandsMathNodeSetInputs(node, expression->GetInputs(), expression->ConstA, expression->ConstB);
 		return node;
 	}
@@ -326,7 +317,7 @@ RPR::FMaterialNode URPRStaticMeshComponent::ProcessColorNode(const FString& node
 	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 	RPR::FMaterialNode node = materialLibrary.getOrCreateIfNotExists(nodeId, RPR::EMaterialNodeType::Diffuse);
 	assert(node);
-	materialLibrary.setNodeFloat(node, TEXT("color"), color.R, color.G, color.B, color.A);
+	materialLibrary.setNodeFloat(node, RPR_MATERIAL_INPUT_COLOR, color.R, color.G, color.B, color.A);
 	return node;
 }
 
@@ -341,27 +332,27 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::TextureSamplesChannel(const FStri
 	case RPR::OutputIndex::ONE:
 		selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(vNodeId + L"_R", RPR::EMaterialNodeType::SelectX);
 		realNode = materialLibrary.getOrCreateIfNotExists(vNodeId + L"_R", RPR::EMaterialNodeType::Arithmetic);
-		materialLibrary.setNodeUInt(realNode, L"op", RPR_MATERIAL_NODE_OP_SELECT_X);
+		materialLibrary.setNodeUInt(realNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_SELECT_X);
 		break;
 	case RPR::OutputIndex::TWO:
 		selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(vNodeId + L"_G", RPR::EMaterialNodeType::SelectY);
 		realNode = materialLibrary.getOrCreateIfNotExists(vNodeId + L"_G", RPR::EMaterialNodeType::Arithmetic);
-		materialLibrary.setNodeUInt(realNode, L"op", RPR_MATERIAL_NODE_OP_SELECT_Y);
+		materialLibrary.setNodeUInt(realNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_SELECT_Y);
 		break;
 	case RPR::OutputIndex::THREE:
 		selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(vNodeId + L"_B", RPR::EMaterialNodeType::SelectZ);
 		realNode = materialLibrary.getOrCreateIfNotExists(vNodeId + L"_B", RPR::EMaterialNodeType::Arithmetic);
-		materialLibrary.setNodeUInt(realNode, L"op", RPR_MATERIAL_NODE_OP_SELECT_Z);
+		materialLibrary.setNodeUInt(realNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_SELECT_Z);
 		break;
 	case RPR::OutputIndex::FOUR:
 		selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(vNodeId + L"_A", RPR::EMaterialNodeType::SelectW);
 		realNode = materialLibrary.getOrCreateIfNotExists(vNodeId + L"_A", RPR::EMaterialNodeType::Arithmetic);
-		materialLibrary.setNodeUInt(realNode, L"op", RPR_MATERIAL_NODE_OP_SELECT_W);
+		materialLibrary.setNodeUInt(realNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_SELECT_W);
 		break;
 	}
 
 	selectVNode->realNode = realNode;
-	materialLibrary.setNodeConnection(selectVNode->realNode, L"color0", imgNode->realNode);
+	materialLibrary.setNodeConnection(selectVNode->realNode, RPR_MATERIAL_INPUT_COLOR0, imgNode->realNode);
 
 	return selectVNode;
 }
@@ -371,19 +362,19 @@ void URPRStaticMeshComponent::TwoOperandsMathNodeSetInputs(RPR::RPRXVirtualNode*
 	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 	if (inputs[0]->Expression)
 	{
-		materialLibrary.setNodeConnection(vNode, L"color0", ConvertExpressionToVirtualNode(inputs[0]->Expression,
+		materialLibrary.setNodeConnection(vNode, RPR_MATERIAL_INPUT_COLOR0, ConvertExpressionToVirtualNode(inputs[0]->Expression,
 			inputs[0]->Expression->IsA<UMaterialExpressionTextureSample>() ? &inputs[0]->OutputIndex : nullptr));
 	}
 	else
-		materialLibrary.setNodeFloat(vNode->realNode, L"color0", ConstA, ConstA, ConstA, ConstA);
+		materialLibrary.setNodeFloat(vNode->realNode, RPR_MATERIAL_INPUT_COLOR0, ConstA, ConstA, ConstA, ConstA);
 
 	if (inputs[1]->Expression)
 	{
-		materialLibrary.setNodeConnection(vNode, L"color1", ConvertExpressionToVirtualNode(inputs[1]->Expression,
+		materialLibrary.setNodeConnection(vNode, RPR_MATERIAL_INPUT_COLOR0, ConvertExpressionToVirtualNode(inputs[1]->Expression,
 			inputs[1]->Expression->IsA<UMaterialExpressionTextureSample>() ? &inputs[1]->OutputIndex : nullptr));
 	}
 	else
-		materialLibrary.setNodeFloat(vNode->realNode, L"color1", ConstB, ConstB, ConstB, ConstB);
+		materialLibrary.setNodeFloat(vNode->realNode, RPR_MATERIAL_INPUT_COLOR0, ConstB, ConstB, ConstB, ConstB);
 }
 
 bool	URPRStaticMeshComponent::BuildMaterials()
@@ -459,14 +450,7 @@ bool URPRStaticMeshComponent::ApplyRPRMaterialOnShape(RPR::FShape& Shape, URPRMa
 		return (false);
 	}
 
-	RPRX::FContext rprxContext = IRPRCore::GetResources()->GetRPRXSupportContext();
-	RPR::FResult status = RPRX::ShapeAttachMaterial(rprxContext, Shape, rprxMaterial->GetRawMaterial());
-	if (RPR::IsResultSuccess(status))
-	{
-		// Commit must be done *after* the shape attach material to work properly
-		// May change in newer versions of RPR (current is 1.312)
-		status = rprxMaterial->Commit();
-	}
+	rpr_int status = rprShapeSetMaterial(Shape, rprxMaterial->GetRawMaterial());
 	return (RPR::IsResultSuccess(status));
 }
 
@@ -804,8 +788,8 @@ bool	URPRStaticMeshComponent::Build()
 		rpr_shape	shape = m_Shapes[iShape].m_RprShape;
 		if (!SetInstanceTransforms(instancedMeshComponent, &componentMatrix, shape, m_Shapes[iShape].m_InstanceIndex) ||
 			rprShapeSetVisibility(shape, staticMeshComponent->IsVisible()) != RPR_SUCCESS ||
-			(primaryOnly && rprShapeSetVisibilityPrimaryOnly(shape, primaryOnly) != RPR_SUCCESS) ||
-			rprShapeSetShadow(shape, staticMeshComponent->bCastStaticShadow) != RPR_SUCCESS ||
+			(primaryOnly && rprShapeSetVisibility(shape, primaryOnly) != RPR_SUCCESS) ||
+			//rprShapeSetShadow(shape, staticMeshComponent->bCastStaticShadow) != RPR_SUCCESS ||
 			RPR::Scene::AttachShape(Scene->m_RprScene, shape) != RPR_SUCCESS)
 		{
 			UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Couldn't attach RPR shape to the RPR scene"));
@@ -1027,18 +1011,8 @@ RPR::FResult URPRStaticMeshComponent::DetachCurrentMaterial(RPR::FShape Shape)
 	auto resources = IRPRCore::GetResources();
 	RPR::FResult status;
 
-	RPRX::FMaterial materialX;
-	status = RPRX::ShapeGetMaterial(resources->GetRPRXSupportContext(), Shape, materialX);
-	if (RPR::IsResultFailed(status))
-	{
-		return (status);
-	}
-
-	if (materialX != nullptr)
-	{
-		status = RPRX::ShapeDetachMaterial(resources->GetRPRXSupportContext(), Shape, materialX);
-	}
-	return (status);
+	status = rprShapeSetMaterial(Shape, nullptr);
+	return status;
 }
 
 FRPRShape* URPRStaticMeshComponent::FindShapeByMaterialIndex(int32 MaterialIndex)
@@ -1099,18 +1073,16 @@ void	URPRStaticMeshComponent::ReleaseResources()
 		uint32	shapeCount = m_Shapes.Num();
 		for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 		{
+			if (!m_Shapes[iShape].m_RprShape)
+				continue;
+
 			if (m_Shapes[iShape].m_RprxMaterial.IsValid())
 			{
-				check(m_Shapes[iShape].m_RprShape != nullptr);
-				RPRX::FContext rprSupportCtx = IRPRCore::GetResources()->GetRPRXSupportContext();
-				RPRX::ShapeDetachMaterial(rprSupportCtx, m_Shapes[iShape].m_RprShape, m_Shapes[iShape].m_RprxMaterial->GetRawMaterial());
+				(void)rprShapeSetMaterial(m_Shapes[iShape].m_RprShape, nullptr);
 			}
 
-			if (m_Shapes[iShape].m_RprShape != nullptr)
-			{
-				RPR::Scene::DetachShape(Scene->m_RprScene, m_Shapes[iShape].m_RprShape);
-				RPR::DeleteObject(m_Shapes[iShape].m_RprShape);
-			}
+			RPR::Scene::DetachShape(Scene->m_RprScene, m_Shapes[iShape].m_RprShape);
+			RPR::DeleteObject(m_Shapes[iShape].m_RprShape);
 		}
 		m_Shapes.Empty();
 	}

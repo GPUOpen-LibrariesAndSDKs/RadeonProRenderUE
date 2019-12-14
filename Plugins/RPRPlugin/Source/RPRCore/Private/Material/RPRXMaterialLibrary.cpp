@@ -19,7 +19,6 @@
 #include "Material/RPRXMaterialLibrary.h"
 #include "Helpers/RPRHelpers.h"
 #include "Material/RPRMaterialHelpers.h"
-#include "Helpers/RPRXMaterialHelpers.h"
 #include "Helpers/RPRConstAway.h"
 #include "Material/Tools/MaterialCacheMaker/MaterialCacheMaker.h"
 #include "Misc/ScopeLock.h"
@@ -164,15 +163,6 @@ bool FRPRXMaterialLibrary::hasMaterial(FString materialName) const
 	return ptr != nullptr;
 }
 
-
-void FRPRXMaterialLibrary::commitAll()
-{
-	for (auto iterator = m_materials.CreateIterator(); iterator; ++iterator) {
-		if (iterator.Value())
-			iterator.Value()->Commit();
-	}
-}
-
 void FRPRXMaterialLibrary::InitializeDummyMaterial()
 {
 	if (DummyMaterial != nullptr)
@@ -190,7 +180,7 @@ void FRPRXMaterialLibrary::InitializeDummyMaterial()
 		return;
 	}
 
-	result = RPR::FMaterialHelpers::FMaterialNode::SetInputFloats(DummyMaterial, TEXT("color"), 0.5f, 0.5f, 0.5f, 1.0f);
+	result = RPR::FMaterialHelpers::FMaterialNode::SetInputFloats(DummyMaterial, RPR_MATERIAL_INPUT_COLOR, 0.5f, 0.5f, 0.5f, 1.0f);
 	if (RPR::IsResultFailed(result))
 	{
 		UE_LOG(LogRPRMaterialLibrary, Warning, TEXT("Cannot set the default color on the dummy material"));
@@ -224,7 +214,7 @@ void FRPRXMaterialLibrary::DestroyMaterialGraph()
 	m_virtualNodes.Empty();
 }
 
-RPR::FRPRXMaterialNodePtr FRPRXMaterialLibrary::createMaterial(FString name, RPRX::EMaterialType type)
+RPR::FRPRXMaterialNodePtr FRPRXMaterialLibrary::createMaterial(FString name, unsigned int type)
 {
 	RPR::FRPRXMaterialNodePtr materialPtr = MakeShareable(new RPR::FRPRXMaterialNode(name, type));
 
@@ -330,21 +320,21 @@ RPR::FMaterialNode FRPRXMaterialLibrary::getOrCreateIfNotExists(FString material
 	return node;
 }
 
-void FRPRXMaterialLibrary::setNodeFloat(RPR::FMaterialNode materialNode, const FString& parameter, float r, float g, float b, float a)
+void FRPRXMaterialLibrary::setNodeFloat(RPR::FMaterialNode materialNode, unsigned int parameter, float r, float g, float b, float a)
 {
 	RPR::FResult status;
 	status = RPR::FMaterialHelpers::FMaterialNode::SetInputFloats(materialNode, parameter, r, g, b, a);
 	RPR::scheck(status);
 }
 
-void FRPRXMaterialLibrary::setNodeUInt(RPR::FMaterialNode materialNode, const FString& parameter, unsigned int value)
+void FRPRXMaterialLibrary::setNodeUInt(RPR::FMaterialNode materialNode, unsigned int parameter, unsigned int value)
 {
 	RPR::FResult status;
 	status = RPR::FMaterialHelpers::FMaterialNode::SetInputUInt(materialNode, parameter, value);
 	RPR::scheck(status);
 }
 
-void FRPRXMaterialLibrary::setNodeConnection(RPR::RPRXVirtualNode* vNode, const FString& parameter, RPR::RPRXVirtualNode* otherNode)
+void FRPRXMaterialLibrary::setNodeConnection(RPR::RPRXVirtualNode* vNode, const unsigned int parameter, RPR::RPRXVirtualNode* otherNode)
 {
 	if (!otherNode) {
 		setNodeConnection(vNode->realNode, parameter, GetDummyMaterial());
@@ -364,7 +354,7 @@ void FRPRXMaterialLibrary::setNodeConnection(RPR::RPRXVirtualNode* vNode, const 
 	}
 }
 
-void FRPRXMaterialLibrary::setNodeConnection(RPR::FMaterialNode materialNode, const FString& parameter, RPR::FMaterialNode otherNode)
+void FRPRXMaterialLibrary::setNodeConnection(RPR::FMaterialNode materialNode, const unsigned int parameter, RPR::FMaterialNode otherNode)
 {
 	RPR::FResult status;
 	status = RPR::FMaterialHelpers::FMaterialNode::SetInputNode(materialNode, parameter, otherNode);
@@ -399,7 +389,7 @@ RPR::FMaterialNode FRPRXMaterialLibrary::createImageNodeFromImageData(const FStr
 	if (!node)
 	{
 		node = createNode(imageNodeId, EMaterialNodeType::ImageTexture);
-		RPR::FResult result = RPR::FMaterialHelpers::FMaterialNode::SetInputImageData(node, TEXT("data"), imagePtr.Get());
+		RPR::FResult result = RPR::FMaterialHelpers::FMaterialNode::SetInputImageData(node, RPR_MATERIAL_INPUT_DATA, imagePtr.Get());
 		RPR::scheck(result);
 	}
 
@@ -427,11 +417,11 @@ RPR::FRPRXMaterialPtr FRPRXMaterialLibrary::CacheMaterial(URPRMaterial* InMateri
 RPR::FMaterialContext FRPRXMaterialLibrary::CreateMaterialContext() const
 {
 	auto resources = IRPRCore::GetResources();
+
 	RPR::FMaterialContext materialContext;
-	{
-		materialContext.MaterialSystem = resources->GetMaterialSystem();
-		materialContext.RPRContext = resources->GetRPRContext();
-		materialContext.RPRXContext = resources->GetRPRXSupportContext();
-	}
+	
+	materialContext.MaterialSystem = resources->GetMaterialSystem();
+	materialContext.RPRContext     = resources->GetRPRContext();
+
 	return materialContext;
 }

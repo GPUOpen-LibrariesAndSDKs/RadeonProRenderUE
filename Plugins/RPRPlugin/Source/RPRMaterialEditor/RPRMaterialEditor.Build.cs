@@ -75,7 +75,7 @@ public class RPRMaterialEditor : ModuleRules
                 "RPR_SDK",
                 "RPRCore",
                 "RPRPlugin",
-                "RPRMaterialImporter",
+                //"RPRMaterialImporter",
                 "RPREditorTools",
                 "RPRTools",
 				

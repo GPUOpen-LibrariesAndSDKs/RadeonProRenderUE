@@ -33,6 +33,7 @@
 #include "Slate/SceneViewport.h"
 
 #include "RPRPlugin.h"
+#include <RadeonProRender.h>
 
 #include "UObject/UObjectIterator.h"
 
@@ -48,13 +49,14 @@
 
 #include "RPRStats.h"
 #include "Helpers/RPRHelpers.h"
-#include "Helpers/RPRXHelpers.h"
 #include "RenderingThread.h"
 #include "RPR_SDKModule.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Helpers/ContextHelper.h"
 #include "RPRCoreModule.h"
+
+#include <RadeonProRender.h>
 
 #define LOCTEXT_NAMESPACE "ARPRScene"
 
@@ -527,8 +529,8 @@ void	ARPRScene::SetTrace(bool trace)
 		RPR::FContext context = RPRCoreResources->GetRPRContext();
 		if (context != nullptr)
 		{
-			if (rprContextSetParameterString(context, "tracingfolder", TCHAR_TO_ANSI(*tracePath)) != RPR_SUCCESS ||
-				rprContextSetParameter1u(context, "tracing", trace) != RPR_SUCCESS)
+			if (rprContextSetParameterByKeyString(context, RPR_CONTEXT_TRACING_PATH, TCHAR_TO_ANSI(*tracePath)) != RPR_SUCCESS ||
+				rprContextSetParameterByKey1u(context, RPR_CONTEXT_TRACING_ENABLED, trace) != RPR_SUCCESS)
 			{
 				UE_LOG(LogRPRScene, Warning, TEXT("Couldn't enable RPR trace."));
 				return;

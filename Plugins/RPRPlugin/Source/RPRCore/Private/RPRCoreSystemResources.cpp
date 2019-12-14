@@ -19,7 +19,6 @@
 #include "RPRCoreSystemResources.h"
 #include "Helpers/ContextHelper.h"
 #include "Helpers/RPRHelpers.h"
-#include "Helpers/RPRXHelpers.h"
 #include "RPRSettings.h"
 #include "RPRCoreErrorHelper.h"
 
@@ -31,7 +30,6 @@ FRPRCoreSystemResources::FRPRCoreSystemResources()
 	, NumDevicesCompatible(0)
 	, RPRContext(nullptr)
 	, RPRMaterialSystem(nullptr)
-	, RPRXSupportCtx(nullptr)
 	, RPRImageManager(nullptr)
 {}
 
@@ -69,14 +67,6 @@ bool FRPRCoreSystemResources::InitializeRPRRendering()
 	if (!InitializeMaterialSystem())
 	{
 		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Cannot initialize RPR material system"));
-		DestroyRPRContext();
-		return (false);
-	}
-
-	if (!InitializeRPRXContext())
-	{
-		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Cannot initialize RPRX context"));
-		DestroyMaterialSystem();
 		DestroyRPRContext();
 		return (false);
 	}
@@ -157,10 +147,15 @@ bool FRPRCoreSystemResources::InitializeContextParameters()
 {
 	RPR::FResult result;
 
-	result = RPR::Context::Parameters::Set1u(RPRContext, TEXT("preview"), 1);
-	result |= RPR::Context::Parameters::Set1f(RPRContext, TEXT("radianceclamp"), 1.0f);
+	result = rprContextSetParameterByKey1u(RPRContext, RPR_CONTEXT_PREVIEW, 1);
+	if (!RPR::IsResultSuccess(result))
+		return false;
 
-	return (RPR::IsResultSuccess(result));
+	result = rprContextSetParameterByKey1f(RPRContext, RPR_CONTEXT_RADIANCE_CLAMP, 1.0f);
+	if (!RPR::IsResultSuccess(result))
+		return false;
+
+	return true;
 }
 
 void FRPRCoreSystemResources::InitializeRPRImageManager()
@@ -272,18 +267,6 @@ bool FRPRCoreSystemResources::InitializeMaterialSystem()
 	return (true);
 }
 
-bool FRPRCoreSystemResources::InitializeRPRXContext()
-{
-	RPR::FResult result = RPRX::Context::Create(RPRMaterialSystem, RPRX_FLAGS_ENABLE_LOGGING, RPRXSupportCtx);
-	if (RPR::IsResultFailed(result))
-	{
-		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Cannot create RPRX context (%#4)"), result);
-		return (false);
-	}
-
-	return (true);
-}
-
 void FRPRCoreSystemResources::Shutdown()
 {
 	NumDevicesCompatible = 0;
@@ -291,7 +274,6 @@ void FRPRCoreSystemResources::Shutdown()
 	DestroyRPRXMaterialLibrary();
 	DestroyRPRImageManager();
 	DestroyMaterialSystem();
-	DestroyRPRXSupportContext();
 	DestroyRPRContext();
 
 	bIsInitialized = false;
@@ -318,15 +300,6 @@ void FRPRCoreSystemResources::DestroyMaterialSystem()
 	{
 		RPR::DeleteObject(RPRMaterialSystem);
 		RPRMaterialSystem = nullptr;
-	}
-}
-
-void FRPRCoreSystemResources::DestroyRPRXSupportContext()
-{
-	if (RPRXSupportCtx != nullptr)
-	{
-		RPRX::Context::Delete(RPRXSupportCtx);
-		RPRXSupportCtx = nullptr;
 	}
 }
 

@@ -21,7 +21,6 @@
 #include "Material/RPRMaterialHelpers.h"
 #include "Material/MaterialContext.h"
 #include "Typedefs/RPRTypedefs.h"
-#include "Helpers/RPRXMaterialHelpers.h"
 #include "RPRCoreModule.h"
 #include "Helpers/RPRHelpers.h"
 #include "Enums/RPREnums.h"
@@ -35,11 +34,6 @@ namespace RPRX
 	void FMaterialMapParameterSetter::ApplyParameterX(MaterialParameter::FArgs& SetterParameters)
 	{
 		const FRPRMaterialMap* materialMap = SetterParameters.GetDirectParameter<FRPRMaterialMap>();
-		UE_LOG(LogRPRCore_Steps, Verbose, TEXT("[%s] %s -> Set texture : %s"),
-			*SetterParameters.OwnerMaterial->GetName(),
-			*SetterParameters.Property->GetName(),
-			materialMap->Texture != nullptr ? *materialMap->Texture->GetName() : TEXT("None"));
-
 		ApplyTextureParameter(SetterParameters);
 	}
 
@@ -60,9 +54,9 @@ namespace RPRX
 
 			if (RPR::IsResultFailed(imageNodeCreationResult))
 			{
-				UE_LOG(LogRPRCore, Warning, 
-					TEXT("Cannot create image node texture for '%s'. Error code : %d"), 
-					*SetterParameters.Property->GetName(), 
+				UE_LOG(LogRPRCore, Warning,
+					TEXT("Cannot create image node texture for '%s'. Error code : %d"),
+					*SetterParameters.Property->GetName(),
 					imageNodeCreationResult);
 
 				return (false);
@@ -78,7 +72,7 @@ namespace RPRX
 		return (true);
 	}
 
-	RPR::FResult FMaterialMapParameterSetter::CreateImageNodeFromTexture(MaterialParameter::FArgs& SetterParameters, 
+	RPR::FResult FMaterialMapParameterSetter::CreateImageNodeFromTexture(MaterialParameter::FArgs& SetterParameters,
 						RPR::FImagePtr& OutImage, RPR::FMaterialNode& OutMaterialNode, RPR::FMaterialNode& OutImageNode)
 	{
 		RPR::FMaterialContext& materialContext = SetterParameters.MaterialContext;
@@ -165,11 +159,11 @@ namespace RPRX
 			SET_UV_PARAMETER(RPR::FMaterialHelpers::FMaterialNode::SetInputFloats, RPR::Constants::MaterialNode::UV::UVScale, uvSettings.Scale);
 		}
 
-		FString uvInputDataName = uvSettings.UVChannel == 0 ?
-			RPR::Constants::MaterialNode::ImageTexture::UV : 
+		unsigned int uvInputDataName = uvSettings.UVChannel == 0 ?
+			RPR::Constants::MaterialNode::ImageTexture::UV :
 			RPR::Constants::MaterialNode::ImageTexture::UV2;
 
-		status = RPR::FMaterialHelpers::FMaterialNode::SetInputNode(ImageMaterialNode, *uvInputDataName, uvProjectNode);
+		status = RPR::FMaterialHelpers::FMaterialNode::SetInputNode(ImageMaterialNode, uvInputDataName, uvProjectNode);
 		if (RPR::IsResultFailed(status))
 		{
 			UE_LOG(LogMaterialMapParameterSetter, Warning, TEXT("Cannot bind UV node to image node for parameter %s"), *SetterParameters.Property->GetName());
@@ -208,11 +202,11 @@ namespace RPRX
 		// Create multiply node to scale UV
 		RPR::FMaterialNode uvScaledNode;
 		status = RPR::FMaterialHelpers::FArithmeticNode::CreateArithmeticNode(
-			materialContext.MaterialSystem, 
-			RPR::EMaterialNodeArithmeticOperation::Multiply, 
-			TEXT("Arithmetic for UV scale - Multiply"), 
-			uvScaledNode); 
-		check(status == 0);		
+			materialContext.MaterialSystem,
+			RPR::EMaterialNodeArithmeticOperation::Multiply,
+			TEXT("Arithmetic for UV scale - Multiply"),
+			uvScaledNode);
+		check(status == 0);
 
 		status = RPR::FMaterialHelpers::FMaterialNode::SetInputNode(uvScaledNode, RPR::Constants::MaterialNode::Color0, offsetNode); check(status == 0);
 		status = RPR::FMaterialHelpers::FMaterialNode::SetInputFloats(uvScaledNode, RPR::Constants::MaterialNode::Color1, UVSettings.Scale); check(status == 0);
