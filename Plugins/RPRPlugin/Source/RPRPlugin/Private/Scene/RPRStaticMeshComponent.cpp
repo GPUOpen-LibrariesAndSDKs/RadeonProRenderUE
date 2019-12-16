@@ -41,6 +41,7 @@
 #include "Materials/MaterialExpressionTextureCoordinate.h"
 #include "Materials/MaterialExpressionPanner.h"
 #include "Materials/MaterialExpressionComponentMask.h"
+#include "Materials/MaterialExpressionRotator.h"
 
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshActor.h"
@@ -582,7 +583,7 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		node = materialLibrary.getOrCreateVirtualIfNotExists(expression->GetName() + L"_InputLookupUV_Mul", RPR::EMaterialNodeType::Arithmetic);
 		materialLibrary.setNodeUInt(node->realNode, L"op", RPR_MATERIAL_NODE_OP_MUL);
 		materialLibrary.setNodeConnection(node, L"color0", lookupNode);
-		materialLibrary.setNodeFloat(node->realNode, L"color1", expression->UTiling, -expression->VTiling, 0.0f, 0.0f);
+		materialLibrary.setNodeFloat(node->realNode, L"color1", expression->UTiling, expression->VTiling, 0.0f, 0.0f);
 
 		return node;
 	}
@@ -663,6 +664,34 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		}
 
 		return node;
+	}
+	else if (expr->GetName().Contains(L"MaterialExpressionRotator"))
+	{
+		auto expression = static_cast<UMaterialExpressionRotator*>(expr);
+		assert(expression);
+
+		RPR::RPRXVirtualNode* lookupNode = materialLibrary.getOrCreateVirtualIfNotExists(expression->GetName() + L"_LookupUV", RPR::RPRXVirtualNode::VNType::DEFAULT);
+		lookupNode->realNode = materialLibrary.getOrCreateIfNotExists(expression->GetName() + L"_LookupUV", RPR::EMaterialNodeType::InputLookup);
+		materialLibrary.setNodeUInt(lookupNode->realNode, L"value", RPR_MATERIAL_NODE_LOOKUP_UV);
+
+		float angle = -FMath::DegreesToRadians(5);
+
+		RPR::RPRXVirtualNode* angleA = materialLibrary.getOrCreateVirtualIfNotExists(expression->GetName() + L"_DOT3_A", RPR::EMaterialNodeType::Arithmetic);
+		materialLibrary.setNodeUInt(angleA->realNode, L"op", RPR_MATERIAL_NODE_OP_DOT3);
+		materialLibrary.setNodeConnection(angleA, L"color0", lookupNode);
+		materialLibrary.setNodeFloat(angleA->realNode, L"color1", FMath::Cos(angle), -FMath::Sin(angle), 0.0f, 0.0f);
+
+		RPR::RPRXVirtualNode* angleB = materialLibrary.getOrCreateVirtualIfNotExists(expression->GetName() + L"_DOT3_B", RPR::EMaterialNodeType::Arithmetic);
+		materialLibrary.setNodeUInt(angleB->realNode, L"op", RPR_MATERIAL_NODE_OP_DOT3);
+		materialLibrary.setNodeConnection(angleB, L"color0", lookupNode);
+		materialLibrary.setNodeFloat(angleB->realNode, L"color1", FMath::Sin(angle), FMath::Cos(angle), 0.0f, 0.0f);
+
+		RPR::RPRXVirtualNode* combine = materialLibrary.getOrCreateVirtualIfNotExists(expression->GetName() + L"_COMBINE", RPR::EMaterialNodeType::Arithmetic);
+		materialLibrary.setNodeUInt(combine->realNode, L"op", RPR_MATERIAL_NODE_OP_COMBINE);
+		materialLibrary.setNodeConnection(combine, L"color0", angleA);
+		materialLibrary.setNodeConnection(combine, L"color1", angleB);
+
+		return combine;
 	}
 
 	return node;
@@ -813,7 +842,7 @@ void URPRStaticMeshComponent::AttachDummyMaterial(RPR::FShape shape)
 }
 
 static bool const FLIP_SURFACE_NORMALS = false;
-static bool const FLIP_UV_Y = false;
+static bool const FLIP_UV_Y = true;
 
 bool	URPRStaticMeshComponent::_IsMaterialEmissive(const UMaterialInterface *material)
 {
