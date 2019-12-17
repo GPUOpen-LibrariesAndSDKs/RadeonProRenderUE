@@ -54,17 +54,17 @@ namespace RPR
 		{
 		public:
 
-			static FResult	SetInputUInt(RPR::FMaterialNode MaterialNode, const FString& ParameterName, unsigned int Value);
-			static FResult	SetInputNode(RPR::FMaterialNode MaterialNode, const FString& ParameterName, RPR::FMaterialNode InMaterialNode);
-			static FResult	SetInputImageData(RPR::FMaterialNode MaterialNode, const FString& ParameterName, RPR::FImage InImage);
+			static FResult	SetInputUInt(RPR::FMaterialNode MaterialNode, unsigned int ParameterName, unsigned int Value);
+			static FResult	SetInputNode(RPR::FMaterialNode MaterialNode, unsigned int ParameterName, RPR::FMaterialNode InMaterialNode);
+			static FResult	SetInputImageData(RPR::FMaterialNode MaterialNode, unsigned int ParameterName, RPR::FImage InImage);
 
-			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, float x, float y = 0.0f, float z = 0.0f, float w = 0.0f);
-			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector2D& Value, float z = 0.0f, float w = 0.0f);
-			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector& Value, float w = 0.0f);
-			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, const FString& ParameterName, const FVector4& Value);
+			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, unsigned int ParameterName, float x, float y = 0.0f, float z = 0.0f, float w = 0.0f);
+			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, unsigned int ParameterName, const FVector2D& Value, float z = 0.0f, float w = 0.0f);
+			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, unsigned int ParameterName, const FVector& Value, float w = 0.0f);
+			static FResult	SetInputFloats(RPR::FMaterialNode MaterialNode, unsigned int ParameterName, const FVector4& Value);
 
 			template<typename TEnum>
-			static FResult	SetInputEnum(RPR::FMaterialNode MaterialNode, const FString& ParameterName, TEnum Value)
+			static FResult	SetInputEnum(RPR::FMaterialNode MaterialNode, unsigned int ParameterName, TEnum Value)
 			{
 				static_assert(TIsEnum<TEnum>::Value, "Value must be an enum!");
 				return SetInputUInt(MaterialNode, ParameterName, (uint8) Value);

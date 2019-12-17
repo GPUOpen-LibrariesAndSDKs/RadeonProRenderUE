@@ -32,24 +32,20 @@ public class RPR_SDK : ModuleRules
     {
         "RadeonProRender",
         "RprLoadStore",
-        "RprSupport",
-        "Tahoe",
     };
 
     static string[] DynamicLibraryNames = new string[]
     {
         "RadeonProRender",
         "RprLoadStore",
-        "RprSupport",
         "Tahoe",
-        "OpenImageIO_RPR",
     };
 
     public string ThirdPartyDirectory
     { get { return ("../../ThirdParty/"); } }
 
     public string SDKDirectory
-    { get { return (ThirdPartyDirectory + "ProRenderSDK/"); } }
+    { get { return (ThirdPartyDirectory + "RadeonProRenderSDK/"); } }
 
 
     public RPR_SDK(ReadOnlyTargetRules Target) : base(Target)

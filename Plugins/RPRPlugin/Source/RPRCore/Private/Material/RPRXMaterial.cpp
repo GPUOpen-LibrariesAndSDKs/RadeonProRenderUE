@@ -7,15 +7,11 @@
 #include "Material/RPRUberMaterialParameters.h"
 #include "Material/RPRMaterialHelpers.h"
 #include "Material/Tools/UberMaterialPropertyHelper.h"
-#include "Helpers/RPRXMaterialHelpers.h"
 #include "Helpers/RPRHelpers.h"
 #include "RPRCoreModule.h"
 #include "RPRCoreSystemResources.h"
 #include "RPRCoreErrorHelper.h"
 #include "Enums/RPREnums.h"
-#include "Helpers/RPRXHelpers.h"
-
-#include <stdexcept>
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRXMaterial, Log, Verbose)
 
@@ -25,8 +21,10 @@ RPR::FRPRXMaterial::FRPRXMaterial(const URPRMaterial* InUE4MaterialLink)
 {
 	check(InUE4MaterialLink);
 
-	auto rprxContext = IRPRCore::GetResources()->GetRPRXSupportContext();
-	RPR::FResult status = RPRX::FMaterialHelpers::CreateMaterial(rprxContext, RPRX::EMaterialType::Uber, Material);
+	RPR::FResult status;
+
+	auto materialSystem = IRPRCore::GetResources()->GetMaterialSystem();
+	status = rprMaterialSystemCreateNode(materialSystem, RPR_MATERIAL_NODE_UBERV2, &Material);
 	if (RPR::IsResultFailed(status))
 	{
 		UE_LOG(LogRPRXMaterial, Warning,
@@ -56,39 +54,34 @@ void RPR::FRPRXMaterial::RemoveImage(RPR::FImagePtr Image)
 	Images.Remove(Image);
 }
 
-RPR::FResult RPR::FRPRXMaterial::SetMaterialParameterBool(RPRX::FParameter Parameter, bool Value)
+RPR::FResult RPR::FRPRXMaterial::SetMaterialParameterBool(unsigned int Parameter, bool Value)
 {
 	return SetMaterialParameterUInt(Parameter, Value ? 1 : 0);
 }
 
-RPR::FResult RPR::FRPRXMaterial::SetMaterialParameterUInt(RPRX::FParameter Parameter, uint32 Value)
+RPR::FResult RPR::FRPRXMaterial::SetMaterialParameterUInt(unsigned int Parameter, uint32 Value)
 {
-	return RPRX::FMaterialHelpers::SetMaterialParameterUInt(GetRprxContext(), Material, Parameter, Value);
+	return rprMaterialNodeSetInputUByKey(Material, Parameter, Value);
 }
 
-RPR::FResult RPR::FRPRXMaterial::SetMaterialParameterColor(RPRX::FParameter Parameter, const FLinearColor& Color)
+RPR::FResult RPR::FRPRXMaterial::SetMaterialParameterColor(unsigned int Parameter, const FLinearColor& Color)
 {
-	return RPRX::FMaterialHelpers::SetMaterialParameterColor(GetRprxContext(), Material, Parameter, Color);
+	return rprMaterialNodeSetInputFByKey(Material, Parameter, Color.R, Color.G, Color.B, Color.A);
 }
 
-RPR::FResult RPR::FRPRXMaterial::SetMaterialParameterFloats(RPRX::FParameter Parameter, float x, float y, float z, float w)
+RPR::FResult RPR::FRPRXMaterial::SetMaterialParameterFloats(unsigned int Parameter, float x, float y, float z, float w)
 {
-	return RPRX::FMaterialHelpers::SetMaterialParameterFloats(GetRprxContext(), Material, Parameter, x, y, z, w);
+	return rprMaterialNodeSetInputFByKey(Material, Parameter, x, y, z, w);
 }
 
-RPR::FResult RPR::FRPRXMaterial::SetMaterialParameterFloat(RPRX::FParameter Parameter, float Value)
+RPR::FResult RPR::FRPRXMaterial::SetMaterialParameterFloat(unsigned int Parameter, float Value)
 {
-	return RPRX::FMaterialHelpers::SetMaterialParameterFloat(GetRprxContext(), Material, Parameter, Value);
+	return rprMaterialNodeSetInputFByKey(Material, Parameter, Value, Value, Value, Value);
 }
 
-RPR::FResult RPR::FRPRXMaterial::SetMaterialParameterNode(RPRX::FParameter Parameter, RPR::FMaterialNode MaterialNode)
+RPR::FResult RPR::FRPRXMaterial::SetMaterialParameterNode(unsigned int Parameter, RPR::FMaterialNode MaterialNode)
 {
-	return RPRX::FMaterialHelpers::SetMaterialParameterNode(GetRprxContext(), Material, Parameter, MaterialNode);
-}
-
-RPR::FResult RPR::FRPRXMaterial::Commit()
-{
-	return RPRX::MaterialCommit(GetRprxContext(), Material);
+	return rprMaterialNodeSetInputNByKey(Material, Parameter, MaterialNode);
 }
 
 void RPR::FRPRXMaterial::RemoveImage(RPR::FImage Image)
@@ -104,7 +97,7 @@ bool RPR::FRPRXMaterial::IsMaterialValid() const
 	return Material != nullptr && UE4MaterialLink.IsValid();
 }
 
-const RPRX::FMaterial& RPR::FRPRXMaterial::GetRawMaterial() const
+rpr_material_node RPR::FRPRXMaterial::GetRawMaterial() const
 {
 	return Material;
 }
@@ -129,8 +122,8 @@ void RPR::FRPRXMaterial::ReleaseRPRXMaterial()
 	{
 		ReleaseMaterialNodes();
 
-		RPRX::FContext rprxSupportCtx = IRPRCore::GetResources()->GetRPRXSupportContext();
-		RPRX::FMaterialHelpers::DeleteMaterial(rprxSupportCtx, Material);
+		(void)DeleteObject(Material);
+
 	}
 	catch (std::exception ex)
 	{
@@ -175,7 +168,7 @@ void RPR::FRPRXMaterial::ReleaseMaterialNodes()
 
 void RPR::FRPRXMaterial::ReleaseMaterialMapNodes(const FRPRMaterialMap* MaterialMap)
 {
-	RPRX::FParameterType parameterType = MaterialMap->GetRprxParamType();
+	/*unsigned intType parameterType = MaterialMap->GetRprxParamType();
 
 	RPR::FResult status;
 	auto resources = IRPRCore::GetResources();
@@ -213,12 +206,12 @@ void RPR::FRPRXMaterial::ReleaseMaterialMapNodes(const FRPRMaterialMap* Material
 
 		UE_LOG(LogRPRXMaterial, Verbose, TEXT("Delete node %s"), *RPR::RPRMaterial::GetNodeName(materialNode));
 		RPR::FMaterialHelpers::DeleteNode(materialNode);
-	}
+	}*/
 }
 
 void RPR::FRPRXMaterial::ReleaseMaterialNodesHierarchy(RPR::FMaterialNode MaterialNode)
 {
-	uint64 numInputs = 0;
+	/*uint64 numInputs = 0;
 	RPR::FResult status = RPR::RPRMaterial::GetNodeInfo(MaterialNode, RPR::EMaterialNodeInfo::InputCount, &numInputs);
 	if (RPR::IsResultFailed(status))
 	{
@@ -245,25 +238,20 @@ void RPR::FRPRXMaterial::ReleaseMaterialNodesHierarchy(RPR::FMaterialNode Materi
 				RPR::FMaterialHelpers::DeleteNode(childNode);
 			}
 		}
-	}
-}
-
-RPRX::FContext RPR::FRPRXMaterial::GetRprxContext() const
-{
-	return (IRPRCore::GetResources()->GetRPRXSupportContext());
+	}*/
 }
 
 // -----------------------------------------------------------------------------------------------
 
-RPR::FRPRXMaterialNode::FRPRXMaterialNode(FString name, RPRX::EMaterialType type) :
+RPR::FRPRXMaterialNode::FRPRXMaterialNode(FString name, unsigned int type) :
  Material(nullptr),
  m_name(name),
  m_type(type)
 {
-	auto rprxContext = IRPRCore::GetResources()->GetRPRXSupportContext();
+	auto materialSystem = IRPRCore::GetResources()->GetMaterialSystem();
 
 	RPR::FResult status;
-	status = RPRX::FMaterialHelpers::CreateMaterial(rprxContext, m_type, Material);
+	status = rprMaterialSystemCreateNode(materialSystem, m_type, &Material);
 	scheck(status, "Native RPRX Material could not be created for material");
 }
 
@@ -282,39 +270,34 @@ void RPR::FRPRXMaterialNode::RemoveImage(RPR::FImagePtr Image)
 	Images.Remove(Image);
 }
 
-RPR::FResult RPR::FRPRXMaterialNode::SetMaterialParameterBool(RPRX::FParameter Parameter, bool Value)
+RPR::FResult RPR::FRPRXMaterialNode::SetMaterialParameterBool(unsigned int Parameter, bool Value)
 {
 	return SetMaterialParameterUInt(Parameter, Value ? 1 : 0);
 }
 
-RPR::FResult RPR::FRPRXMaterialNode::SetMaterialParameterUInt(RPRX::FParameter Parameter, uint32 Value)
+RPR::FResult RPR::FRPRXMaterialNode::SetMaterialParameterUInt(unsigned int Parameter, uint32 Value)
 {
-	return RPRX::FMaterialHelpers::SetMaterialParameterUInt(GetRprxContext(), Material, Parameter, Value);
+	return rprMaterialNodeSetInputUByKey(Material, Parameter, Value);
 }
 
-RPR::FResult RPR::FRPRXMaterialNode::SetMaterialParameterColor(RPRX::FParameter Parameter, const FLinearColor& Color)
+RPR::FResult RPR::FRPRXMaterialNode::SetMaterialParameterColor(unsigned int Parameter, const FLinearColor& Color)
 {
-	return RPRX::FMaterialHelpers::SetMaterialParameterColor(GetRprxContext(), Material, Parameter, Color);
+	return rprMaterialNodeSetInputFByKey(Material, Parameter, Color.R, Color.G, Color.B, Color.A);
 }
 
-RPR::FResult RPR::FRPRXMaterialNode::SetMaterialParameterFloats(RPRX::FParameter Parameter, float x, float y, float z, float w)
+RPR::FResult RPR::FRPRXMaterialNode::SetMaterialParameterFloats(unsigned int Parameter, float x, float y, float z, float w)
 {
-	return RPRX::FMaterialHelpers::SetMaterialParameterFloats(GetRprxContext(), Material, Parameter, x, y, z, w);
+	return rprMaterialNodeSetInputFByKey(Material, Parameter, x, y, z, w);
 }
 
-RPR::FResult RPR::FRPRXMaterialNode::SetMaterialParameterFloat(RPRX::FParameter Parameter, float Value)
+RPR::FResult RPR::FRPRXMaterialNode::SetMaterialParameterFloat(unsigned int Parameter, float Value)
 {
-	return RPRX::FMaterialHelpers::SetMaterialParameterFloat(GetRprxContext(), Material, Parameter, Value);
+	return rprMaterialNodeSetInputFByKey(Material, Parameter, Value, Value, Value, Value);
 }
 
-RPR::FResult RPR::FRPRXMaterialNode::SetMaterialParameterNode(RPRX::FParameter Parameter, RPR::FMaterialNode MaterialNode)
+RPR::FResult RPR::FRPRXMaterialNode::SetMaterialParameterNode(unsigned int Parameter, RPR::FMaterialNode MaterialNode)
 {
-	return RPRX::FMaterialHelpers::SetMaterialParameterNode(GetRprxContext(), Material, Parameter, MaterialNode);
-}
-
-RPR::FResult RPR::FRPRXMaterialNode::Commit()
-{
-	return RPRX::MaterialCommit(GetRprxContext(), Material);
+	return rprMaterialNodeSetInputNByKey(Material, Parameter, MaterialNode);
 }
 
 void RPR::FRPRXMaterialNode::RemoveImage(RPR::FImage Image)
@@ -330,7 +313,7 @@ bool RPR::FRPRXMaterialNode::IsMaterialValid() const
 	return Material != nullptr;
 }
 
-RPRX::FMaterial& RPR::FRPRXMaterialNode::GetRawMaterial()
+rpr_material_node RPR::FRPRXMaterialNode::GetRawMaterial() const
 {
 	return Material;
 }
@@ -346,17 +329,11 @@ void RPR::FRPRXMaterialNode::ReleaseRPRXMaterial()
 	if (!IsMaterialValid())
 		return;
 
-	try
-	{
-		ReleaseMaterialNodes();
+	ReleaseMaterialNodes();
 
-		RPRX::FContext rprxSupportCtx = IRPRCore::GetResources()->GetRPRXSupportContext();
-		RPRX::FMaterialHelpers::DeleteMaterial(rprxSupportCtx, Material);
-	}
-	catch (std::exception ex)
-	{
-		UE_LOG(LogRPRXMaterial, Warning, TEXT("Couldn't delete an object/material correctly (%s)"), ANSI_TO_TCHAR(ex.what()));
-		FRPRCoreErrorHelper::LogLastError();
+	if (Material) {
+		(void)rprObjectDelete(Material);
+		Material = nullptr;
 	}
 }
 
@@ -398,7 +375,7 @@ void RPR::FRPRXMaterialNode::ReleaseMaterialNodes()
 
 void RPR::FRPRXMaterialNode::ReleaseMaterialMapNodes(const FRPRMaterialMap* MaterialMap)
 {
-	RPRX::FParameterType parameterType = MaterialMap->GetRprxParamType();
+	/*unsigned int parameterType = MaterialMap->GetRprxParamType();
 
 	RPR::FResult status;
 	auto resources = IRPRCore::GetResources();
@@ -420,11 +397,12 @@ void RPR::FRPRXMaterialNode::ReleaseMaterialMapNodes(const FRPRMaterialMap* Mate
 
 		UE_LOG(LogRPRXMaterial, Verbose, TEXT("Delete node %s"), *RPR::RPRMaterial::GetNodeName(materialNode));
 		RPR::FMaterialHelpers::DeleteNode(materialNode);
-	}
+	}*/
 }
 
 void RPR::FRPRXMaterialNode::ReleaseMaterialNodesHierarchy(RPR::FMaterialNode MaterialNode)
 {
+	/*
 	uint64 numInputs = 0;
 	RPR::FResult status = RPR::RPRMaterial::GetNodeInfo(MaterialNode, RPR::EMaterialNodeInfo::InputCount, &numInputs);
 	if (RPR::IsResultFailed(status))
@@ -452,11 +430,6 @@ void RPR::FRPRXMaterialNode::ReleaseMaterialNodesHierarchy(RPR::FMaterialNode Ma
 				RPR::FMaterialHelpers::DeleteNode(childNode);
 			}
 		}
-	}
-}
-
-RPRX::FContext RPR::FRPRXMaterialNode::GetRprxContext() const
-{
-	return IRPRCore::GetResources()->GetRPRXSupportContext();
+	}*/
 }
 

@@ -19,10 +19,8 @@
 #pragma once
 
 #include "Typedefs/RPRTypedefs.h"
-#include "Typedefs/RPRXTypedefs.h"
 #include "Material/RPRXMaterialLibrary.h"
 #include "ImageManager/RPRImageManager.h"
-#include "Material/RPRXMaterialLibrary.h"
 #include "RprTools.h"
 
 class RPRCORE_API FRPRCoreSystemResources
@@ -38,7 +36,6 @@ public:
 
 	FORCEINLINE RPR::FContext			GetRPRContext() const { return RPRContext; }
 	FORCEINLINE RPR::FMaterialSystem	GetMaterialSystem() const { return RPRMaterialSystem; }
-	FORCEINLINE RPRX::FContext			GetRPRXSupportContext() const { return RPRXSupportCtx; }
 	FORCEINLINE RPR::FImageManagerPtr	GetRPRImageManager() const { return RPRImageManager; }
 	FORCEINLINE FRPRXMaterialLibrary&	GetRPRMaterialLibrary() { return RPRXMaterialLibrary; }
 	FORCEINLINE int32					GetNumDevicesCompatible() const { return NumDevicesCompatible; }
@@ -48,7 +45,6 @@ private:
 	bool	InitializeRPRRendering();
 	bool	InitializeContext();
 	bool	InitializeMaterialSystem();
-	bool	InitializeRPRXContext();
 	bool	InitializeContextParameters();
 	void	InitializeRPRImageManager();
 	void	InitializeRPRXMaterialLibrary();
@@ -56,7 +52,6 @@ private:
 
 	void	DestroyRPRContext();
 	void	DestroyMaterialSystem();
-	void	DestroyRPRXSupportContext();
 	void	DestroyRPRImageManager();
 	void	DestroyRPRXMaterialLibrary();
 
@@ -75,8 +70,6 @@ private:
 
 	RPR::FContext			RPRContext;
 	RPR::FMaterialSystem	RPRMaterialSystem;
-	RPRX::FContext			RPRXSupportCtx;
-
 	RPR::FImageManagerPtr	RPRImageManager;
 	FRPRXMaterialLibrary	RPRXMaterialLibrary;
 };

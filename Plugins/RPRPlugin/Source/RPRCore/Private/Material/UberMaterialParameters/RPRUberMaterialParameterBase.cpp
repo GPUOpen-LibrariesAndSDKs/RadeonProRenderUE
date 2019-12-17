@@ -24,7 +24,7 @@ FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase()
 
 FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(
     const FString& InParamName, 
-    RPRX::FParameterType InRprxParamType, 
+    unsigned int InRprxParamType, 
     ESupportMode InPreviewSupportMode, 
     FCanUseParameter InCanUseParameter,
     FApplyParameter InApplyParameterDelegate)
@@ -35,7 +35,7 @@ FRPRUberMaterialParameterBase::FRPRUberMaterialParameterBase(
     , ApplyParameterDelegate(InApplyParameterDelegate)
 {}
 
-RPRX::FParameterType FRPRUberMaterialParameterBase::GetRprxParamType() const
+unsigned int FRPRUberMaterialParameterBase::GetRprxParamType() const
 {
 	return (RprxParamType);
 }

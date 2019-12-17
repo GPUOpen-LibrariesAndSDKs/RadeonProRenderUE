@@ -24,12 +24,10 @@
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
 #include "Scene/RPRSceneComponent.h"
-#include "RprSupport.h"
 #include "Scene/StaticMeshComponent/RPRShape.h"
 #include "Assets/RPRMaterial.h"
 #include "Containers/Queue.h"
 #include "Templates/Tuple.h"
-#include "Typedefs/RPRXTypedefs.h"
 #include "Scene/StaticMeshComponent/DelegateHandleManager.h"
 #include "RPRStaticMeshComponent.generated.h"
 

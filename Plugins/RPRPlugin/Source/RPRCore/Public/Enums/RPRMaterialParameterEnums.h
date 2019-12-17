@@ -18,27 +18,27 @@
 ********************************************************************/
 #pragma once
 #include "Templates/UnrealTypeTraits.h"
-#include "RprSupport.h"
+#include "RadeonProRender.h"
 
 UENUM(BlueprintType)
 enum class ERPRReflectionMode : uint8
 {
-	PBR = RPRX_UBER_MATERIAL_REFLECTION_MODE_PBR,
-	Metalness = RPRX_UBER_MATERIAL_REFLECTION_MODE_METALNESS,
+	PBR = RPR_UBER_MATERIAL_IOR_MODE_PBR,
+	Metalness = RPR_UBER_MATERIAL_IOR_MODE_METALNESS,
 };
 
 UENUM(BlueprintType)
 enum class ERPRCoatingMode : uint8
 {
-	PBR = RPRX_UBER_MATERIAL_COATING_MODE_PBR,
+	PBR = RPR_UBER_MATERIAL_IOR_MODE_PBR,
 	//Metalness = RPRX_UBER_MATERIAL_COATING_MODE_METALNESS,
 };
 
 UENUM(BlueprintType)
 enum class ERPREmissionMode : uint8
 {
-	SingleSided = RPRX_UBER_MATERIAL_EMISSION_MODE_SINGLESIDED,
-	DoubleSided = RPRX_UBER_MATERIAL_EMISSION_MODE_DOUBLESIDED
+	SingleSided = RPR_UBER_MATERIAL_EMISSION_MODE_SINGLESIDED,
+	DoubleSided = RPR_UBER_MATERIAL_EMISSION_MODE_DOUBLESIDED
 };
 
 template<>

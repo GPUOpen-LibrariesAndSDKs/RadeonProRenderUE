@@ -58,12 +58,6 @@ namespace RPR
 										const TArray<FVector>& Vertices, const TArray<FVector>& Normals, const TArray<uint32>& Indices, 
 										const TArray<FVector2D>& Texcoords, const TArray<uint32>& NumFaceVertices, FShape& OutMesh);
 
-		namespace Parameters
-		{
-			RPRTOOLS_API FResult	Set1u(FContext Context, const FString& ParamName, uint32 Value);
-			RPRTOOLS_API FResult	Set1f(FContext Context, const FString& ParamName, float Value);
-		}
-
 		namespace MaterialSystem
 		{
 			RPRTOOLS_API FResult	Create(RPR::FContext Context, RPR::FMaterialSystemType Type, RPR::FMaterialSystem& OutMaterialSystem);

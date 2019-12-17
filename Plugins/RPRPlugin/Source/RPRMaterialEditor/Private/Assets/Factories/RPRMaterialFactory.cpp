@@ -22,7 +22,6 @@
 #include "RPRSettings.h"
 #include "Misc/FeedbackContext.h"
 #include "AssetTypeCategories.h"
-#include "RPRMaterialXmlGraph.h"
 #include "Assets/RPRMaterial.h"
 #include "RPRMaterialEditor/RPRUberMaterialToMaterialInstanceCopier.h"
 #include "EditorStyleSet.h"
@@ -131,7 +130,7 @@ FName URPRMaterialFactory::GetNewAssetThumbnailOverride() const
 
 bool URPRMaterialFactory::LoadRPRMaterialFromXmlFile(URPRMaterial* RPRMaterial, const FString& Filename)
 {
-	FRPRMaterialXmlGraph materialXmlGraph;
+	/*FRPRMaterialXmlGraph materialXmlGraph;
 	if (!materialXmlGraph.ParseFromXmlFile(Filename))
 	{
 		UE_LOG(LogRPRMaterialFactory, Error, TEXT("Could not parse correctly the Xml file!"));
@@ -141,7 +140,9 @@ bool URPRMaterialFactory::LoadRPRMaterialFromXmlFile(URPRMaterial* RPRMaterial, 
 	LoadRPRMaterialParameters(RPRMaterial, materialXmlGraph, Filename);
 	CopyRPRMaterialParameterToMaterialInstance(RPRMaterial);
 
-	return (true);
+	return (true);*/
+
+	return false;
 }
 
 UMaterialInterface* URPRMaterialFactory::TryLoadUberMaterial(FFeedbackContext* Warn)
@@ -169,12 +170,12 @@ UMaterialInterface* URPRMaterialFactory::TryLoadUberMaterial(FFeedbackContext* W
 
 void URPRMaterialFactory::LoadRPRMaterialParameters(URPRMaterial* RPRMaterial, FRPRMaterialXmlGraph& MaterialXmlGraph, const FString& Filename)
 {
-	FRPRMaterialGraphSerializationContext serializationContext;
+	/*FRPRMaterialGraphSerializationContext serializationContext;
 	serializationContext.ImportedFilePath = Filename;
 	serializationContext.MaterialParameters = &RPRMaterial->MaterialParameters;
 	serializationContext.MaterialGraph = &MaterialXmlGraph;
 
-	MaterialXmlGraph.Load(serializationContext);
+	MaterialXmlGraph.Load(serializationContext);*/
 }
 
 void URPRMaterialFactory::CopyRPRMaterialParameterToMaterialInstance(class URPRMaterial* RPRMaterial)

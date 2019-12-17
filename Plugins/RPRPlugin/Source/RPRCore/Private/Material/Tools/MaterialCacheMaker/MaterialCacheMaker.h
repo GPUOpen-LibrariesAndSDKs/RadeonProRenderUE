@@ -20,7 +20,6 @@
 
 #include "Assets/RPRMaterial.h"
 #include "Typedefs/RPRTypedefs.h"
-#include "Typedefs/RPRXTypedefs.h"
 #include "Material/MaterialContext.h"
 #include "Material/Tools/MaterialCacheMaker/ParameterArgs.h"
 

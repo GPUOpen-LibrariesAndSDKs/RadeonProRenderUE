@@ -57,10 +57,9 @@ public:
 
 	virtual FCriticalSection& GetCriticalSection() override;
 
-	RPR::FRPRXMaterialNodePtr       createMaterial(FString name, RPRX::EMaterialType type = RPRX::EMaterialType::Uber);
+	RPR::FRPRXMaterialNodePtr       createMaterial(FString name, unsigned int type = RPR_MATERIAL_NODE_UBERV2);
 	bool                            hasMaterial(FString materialName) const;
 	RPR::FRPRXMaterialNodePtr		getMaterial(FString materialName);
-	void	                        commitAll();
 
 	RPR::FMaterialNode              createNode(FString materialNode, RPR::EMaterialNodeType type = RPR::EMaterialNodeType::Diffuse);
 	RPR::RPRXVirtualNode*           createVirtualNode(FString materialNode, RPR::RPRXVirtualNode::VNType nodeType);
@@ -70,10 +69,10 @@ public:
 	RPR::FMaterialNode              getOrCreateIfNotExists(FString materialNode, RPR::EMaterialNodeType type = RPR::EMaterialNodeType::Diffuse);
 	RPR::RPRXVirtualNode*           getOrCreateVirtualIfNotExists(FString materialNode, RPR::EMaterialNodeType type);
 	RPR::RPRXVirtualNode*           getOrCreateVirtualIfNotExists(FString materialNode, RPR::RPRXVirtualNode::VNType type);
-	void                            setNodeFloat(RPR::FMaterialNode materialNode, const FString& parameter, float r, float g, float b, float a);
-	void                            setNodeUInt(RPR::FMaterialNode materialNode, const FString& parameter, unsigned int value);
-	void                            setNodeConnection(RPR::RPRXVirtualNode* materialNode, const FString& parameter, RPR::RPRXVirtualNode* otherNode);
-	void                            setNodeConnection(RPR::FMaterialNode MaterialNode, const FString& ParameterName, RPR::FMaterialNode InMaterialNode);
+	void                            setNodeFloat(RPR::FMaterialNode materialNode, const unsigned int parameter, float r, float g, float b, float a);
+	void                            setNodeUInt(RPR::FMaterialNode materialNode, const unsigned int parameter, unsigned int value);
+	void                            setNodeConnection(RPR::RPRXVirtualNode* materialNode, const unsigned int parameter, RPR::RPRXVirtualNode* otherNode);
+	void                            setNodeConnection(RPR::FMaterialNode MaterialNode, const unsigned int ParameterName, RPR::FMaterialNode InMaterialNode);
 
 	RPR::FMaterialNode              createImage(UTexture2D* texture);
 	RPR::FMaterialNode              createImageNodeFromImageData(const FString& nodeId, RPR::FImagePtr imagePtr);

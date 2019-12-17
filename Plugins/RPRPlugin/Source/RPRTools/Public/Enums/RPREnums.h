@@ -81,7 +81,7 @@ namespace RPR
 	enum class EMaterialNodeInputInfo : FMaterialNodeInputInfo // rpr_material_node_input_info
 	{
 		Name			= RPR_MATERIAL_NODE_INPUT_NAME,
-		NameString		= RPR_MATERIAL_NODE_INPUT_NAME_STRING,
+		NameString		= RPR_MATERIAL_NODE_INPUT_NAME,
 		Description		= RPR_MATERIAL_NODE_INPUT_DESCRIPTION,
 		Value			= RPR_MATERIAL_NODE_INPUT_VALUE,
 		Type			= RPR_MATERIAL_NODE_INPUT_TYPE
@@ -190,12 +190,10 @@ namespace RPR
 		Material = RPR_SHAPE_MATERIAL,
 		LinearMotion = RPR_SHAPE_LINEAR_MOTION,
 		AngularMotion = RPR_SHAPE_ANGULAR_MOTION,
-		VisibilityFlag = RPR_SHAPE_VISIBILITY_FLAG,
 		ShadowFlag = RPR_SHAPE_SHADOW_FLAG,
 		SubdivisionFactor = RPR_SHAPE_SUBDIVISION_FACTOR,
 		DisplacementScale = RPR_SHAPE_DISPLACEMENT_SCALE,
 		VisibilityPrimaryOnlyFlag = RPR_SHAPE_VISIBILITY_PRIMARY_ONLY_FLAG,
-		VisibilityInSpecularFlag = RPR_SHAPE_VISIBILITY_IN_SPECULAR_FLAG,
 		ShadowCatcherFlag = RPR_SHAPE_SHADOW_CATCHER_FLAG,
 		VolumeMaterial = RPR_SHAPE_VOLUME_MATERIAL,
 		ObjectGroupId = RPR_SHAPE_OBJECT_GROUP_ID,

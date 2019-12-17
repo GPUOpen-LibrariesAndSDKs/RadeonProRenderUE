@@ -147,14 +147,14 @@ namespace RPR
 
 		namespace Parameters
 		{
-			FResult Set1u(FContext Context, const FString& ParamName, uint32 Value)
+			FResult Set1u(FContext Context, unsigned int ParamName, uint32 Value)
 			{
-				return (rprContextSetParameter1u(Context, TCHAR_TO_ANSI(*ParamName), Value));
+				return (rprContextSetParameterByKey1u(Context, ParamName, Value));
 			}
 
-			FResult Set1f(FContext Context, const FString& ParamName, float Value)
+			FResult Set1f(FContext Context, unsigned int ParamName, float Value)
 			{
-				return (rprContextSetParameter1f(Context, TCHAR_TO_ANSI(*ParamName), Value));
+				return (rprContextSetParameterByKey1f(Context, ParamName, Value));
 			}
 		}
 

@@ -42,7 +42,7 @@ bool FRPR_SDKModule::IsLoaded()
 FString FRPR_SDKModule::GetDLLsDirectory()
 {
 	checkf(PLATFORM_64BITS & PLATFORM_WINDOWS, TEXT("Only Windows 64bits supported."));
-	return FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/ProRenderSDK/RadeonProRender/binWin64");
+	return FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProRenderSDK/RadeonProRender/binWin64");
 }
 
 void FRPR_SDKModule::StartupModule()
@@ -56,7 +56,6 @@ void FRPR_SDKModule::StartupModule()
 		dllNames.Add(TEXT("Tahoe64.dll"));
 		dllNames.Add(TEXT("RadeonProRender64.dll"));
 		dllNames.Add(TEXT("RprLoadStore64.dll"));
-		dllNames.Add(TEXT("RprSupport64.dll"));
 
 		dllHandles = FRPRDynamicLibraryLoader::LoadLibraries(GetDLLsDirectory(), dllNames);
 		bIsSDKLoadValid = (dllHandles.Num() > 0);
