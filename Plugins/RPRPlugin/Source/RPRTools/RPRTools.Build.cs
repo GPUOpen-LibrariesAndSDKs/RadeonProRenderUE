@@ -35,13 +35,19 @@ public class RPRTools : ModuleRules
 			new string[] {
 				"RPRTools/Public",
                 "RPRTools/Private",
-                System.IO.Path.Combine(ModuleDirectory, @"..\..\ThirdParty\DXTDecompressor\inc"),
+                System.IO.Path.Combine(ModuleDirectory, @"..\..\ThirdParty\gli"),
+                System.IO.Path.Combine(ModuleDirectory, @"..\..\ThirdParty\glm"),
+                System.IO.Path.Combine(ModuleDirectory, @"..\..\ThirdParty"),
             }
 			);
 
-        PublicAdditionalLibraries.Add(System.IO.Path.Combine(ModuleDirectory, @"..\..\ThirdParty\DXTDecompressor\lib\x64\DXTDecompressor.lib"));
-
-        PublicIncludePaths.Add(System.IO.Path.Combine(ModuleDirectory, @"..\..\ThirdParty\DXTDecompressor\inc"));
+        PublicIncludePaths.AddRange(
+            new string[] {
+                System.IO.Path.Combine(ModuleDirectory, @"..\..\ThirdParty\gli"),
+                System.IO.Path.Combine(ModuleDirectory, @"..\..\ThirdParty\glm"),
+                System.IO.Path.Combine(ModuleDirectory, @"..\..\ThirdParty"),
+            }
+            );
 
         PublicDependencyModuleNames.AddRange(
 			new string[]

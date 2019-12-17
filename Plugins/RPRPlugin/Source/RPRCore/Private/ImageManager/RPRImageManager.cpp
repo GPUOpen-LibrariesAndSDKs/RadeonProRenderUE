@@ -119,7 +119,7 @@ namespace RPR
 		TArray<uint8>	rprData;
 		rprData.SetNum(totalByteCount);
 
-		bool bAreTextureCopied = RPR::FTextureHelpers::CopyTexture((const uint8*) textureDataReadOnly, desc, rprData, platformData->PixelFormat, Texture->SRGB);
+		bool bAreTextureCopied = RPR::FTextureHelpers::CopyTexture(static_cast<const uint8*>(textureDataReadOnly), bulkDataSize, desc, rprData, platformData->PixelFormat, Texture->SRGB);
 		mipData.Unlock();
 
 		if (!bAreTextureCopied)
@@ -203,7 +203,7 @@ namespace RPR
 		rprData.SetNum(totalByteCount);
 
 		//ConvertPixels(srcData.GetData(), rprData, srcFormat, desc.image_width * desc.image_height);
-		RPR::FTextureHelpers::CopyTexture(srcData.GetData(), desc, rprData, srcFormat, Texture->SRGB);
+		RPR::FTextureHelpers::CopyTexture(srcData.GetData(), srcData.GetAllocatedSize(), desc, rprData, srcFormat, Texture->SRGB);
 
 		RPR::FImage image;
 		if (RPR::IsResultFailed(rprContextCreateImage(context, dstFormat, &desc, rprData.GetData(), &image)))
@@ -269,6 +269,9 @@ namespace RPR
 		case PF_A8R8G8B8:
 		case PF_B8G8R8A8:
 		case PF_FloatRGBA:
+		case PF_DXT1:
+		case PF_DXT5:
+		case PF_BC5:
 			return (true);
 
 		default:
@@ -294,6 +297,8 @@ namespace RPR
 		case PF_R8G8B8A8:
 		case PF_B8G8R8A8:
 		case PF_DXT1:
+		case PF_DXT5:
+		case PF_BC5:
 		{
 			// TODO post siggraph, try sending only 3 float/uints
 			//if (imageType == EImageType::NormalMap)

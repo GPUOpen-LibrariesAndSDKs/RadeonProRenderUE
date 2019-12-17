@@ -33,6 +33,8 @@
 #include "Scene/StaticMeshComponent/DelegateHandleManager.h"
 #include "RPRStaticMeshComponent.generated.h"
 
+class UMaterialExpressionClamp;
+
 namespace	RadeonProRender
 {
 	class	matrix;
@@ -89,12 +91,10 @@ private:
 	void	UpdateLastMaterialList();
 
 	void ProcessUE4Material(FRPRShape& shape, UMaterial* material);
-	RPR::RPRXVirtualNode* ConvertExpressionToVirtualNode(UMaterialExpression* expr, const void* parameter = nullptr);
-	RPR::FMaterialNode ProcessColorNode(const FString& nodeId, const FLinearColor& color);
-	RPR::RPRXVirtualNode* ProcessVirtualColorNode(const FString& nodeId, const FLinearColor& color);
-	RPR::RPRXVirtualNode* TextureSamplesChannel(const FString& vNodeId, const int32 outputIndex, const RPR::RPRXVirtualNode* imgNode);
+	RPR::RPRXVirtualNode* ConvertExpressionToVirtualNode(UMaterialExpression* expr, const int32 inputParameter);
+	RPR::RPRXVirtualNode* ParseInputNodeOrCreateDefaultAlternative(FExpressionInput input, FString defaultId, float default);
 	void TwoOperandsMathNodeSetInputs(RPR::RPRXVirtualNode* vNode, const TArray<FExpressionInput*> inputs, const float ConstA, const float ConstB);
-
+	void GetMinAndMaxNodesForClamp(UMaterialExpressionClamp* expression, RPR::RPRXVirtualNode** minNode, RPR::RPRXVirtualNode** maxNode);
 
 	RPR::FResult	DetachCurrentMaterial(RPR::FShape Shape);
 	FRPRShape*		FindShapeByMaterialIndex(int32 MaterialIndex);
