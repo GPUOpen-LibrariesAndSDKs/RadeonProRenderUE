@@ -13,8 +13,6 @@
 #include "RPRCoreErrorHelper.h"
 #include "Enums/RPREnums.h"
 
-#include <stdexcept>
-
 DECLARE_LOG_CATEGORY_CLASS(LogRPRXMaterial, Log, Verbose)
 
 RPR::FRPRXMaterial::FRPRXMaterial(const URPRMaterial* InUE4MaterialLink)
@@ -124,10 +122,7 @@ void RPR::FRPRXMaterial::ReleaseRPRXMaterial()
 	{
 		ReleaseMaterialNodes();
 
-		rpr_status status;
-		status = DeleteObject(Material);
-		if (status != RPR_SUCCESS)
-			throw std::runtime_error("Ups");
+		(void)DeleteObject(Material);
 
 	}
 	catch (std::exception ex)

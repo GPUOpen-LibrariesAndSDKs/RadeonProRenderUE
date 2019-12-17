@@ -70,7 +70,6 @@ private:
 
 	RPR::FContext			RPRContext;
 	RPR::FMaterialSystem	RPRMaterialSystem;
-
 	RPR::FImageManagerPtr	RPRImageManager;
 	FRPRXMaterialLibrary	RPRXMaterialLibrary;
 };
