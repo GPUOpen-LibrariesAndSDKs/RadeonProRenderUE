@@ -8,7 +8,7 @@ namespace RPR
 	{
 	public:
 
-		static bool CopyTexture(const uint8* TextureData, const RPR::FImageDesc& ImageDesc, TArray<uint8> &OutData, EPixelFormat PixelFormat, bool bUseSRGB = false);
+		static bool CopyTexture(const uint8* TextureData, const uint32 TextureDataSize, const RPR::FImageDesc& ImageDesc, TArray<uint8> &OutData, EPixelFormat PixelFormat, bool bUseSRGB = false);
 
 	private:
 

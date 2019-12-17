@@ -1,8 +1,58 @@
 #include "Helpers/RPRTextureHelpers.h"
 
-#include "DXTDecompressor.h"
+#include "gli/texture2d.hpp"
+#include "gli/convert.hpp"
+#include "gli/load.hpp"
 
-bool RPR::FTextureHelpers::CopyTexture(const uint8* TextureData, const RPR::FImageDesc& ImageDesc, TArray<uint8> &OutData, EPixelFormat PixelFormat, bool bUseSRGB)
+namespace {
+	std::vector<uint32> dxtHeaderBlank = {
+		0x20534444, /* dwMagic                      - c-string "DDS "                                                                      */
+		0x0000007C, /* dwSize                       - Size of structure. This member must be set to 124 (size without "DDS ")              */
+		0x00081007, /* dwFlags                                                                                                             */
+		0x00000000, /* dwHeight                                                                                                            */
+		0x00000000, /* dwWidth                                                                                                             */
+		0x00000000, /* dwPitchOrLinearSize          - The pitch or number of bytes per scan line in an uncompressed texture                */
+		0x00000000, /* dwDepth                                                                                                             */
+		0x00000001, /* dwMipMapCount                                                                                                       */
+		0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, /* dwReserved1[11] - unused */
+		0x00000020, /* DDS_PIXELFORMAT: dwSize       - Structure size; set to 32 (bytes)                                                   */
+		0x00000004, /* DDS_PIXELFORMAT: dwFlags                                                                                            */
+		0x00000000, /* DDS_PIXELFORMAT: dwFourCC     - Four-character code: DXT1, DXT2, DXT3, DXT4, or DXT5.                               */
+		0x00000000, /* DDS_PIXELFORMAT: dwRGBBitCount                                                                                      */
+		0x00000000, /* DDS_PIXELFORMAT: dwRBitMask                                                                                         */
+		0x00000000, /* DDS_PIXELFORMAT: dwGBitMask                                                                                         */
+		0x00000000, /* DDS_PIXELFORMAT: dwBBitMask                                                                                         */
+		0x00000000, /* DDS_PIXELFORMAT: dwABitMask                                                                                         */
+		0x00001000, /* dwCaps                        - Specifies the complexity of the surfaces stored. DDSCAPS_TEXTURE - 0x1000           */
+		0x00000000, /* dwCaps2                                                                                                             */
+		0x00000000, /* dwCaps3                                                                                                             */
+		0x00000000, /* dwCaps4                                                                                                             */
+		0x00000000, /* dwReserved2                                                                                                         */
+	};
+
+	void ConvertDxtTexture(const uint8* textureData, const uint32 textureDataSize, const char* fourCC, const RPR::FImageDesc& imageDesc, uint8* dst)
+	{
+		*(dxtHeaderBlank.data() + 3) = imageDesc.image_height;
+		*(dxtHeaderBlank.data() + 4) = imageDesc.image_width;
+		*(dxtHeaderBlank.data() + 5) = textureDataSize;
+		*(dxtHeaderBlank.data() + 21) = *(reinterpret_cast<const uint32*>(fourCC));
+
+		std::vector<char> restoredTexture(textureDataSize + 128);
+		memcpy(restoredTexture.data(), dxtHeaderBlank.data(), 128);
+		memcpy(restoredTexture.data() + 128, textureData, textureDataSize);
+
+		gli::texture dxtCompressed = gli::load(restoredTexture.data(), restoredTexture.size());
+		assert(dxtCompressed.empty());
+		gli::texture2d dxtTexture2d(dxtCompressed);
+		assert(dxtTexture2d.empty());
+		gli::texture2d rgba8compressed = gli::convert(dxtTexture2d, gli::FORMAT_RGBA8_UNORM_PACK32);
+		assert(rgba8compressed.empty());
+
+		memcpy(dst, rgba8compressed.data(), imageDesc.image_row_pitch * imageDesc.image_height);
+	}
+}
+
+bool RPR::FTextureHelpers::CopyTexture(const uint8* TextureData, const uint32 TextureDataSize, const RPR::FImageDesc& ImageDesc, TArray<uint8> &OutData, EPixelFormat PixelFormat, bool bUseSRGB)
 {
 	const float width = ImageDesc.image_width;
 	const float height = ImageDesc.image_height;
@@ -42,8 +92,23 @@ bool RPR::FTextureHelpers::CopyTexture(const uint8* TextureData, const RPR::FIma
 		}
 		case PF_DXT1:
 		{
-			uint8* bts = reinterpret_cast<uint8*>(dst);
-			DXTDecompressor::DecompressImage(bts, width, height, TextureData);
+			ConvertDxtTexture(TextureData, TextureDataSize, "DXT1", ImageDesc, dst);
+			bAreDataCopied = true;
+			break;
+		}
+		case PF_DXT5:
+		{
+			ConvertDxtTexture(TextureData, TextureDataSize, "DXT5", ImageDesc, dst);
+			bAreDataCopied = true;
+			break;
+		}
+		case PF_BC5:
+		{
+			ConvertDxtTexture(TextureData, TextureDataSize, "BC5U", ImageDesc, dst);
+
+			for (size_t idx = 2; idx < ImageDesc.image_row_pitch * ImageDesc.image_height; idx += 4)
+				*(dst + idx) = 255;
+
 			bAreDataCopied = true;
 			break;
 		}
