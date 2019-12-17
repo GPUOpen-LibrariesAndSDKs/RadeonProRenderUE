@@ -41,13 +41,6 @@ namespace RPR
 	* Returns true if the results is a failure
 	*/
 	RPRTOOLS_API bool		IsResultFailed(rpr_int Result);
-
-	/*
-	* Generate exception if something goes wrong
-	*/
-	RPRTOOLS_API void		scheck(rpr_int status);
-	RPRTOOLS_API void		scheck(rpr_int status, const std::string& message);
-
 	
 	/*
 	* Delete a native object.

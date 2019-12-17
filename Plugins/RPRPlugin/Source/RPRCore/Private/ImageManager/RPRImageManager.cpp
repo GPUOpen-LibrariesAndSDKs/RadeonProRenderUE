@@ -130,7 +130,10 @@ namespace RPR
 
 		RPR::FImage image;
 		RPR::FResult status = rprContextCreateImage(context, dstFormat, &desc, rprData.GetData(), &image);
-		RPR::scheck(status);
+		if (status != RPR_SUCCESS) {
+			UE_LOG(LogRPRImageManager, Error, TEXT("rprContextCreateImage failed"));
+			return nullptr;
+		}
 
 		UE_LOG(LogRPRCore_Steps, Verbose, TEXT("rprContextCreateImage(context=%p) -> status=%d, image=%p"), context, status, image);
 

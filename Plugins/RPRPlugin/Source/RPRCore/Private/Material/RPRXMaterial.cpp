@@ -252,7 +252,10 @@ RPR::FRPRXMaterialNode::FRPRXMaterialNode(FString name, unsigned int type) :
 
 	RPR::FResult status;
 	status = rprMaterialSystemCreateNode(materialSystem, m_type, &Material);
-	scheck(status, "Native RPRX Material could not be created for material");
+	if (status != RPR_SUCCESS) {
+		UE_LOG(LogRPRXMaterial, Warning, TEXT("Can't create material node"));
+		Material = nullptr;
+	}
 }
 
 RPR::FRPRXMaterialNode::~FRPRXMaterialNode()
