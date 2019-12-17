@@ -425,17 +425,26 @@ void	FRPRRendererWorker::UpdatePostEffectSettings()
 		check(m_RprPhotolinearTonemap == nullptr);
 		check(m_RprSimpleTonemap == nullptr);
 
-		if (rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_WHITE_BALANCE, &m_RprWhiteBalance) != RPR_SUCCESS ||
-			rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_GAMMA_CORRECTION, &m_RprGammaCorrection) != RPR_SUCCESS ||
-			rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_SIMPLE_TONEMAP, &m_RprSimpleTonemap) != RPR_SUCCESS ||
-			rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_TONE_MAP, &m_RprPhotolinearTonemap) != RPR_SUCCESS ||
-			rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_NORMALIZATION, &m_RprNormalization) != RPR_SUCCESS ||
-			rprContextAttachPostEffect(m_RprContext, m_RprNormalization) != RPR_SUCCESS ||
+		if (rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_WHITE_BALANCE, &m_RprWhiteBalance) != RPR_SUCCESS)
+			return;
+
+		if (rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_GAMMA_CORRECTION, &m_RprGammaCorrection) != RPR_SUCCESS)
+			return;
+
+		if (rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_SIMPLE_TONEMAP, &m_RprSimpleTonemap) != RPR_SUCCESS)
+			return;
+
+		if (rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_TONE_MAP, &m_RprPhotolinearTonemap) != RPR_SUCCESS)
+			return;
+
+		if (rprContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_NORMALIZATION, &m_RprNormalization) != RPR_SUCCESS)
+			return;
+
+		if (rprContextAttachPostEffect(m_RprContext, m_RprNormalization) != RPR_SUCCESS ||
 			rprContextAttachPostEffect(m_RprContext, m_RprSimpleTonemap) != RPR_SUCCESS ||
 			rprContextAttachPostEffect(m_RprContext, m_RprPhotolinearTonemap) != RPR_SUCCESS ||
 			rprContextAttachPostEffect(m_RprContext, m_RprWhiteBalance) != RPR_SUCCESS ||
-			rprContextAttachPostEffect(m_RprContext, m_RprGammaCorrection) != RPR_SUCCESS ||
-			rprContextSetParameterByKey1u(m_RprContext, RPR_CONTEXT_TONE_MAPPING_TYPE, RPR_TONEMAPPING_OPERATOR_PHOTOLINEAR) != RPR_SUCCESS)
+			rprContextAttachPostEffect(m_RprContext, m_RprGammaCorrection) != RPR_SUCCESS)
 		{
 			UE_LOG(LogRPRRenderer, Error, TEXT("RPR Post effects creation failed"));
 			RPR::Error::LogLastError(m_RprContext);
@@ -448,17 +457,49 @@ void	FRPRRendererWorker::UpdatePostEffectSettings()
 	check(m_RprPhotolinearTonemap != nullptr);
 	check(m_RprSimpleTonemap != nullptr);
 
-	if (rprPostEffectSetParameter1f(m_RprWhiteBalance, "colortemp", settings->WhiteBalanceTemperature) != RPR_SUCCESS ||
-		rprPostEffectSetParameter1u(m_RprWhiteBalance, "colorspace", RPR_COLOR_SPACE_SRGB) != RPR_SUCCESS ||
-		rprContextSetParameterByKey1u(m_RprContext, RPR_CONTEXT_DISPLAY_GAMMA, settings->GammaCorrectionValue) != RPR_SUCCESS ||
-		rprPostEffectSetParameter1f(m_RprSimpleTonemap, "exposure", settings->SimpleTonemapExposure) != RPR_SUCCESS ||
-		rprPostEffectSetParameter1f(m_RprSimpleTonemap, "contrast", settings->SimpleTonemapContrast) != RPR_SUCCESS ||
-		rprContextSetParameterByKey1f(m_RprContext, RPR_CONTEXT_TONE_MAPPING_PHOTO_LINEAR_SENSITIVITY, settings->PhotolinearTonemapSensitivity) != RPR_SUCCESS ||
-		rprContextSetParameterByKey1f(m_RprContext, RPR_CONTEXT_TONE_MAPPING_PHOTO_LINEAR_EXPOSURE, settings->PhotolinearTonemapExposure) != RPR_SUCCESS ||
-		rprContextSetParameterByKey1f(m_RprContext,  RPR_CONTEXT_TONE_MAPPING_PHOTO_LINEAR_FSTOP, settings->PhotolinearTonemapFStop) != RPR_SUCCESS)
-	{
+	if (rprContextSetParameterByKey1u(m_RprContext, RPR_CONTEXT_TONE_MAPPING_TYPE, RPR_TONEMAPPING_OPERATOR_PHOTOLINEAR) != RPR_SUCCESS) {
 		UE_LOG(LogRPRRenderer, Warning, TEXT("Couldn't apply post effect properties"));
-		RPR::Error::LogLastError(m_RprContext);
+		return;
+	}
+
+	if (rprContextSetParameterByKey1f(m_RprContext, RPR_CONTEXT_DISPLAY_GAMMA, settings->GammaCorrectionValue) != RPR_SUCCESS) {
+		UE_LOG(LogRPRRenderer, Warning, TEXT("Couldn't apply post effect properties"));
+		return;
+	}
+
+	if (rprContextSetParameterByKey1f(m_RprContext, RPR_CONTEXT_TONE_MAPPING_PHOTO_LINEAR_SENSITIVITY, settings->PhotolinearTonemapSensitivity) != RPR_SUCCESS) {
+		UE_LOG(LogRPRRenderer, Warning, TEXT("Couldn't apply post effect properties"));
+		return;
+	}
+
+	if (rprContextSetParameterByKey1f(m_RprContext, RPR_CONTEXT_TONE_MAPPING_PHOTO_LINEAR_EXPOSURE, settings->PhotolinearTonemapExposure) != RPR_SUCCESS) {
+		UE_LOG(LogRPRRenderer, Warning, TEXT("Couldn't apply post effect properties"));
+		return;
+	}
+
+	if (rprContextSetParameterByKey1f(m_RprContext, RPR_CONTEXT_TONE_MAPPING_PHOTO_LINEAR_FSTOP, settings->PhotolinearTonemapFStop) != RPR_SUCCESS) {
+		UE_LOG(LogRPRRenderer, Warning, TEXT("Couldn't apply post effect properties"));
+		return;
+	}
+
+	if (rprPostEffectSetParameter1f(m_RprSimpleTonemap, "exposure", settings->SimpleTonemapExposure) != RPR_SUCCESS) {
+		UE_LOG(LogRPRRenderer, Warning, TEXT("Couldn't apply post effect properties"));
+		return;
+	}
+
+	if (rprPostEffectSetParameter1f(m_RprSimpleTonemap, "contrast", settings->SimpleTonemapContrast) != RPR_SUCCESS) {
+		UE_LOG(LogRPRRenderer, Warning, TEXT("Couldn't apply post effect properties"));
+		return;
+	}
+
+	if (rprPostEffectSetParameter1f(m_RprWhiteBalance, "colortemp", settings->WhiteBalanceTemperature) != RPR_SUCCESS) {
+		UE_LOG(LogRPRRenderer, Warning, TEXT("Couldn't apply post effect properties"));
+		return;
+	}
+
+	if (rprPostEffectSetParameter1u(m_RprWhiteBalance, "colorspace", RPR_COLOR_SPACE_SRGB) != RPR_SUCCESS) {
+		UE_LOG(LogRPRRenderer, Warning, TEXT("Couldn't apply post effect properties"));
+		return;
 	}
 }
 
