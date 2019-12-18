@@ -401,7 +401,7 @@ void URPRStaticMeshComponent::ProcessUE4Material(FRPRShape& shape, UMaterial* ma
 		RPR::RPRXVirtualNode* normalInput = ConvertExpressionToVirtualNode(material->Normal.Expression, material->Normal.OutputIndex);
 
 		RPR::FMaterialNode normalNode = materialLibrary.getOrCreateIfNotExists(
-			material->Normal.Expression->GetName() + L"_MaterialNormalMapNode",
+			idPrefix + material->Normal.Expression->GetName() + L"_MaterialNormalMapNode",
 			RPR::EMaterialNodeType::NormalMap);
 
 		materialLibrary.setNodeConnection(normalNode, RPR_MATERIAL_INPUT_COLOR, normalInput->realNode);
