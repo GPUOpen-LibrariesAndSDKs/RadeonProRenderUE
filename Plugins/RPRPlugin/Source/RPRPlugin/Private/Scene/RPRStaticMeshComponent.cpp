@@ -710,7 +710,7 @@ void URPRStaticMeshComponent::TwoOperandsMathNodeSetInputs(RPR::RPRXVirtualNode*
 	if (inputs[1]->Expression)
 		materialLibrary.setNodeConnection(vNode, RPR_MATERIAL_INPUT_COLOR1, ConvertExpressionToVirtualNode(inputs[1]->Expression, inputs[1]->OutputIndex));
 	else
-		materialLibrary.setNodeFloat(vNode->realNode, RPR_MATERIAL_INPUT_COLOR0, ConstB, ConstB, ConstB, ConstB);
+		materialLibrary.setNodeFloat(vNode->realNode, RPR_MATERIAL_INPUT_COLOR1, ConstB, ConstB, ConstB, ConstB);
 }
 
 void URPRStaticMeshComponent::GetMinAndMaxNodesForClamp(UMaterialExpressionClamp* expression, RPR::RPRXVirtualNode** minNode, RPR::RPRXVirtualNode** maxNode)
