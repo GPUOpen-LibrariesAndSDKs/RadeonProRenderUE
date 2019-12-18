@@ -1,4 +1,4 @@
-#include "TriPlanarSettingsInterfaceEditor.h"
+#include "TriPlanarSettings/TriPlanarSettingsInterfaceEditor.h"
 #include "TriPlanarMaterialEnabler.h"
 #include "MaterialEditHelper.h"
 #include "RPRCpMaterial.h"

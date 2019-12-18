@@ -30,7 +30,7 @@
 #include "Widgets/Layout/SBox.h"
 #include "Material/TriPlanarSettings.h"
 #include "TriPlanarSettingsEditorLoader.h"
-#include "TriPlanarSettingsInterfaceEditor.h"
+#include "TriPlanarSettings/TriPlanarSettingsInterfaceEditor.h"
 #include "RPRStaticMeshEditor/RPRStaticMeshEditor.h"
 
 #define LOCTEXT_NAMESPACE "SUVProjectionTriPlanar"

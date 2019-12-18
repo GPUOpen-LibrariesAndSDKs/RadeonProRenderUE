@@ -77,7 +77,6 @@ namespace RPR
 		}
 
 		FTexturePlatformData	*platformData = *Texture->GetRunningPlatformData();
-		bool isInlined = platformData->TryInlineMipData();
 
 		if (platformData->Mips.Num() == 0 || !platformData->Mips[0].BulkData.IsBulkDataLoaded())
 		{
