@@ -219,7 +219,7 @@ RPR::FRPRXMaterialNodePtr FRPRXMaterialLibrary::createMaterial(FString name, uns
 	RPR::FRPRXMaterialNodePtr materialPtr = MakeShareable(new RPR::FRPRXMaterialNode(name, type));
 
 	if (!materialPtr->IsMaterialValid())
-		throw std::exception("FRPRXMaterialLibrary::createMaterial: materialPtr isn't valid");
+		return nullptr;
 
 	m_materials.Add(name, materialPtr);
 
@@ -238,7 +238,8 @@ RPR::FMaterialNode FRPRXMaterialLibrary::createNode(FString materialNode, RPR::E
 
 	RPR::FMaterialNode material;
 	RPR::FResult result = RPR::FMaterialHelpers::CreateNode(materialSystem, materialType, materialNode, material);
-	scheck(result);
+	if (result != RPR_SUCCESS)
+		return nullptr;
 
 	m_materialNodes.Add(materialNode, material);
 
@@ -324,14 +325,21 @@ void FRPRXMaterialLibrary::setNodeFloat(RPR::FMaterialNode materialNode, unsigne
 {
 	RPR::FResult status;
 	status = RPR::FMaterialHelpers::FMaterialNode::SetInputFloats(materialNode, parameter, r, g, b, a);
-	RPR::scheck(status);
+	if (status != RPR_SUCCESS) {
+		UE_LOG(LogRPRMaterialLibrary, Error, TEXT("Set node float"));
+		return;
+	}
 }
 
 void FRPRXMaterialLibrary::setNodeUInt(RPR::FMaterialNode materialNode, unsigned int parameter, unsigned int value)
 {
 	RPR::FResult status;
 	status = RPR::FMaterialHelpers::FMaterialNode::SetInputUInt(materialNode, parameter, value);
-	RPR::scheck(status);
+	if (status != RPR_SUCCESS) {
+		UE_LOG(LogRPRMaterialLibrary, Error, TEXT("Set node uint"));
+		return;
+	}
+
 }
 
 void FRPRXMaterialLibrary::setNodeConnection(RPR::RPRXVirtualNode* vNode, const unsigned int parameter, RPR::RPRXVirtualNode* otherNode)
@@ -359,7 +367,10 @@ void FRPRXMaterialLibrary::setNodeConnection(RPR::FMaterialNode materialNode, co
 {
 	RPR::FResult status;
 	status = RPR::FMaterialHelpers::FMaterialNode::SetInputNode(materialNode, parameter, otherNode);
-	RPR::scheck(status);
+	if (status != RPR_SUCCESS) {
+		UE_LOG(LogRPRMaterialLibrary, Error, TEXT("Set node connection"));
+		return;
+	}
 }
 
 RPR::FMaterialNode  FRPRXMaterialLibrary::createImage(UTexture2D* texture)
@@ -377,7 +388,10 @@ RPR::FMaterialNode  FRPRXMaterialLibrary::createImage(UTexture2D* texture)
 
 	RPR::FResult status;
 	status = RPR::FMaterialHelpers::CreateImageNode(context, materialSystem, *imageManager, texture, outImage, outMaterialNode, outImageNode);
-	RPR::scheck(status);
+	if (status != RPR_SUCCESS) {
+		UE_LOG(LogRPRMaterialLibrary, Error, TEXT("Create image node"));
+		return nullptr;
+	}
 
 	return outMaterialNode;
 }
@@ -391,7 +405,10 @@ RPR::FMaterialNode FRPRXMaterialLibrary::createImageNodeFromImageData(const FStr
 	{
 		node = createNode(imageNodeId, EMaterialNodeType::ImageTexture);
 		RPR::FResult result = RPR::FMaterialHelpers::FMaterialNode::SetInputImageData(node, RPR_MATERIAL_INPUT_DATA, imagePtr.Get());
-		RPR::scheck(result);
+		if (result != RPR_SUCCESS) {
+			UE_LOG(LogRPRMaterialLibrary, Error, TEXT("Set input image data"));
+			return node;
+		}
 	}
 
 	return node;

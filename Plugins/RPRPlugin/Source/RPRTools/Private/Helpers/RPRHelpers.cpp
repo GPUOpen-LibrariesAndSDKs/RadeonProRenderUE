@@ -83,18 +83,6 @@ namespace RPR
 		return !IsResultSuccess(Result);
 	}
 
-	void scheck(rpr_int result)
-	{
-		if (!IsResultSuccess(result))
-			throw std::exception();
-	}
-
-	void scheck(rpr_int status, const std::string& message)
-	{
-		if (!IsResultSuccess(status))
-			throw std::runtime_error(message);
-	}
-
 	FResult DeleteObject(void*& Object)
 	{
 		FResult status = rprObjectDelete(Object);
