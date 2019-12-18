@@ -77,8 +77,9 @@ namespace RPR
 		}
 
 		FTexturePlatformData	*platformData = *Texture->GetRunningPlatformData();
+#if WITH_EDITORONLY_DATA
 		platformData->TryInlineMipData();
-
+#endif
 		if (platformData->Mips.Num() == 0 || !platformData->Mips[0].BulkData.IsBulkDataLoaded())
 		{
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't build image: no Mips in PlatformData"));
