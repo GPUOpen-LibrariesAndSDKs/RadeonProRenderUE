@@ -531,7 +531,7 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		RPR::FImagePtr outImage = IRPRCore::GetResources()->GetRPRImageManager()->LoadImageFromTexture(texture2d);
 
 		if (!outImage || !outImage.IsValid())
-			return nullptr;
+			return GetValueNode(idPrefix + L"_DefaultValueNodeForUnsupportedUEnodesOrError", 0.01);
 
 		node->realNode = materialLibrary.createImageNodeFromImageData(vNodeId, outImage);
 
@@ -730,7 +730,7 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		return combine;
 	}
 
-	return node;
+	return GetValueNode(idPrefix + L"_DefaultValueNodeForUnsupportedUEnodesOrError", 0.01);
 }
 
 RPR::RPRXVirtualNode* URPRStaticMeshComponent::ParseInputNodeOrCreateDefaultAlternative(FExpressionInput input, FString defaultId, float default)
