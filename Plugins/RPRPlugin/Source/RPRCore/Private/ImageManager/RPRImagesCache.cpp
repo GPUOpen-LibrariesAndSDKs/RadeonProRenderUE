@@ -54,8 +54,8 @@ namespace RPR
 
 	RPR::FImagePtr FImagesCache::Get(UTexture* Texture)
 	{
-		RPR::FImageWeakPtr* imgWkPtr = loadedImages.Find(Texture);
-		return imgWkPtr != nullptr ? imgWkPtr->Pin() : nullptr;
+		RPR::FImagePtr* imgPtr = loadedImages.Find(Texture);
+		return imgPtr != nullptr ? *imgPtr : nullptr;
 	}
 
 	void FImagesCache::RemoveDeprecatedImages()
