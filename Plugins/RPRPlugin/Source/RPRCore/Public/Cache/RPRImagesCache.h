@@ -24,7 +24,7 @@
 namespace RPR
 {
 	/*
-	* Cache for the RPR Image. 
+	* Cache for the RPR Image.
 	* Once the image is added, the cache becomes owner of the image and will delete it when resources will be released.
 	*/
 	class FImagesCache
@@ -47,7 +47,7 @@ namespace RPR
 
 	private:
 
-		TMap<TWeakObjectPtr<UTexture>, FImageWeakPtr>	loadedImages;
+		TMap<TWeakObjectPtr<UTexture>, FImagePtr>	loadedImages;
 
 	};
 
