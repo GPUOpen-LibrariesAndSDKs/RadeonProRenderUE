@@ -22,7 +22,7 @@
 #include "Typedefs/RPRTypedefs.h"
 #include "RPRCoreModule.h"
 #include "Material/UberMaterialParameters/RPRMaterialMap.h"
-#include "RPRMaterialNormalMap.h"
+#include "Material/UberMaterialParameters/RPRMaterialNormalMap.h"
 
 namespace RPRX
 {
