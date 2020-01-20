@@ -35,17 +35,17 @@ public class RPRTools : ModuleRules
 			new string[] {
 				"RPRTools/Public",
                 "RPRTools/Private",
-                System.IO.Path.Combine(ModuleDirectory, @"..\..\ThirdParty\gli"),
-                System.IO.Path.Combine(ModuleDirectory, @"..\..\ThirdParty\glm"),
-                System.IO.Path.Combine(ModuleDirectory, @"..\..\ThirdParty"),
+                System.IO.Path.Combine(ModuleDirectory, @"../../ThirdParty/gli"),
+                System.IO.Path.Combine(ModuleDirectory, @"../../ThirdParty/glm"),
+                System.IO.Path.Combine(ModuleDirectory, @"../../ThirdParty"),
             }
 			);
 
         PublicIncludePaths.AddRange(
             new string[] {
-                System.IO.Path.Combine(ModuleDirectory, @"..\..\ThirdParty\gli"),
-                System.IO.Path.Combine(ModuleDirectory, @"..\..\ThirdParty\glm"),
-                System.IO.Path.Combine(ModuleDirectory, @"..\..\ThirdParty"),
+                System.IO.Path.Combine(ModuleDirectory, @"../../ThirdParty/gli"),
+                System.IO.Path.Combine(ModuleDirectory, @"../../ThirdParty/glm"),
+                System.IO.Path.Combine(ModuleDirectory, @"../../ThirdParty"),
             }
             );
 

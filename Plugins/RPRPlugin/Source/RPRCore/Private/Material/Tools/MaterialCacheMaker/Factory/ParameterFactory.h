@@ -58,7 +58,7 @@ namespace RPRX
 		}
 
 		template<typename ParameterSetterType>
-		static TSharedPtr<IMaterialParameter> FFactory::InstantiateParameterType()
+		TSharedPtr<IMaterialParameter> FFactory::InstantiateParameterType()
 		{
 			return MakeShareable(new ParameterSetterType());
 		}

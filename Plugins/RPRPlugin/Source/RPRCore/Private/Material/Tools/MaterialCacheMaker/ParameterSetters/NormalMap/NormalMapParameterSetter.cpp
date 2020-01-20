@@ -57,7 +57,7 @@ namespace RPRX
 					OutImage, OutMaterialNode, OutImageNode);
 			}
 			break;
-			
+
 			case ENormalMapMode::Normal:
 			default:
 			{

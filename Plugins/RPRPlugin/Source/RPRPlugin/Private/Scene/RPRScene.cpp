@@ -1,4 +1,4 @@
-/**********************************************************************
+/**********************************************************************D
 * Copyright (c) 2018 Advanced Micro Devices, Inc. All rights reserved.
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@
 #include "Scene/RPRViewportCameraComponent.h"
 #include "Renderer/RPRRendererWorker.h"
 
-#include "HAL/PlatformFileManager.h"
+#include "HAL/PlatformFilemanager.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Slate/SceneViewport.h"
 
