@@ -16,30 +16,26 @@ class RPRCORE_API IRPRCore : public IModuleInterface
 {
 
 public:
+	void StartupModule() override;
+	void ShutdownModule() override;
 
-	static inline IRPRCore& Get()
+	static IRPRCore& Get()
 	{
-		check(RPRCoreModuleInstance);
-		return *RPRCoreModuleInstance;
+		return FModuleManager::LoadModuleChecked<IRPRCore>("RPRCore");
 	}
 
-	static inline bool IsAvailable()
+	static bool IsAvailable()
 	{
 		return FModuleManager::Get().IsModuleLoaded("RPRCore");
 	}
 
-	static inline FRPRCoreSystemResourcesPtr GetResources()
+	static FRPRCoreSystemResourcesPtr GetResources()
 	{
-		return (IRPRCore::Get().InternalGetResources());
+		return FModuleManager::LoadModuleChecked<IRPRCore>("RPRCore").Resources;
 	}
 
-protected:
-
-	virtual FRPRCoreSystemResourcesPtr	InternalGetResources() = 0;
-
-protected:
-
-	static IRPRCore* RPRCoreModuleInstance;
+private:
+	FRPRCoreSystemResourcesPtr Resources;
 
 };
 
