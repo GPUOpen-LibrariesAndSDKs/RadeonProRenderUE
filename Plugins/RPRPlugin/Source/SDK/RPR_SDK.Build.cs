@@ -28,23 +28,27 @@ using UnrealBuildTool;
 /// </summary>
 public class RPR_SDK : ModuleRules
 {
-    static string[] StaticLibraryNames = new string[]
+    static string[] WindowsStaticLibraryNames = new string[]
     {
-        "RadeonProRender",
-        "RprLoadStore",
+        "RadeonProRender64.lib",
+        "RprLoadStore64.lib",
+        "RadeonImageFilters64.lib",
     };
 
-    static string[] DynamicLibraryNames = new string[]
+    static string[] WindowsDynamicLibraryNames = new string[]
     {
-        "RadeonProRender",
-        "RprLoadStore",
-        "Tahoe",
+        "RadeonProRender64.dll",
+        "RprLoadStore64.dll",
+        "Tahoe64.dll",
+        "Hybrid.dll",
+        "RadeonImageFilters64.dll",
     };
 
-    static string[] LinuxLibraries = new string[]
+    static string[] LinuxDynamicLibraries = new string[]
     {
         "libRadeonProRender64.so",
-        "libRprLoadStore64.so"
+        "libRprLoadStore64.so",
+        "libRadeonImageFilters64.so",
     };
 
     public string ThirdPartyDirectory
@@ -58,156 +62,103 @@ public class RPR_SDK : ModuleRules
     {
         bEnableExceptions = true;
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-       
-     	PrivateIncludePaths.AddRange(
-			new string[] {
-                "SDK/Public",
-                "SDK/Private",
-            });
 
-
-        PublicDependencyModuleNames.AddRange(
-            new string[]
-            {
-                 "Core",
-                 "RPRPluginVersion"
-            });
-        
-        AddRPRIncludes(PublicIncludePaths);
-		
-		if (Target.Platform == UnrealTargetPlatform.Win64) 
-		{
-		    AddRPRStaticLibraries(Target);
-        	AddDynamicLibraries(Target);
-		} 
-		else if (Target.Platform == UnrealTargetPlatform.Linux) 
-		{
-			AddLinuxLibraries(Target);
-		} 
-		else 
-		{
-			Console.WriteLine("warning: Platform '{0}' not supported!", Target.Platform);
-		}
-    }
-
-    private void AddLinuxLibraries(ReadOnlyTargetRules Target) 
-    {
-		// for Linux/Mac plugin links only with *.so files at compile time. 
-		string libPath = Path.Combine(SDKDirectory, @"RadeonProRender/binUbuntu18");
-
-        if (!Directory.Exists(libPath))
-	    {
-    	    Console.WriteLine("RPR library directory doesn't exists: " + libPath);
-        	return;
-	    }
-
-		for (int i = 0; i < LinuxLibraries.Length; ++i) {
-            PublicAdditionalLibraries.Add(Path.Combine(libPath, LinuxLibraries[i]));
-    	}
-    }
-
-    public void AddDynamicLibraries(ReadOnlyTargetRules Target)
-    {
-        string libExtension = GetDynamicLibraryExtensionByPlatform(Target.Platform);
-
-		string libraryPrefix;
-        string librarySuffix;
-        string platformName;
-        if (!GetPlatformDatas(Target.Platform, out platformName, out librarySuffix, out libraryPrefix))
-        {
-            return;
-        }
-
-        string libPath = Path.Combine(SDKDirectory, @"RadeonProRender/bin" + platformName);
-
-        if (!Directory.Exists(libPath))
-        {
-            Console.WriteLine("Dynamic library directory doesn't exist ! " + libPath);
-            return;
-        }
-
-        PublicLibraryPaths.Add(libPath);
-
-        for (int i = 0; i < DynamicLibraryNames.Length; ++i)
-        {
-            PublicDelayLoadDLLs.Add(libraryPrefix + DynamicLibraryNames[i] + librarySuffix + libExtension);
-        }
-    }
-
-    public void AddRPRIncludes(List<string> IncludePaths)
-    {
-        IncludePaths.AddRange(new string[] {
-            Path.Combine(SDKDirectory, @"RadeonProRender"),
-            Path.Combine(SDKDirectory, @"RadeonProRender/inc")
+        PrivateIncludePaths.AddRange(new string[] {
+            "SDK/Public",
+            "SDK/Private",
         });
+
+
+        PublicDependencyModuleNames.AddRange(new string[] {
+            "Core",
+            "RPRPluginVersion"
+        });
+
+        PublicIncludePaths.AddRange(new string[] {
+            Path.Combine(SDKDirectory, @"RadeonProRender"),
+            Path.Combine(SDKDirectory, @"RadeonProRender/inc"),
+        });
+
+        if (Target.Platform == UnrealTargetPlatform.Win64)
+        {
+            PublicIncludePaths.Add(Path.Combine(ThirdPartyDirectory, @"RadeonProImageProcessingSDK/radeonimagefilters-1.4.4-778df0-Windows-rel/include"));
+            AddWindowsStaticLibraries(Target);
+            AddWindowsDynamicLibraries(Target);
+        }
+        else if (Target.Platform == UnrealTargetPlatform.Linux)
+        {
+            PublicIncludePaths.Add(Path.Combine(ThirdPartyDirectory, @"RadeonProImageProcessingSDK/radeonimagefilters-1.4.4-778df0-Ubuntu18-rel/include"));
+            AddLinuxDynamicLibraries(Target);
+        }
+        else
+        {
+            Console.WriteLine("warning: Platform '{0}' not supported!", Target.Platform);
+        }
     }
 
-    public void AddRPRStaticLibraries(ReadOnlyTargetRules Target)
+    private void AddLinuxDynamicLibraries(ReadOnlyTargetRules Target)
     {
-        string libExtension = GetStaticLibraryExtensionByPlatform(Target.Platform);
+        // for Linux/Mac plugin links only with *.so files at compile time.
+        string rprLibPath = Path.Combine(SDKDirectory, @"RadeonProRender/binUbuntu18");
+        string imageProcessingLibPath = Path.Combine(ThirdPartyDirectory, @"RadeonProImageProcessingSDK/radeonimagefilters-1.4.4-778df0-Ubuntu18-rel/bin");
 
-        string libraryPrefix;
-        string librarySuffix;
-        string platformName;
-        if (!GetPlatformDatas(Target.Platform, out platformName, out librarySuffix, out libraryPrefix))
-        {
+        if (!CheckDirectory(rprLibPath))
             return;
-        }
 
-        string librariesDirectoryPath = Path.Combine(SDKDirectory, @"RadeonProRender/lib" + platformName);
+        if (!CheckDirectory(imageProcessingLibPath))
+            return;
 
-        for (int i = 0; i < StaticLibraryNames.Length; ++i)
-        {
-            PublicAdditionalLibraries.Add(Path.Combine(librariesDirectoryPath, StaticLibraryNames[i] + librarySuffix + libExtension));
-        }
+        PublicLibraryPaths.Add(rprLibPath);
+        PublicLibraryPaths.Add(imageProcessingLibPath);
+
+        for (int i = 0; i < LinuxDynamicLibraries.Length; ++i)
+            PublicAdditionalLibraries.Add(Path.Combine(rprLibPath, LinuxDynamicLibraries[i]));
     }
 
-    public static string GetStaticLibraryExtensionByPlatform(UnrealTargetPlatform Platform)
+    public void AddWindowsDynamicLibraries(ReadOnlyTargetRules Target)
     {
-        if (Platform == UnrealTargetPlatform.Win64 || Platform == UnrealTargetPlatform.Win32)
-            return (".lib");
+        string rprLibPath = Path.Combine(SDKDirectory, @"RadeonProRender/binWin64");
+        string imageProcessingLibPath = Path.Combine(ThirdPartyDirectory, @"RadeonProImageProcessingSDK/radeonimagefilters-1.4.4-778df0-Windows-rel/bin");
 
-        if (Platform == UnrealTargetPlatform.Linux || Platform == UnrealTargetPlatform.Mac)
-            return (".a");
+        if (!CheckDirectory(rprLibPath))
+            return;
 
-        Console.WriteLine("Platform '{0}' not supported", Platform);
-        return (string.Empty);
+        if (!CheckDirectory(imageProcessingLibPath))
+            return;
+
+        PublicLibraryPaths.Add(rprLibPath);
+        PublicLibraryPaths.Add(imageProcessingLibPath);
+
+        for (int i = 0; i < WindowsDynamicLibraryNames.Length; ++i)
+            PublicDelayLoadDLLs.Add(WindowsDynamicLibraryNames[i]);
     }
 
-    public static string GetDynamicLibraryExtensionByPlatform(UnrealTargetPlatform Platform)
+    public void AddWindowsStaticLibraries(ReadOnlyTargetRules Target)
     {
-        if (Platform == UnrealTargetPlatform.Win64 || Platform == UnrealTargetPlatform.Win32)
-            return (".dll");
-        
-        if (Platform == UnrealTargetPlatform.Linux || Platform == UnrealTargetPlatform.Mac)
-            return (".so");
-        
-        Console.WriteLine("Platform '{0}' not supported", Platform);
-        return (string.Empty);        
+        string rprLibPath = Path.Combine(SDKDirectory, @"RadeonProRender/libWin64");
+        string imageProcessingLibPath = Path.Combine(ThirdPartyDirectory, @"RadeonProImageProcessingSDK/radeonimagefilters-1.4.4-778df0-Windows-rel/bin");
+
+        if (!CheckDirectory(rprLibPath))
+            return;
+
+        if (!CheckDirectory(imageProcessingLibPath))
+            return;
+
+        PublicLibraryPaths.Add(rprLibPath);
+        PublicLibraryPaths.Add(imageProcessingLibPath);
+
+        for (int i = 0; i < WindowsStaticLibraryNames.Length; ++i)
+            PublicAdditionalLibraries.Add(WindowsStaticLibraryNames[i]);
     }
 
-    public static bool GetPlatformDatas(UnrealTargetPlatform Platform, out string platformName, out string librarySuffix, out string libraryPrefix)
+    private bool CheckDirectory(string path)
     {
-        if (Platform == UnrealTargetPlatform.Win64) 
+        if (!Directory.Exists(path))
         {
-            platformName = "Win64";
-            librarySuffix = "64";
-            libraryPrefix = "";
-            return (true);
+            Console.WriteLine("Dynamic library directory doesn't exist ! " + path);
+            return false;
         }
 
-        if (Platform == UnrealTargetPlatform.Linux) 
-        {
-        	platformName = "Ubuntu18";
-        	librarySuffix = "64";
-        	libraryPrefix = "lib";
-        	return (true);
-        }
-
-        Console.WriteLine("warning: Platform '{0}' not supported!", Platform);
-        platformName = string.Empty;
-        librarySuffix = string.Empty;
-        libraryPrefix = string.Empty;
-        return (false);
+        return true;
     }
 }

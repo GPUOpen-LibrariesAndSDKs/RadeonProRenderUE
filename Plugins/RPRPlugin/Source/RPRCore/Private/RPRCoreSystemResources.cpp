@@ -21,8 +21,12 @@
 #include "Helpers/RPRHelpers.h"
 #include "RPRSettings.h"
 #include "RPRCoreErrorHelper.h"
+#define RIF_STATIC_LIBRARY 0
+#include "RadeonImageFilters.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRCoreSystemResources, Log, All)
+
+static void* ImageLibraryHandler;
 
 FRPRCoreSystemResources::FRPRCoreSystemResources()
 	: bIsInitialized(false)
@@ -54,7 +58,13 @@ bool FRPRCoreSystemResources::InitializeRPRRendering()
 {
 	if (!LoadTahoeDLL())
 	{
-		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Cannot load Tahoe DLL"));
+		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Cannot load Tahoe dynamic library"));
+		return (false);
+	}
+
+	if (!LoadImageFilterDLL())
+	{
+		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Cannot load RadeonImageFilters dynamic library"));
 		return (false);
 	}
 
@@ -91,8 +101,9 @@ bool FRPRCoreSystemResources::LoadTahoeDLL()
 		return (false);
 	#endif
 
-		const FString dllDirectory = FRPR_SDKModule::GetDLLsDirectory();
+		const FString dllDirectory = FRPR_SDKModule::GetDLLsDirectory(TEXT("RadeonProRenderSDK"));
 		const FString dllPath = FPaths::Combine(dllDirectory, tahoe64LibName);
+
 		if (!FPaths::FileExists(dllPath))
 		{
 			UE_LOG(LogRPRCoreSystemResources, Error, TEXT("DLL '%s' doesn't exist!"), *dllPath);
@@ -109,6 +120,33 @@ bool FRPRCoreSystemResources::LoadTahoeDLL()
 	}
 
 	return (true);
+}
+
+bool FRPRCoreSystemResources::LoadImageFilterDLL()
+{
+	if (ImageLibraryHandler == nullptr)
+	{
+	#if PLATFORM_WINDOWS
+		const FString imageFilters64LibName = TEXT("RadeonImageFilters64.dll");
+	#elif PLATFORM_LINUX
+		const FString imageFilters64LibName = TEXT("libRadeonImageFilters64.so");
+	#else
+		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Platform not supported"));
+		return (false);
+	#endif
+
+		const FString dllDirectory = FRPR_SDKModule::GetDLLsDirectory(TEXT("RadeonProImageProcessingSDK"));
+		const FString dllPath = FPaths::Combine(dllDirectory, imageFilters64LibName);
+
+		if (!FPaths::FileExists(dllPath))
+		{
+			UE_LOG(LogRPRCoreSystemResources, Error, TEXT("DLL '%s' doesn't exist!"), *dllPath);
+			return (false);
+		}
+
+		ImageLibraryHandler = FPlatformProcess::GetDllHandle(*dllPath);
+	}
+	return true;
 }
 
 bool FRPRCoreSystemResources::InitializeContext()

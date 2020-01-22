@@ -41,19 +41,24 @@ bool FRPR_SDKModule::IsLoaded()
 	return FModuleManager::Get().IsModuleLoaded("RPR_SDK");
 }
 
-FString FRPR_SDKModule::GetDLLsDirectory()
+FString FRPR_SDKModule::GetDLLsDirectory(FString sdk)
 {
 	checkf(PLATFORM_64BITS, TEXT("Only 64 bits platform supported."));
 
 	if (PLATFORM_WINDOWS) {
-		return FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProRenderSDK/RadeonProRender/binWin64");
+		return sdk.Compare(TEXT("RadeonProRenderSDK")) == 0 ?
+			FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProRenderSDK/RadeonProRender/binWin64") :
+			FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProImageProcessingSDK/radeonimagefilters-1.4.4-778df0-Windows-rel/bin");
 	}
 
 	if (PLATFORM_LINUX) {
-		return FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProRenderSDK/RadeonProRender/binUbuntu18");
+		return sdk.Compare(TEXT("RadeonProRenderSDK")) == 0 ?
+			FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProRenderSDK/RadeonProRender/binUbuntu18") :
+			FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProImageProcessingSDK/radeonimagefilters-1.4.4-778df0-Ubuntu18-rel/bin");
 	}
 
 	checkf(false, TEXT("Only Windows/Linux 64bits supported."));
+
 	return TEXT("");
 }
 
@@ -65,7 +70,9 @@ void FRPR_SDKModule::StartupModule()
 
 	if (FRPRPluginVersionModule::IsPluginSetupValid())
 	{
-		FPlatformProcess::PushDllDirectory(*GetDLLsDirectory());
+		//keep the order of pushing a path to the stack, because of libraries' load in reverse order to push order.
+		FPlatformProcess::PushDllDirectory(*GetDLLsDirectory(TEXT("RadeonProImageProcessingSDK")));
+		FPlatformProcess::PushDllDirectory(*GetDLLsDirectory(TEXT("RadeonProRenderSDK")));
 		bIsSDKLoadValid = true;
 	}
 }
