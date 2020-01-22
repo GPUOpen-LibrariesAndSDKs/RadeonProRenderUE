@@ -49,6 +49,7 @@ private:
 	void	InitializeRPRImageManager();
 	void	InitializeRPRXMaterialLibrary();
 	bool	LoadTahoeDLL();
+	bool	LoadImageFilterDLL();
 
 	void	DestroyRPRContext();
 	void	DestroyMaterialSystem();

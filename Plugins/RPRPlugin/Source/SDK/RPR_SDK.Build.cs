@@ -30,29 +30,31 @@ public class RPR_SDK : ModuleRules
 {
     static string[] StaticLibraryNames = new string[]
     {
-        "RadeonProRender",
-        "RprLoadStore",
+        "RadeonProRender64",
+        "RprLoadStore64",
     };
 
     static string[] DynamicLibraryNames = new string[]
     {
-        "RadeonProRender",
-        "RprLoadStore",
-        "Tahoe",
+        "RadeonProRender64",
+        "RprLoadStore64",
+        "Tahoe64",
+        "Hybrid",
+        "RadeonImageFilters64",
     };
 
     public string ThirdPartyDirectory
-    { get { return ("../../ThirdParty/"); } }
+    { get { return Path.GetFullPath(ModuleDirectory + @"\..\..\ThirdParty"); } }
 
     public string SDKDirectory
-    { get { return (ThirdPartyDirectory + "RadeonProRenderSDK/"); } }
+    { get { return Path.Combine(ThirdPartyDirectory, @"RadeonProRenderSDK"); } }
 
 
     public RPR_SDK(ReadOnlyTargetRules Target) : base(Target)
     {
         bEnableExceptions = true;
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-       
+
      	PrivateIncludePaths.AddRange(
 			new string[] {
                 "SDK/Public",
@@ -66,7 +68,7 @@ public class RPR_SDK : ModuleRules
                  "Core",
                  "RPRPluginVersion"
             });
-        
+
         AddRPRIncludes(PublicIncludePaths);
 
         AddRPRStaticLibraries(Target);
@@ -75,16 +77,13 @@ public class RPR_SDK : ModuleRules
 
     public void AddDynamicLibraries(ReadOnlyTargetRules Target)
     {
-        string libExtension = GetDynamicLibraryExtensionByPlatform(Target.Platform);
-
-        string librarySuffix;
         string platformName;
-        if (!GetPlatformDatas(Target.Platform, out platformName, out librarySuffix))
-        {
+
+        if (!GetPlatformDatas(Target.Platform, out platformName))
             return;
-        }
-        
-        string libPath = ModuleDirectory + "/" + SDKDirectory + "RadeonProRender/bin" + platformName;
+
+        string libPath = Path.Combine(SDKDirectory, @"RadeonProRender\bin" + platformName);
+
         if (!Directory.Exists(libPath))
         {
             Console.WriteLine("Dynamic library directory doesn't exist ! " + libPath);
@@ -92,41 +91,41 @@ public class RPR_SDK : ModuleRules
         }
 
         PublicLibraryPaths.Add(libPath);
+        PublicLibraryPaths.Add(Path.Combine(ThirdPartyDirectory, @"RadeonProImageProcessingSDK/radeonimagefilters-1.4.4-778df0-Windows-rel\bin"));
+
+        string libExtension = GetDynamicLibraryExtensionByPlatform(Target.Platform);
 
         for (int i = 0; i < DynamicLibraryNames.Length; ++i)
         {
-            string filename = DynamicLibraryNames[i] + librarySuffix + libExtension;
-            string srcPath = filename;
-
-            PublicDelayLoadDLLs.Add(srcPath);
+            PublicDelayLoadDLLs.Add(DynamicLibraryNames[i] + libExtension);
         }
     }
 
     public void AddRPRIncludes(List<string> IncludePaths)
     {
         IncludePaths.AddRange(new string[] {
-            ModuleDirectory + "/" + SDKDirectory + "RadeonProRender",
-            ModuleDirectory + "/" + SDKDirectory + "RadeonProRender/inc",
+            Path.Combine(SDKDirectory, @"RadeonProRender"),
+            Path.Combine(SDKDirectory, @"RadeonProRender\inc"),
+            Path.Combine(ThirdPartyDirectory, @"RadeonProImageProcessingSDK\radeonimagefilters-1.4.4-778df0-Windows-rel\include"),
         });
     }
 
     public void AddRPRStaticLibraries(ReadOnlyTargetRules Target)
     {
-        string libExtension = GetStaticLibraryExtensionByPlatform(Target.Platform);
-
-        string librarySuffix;
         string platformName;
-        if (!GetPlatformDatas(Target.Platform, out platformName, out librarySuffix))
-        {
+
+        if (!GetPlatformDatas(Target.Platform, out platformName))
             return;
-        }
-        
-        string librariesDirectoryPath = ModuleDirectory + "/" + SDKDirectory + "RadeonProRender/lib" + platformName + "/";
+
+        string librariesDirectoryPath = Path.Combine(SDKDirectory, @"RadeonProRender\lib" + platformName);
+        string libExtension = GetStaticLibraryExtensionByPlatform(Target.Platform);
 
         for (int i = 0; i < StaticLibraryNames.Length; ++i)
         {
-            PublicAdditionalLibraries.Add(librariesDirectoryPath + StaticLibraryNames[i] + librarySuffix + libExtension);
+            PublicAdditionalLibraries.Add(Path.Combine(librariesDirectoryPath, StaticLibraryNames[i] + libExtension));
         }
+
+        PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyDirectory, @"RadeonProImageProcessingSDK\radeonimagefilters-1.4.4-778df0-Windows-rel\bin\RadeonImageFilters64.lib"));
     }
 
     public static string GetStaticLibraryExtensionByPlatform(UnrealTargetPlatform Platform)
@@ -165,19 +164,17 @@ public class RPR_SDK : ModuleRules
         }
     }
 
-    public static bool GetPlatformDatas(UnrealTargetPlatform Platform, out string platformName, out string librarySuffix)
+    public static bool GetPlatformDatas(UnrealTargetPlatform Platform, out string platformName)
     {
         switch (Platform)
         {
             case UnrealTargetPlatform.Win64:
                 platformName = "Win64";
-                librarySuffix = "64";
                 return (true);
 
             default:
                 Console.WriteLine("warning: Platform '{0}' not supported!", Platform);
                 platformName = string.Empty;
-                librarySuffix = string.Empty;
                 return (false);
         }
     }

@@ -21,8 +21,14 @@
 #include "Helpers/RPRHelpers.h"
 #include "RPRSettings.h"
 #include "RPRCoreErrorHelper.h"
+#define RIF_STATIC_LIBRARY 0
+#include "RadeonImageFilters.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRCoreSystemResources, Log, All)
+
+namespace {
+	static void* ImageLibraryHandler;
+}
 
 FRPRCoreSystemResources::FRPRCoreSystemResources()
 	: bIsInitialized(false)
@@ -58,6 +64,12 @@ bool FRPRCoreSystemResources::InitializeRPRRendering()
 		return (false);
 	}
 
+	if (!LoadImageFilterDLL())
+	{
+		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Cannot load Tahoe DLL"));
+		return (false);
+	}
+
 	if (!InitializeContext())
 	{
 		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Cannot initialize RPR context"));
@@ -81,9 +93,9 @@ bool FRPRCoreSystemResources::LoadTahoeDLL()
 {
 	if (TahoePluginId == INDEX_NONE)
 	{
-		const FString tahoe64LibName = TEXT("Tahoe64.dll");
-		const FString dllDirectory = FRPR_SDKModule::GetDLLsDirectory();
-		const FString dllPath = FPaths::Combine(dllDirectory, tahoe64LibName);
+		const FString libName = TEXT("Tahoe64.dll");
+		const FString dllDirectory = FRPR_SDKModule::GetDLLsDirectory(TEXT("RadeonProRenderSDK"));
+		const FString dllPath = FPaths::Combine(dllDirectory, libName);
 		if (!FPaths::FileExists(dllPath))
 		{
 			UE_LOG(LogRPRCoreSystemResources, Error, TEXT("DLL '%s' doesn't exist!"), *dllPath);
@@ -93,13 +105,31 @@ bool FRPRCoreSystemResources::LoadTahoeDLL()
 		TahoePluginId = RPR::RegisterPlugin(dllPath);
 		if (RPR::IsResultFailed(TahoePluginId))
 		{
-			UE_LOG(LogRPRCoreSystemResources, Error, TEXT("\"%s\" not registered by \"%s\" path (%#04)"), *tahoe64LibName, *dllPath, TahoePluginId);
+			UE_LOG(LogRPRCoreSystemResources, Error, TEXT("\"%s\" not registered by \"%s\" path (%#04)"), *libName, *dllPath, TahoePluginId);
 			TahoePluginId = INDEX_NONE;
 			return (false);
 		}
 	}
 
 	return (true);
+}
+
+bool FRPRCoreSystemResources::LoadImageFilterDLL()
+{
+	if (ImageLibraryHandler == nullptr)
+	{
+		const FString dllDirectory = FRPR_SDKModule::GetDLLsDirectory(TEXT("RadeonProImageProcessingSDK"));
+		const FString dllPath = FPaths::Combine(dllDirectory, TEXT("RadeonImageFilters64.dll"));
+
+		if (!FPaths::FileExists(dllPath))
+		{
+			UE_LOG(LogRPRCoreSystemResources, Error, TEXT("DLL '%s' doesn't exist!"), *dllPath);
+			return (false);
+		}
+
+		ImageLibraryHandler = FPlatformProcess::GetDllHandle(*dllPath);
+	}
+	return true;
 }
 
 bool FRPRCoreSystemResources::InitializeContext()
