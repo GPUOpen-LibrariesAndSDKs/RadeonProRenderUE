@@ -31,8 +31,8 @@ public:
 
 	virtual void	StartupModule() override;
 	virtual void	ShutdownModule() override;
-
-	static FString	GetDLLsDirectory(FString sdk);
+	
+	static FString	GetDLLsDirectory();
 
 	static bool		IsSDKLoadValid();
 	static bool		IsLoaded();

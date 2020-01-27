@@ -108,7 +108,7 @@ namespace RPR
 
 	FResult RegisterPlugin(const FString& DllPath)
 	{
-		return rprRegisterPlugin(TCHAR_TO_UTF8(*DllPath));
+		return rprRegisterPlugin(TCHAR_TO_ANSI(*DllPath));
 	}
 
 	bool AreDevicesCompatible(FPluginId PluginId, const FString& RenderCachePath, bool bDoWhiteListTest, FCreationFlags DevicesUsed, FCreationFlags& OutDevicesCompatible, RPR_TOOLS_OS ToolsOS)
