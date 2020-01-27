@@ -21,7 +21,7 @@ public:
 
 	static IRPRCore& Get()
 	{
-		return FModuleManager::LoadModuleChecked<IRPRCore>("RPRCore");
+		return FModuleManager::GetModuleChecked<IRPRCore>("RPRCore");
 	}
 
 	static bool IsAvailable()
@@ -31,7 +31,7 @@ public:
 
 	static FRPRCoreSystemResourcesPtr GetResources()
 	{
-		return FModuleManager::LoadModuleChecked<IRPRCore>("RPRCore").Resources;
+		return FModuleManager::GetModuleChecked<IRPRCore>("RPRCore").Resources;
 	}
 
 private:
