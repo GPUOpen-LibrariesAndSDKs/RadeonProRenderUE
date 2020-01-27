@@ -39,10 +39,12 @@ bool FRPR_SDKModule::IsLoaded()
 	return FModuleManager::Get().IsModuleLoaded("RPR_SDK");
 }
 
-FString FRPR_SDKModule::GetDLLsDirectory()
+FString FRPR_SDKModule::GetDLLsDirectory(FString sdk)
 {
 	checkf(PLATFORM_64BITS & PLATFORM_WINDOWS, TEXT("Only Windows 64bits supported."));
-	return FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProRenderSDK/RadeonProRender/binWin64");
+	return sdk.Compare(TEXT("RadeonProRenderSDK")) == 0 ?
+		FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProRenderSDK/RadeonProRender/binWin64") :
+		FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProImageProcessingSDK/radeonimagefilters-1.4.4-778df0-Windows-rel/bin");
 }
 
 void FRPR_SDKModule::StartupModule()
@@ -52,13 +54,10 @@ void FRPR_SDKModule::StartupModule()
 	check(FRPRPluginVersionModule::IsLoaded());
 	if (FRPRPluginVersionModule::IsPluginSetupValid())
 	{
-		TArray<FString> dllNames;
-		dllNames.Add(TEXT("Tahoe64.dll"));
-		dllNames.Add(TEXT("RadeonProRender64.dll"));
-		dllNames.Add(TEXT("RprLoadStore64.dll"));
-
-		dllHandles = FRPRDynamicLibraryLoader::LoadLibraries(GetDLLsDirectory(), dllNames);
-		bIsSDKLoadValid = (dllHandles.Num() > 0);
+		//keep the order of pushing a path to the stack, because of libraries' load in reverse order to push order.
+		FPlatformProcess::PushDllDirectory(*GetDLLsDirectory(TEXT("RadeonProImageProcessingSDK")));
+		FPlatformProcess::PushDllDirectory(*GetDLLsDirectory(TEXT("RadeonProRenderSDK")));
+		bIsSDKLoadValid = true;
 	}
 }
 

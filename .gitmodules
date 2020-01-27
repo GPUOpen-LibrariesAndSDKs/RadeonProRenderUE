@@ -9,3 +9,7 @@
 	path = Plugins/RPRPlugin/ThirdParty/glm
 	url = git@github.com:g-truc/glm.git
 	branch = master
+[submodule "Plugins/RPRPlugin/ThirdParty/RadeonProImageProcessingSDK"]
+	path = Plugins/RPRPlugin/ThirdParty/RadeonProImageProcessingSDK
+	url = git@github.com:Radeon-Pro/RadeonProImageProcessingSDK.git
+	branch = master
