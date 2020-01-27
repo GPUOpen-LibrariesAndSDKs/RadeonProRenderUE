@@ -403,7 +403,7 @@ void URPRStaticMeshComponent::ProcessUE4Material(FRPRShape& shape, UMaterial* ma
 	}
 
 	status = rprShapeSetMaterial(shape.m_RprShape, uberMaterialPtr->GetRawMaterial());
-  LOG_ERROR(status, TEXT("Can't set shape material"));
+	LOG_ERROR(status, TEXT("Can't set shape material"));
 #endif
 }
 
