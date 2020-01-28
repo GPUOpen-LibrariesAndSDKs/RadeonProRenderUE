@@ -41,11 +41,17 @@ public class RPR_SDK : ModuleRules
         "Tahoe",
     };
 
+    static string[] LinuxLibraries = new string[]
+    {
+        "libRadeonProRender64.so",
+        "libRprLoadStore64.so"
+    };
+
     public string ThirdPartyDirectory
-    { get { return ("../../ThirdParty/"); } }
+    { get { return Path.GetFullPath(ModuleDirectory + @"/../../ThirdParty"); } }
 
     public string SDKDirectory
-    { get { return (ThirdPartyDirectory + "RadeonProRenderSDK/"); } }
+    { get { return Path.Combine(ThirdPartyDirectory, @"RadeonProRenderSDK"); } }
 
 
     public RPR_SDK(ReadOnlyTargetRules Target) : base(Target)
@@ -68,23 +74,52 @@ public class RPR_SDK : ModuleRules
             });
         
         AddRPRIncludes(PublicIncludePaths);
+		
+		if (Target.Platform == UnrealTargetPlatform.Win64) 
+		{
+		    AddRPRStaticLibraries(Target);
+        	AddDynamicLibraries(Target);
+		} 
+		else if (Target.Platform == UnrealTargetPlatform.Linux) 
+		{
+			AddLinuxLibraries(Target);
+		} 
+		else 
+		{
+			Console.WriteLine("warning: Platform '{0}' not supported!", Target.Platform);
+		}
+    }
 
-        AddRPRStaticLibraries(Target);
-        AddDynamicLibraries(Target);
+    private void AddLinuxLibraries(ReadOnlyTargetRules Target) 
+    {
+		// for Linux/Mac plugin links only with *.so files at compile time. 
+		string libPath = Path.Combine(SDKDirectory, @"RadeonProRender/binUbuntu18");
+
+        if (!Directory.Exists(libPath))
+	    {
+    	    Console.WriteLine("RPR library directory doesn't exists: " + libPath);
+        	return;
+	    }
+
+		for (int i = 0; i < LinuxLibraries.Length; ++i) {
+            PublicAdditionalLibraries.Add(Path.Combine(libPath, LinuxLibraries[i]));
+    	}
     }
 
     public void AddDynamicLibraries(ReadOnlyTargetRules Target)
     {
         string libExtension = GetDynamicLibraryExtensionByPlatform(Target.Platform);
 
+		string libraryPrefix;
         string librarySuffix;
         string platformName;
-        if (!GetPlatformDatas(Target.Platform, out platformName, out librarySuffix))
+        if (!GetPlatformDatas(Target.Platform, out platformName, out librarySuffix, out libraryPrefix))
         {
             return;
         }
-        
-        string libPath = ModuleDirectory + "/" + SDKDirectory + "RadeonProRender/bin" + platformName;
+
+        string libPath = Path.Combine(SDKDirectory, @"RadeonProRender/bin" + platformName);
+
         if (!Directory.Exists(libPath))
         {
             Console.WriteLine("Dynamic library directory doesn't exist ! " + libPath);
@@ -95,18 +130,15 @@ public class RPR_SDK : ModuleRules
 
         for (int i = 0; i < DynamicLibraryNames.Length; ++i)
         {
-            string filename = DynamicLibraryNames[i] + librarySuffix + libExtension;
-            string srcPath = filename;
-
-            PublicDelayLoadDLLs.Add(srcPath);
+            PublicDelayLoadDLLs.Add(libraryPrefix + DynamicLibraryNames[i] + librarySuffix + libExtension);
         }
     }
 
     public void AddRPRIncludes(List<string> IncludePaths)
     {
         IncludePaths.AddRange(new string[] {
-            ModuleDirectory + "/" + SDKDirectory + "RadeonProRender",
-            ModuleDirectory + "/" + SDKDirectory + "RadeonProRender/inc",
+            Path.Combine(SDKDirectory, @"RadeonProRender"),
+            Path.Combine(SDKDirectory, @"RadeonProRender/inc")
         });
     }
 
@@ -114,71 +146,68 @@ public class RPR_SDK : ModuleRules
     {
         string libExtension = GetStaticLibraryExtensionByPlatform(Target.Platform);
 
+        string libraryPrefix;
         string librarySuffix;
         string platformName;
-        if (!GetPlatformDatas(Target.Platform, out platformName, out librarySuffix))
+        if (!GetPlatformDatas(Target.Platform, out platformName, out librarySuffix, out libraryPrefix))
         {
             return;
         }
-        
-        string librariesDirectoryPath = ModuleDirectory + "/" + SDKDirectory + "RadeonProRender/lib" + platformName + "/";
+
+        string librariesDirectoryPath = Path.Combine(SDKDirectory, @"RadeonProRender/lib" + platformName);
 
         for (int i = 0; i < StaticLibraryNames.Length; ++i)
         {
-            PublicAdditionalLibraries.Add(librariesDirectoryPath + StaticLibraryNames[i] + librarySuffix + libExtension);
+            PublicAdditionalLibraries.Add(Path.Combine(librariesDirectoryPath, StaticLibraryNames[i] + librarySuffix + libExtension));
         }
     }
 
     public static string GetStaticLibraryExtensionByPlatform(UnrealTargetPlatform Platform)
     {
-        switch (Platform)
-        {
-            case UnrealTargetPlatform.Win64:
-            case UnrealTargetPlatform.Win32:
-                return (".lib");
+        if (Platform == UnrealTargetPlatform.Win64 || Platform == UnrealTargetPlatform.Win32)
+            return (".lib");
 
-            case UnrealTargetPlatform.Linux:
-            case UnrealTargetPlatform.Mac:
-                return (".a");
+        if (Platform == UnrealTargetPlatform.Linux || Platform == UnrealTargetPlatform.Mac)
+            return (".a");
 
-            default:
-                Console.WriteLine("Platform '{0}' not supported", Platform);
-                return (string.Empty);
-        }
+        Console.WriteLine("Platform '{0}' not supported", Platform);
+        return (string.Empty);
     }
 
     public static string GetDynamicLibraryExtensionByPlatform(UnrealTargetPlatform Platform)
     {
-        switch (Platform)
-        {
-            case UnrealTargetPlatform.Win64:
-            case UnrealTargetPlatform.Win32:
-                return (".dll");
-
-            case UnrealTargetPlatform.Linux:
-            case UnrealTargetPlatform.Mac:
-                return (".so");
-
-            default:
-                Console.WriteLine("Platform '{0}' not supported", Platform);
-                return (string.Empty);
-        }
+        if (Platform == UnrealTargetPlatform.Win64 || Platform == UnrealTargetPlatform.Win32)
+            return (".dll");
+        
+        if (Platform == UnrealTargetPlatform.Linux || Platform == UnrealTargetPlatform.Mac)
+            return (".so");
+        
+        Console.WriteLine("Platform '{0}' not supported", Platform);
+        return (string.Empty);        
     }
 
-    public static bool GetPlatformDatas(UnrealTargetPlatform Platform, out string platformName, out string librarySuffix)
+    public static bool GetPlatformDatas(UnrealTargetPlatform Platform, out string platformName, out string librarySuffix, out string libraryPrefix)
     {
-        switch (Platform)
+        if (Platform == UnrealTargetPlatform.Win64) 
         {
-            case UnrealTargetPlatform.Win64:
-                platformName = "Win64";
-                librarySuffix = "64";
-                return (true);
-
-            default:
-                Console.WriteLine("warning: Platform '{0}' not supported!", Platform);
-                platformName = string.Empty;
-                librarySuffix = string.Empty;
-                return (false);
+            platformName = "Win64";
+            librarySuffix = "64";
+            libraryPrefix = "";
+            return (true);
         }
+
+        if (Platform == UnrealTargetPlatform.Linux) 
+        {
+        	platformName = "Ubuntu18";
+        	librarySuffix = "64";
+        	libraryPrefix = "lib";
+        	return (true);
+        }
+
+        Console.WriteLine("warning: Platform '{0}' not supported!", Platform);
+        platformName = string.Empty;
+        librarySuffix = string.Empty;
+        libraryPrefix = string.Empty;
+        return (false);
     }
 }

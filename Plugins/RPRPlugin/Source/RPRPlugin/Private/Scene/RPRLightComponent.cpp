@@ -104,7 +104,7 @@ bool	URPRLightComponent::BuildIESLight(const UPointLightComponent *lightComponen
 	FTransform newComponentTransform = FTransform(SrcComponent->GetComponentTransform());
 	newComponentTransform.SetRotation(newComponentTransform.GetRotation() * FQuat::MakeFromEuler(FVector(0.0f, 90.0f, 0.0f)));
 	SrcComponent->SetComponentToWorld(newComponentTransform);
-													
+
 	return true;
 #else
 	return false; // AssetUserData not available in runtime builds
@@ -135,7 +135,7 @@ bool	URPRLightComponent::BuildSpotLight(const USpotLightComponent *spotLightComp
 	if (spotLightComponent->IESTexture != NULL)
 		return BuildIESLight(spotLightComponent);
 	const FLinearColor	lightColor = BuildRPRLightColor(spotLightComponent, spotLightComponent->IntensityUnits, RPR::Light::Constants::kSpotLightIntensityScale * (m_CachedAffectsWorld ? 1.0f : 0.0f));
-	
+
 	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
 	if (rprContextCreateSpotLight(rprContext, &m_RprLight) != RPR_SUCCESS ||
 		rprSpotLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B) != RPR_SUCCESS ||
@@ -295,7 +295,7 @@ bool	URPRLightComponent::PostBuild()
 		return Super::PostBuild();
 	const FTransform oldComponentTransform = FTransform(SrcComponent->GetComponentTransform());
 
-	if (!BuildSkyLight(skyLightComponent) != NULL)
+	if (!BuildSkyLight(skyLightComponent))
 		return false;
 
 	if (m_RprLight == NULL)

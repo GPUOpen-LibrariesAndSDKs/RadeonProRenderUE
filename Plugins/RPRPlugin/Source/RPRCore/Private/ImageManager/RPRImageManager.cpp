@@ -96,7 +96,7 @@ namespace RPR
 
 		FByteBulkData &mipData = platformData->Mips[0].BulkData;
 		const uint32  bulkDataSize = mipData.GetBulkDataSize();
-		if (platformData->SizeX <= 0 || platformData <= 0 || bulkDataSize <= 0)
+		if (platformData->SizeX <= 0 || bulkDataSize <= 0)
 		{
 			UE_LOG(LogRPRImageManager, Warning, TEXT("Couldn't build image: empty PlatformData Mips BulkData"));
 			return nullptr;

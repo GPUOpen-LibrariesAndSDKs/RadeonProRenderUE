@@ -87,8 +87,8 @@ namespace RPR
 		{
 			RPR::FResult status = rprContextResolveFrameBuffer(Context, SrcFrameBuffer, DstFrameBuffer, bShouldNormalizeOnly);
 
-			UE_LOG(LogRPRTools_Step, VeryVerbose, 
-				TEXT("rprContextResolveFrameBuffer(context=%p, srcFrameBuffer=%p, dstFrameBuffer=%p, shouldNormalizeOnly=%s) -> %d"), 
+			UE_LOG(LogRPRTools_Step, VeryVerbose,
+				TEXT("rprContextResolveFrameBuffer(context=%p, srcFrameBuffer=%p, dstFrameBuffer=%p, shouldNormalizeOnly=%s) -> %d"),
 				Context, SrcFrameBuffer, DstFrameBuffer, bShouldNormalizeOnly ? TEXT("true") : TEXT("false"), status);
 
 			return status;
@@ -118,7 +118,7 @@ namespace RPR
 		}
 
 		FResult CreateMesh(FContext Context, const TCHAR* MeshName,
-					const TArray<FVector>& Vertices, const TArray<FVector>& Normals, const TArray<uint32>& Indices, 
+					const TArray<FVector>& Vertices, const TArray<FVector>& Normals, const TArray<uint32>& Indices,
 					const TArray<FVector2D>& Texcoords, const TArray<uint32>& NumFaceVertices, FShape& OutMesh)
 		{
 			RPR::FResult status = rprContextCreateMesh(Context,
@@ -160,7 +160,7 @@ namespace RPR
 
 		namespace MaterialSystem
 		{
-			FResult MaterialSystem::Create(RPR::FContext Context, RPR::FMaterialSystemType Type, RPR::FMaterialSystem& OutMaterialSystem)
+			FResult Create(RPR::FContext Context, RPR::FMaterialSystemType Type, RPR::FMaterialSystem& OutMaterialSystem)
 			{
 				return (rprContextCreateMaterialSystem(Context, Type, &OutMaterialSystem));
 			}

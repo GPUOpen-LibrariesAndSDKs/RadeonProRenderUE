@@ -17,7 +17,7 @@ namespace RPR
 		RPR::FResult GetInfoNoAlloc(FGetInfoFunction GetInfoFunction, void* Source, U InfoType, T* OutValue)
 		{
 			RPR::FResult status;
-			uint64 size = 0;
+			size_t size = 0;
 
 			status = GetInfoFunction(Source, (rpr_int) InfoType, 0, nullptr, &size);
 			if (RPR::IsResultFailed(status))
@@ -39,7 +39,7 @@ namespace RPR
 		RPR::FResult GetInfoToArray(FGetInfoFunction GetInfoFunction, void* Source, U InfoType, TArray<T>& OutValue)
 		{
 			RPR::FResult status;
-			uint64 size;
+			size_t size;
 
 			status = GetInfoFunction(Source, (rpr_int) InfoType, 0, nullptr, &size);
 			if (RPR::IsResultFailed(status))
@@ -65,7 +65,7 @@ namespace RPR
 		}
 
 		RPRTOOLS_API RPR::FResult GetObjectName(FGetInfoFunction GetInfoFunction, void* Source, FString& OutName);
-		
+
 		template<typename TTransformInfoType>
 		RPR::FResult GetObjectTransform(FGetInfoFunction GetInfoFunction, void* Source, TTransformInfoType TransformInfo, FTransform& OutTransform)
 		{

@@ -24,18 +24,6 @@
 #include "Misc/AssertionMacros.h"
 #include "Delegates/DelegateCombinations.h"
 
-// Verify function exists to it will tell if the function name has changed	
-
-// Use to reroute function calls to RPRMeshData
-#define DECLARE_BROADCAST(FunctionName) \
-	void	Broadcast_##FunctionName() \
-	{ \
-		FName t = GET_FUNCTION_NAME_CHECKED(FRPRMeshData, FunctionName); \
-		OnEachMeshData([](FRPRMeshDataPtr MeshData) { \
-			MeshData->##FunctionName(); \
-		}); \
-	}
-
 DECLARE_DELEGATE_TwoParams(FOnEachUV, int32 /* MeshIndex */, FVector2D& /* UV */)
 
 class RPREDITORTOOLS_API FRPRMeshDataContainer
@@ -58,10 +46,11 @@ public:
 	bool	FindFirstSelectedSection(FRPRMeshDataPtr& OutMeshData, int32& OutSectionIndex) const;
 	int32	CountNumSections() const;
 
-	DECLARE_BROADCAST(NotifyRawMeshChanges);
-	DECLARE_BROADCAST(NotifyStaticMeshChanges);
-	DECLARE_BROADCAST(NotifyStaticMeshMaterialChanges);
-	DECLARE_BROADCAST(ApplyRawMeshDatas);
+	void Broadcast_NotifyRawMeshChanges()            { OnEachMeshData([](FRPRMeshDataPtr MeshData) { MeshData->NotifyRawMeshChanges();            });  }
+
+	void Broadcast_NotifyStaticMeshChanges()         { OnEachMeshData([](FRPRMeshDataPtr MeshData) { MeshData->NotifyStaticMeshChanges();         });  }
+	void Broadcast_NotifyStaticMeshMaterialChanges() { OnEachMeshData([](FRPRMeshDataPtr MeshData) { MeshData->NotifyStaticMeshMaterialChanges(); });  }
+	void Broadcast_ApplyRawMeshDatas()               { OnEachMeshData([](FRPRMeshDataPtr MeshData) { MeshData->ApplyRawMeshDatas();               });  }
 
 	FRPRMeshDataPtr	FindByPreview(class URPRStaticMeshPreviewComponent* PreviewMeshComponent);
 	FRPRMeshDataPtr	FindByStaticMesh(class UStaticMesh* StaticMesh);
@@ -108,5 +97,3 @@ private:
 
 typedef TSharedPtr<FRPRMeshDataContainer> FRPRMeshDataContainerPtr;
 typedef TWeakPtr<FRPRMeshDataContainer> FRPRMeshDataContainerWkPtr;
-
-#undef DECLARE_BROADCAST

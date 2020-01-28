@@ -122,31 +122,31 @@ namespace
 		switch (outputIndex)
 		{
 		case RPR::OutputIndex::ONE:
-			if (auto existingNode = materialLibrary.getVirtualNode(resultVirtualNodeId + L"_R"))
+			if (auto existingNode = materialLibrary.getVirtualNode(resultVirtualNodeId + TEXT("_R")))
 				return existingNode;
-			selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(resultVirtualNodeId + L"_R", RPR::EMaterialNodeType::SelectX);
-			selectVNode->realNode = materialLibrary.getOrCreateIfNotExists(resultVirtualNodeId + L"_R", RPR::EMaterialNodeType::Arithmetic);
+			selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(resultVirtualNodeId + TEXT("_R"), RPR::EMaterialNodeType::SelectX);
+			selectVNode->realNode = materialLibrary.getOrCreateIfNotExists(resultVirtualNodeId + TEXT("_R"), RPR::EMaterialNodeType::Arithmetic);
 			materialLibrary.setNodeUInt(selectVNode->realNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_SELECT_X);
 			break;
 		case RPR::OutputIndex::TWO:
-			if (auto existingNode = materialLibrary.getVirtualNode(resultVirtualNodeId + L"_G"))
+			if (auto existingNode = materialLibrary.getVirtualNode(resultVirtualNodeId + TEXT("_G")))
 				return existingNode;
-			selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(resultVirtualNodeId + L"_G", RPR::EMaterialNodeType::SelectY);
-			selectVNode->realNode = materialLibrary.getOrCreateIfNotExists(resultVirtualNodeId + L"_G", RPR::EMaterialNodeType::Arithmetic);
+			selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(resultVirtualNodeId + TEXT("_G"), RPR::EMaterialNodeType::SelectY);
+			selectVNode->realNode = materialLibrary.getOrCreateIfNotExists(resultVirtualNodeId + TEXT("_G"), RPR::EMaterialNodeType::Arithmetic);
 			materialLibrary.setNodeUInt(selectVNode->realNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_SELECT_Y);
 			break;
 		case RPR::OutputIndex::THREE:
-			if (auto existingNode = materialLibrary.getVirtualNode(resultVirtualNodeId + L"_B"))
+			if (auto existingNode = materialLibrary.getVirtualNode(resultVirtualNodeId + TEXT("_B")))
 				return existingNode;
-			selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(resultVirtualNodeId + L"_B", RPR::EMaterialNodeType::SelectZ);
-			selectVNode->realNode = materialLibrary.getOrCreateIfNotExists(resultVirtualNodeId + L"_B", RPR::EMaterialNodeType::Arithmetic);
+			selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(resultVirtualNodeId + TEXT("_B"), RPR::EMaterialNodeType::SelectZ);
+			selectVNode->realNode = materialLibrary.getOrCreateIfNotExists(resultVirtualNodeId + TEXT("_B"), RPR::EMaterialNodeType::Arithmetic);
 			materialLibrary.setNodeUInt(selectVNode->realNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_SELECT_Z);
 			break;
 		case RPR::OutputIndex::FOUR:
-			if (auto existingNode = materialLibrary.getVirtualNode(resultVirtualNodeId + L"_A"))
+			if (auto existingNode = materialLibrary.getVirtualNode(resultVirtualNodeId + TEXT("_A")))
 				return existingNode;
-			selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(resultVirtualNodeId + L"_A", RPR::EMaterialNodeType::SelectW);
-			selectVNode->realNode = materialLibrary.getOrCreateIfNotExists(resultVirtualNodeId + L"_A", RPR::EMaterialNodeType::Arithmetic);
+			selectVNode = materialLibrary.getOrCreateVirtualIfNotExists(resultVirtualNodeId + TEXT("_A"), RPR::EMaterialNodeType::SelectW);
+			selectVNode->realNode = materialLibrary.getOrCreateIfNotExists(resultVirtualNodeId + TEXT("_A"), RPR::EMaterialNodeType::Arithmetic);
 			materialLibrary.setNodeUInt(selectVNode->realNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_SELECT_W);
 			break;
 		}
@@ -176,23 +176,23 @@ namespace
 		switch (maskIndex)
 		{
 		case 1:
-			mask = GetRgbaNode(maskResultId + L"_rMask", 1.0f);
+			mask = GetRgbaNode(maskResultId + TEXT("_rMask"), 1.0f);
 			break;
 		case 2:
-			mask = GetRgbaNode(maskResultId + L"_gMask", 0.0f, 1.0f);
+			mask = GetRgbaNode(maskResultId + TEXT("_gMask"), 0.0f, 1.0f);
 			break;
 		case 3:
-			mask = GetRgbaNode(maskResultId + L"_bMask", 0.0f, 0.0f, 1.0f);
+			mask = GetRgbaNode(maskResultId + TEXT("_bMask"), 0.0f, 0.0f, 1.0f);
 			break;
 		case 4:
-			mask = GetRgbaNode(maskResultId + L"_aMask", 0.0f, 0.0f, 0.0f, 1.0f);
+			mask = GetRgbaNode(maskResultId + TEXT("_aMask"), 0.0f, 0.0f, 0.0f, 1.0f);
 			break;
 		}
 
 		assert(mask);
 
 		FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
-		RPR::RPRXVirtualNode* result = materialLibrary.getOrCreateVirtualIfNotExists(maskResultId + L"result", RPR::EMaterialNodeType::Arithmetic);
+		RPR::RPRXVirtualNode* result = materialLibrary.getOrCreateVirtualIfNotExists(maskResultId + TEXT("result"), RPR::EMaterialNodeType::Arithmetic);
 		materialLibrary.setNodeUInt(result->realNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_MUL);
 		materialLibrary.setNodeConnection(result, RPR_MATERIAL_INPUT_COLOR0, selected);
 		materialLibrary.setNodeConnection(result, RPR_MATERIAL_INPUT_COLOR1, mask);
@@ -309,7 +309,7 @@ void URPRStaticMeshComponent::ProcessUE4Material(FRPRShape& shape, UMaterial* ma
 		return;
 
 	FString materialName = material->GetName();
-	idPrefix = materialName + L"_";
+	idPrefix = materialName + TEXT("_");
 	if (materialName.IsEmpty())
 		return;
 
@@ -358,7 +358,8 @@ void URPRStaticMeshComponent::ProcessUE4Material(FRPRShape& shape, UMaterial* ma
 	{
 		RPR::RPRXVirtualNode* specularInput = ConvertExpressionToVirtualNode(material->Specular.Expression, material->Specular.OutputIndex);
 
-		status = uberMaterialPtr->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_REFLECTION_IOR, GetValueNode(L"IOR_1.5_ForNonLiquidMaterials", 1.5)->realNode);
+		const FString valueName(TEXT("IOR_1.5_ForNonLiquidMaterials"));
+		status = uberMaterialPtr->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_REFLECTION_IOR, GetValueNode(valueName, 1.5)->realNode);
 		LOG_ERROR(status, TEXT("Can't set uber reflection ior"));
 
 		status = uberMaterialPtr->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_REFLECTION_WEIGHT, specularInput->realNode);
@@ -389,7 +390,7 @@ void URPRStaticMeshComponent::ProcessUE4Material(FRPRShape& shape, UMaterial* ma
 		RPR::RPRXVirtualNode* normalInput = ConvertExpressionToVirtualNode(material->Normal.Expression, material->Normal.OutputIndex);
 
 		RPR::FMaterialNode normalNode = materialLibrary.getOrCreateIfNotExists(
-			idPrefix + material->Normal.Expression->GetName() + L"_MaterialNormalMapNode",
+			idPrefix + material->Normal.Expression->GetName() + TEXT("_MaterialNormalMapNode"),
 			RPR::EMaterialNodeType::NormalMap);
 
 		materialLibrary.setNodeConnection(normalNode, RPR_MATERIAL_INPUT_COLOR, normalInput->realNode);
@@ -587,9 +588,9 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		auto expression = Cast<UMaterialExpressionLinearInterpolate>(expr);
 		assert(expression);
 
-		RPR::RPRXVirtualNode* inputA = ParseInputNodeOrCreateDefaultAlternative(expression->A, idPrefix + expression->GetName() + L"_A", expression->ConstA);
-		RPR::RPRXVirtualNode* inputB = ParseInputNodeOrCreateDefaultAlternative(expression->B, idPrefix + expression->GetName() + L"_B", expression->ConstB);
-		RPR::RPRXVirtualNode* inputAlpha = ParseInputNodeOrCreateDefaultAlternative(expression->Alpha, idPrefix + expression->GetName() + L"_Alpha", expression->ConstAlpha);
+		RPR::RPRXVirtualNode* inputA = ParseInputNodeOrCreateDefaultAlternative(expression->A, idPrefix + expression->GetName() + TEXT("_A"), expression->ConstA);
+		RPR::RPRXVirtualNode* inputB = ParseInputNodeOrCreateDefaultAlternative(expression->B, idPrefix + expression->GetName() + TEXT("_B"), expression->ConstB);
+		RPR::RPRXVirtualNode* inputAlpha = ParseInputNodeOrCreateDefaultAlternative(expression->Alpha, idPrefix + expression->GetName() + TEXT("_Alpha"), expression->ConstAlpha);
 
 		node = materialLibrary.getOrCreateVirtualIfNotExists(idPrefix + expression->GetName(), RPR::RPRXVirtualNode::VNType::DEFAULT);
 		node->realNode = materialLibrary.getOrCreateIfNotExists(idPrefix + expression->GetName(), RPR::EMaterialNodeType::BlendValue);
@@ -604,11 +605,11 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		auto expression = Cast<UMaterialExpressionTextureCoordinate>(expr);
 		assert(expression);
 
-		RPR::RPRXVirtualNode* lookupNode = materialLibrary.getOrCreateVirtualIfNotExists(idPrefix + expression->GetName() + L"_InputLookupUV", RPR::RPRXVirtualNode::VNType::DEFAULT);
-		lookupNode->realNode = materialLibrary.getOrCreateIfNotExists(idPrefix + expression->GetName() + L"_InputLookupUV", RPR::EMaterialNodeType::InputLookup);
+		RPR::RPRXVirtualNode* lookupNode = materialLibrary.getOrCreateVirtualIfNotExists(idPrefix + expression->GetName() + TEXT("_InputLookupUV"), RPR::RPRXVirtualNode::VNType::DEFAULT);
+		lookupNode->realNode = materialLibrary.getOrCreateIfNotExists(idPrefix + expression->GetName() + TEXT("_InputLookupUV"), RPR::EMaterialNodeType::InputLookup);
 		materialLibrary.setNodeUInt(lookupNode->realNode, RPR_MATERIAL_INPUT_VALUE, RPR_MATERIAL_NODE_LOOKUP_UV);
 
-		node = materialLibrary.getOrCreateVirtualIfNotExists(idPrefix + expression->GetName() + L"_InputLookupUV_Mul", RPR::EMaterialNodeType::Arithmetic);
+		node = materialLibrary.getOrCreateVirtualIfNotExists(idPrefix + expression->GetName() + TEXT("_InputLookupUV_Mul"), RPR::EMaterialNodeType::Arithmetic);
 		materialLibrary.setNodeUInt(node->realNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_MUL);
 		materialLibrary.setNodeConnection(node, RPR_MATERIAL_INPUT_COLOR0, lookupNode);
 		materialLibrary.setNodeFloat(node->realNode, RPR_MATERIAL_INPUT_COLOR1, expression->UTiling, expression->VTiling, 0.0f, 0.0f);
@@ -660,8 +661,8 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		if (channels == 1)
 			return SelectRgbaChannel(idPrefix + expression->GetName(), channelIdx, inputExpression);
 
-		FString id = idPrefix + expression->GetName() + L"_";
-		node = GetValueNode(id + L"MathRootNode", 0.0f);
+		FString id = idPrefix + expression->GetName() + TEXT("_");
+		node = GetValueNode(id + TEXT("MathRootNode"), 0.0f);
 
 		int idxReducer = channels;
 		RPR::RPRXVirtualNode *r = nullptr, *g = nullptr, *b = nullptr, *a = nullptr;
@@ -669,37 +670,37 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		if (isR)
 		{
 			--idxReducer;
-			r = GetSeparatedChannel(id + L"Separated", 1, channels - idxReducer, inputExpression);
-			node = AddTwoNodes(id += L"R", r, node);
+			r = GetSeparatedChannel(id + TEXT("Separated"), 1, channels - idxReducer, inputExpression);
+			node = AddTwoNodes(id += TEXT("R"), r, node);
 		}
 		if (isG)
 		{
 			--idxReducer;
-			g = GetSeparatedChannel(id + L"Separated", 2, channels - idxReducer, inputExpression);
-			node = AddTwoNodes(id += L"G", g, node);
+			g = GetSeparatedChannel(id + TEXT("Separated"), 2, channels - idxReducer, inputExpression);
+			node = AddTwoNodes(id += TEXT("G"), g, node);
 		}
 		if (isB)
 		{
 			--idxReducer;
-			b = GetSeparatedChannel(id + L"Separated", 3, channels - idxReducer, inputExpression);
-			node = AddTwoNodes(id += L"B", b, node);
+			b = GetSeparatedChannel(id + TEXT("Separated"), 3, channels - idxReducer, inputExpression);
+			node = AddTwoNodes(id += TEXT("B"), b, node);
 		}
 		if (isA)
 		{
 			--idxReducer;
-			a = GetSeparatedChannel(id + L"Separated", 4, channels - idxReducer, inputExpression);
-			node = AddTwoNodes(id += L"A", a, node);
+			a = GetSeparatedChannel(id + TEXT("Separated"), 4, channels - idxReducer, inputExpression);
+			node = AddTwoNodes(id += TEXT("A"), a, node);
 		}
 
 		return node;
 	}
-	else if (expr->GetName().Contains(L"MaterialExpressionRotator"))
+	else if (expr->GetName().Contains(TEXT("MaterialExpressionRotator")))
 	{
 		auto expression = static_cast<UMaterialExpressionRotator*>(expr);
 		assert(expression);
 
-		RPR::RPRXVirtualNode* lookupNode = materialLibrary.getOrCreateVirtualIfNotExists(idPrefix + expression->GetName() + L"_LookupUV", RPR::RPRXVirtualNode::VNType::DEFAULT);
-		lookupNode->realNode = materialLibrary.getOrCreateIfNotExists(idPrefix + expression->GetName() + L"_LookupUV", RPR::EMaterialNodeType::InputLookup);
+		RPR::RPRXVirtualNode* lookupNode = materialLibrary.getOrCreateVirtualIfNotExists(idPrefix + expression->GetName() + TEXT("_LookupUV"), RPR::RPRXVirtualNode::VNType::DEFAULT);
+		lookupNode->realNode = materialLibrary.getOrCreateIfNotExists(idPrefix + expression->GetName() + TEXT("_LookupUV"), RPR::EMaterialNodeType::InputLookup);
 		materialLibrary.setNodeUInt(lookupNode->realNode, RPR_MATERIAL_INPUT_VALUE, RPR_MATERIAL_NODE_LOOKUP_UV);
 
 		float angle = 0;
@@ -707,17 +708,17 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		if (expression->Time.Expression && expression->Time.Expression->IsA<UMaterialExpressionConstant>())
 			angle = -FMath::DegreesToRadians(Cast<UMaterialExpressionConstant>(expression->Time.Expression)->R);
 
-		RPR::RPRXVirtualNode* angleA = materialLibrary.getOrCreateVirtualIfNotExists(idPrefix + expression->GetName() + L"_DOT3_A", RPR::EMaterialNodeType::Arithmetic);
+		RPR::RPRXVirtualNode* angleA = materialLibrary.getOrCreateVirtualIfNotExists(idPrefix + expression->GetName() + TEXT("_DOT3_A"), RPR::EMaterialNodeType::Arithmetic);
 		materialLibrary.setNodeUInt(angleA->realNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_DOT3);
 		materialLibrary.setNodeConnection(angleA, RPR_MATERIAL_INPUT_COLOR0, lookupNode);
 		materialLibrary.setNodeFloat(angleA->realNode, RPR_MATERIAL_INPUT_COLOR1, FMath::Cos(angle), -FMath::Sin(angle), 0.0f, 0.0f);
 
-		RPR::RPRXVirtualNode* angleB = materialLibrary.getOrCreateVirtualIfNotExists(idPrefix + expression->GetName() + L"_DOT3_B", RPR::EMaterialNodeType::Arithmetic);
+		RPR::RPRXVirtualNode* angleB = materialLibrary.getOrCreateVirtualIfNotExists(idPrefix + expression->GetName() + TEXT("_DOT3_B"), RPR::EMaterialNodeType::Arithmetic);
 		materialLibrary.setNodeUInt(angleB->realNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_DOT3);
 		materialLibrary.setNodeConnection(angleB, RPR_MATERIAL_INPUT_COLOR0, lookupNode);
 		materialLibrary.setNodeFloat(angleB->realNode, RPR_MATERIAL_INPUT_COLOR1, FMath::Sin(angle), FMath::Cos(angle), 0.0f, 0.0f);
 
-		RPR::RPRXVirtualNode* combine = materialLibrary.getOrCreateVirtualIfNotExists(idPrefix + expression->GetName() + L"_COMBINE", RPR::EMaterialNodeType::Arithmetic);
+		RPR::RPRXVirtualNode* combine = materialLibrary.getOrCreateVirtualIfNotExists(idPrefix + expression->GetName() + TEXT("_COMBINE"), RPR::EMaterialNodeType::Arithmetic);
 		materialLibrary.setNodeUInt(combine->realNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_COMBINE);
 		materialLibrary.setNodeConnection(combine, RPR_MATERIAL_INPUT_COLOR0, angleA);
 		materialLibrary.setNodeConnection(combine, RPR_MATERIAL_INPUT_COLOR1, angleB);
@@ -731,13 +732,13 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 #endif
 }
 
-RPR::RPRXVirtualNode* URPRStaticMeshComponent::ParseInputNodeOrCreateDefaultAlternative(FExpressionInput input, FString defaultId, float default)
+RPR::RPRXVirtualNode* URPRStaticMeshComponent::ParseInputNodeOrCreateDefaultAlternative(FExpressionInput input, FString defaultId, float defaultValue)
 {
-#if WITH_EDITORONLY_DATA 
+#if WITH_EDITORONLY_DATA
 	if (input.Expression)
 		return ConvertExpressionToVirtualNode(input.Expression, input.OutputIndex);
 	else
-		return GetValueNode(defaultId, default);
+		return GetValueNode(defaultId, defaultValue);
 #else
 	return nullptr;
 #endif

@@ -81,7 +81,16 @@ bool FRPRCoreSystemResources::LoadTahoeDLL()
 {
 	if (TahoePluginId == INDEX_NONE)
 	{
+
+	#if PLATFORM_WINDOWS
 		const FString tahoe64LibName = TEXT("Tahoe64.dll");
+	#elif PLATFORM_LINUX
+		const FString tahoe64LibName = TEXT("libTahoe64.so");
+	#else
+		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Platform not supported"));
+		return (false);
+	#endif
+
 		const FString dllDirectory = FRPR_SDKModule::GetDLLsDirectory();
 		const FString dllPath = FPaths::Combine(dllDirectory, tahoe64LibName);
 		if (!FPaths::FileExists(dllPath))

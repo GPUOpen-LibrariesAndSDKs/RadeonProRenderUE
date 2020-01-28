@@ -21,7 +21,6 @@
 
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
-#include "RPRDynamicLibraryLoader.h"
 
 class RPR_SDK_API FRPR_SDKModule : public IModuleInterface
 {
@@ -31,15 +30,12 @@ public:
 
 	virtual void	StartupModule() override;
 	virtual void	ShutdownModule() override;
-	
+
 	static FString	GetDLLsDirectory();
 
 	static bool		IsSDKLoadValid();
 	static bool		IsLoaded();
 
 private:
-
-	TArray<FRPRDynamicLibraryLoader::FDLLHandle> dllHandles;
 	bool	bIsSDKLoadValid;
-
 };

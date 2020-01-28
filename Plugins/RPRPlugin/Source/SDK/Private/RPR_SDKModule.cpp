@@ -22,12 +22,14 @@
 #include "Misc/Paths.h"
 #include "RadeonProRender.h"
 #include "RPRPluginVersionModule.h"
+#include "RPRDynamicLibraryLoader.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRSDK, Log, All)
 
 FRPR_SDKModule::FRPR_SDKModule()
-	: bIsSDKLoadValid(false)
-{}
+: bIsSDKLoadValid(false)
+{
+}
 
 bool FRPR_SDKModule::IsSDKLoadValid()
 {
@@ -41,8 +43,18 @@ bool FRPR_SDKModule::IsLoaded()
 
 FString FRPR_SDKModule::GetDLLsDirectory()
 {
-	checkf(PLATFORM_64BITS & PLATFORM_WINDOWS, TEXT("Only Windows 64bits supported."));
-	return FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProRenderSDK/RadeonProRender/binWin64");
+	checkf(PLATFORM_64BITS, TEXT("Only 64 bits platform supported."));
+
+	if (PLATFORM_WINDOWS) {
+		return FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProRenderSDK/RadeonProRender/binWin64");
+	}
+
+	if (PLATFORM_LINUX) {
+		return FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProRenderSDK/RadeonProRender/binUbuntu18");
+	}
+
+	checkf(false, TEXT("Only Windows/Linux 64bits supported."));
+	return TEXT("");
 }
 
 void FRPR_SDKModule::StartupModule()
@@ -50,22 +62,16 @@ void FRPR_SDKModule::StartupModule()
 	UE_LOG(LogRPRSDK, Log, TEXT("RPR Api Version : %x"), RPR_API_VERSION);
 
 	check(FRPRPluginVersionModule::IsLoaded());
+
 	if (FRPRPluginVersionModule::IsPluginSetupValid())
 	{
-		TArray<FString> dllNames;
-		dllNames.Add(TEXT("Tahoe64.dll"));
-		dllNames.Add(TEXT("RadeonProRender64.dll"));
-		dllNames.Add(TEXT("RprLoadStore64.dll"));
-
-		dllHandles = FRPRDynamicLibraryLoader::LoadLibraries(GetDLLsDirectory(), dllNames);
-		bIsSDKLoadValid = (dllHandles.Num() > 0);
+		FPlatformProcess::PushDllDirectory(*GetDLLsDirectory());
+		bIsSDKLoadValid = true;
 	}
 }
 
 void FRPR_SDKModule::ShutdownModule()
 {
-	FRPRDynamicLibraryLoader::UnloadLibraries(dllHandles);
-	dllHandles.Empty();
 }
 
 IMPLEMENT_MODULE(FRPR_SDKModule, RPR_SDK)
