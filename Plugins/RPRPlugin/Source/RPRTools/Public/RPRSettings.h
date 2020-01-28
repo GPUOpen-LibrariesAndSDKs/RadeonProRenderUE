@@ -121,8 +121,35 @@ public:
 	UPROPERTY(Config)
 	float		PhotolinearTonemapFStop;
 
-	UPROPERTY(Config)
+	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
 	float		RaycastEpsilon;
+
+	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
+	uint32		SamplingMax;
+
+	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
+	uint32		SamplingMin;
+
+	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
+	float       NoiseThreshold;
+
+	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
+	float		RayDepthMax;
+
+	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
+	float		RayDepthDiffuse;
+
+	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
+	float		RayDepthGlossy;
+
+	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
+	float		RayDepthRefraction;
+
+	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
+	float		RayDepthGlossyRefraction;
+
+	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
+	float		RayDepthShadow;
 
 	UPROPERTY(Config, EditAnywhere, Category = Materials)
  	TSoftObjectPtr<UMaterialInterface>	UberMaterial;
@@ -149,4 +176,6 @@ public:
 
 	void	TryLoadUberMaterialFromDefaultLocation();
 
+private:
+	void	PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent);
 };

@@ -48,6 +48,15 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 	, PhotolinearTonemapExposure(0.1f)
 	, PhotolinearTonemapFStop(3.4f)
 	, RaycastEpsilon(0.1f)
+	, SamplingMax(256)
+	, SamplingMin(64)
+	, NoiseThreshold(0.05f)
+	, RayDepthMax(8.0f)
+	, RayDepthDiffuse(3.0f)
+	, RayDepthGlossy(5.0f)
+	, RayDepthRefraction(5.0f)
+	, RayDepthGlossyRefraction(5.0f)
+	, RayDepthShadow(5.0f)
 	, bUseErrorTexture(true)
 {
 	DefaultRootDirectoryForImportLevels.Path = TEXT("/Game/Maps");
@@ -58,19 +67,26 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 	TryLoadUberMaterialFromDefaultLocation();
 }
 
-void URPRSettings::TryLoadUberMaterialFromDefaultLocation()
+void	URPRSettings::TryLoadUberMaterialFromDefaultLocation()
 {
 	UberMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("/RPRPlugin/Materials/M_UberMaterialTemplate.M_UberMaterialTemplate"));
 }
 
-/*void	URPRSettings::PostEditChangeProperty(struct FPropertyChangedEvent &propertyChangedEvent)
+void	URPRSettings::PostEditChangeProperty(struct FPropertyChangedEvent &propertyChangedEvent)
 {
 	Super::PostEditChangeProperty(propertyChangedEvent);
 
-	UProperty	*prop = propertyThatChanged.Property;
-	if (prop->GetName() == "RenderCachePath")
+	if (!propertyChangedEvent.Property)
+		return;
+
+	UProperty* property = propertyChangedEvent.Property;
+
+	UE_LOG(LogRPRSettings, Log, TEXT("Settings' roperty changed: %s"), *property->GetName());
+
+	if (property->GetName() == "RenderCachePath")
 	{
 		// TODO: Cleanup the path & notify scene
 	}
 	// TODO: For other settings, notify the scene
-}*/
+	SaveConfig();
+}
