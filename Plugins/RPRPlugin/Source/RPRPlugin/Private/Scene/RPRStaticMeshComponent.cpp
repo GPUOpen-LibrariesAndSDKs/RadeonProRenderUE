@@ -521,7 +521,7 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		RPR::FImagePtr outImage = IRPRCore::GetResources()->GetRPRImageManager()->LoadImageFromTexture(texture2d);
 
 		if (!outImage || !outImage.IsValid())
-			return GetValueNode(idPrefix + L"_DefaultValueNodeForUnsupportedUEnodesOrError", 1.0f);
+			return GetValueNode(idPrefix + TEXT("_DefaultValueNodeForUnsupportedUEnodesOrError"), 1.0f);
 
 		FString imgNodeId = vNodeId;
 		if (expression->Coordinates.Expression)
@@ -726,7 +726,7 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 		return combine;
 	}
 
-	return GetValueNode(idPrefix + L"_DefaultValueNodeForUnsupportedUEnodesOrError", 1.0f);
+	return GetValueNode(idPrefix + TEXT("_DefaultValueNodeForUnsupportedUEnodesOrError"), 1.0f);
 #else
 	return nullptr;
 #endif
