@@ -252,6 +252,12 @@ bool FRPRXMaterialLibrary::hasNode(FString materialNode) const
 	return ptr != nullptr;
 }
 
+void FRPRXMaterialLibrary::ReleaseCache()
+{
+	m_virtualNodes.Empty();
+	m_materialNodes.Empty();
+}
+
 RPR::RPRXVirtualNode* FRPRXMaterialLibrary::getVirtualNode(FString materialNode)
 {
 	return m_virtualNodes.Contains(materialNode) ?
@@ -291,11 +297,12 @@ RPR::RPRXVirtualNode* FRPRXMaterialLibrary::getOrCreateVirtualIfNotExists(FStrin
 	RPR::RPRXVirtualNode* node = getVirtualNode(materialNode);
 	if (!node) {
 		node = createVirtualNode(materialNode, vType);
+		if (!node)
+			return nullptr;
+		else
+			node->realNode = realNode;
 	}
-	if (!node)
-		return nullptr;
 
-	node->realNode = realNode;
 	return node;
 }
 
@@ -437,7 +444,7 @@ RPR::FMaterialContext FRPRXMaterialLibrary::CreateMaterialContext() const
 	auto resources = IRPRCore::GetResources();
 
 	RPR::FMaterialContext materialContext;
-	
+
 	materialContext.MaterialSystem = resources->GetMaterialSystem();
 	materialContext.RPRContext     = resources->GetRPRContext();
 

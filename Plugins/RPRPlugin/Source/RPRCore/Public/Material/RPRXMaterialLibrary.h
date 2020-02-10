@@ -73,6 +73,7 @@ public:
 	void                            setNodeUInt(RPR::FMaterialNode materialNode, const unsigned int parameter, unsigned int value);
 	void                            setNodeConnection(RPR::RPRXVirtualNode* materialNode, const unsigned int parameter, RPR::RPRXVirtualNode* otherNode);
 	void                            setNodeConnection(RPR::FMaterialNode MaterialNode, const unsigned int ParameterName, RPR::FMaterialNode InMaterialNode);
+	void                            ReleaseCache();
 
 	RPR::FMaterialNode              createImage(UTexture2D* texture);
 	RPR::FMaterialNode              createImageNodeFromImageData(const FString& nodeId, RPR::FImagePtr imagePtr);

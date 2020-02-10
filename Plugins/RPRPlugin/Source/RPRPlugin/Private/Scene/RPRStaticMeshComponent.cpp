@@ -323,6 +323,7 @@ void URPRStaticMeshComponent::ProcessUE4Material(FRPRShape& shape, UMaterial* ma
 
 	shape.m_RprxNodeMaterial = uberMaterialPtr;
 
+	materialLibrary.ReleaseCache();
 	//First expression is always for BaseColor, the input to BaseColor is input for material
 	RPR::RPRXVirtualNode* baseColorInputNode = ConvertExpressionToVirtualNode(material->BaseColor.Expression, material->BaseColor.OutputIndex);
 
@@ -507,6 +508,9 @@ RPR::RPRXVirtualNode* URPRStaticMeshComponent::ConvertExpressionToVirtualNode(UM
 
 		// first image virtual node to hold image texture
 		node = materialLibrary.getOrCreateVirtualIfNotExists(vNodeId + "_ImageData", RPR::EMaterialNodeType::ImageTexture);
+
+		if (node->realNode)
+			return node;
 
 		UTexture* texture = nullptr;
 
