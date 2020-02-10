@@ -12,6 +12,8 @@ namespace RPR
 
 	private:
 
+		static void ConvertDxtTexture(const uint8* textureData, const uint32 textureDataSize, const bool bUseSRGB, const char* fourCC, const RPR::FImageDesc& imageDesc, uint8* dst);
+
 		template<int32 ElementCount, int32 Remap0 = 0, int32 Remap1 = 1, int32 Remap2 = 2, int32 Remap3 = 3, int32 XInc = 1, int32 YInc = 1>
 		static void FloatToByteCopy(uint32 Width, uint32 Height, const float* Src, uint8* Dst)
 		{

@@ -29,28 +29,32 @@ namespace {
 		0x00000000, /* dwCaps4                                                                                                             */
 		0x00000000, /* dwReserved2                                                                                                         */
 	};
-
-	void ConvertDxtTexture(const uint8* textureData, const uint32 textureDataSize, const char* fourCC, const RPR::FImageDesc& imageDesc, uint8* dst)
-	{
-		*(dxtHeaderBlank.data() + 3) = imageDesc.image_height;
-		*(dxtHeaderBlank.data() + 4) = imageDesc.image_width;
-		*(dxtHeaderBlank.data() + 5) = textureDataSize;
-		*(dxtHeaderBlank.data() + 21) = *(reinterpret_cast<const uint32*>(fourCC));
-
-		std::vector<char> restoredTexture(textureDataSize + 128);
-		memcpy(restoredTexture.data(), dxtHeaderBlank.data(), 128);
-		memcpy(restoredTexture.data() + 128, textureData, textureDataSize);
-
-		gli::texture dxtCompressed = gli::load(restoredTexture.data(), restoredTexture.size());
-		assert(dxtCompressed.empty());
-		gli::texture2d dxtTexture2d(dxtCompressed);
-		assert(dxtTexture2d.empty());
-		gli::texture2d rgba8compressed = gli::convert(dxtTexture2d, gli::FORMAT_RGBA8_UNORM_PACK32);
-		assert(rgba8compressed.empty());
-
-		memcpy(dst, rgba8compressed.data(), imageDesc.image_row_pitch * imageDesc.image_height);
-	}
 }
+
+void RPR::FTextureHelpers::ConvertDxtTexture(const uint8* textureData, const uint32 textureDataSize, const bool bUseSRGB, const char* fourCC, const RPR::FImageDesc& imageDesc, uint8* dst)
+{
+	*(dxtHeaderBlank.data() + 3) = imageDesc.image_height;
+	*(dxtHeaderBlank.data() + 4) = imageDesc.image_width;
+	*(dxtHeaderBlank.data() + 5) = textureDataSize;
+	*(dxtHeaderBlank.data() + 21) = *(reinterpret_cast<const uint32*>(fourCC));
+
+	std::vector<char> restoredTexture(textureDataSize + 128);
+	memcpy(restoredTexture.data(), dxtHeaderBlank.data(), 128);
+	memcpy(restoredTexture.data() + 128, textureData, textureDataSize);
+
+	gli::texture dxtCompressed = gli::load(restoredTexture.data(), restoredTexture.size());
+	assert(dxtCompressed.empty());
+	gli::texture2d dxtTexture2d(dxtCompressed);
+	assert(dxtTexture2d.empty());
+	gli::texture2d rgba8compressed = gli::convert(dxtTexture2d, gli::FORMAT_RGBA8_UNORM_PACK32);
+	assert(rgba8compressed.empty());
+
+	if (bUseSRGB)
+		sRGBByteToLinearByteCopy<4>(imageDesc.image_width, imageDesc.image_height, static_cast<const uint8*>(rgba8compressed.data()), dst);
+	else
+		ByteToByteCopy<4>(imageDesc.image_width, imageDesc.image_height, static_cast<const uint8*>(rgba8compressed.data()), dst);
+}
+
 
 bool RPR::FTextureHelpers::CopyTexture(const uint8* TextureData, const uint32 TextureDataSize, const RPR::FImageDesc& ImageDesc, TArray<uint8> &OutData, EPixelFormat PixelFormat, bool bUseSRGB)
 {
@@ -92,19 +96,19 @@ bool RPR::FTextureHelpers::CopyTexture(const uint8* TextureData, const uint32 Te
 		}
 		case PF_DXT1:
 		{
-			ConvertDxtTexture(TextureData, TextureDataSize, "DXT1", ImageDesc, dst);
+			ConvertDxtTexture(TextureData, TextureDataSize, bUseSRGB, "DXT1", ImageDesc, dst);
 			bAreDataCopied = true;
 			break;
 		}
 		case PF_DXT5:
 		{
-			ConvertDxtTexture(TextureData, TextureDataSize, "DXT5", ImageDesc, dst);
+			ConvertDxtTexture(TextureData, TextureDataSize, bUseSRGB, "DXT5", ImageDesc, dst);
 			bAreDataCopied = true;
 			break;
 		}
 		case PF_BC5:
 		{
-			ConvertDxtTexture(TextureData, TextureDataSize, "BC5U", ImageDesc, dst);
+			ConvertDxtTexture(TextureData, TextureDataSize, bUseSRGB, "BC5U", ImageDesc, dst);
 
 			for (size_t idx = 2; idx < ImageDesc.image_row_pitch * ImageDesc.image_height; idx += 4)
 				*(dst + idx) = 255;
