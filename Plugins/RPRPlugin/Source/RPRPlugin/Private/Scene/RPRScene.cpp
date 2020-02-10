@@ -143,6 +143,13 @@ void	ARPRScene::SetQualitySettings(ERPRQualitySettings qualitySettings)
 	m_RendererWorker->SetQualitySettings(qualitySettings);
 }
 
+void	ARPRScene::ApplyDenoiser()
+{
+	if (!m_RendererWorker.IsValid())
+		return;
+	m_RendererWorker->ApplyDenoiser();
+}
+
 uint32	ARPRScene::GetRenderIteration() const
 {
 	if (!m_RendererWorker.IsValid())

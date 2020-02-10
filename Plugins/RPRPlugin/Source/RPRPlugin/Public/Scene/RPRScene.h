@@ -68,6 +68,7 @@ public:
 	void	FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames);
 	void	SetActiveCamera(const FString &cameraName);
 	void	SetQualitySettings(ERPRQualitySettings qualitySettings);
+	void	ApplyDenoiser();
 	uint32	GetRenderIteration() const;
 
 	void	TriggerResize() { m_TriggerEndFrameResize = true; }

@@ -33,6 +33,15 @@ enum	ERPRQualitySettings
 	High
 };
 
+UENUM()
+enum	ERPRDenoiserOption
+{
+	ML,
+	Lwr,
+	Eaw,
+	Bilateral
+};
+
 UCLASS(Config=Engine, DefaultConfig)
 class RPRTOOLS_API URPRSettings : public UObject
 {
@@ -90,6 +99,9 @@ public:
 
 	UPROPERTY(Config)
 	TEnumAsByte<ERPRQualitySettings>	QualitySettings;
+
+	UPROPERTY(Config)
+	TEnumAsByte<ERPRDenoiserOption>		DenoiserOption;
 
 	UPROPERTY(Config)
 	float		MegaPixelCount;
@@ -150,6 +162,9 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
 	float		RayDepthShadow;
+
+	UPROPERTY(Config)
+	bool		UseDenoiser;
 
 	UPROPERTY(Config, EditAnywhere, Category = Materials)
  	TSoftObjectPtr<UMaterialInterface>	UberMaterial;

@@ -33,6 +33,8 @@
 #include "Helpers/RPRErrorsHelpers.h"
 #include "Helpers/ContextHelper.h"
 
+#include "RPR_SDKModule.h"
+
 DEFINE_STAT(STAT_ProRender_PreRender);
 DEFINE_STAT(STAT_ProRender_RebuildScene);
 DEFINE_STAT(STAT_ProRender_Render);
@@ -41,11 +43,36 @@ DEFINE_STAT(STAT_ProRender_Readback);
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRRenderer, Log, All);
 
+namespace {
+	URPRSettings* GetSettings()
+	{
+		URPRSettings *settings = GetMutableDefault<URPRSettings>();
+		check(settings != nullptr);
+
+		return settings;
+	}
+
+	void DeleteBuffer(void *&buffer)
+	{
+		if (buffer != nullptr)
+			RPR::DeleteObject(buffer);
+	}
+}
+
 FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene rprScene, uint32 width, uint32 height, uint32 numDevices, ARPRScene *scene)
 :	m_RprFrameBuffer(nullptr)
 ,	m_RprResolvedFrameBuffer(nullptr)
 ,	m_RprContext(context)
 ,	m_AOV(RPR::EAOV::Color)
+,	m_RprColorFrameBuffer(nullptr)
+,	m_RprShadingNormalBuffer(nullptr)
+,	m_RprShadingNormalResolvedBuffer(nullptr)
+,	m_RprWorldCoordinatesBuffer(nullptr)
+,	m_RprWorldCoordinatesResolvedBuffer(nullptr)
+,	m_RprAovDepthBuffer(nullptr)
+,	m_RprAovDepthResolvedBuffer(nullptr)
+,	m_RprDiffuseAlbedoBuffer(nullptr)
+,	m_RprDiffuseAlbedoResolvedBuffer(nullptr)
 ,	m_RprScene(rprScene)
 ,	m_Scene(scene)
 ,	m_RprWhiteBalance(nullptr)
@@ -249,6 +276,32 @@ void	FRPRRendererWorker::SetQualitySettings(ERPRQualitySettings qualitySettings)
 	m_RenderLock.Unlock();
 }
 
+void	FRPRRendererWorker::SetDenoiserSettings(ERPRDenoiserOption denoiserOption)
+{
+	if (m_RprContext == nullptr)
+		return;
+
+	switch (denoiserOption)
+	{
+	case ERPRDenoiserOption::ML:
+		CreateDenoiserFilter(RifFilterType::MlDenoise);
+		UE_LOG(LogRPRRenderer, Log, TEXT("Machine Learning Denoiser created"));
+		break;
+	case ERPRDenoiserOption::Eaw:
+		CreateDenoiserFilter(RifFilterType::EawDenoise);
+		UE_LOG(LogRPRRenderer, Log, TEXT("Edge Avoiding Wavelets Denoiser created"));
+		break;
+	case ERPRDenoiserOption::Lwr:
+		CreateDenoiserFilter(RifFilterType::LwrDenoise);
+		UE_LOG(LogRPRRenderer, Log, TEXT("Local Weighted Regression Denoiser created"));
+		break;
+	case ERPRDenoiserOption::Bilateral:
+		CreateDenoiserFilter(RifFilterType::BilateralDenoise);
+		UE_LOG(LogRPRRenderer, Log, TEXT("Bilateral Denoiser created"));
+		break;
+	}
+}
+
 void	FRPRRendererWorker::SetPaused(bool pause)
 {
 	m_PreRenderLock.Lock();
@@ -351,16 +404,16 @@ void	FRPRRendererWorker::ResizeFramebuffer()
 
 	m_DataLock.Lock();
 
-	if (m_RprFrameBuffer != nullptr)
-	{
-		RPR::DeleteObject(m_RprFrameBuffer);
-		m_RprFrameBuffer = nullptr;
-	}
-	if (m_RprResolvedFrameBuffer != nullptr)
-	{
-		RPR::DeleteObject(m_RprResolvedFrameBuffer);
-		m_RprResolvedFrameBuffer = nullptr;
-	}
+	DeleteBuffer(m_RprFrameBuffer);
+	DeleteBuffer(m_RprResolvedFrameBuffer);
+	DeleteBuffer(m_RprShadingNormalBuffer);
+	DeleteBuffer(m_RprShadingNormalResolvedBuffer);
+	DeleteBuffer(m_RprWorldCoordinatesBuffer);
+	DeleteBuffer(m_RprWorldCoordinatesResolvedBuffer);
+	DeleteBuffer(m_RprAovDepthBuffer);
+	DeleteBuffer(m_RprAovDepthResolvedBuffer);
+	DeleteBuffer(m_RprDiffuseAlbedoBuffer);
+	DeleteBuffer(m_RprDiffuseAlbedoResolvedBuffer);
 
 	m_RprFrameBufferFormat.num_components = 4;
 	m_RprFrameBufferFormat.type = RPR_COMPONENT_TYPE_FLOAT32;
@@ -371,12 +424,21 @@ void	FRPRRendererWorker::ResizeFramebuffer()
 	m_DstFramebufferData.SetNum(m_Width * m_Height * 16);
 	m_RenderData.SetNum(m_DstFramebufferData.Num());
 
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != nullptr);
+	URPRSettings *settings = GetSettings();
 
 	if (rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprFrameBuffer) != RPR_SUCCESS ||
 		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprResolvedFrameBuffer) != RPR_SUCCESS ||
 		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprColorFrameBuffer) != RPR_SUCCESS ||
+
+		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprShadingNormalBuffer) != RPR_SUCCESS ||
+		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprShadingNormalResolvedBuffer) != RPR_SUCCESS ||
+		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprWorldCoordinatesBuffer) != RPR_SUCCESS ||
+		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprWorldCoordinatesResolvedBuffer) != RPR_SUCCESS ||
+		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprAovDepthBuffer) != RPR_SUCCESS ||
+		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprAovDepthResolvedBuffer) != RPR_SUCCESS ||
+		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprDiffuseAlbedoBuffer) != RPR_SUCCESS ||
+		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprDiffuseAlbedoResolvedBuffer) != RPR_SUCCESS ||
+
 		RPR::Context::SetAOV(m_RprContext, RPR::EAOV::Color, m_RprColorFrameBuffer) != RPR_SUCCESS ||
 		RPR::Context::SetAOV(m_RprContext, m_AOV, m_RprFrameBuffer) != RPR_SUCCESS)
 	{
@@ -397,7 +459,15 @@ void	FRPRRendererWorker::ClearFramebuffer()
 {
 	if (rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS ||
 		rprFrameBufferClear(m_RprResolvedFrameBuffer) != RPR_SUCCESS ||
-		rprFrameBufferClear(m_RprColorFrameBuffer) != RPR_SUCCESS)
+		rprFrameBufferClear(m_RprColorFrameBuffer) != RPR_SUCCESS ||
+		rprFrameBufferClear(m_RprShadingNormalBuffer) != RPR_SUCCESS ||
+		rprFrameBufferClear(m_RprShadingNormalResolvedBuffer) != RPR_SUCCESS ||
+		rprFrameBufferClear(m_RprWorldCoordinatesBuffer) != RPR_SUCCESS ||
+		rprFrameBufferClear(m_RprWorldCoordinatesResolvedBuffer) != RPR_SUCCESS ||
+		rprFrameBufferClear(m_RprAovDepthBuffer) != RPR_SUCCESS ||
+		rprFrameBufferClear(m_RprAovDepthResolvedBuffer) != RPR_SUCCESS ||
+		rprFrameBufferClear(m_RprDiffuseAlbedoBuffer) != RPR_SUCCESS ||
+		rprFrameBufferClear(m_RprDiffuseAlbedoResolvedBuffer) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't clear framebuffer"));
 		RPR::Error::LogLastError(m_RprContext);
@@ -415,8 +485,7 @@ void	FRPRRendererWorker::ClearFramebuffer()
 
 void	FRPRRendererWorker::UpdatePostEffectSettings()
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != nullptr);
+	URPRSettings *settings = GetSettings();
 
 	if (m_RprWhiteBalance == nullptr)
 	{
@@ -526,8 +595,7 @@ bool	FRPRRendererWorker::PreRenderLoop()
 
 	m_PreRenderLock.Lock();
 
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != nullptr);
+	URPRSettings *settings = GetSettings();
 
 	if (m_UpdateTrace)
 	{
@@ -588,18 +656,140 @@ bool	FRPRRendererWorker::PreRenderLoop()
 	return isPaused;
 }
 
+void	FRPRRendererWorker::InitializeDenoiser()
+{
+	auto rprSdk = FModuleManager::GetModuleChecked<FRPR_SDKModule>("RPR_SDK");
+	FString path = FPaths::ConvertRelativePathToFull(rprSdk.GetDLLsDirectory(TEXT("RadeonProImageProcessingSDK")), TEXT("../../models"));
+	m_Denoiser = MakeShared<ImageFilter>(m_RprContext, m_Width, m_Height, path);
+}
+
+void	FRPRRendererWorker::CreateDenoiserFilter(RifFilterType filterType)
+{
+	try {
+		if (filterType == RifFilterType::BilateralDenoise)
+		{
+			m_Denoiser->CreateFilter(filterType);
+			m_Denoiser->AddInput(RifColor, m_RprResolvedFrameBuffer, 0.3f);
+			m_Denoiser->AddInput(RifNormal, m_RprShadingNormalResolvedBuffer, 0.01f);
+			m_Denoiser->AddInput(RifWorldCoordinate, m_RprWorldCoordinatesResolvedBuffer, 0.01f);
+
+			RifParam p = {RifParamType::RifInt, 0};
+			m_Denoiser->AddParam("radius", p);
+		}
+		/*else if (filterType == RifFilterType::LwrDenoise)
+		{
+			m_Denoiser->CreateFilter(filterType, true);
+			m_Denoiser->AddInput(RifColor, m_RprResolvedFrameBuffer, 0.1f);
+			m_Denoiser->AddInput(RifNormal, m_RprShadingNormalResolvedBuffer, 0.1f);
+			m_Denoiser->AddInput(RifDepth, m_RprAovDepthResolvedBuffer, 0.1f);
+			m_Denoiser->AddInput(RifWorldCoordinate, m_RprWorldCoordinatesResolvedBuffer, 0.1f);
+			m_Denoiser->AddInput(RifObjectId, fbObjectId, 0.1f);
+			m_Denoiser->AddInput(RifTrans, fbTrans, 0.1f);
+
+			RifParam p = {RifParamType::RifInt, m_globals.denoiserSettings.samples};
+			m_Denoiser->AddParam("samples", p);
+
+			p = {RifParamType::RifInt,  m_globals.denoiserSettings.filterRadius};
+			m_Denoiser->AddParam("halfWindow", p);
+
+			p.mType = RifParamType::RifFloat;
+			p.mData.f = m_globals.denoiserSettings.bandwidth;
+			m_Denoiser->AddParam("bandwidth", p);
+		}
+		else if (filterType == RifFilterType::EawDenoise)
+		{
+			m_Denoiser->CreateFilter(filterType, true);
+			m_Denoiser->AddInput(RifColor, m_RprResolvedFrameBuffer, m_globals.denoiserSettings.color);
+			m_Denoiser->AddInput(RifNormal, m_RprShadingNormalResolvedBuffer, m_globals.denoiserSettings.normal);
+			m_Denoiser->AddInput(RifDepth, m_RprAovDepthResolvedBuffer, m_globals.denoiserSettings.depth);
+			m_Denoiser->AddInput(RifTrans, fbTrans, m_globals.denoiserSettings.trans);
+			m_Denoiser->AddInput(RifWorldCoordinate, m_RprWorldCoordinatesResolvedBuffer, 0.1f);
+			m_Denoiser->AddInput(RifObjectId, fbObjectId, 0.1f);
+		}*/
+		else if (filterType == RifFilterType::MlDenoise)
+		{
+			const rpr_framebuffer fbColor = m_RprResolvedFrameBuffer;
+			const rpr_framebuffer fbShadingNormal = m_RprShadingNormalResolvedBuffer;
+			const rpr_framebuffer fbAovDepth = m_RprAovDepthResolvedBuffer;
+			const rpr_framebuffer fbDiffuseAlbedo = m_RprDiffuseAlbedoResolvedBuffer;
+
+
+			m_Denoiser->CreateFilter(filterType, true);
+			m_Denoiser->AddInput(RifColor, fbColor, 0.0f);
+			m_Denoiser->AddInput(RifNormal, fbShadingNormal, 0.0f);
+			m_Denoiser->AddInput(RifDepth, fbAovDepth, 0.0f);
+			m_Denoiser->AddInput(RifAlbedo, fbDiffuseAlbedo, 0.0f);
+		}
+		else if (filterType == RifFilterType::MlDenoiseColorOnly)
+		{
+			m_Denoiser->CreateFilter(filterType, true);
+			m_Denoiser->AddInput(RifColor, m_RprResolvedFrameBuffer, 0.0f);
+		}
+
+		m_Denoiser->AttachFilter();
+	}
+	catch (std::exception & e)
+	{
+		m_Denoiser.Reset();
+		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't craete denoiser : %s"), e.what());
+	}
+}
+
+void	FRPRRendererWorker::ApplyDenoiser()
+{
+	auto settings = GetSettings();
+
+	if (!settings->UseDenoiser)
+		return;
+
+	InitializeDenoiser();
+	SetDenoiserSettings(settings->DenoiserOption);
+	RunDenoiser();
+	++m_CurrentIteration;
+}
+
+void	FRPRRendererWorker::RunDenoiser()
+{
+	if (m_RprContext == nullptr)
+		return;
+
+	m_Denoiser->Run();
+	auto denoisedData = m_Denoiser->GetData();
+
+	uint8* dstPixels = m_DstFramebufferData.GetData();
+	const float* srcPixels = denoisedData.GetData();
+	const uint32 pixelCount = m_RprFrameBufferDesc.fb_width * m_RprFrameBufferDesc.fb_height;
+
+	for (uint32 i = 0; i < pixelCount; ++i)
+	{
+		*dstPixels++ = FMath::Clamp(*srcPixels++ * 255.0f, 0.0f, 255.0f);
+		*dstPixels++ = FMath::Clamp(*srcPixels++ * 255.0f, 0.0f, 255.0f);
+		*dstPixels++ = FMath::Clamp(*srcPixels++ * 255.0f, 0.0f, 255.0f);
+		*dstPixels++ = FMath::Clamp(*srcPixels++ * 255.0f, 0.0f, 255.0f);
+	}
+	m_DataLock.Lock();
+	FMemory::Memcpy(m_RenderData.GetData(), m_DstFramebufferData.GetData(), m_DstFramebufferData.Num());
+	m_DataLock.Unlock();
+}
+
 uint32	FRPRRendererWorker::Run()
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != nullptr);
+	URPRSettings *settings = GetSettings();
+
+	bool denoised = false;
 
 	while (m_StopTaskCounter.GetValue() == 0)
 	{
 		const bool	isPaused = PreRenderLoop();
 
-		if (isPaused ||
-			m_CurrentIteration >= settings->MaximumRenderIterations)
+		if (isPaused || m_CurrentIteration >= settings->MaximumRenderIterations)
 		{
+			if (settings->UseDenoiser && !denoised && m_CurrentIteration >= settings->MaximumRenderIterations)
+			{
+				ApplyDenoiser();
+				UE_LOG(LogRPRRenderer, Log, TEXT("Denoiser applied"));
+				denoised = true;
+			}
 			FPlatformProcess::Sleep(0.1f);
 			continue;
 		}
@@ -620,7 +810,13 @@ uint32	FRPRRendererWorker::Run()
 			{
 				SCOPE_CYCLE_COUNTER(STAT_ProRender_Resolve);
 				const bool bNormalizeOnly = false;
-				if (RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprFrameBuffer, m_RprResolvedFrameBuffer, bNormalizeOnly) != RPR_SUCCESS)
+				if (RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprFrameBuffer, m_RprResolvedFrameBuffer, bNormalizeOnly) != RPR_SUCCESS ||
+					RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprShadingNormalBuffer, m_RprShadingNormalResolvedBuffer, bNormalizeOnly) != RPR_SUCCESS ||
+					RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprAovDepthBuffer, m_RprAovDepthResolvedBuffer, bNormalizeOnly) != RPR_SUCCESS ||
+					RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprDiffuseAlbedoBuffer, m_RprDiffuseAlbedoResolvedBuffer, bNormalizeOnly) != RPR_SUCCESS ||
+					RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprWorldCoordinatesBuffer, m_RprWorldCoordinatesResolvedBuffer, bNormalizeOnly) != RPR_SUCCESS ||
+					RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprAovDepthBuffer, m_RprAovDepthResolvedBuffer, bNormalizeOnly) != RPR_SUCCESS ||
+					RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprDiffuseAlbedoBuffer, m_RprDiffuseAlbedoResolvedBuffer, bNormalizeOnly) != RPR_SUCCESS)
 				{
 					RPR::Error::LogLastError(m_RprContext);
 					m_RenderLock.Unlock();
@@ -634,6 +830,7 @@ uint32	FRPRRendererWorker::Run()
 
 			const uint32	sampleCount = FGenericPlatformMath::Min((m_CurrentIteration + 4) / 4, m_NumDevices);
 			m_CurrentIteration += sampleCount;
+			denoised = false;
 		}
 		else
 			FPlatformProcess::Sleep(0.1f);
@@ -703,25 +900,63 @@ void	FRPRRendererWorker::ReleaseResources()
 	if (m_RprFrameBuffer != nullptr)
 	{
 		rprFrameBufferClear(m_RprFrameBuffer);
-		RPR::DeleteObject(m_RprFrameBuffer);
-		m_RprFrameBuffer = nullptr;
+		DeleteBuffer(m_RprFrameBuffer);
 
 		RPR::Context::SetAOV(m_RprContext, m_AOV, nullptr);
 	}
 	if (m_RprColorFrameBuffer != nullptr)
 	{
 		rprFrameBufferClear(m_RprColorFrameBuffer);
-		RPR::DeleteObject(m_RprColorFrameBuffer);
-		m_RprColorFrameBuffer = nullptr;
+		DeleteBuffer(m_RprColorFrameBuffer);
 
 		RPR::Context::SetAOV(m_RprContext, RPR::EAOV::Color, nullptr);
 	}
 	if (m_RprResolvedFrameBuffer != nullptr)
 	{
 		rprFrameBufferClear(m_RprResolvedFrameBuffer);
-		RPR::DeleteObject(m_RprResolvedFrameBuffer);
-		m_RprResolvedFrameBuffer = nullptr;
+		DeleteBuffer(m_RprResolvedFrameBuffer);
 	}
+	if (m_RprShadingNormalBuffer != nullptr)
+	{
+		rprFrameBufferClear(m_RprShadingNormalBuffer);
+		DeleteBuffer(m_RprShadingNormalBuffer);
+	}
+	if (m_RprShadingNormalResolvedBuffer != nullptr)
+	{
+		rprFrameBufferClear(m_RprShadingNormalResolvedBuffer);
+		DeleteBuffer(m_RprShadingNormalResolvedBuffer);
+	}
+	if (m_RprWorldCoordinatesBuffer != nullptr)
+	{
+		rprFrameBufferClear(m_RprWorldCoordinatesBuffer);
+		DeleteBuffer(m_RprWorldCoordinatesBuffer);
+	}
+	if (m_RprWorldCoordinatesResolvedBuffer != nullptr)
+	{
+		rprFrameBufferClear(m_RprWorldCoordinatesResolvedBuffer);
+		DeleteBuffer(m_RprWorldCoordinatesResolvedBuffer);
+	}
+	if (m_RprAovDepthBuffer != nullptr)
+	{
+		rprFrameBufferClear(m_RprAovDepthBuffer);
+		DeleteBuffer(m_RprAovDepthBuffer);
+	}
+	if (m_RprAovDepthResolvedBuffer != nullptr)
+	{
+		rprFrameBufferClear(m_RprAovDepthResolvedBuffer);
+		DeleteBuffer(m_RprAovDepthResolvedBuffer);
+	}
+	if (m_RprDiffuseAlbedoBuffer != nullptr)
+	{
+		rprFrameBufferClear(m_RprDiffuseAlbedoBuffer);
+		DeleteBuffer(m_RprDiffuseAlbedoBuffer);
+	}
+	if (m_RprDiffuseAlbedoResolvedBuffer != nullptr)
+	{
+		rprFrameBufferClear(m_RprDiffuseAlbedoResolvedBuffer);
+		DeleteBuffer(m_RprDiffuseAlbedoResolvedBuffer);
+	}
+
 	if (m_RprWhiteBalance != nullptr)
 	{
 		check(m_RprGammaCorrection != nullptr);

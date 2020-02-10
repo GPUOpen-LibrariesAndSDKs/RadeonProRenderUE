@@ -26,6 +26,8 @@
 #include "Widgets/DeclarativeSyntaxSupport.h"
 #include "Enums/RPREnums.h"
 
+enum class ECheckBoxState : uint8;
+
 class SRPRViewportTabContent : public SCompoundWidget
 {
 	SLATE_BEGIN_ARGS(SRPRViewportTabContent)
@@ -65,11 +67,13 @@ private:
 
 	TSharedRef<SWidget>		OnGenerateCameraWidget(TSharedPtr<FString> inItem) const;
 	TSharedRef<SWidget>		OnGenerateQualitySettingsWidget(TSharedPtr<FString> inItem) const;
+	TSharedRef<SWidget>		OnGenerateDenoiserWidget(TSharedPtr<FString> inItem) const;
 	TSharedRef<SWidget>		OnGenerateMegaPixelWidget(TSharedPtr<FString> inItem) const;
 	TSharedRef<SWidget>		OnGenerateAOVWidget(FAOVDataPtr inItem) const;
 
 	void					OnCameraChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo);
 	void					OnQualitySettingsChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo);
+	void					OnDenoiserOptionChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo);
 	void					OnMegaPixelChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo);
 	void					OnRefreshCameraList();
 	void					OnAOVModeChanged(FAOVDataPtr item, ESelectInfo::Type inSelectionInfo);
@@ -82,6 +86,7 @@ private:
 	FText					GetImportStatus() const;
 	FText					GetSelectedCameraName() const;
 	FText					GetSelectedQualitySettingsName() const;
+	FText					GetSelectedDenoiserOptionName() const;
 	FText					GetSelectedMegaPixelName() const;
 	FText					GetCurrentRenderIteration() const;
 	FText					GetTraceStatus() const;
@@ -97,6 +102,7 @@ private:
 	void					OnPhotolinearTonemapExposureChanged(float newValue);
 	void					OnPhotolinearTonemapFStopChanged(float newValue);
 	void					OnRaycastEpsilonValueChanged(float newValue);
+	void					OnUseDenoiserCheckStateChanged(ECheckBoxState newValue);
 
 
 	TOptional<uint32>		GetWhiteBalanceTemperature() const;
@@ -107,6 +113,7 @@ private:
 	TOptional<float>		GetPhotolinearTonemapExposure() const;
 	TOptional<float>		GetPhotolinearTonemapFStop() const;
 	TOptional<float>		GetRaycastEpsilon() const;
+	TOptional<ECheckBoxState>		GetUseDenoiser() const;
 
 	bool					IsSceneValid() const;
 
@@ -117,6 +124,7 @@ private:
 
 	TArray<TSharedPtr<FString>>				m_AvailableMegaPixel;
 	TArray<TSharedPtr<FString>>				m_QualitySettingsList;
+	TArray<TSharedPtr<FString>>				m_DenoiserOptionList;
 	TArray<FAOVDataPtr>						m_AOVAvailableModes;
 
 	class FRPRPluginModule					*m_Plugin;
@@ -124,7 +132,7 @@ private:
 
 	bool									m_DisplayPostEffects;
 
-	FString	m_LastExportDirectory;
+	FString									m_LastExportDirectory;
 };
 
 #endif // WITH_EDITOR

@@ -118,5 +118,4 @@ private:
 
 	bool					m_Loaded;
 	RPR::EAOV				m_AOVMode;
-
 };

@@ -44,6 +44,7 @@
 #include "EngineUtils.h"
 #include "RPRCpTexture2DDynamic.h"
 #include "RPR_SDKModule.h"
+#include "RPRCoreModule.h"
 
 DEFINE_LOG_CATEGORY(LogRPRPlugin)
 
@@ -73,7 +74,6 @@ FRPRPluginModule::FRPRPluginModule()
 ,	m_Loaded(false)
 ,	m_AOVMode(RPR::EAOV::Color)
 {
-
 }
 
 FRPRPluginModule::~FRPRPluginModule()
@@ -179,7 +179,7 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 
 		// This one for level change
 		GEngine->OnWorldAdded().AddRaw(this, &FRPRPluginModule::OnWorldAdded);
-		
+
 		CreateNewSceneFromCurrentOpenedWorldIFN();
 	}
 
@@ -262,7 +262,7 @@ void	FRPRPluginModule::CreateNewScene(UWorld *world)
 
 bool	FRPRPluginModule::IsWorldSupported(EWorldType::Type WorldType) const
 {
-	return 
+	return
 		WorldType == EWorldType::Game ||
 		WorldType == EWorldType::PIE ||
 		WorldType == EWorldType::Editor;
@@ -534,5 +534,5 @@ void	FRPRPluginModule::ShutdownModule()
 }
 
 #undef LOCTEXT_NAMESPACE
-	
+
 IMPLEMENT_MODULE(FRPRPluginModule, RPRPlugin)

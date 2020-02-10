@@ -24,6 +24,7 @@
 #include "RPRPlugin.h"
 #include "RPRSettings.h"
 #include "Typedefs/RPRTypedefs.h"
+#include "ImageFilter/ImageFilter.h"
 
 class FRPRRendererWorker : public FRunnable
 {
@@ -52,9 +53,11 @@ public:
 	void			SetTrace(bool trace, const FString &tracePath);
 	void			SaveToFile(const FString &filename);
 	void			SetQualitySettings(ERPRQualitySettings qualitySettings);
+	void			SetDenoiserSettings(ERPRDenoiserOption denoiserOption);
 	uint32			Iteration() const { return m_CurrentIteration; }
 	void			SetPaused(bool paused);
 	void			SetAOV(RPR::EAOV AOV);
+	void			ApplyDenoiser();
 
 	const uint8		*GetFramebufferData()
 	{
@@ -76,6 +79,9 @@ private:
 	void		ClearFramebuffer();
 	void		DestroyPendingKills();
 	bool		PreRenderLoop();
+	void		InitializeDenoiser();
+	void		CreateDenoiserFilter(RifFilterType type);
+	void		RunDenoiser();
 
 private:
 
@@ -104,6 +110,14 @@ private:
 
 	// Required to render correctly, even if the main frame buffer renders another thing like depth
 	RPR::FFrameBuffer			m_RprColorFrameBuffer;
+	RPR::FFrameBuffer			m_RprShadingNormalBuffer;
+	RPR::FFrameBuffer			m_RprShadingNormalResolvedBuffer;
+	RPR::FFrameBuffer			m_RprWorldCoordinatesBuffer;
+	RPR::FFrameBuffer			m_RprWorldCoordinatesResolvedBuffer;
+	RPR::FFrameBuffer			m_RprAovDepthBuffer;
+	RPR::FFrameBuffer			m_RprAovDepthResolvedBuffer;
+	RPR::FFrameBuffer			m_RprDiffuseAlbedoBuffer;
+	RPR::FFrameBuffer			m_RprDiffuseAlbedoResolvedBuffer;
 
 	rpr_post_effect				m_RprWhiteBalance;
 	rpr_post_effect				m_RprGammaCorrection;
@@ -130,6 +144,8 @@ private:
 	TArray<class ARPRActor*>	m_BuiltObjects;
 	TArray<class ARPRActor*>	m_DiscardObjects;
 	TArray<class ARPRActor*>	m_KillQueue;
+
+	TSharedPtr<ImageFilter>		m_Denoiser;
 };
 
 typedef TSharedPtr<FRPRRendererWorker>	FRPRRendererWorkerPtr;

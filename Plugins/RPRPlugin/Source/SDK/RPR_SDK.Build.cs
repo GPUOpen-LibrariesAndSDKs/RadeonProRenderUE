@@ -54,7 +54,7 @@ public class RPR_SDK : ModuleRules
     public string ThirdPartyDirectory
     { get { return Path.GetFullPath(ModuleDirectory + @"/../../ThirdParty"); } }
 
-    public string SDKDirectory
+    public string RPR_SDK_Directory
     { get { return Path.Combine(ThirdPartyDirectory, @"RadeonProRenderSDK"); } }
 
 
@@ -75,8 +75,8 @@ public class RPR_SDK : ModuleRules
         });
 
         PublicIncludePaths.AddRange(new string[] {
-            Path.Combine(SDKDirectory, @"RadeonProRender"),
-            Path.Combine(SDKDirectory, @"RadeonProRender/inc"),
+            Path.Combine(RPR_SDK_Directory, @"RadeonProRender"),
+            Path.Combine(RPR_SDK_Directory, @"RadeonProRender/inc"),
         });
 
         if (Target.Platform == UnrealTargetPlatform.Win64)
@@ -99,7 +99,7 @@ public class RPR_SDK : ModuleRules
     private void AddLinuxDynamicLibraries(ReadOnlyTargetRules Target)
     {
         // for Linux/Mac plugin links only with *.so files at compile time.
-        string rprLibPath = Path.Combine(SDKDirectory, @"RadeonProRender/binUbuntu18");
+        string rprLibPath = Path.Combine(RPR_SDK_Directory, @"RadeonProRender/binUbuntu18");
         string imageProcessingLibPath = Path.Combine(ThirdPartyDirectory, @"RadeonProImageProcessingSDK/radeonimagefilters-1.4.4-778df0-Ubuntu18-rel/bin");
 
         if (!CheckDirectory(rprLibPath))
@@ -117,7 +117,7 @@ public class RPR_SDK : ModuleRules
 
     public void AddWindowsDynamicLibraries(ReadOnlyTargetRules Target)
     {
-        string rprLibPath = Path.Combine(SDKDirectory, @"RadeonProRender/binWin64");
+        string rprLibPath = Path.Combine(RPR_SDK_Directory, @"RadeonProRender/binWin64");
         string imageProcessingLibPath = Path.Combine(ThirdPartyDirectory, @"RadeonProImageProcessingSDK/radeonimagefilters-1.4.4-778df0-Windows-rel/bin");
 
         if (!CheckDirectory(rprLibPath))
@@ -135,7 +135,7 @@ public class RPR_SDK : ModuleRules
 
     public void AddWindowsStaticLibraries(ReadOnlyTargetRules Target)
     {
-        string rprLibPath = Path.Combine(SDKDirectory, @"RadeonProRender/libWin64");
+        string rprLibPath = Path.Combine(RPR_SDK_Directory, @"RadeonProRender/libWin64");
         string imageProcessingLibPath = Path.Combine(ThirdPartyDirectory, @"RadeonProImageProcessingSDK/radeonimagefilters-1.4.4-778df0-Windows-rel/bin");
 
         if (!CheckDirectory(rprLibPath))

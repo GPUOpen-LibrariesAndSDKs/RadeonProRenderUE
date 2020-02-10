@@ -33,6 +33,7 @@
 #include "Widgets/SViewport.h"
 #include "Widgets/Input/SComboBox.h"
 #include "Widgets/Input/SNumericEntryBox.h"
+#include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Layout/SSpacer.h"
 #include "Widgets/Input/SButton.h"
 #include "Textures/SlateIcon.h"
@@ -152,7 +153,7 @@ FReply SRPRViewportTabContent::OnSceneExport()
 {
 	TSharedPtr<SWindow> ParentWindow = FSlateApplication::Get().FindWidgetWindow(AsShared());
 	void* ParentWindowHandle = (ParentWindow.IsValid() && ParentWindow->GetNativeWindow().IsValid()) ? ParentWindow->GetNativeWindow()->GetOSWindowHandle() : nullptr;
-	
+
 	if (m_LastExportDirectory.IsEmpty())
 	{
 		m_LastExportDirectory = FPaths::GetPath(FPaths::GetProjectFilePath());
@@ -198,8 +199,8 @@ FReply SRPRViewportTabContent::OnSceneExport()
 
 		/*status = RPR::GLTF::ExportToGLTF(
 			filename,
-			resources->GetRPRContext(), 
-			resources->GetMaterialSystem(), 
+			resources->GetRPRContext(),
+			resources->GetMaterialSystem(),
 			resources->GetRPRXSupportContext(),
 			scenes);*/
 
@@ -304,6 +305,12 @@ TSharedRef<SWidget>	SRPRViewportTabContent::OnGenerateQualitySettingsWidget(TSha
 		.Text(FText::FromString(*inItem));
 }
 
+TSharedRef<SWidget>	SRPRViewportTabContent::OnGenerateDenoiserWidget(TSharedPtr<FString> inItem) const
+{
+	return SNew(STextBlock)
+		.Text(FText::FromString(*inItem));
+}
+
 void	SRPRViewportTabContent::OnQualitySettingsChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo)
 {
 	const FString	settingsString = *item.Get();
@@ -337,6 +344,43 @@ FText	SRPRViewportTabContent::GetSelectedQualitySettingsName() const
 			return LOCTEXT("MediumTitle", "Quality : Medium");
 		case	ERPRQualitySettings::High:
 			return LOCTEXT("HighTitle", "Quality : High");
+	}
+	return FText();
+}
+
+void	SRPRViewportTabContent::OnDenoiserOptionChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo)
+{
+	const FString	settingsString = *item.Get();
+
+	ERPRDenoiserOption	newSettings = ERPRDenoiserOption::ML;
+	if (settingsString == "Machine Learning")
+		newSettings = ERPRDenoiserOption::ML;
+	else if (settingsString == "Edge Avoiding Wavelets")
+		newSettings = ERPRDenoiserOption::Eaw;
+	else if (settingsString == "Local Weighted Regression")
+		newSettings = ERPRDenoiserOption::Lwr;
+	else if (settingsString == "Bilateral")
+		newSettings = ERPRDenoiserOption::Bilateral;
+	m_Settings->DenoiserOption = newSettings;
+	m_Settings->SaveConfig();
+
+	ARPRScene* scene = m_Plugin->GetCurrentScene();
+	if (scene != NULL)
+		scene->ApplyDenoiser();
+}
+
+FText	SRPRViewportTabContent::GetSelectedDenoiserOptionName() const
+{
+	switch (m_Settings->DenoiserOption)
+	{
+	case	ERPRDenoiserOption::ML:
+		return LOCTEXT("MachineLearning", "Machine Learning");
+	case	ERPRDenoiserOption::Eaw:
+		return LOCTEXT("EdgeAvoidingWavelets", "Edge Avoiding Wavelets");
+	case	ERPRDenoiserOption::Lwr:
+		return LOCTEXT("LocalWeightedRegression", "Local Weighted Regression");
+	case	ERPRDenoiserOption::Bilateral:
+		return LOCTEXT("Bilateral", "Bilateral");
 	}
 	return FText();
 }
@@ -493,10 +537,21 @@ TOptional<float>	SRPRViewportTabContent::GetRaycastEpsilon() const
 	return m_Settings->RaycastEpsilon;
 }
 
+TOptional<ECheckBoxState>	SRPRViewportTabContent::GetUseDenoiser() const
+{
+	return m_Settings->UseDenoiser ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+}
+
 void	SRPRViewportTabContent::OnRaycastEpsilonValueChanged(float newValue)
 {
 	m_Settings->RaycastEpsilon = newValue;
 	m_Settings->SaveConfig(); // Profile this, can be pretty intense with sliders
+}
+
+void	SRPRViewportTabContent::OnUseDenoiserCheckStateChanged(ECheckBoxState newValue)
+{
+	m_Settings->UseDenoiser = ECheckBoxState::Checked == newValue ? true : false;
+	m_Settings->SaveConfig();
 }
 
 void	SRPRViewportTabContent::Construct(const FArguments &args)
@@ -509,12 +564,18 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 	check(m_Settings != NULL);
 
 	m_QualitySettingsList.Empty();
+	m_DenoiserOptionList.Empty();
 	m_AvailableMegaPixel.Empty();
 
 	m_QualitySettingsList.Add(MakeShared<FString>("Interactive"));
 	m_QualitySettingsList.Add(MakeShared<FString>("Low"));
 	m_QualitySettingsList.Add(MakeShared<FString>("Medium"));
 	m_QualitySettingsList.Add(MakeShared<FString>("High"));
+
+	m_DenoiserOptionList.Add(MakeShared<FString>("Machine Learning"));
+	/*m_DenoiserOptionList.Add(MakeShared<FString>("Edge Avoiding Wavelets"));
+	m_DenoiserOptionList.Add(MakeShared<FString>("Local Weighted Regression"));*/
+	m_DenoiserOptionList.Add(MakeShared<FString>("Bilateral"));
 
 	m_AvailableMegaPixel.Add(MakeShared<FString>("0.25"));
 	m_AvailableMegaPixel.Add(MakeShared<FString>("0.5"));
@@ -753,7 +814,6 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 				.VAlign(VAlign_Fill)
 				.HAlign(HAlign_Fill)
 				[
-				
 					SAssignNew(m_ViewportWidget, SViewport)
 					.IsEnabled(true)
 					.EnableBlending(false)
@@ -1032,6 +1092,39 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 							.MinSliderValue(0.0f)
 							.MaxSliderValue(10.0f)
 							.AllowSpin(true)
+						]
+					]
+					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot().AutoWidth()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("UseDenoiser", "Denoiser  "))
+						]
+						+ SHorizontalBox::Slot()
+						.FillWidth(1.0f)
+						[
+							SNew(SSpacer)
+						]
+						+ SHorizontalBox::Slot().AutoWidth()
+						[
+							SNew(SCheckBox)
+							.IsChecked(m_Settings->UseDenoiser ? ECheckBoxState::Checked : ECheckBoxState::Unchecked)
+							.OnCheckStateChanged(this, &SRPRViewportTabContent::OnUseDenoiserCheckStateChanged)
+						]
+					]
+					+ SVerticalBox::Slot()
+					.AutoHeight()
+					.Padding(2.0f)
+					[
+						SNew(SComboBox<TSharedPtr<FString>>)
+						.OptionsSource(&m_DenoiserOptionList)
+						.OnGenerateWidget(this, &SRPRViewportTabContent::OnGenerateDenoiserWidget)
+						.OnSelectionChanged(this, &SRPRViewportTabContent::OnDenoiserOptionChanged)
+						[
+							SNew(STextBlock)
+							.Text(this, &SRPRViewportTabContent::GetSelectedDenoiserOptionName)
 						]
 					]
 				]
