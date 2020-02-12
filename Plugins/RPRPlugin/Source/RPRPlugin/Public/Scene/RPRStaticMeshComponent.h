@@ -88,12 +88,6 @@ private:
 	void	WatchMaterialsChanges();
 	void	UpdateLastMaterialList();
 
-	void ProcessUE4Material(FRPRShape& shape, UMaterial* material);
-	RPR::RPRXVirtualNode* ConvertExpressionToVirtualNode(UMaterialExpression* expr, const int32 inputParameter);
-	RPR::RPRXVirtualNode* ParseInputNodeOrCreateDefaultAlternative(FExpressionInput input, FString defaultId, float defaultValue);
-	void TwoOperandsMathNodeSetInputs(RPR::RPRXVirtualNode* vNode, const TArray<FExpressionInput*> inputs, const float ConstA, const float ConstB);
-	void GetMinAndMaxNodesForClamp(UMaterialExpressionClamp* expression, RPR::RPRXVirtualNode** minNode, RPR::RPRXVirtualNode** maxNode);
-
 	RPR::FResult	DetachCurrentMaterial(RPR::FShape Shape);
 	FRPRShape*		FindShapeByMaterialIndex(int32 MaterialIndex);
 
