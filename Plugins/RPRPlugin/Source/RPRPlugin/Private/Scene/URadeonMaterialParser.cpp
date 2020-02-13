@@ -32,6 +32,31 @@ DEFINE_LOG_CATEGORY_STATIC(LogURadeonMaterialParser, Log, All);
 		UE_LOG(LogURadeonMaterialParser, Error, msg); \
 }
 
+namespace {
+	void SetReflectionToMaterial(RPR::FRPRXMaterialNodePtr material, uint32 mode, uint32 input,
+		RPR::FMaterialNode inputVal, RPR::FMaterialNode weight, RPR::FMaterialNode color)
+	{
+		RPR::FResult status;
+		status = material->SetMaterialParameterNode(input, inputVal);
+		LOG_ERROR(status, TEXT("Can't set uber reflectoin metalness"));
+
+		status = material->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_REFLECTION_WEIGHT, weight);
+		LOG_ERROR(status, TEXT("Can't set uber relfection weight"));
+
+		status = material->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_REFLECTION_COLOR, color);
+		LOG_ERROR(status, TEXT("Can't set uber reflection color"));
+
+		status = material->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFLECTION_ANISOTROPY, 0.0f);
+		LOG_ERROR(status, TEXT("Can't set uber reflection anisotropy"));
+
+		status = material->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFLECTION_ANISOTROPY_ROTATION, 0.0f);
+		LOG_ERROR(status, TEXT("Can't set uber reflection anisotropy rotation"));
+
+		status = material->SetMaterialParameterUInt(RPR_MATERIAL_INPUT_UBER_REFLECTION_MODE, mode);
+		LOG_ERROR(status, TEXT("Can't set uber reflectoin mode"));
+	}
+}
+
 void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 {
 #if WITH_EDITORONLY_DATA
@@ -64,50 +89,37 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 	status = uberMaterialPtr->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_DIFFUSE_WEIGHT, 1.0f);
 	LOG_ERROR(status, TEXT("Can't set diffuse weight for uber material"));
 
+	status = uberMaterialPtr->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_BACKSCATTER_WEIGHT, 0.0f);
+	LOG_ERROR(status, TEXT("Can't set backscatter weight for uber material"));
+
+
 	if (material->Metallic.Expression)
 	{
 		RPR::RPRXVirtualNode* metallicInput = ConvertExpressionToVirtualNode(material->Metallic.Expression, material->Metallic.OutputIndex);
 
-		status = uberMaterialPtr->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_REFLECTION_METALNESS, metallicInput->realNode);
-		LOG_ERROR(status, TEXT("Can't set uber reflectoin metalness"));
-
-		status = uberMaterialPtr->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_REFLECTION_WEIGHT, metallicInput->realNode);
-		LOG_ERROR(status, TEXT("Can't set uber relfection weight"));
-
-		status = uberMaterialPtr->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_REFLECTION_COLOR, baseColorInputNode->realNode);
-		LOG_ERROR(status, TEXT("Can't set uber reflection coor"));
-
-		status = uberMaterialPtr->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFLECTION_ANISOTROPY, 0.0f);
-		LOG_ERROR(status, TEXT("Can't set uber reflection anisotropy"));
-
-		status = uberMaterialPtr->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFLECTION_ANISOTROPY_ROTATION, 0.0f);
-		LOG_ERROR(status, TEXT("Can't set uber reflection anisotropy rotation"));
-
-		status = uberMaterialPtr->SetMaterialParameterUInt(RPR_MATERIAL_INPUT_UBER_REFLECTION_MODE, RPR_UBER_MATERIAL_IOR_MODE_METALNESS);
-		LOG_ERROR(status, TEXT("Can't set uber reflectoin mode"));
+		SetReflectionToMaterial(
+			uberMaterialPtr,
+			RPR_UBER_MATERIAL_IOR_MODE_METALNESS,
+			RPR_MATERIAL_INPUT_UBER_REFLECTION_METALNESS,
+			metallicInput->realNode,
+			GetValueNode(idPrefix + TEXT("_Metalness_PBR_Weight"), 1.0f)->realNode,
+			baseColorInputNode->realNode
+		);
 	}
 	else if (material->Specular.Expression)
 	{
 		RPR::RPRXVirtualNode* specularInput = ConvertExpressionToVirtualNode(material->Specular.Expression, material->Specular.OutputIndex);
 
-		const FString valueName(TEXT("IOR_1.5_ForNonLiquidMaterials"));
-		status = uberMaterialPtr->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_REFLECTION_IOR, GetValueNode(valueName, 1.5)->realNode);
-		LOG_ERROR(status, TEXT("Can't set uber reflection ior"));
+		const FString valueName(idPrefix + TEXT("IOR_1.5_ForNonLiquidMaterials"));
 
-		status = uberMaterialPtr->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_REFLECTION_WEIGHT, specularInput->realNode);
-		LOG_ERROR(status, TEXT("Can't set uber reflection weight"));
-
-		status = uberMaterialPtr->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_REFLECTION_COLOR, baseColorInputNode->realNode);
-		LOG_ERROR(status, TEXT("Can't set uber reflection color"));
-
-		status = uberMaterialPtr->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFLECTION_ANISOTROPY, 0.0f);
-		LOG_ERROR(status, TEXT("Can't set uber reflection anisotropy"));
-
-		status = uberMaterialPtr->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFLECTION_ANISOTROPY_ROTATION, 0.0f);
-		LOG_ERROR(status, TEXT("Can't set uber anisotropy rotation"));
-
-		status = uberMaterialPtr->SetMaterialParameterUInt(RPR_MATERIAL_INPUT_UBER_REFLECTION_MODE, RPR_UBER_MATERIAL_IOR_MODE_PBR);
-		LOG_ERROR(status, TEXT("Can't set uber reflection mode"));
+		SetReflectionToMaterial(
+			uberMaterialPtr,
+			RPR_UBER_MATERIAL_IOR_MODE_PBR,
+			RPR_MATERIAL_INPUT_UBER_REFLECTION_IOR,
+			GetValueNode(valueName, 1.5f)->realNode,
+			GetValueNode(valueName + TEXT("_PBR_Weight"), 1.0f)->realNode,
+			baseColorInputNode->realNode
+		);
 	}
 
 	if (material->Roughness.Expression)
@@ -115,6 +127,18 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 		RPR::RPRXVirtualNode* roughnessInput = ConvertExpressionToVirtualNode(material->Roughness.Expression, material->Roughness.OutputIndex);
 		status = uberMaterialPtr->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_REFLECTION_ROUGHNESS, roughnessInput->realNode);
 		LOG_ERROR(status, TEXT("Can't set uber reflection roughness"));
+
+		const FString valueName(TEXT("Raughness_Reflection_For_Metalness_0.0"));
+
+		if (!material->Specular.Expression && !material->Metallic.Expression)
+			SetReflectionToMaterial(
+				uberMaterialPtr,
+				RPR_UBER_MATERIAL_IOR_MODE_METALNESS,
+				RPR_MATERIAL_INPUT_UBER_REFLECTION_METALNESS,
+				GetValueNode(valueName, 0.0f)->realNode,
+				GetValueNode(valueName + TEXT("_WEIGHT"), 1.0f)->realNode,
+				GetValueNode(valueName + TEXT("_COLOR"), 0.2f)->realNode
+			);
 	}
 
 	if (material->Normal.Expression)
