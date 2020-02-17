@@ -38,10 +38,10 @@ namespace {
 	{
 		RPR::FResult status;
 		status = material->SetMaterialParameterNode(input, inputVal);
-		LOG_ERROR(status, TEXT("Can't set uber reflectoin metalness"));
+		LOG_ERROR(status, TEXT("Can't set uber reflection metalness"));
 
 		status = material->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_REFLECTION_WEIGHT, weight);
-		LOG_ERROR(status, TEXT("Can't set uber relfection weight"));
+		LOG_ERROR(status, TEXT("Can't set uber reflection weight"));
 
 		status = material->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_REFLECTION_COLOR, color);
 		LOG_ERROR(status, TEXT("Can't set uber reflection color"));
@@ -53,7 +53,32 @@ namespace {
 		LOG_ERROR(status, TEXT("Can't set uber reflection anisotropy rotation"));
 
 		status = material->SetMaterialParameterUInt(RPR_MATERIAL_INPUT_UBER_REFLECTION_MODE, mode);
-		LOG_ERROR(status, TEXT("Can't set uber reflectoin mode"));
+		LOG_ERROR(status, TEXT("Can't set uber reflection mode"));
+	}
+
+	void SetRefractionToMaterial(RPR::FRPRXMaterialNodePtr material, RPR::FMaterialNode color, RPR::FMaterialNode ior)
+	{
+		RPR::FResult status;
+		status = material->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_REFRACTION_COLOR, color);
+		LOG_ERROR(status, TEXT("Can't set uber refraction color"));
+
+		status = material->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_REFRACTION_IOR, ior);
+		LOG_ERROR(status, TEXT("Can't set uber refraction color"));
+
+		status = material->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFRACTION_WEIGHT, 1.0f);
+		LOG_ERROR(status, TEXT("Can't set uber refraction weight"));
+
+		status = material->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFRACTION_ROUGHNESS, 0.0f);
+		LOG_ERROR(status, TEXT("Can't set uber refraction roughness"));
+
+		status = material->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFRACTION_ABSORPTION_COLOR, 0.0f);
+		LOG_ERROR(status, TEXT("Can't set uber refraction absorptoin color"));
+
+		status = material->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFRACTION_ABSORPTION_DISTANCE, 0.0f);
+		LOG_ERROR(status, TEXT("Can't set uber refraction absorptoin distance"));
+
+		status = material->SetMaterialParameterBool(RPR_MATERIAL_INPUT_UBER_REFRACTION_CAUSTICS, true);
+		LOG_ERROR(status, TEXT("Can't set uber refraction caustics"));
 	}
 }
 
@@ -139,6 +164,38 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 				GetValueNode(valueName + TEXT("_WEIGHT"), 1.0f)->realNode,
 				GetValueNode(valueName + TEXT("_COLOR"), 0.2f)->realNode
 			);
+	}
+
+	if (material->Opacity.Expression)
+	{
+		RPR::RPRXVirtualNode* opacity = ConvertExpressionToVirtualNode(material->Opacity.Expression, material->Opacity.OutputIndex);
+
+		if (material->Refraction.Expression)
+		{
+			RPR::RPRXVirtualNode* refraction = ConvertExpressionToVirtualNode(material->Refraction.Expression, material->Refraction.OutputIndex);
+			RPR::RPRXVirtualNode* ior = nullptr;
+
+			if (material->Refraction.Expression->IsA<UMaterialExpressionLinearInterpolate>())
+			{
+				auto lerp = Cast<UMaterialExpressionLinearInterpolate>(material->Refraction.Expression);
+				ior = ParseInputNodeOrCreateDefaultAlternative(lerp->B, idPrefix + lerp->GetName() + TEXT("_B"), lerp->ConstB);
+			}
+			else
+				ior = GetValueNode(idPrefix + TEXT("_ReflectionDefaultIOR"), 1.5f);
+
+			SetRefractionToMaterial(uberMaterialPtr, baseColorInputNode->realNode, ior->realNode);
+		}
+		else
+		{
+			RPR::RPRXVirtualNode* oneMinus = materialLibrary.getOrCreateVirtualIfNotExists(idPrefix + TEXT("OneMinusOpacity"), RPR::EMaterialNodeType::Arithmetic);
+
+			materialLibrary.setNodeUInt(oneMinus->realNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_SUB);
+			materialLibrary.setNodeFloat(oneMinus->realNode, RPR_MATERIAL_INPUT_COLOR0, 1.0f, 1.0f, 1.0f, 1.0f);
+			materialLibrary.setNodeConnection(oneMinus, RPR_MATERIAL_INPUT_COLOR1, opacity);
+
+			status = uberMaterialPtr->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_TRANSPARENCY, oneMinus->realNode);
+			LOG_ERROR(status, TEXT("Can't set Transparent (Opacity) for uber material"));
+		}
 	}
 
 	if (material->Normal.Expression)

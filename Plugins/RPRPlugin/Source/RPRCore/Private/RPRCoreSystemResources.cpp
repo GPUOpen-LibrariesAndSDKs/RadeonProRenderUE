@@ -28,6 +28,34 @@ DECLARE_LOG_CATEGORY_CLASS(LogRPRCoreSystemResources, Log, All)
 
 static void* ImageLibraryHandler;
 
+namespace {
+	URPRSettings* GetSettings()
+	{
+		URPRSettings* settings = GetMutableDefault<URPRSettings>();
+		check(settings != nullptr);
+
+		return settings;
+	}
+
+	void ContextSetUint(RPR::FContext context, uint32 parameter, uint32 value, FString errMsg)
+	{
+		RPR::FResult result;
+		result = rprContextSetParameterByKey1u(context, parameter, value);
+
+		if (!RPR::IsResultSuccess(result))
+			UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Failed to initialize Contexts' parameter: %s, error code: %d"), *errMsg, result);
+	}
+
+	void ContextSetFloat(RPR::FContext context, uint32 parameter, float value, FString errMsg)
+	{
+		RPR::FResult result;
+		result = rprContextSetParameterByKey1f(context, parameter, value);
+
+		if (!RPR::IsResultSuccess(result))
+			UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Failed to initialize Contexts' parameter: %s, error code: %d"), *errMsg, result);
+	}
+}
+
 FRPRCoreSystemResources::FRPRCoreSystemResources()
 	: bIsInitialized(false)
 	, TahoePluginId(INDEX_NONE)
@@ -161,7 +189,7 @@ bool FRPRCoreSystemResources::InitializeContext()
 	LogCompatibleDevices(creationFlags);
 	NumDevicesCompatible = CountCompatibleDevices(creationFlags);
 
-	URPRSettings* settings = GetMutableDefault<URPRSettings>();
+	URPRSettings* settings = GetSettings();
 
 	RPR::FResult result;
 	result = RPR::Context::Create(RPR_API_VERSION, TahoePluginId, creationFlags, nullptr, settings->RenderCachePath, RPRContext);
@@ -192,15 +220,16 @@ bool FRPRCoreSystemResources::InitializeContext()
 
 bool FRPRCoreSystemResources::InitializeContextParameters()
 {
-	RPR::FResult result;
+	URPRSettings* settings = GetSettings();
 
-	result = rprContextSetParameterByKey1u(RPRContext, RPR_CONTEXT_PREVIEW, 1);
-	if (!RPR::IsResultSuccess(result))
-		return false;
-
-	result = rprContextSetParameterByKey1f(RPRContext, RPR_CONTEXT_RADIANCE_CLAMP, 1.0f);
-	if (!RPR::IsResultSuccess(result))
-		return false;
+	ContextSetUint(RPRContext, RPR_CONTEXT_PREVIEW, 1, TEXT("PREVIEW"));
+	ContextSetUint(RPRContext, RPR_CONTEXT_MAX_RECURSION, 10, TEXT("MAX_RECURSION"));
+	ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_DIFFUSE, settings->RayDepthDiffuse, TEXT("MAX_DEPTH_DIFFUSE"));
+	ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_GLOSSY, settings->RayDepthGlossy, TEXT("MAX_DEPTH_GLOSSY"));
+	ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_SHADOW, settings->RayDepthShadow, TEXT("MAX_DEPTH_SHADOW"));
+	ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_REFRACTION, settings->RayDepthRefraction, TEXT("MAX_DEPTH_REFRACTION"));
+	ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_GLOSSY_REFRACTION, settings->RayDepthGlossyRefraction, TEXT("MAX_DEPTH_GLOSSY_REFRACTION"));
+	ContextSetFloat(RPRContext, RPR_CONTEXT_RADIANCE_CLAMP, settings->RadianceClamp, TEXT("RADIANCE_CLAMP"));
 
 	return true;
 }
@@ -212,9 +241,7 @@ void FRPRCoreSystemResources::InitializeRPRImageManager()
 
 RPR::FCreationFlags	FRPRCoreSystemResources::GetContextCreationFlags() const
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != nullptr);
-
+	URPRSettings* settings = GetSettings();
 	RPR::FCreationFlags	maxCreationFlags = GetMaxCreationFlags();
 
 	RPR_TOOLS_OS	os = GetCurrentToolOS();
@@ -236,9 +263,7 @@ RPR::FCreationFlags	FRPRCoreSystemResources::GetContextCreationFlags() const
 
 RPR::FCreationFlags FRPRCoreSystemResources::GetMaxCreationFlags() const
 {
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != nullptr);
-
+	URPRSettings* settings = GetSettings();
 	RPR::FCreationFlags	maxCreationFlags = 0;
 
 	if (settings->bEnableCPU) maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_CPU;

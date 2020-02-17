@@ -65,6 +65,7 @@ FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene rprScene, 
 ,	m_RprContext(context)
 ,	m_AOV(RPR::EAOV::Color)
 ,	m_RprColorFrameBuffer(nullptr)
+,	m_RprOpacityFrameBuffer(nullptr)
 ,	m_RprShadingNormalBuffer(nullptr)
 ,	m_RprShadingNormalResolvedBuffer(nullptr)
 ,	m_RprWorldCoordinatesBuffer(nullptr)
@@ -424,23 +425,23 @@ void	FRPRRendererWorker::ResizeFramebuffer()
 	m_DstFramebufferData.SetNum(m_Width * m_Height * 16);
 	m_RenderData.SetNum(m_DstFramebufferData.Num());
 
-	URPRSettings *settings = GetSettings();
-
-	if (rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprFrameBuffer) != RPR_SUCCESS ||
+	if (rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprFrameBuffer)         != RPR_SUCCESS ||
 		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprResolvedFrameBuffer) != RPR_SUCCESS ||
-		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprColorFrameBuffer) != RPR_SUCCESS ||
+		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprColorFrameBuffer)    != RPR_SUCCESS ||
+		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprOpacityFrameBuffer)  != RPR_SUCCESS ||
 
-		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprShadingNormalBuffer) != RPR_SUCCESS ||
-		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprShadingNormalResolvedBuffer) != RPR_SUCCESS ||
-		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprWorldCoordinatesBuffer) != RPR_SUCCESS ||
+		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprShadingNormalBuffer)            != RPR_SUCCESS ||
+		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprShadingNormalResolvedBuffer)    != RPR_SUCCESS ||
+		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprWorldCoordinatesBuffer)         != RPR_SUCCESS ||
 		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprWorldCoordinatesResolvedBuffer) != RPR_SUCCESS ||
-		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprAovDepthBuffer) != RPR_SUCCESS ||
-		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprAovDepthResolvedBuffer) != RPR_SUCCESS ||
-		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprDiffuseAlbedoBuffer) != RPR_SUCCESS ||
-		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprDiffuseAlbedoResolvedBuffer) != RPR_SUCCESS ||
+		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprAovDepthBuffer)                 != RPR_SUCCESS ||
+		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprAovDepthResolvedBuffer)         != RPR_SUCCESS ||
+		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprDiffuseAlbedoBuffer)            != RPR_SUCCESS ||
+		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprDiffuseAlbedoResolvedBuffer)    != RPR_SUCCESS ||
 
-		RPR::Context::SetAOV(m_RprContext, RPR::EAOV::Color, m_RprColorFrameBuffer) != RPR_SUCCESS ||
-		RPR::Context::SetAOV(m_RprContext, m_AOV, m_RprFrameBuffer) != RPR_SUCCESS)
+		RPR::Context::SetAOV(m_RprContext, RPR::EAOV::Color, m_RprColorFrameBuffer)     != RPR_SUCCESS ||
+		RPR::Context::SetAOV(m_RprContext, RPR::EAOV::Opacity, m_RprOpacityFrameBuffer) != RPR_SUCCESS ||
+		RPR::Context::SetAOV(m_RprContext, m_AOV, m_RprFrameBuffer)                     != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRRenderer, Error, TEXT("RPR FrameBuffer creation failed"));
 		RPR::Error::LogLastError(m_RprContext);
@@ -457,16 +458,17 @@ void	FRPRRendererWorker::ResizeFramebuffer()
 
 void	FRPRRendererWorker::ClearFramebuffer()
 {
-	if (rprFrameBufferClear(m_RprFrameBuffer) != RPR_SUCCESS ||
+	if (rprFrameBufferClear(m_RprFrameBuffer)         != RPR_SUCCESS ||
 		rprFrameBufferClear(m_RprResolvedFrameBuffer) != RPR_SUCCESS ||
-		rprFrameBufferClear(m_RprColorFrameBuffer) != RPR_SUCCESS ||
+		rprFrameBufferClear(m_RprColorFrameBuffer)    != RPR_SUCCESS ||
+		rprFrameBufferClear(m_RprOpacityFrameBuffer)  != RPR_SUCCESS ||
 		rprFrameBufferClear(m_RprShadingNormalBuffer) != RPR_SUCCESS ||
-		rprFrameBufferClear(m_RprShadingNormalResolvedBuffer) != RPR_SUCCESS ||
-		rprFrameBufferClear(m_RprWorldCoordinatesBuffer) != RPR_SUCCESS ||
+		rprFrameBufferClear(m_RprShadingNormalResolvedBuffer)    != RPR_SUCCESS ||
+		rprFrameBufferClear(m_RprWorldCoordinatesBuffer)         != RPR_SUCCESS ||
 		rprFrameBufferClear(m_RprWorldCoordinatesResolvedBuffer) != RPR_SUCCESS ||
-		rprFrameBufferClear(m_RprAovDepthBuffer) != RPR_SUCCESS ||
+		rprFrameBufferClear(m_RprAovDepthBuffer)         != RPR_SUCCESS ||
 		rprFrameBufferClear(m_RprAovDepthResolvedBuffer) != RPR_SUCCESS ||
-		rprFrameBufferClear(m_RprDiffuseAlbedoBuffer) != RPR_SUCCESS ||
+		rprFrameBufferClear(m_RprDiffuseAlbedoBuffer)    != RPR_SUCCESS ||
 		rprFrameBufferClear(m_RprDiffuseAlbedoResolvedBuffer) != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't clear framebuffer"));
@@ -810,12 +812,12 @@ uint32	FRPRRendererWorker::Run()
 			{
 				SCOPE_CYCLE_COUNTER(STAT_ProRender_Resolve);
 				const bool bNormalizeOnly = false;
-				if (RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprFrameBuffer, m_RprResolvedFrameBuffer, bNormalizeOnly) != RPR_SUCCESS ||
+				if (RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprFrameBuffer, m_RprResolvedFrameBuffer, bNormalizeOnly)                 != RPR_SUCCESS ||
 					RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprShadingNormalBuffer, m_RprShadingNormalResolvedBuffer, bNormalizeOnly) != RPR_SUCCESS ||
-					RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprAovDepthBuffer, m_RprAovDepthResolvedBuffer, bNormalizeOnly) != RPR_SUCCESS ||
+					RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprAovDepthBuffer, m_RprAovDepthResolvedBuffer, bNormalizeOnly)           != RPR_SUCCESS ||
 					RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprDiffuseAlbedoBuffer, m_RprDiffuseAlbedoResolvedBuffer, bNormalizeOnly) != RPR_SUCCESS ||
 					RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprWorldCoordinatesBuffer, m_RprWorldCoordinatesResolvedBuffer, bNormalizeOnly) != RPR_SUCCESS ||
-					RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprAovDepthBuffer, m_RprAovDepthResolvedBuffer, bNormalizeOnly) != RPR_SUCCESS ||
+					RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprAovDepthBuffer, m_RprAovDepthResolvedBuffer, bNormalizeOnly)           != RPR_SUCCESS ||
 					RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprDiffuseAlbedoBuffer, m_RprDiffuseAlbedoResolvedBuffer, bNormalizeOnly) != RPR_SUCCESS)
 				{
 					RPR::Error::LogLastError(m_RprContext);
@@ -910,6 +912,13 @@ void	FRPRRendererWorker::ReleaseResources()
 		DeleteBuffer(m_RprColorFrameBuffer);
 
 		RPR::Context::SetAOV(m_RprContext, RPR::EAOV::Color, nullptr);
+	}
+	if (m_RprOpacityFrameBuffer != nullptr)
+	{
+		rprFrameBufferClear(m_RprOpacityFrameBuffer);
+		DeleteBuffer(m_RprOpacityFrameBuffer);
+
+		RPR::Context::SetAOV(m_RprContext, RPR::EAOV::Opacity, nullptr);
 	}
 	if (m_RprResolvedFrameBuffer != nullptr)
 	{

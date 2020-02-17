@@ -143,25 +143,28 @@ public:
 	uint32		SamplingMin;
 
 	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
-	float       NoiseThreshold;
+	uint32       NoiseThreshold;
 
 	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
-	float		RayDepthMax;
+	uint32		RayDepthMax;
 
 	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
-	float		RayDepthDiffuse;
+	uint32		RayDepthDiffuse;
 
 	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
-	float		RayDepthGlossy;
+	uint32		RayDepthGlossy;
 
 	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
-	float		RayDepthRefraction;
+	uint32		RayDepthRefraction;
 
 	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
-	float		RayDepthGlossyRefraction;
+	uint32		RayDepthGlossyRefraction;
 
 	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
-	float		RayDepthShadow;
+	uint32		RayDepthShadow;
+
+	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
+	float		RadianceClamp;
 
 	UPROPERTY(Config)
 	bool		UseDenoiser;
