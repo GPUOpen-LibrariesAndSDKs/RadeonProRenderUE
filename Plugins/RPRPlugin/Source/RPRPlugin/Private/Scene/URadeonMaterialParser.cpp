@@ -153,7 +153,7 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 		status = uberMaterialPtr->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_REFLECTION_ROUGHNESS, roughnessInput->realNode);
 		LOG_ERROR(status, TEXT("Can't set uber reflection roughness"));
 
-		const FString valueName(TEXT("Raughness_Reflection_For_Metalness_0.0"));
+		const FString valueName(idPrefix + TEXT("Raughness_Reflection_For_Metalness_0.0"));
 
 		if (!material->Specular.Expression && !material->Metallic.Expression)
 			SetReflectionToMaterial(
@@ -164,6 +164,36 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 				GetValueNode(valueName + TEXT("_WEIGHT"), 1.0f)->realNode,
 				GetValueNode(valueName + TEXT("_COLOR"), 0.2f)->realNode
 			);
+	}
+
+
+	/*
+		We expect a Multiply node as input for Emission color.
+		The A input of the Multiply node should store the emission color.
+		The B input of the Multiply node should store emission intensity.
+	*/
+	if (material->EmissiveColor.Expression)
+	{
+		if (!material->EmissiveColor.Expression->IsA<UMaterialExpressionMultiply>())
+		{
+			UE_LOG(LogURadeonMaterialParser, Error, TEXT("Can't set Emission Color.\n\t%s\n\t%s\n\t%s"),
+				"We expect a Multiply node as input for Emission color.",
+				"The A input of the Multiply node should store the emission color.",
+				"The B input of the Multiply node should store emission intensity.");
+		}
+		else
+		{
+			RPR::RPRXVirtualNode* emissiveColor = ConvertExpressionToVirtualNode(material->EmissiveColor.Expression, material->EmissiveColor.OutputIndex);
+
+			status = uberMaterialPtr->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_EMISSION_COLOR, emissiveColor->realNode);
+			LOG_ERROR(status, TEXT("Can't set uber emission color"));
+
+			status = uberMaterialPtr->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_EMISSION_WEIGHT, 1.0f);
+			LOG_ERROR(status, TEXT("Can't set uber emission weight"));
+
+			status = uberMaterialPtr->SetMaterialParameterUInt(RPR_MATERIAL_INPUT_UBER_EMISSION_MODE, RPR_UBER_MATERIAL_EMISSION_MODE_SINGLESIDED);
+			LOG_ERROR(status, TEXT("Can't set uber emission mode to SingledSided"));
+		}
 	}
 
 	if (material->Opacity.Expression)
