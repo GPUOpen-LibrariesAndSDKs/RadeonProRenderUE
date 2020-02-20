@@ -300,10 +300,6 @@ bool	URPRStaticMeshComponent::Build()
 	if (lodRes.Sections.Num() == 0)
 		return false;
 
-	// DEBUG CODE for checking winding order.
-	enum class WindingOrder { CCW, CW };
-	std::set<WindingOrder> windingOrders;
-
 	const uint32			instanceCount = instancedMeshComponent != nullptr ? instancedMeshComponent->GetInstanceCount() : 1;
 	TArray<FRPRCachedMesh>	instances;
 	if (!CreateMeshInstancesIFP(staticMeshComponent, instanceCount, instances))
@@ -385,42 +381,6 @@ bool	URPRStaticMeshComponent::Build()
 				}
 			}
 
-			// DEBUG CODE for checking winding orders.
-			for (auto i = 0U; i < section.NumTriangles * 3; i += 3)
-			{
-				// Get the indices for the current triangle.
-				auto i0 = indices[i];
-				auto i1 = indices[i + 1];
-				auto i2 = indices[i + 2];
-
-				// Get the vertices for the current triangle.
-				FVector v0 = positions.GetData()[i0];
-				FVector v1 = positions.GetData()[i1];
-				FVector v2 = positions.GetData()[i2];
-
-				// Get the normals oc the current triangle.
-				FVector n0 = normals.GetData()[i0];
-				FVector n1 = normals.GetData()[i1];
-				FVector n2 = normals.GetData()[i2];
-
-#define USE_GEOMETRIC_NORMAL 0
-#if USE_GEOMETRIC_NORMAL == 1
-				FVector n = FVector::CrossProduct(v1 - v0, v2 - v0).GetSafeNormal();
-#else
-				FVector n = (n0 + n1 + n2) * 0.3333f;
-#endif
-				// Project vertices onto a 2D plane offset some distance along the triangle's surface normal.
-				FVector planeNormal = n;
-				FVector planeBase = (v0 + v1 + v2) * 0.5f + planeNormal;
-				FVector p0 = FVector::PointPlaneProject(v0, planeBase, planeNormal);
-				FVector p1 = FVector::PointPlaneProject(v0, planeBase, planeNormal);
-				FVector p2 = FVector::PointPlaneProject(v0, planeBase, planeNormal);
-
-				// Calculate the 2D determinant of the projected vertices onto the plane.
-				float det = 0.5f * (p0.X * (p1.Y - p2.Y) + p1.X * (p2.Y - p0.Y) + p2.X * (p0.Y - p1.Y));
-				if (det >= 0) windingOrders.emplace(WindingOrder::CCW);
-				else windingOrders.emplace(WindingOrder::CW);
-			}
 #ifdef RPR_VERBOSE
 			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("RPR Shape created from '%s' section %d"), *staticMesh->GetName(), iSection);
 #endif
@@ -492,53 +452,7 @@ bool	URPRStaticMeshComponent::Build()
 						RPR::SetObjectName(newUncachedShape.m_RprShape, *FString::Printf(TEXT("%s"), *SrcComponent->GetOwner()->GetName()));
 				}
 			}
-
-			// ----------------------------------------------------------------------------------------------------
-			// MATERIAL START PARSE LOGIC
-			// ----------------------------------------------------------------------------------------------------
-/*			UMaterial *material = dynamic_cast<UMaterial*>(staticMeshComponent->GetMaterial(section.MaterialIndex));
-			uint32 matid = material->GetUniqueID();
-
-			assert(material);
-			if (material->PhysMaterial) {
-				UPhysicalMaterial* physicalMaterial = material->PhysMaterial;
-			}
-
-			TArray<UMaterialExpression*> arr_expressions = material->Expressions;
-			for (unsigned int index = 0; index < arr_expressions.GetAllocatedSize(); ++index) {
-				UMaterialExpression *expression = arr_expressions[index];
-				UTexture* utexture = expression->GetReferencedTexture();
-				//if (utexture->GetClass() == )
-				UTexture2D* texture2d = Cast<UTexture2D>(utexture);
-			}
-
-			UMaterialExpression *expressionAdd = arr_expressions[0];
-			UMaterialExpression *expression3Vec = arr_expressions[1];
-			UMaterialExpression *expressionTexSample = arr_expressions[2];
-			UMaterialExpression *expressionMult = arr_expressions[3];
-			FGuid materialExpressionId = expressionAdd->GetMaterialExpressionId();
-
-			UTexture *texture = expressionTexSample->GetReferencedTexture();
-			UTexture2D *texture2d = Cast<UTexture2D>(texture);
-
-			UAssetImportData* assetImportData = texture2d->AssetImportData;
-			auto filenames = assetImportData->ExtractFilenames();//absolute path to image
-			// END
-			//------------------------------------------------------------------------------------------------------
-			*/
-
 		} // end of cycle
-
-		if (windingOrders.size() > 1)
-		{
-			UE_LOG(LogRPRStaticMeshComponent, Error, TEXT("\n\nMultiple winding orders found in shape!\n\n"));
-		}
-		else
-		{
-#ifdef RPR_VERBOSE
-			UE_LOG(LogRPRStaticMeshComponent, Log, TEXT("\n\nSingle winding order %s!\n\n"), ((*windingOrders.begin() == WindingOrder::CCW) ? TEXT("CCW") : TEXT("CW")));
-#endif
-		}
 	}
 	else
 	{
