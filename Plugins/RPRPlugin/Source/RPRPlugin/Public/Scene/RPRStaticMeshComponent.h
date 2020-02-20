@@ -65,7 +65,10 @@ public:
 	static void		ClearCache(RPR::FScene scene);
 
 private:
+
+	bool					CreateMeshInstancesIFP(UStaticMeshComponent *meshComponent, uint32 instanceCount, TArray<FRPRCachedMesh> &outInstances);
 	bool					BuildMaterials();
+	bool					_IsMaterialEmissive(const UMaterialInterface *material);
 
 	virtual void	TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
 	virtual void	ReleaseResources() override;
@@ -80,7 +83,7 @@ private:
 	void	OnUsedMaterialChanged(URPRMaterial* Material);
 	void	ClearMaterialChangedWatching();
 	void	AttachDummyMaterial(RPR::FShape shape);
-	int		SetInstanceTransforms(class UInstancedStaticMeshComponent *instancedMeshComponent, RadeonProRender::matrix *componentMatrix, rpr_shape shape, uint32 instanceIndex);
+	bool	SetInstanceTransforms(class UInstancedStaticMeshComponent *instancedMeshComponent, RadeonProRender::matrix *componentMatrix, rpr_shape shape, uint32 instanceIndex);
 
 	void	WatchMaterialsChanges();
 	void	UpdateLastMaterialList();
