@@ -196,10 +196,12 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 		}
 	}
 
-	if (material->Opacity.Expression)
+	/*
+		Unreal Engine flow uses Linear Interpolation node (Lerp node) for refraction input, where Lerp's input B uses for IOR.
+		Currently we don't have an input for Thin Surface flag, so, for thin surfaces, such as thin glass, we expect IOR value as 1 on Lerp's input B.
+	*/
+	if (material->Opacity.Expression && (material->BlendMode == EBlendMode::BLEND_Translucent || material->BlendMode == EBlendMode::BLEND_Additive))
 	{
-		RPR::RPRXVirtualNode* opacity = ConvertExpressionToVirtualNode(material->Opacity.Expression, material->Opacity.OutputIndex);
-
 		if (material->Refraction.Expression)
 		{
 			RPR::RPRXVirtualNode* refraction = ConvertExpressionToVirtualNode(material->Refraction.Expression, material->Refraction.OutputIndex);
@@ -217,15 +219,21 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 		}
 		else
 		{
-			RPR::RPRXVirtualNode* oneMinus = materialLibrary.getOrCreateVirtualIfNotExists(idPrefix + TEXT("OneMinusOpacity"), RPR::EMaterialNodeType::Arithmetic);
-
-			materialLibrary.setNodeUInt(oneMinus->realNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_SUB);
-			materialLibrary.setNodeFloat(oneMinus->realNode, RPR_MATERIAL_INPUT_COLOR0, 1.0f, 1.0f, 1.0f, 1.0f);
-			materialLibrary.setNodeConnection(oneMinus, RPR_MATERIAL_INPUT_COLOR1, opacity);
+			RPR::RPRXVirtualNode* opacity = ConvertExpressionToVirtualNode(material->Opacity.Expression, material->Opacity.OutputIndex);
+			RPR::RPRXVirtualNode* oneMinus = GetOneMinusNode(idPrefix + TEXT("OneMinusOpacity"), opacity);
 
 			status = uberMaterialPtr->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_TRANSPARENCY, oneMinus->realNode);
 			LOG_ERROR(status, TEXT("Can't set Transparent (Opacity) for uber material"));
 		}
+	}
+
+	if (material->OpacityMask.Expression && material->BlendMode == EBlendMode::BLEND_Masked)
+	{
+		RPR::RPRXVirtualNode* opacityMask = ConvertExpressionToVirtualNode(material->OpacityMask.Expression, material->OpacityMask.OutputIndex);
+		RPR::RPRXVirtualNode* oneMinus = GetOneMinusNode(idPrefix + TEXT("OneMinusOpacityMask"), opacityMask);
+
+		status = uberMaterialPtr->SetMaterialParameterNode(RPR_MATERIAL_INPUT_UBER_TRANSPARENCY, oneMinus->realNode);
+		LOG_ERROR(status, TEXT("Can't set Transparent (OpacityMask) for uber material"));
 	}
 
 	if (material->Normal.Expression)
@@ -263,6 +271,20 @@ RPR::RPRXVirtualNode* URadeonMaterialParser::GetValueNode(const FString& id, con
 	materialLibrary.setNodeFloat(node->realNode, RPR_MATERIAL_INPUT_COLOR1, value, value, value, value);
 
 	return node;
+}
+
+
+RPR::RPRXVirtualNode* URadeonMaterialParser::GetOneMinusNode(const FString& id, RPR::RPRXVirtualNode* node)
+{
+	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+
+	RPR::RPRXVirtualNode* oneMinus = materialLibrary.getOrCreateVirtualIfNotExists(id, RPR::EMaterialNodeType::Arithmetic);
+
+	materialLibrary.setNodeUInt(oneMinus->realNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_SUB);
+	materialLibrary.setNodeFloat(oneMinus->realNode, RPR_MATERIAL_INPUT_COLOR0, 1.0f, 1.0f, 1.0f, 1.0f);
+	materialLibrary.setNodeConnection(oneMinus, RPR_MATERIAL_INPUT_COLOR1, node);
+
+	return oneMinus;
 }
 
 RPR::RPRXVirtualNode* URadeonMaterialParser::GetRgbaNode(const FString& id, const float r, const float g, const float b, const float a)
@@ -335,7 +357,7 @@ RPR::RPRXVirtualNode* URadeonMaterialParser::ProcessVirtualColorNode(const FStri
 
 	return node;
 }
-RPR::RPRXVirtualNode* URadeonMaterialParser::GetSeparatedChannel(FString maskResultId, int channelIndex, int maskIndex, RPR::RPRXVirtualNode* rgbaSource)
+RPR::RPRXVirtualNode* URadeonMaterialParser::GetSeparatedChannel(const FString& maskResultId, int channelIndex, int maskIndex, RPR::RPRXVirtualNode* rgbaSource)
 {
 	RPR::RPRXVirtualNode* selected = SelectRgbaChannel(maskResultId, channelIndex, rgbaSource);
 	RPR::RPRXVirtualNode* mask = nullptr;
@@ -367,7 +389,7 @@ RPR::RPRXVirtualNode* URadeonMaterialParser::GetSeparatedChannel(FString maskRes
 	return result;
 }
 
-RPR::RPRXVirtualNode* URadeonMaterialParser::AddTwoNodes(FString id, RPR::RPRXVirtualNode* a, RPR::RPRXVirtualNode* b)
+RPR::RPRXVirtualNode* URadeonMaterialParser::AddTwoNodes(const FString& id, RPR::RPRXVirtualNode* a, RPR::RPRXVirtualNode* b)
 {
 	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 	RPR::RPRXVirtualNode* result = materialLibrary.getOrCreateVirtualIfNotExists(id, RPR::EMaterialNodeType::Arithmetic);
@@ -520,14 +542,7 @@ RPR::RPRXVirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMat
 		auto expression = Cast<UMaterialExpressionOneMinus>(expr);
 		check(expression);
 
-		node = materialLibrary.getOrCreateVirtualIfNotExists(idPrefix + expression->GetName(), RPR::EMaterialNodeType::Arithmetic);
-		materialLibrary.setNodeUInt(node->realNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_SUB);
-		materialLibrary.setNodeFloat(node->realNode, RPR_MATERIAL_INPUT_COLOR0, 1.0f, 1.0f, 1.0f, 1.0f);
-
-		// for OneMinuse node Input.Expression is always exist
-		materialLibrary.setNodeConnection(node, RPR_MATERIAL_INPUT_COLOR1, ConvertExpressionToVirtualNode(expression->Input.Expression, expression->Input.OutputIndex));
-
-		return node;
+		return GetOneMinusNode(idPrefix + expression->GetName(), ConvertExpressionToVirtualNode(expression->Input.Expression, expression->Input.OutputIndex));
 	}
 	else if (expr->IsA<UMaterialExpressionClamp>())
 	{
