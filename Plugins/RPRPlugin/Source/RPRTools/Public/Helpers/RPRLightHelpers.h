@@ -24,7 +24,7 @@ namespace RPR
 		{
 			const float	kLumensToW = 1.0f / 17.0f;
 			const float	kW = 100.0f;
-			const float	kDirLightIntensityMultiplier = 0.05f;
+			const float	kDirLightIntensityMultiplier = 1.0f;
 
 			const float	kIESLightIntensityScale = 0.01f;
 			const float	kPointLightIntensityScale = 10.0f;

@@ -42,6 +42,12 @@ DEFINE_LOG_CATEGORY_STATIC(LogRPRLightComponent, Log, All);
 
 DEFINE_STAT(STAT_ProRender_UpdateLights);
 
+#define CHECK_STATUS(status, message) \
+	if (status != RPR_SUCCESS) { \
+		UE_LOG(LogRPRLightComponent, Warning, message); \
+		return false; \
+	}
+
 enum
 {
 	PROPERTY_REBUILD_LIGHT_COLOR = 0x02,
@@ -209,18 +215,24 @@ bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightCompone
 
 bool	URPRLightComponent::BuildDirectionalLight(const UDirectionalLightComponent *dirLightComponent)
 {
-	const float		intensity = dirLightComponent->Intensity;
+	int status;
+
 	FLinearColor	lightColor(dirLightComponent->LightColor);
+	const float		intensity = dirLightComponent->Intensity;
+
+	RPR::FContext   rprContext = IRPRCore::GetResources()->GetRPRContext();
 
 	lightColor *= intensity * RPR::Light::Constants::kDirLightIntensityMultiplier * (m_CachedAffectsWorld ? 1.0f : 0.0f);
-	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
-	if (rprContextCreateDirectionalLight(rprContext, &m_RprLight) != RPR_SUCCESS ||
-		rprDirectionalLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B) != RPR_SUCCESS ||
-		rprDirectionalLightSetShadowSoftness(m_RprLight, 1.0f - dirLightComponent->ShadowSharpen) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't create directional light"));
-		return false;
-	}
+
+	status = rprContextCreateDirectionalLight(rprContext, &m_RprLight);
+	CHECK_STATUS(status, TEXT("Can't create dirctional light"));
+
+	status = rprDirectionalLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B);
+	CHECK_STATUS(status, TEXT("Can't create radian power for directional light"));
+
+	status = rprDirectionalLightSetShadowSoftness(m_RprLight, 1.0f - dirLightComponent->ShadowSharpen);
+	CHECK_STATUS(status, TEXT("Can't create shadow softness"));
+
 	m_CachedIntensity = dirLightComponent->Intensity;
 	m_CachedLightColor = dirLightComponent->LightColor;
 
