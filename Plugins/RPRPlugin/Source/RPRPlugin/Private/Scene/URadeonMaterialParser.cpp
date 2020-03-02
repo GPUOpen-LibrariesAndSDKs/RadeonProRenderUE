@@ -1,9 +1,9 @@
-#include "URadeonMaterialParser.h"
+#include "Scene/URadeonMaterialParser.h"
 
 #include "RPRXVirtualNode.h"
 #include "RprShape.h"
 
-#include "RPRXMaterialLibrary.h"
+#include "Material/RPRXMaterialLibrary.h"
 #include "RPRCoreModule.h"
 
 #include "Materials/MaterialExpressionConstant.h"

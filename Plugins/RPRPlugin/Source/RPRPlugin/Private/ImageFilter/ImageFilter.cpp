@@ -1,6 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-#include "ImageFilter.h"
+#include "ImageFilter/ImageFilter.h"
 
 #include "RadeonProRender_CL.h"
 #include "RadeonImageFilters_cl.h"

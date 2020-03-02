@@ -77,8 +77,9 @@ void	URPRSettings::TryLoadUberMaterialFromDefaultLocation()
 
 void	URPRSettings::PostEditChangeProperty(struct FPropertyChangedEvent &propertyChangedEvent)
 {
+#if WITH_EDITOR
 	Super::PostEditChangeProperty(propertyChangedEvent);
-
+#endif
 	if (!propertyChangedEvent.Property)
 		return;
 
