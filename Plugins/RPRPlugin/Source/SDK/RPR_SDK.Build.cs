@@ -33,6 +33,7 @@ public class RPR_SDK : ModuleRules
         "RadeonProRender64.lib",
         "RprLoadStore64.lib",
         "RadeonImageFilters64.lib",
+        "ProRenderGLTF.lib"
     };
 
     static string[] WindowsDynamicLibraryNames = new string[]
@@ -42,6 +43,7 @@ public class RPR_SDK : ModuleRules
         "Tahoe64.dll",
         "Hybrid.dll",
         "RadeonImageFilters64.dll",
+        "ProRenderGLTF.dll"
     };
 
     static string[] LinuxDynamicLibraries = new string[]
