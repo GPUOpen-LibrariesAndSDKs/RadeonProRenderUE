@@ -173,14 +173,14 @@ void FRPRXMaterialLibrary::InitializeDummyMaterial()
 
 	RPR::FMaterialSystem materialSystem = IRPRCore::GetResources()->GetMaterialSystem();
 
-	RPR::FResult result = RPR::FMaterialHelpers::CreateNode(materialSystem, EMaterialNodeType::Diffuse, TEXT("DummyMaterial"), DummyMaterial);
+	RPR::FResult result = RPR::FMaterialHelpers::CreateNode(materialSystem, EMaterialNodeType::UberV2, TEXT("DummyMaterial"), DummyMaterial);
 	if (RPR::IsResultFailed(result))
 	{
 		UE_LOG(LogRPRMaterialLibrary, Error, TEXT("Couldn't create node for dummy material"));
 		return;
 	}
 
-	result = RPR::FMaterialHelpers::FMaterialNode::SetInputFloats(DummyMaterial, RPR_MATERIAL_INPUT_COLOR, 0.5f, 0.5f, 0.5f, 1.0f);
+	result = RPR::FMaterialHelpers::FMaterialNode::SetInputFloats(DummyMaterial, RPR_MATERIAL_INPUT_UBER_DIFFUSE_COLOR, 0.5f, 0.5f, 0.5f, 1.0f);
 	if (RPR::IsResultFailed(result))
 	{
 		UE_LOG(LogRPRMaterialLibrary, Warning, TEXT("Cannot set the default color on the dummy material"));

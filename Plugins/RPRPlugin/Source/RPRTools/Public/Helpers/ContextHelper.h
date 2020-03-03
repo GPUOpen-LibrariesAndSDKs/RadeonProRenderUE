@@ -49,13 +49,13 @@ namespace RPR
 		RPRTOOLS_API FResult		SetScene(FContext Context, FScene Scene);
 		RPRTOOLS_API FResult		SetAOV(FContext Context, RPR::EAOV AOV, FFrameBuffer FrameBuffer);
 		RPRTOOLS_API FResult		Render(FContext Context);
-		RPRTOOLS_API FResult		ResolveFrameBuffer(FContext Context, FFrameBuffer SrcFrameBuffer, FFrameBuffer DstFrameBuffer, bool bNormalizeOnly);
+		RPRTOOLS_API FResult		ResolveFrameBuffer(FContext Context, FFrameBuffer SrcFrameBuffer, FFrameBuffer DstFrameBuffer, bool bNormalizeOnly = false);
 
 		RPRTOOLS_API FResult		CreateInstance(FContext Context, RPR::FShape Shape, RPR::FShape& OutShapeInstance);
 		RPRTOOLS_API FResult		CreateInstance(FContext Context, RPR::FShape Shape, const FString& InstanceName, RPR::FShape& OutShapeInstance);
 
 		RPRTOOLS_API FResult		CreateMesh(FContext Context, const TCHAR* MeshName,
-										const TArray<FVector>& Vertices, const TArray<FVector>& Normals, const TArray<uint32>& Indices, 
+										const TArray<FVector>& Vertices, const TArray<FVector>& Normals, const TArray<uint32>& Indices,
 										const TArray<FVector2D>& Texcoords, const TArray<uint32>& NumFaceVertices, FShape& OutMesh);
 
 		namespace MaterialSystem

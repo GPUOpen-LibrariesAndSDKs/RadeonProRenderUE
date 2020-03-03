@@ -73,8 +73,9 @@ namespace RPR
 		SelectX					= RPR_MATERIAL_NODE_OP_SELECT_X,
 		SelectY					= RPR_MATERIAL_NODE_OP_SELECT_Y,
 		SelectZ					= RPR_MATERIAL_NODE_OP_SELECT_Z,
-		SelectW					= RPR_MATERIAL_NODE_OP_SELECT_W
+		SelectW					= RPR_MATERIAL_NODE_OP_SELECT_W,
 
+		UberV2					= RPR_MATERIAL_NODE_UBERV2
 		// Not completed. See rpr_material_node_type in RadeonProRender.h for others
 	};
 

@@ -40,6 +40,16 @@ DEFINE_LOG_CATEGORY_STATIC(LogRPRViewportCameraComponent, Log, All);
 
 DEFINE_STAT(STAT_ProRender_UpdateViewportCamera);
 
+#define CHECK_ERROR(status, formating, ...) \
+	if (status == RPR_ERROR_UNSUPPORTED) { \
+		UE_LOG(LogRPRViewportCameraComponent, Warning, TEXT("Unsupported parameter: %s"), formating, ##__VA_ARGS__); \
+	} else if (status == RPR_ERROR_INVALID_PARAMETER) { \
+		UE_LOG(LogRPRViewportCameraComponent, Warning, TEXT("Invalid parameter: %s"), formating, ##__VA_ARGS__); \
+	} else if (status != RPR_SUCCESS) { \
+		UE_LOG(LogRPRViewportCameraComponent, Error, formating, ##__VA_ARGS__); \
+		return false; \
+	}
+
 URPRViewportCameraComponent::URPRViewportCameraComponent()
 :	m_RprCamera(NULL)
 ,	m_CachedCameraPos(FVector::ZeroVector)
@@ -304,11 +314,10 @@ bool	URPRViewportCameraComponent::Build()
 	m_CachedCameraLookAt = GetLookAtLocation() * 0.1f;
 
 	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
-	if (rprContextCreateCamera(rprContext, &m_RprCamera) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRViewportCameraComponent, Warning, TEXT("Couldn't create RPR viewport camera"));
-		return false;
-	}
+	rpr_int status;
+	status = rprContextCreateCamera(rprContext, &m_RprCamera);
+	CHECK_ERROR(status, TEXT("Couldn't create RPR viewport camera"));
+
 	const float	exposure = 1.0f; // Get this from settings ?
 
 	if (m_PlayerCameraManager != NULL
@@ -317,21 +326,19 @@ bool	URPRViewportCameraComponent::Build()
 #endif
 		)
 	{
-		if (rprCameraLookAt(m_RprCamera,
+		status = rprCameraLookAt(m_RprCamera,
 			m_CachedCameraPos.X, m_CachedCameraPos.Z, m_CachedCameraPos.Y,
 			m_CachedCameraLookAt.X, m_CachedCameraLookAt.Z, m_CachedCameraLookAt.Y,
-			0.0f, 1.0f, 0.0f) != RPR_SUCCESS)
-		{
-			UE_LOG(LogRPRViewportCameraComponent, Warning, TEXT("Couldn't set RPR camera transforms"));
-			return false;
-		}
+			0.0f, 1.0f, 0.0f);
+		CHECK_ERROR(status, TEXT("Couldn't set RPR camera transforms"));
 	}
-	if (rprCameraSetMode(m_RprCamera, RPR_CAMERA_MODE_PERSPECTIVE) != RPR_SUCCESS ||
-		rprCameraSetExposure(m_RprCamera, exposure) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRViewportCameraComponent, Warning, TEXT("Couldn't set RPR viewport camera properties"));
-		return false;
-	}
+
+	status = rprCameraSetMode(m_RprCamera, RPR_CAMERA_MODE_PERSPECTIVE);
+	CHECK_ERROR(status, TEXT("Couldn't set RPR viewport camera perspective"));
+
+	status = rprCameraSetExposure(m_RprCamera, exposure);
+	CHECK_ERROR(status, TEXT("Couldn't set RPR viewport camera exposure"));
+
 #ifdef RPR_VERBOSE
 	UE_LOG(LogRPRViewportCameraComponent, Log, TEXT("RPR viewport Camera created"));
 #endif
@@ -608,3 +615,5 @@ void	URPRViewportCameraComponent::ReleaseResources()
 	}
 	Super::ReleaseResources();
 }
+
+#undef CHECK_ERROR

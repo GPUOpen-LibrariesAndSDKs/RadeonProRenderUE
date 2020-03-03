@@ -61,6 +61,8 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 	, RadianceClamp(1.0f)
 	, UseDenoiser(false)
 	, bUseErrorTexture(true)
+	, IsHybrid(false)
+	, CurrentRenderType(ERenderType::Tahoe)
 {
 	DefaultRootDirectoryForImportLevels.Path = TEXT("/Game/Maps");
 	DefaultRootDirectoryForImportedMeshes.Path = TEXT("/Game/Meshes");

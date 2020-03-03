@@ -5,6 +5,7 @@
 
 #include "Material/RPRXMaterialLibrary.h"
 #include "RPRCoreModule.h"
+#include "RPRSettings.h"
 
 #include "Materials/MaterialExpressionConstant.h"
 #include "Materials/MaterialExpressionConstant2Vector.h"
@@ -113,10 +114,6 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 
 	status = uberMaterialPtr->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_DIFFUSE_WEIGHT, 1.0f);
 	LOG_ERROR(status, TEXT("Can't set diffuse weight for uber material"));
-
-	status = uberMaterialPtr->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_BACKSCATTER_WEIGHT, 0.0f);
-	LOG_ERROR(status, TEXT("Can't set backscatter weight for uber material"));
-
 
 	if (material->Metallic.Expression)
 	{

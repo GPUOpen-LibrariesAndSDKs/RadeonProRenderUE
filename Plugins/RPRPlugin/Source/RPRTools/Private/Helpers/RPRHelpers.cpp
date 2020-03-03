@@ -117,6 +117,14 @@ namespace RPR
 		return (OutDevicesCompatible > 0);
 	}
 
+	URPRSettings* GetSettings()
+	{
+		URPRSettings* settings = GetMutableDefault<URPRSettings>();
+		check(settings != nullptr);
+
+		return settings;
+	}
+
 	namespace RPRMaterial
 	{
 

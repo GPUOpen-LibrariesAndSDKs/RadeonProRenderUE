@@ -26,6 +26,7 @@
 #include "Enums/RPREnums.h"
 #include "RprTools.h"
 #include "Templates/Function.h"
+#include "RPRSettings.h"
 
 RPRTOOLS_API RadeonProRender::matrix BuildMatrixNoScale(const struct FTransform &transform, float translationScale = 1.0f);
 RPRTOOLS_API RadeonProRender::matrix BuildMatrixWithScale(const struct FTransform &transform, float translationScale = 1.0f);
@@ -41,7 +42,7 @@ namespace RPR
 	* Returns true if the results is a failure
 	*/
 	RPRTOOLS_API bool		IsResultFailed(rpr_int Result);
-	
+
 	/*
 	* Delete a native object.
 	* Use the native RPR function to delete object.
@@ -56,13 +57,15 @@ namespace RPR
 	RPRTOOLS_API FResult		RegisterPlugin(const FString& DllPath);
 
 	RPRTOOLS_API bool			AreDevicesCompatible(
-		RPR::FPluginId PluginId, 
-		const FString& RenderCachePath, 
-		bool bDoWhiteListTest, 
-		RPR::FCreationFlags DevicesUsed, 
-		RPR::FCreationFlags& OutDevicesCompatible, 
+		RPR::FPluginId PluginId,
+		const FString& RenderCachePath,
+		bool bDoWhiteListTest,
+		RPR::FCreationFlags DevicesUsed,
+		RPR::FCreationFlags& OutDevicesCompatible,
 		RPR_TOOLS_OS ToolsOS
 	);
+
+	RPRTOOLS_API URPRSettings*	GetSettings();
 
 	namespace RPRMaterial
 	{
@@ -89,7 +92,7 @@ namespace RPR
 			}
 			return (status);
 		}
-		
+
 		RPRTOOLS_API RPR::FResult	GetNodeName(RPR::FMaterialNode MaterialNode, FString& OutName);
 		RPRTOOLS_API FString		GetNodeName(RPR::FMaterialNode MaterialNode);
 

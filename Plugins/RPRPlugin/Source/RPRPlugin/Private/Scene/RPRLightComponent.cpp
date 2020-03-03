@@ -42,9 +42,13 @@ DEFINE_LOG_CATEGORY_STATIC(LogRPRLightComponent, Log, All);
 
 DEFINE_STAT(STAT_ProRender_UpdateLights);
 
-#define CHECK_STATUS(status, message) \
-	if (status != RPR_SUCCESS) { \
-		UE_LOG(LogRPRLightComponent, Warning, message); \
+#define CHECK_ERROR(status, formating, ...) \
+	if (status == RPR_ERROR_UNSUPPORTED) { \
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Unsupported parameter: %s"), formating, ##__VA_ARGS__); \
+	} else if (status == RPR_ERROR_INVALID_PARAMETER) { \
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Invalid parameter: %s"), formating, ##__VA_ARGS__); \
+	} else if (status != RPR_SUCCESS) { \
+		UE_LOG(LogRPRLightComponent, Error, formating, ##__VA_ARGS__); \
 		return false; \
 	}
 
@@ -190,11 +194,8 @@ bool	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightCompone
 		return false;
 	}
 
-	if (rprSceneSetEnvironmentOverride(Scene->m_RprScene, RPR_SCENE_ENVIRONMENT_OVERRIDE_BACKGROUND, m_RprLight) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRLightComponent, Warning, TEXT("Couldn't set environment into the scene"));
-		return false;
-	}
+	rpr_int status = rprSceneSetEnvironmentOverride(Scene->m_RprScene, RPR_SCENE_ENVIRONMENT_OVERRIDE_BACKGROUND, m_RprLight);
+	CHECK_ERROR(status, TEXT("Can't set SCENE_ENVIRONMENT_OVERRIDE_BACKGROUND"));
 
 	if (rprEnvironmentLightSetIntensityScale(m_RprLight, intensity * RPR::Light::Constants::kDirLightIntensityMultiplier) != RPR_SUCCESS)
 	{
@@ -225,13 +226,13 @@ bool	URPRLightComponent::BuildDirectionalLight(const UDirectionalLightComponent 
 	lightColor *= intensity * RPR::Light::Constants::kDirLightIntensityMultiplier * (m_CachedAffectsWorld ? 1.0f : 0.0f);
 
 	status = rprContextCreateDirectionalLight(rprContext, &m_RprLight);
-	CHECK_STATUS(status, TEXT("Can't create dirctional light"));
+	CHECK_ERROR(status, TEXT("Can't create dirctional light"));
 
 	status = rprDirectionalLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B);
-	CHECK_STATUS(status, TEXT("Can't create radian power for directional light"));
+	CHECK_ERROR(status, TEXT("Can't create radian power for directional light"));
 
 	status = rprDirectionalLightSetShadowSoftness(m_RprLight, 1.0f - dirLightComponent->ShadowSharpen);
-	CHECK_STATUS(status, TEXT("Can't create shadow softness"));
+	CHECK_ERROR(status, TEXT("Can't create shadow softness"));
 
 	m_CachedIntensity = dirLightComponent->Intensity;
 	m_CachedLightColor = dirLightComponent->LightColor;
@@ -528,3 +529,5 @@ void	URPRLightComponent::ReleaseResources()
 	m_RprImage.Reset();
 	Super::ReleaseResources();
 }
+
+#undef CHECK_ERROR

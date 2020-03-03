@@ -54,21 +54,22 @@ DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
 
 DEFINE_STAT(STAT_ProRender_UpdateMeshes);
 
+#define CHECK_ERROR(status, formating, ...) \
+	if (status == RPR_ERROR_UNSUPPORTED) { \
+		UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Unsupported parameter: %s"), formating, ##__VA_ARGS__); \
+	} else if (status == RPR_ERROR_INVALID_PARAMETER) { \
+		UE_LOG(LogRPRStaticMeshComponent, Warning, TEXT("Invalid parameter: %s"), formating, ##__VA_ARGS__); \
+	} else if (status != RPR_SUCCESS) { \
+		UE_LOG(LogRPRStaticMeshComponent, Error, formating, ##__VA_ARGS__); \
+		return false; \
+	}
+
+
 TMap<UStaticMesh*, TArray<FRPRCachedMesh>>	URPRStaticMeshComponent::Cache;
 
 static bool const FLIP_SURFACE_NORMALS = false;
 static bool const FLIP_UV_Y            = true;
 
-#define LOG_ERROR(status, msg) { \
-	CA_CONSTANT_IF(status != RPR_SUCCESS) \
-		UE_LOG(LogRPRStaticMeshComponent, Error, msg); \
-}
-
-#define CHECK_WARNING(status, formating, ...)  \
-	if(status != RPR_SUCCESS) { \
-		UE_LOG(LogRPRStaticMeshComponent, Warning, formating, ##__VA_ARGS__); \
-        return false; \
-    }
 
 URPRStaticMeshComponent::URPRStaticMeshComponent()
 {
@@ -140,7 +141,7 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		else if (matInterface)
 		{
 			UMaterial* material = matInterface->GetMaterial();
-			
+
 			URadeonMaterialParser parser;
 			parser.Process(m_Shapes[iShape], material);
 		}
@@ -301,7 +302,7 @@ bool	URPRStaticMeshComponent::Build()
 			if (uvCount > 0)
 			{
 				FVector2D uv = srcVertices.GetVertexUV(index, 0); // Right now only copy uv 0
-				if(FLIP_UV_Y)
+				if (FLIP_UV_Y)
 				{
 					uv.Y = 1 - uv.Y;
 				}
@@ -314,25 +315,25 @@ bool	URPRStaticMeshComponent::Build()
 
 		rpr_shape	baseShape;
 		status = RPR::Context::CreateMesh(rprContext, *staticMesh->GetName(), positions, normals, indices, uvs, numFaceVertices, baseShape);
-		CHECK_WARNING(status, TEXT("Couldn't create RPR static mesh from '%s', section %d. Num indices = %d, Num vertices = %d"), *SrcComponent->GetName(), iSection, indices.Num(), positions.Num());
+		CHECK_ERROR(status, TEXT("Couldn't create RPR static mesh from '%s', section %d. Num indices = %d, Num vertices = %d"), *SrcComponent->GetName(), iSection, indices.Num(), positions.Num());
 
 		FRPRCachedMesh	newShape(baseShape, section.MaterialIndex);
 		if (!Cache.Contains(staticMesh))
 			Cache.Add(staticMesh);
 		Cache[staticMesh].Add(newShape);
-		
+
 		// New shape in the cache ? Add it in the scene + make it invisible
 		status = rprShapeSetVisibility(baseShape, false);
-		CHECK_WARNING(status, TEXT("Can't set shape visibility to false"));
-		
+		CHECK_ERROR(status, TEXT("Can't set shape visibility to false"));
+
 		status = RPR::Scene::AttachShape(Scene->m_RprScene, baseShape);
-		CHECK_WARNING(status, TEXT("Couldn't attach Cached RPR shape to the RPR scene"));
-		
+		CHECK_ERROR(status, TEXT("Couldn't attach Cached RPR shape to the RPR scene"));
+
 		for (uint32 iInstance = 0; iInstance < instanceCount; ++iInstance)
 		{
 			FRPRCachedMesh	newInstance(newShape.m_UEMaterialIndex);
 			status = rprContextCreateInstance(rprContext, baseShape, &newInstance.m_RprShape);
-			CHECK_WARNING(status, TEXT("Couldn't create RPR static mesh instance from '%s'"), *staticMesh->GetName());
+			CHECK_ERROR(status, TEXT("Couldn't create RPR static mesh instance from '%s'"), *staticMesh->GetName());
 
 			m_Shapes.Add(FRPRShape(newInstance, iInstance));
 
@@ -353,22 +354,22 @@ bool	URPRStaticMeshComponent::Build()
 	{
 		rpr_shape	shape = m_Shapes[iShape].m_RprShape;
 		status = SetInstanceTransforms(instancedMeshComponent, &componentMatrix, shape, m_Shapes[iShape].m_InstanceIndex);
-		CHECK_WARNING(status, TEXT("Can't set shape transform"));
-		
-		if (!primaryOnly) 
+		CHECK_ERROR(status, TEXT("Can't set shape transform"));
+
+		if (!primaryOnly)
 		{
 			status = rprShapeSetVisibility(shape, staticMeshComponent->IsVisible());
-			CHECK_WARNING(status, TEXT("Can't set shape visibility"));
-		} 
-		else 
+			CHECK_ERROR(status, TEXT("Can't set shape visibility"));
+		}
+		else
 		{
 			status = rprShapeSetVisibility(shape, true);
-			CHECK_WARNING(status, TEXT("Can't set shape visibility"));
+			CHECK_ERROR(status, TEXT("Can't set shape visibility"));
 		}
-		
+
 		//rprShapeSetShadow(shape, staticMeshComponent->bCastStaticShadow) != RPR_SUCCESS ||
 		status = RPR::Scene::AttachShape(Scene->m_RprScene, shape);
-		CHECK_WARNING(status, TEXT("Couldn't attach RPR shape to the RPR scene"));
+		CHECK_ERROR(status, TEXT("Couldn't attach RPR shape to the RPR scene"));
 	}
 	m_CachedInstanceCount = instanceCount;
 	return true;
@@ -619,7 +620,7 @@ bool	URPRStaticMeshComponent::RebuildTransforms()
 	for (uint32 iShape = 0; iShape < shapeCount; ++iShape)
 	{
 		status = SetInstanceTransforms(instancedMeshComponent, &componentMatrix, m_Shapes[iShape].m_RprShape, m_Shapes[iShape].m_InstanceIndex);
-		CHECK_WARNING(status, TEXT("Couldn't refresh RPR mesh transforms"));
+		CHECK_ERROR(status, TEXT("Couldn't refresh RPR mesh transforms"));
 	}
 	return true;
 }
@@ -669,3 +670,5 @@ void	URPRStaticMeshComponent::ReleaseResources()
 
 	Super::ReleaseResources();
 }
+
+#undef CHECK_ERROR

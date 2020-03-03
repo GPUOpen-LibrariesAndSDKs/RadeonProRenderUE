@@ -51,6 +51,7 @@ public class RPR_SDK : ModuleRules
         "libRadeonProRender64.so",
         "libRprLoadStore64.so",
         "libRadeonImageFilters64.so",
+        "Hybrid.so",
     };
 
     public string ThirdPartyDirectory

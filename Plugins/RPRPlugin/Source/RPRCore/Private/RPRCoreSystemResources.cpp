@@ -29,14 +29,6 @@ DECLARE_LOG_CATEGORY_CLASS(LogRPRCoreSystemResources, Log, All)
 static void* ImageLibraryHandler;
 
 namespace {
-	URPRSettings* GetSettings()
-	{
-		URPRSettings* settings = GetMutableDefault<URPRSettings>();
-		check(settings != nullptr);
-
-		return settings;
-	}
-
 	void ContextSetUint(RPR::FContext context, uint32 parameter, uint32 value, FString errMsg)
 	{
 		RPR::FResult result;
@@ -54,11 +46,15 @@ namespace {
 		if (!RPR::IsResultSuccess(result))
 			UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Failed to initialize Contexts' parameter: %s, error code: %d"), *errMsg, result);
 	}
+
 }
 
 FRPRCoreSystemResources::FRPRCoreSystemResources()
 	: bIsInitialized(false)
+	, CurrentContextType(None)
+	, CurrentPluginId(INDEX_NONE)
 	, TahoePluginId(INDEX_NONE)
+	, HybridPluginId(INDEX_NONE)
 	, NumDevicesCompatible(0)
 	, RPRContext(nullptr)
 	, RPRMaterialSystem(nullptr)
@@ -67,26 +63,44 @@ FRPRCoreSystemResources::FRPRCoreSystemResources()
 
 bool FRPRCoreSystemResources::Initialize()
 {
-	if (bIsInitialized)
-	{
-		return (true);
-	}
+	if (CurrentContextType == RPR::GetSettings()->CurrentRenderType)
+		return true;
 
-	if (!InitializeRPRRendering())
+	CurrentContextType = RPR::GetSettings()->CurrentRenderType;
+
+	if (!bIsInitialized)
 	{
-		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Fail initialize RPR rendering"));
+		if (!LoadLibraries())
+		{
+			CurrentContextType = ERenderType::None;
+			return (false);
+		}
+	}
+	else
+		Shutdown();
+
+	if (!InitializeContextEnvirontment())
+	{
+		CurrentContextType = ERenderType::None;
 		return (false);
 	}
 
 	bIsInitialized = true;
-	return (true);
+
+	return (bIsInitialized);
 }
 
-bool FRPRCoreSystemResources::InitializeRPRRendering()
+bool FRPRCoreSystemResources::LoadLibraries()
 {
-	if (!LoadTahoeDLL())
+	if (!LoadRprDLL(TEXT("Tahoe"), TahoePluginId))
 	{
 		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Cannot load Tahoe dynamic library"));
+		return (false);
+	}
+
+	if (!LoadRprDLL(TEXT("Hybrid"), HybridPluginId))
+	{
+		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Cannot load Hybrid dynamic library"));
 		return (false);
 	}
 
@@ -96,6 +110,11 @@ bool FRPRCoreSystemResources::InitializeRPRRendering()
 		return (false);
 	}
 
+	return (true);
+}
+
+bool FRPRCoreSystemResources::InitializeContextEnvirontment()
+{
 	if (!InitializeContext())
 	{
 		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Cannot initialize RPR context"));
@@ -115,22 +134,22 @@ bool FRPRCoreSystemResources::InitializeRPRRendering()
 	return (true);
 }
 
-bool FRPRCoreSystemResources::LoadTahoeDLL()
+bool FRPRCoreSystemResources::LoadRprDLL(const FString library, RPR::FPluginId &libId)
 {
-	if (TahoePluginId == INDEX_NONE)
+	if (libId == INDEX_NONE)
 	{
 
 	#if PLATFORM_WINDOWS
-		const FString tahoe64LibName = TEXT("Tahoe64.dll");
+		const FString libName = library == TEXT("Hybrid") ? TEXT("Hybrid.dll") : TEXT("Tahoe64.dll");
 	#elif PLATFORM_LINUX
-		const FString tahoe64LibName = TEXT("libTahoe64.so");
+		const FString libName = TEXT("Hybrid") ? TEXT("Hybrid.so") : TEXT("libTahoe64.so");
 	#else
 		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Platform not supported"));
 		return (false);
 	#endif
 
 		const FString dllDirectory = FRPR_SDKModule::GetDLLsDirectory(TEXT("RadeonProRenderSDK"));
-		const FString dllPath = FPaths::Combine(dllDirectory, tahoe64LibName);
+		const FString dllPath = FPaths::Combine(dllDirectory, libName);
 
 		if (!FPaths::FileExists(dllPath))
 		{
@@ -138,11 +157,10 @@ bool FRPRCoreSystemResources::LoadTahoeDLL()
 			return (false);
 		}
 
-		TahoePluginId = RPR::RegisterPlugin(dllPath);
-		if (RPR::IsResultFailed(TahoePluginId))
+		libId = RPR::RegisterPlugin(dllPath);
+		if (libId == INDEX_NONE)
 		{
-			UE_LOG(LogRPRCoreSystemResources, Error, TEXT("\"%s\" not registered by \"%s\" path (%#04)"), *tahoe64LibName, *dllPath, TahoePluginId);
-			TahoePluginId = INDEX_NONE;
+			UE_LOG(LogRPRCoreSystemResources, Error, TEXT("\"%s\" not registered by \"%s\" path (%#04)"), *library, *dllPath, libId);
 			return (false);
 		}
 	}
@@ -174,12 +192,15 @@ bool FRPRCoreSystemResources::LoadImageFilterDLL()
 
 		ImageLibraryHandler = FPlatformProcess::GetDllHandle(*dllPath);
 	}
-	return true;
+	return (true);
 }
 
 bool FRPRCoreSystemResources::InitializeContext()
 {
+	CurrentPluginId = (CurrentContextType == Tahoe) ? TahoePluginId : HybridPluginId;
+
 	uint32	creationFlags = GetContextCreationFlags();
+
 	if (creationFlags == 0)
 	{
 		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Couldn't find a compatible device"));
@@ -189,16 +210,20 @@ bool FRPRCoreSystemResources::InitializeContext()
 	LogCompatibleDevices(creationFlags);
 	NumDevicesCompatible = CountCompatibleDevices(creationFlags);
 
-	URPRSettings* settings = GetSettings();
-
 	RPR::FResult result;
-	result = RPR::Context::Create(RPR_API_VERSION, TahoePluginId, creationFlags, nullptr, settings->RenderCachePath, RPRContext);
+	URPRSettings* settings = RPR::GetSettings();
+
+	result = RPR::Context::Create(RPR_API_VERSION, CurrentPluginId, creationFlags, nullptr, settings->RenderCachePath, RPRContext);
 	if (RPR::IsResultFailed(result))
 	{
 		NumDevicesCompatible = 0;
-		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Cannot create RPR context (%#04)"), result);
+		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Cannot create RPR %s context, (%#04)"),
+			settings->IsHybrid ? TEXT("Hybrid") : TEXT("Tahoe"), result);
 		return (false);
 	}
+	else
+		UE_LOG(LogRPRCoreSystemResources, Log, TEXT("%s context=%p"), settings->IsHybrid ? TEXT("Hybrid") : TEXT("Tahoe"), RPRContext);
+
 
 	if (!InitializeContextParameters())
 	{
@@ -206,7 +231,7 @@ bool FRPRCoreSystemResources::InitializeContext()
 		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Cannot set RPR context parameters"));
 	}
 
-	result = RPR::Context::SetActivePlugin(RPRContext, TahoePluginId);
+	result = RPR::Context::SetActivePlugin(RPRContext, CurrentPluginId);
 	if (RPR::IsResultFailed(result))
 	{
 		NumDevicesCompatible = 0;
@@ -220,16 +245,27 @@ bool FRPRCoreSystemResources::InitializeContext()
 
 bool FRPRCoreSystemResources::InitializeContextParameters()
 {
-	URPRSettings* settings = GetSettings();
+	URPRSettings* settings = RPR::GetSettings();
 
-	ContextSetUint(RPRContext, RPR_CONTEXT_PREVIEW, 1, TEXT("PREVIEW"));
-	ContextSetUint(RPRContext, RPR_CONTEXT_MAX_RECURSION, 10, TEXT("MAX_RECURSION"));
-	ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_DIFFUSE, settings->RayDepthDiffuse, TEXT("MAX_DEPTH_DIFFUSE"));
-	ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_GLOSSY, settings->RayDepthGlossy, TEXT("MAX_DEPTH_GLOSSY"));
-	ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_SHADOW, settings->RayDepthShadow, TEXT("MAX_DEPTH_SHADOW"));
-	ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_REFRACTION, settings->RayDepthRefraction, TEXT("MAX_DEPTH_REFRACTION"));
-	ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_GLOSSY_REFRACTION, settings->RayDepthGlossyRefraction, TEXT("MAX_DEPTH_GLOSSY_REFRACTION"));
-	ContextSetFloat(RPRContext, RPR_CONTEXT_RADIANCE_CLAMP, settings->RadianceClamp, TEXT("RADIANCE_CLAMP"));
+	switch (CurrentContextType)
+	{
+	case Tahoe:
+		ContextSetUint(RPRContext, RPR_CONTEXT_PREVIEW, 1, TEXT("PREVIEW"));
+		ContextSetUint(RPRContext, RPR_CONTEXT_MAX_RECURSION, 10, TEXT("MAX_RECURSION"));
+		ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_DIFFUSE, settings->RayDepthDiffuse, TEXT("MAX_DEPTH_DIFFUSE"));
+		ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_GLOSSY, settings->RayDepthGlossy, TEXT("MAX_DEPTH_GLOSSY"));
+		ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_SHADOW, settings->RayDepthShadow, TEXT("MAX_DEPTH_SHADOW"));
+		ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_REFRACTION, settings->RayDepthRefraction, TEXT("MAX_DEPTH_REFRACTION"));
+		ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_GLOSSY_REFRACTION, settings->RayDepthGlossyRefraction, TEXT("MAX_DEPTH_GLOSSY_REFRACTION"));
+		ContextSetFloat(RPRContext, RPR_CONTEXT_RADIANCE_CLAMP, settings->RadianceClamp, TEXT("RADIANCE_CLAMP"));
+		break;
+	case Hybrid:
+		ContextSetUint(RPRContext, RPR_CONTEXT_MAX_RECURSION, 10, TEXT("MAX_RECURSION"));
+		ContextSetUint(RPRContext, RPR_CONTEXT_Y_FLIP, 1, TEXT("Y_FLIP"));
+		break;
+	default:
+		return false;
+	}
 
 	return true;
 }
@@ -241,14 +277,14 @@ void FRPRCoreSystemResources::InitializeRPRImageManager()
 
 RPR::FCreationFlags	FRPRCoreSystemResources::GetContextCreationFlags() const
 {
-	URPRSettings* settings = GetSettings();
+	URPRSettings* settings = RPR::GetSettings();
 	RPR::FCreationFlags	maxCreationFlags = GetMaxCreationFlags();
 
 	RPR_TOOLS_OS	os = GetCurrentToolOS();
 	check(os != INDEX_NONE);
 
 	RPR::FCreationFlags	creationFlags = 0;
-	if (!RPR::AreDevicesCompatible(TahoePluginId, settings->RenderCachePath, false, maxCreationFlags, creationFlags, os))
+	if (!RPR::AreDevicesCompatible(CurrentPluginId, settings->RenderCachePath, false, maxCreationFlags, creationFlags, os))
 	{
 		UE_LOG(LogRPRCoreSystemResources, Error,
 			TEXT("Cannot find any device compatible. Try selecting more devices in the RPR settings and restart."));
@@ -263,7 +299,7 @@ RPR::FCreationFlags	FRPRCoreSystemResources::GetContextCreationFlags() const
 
 RPR::FCreationFlags FRPRCoreSystemResources::GetMaxCreationFlags() const
 {
-	URPRSettings* settings = GetSettings();
+	URPRSettings* settings = RPR::GetSettings();
 	RPR::FCreationFlags	maxCreationFlags = 0;
 
 	if (settings->bEnableCPU) maxCreationFlags |= RPR_CREATION_FLAGS_ENABLE_CPU;

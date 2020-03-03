@@ -286,6 +286,12 @@ const FSlateBrush	*SRPRViewportTabContent::GetRenderIcon() const
 	return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.Pause").GetIcon();
 }
 
+TSharedRef<SWidget>	SRPRViewportTabContent::OnGenerateRenderOptionWidget(TSharedPtr<FString> inItem) const
+{
+	return SNew(STextBlock)
+		.Text(FText::FromString(*inItem));
+}
+
 TSharedRef<SWidget>	SRPRViewportTabContent::OnGenerateQualitySettingsWidget(TSharedPtr<FString> inItem) const
 {
 	return SNew(STextBlock)
@@ -298,25 +304,51 @@ TSharedRef<SWidget>	SRPRViewportTabContent::OnGenerateDenoiserWidget(TSharedPtr<
 		.Text(FText::FromString(*inItem));
 }
 
+void	SRPRViewportTabContent::OnRenderChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo)
+{
+	const FString	render = *item.Get();
+
+	if (render == TEXT("Radeon ProRender"))
+	{
+		m_Settings->CurrentRenderType = ERenderType::Tahoe;
+		m_Settings->IsHybrid = false;
+	}
+	else
+	{
+		m_Settings->CurrentRenderType = ERenderType::Hybrid;
+		m_Settings->IsHybrid = true;
+	}
+}
+
 void	SRPRViewportTabContent::OnQualitySettingsChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo)
 {
-	const FString	settingsString = *item.Get();
+	const FString		settingsString = *item.Get();
+	ERPRQualitySettings	newSetting = ERPRQualitySettings::Interactive;
 
-	ERPRQualitySettings	newSettings = ERPRQualitySettings::Interactive;
-	if (settingsString == "Interactive")
-		newSettings = ERPRQualitySettings::Interactive;
-	else if (settingsString == "Low")
-		newSettings = ERPRQualitySettings::Low;
-	else if (settingsString == "Medium")
-		newSettings = ERPRQualitySettings::Medium;
-	else if (settingsString == "High")
-		newSettings = ERPRQualitySettings::High;
-	m_Settings->QualitySettings = newSettings;
+	if (settingsString == TEXT("Interactive"))
+		newSetting = ERPRQualitySettings::Interactive;
+	else if (settingsString == TEXT("Low"))
+		newSetting = ERPRQualitySettings::Low;
+	else if (settingsString == TEXT("Medium"))
+		newSetting = ERPRQualitySettings::Medium;
+	else if (settingsString == TEXT("High"))
+		newSetting = ERPRQualitySettings::High;
+	m_Settings->QualitySettings = newSetting;
 	m_Settings->SaveConfig();
 
 	ARPRScene	*scene = m_Plugin->GetCurrentScene();
 	if (scene != NULL)
 		scene->SetQualitySettings(m_Settings->QualitySettings);
+}
+
+FText	SRPRViewportTabContent::GetSelectedRenderName() const
+{
+	if (m_Settings->CurrentRenderType == ERenderType::Tahoe)
+		return LOCTEXT("RenderTypeRPR", "Radeon ProRender");
+	else
+		return LOCTEXT("RenderTypeHybrid", "Hybrid");
+
+	return FText();
 }
 
 FText	SRPRViewportTabContent::GetSelectedQualitySettingsName() const
@@ -340,13 +372,13 @@ void	SRPRViewportTabContent::OnDenoiserOptionChanged(TSharedPtr<FString> item, E
 	const FString	settingsString = *item.Get();
 
 	ERPRDenoiserOption	newSettings = ERPRDenoiserOption::ML;
-	if (settingsString == "Machine Learning")
+	if (settingsString == TEXT("Machine Learning"))
 		newSettings = ERPRDenoiserOption::ML;
-	else if (settingsString == "Edge Avoiding Wavelets")
+	else if (settingsString == TEXT("Edge Avoiding Wavelets"))
 		newSettings = ERPRDenoiserOption::Eaw;
-	else if (settingsString == "Local Weighted Regression")
+	else if (settingsString == TEXT("Local Weighted Regression"))
 		newSettings = ERPRDenoiserOption::Lwr;
-	else if (settingsString == "Bilateral")
+	else if (settingsString == TEXT("Bilateral"))
 		newSettings = ERPRDenoiserOption::Bilateral;
 	m_Settings->DenoiserOption = newSettings;
 	m_Settings->SaveConfig();
@@ -550,9 +582,13 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 
 	check(m_Settings != NULL);
 
+	m_RendersList.Empty();
 	m_QualitySettingsList.Empty();
 	m_DenoiserOptionList.Empty();
 	m_AvailableMegaPixel.Empty();
+
+	m_RendersList.Add(MakeShared<FString>("Radeon ProRender"));
+	m_RendersList.Add(MakeShared<FString>("Hybrid"));
 
 	m_QualitySettingsList.Add(MakeShared<FString>("Interactive"));
 	m_QualitySettingsList.Add(MakeShared<FString>("Low"));
@@ -725,6 +761,20 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 				[
 					SNew(STextBlock)
 					.Text(this, &SRPRViewportTabContent::GetSelectedCameraName)
+				]
+			]
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(2.0f)
+			[
+				SNew(SComboBox<TSharedPtr<FString>>)
+				.OptionsSource(&m_RendersList)
+				.OnGenerateWidget(this, &SRPRViewportTabContent::OnGenerateRenderOptionWidget)
+				.OnSelectionChanged(this, &SRPRViewportTabContent::OnRenderChanged)
+				.IsEnabled_Lambda([this] { return m_Plugin->RenderPaused() && m_Plugin->m_CleanViewport; })
+				[
+					SNew(STextBlock)
+					.Text(this, &SRPRViewportTabContent::GetSelectedRenderName)
 				]
 			]
 			+SHorizontalBox::Slot()

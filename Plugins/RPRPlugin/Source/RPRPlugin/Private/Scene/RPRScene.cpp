@@ -373,8 +373,9 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 {
 	UE_LOG(LogRPRScene, VeryVerbose, TEXT("Render RPR scene"));
 
-	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	check(settings != nullptr);
+	URPRSettings* settings = RPR::GetSettings();
+
+	IRPRCore::GetResources()->Initialize();
 
 	if (m_RenderTexture == nullptr)
 	{
@@ -514,7 +515,7 @@ void	ARPRScene::StartOrbitting(const FIntPoint &mousePos)
 void	ARPRScene::SetTrace(bool trace)
 {
 	URPRSettings	*settings = GetMutableDefault<URPRSettings>();
-	if (settings == nullptr)
+	if (settings == nullptr || settings->IsHybrid)
 		return;
 
 	FString	tracePath = settings->TraceFolder;

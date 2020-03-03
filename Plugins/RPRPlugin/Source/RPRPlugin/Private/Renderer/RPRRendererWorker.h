@@ -110,7 +110,6 @@ private:
 
 	// Required to render correctly, even if the main frame buffer renders another thing like depth
 	RPR::FFrameBuffer			m_RprColorFrameBuffer;
-	RPR::FFrameBuffer			m_RprOpacityFrameBuffer;
 	RPR::FFrameBuffer			m_RprShadingNormalBuffer;
 	RPR::FFrameBuffer			m_RprShadingNormalResolvedBuffer;
 	RPR::FFrameBuffer			m_RprWorldCoordinatesBuffer;

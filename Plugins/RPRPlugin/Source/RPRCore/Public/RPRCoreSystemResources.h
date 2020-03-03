@@ -42,13 +42,14 @@ public:
 
 private:
 
-	bool	InitializeRPRRendering();
+	bool	LoadLibraries();
+	bool	InitializeContextEnvirontment();
 	bool	InitializeContext();
 	bool	InitializeMaterialSystem();
 	bool	InitializeContextParameters();
 	void	InitializeRPRImageManager();
 	void	InitializeRPRXMaterialLibrary();
-	bool	LoadTahoeDLL();
+	bool	LoadRprDLL(const FString Library, RPR::FPluginId &libId);
 	bool	LoadImageFilterDLL();
 
 	void	DestroyRPRContext();
@@ -64,9 +65,12 @@ private:
 
 private:
 
-	bool	bIsInitialized;
+	bool					bIsInitialized;
+	ERenderType				CurrentContextType;
 
+	RPR::FPluginId			CurrentPluginId;
 	RPR::FPluginId			TahoePluginId;
+	RPR::FPluginId			HybridPluginId;
 	int32					NumDevicesCompatible;
 
 	RPR::FContext			RPRContext;
