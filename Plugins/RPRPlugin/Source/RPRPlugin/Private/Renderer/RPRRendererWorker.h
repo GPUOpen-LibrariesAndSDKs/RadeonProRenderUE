@@ -53,11 +53,11 @@ public:
 	void			SetTrace(bool trace, const FString &tracePath);
 	void			SaveToFile(const FString &filename);
 	void			SetQualitySettings(ERPRQualitySettings qualitySettings);
-	void			SetDenoiserSettings(ERPRDenoiserOption denoiserOption);
+	int 			SetDenoiserSettings(ERPRDenoiserOption denoiserOption);
 	uint32			Iteration() const { return m_CurrentIteration; }
 	void			SetPaused(bool paused);
 	void			SetAOV(RPR::EAOV AOV);
-	void			ApplyDenoiser();
+	int 			ApplyDenoiser();
 
 	const uint8		*GetFramebufferData()
 	{
@@ -79,9 +79,9 @@ private:
 	void		ClearFramebuffer();
 	void		DestroyPendingKills();
 	bool		PreRenderLoop();
-	void		InitializeDenoiser();
-	void		CreateDenoiserFilter(RifFilterType type);
-	void		RunDenoiser();
+	int			InitializeDenoiser();
+	int			CreateDenoiserFilter(RifFilterType type);
+	int 		RunDenoiser();
 
 private:
 

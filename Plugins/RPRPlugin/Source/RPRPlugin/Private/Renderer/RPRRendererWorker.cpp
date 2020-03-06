@@ -44,6 +44,12 @@ DEFINE_STAT(STAT_ProRender_Readback);
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRRenderer, Log, All);
 
+#define CHECK_ERROR(status, msg)  \
+	CA_CONSTANT_IF(status != 0) { \
+		UE_LOG(LogRPRRenderer, Error, msg); \
+		return status; \
+	}
+
 namespace {
 	void DeleteBuffer(void*& buffer)
 	{
@@ -280,30 +286,42 @@ void	FRPRRendererWorker::SetQualitySettings(ERPRQualitySettings qualitySettings)
 	m_RenderLock.Unlock();
 }
 
-void	FRPRRendererWorker::SetDenoiserSettings(ERPRDenoiserOption denoiserOption)
+int FRPRRendererWorker::SetDenoiserSettings(ERPRDenoiserOption denoiserOption)
 {
+	int status;
+
 	if (m_RprContext == nullptr)
-		return;
+		return RPR_ERROR_NULLPTR;
 
 	switch (denoiserOption)
 	{
 	case ERPRDenoiserOption::ML:
-		CreateDenoiserFilter(RifFilterType::MlDenoise);
+		status = CreateDenoiserFilter(RifFilterType::MlDenoise);
+		CHECK_ERROR(status, TEXT("ML denoiser doesn't created"));
+
 		UE_LOG(LogRPRRenderer, Log, TEXT("Machine Learning Denoiser created"));
 		break;
 	case ERPRDenoiserOption::Eaw:
-		CreateDenoiserFilter(RifFilterType::EawDenoise);
+		status = CreateDenoiserFilter(RifFilterType::EawDenoise);
+		CHECK_ERROR(status, TEXT("EAW denoiser doesn't created"));
+
 		UE_LOG(LogRPRRenderer, Log, TEXT("Edge Avoiding Wavelets Denoiser created"));
 		break;
 	case ERPRDenoiserOption::Lwr:
-		CreateDenoiserFilter(RifFilterType::LwrDenoise);
+		status = CreateDenoiserFilter(RifFilterType::LwrDenoise);
+		CHECK_ERROR(status, TEXT("LWR denoiser doesn't created"));
+
 		UE_LOG(LogRPRRenderer, Log, TEXT("Local Weighted Regression Denoiser created"));
 		break;
 	case ERPRDenoiserOption::Bilateral:
-		CreateDenoiserFilter(RifFilterType::BilateralDenoise);
+		status = CreateDenoiserFilter(RifFilterType::BilateralDenoise);
+		CHECK_ERROR(status, TEXT("Bilaterial denoiser doesn't created"));
+
 		UE_LOG(LogRPRRenderer, Log, TEXT("Bilateral Denoiser created"));
 		break;
 	}
+
+	return RPR_SUCCESS;
 }
 
 void	FRPRRendererWorker::SetPaused(bool pause)
@@ -686,105 +704,148 @@ bool	FRPRRendererWorker::PreRenderLoop()
 	return isPaused;
 }
 
-void	FRPRRendererWorker::InitializeDenoiser()
+int	FRPRRendererWorker::InitializeDenoiser()
 {
+	int status;
+
 	auto rprSdk = FModuleManager::GetModuleChecked<FRPR_SDKModule>("RPR_SDK");
 	FString path = FPaths::ConvertRelativePathToFull(rprSdk.GetDLLsDirectory(TEXT("RadeonProImageProcessingSDK")), TEXT("../../models"));
-	m_Denoiser = MakeShared<ImageFilter>(m_RprContext, m_Width, m_Height, path);
+
+	m_Denoiser = MakeShared<ImageFilter>();
+
+	status = m_Denoiser->Initialize(m_RprContext, m_Width, m_Height, path);
+	CHECK_ERROR(status, TEXT("Denoiser initalization error"));
+
+	return RPR_SUCCESS;
 }
 
-void	FRPRRendererWorker::CreateDenoiserFilter(RifFilterType filterType)
+int FRPRRendererWorker::CreateDenoiserFilter(RifFilterType filterType)
 {
-	try {
-		if (filterType == RifFilterType::BilateralDenoise)
-		{
-			m_Denoiser->CreateFilter(filterType);
-			m_Denoiser->AddInput(RifColor, m_RprResolvedFrameBuffer, 0.3f);
-			m_Denoiser->AddInput(RifNormal, m_RprShadingNormalResolvedBuffer, 0.01f);
-			m_Denoiser->AddInput(RifWorldCoordinate, m_RprWorldCoordinatesResolvedBuffer, 0.01f);
+	int status;
 
-			RifParam p = {RifParamType::RifInt, 0};
-			m_Denoiser->AddParam("radius", p);
-		}
-		/*else if (filterType == RifFilterType::LwrDenoise)
-		{
-			m_Denoiser->CreateFilter(filterType, true);
-			m_Denoiser->AddInput(RifColor, m_RprResolvedFrameBuffer, 0.1f);
-			m_Denoiser->AddInput(RifNormal, m_RprShadingNormalResolvedBuffer, 0.1f);
-			m_Denoiser->AddInput(RifDepth, m_RprAovDepthResolvedBuffer, 0.1f);
-			m_Denoiser->AddInput(RifWorldCoordinate, m_RprWorldCoordinatesResolvedBuffer, 0.1f);
-			m_Denoiser->AddInput(RifObjectId, fbObjectId, 0.1f);
-			m_Denoiser->AddInput(RifTrans, fbTrans, 0.1f);
-
-			RifParam p = {RifParamType::RifInt, m_globals.denoiserSettings.samples};
-			m_Denoiser->AddParam("samples", p);
-
-			p = {RifParamType::RifInt,  m_globals.denoiserSettings.filterRadius};
-			m_Denoiser->AddParam("halfWindow", p);
-
-			p.mType = RifParamType::RifFloat;
-			p.mData.f = m_globals.denoiserSettings.bandwidth;
-			m_Denoiser->AddParam("bandwidth", p);
-		}
-		else if (filterType == RifFilterType::EawDenoise)
-		{
-			m_Denoiser->CreateFilter(filterType, true);
-			m_Denoiser->AddInput(RifColor, m_RprResolvedFrameBuffer, m_globals.denoiserSettings.color);
-			m_Denoiser->AddInput(RifNormal, m_RprShadingNormalResolvedBuffer, m_globals.denoiserSettings.normal);
-			m_Denoiser->AddInput(RifDepth, m_RprAovDepthResolvedBuffer, m_globals.denoiserSettings.depth);
-			m_Denoiser->AddInput(RifTrans, fbTrans, m_globals.denoiserSettings.trans);
-			m_Denoiser->AddInput(RifWorldCoordinate, m_RprWorldCoordinatesResolvedBuffer, 0.1f);
-			m_Denoiser->AddInput(RifObjectId, fbObjectId, 0.1f);
-		}*/
-		else if (filterType == RifFilterType::MlDenoise)
-		{
-			const rpr_framebuffer fbColor = m_RprResolvedFrameBuffer;
-			const rpr_framebuffer fbShadingNormal = m_RprShadingNormalResolvedBuffer;
-			const rpr_framebuffer fbAovDepth = m_RprAovDepthResolvedBuffer;
-			const rpr_framebuffer fbDiffuseAlbedo = m_RprDiffuseAlbedoResolvedBuffer;
-
-
-			m_Denoiser->CreateFilter(filterType, true);
-			m_Denoiser->AddInput(RifColor, fbColor, 0.0f);
-			m_Denoiser->AddInput(RifNormal, fbShadingNormal, 0.0f);
-			m_Denoiser->AddInput(RifDepth, fbAovDepth, 0.0f);
-			m_Denoiser->AddInput(RifAlbedo, fbDiffuseAlbedo, 0.0f);
-		}
-		else if (filterType == RifFilterType::MlDenoiseColorOnly)
-		{
-			m_Denoiser->CreateFilter(filterType, true);
-			m_Denoiser->AddInput(RifColor, m_RprResolvedFrameBuffer, 0.0f);
-		}
-
-		m_Denoiser->AttachFilter();
+	if (!m_Denoiser) {
+		UE_LOG(LogRPRRenderer, Error, TEXT("Can't create filter as denoiser library doesn't initalized"));
+		return RIF_ERROR_INVALID_OBJECT;
 	}
-	catch (std::exception & e)
+
+	if (filterType == RifFilterType::BilateralDenoise)
 	{
-		m_Denoiser.Reset();
-		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't craete denoiser : %s"), e.what());
+		status = m_Denoiser->CreateFilter(filterType);
+		CHECK_ERROR(status, TEXT("Bilateral filter create error"));
+
+		status = m_Denoiser->AddInput(RifColor, m_RprResolvedFrameBuffer, 0.3f);
+		CHECK_ERROR(status, TEXT("Bilateral filter: can't add input resolved framebuffer"));
+
+		status = m_Denoiser->AddInput(RifNormal, m_RprShadingNormalResolvedBuffer, 0.01f);
+		CHECK_ERROR(status, TEXT("Bilateral filter: can't add input shadingNormalResolved buffer"));
+
+		status = m_Denoiser->AddInput(RifWorldCoordinate, m_RprWorldCoordinatesResolvedBuffer, 0.01f);
+		CHECK_ERROR(status, TEXT("Bilateral filter: can't add input worldCoordinatesResolved buffer"));
+
+		RifParam p = {RifParamType::RifInt, 0};
+		status = status = m_Denoiser->AddParam("radius", p);
+		CHECK_ERROR(status, TEXT("Bilateral filter: can't add param radius"));
 	}
+	/*else if (filterType == RifFilterType::LwrDenoise)
+	{
+		m_Denoiser->CreateFilter(filterType, true);
+		m_Denoiser->AddInput(RifColor, m_RprResolvedFrameBuffer, 0.1f);
+		m_Denoiser->AddInput(RifNormal, m_RprShadingNormalResolvedBuffer, 0.1f);
+		m_Denoiser->AddInput(RifDepth, m_RprAovDepthResolvedBuffer, 0.1f);
+		m_Denoiser->AddInput(RifWorldCoordinate, m_RprWorldCoordinatesResolvedBuffer, 0.1f);
+		m_Denoiser->AddInput(RifObjectId, fbObjectId, 0.1f);
+		m_Denoiser->AddInput(RifTrans, fbTrans, 0.1f);
+
+		RifParam p = {RifParamType::RifInt, m_globals.denoiserSettings.samples};
+		m_Denoiser->AddParam("samples", p);
+
+		p = {RifParamType::RifInt,  m_globals.denoiserSettings.filterRadius};
+		m_Denoiser->AddParam("halfWindow", p);
+
+		p.mType = RifParamType::RifFloat;
+		p.mData.f = m_globals.denoiserSettings.bandwidth;
+		m_Denoiser->AddParam("bandwidth", p);
+	}
+	else if (filterType == RifFilterType::EawDenoise)
+	{
+		m_Denoiser->CreateFilter(filterType, true);
+		m_Denoiser->AddInput(RifColor, m_RprResolvedFrameBuffer, m_globals.denoiserSettings.color);
+		m_Denoiser->AddInput(RifNormal, m_RprShadingNormalResolvedBuffer, m_globals.denoiserSettings.normal);
+		m_Denoiser->AddInput(RifDepth, m_RprAovDepthResolvedBuffer, m_globals.denoiserSettings.depth);
+		m_Denoiser->AddInput(RifTrans, fbTrans, m_globals.denoiserSettings.trans);
+		m_Denoiser->AddInput(RifWorldCoordinate, m_RprWorldCoordinatesResolvedBuffer, 0.1f);
+		m_Denoiser->AddInput(RifObjectId, fbObjectId, 0.1f);
+	}*/
+	else if (filterType == RifFilterType::MlDenoise)
+	{
+		const rpr_framebuffer fbColor = m_RprResolvedFrameBuffer;
+		const rpr_framebuffer fbShadingNormal = m_RprShadingNormalResolvedBuffer;
+		const rpr_framebuffer fbAovDepth = m_RprAovDepthResolvedBuffer;
+		const rpr_framebuffer fbDiffuseAlbedo = m_RprDiffuseAlbedoResolvedBuffer;
+
+		status = m_Denoiser->CreateFilter(filterType, true);
+		CHECK_ERROR(status, TEXT("can't create ml filter"));
+
+		status = m_Denoiser->AddInput(RifColor, fbColor, 0.0f);
+		CHECK_ERROR(status, TEXT("can't add ml denoiser fbColor input"));
+
+		status = m_Denoiser->AddInput(RifNormal, fbShadingNormal, 0.0f);
+		CHECK_ERROR(status, TEXT("can't add ml denoiser fbShadingNormal input"));
+
+		status = m_Denoiser->AddInput(RifDepth, fbAovDepth, 0.0f);
+		CHECK_ERROR(status, TEXT("can't add ml denoiser aoiv input"));
+
+		status = m_Denoiser->AddInput(RifAlbedo, fbDiffuseAlbedo, 0.0f);
+		CHECK_ERROR(status, TEXT("can't add ml denoiser diffusealbedo input"));
+	}
+	else if (filterType == RifFilterType::MlDenoiseColorOnly)
+	{
+		status = m_Denoiser->CreateFilter(filterType, true);
+		CHECK_ERROR(status, TEXT("can't create mlcolor denoiser filter"));
+
+		status = m_Denoiser->AddInput(RifColor, m_RprResolvedFrameBuffer, 0.0f);
+		CHECK_ERROR(status, TEXT("can't add mlcolor resolved framebuffer input"));
+	}
+
+	status = m_Denoiser->AttachFilter();
+	CHECK_ERROR(status, TEXT("can't attach filter"));
+
+	return RIF_SUCCESS;
 }
 
-void	FRPRRendererWorker::ApplyDenoiser()
+int FRPRRendererWorker::ApplyDenoiser()
 {
 	auto settings = RPR::GetSettings();
+	int status;
 
-	if (!settings->UseDenoiser)
-		return;
+	status = InitializeDenoiser();
+	CHECK_ERROR(status, TEXT("Denoiser initialization failed. Denoiser doesn't applied"));
 
-	InitializeDenoiser();
-	SetDenoiserSettings(settings->DenoiserOption);
-	RunDenoiser();
+	status = SetDenoiserSettings(settings->DenoiserOption);
+	CHECK_ERROR(status, TEXT("Denoiser settings set failed. Ignore denoiser"));
+
+	status = RunDenoiser();
+	CHECK_ERROR(status, TEXT("Denoiser run failed. ignore denoiser"));
+
 	++m_CurrentIteration;
+
+	return RPR_SUCCESS;
 }
 
-void	FRPRRendererWorker::RunDenoiser()
+int	FRPRRendererWorker::RunDenoiser()
 {
-	if (m_RprContext == nullptr)
-		return;
+	int status;
 
-	m_Denoiser->Run();
-	auto denoisedData = m_Denoiser->GetData();
+	if (m_RprContext == nullptr)
+		return RPR_ERROR_NULLPTR;
+
+	status = m_Denoiser->Run();
+	CHECK_ERROR(status, TEXT("can't run denoiser"));
+
+	TArray<float> denoisedData;
+
+	status = m_Denoiser->GetData(&denoisedData);
+	CHECK_ERROR(status, TEXT("can't get denoised buffer"));
 
 	uint8* dstPixels = m_DstFramebufferData.GetData();
 	const float* srcPixels = denoisedData.GetData();
@@ -800,6 +861,8 @@ void	FRPRRendererWorker::RunDenoiser()
 	m_DataLock.Lock();
 	FMemory::Memcpy(m_RenderData.GetData(), m_DstFramebufferData.GetData(), m_DstFramebufferData.Num());
 	m_DataLock.Unlock();
+
+	return RPR_SUCCESS;
 }
 
 uint32	FRPRRendererWorker::Run()
@@ -807,6 +870,7 @@ uint32	FRPRRendererWorker::Run()
 	URPRSettings *settings = RPR::GetSettings();
 
 	bool denoised = false;
+	int status;
 
 	while (m_StopTaskCounter.GetValue() == 0)
 	{
@@ -816,9 +880,15 @@ uint32	FRPRRendererWorker::Run()
 		{
 			if (settings->UseDenoiser && !denoised && m_CurrentIteration >= settings->MaximumRenderIterations)
 			{
-				ApplyDenoiser();
-				UE_LOG(LogRPRRenderer, Log, TEXT("Denoiser applied"));
-				denoised = true;
+				status = ApplyDenoiser();
+				if (status == RPR_SUCCESS) {
+					UE_LOG(LogRPRRenderer, Log, TEXT("Denoiser applied"));
+					denoised = true;
+				}
+				else {
+					UE_LOG(LogRPRRenderer, Log, TEXT("Denoiser apply failed. Ignore"));
+					denoised = false;
+				}
 			}
 			FPlatformProcess::Sleep(0.1f);
 			continue;

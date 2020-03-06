@@ -58,22 +58,39 @@ class ImageFilter final
 	FString mModelsPath;
 
 public:
-	explicit ImageFilter(const rpr_context rprContext, uint32 width, uint32 height,
-		const FString& modelsPath = FString());
 	~ImageFilter();
 
-	void CreateFilter(RifFilterType rifFilteType, bool useOpenImageDenoise = false);
-	void DeleteFilter();
+	int Initialize(const rpr_context rprContext, uint32 width, uint32 height, const FString& modelsPath = FString());
 
-	void AddInput(RifFilterInput inputId, const rpr_framebuffer rprFrameBuffer, float sigma) const;
-	void AddInput(RifFilterInput inputId, float* memPtr, size_t size, float sigma) const;
-	void AddParam(FString name, RifParam param) const;
+	int CreateFilter(RifFilterType rifFilteType, bool useOpenImageDenoise = false);
+	int DeleteFilter();
 
-	void AttachFilter() const;
+	int AddInput(RifFilterInput inputId, const rpr_framebuffer rprFrameBuffer, float sigma);
+	int AddInput(RifFilterInput inputId, float* memPtr, size_t size, float sigma);
+	int AddParam(FString name, RifParam param);
 
-	void Run() const;
+	int AttachFilter();
 
-	TArray<float> GetData() const;
+	int Run();
+
+	int GetData(TArray<float>* data);
+
+private:
+	template <class Filter, class... Args>
+	int ConstructFilter(Args&&... args)
+	{
+		int status;
+
+		auto filter = MakeUnique<Filter>();
+
+		status = filter->Initialize(std::forward<Args>(args)...);
+		if (status != RIF_SUCCESS)
+			return status;
+
+		mRifFilter = std::move(filter);
+
+		return RIF_SUCCESS;
+	}
 };
 
 enum class RifContextType
@@ -98,25 +115,23 @@ public:
 	const rif_command_queue Queue() const;
 	const rif_image Output() const;
 	const RifContextType ContextType() const;
+	
+	int UpdateInputs(const RifFilterWrapper* rifFilter);
+	int CreateOutput(const rif_image_desc& desc);
 
-	void CreateOutput(const rif_image_desc& desc);
-
-	virtual rif_image CreateRifImage(const rpr_framebuffer rprFrameBuffer, const rif_image_desc& desc) const = 0;
-	void UpdateInputs(const RifFilterWrapper* rifFilter) const;
+	virtual int Initialize(rpr_context rprContext) = 0;
+	virtual int CreateRifImage(const rpr_framebuffer rprFrameBuffer, const rif_image_desc& desc, rif_image* image) = 0;
 
 protected:
-	virtual TArray<rpr_char> GetRprCachePath(rpr_context rprContext) const final;
+	int GetRprCachePath(rpr_context rprContext, TArray<rpr_char>* cachePath);
 };
 
 class RifContextGPU final : public RifContextWrapper
 {
 	const rif_backend_api_type rifBackendApiType = RIF_BACKEND_API_OPENCL;
-
 public:
-	explicit RifContextGPU(const rpr_context rprContext);
-	virtual ~RifContextGPU();
-
-	virtual rif_image CreateRifImage(const rpr_framebuffer rprFrameBuffer, const rif_image_desc& desc) const override;
+	int Initialize(rpr_context rprContext) override;
+	int CreateRifImage(const rpr_framebuffer rprFrameBuffer, const rif_image_desc& desc, rif_image* outImage) override;
 };
 
 class RifContextGPUMetal final : public RifContextWrapper
@@ -124,10 +139,8 @@ class RifContextGPUMetal final : public RifContextWrapper
 	const rif_backend_api_type rifBackendApiType = RIF_BACKEND_API_METAL;
 
 public:
-	explicit RifContextGPUMetal(const rpr_context rprContext);
-	virtual ~RifContextGPUMetal();
-
-	virtual rif_image CreateRifImage(const rpr_framebuffer rprFrameBuffer, const rif_image_desc& desc) const override;
+	int Initialize(const rpr_context rprContext) override;
+	int CreateRifImage(const rpr_framebuffer rprFrameBuffer, const rif_image_desc& desc, rif_image* outImage) override;
 };
 
 class RifContextCPU final : public RifContextWrapper
@@ -135,13 +148,10 @@ class RifContextCPU final : public RifContextWrapper
 	const rif_backend_api_type rifBackendApiType = RIF_BACKEND_API_OPENCL;
 
 public:
-	explicit RifContextCPU(const rpr_context rprContext);
-	virtual ~RifContextCPU();
+	int Initialize(rpr_context rprContext);
 
-	virtual rif_image CreateRifImage(const rpr_framebuffer rprFrameBuffer, const rif_image_desc& desc) const override;
+	int CreateRifImage(const rpr_framebuffer rprFrameBuffer, const rif_image_desc& desc, rif_image* outImage) override;
 };
-
-
 
 struct RifInput
 {
@@ -150,7 +160,7 @@ struct RifInput
 
 	RifInput(rif_image rifImage, float sigma);
 	virtual ~RifInput();
-	virtual void Update() = 0;
+	virtual	int Update() = 0;
 };
 
 using RifInputPtr = TSharedPtr<RifInput>;
@@ -158,8 +168,7 @@ using RifInputPtr = TSharedPtr<RifInput>;
 struct RifInputGPU : public RifInput
 {
 	RifInputGPU(rif_image rifImage, float sigma);
-	virtual ~RifInputGPU();
-	void Update() override;
+	int Update() override { return RIF_SUCCESS; }
 };
 
 struct RifInputGPUCPU : public RifInput
@@ -167,8 +176,7 @@ struct RifInputGPUCPU : public RifInput
 	rpr_framebuffer mRprFrameBuffer = nullptr;
 
 	RifInputGPUCPU(rif_image rifImage, const rpr_framebuffer rprFrameBuffer, float sigma);
-	virtual ~RifInputGPUCPU();
-	void Update() override;
+	int Update() override;
 };
 
 struct RifInputCPU : public RifInput
@@ -177,8 +185,7 @@ struct RifInputCPU : public RifInput
 	size_t mSize = 0;
 
 	RifInputCPU(rif_image rifImage, float* memPtr, size_t size, float sigma);
-	virtual ~RifInputCPU();
-	void Update() override;
+	int Update() override;
 };
 
 class RifFilterWrapper
@@ -198,18 +205,18 @@ protected:
 public:
 	virtual ~RifFilterWrapper();
 
-	void AddInput(RifFilterInput inputId, const rif_image rifImage, float sigma);
-	void AddInput(RifFilterInput inputId, const rif_image rifImage, const rpr_framebuffer rprFrameBuffer, float sigma);
-	void AddInput(RifFilterInput inputId, const rif_image rifImage, float* memPtr, size_t size, float sigma);
-	void AddParam(FString name, RifParam param);
+	int AddInput(RifFilterInput inputId, const rif_image rifImage, float sigma);
+	int AddInput(RifFilterInput inputId, const rif_image rifImage, const rpr_framebuffer rprFrameBuffer, float sigma);
+	int AddInput(RifFilterInput inputId, const rif_image rifImage, float* memPtr, size_t size, float sigma);
+	int AddParam(FString name, RifParam param);
 
-	virtual void AttachFilter(const RifContextWrapper* rifContext) = 0;
-	virtual void DetachFilter(const RifContextWrapper* rifContext) noexcept final;
+	virtual int AttachFilter(const RifContextWrapper* rifContext) = 0;
+	int DetachFilter(const RifContextWrapper* rifContext);
 
-	void ApplyParameters() const;
+	int ApplyParameters();
 
 protected:
-	void SetupVarianceImageFilter(const rif_image_filter inputFilter, const rif_image outVarianceImage) const;
+	int SetupVarianceImageFilter(const rif_image_filter inputFilter, const rif_image outVarianceImage);
 };
 
 class RifFilterBilateral final : public RifFilterWrapper
@@ -219,10 +226,8 @@ class RifFilterBilateral final : public RifFilterWrapper
 	TArray<float> sigmas;
 
 public:
-	explicit RifFilterBilateral(const RifContextWrapper* rifContext);
-	virtual ~RifFilterBilateral();
-
-	virtual void AttachFilter(const RifContextWrapper* rifContext) override;
+	int Initialize(const RifContextWrapper* rifContext);
+	int AttachFilter(const RifContextWrapper* rifContext) override;
 };
 
 class RifFilterLwr final : public RifFilterWrapper
@@ -246,10 +251,8 @@ class RifFilterLwr final : public RifFilterWrapper
 	};
 
 public:
-	explicit RifFilterLwr(const RifContextWrapper* rifContext, uint32 width, uint32 height);
-	virtual ~RifFilterLwr();
-
-	virtual void AttachFilter(const RifContextWrapper* rifContext) override;
+	int Initialize(const RifContextWrapper* rifContext, uint32 width, uint32 height);
+	virtual int AttachFilter(const RifContextWrapper* rifContext) override;
 };
 
 class RifFilterEaw final : public RifFilterWrapper
@@ -269,10 +272,8 @@ class RifFilterEaw final : public RifFilterWrapper
 	};
 
 public:
-	explicit RifFilterEaw(const RifContextWrapper* rifContext, uint32 width, uint32 height);
-	virtual ~RifFilterEaw();
-
-	virtual void AttachFilter(const RifContextWrapper* rifContext) override;
+	int Initialize(const RifContextWrapper* rifContext, uint32 width, uint32 height);
+	int AttachFilter(const RifContextWrapper* rifContext) override;
 };
 
 class RifFilterMl final : public RifFilterWrapper
@@ -292,11 +293,10 @@ class RifFilterMl final : public RifFilterWrapper
 	};
 
 public:
-	explicit RifFilterMl(const RifContextWrapper* rifContext, uint32 width, uint32 height,
+	int Initialize(const RifContextWrapper* rifContext, uint32 width, uint32 height, 
 		const FString& modelsPath, bool useOpenImageDenoise);
-	virtual ~RifFilterMl();
 
-	virtual void AttachFilter(const RifContextWrapper* rifContext) override;
+	int AttachFilter(const RifContextWrapper* rifContext) override;
 };
 
 class RifFilterMlColorOnly final : public RifFilterWrapper
@@ -314,9 +314,7 @@ class RifFilterMlColorOnly final : public RifFilterWrapper
 	};
 
 public:
-	explicit RifFilterMlColorOnly(const RifContextWrapper* rifContext, uint32 width, uint32 height,
+	int Initialize(const RifContextWrapper* rifContext, uint32 width, uint32 height,
 		const FString& modelsPath, bool useOpenImageDenoise);
-	virtual ~RifFilterMlColorOnly();
-
-	virtual void AttachFilter(const RifContextWrapper* rifContext) override;
+	int AttachFilter(const RifContextWrapper* rifContext) override;
 };
