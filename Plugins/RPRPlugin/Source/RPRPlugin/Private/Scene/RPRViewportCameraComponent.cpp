@@ -50,6 +50,12 @@ DEFINE_STAT(STAT_ProRender_UpdateViewportCamera);
 		return false; \
 	}
 
+namespace 
+{
+	const float AspectRatio_16_9 = 16.0f / 9.0f;
+}
+
+
 URPRViewportCameraComponent::URPRViewportCameraComponent()
 :	m_RprCamera(NULL)
 ,	m_CachedCameraPos(FVector::ZeroVector)
@@ -262,7 +268,7 @@ float	URPRViewportCameraComponent::GetAspectRatio() const
 #if WITH_EDITOR
 		check(m_EditorViewportClient == NULL);
 #endif
-		return m_PlayerCameraManager->DefaultAspectRatio; // Not sure about this one
+		return AspectRatio_16_9;
 	}
 #if WITH_EDITOR
 	else if (m_EditorViewportClient != NULL)
