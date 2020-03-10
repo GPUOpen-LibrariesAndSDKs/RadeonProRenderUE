@@ -10,7 +10,7 @@
 	"DocsURL": "",
 	"MarketplaceURL": "",
 	"SupportURL": "https://support.amd.com/en-us",
-	"CanContainContent": true,
+	"CanContainContent": false,
 	"IsBetaVersion": true,
 	"Installed": false,
 	"PreBuildSteps":
@@ -45,12 +45,6 @@
 			"WhitelistPlatforms": [ "Win64", "Linux" ]
 		},
 		{
-			"Name": "RPREditorTools",
-			"Type": "Editor",
-			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [ "Win64", "Linux" ]
-		},
-		{
 			"Name": "RPRCore",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
@@ -61,66 +55,6 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"WhitelistPlatforms": [ "Win64", "Linux" ]
-		},		
-		{
-			"Name": "RPRSectionsManager",
-			"Type": "Editor",
-			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [ "Win64","Linux" ]
 		},
-		{
-			"Name": "RPRMaterialEditor",
-			"Type": "Editor",
-			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [ "Win64", "Linux" ]
-		},
-		{
-			"Name": "RPRPluginEditor",
-			"Type": "Editor",
-			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [ "Win64", "Linux" ]
-		},
-		{
-			"Name": "UVVisualizer",
-			"Type": "Editor",
-			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [ "Win64", "Linux" ]
-		},
-		{
-			"Name": "UVProjection_Planar",
-			"Type": "Editor",
-			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [ "Win64", "Linux" ]
-		},
-		{
-			"Name": "UVProjection_Cubic",
-			"Type": "Editor",
-			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [ "Win64", "Linux" ]
-		},
-		{
-			"Name": "UVProjection_Spherical",
-			"Type": "Editor",
-			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [ "Win64" , "Linux" ]
-		},
-		{
-			"Name": "UVProjection_Cylindrical",
-			"Type": "Editor",
-			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [ "Win64" ]
-		},
-		{
-			"Name": "UVProjection_TriPlanar",
-			"Type": "Editor",
-			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [ "Win64" , "Linux" ]
-		},
-		{
-			"Name": "Outliners",
-			"Type": "Editor",
-			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [ "Win64" , "Linux" ]
-		}
 	]
 }

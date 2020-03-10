@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<material name="opacity" version="0x10000223">
-    <description>Compeltely transparent</description>
-  <node name="opacity" type="TRANSPARENT"/>
-</material>
