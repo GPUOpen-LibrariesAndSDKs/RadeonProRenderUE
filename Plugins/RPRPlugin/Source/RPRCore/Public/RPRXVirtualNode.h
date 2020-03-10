@@ -1,42 +1,35 @@
 #pragma once
 
 #include "Typedefs/RPRTypedefs.h"
+#include "Color.h"
 
 /**
- * In case of a color node, we don't create a real node and use a virtual node to hold the data.
+ * In case of a constant nodes, we don't create a RPR real node and use a virtual node to hold the data.
  */
 namespace RPR
 {
 
-class RPRCORE_API RPRXVirtualNode
+enum class EVirtualNode
 {
-	FString name;
+	OTHER,
+	TEXTURE,
+	CONSTANT
+};
+
+class RPRCORE_API VirtualNode
+{
 public:
-	RPR::FMaterialNode realNode;
-	enum VNType {
-		COLOR,
-		IMAGE,
-		TEXTURE_CHANNEL,
-		ARITHMETIC_2_OPERANDS,
-		DEFAULT
-	} type;
-
-	union Data {
-		float RGBA[4];
-	} data;
+	FString				id;
+	EVirtualNode		type;
+	RPR::FMaterialNode	rprNode;
+	FLinearColor		constant;
+	bool				texture;
 
 public:
-	RPRXVirtualNode(FString name = "", VNType t = VNType::DEFAULT) : name(name), realNode(nullptr), type(t) {
-		data.RGBA[0] = 0.0f; data.RGBA[1] = 0.0f; data.RGBA[2] = 0.0f; data.RGBA[3] = 0.0f;
-	}
+	VirtualNode(FString aID = "", EVirtualNode aType = EVirtualNode::OTHER);
+	void SetData(float r, float g, float b, float a);
 
-	void SetData(float r, float g, float b, float a) {
-		data.RGBA[0] = r; data.RGBA[1] = g; data.RGBA[2] = b; data.RGBA[3] = a;
-	}
-
-	RPRXVirtualNode(const RPRXVirtualNode&)            = delete;
-	RPRXVirtualNode& operator=(const RPRXVirtualNode&) = delete;
-
-	~RPRXVirtualNode();
+	VirtualNode(const VirtualNode&)            = delete;
+	VirtualNode& operator=(const VirtualNode&) = delete;
 };
 }//namespace RPR

@@ -68,14 +68,9 @@ namespace RPR
 		UVProcedural			= RPR_MATERIAL_NODE_UV_PROCEDURAL,
 		UVTriplanar				= RPR_MATERIAL_NODE_UV_TRIPLANAR,
 
-		Add						= RPR_MATERIAL_NODE_OP_ADD,
-		Mult					= RPR_MATERIAL_NODE_OP_MUL,
-		SelectX					= RPR_MATERIAL_NODE_OP_SELECT_X,
-		SelectY					= RPR_MATERIAL_NODE_OP_SELECT_Y,
-		SelectZ					= RPR_MATERIAL_NODE_OP_SELECT_Z,
-		SelectW					= RPR_MATERIAL_NODE_OP_SELECT_W,
+		UberV2					= RPR_MATERIAL_NODE_UBERV2,
 
-		UberV2					= RPR_MATERIAL_NODE_UBERV2
+		None					= MAX_uint32
 		// Not completed. See rpr_material_node_type in RadeonProRender.h for others
 	};
 
@@ -97,17 +92,22 @@ namespace RPR
 
 	enum class EMaterialNodeArithmeticOperation : FMaterialNodeArithmeticOperation // rpr_material_node_arithmetic_operation
 	{
-		Add				= RPR_MATERIAL_NODE_OP_ADD,
-		Substract		= RPR_MATERIAL_NODE_OP_SUB,
-		Multiply		= RPR_MATERIAL_NODE_OP_MUL,
-		Divide			= RPR_MATERIAL_NODE_OP_DIV,
+		Add			= RPR_MATERIAL_NODE_OP_ADD,
+		Sub			= RPR_MATERIAL_NODE_OP_SUB,
+		Mul			= RPR_MATERIAL_NODE_OP_MUL,
+		Div			= RPR_MATERIAL_NODE_OP_DIV,
 
-		Cos				= RPR_MATERIAL_NODE_OP_COS,
-		Sin				= RPR_MATERIAL_NODE_OP_SIN,
-		Tan				= RPR_MATERIAL_NODE_OP_TAN,
+		Cos			= RPR_MATERIAL_NODE_OP_COS,
+		Sin			= RPR_MATERIAL_NODE_OP_SIN,
+		Tan			= RPR_MATERIAL_NODE_OP_TAN,
 
-		Dot3			= RPR_MATERIAL_NODE_OP_DOT3,
-		Combine			= RPR_MATERIAL_NODE_OP_COMBINE
+		Dot3		= RPR_MATERIAL_NODE_OP_DOT3,
+		Combine		= RPR_MATERIAL_NODE_OP_COMBINE,
+
+		SelectX		= RPR_MATERIAL_NODE_OP_SELECT_X,
+		SelectY		= RPR_MATERIAL_NODE_OP_SELECT_Y,
+		SelectZ		= RPR_MATERIAL_NODE_OP_SELECT_Z,
+		SelectW		= RPR_MATERIAL_NODE_OP_SELECT_W,
 
 		// Not completed. See rpr_material_node_arithmetic_operation in RadeonProRender for others
 	};

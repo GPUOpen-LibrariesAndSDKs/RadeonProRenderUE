@@ -226,9 +226,9 @@ RPR::FRPRXMaterialNodePtr FRPRXMaterialLibrary::createMaterial(FString name, uns
 	return  materialPtr;
 }
 
-RPR::RPRXVirtualNode* FRPRXMaterialLibrary::createVirtualNode(FString materialNode, RPR::RPRXVirtualNode::VNType nodeType)
+RPR::VirtualNode* FRPRXMaterialLibrary::createVirtualNode(FString materialNode, RPR::EVirtualNode nodeType)
 {
-	m_virtualNodes.Emplace(materialNode, MakeUnique<RPR::RPRXVirtualNode>(materialNode, nodeType));
+	m_virtualNodes.Emplace(materialNode, MakeUnique<RPR::VirtualNode>(materialNode, nodeType));
 	return m_virtualNodes.Find(materialNode)->Get();
 }
 
@@ -258,7 +258,7 @@ void FRPRXMaterialLibrary::ReleaseCache()
 	m_materialNodes.Empty();
 }
 
-RPR::RPRXVirtualNode* FRPRXMaterialLibrary::getVirtualNode(FString materialNode)
+RPR::VirtualNode* FRPRXMaterialLibrary::getVirtualNode(FString materialNode)
 {
 	return m_virtualNodes.Contains(materialNode) ?
 		m_virtualNodes.Find(materialNode)->Get() : nullptr;
@@ -270,50 +270,25 @@ RPR::FMaterialNode FRPRXMaterialLibrary::getNode(FString materialNode)
 	return ptr ? *ptr : nullptr;
 }
 
-RPR::RPRXVirtualNode* FRPRXMaterialLibrary::getOrCreateVirtualIfNotExists(FString materialNode, RPR::EMaterialNodeType type)
+RPR::VirtualNode* FRPRXMaterialLibrary::getOrCreateVirtualIfNotExists(FString materialNode, RPR::EMaterialNodeType rprNodeType, RPR::EVirtualNode vNodeType)
 {
-	RPR::FMaterialNode realNode = nullptr;
-	RPR::RPRXVirtualNode::VNType vType = RPR::RPRXVirtualNode::VNType::DEFAULT;
+	RPR::VirtualNode* node = getVirtualNode(materialNode);
 
-	switch (type)
+	if (node)
+		return node;
+
+	node = createVirtualNode(materialNode, vNodeType);
+
+	switch (vNodeType)
 	{
-	case RPR::EMaterialNodeType::ImageTexture:
-		vType = RPR::RPRXVirtualNode::VNType::IMAGE;
-		break;
-	case RPR::EMaterialNodeType::SelectX:
-	case RPR::EMaterialNodeType::SelectY:
-	case RPR::EMaterialNodeType::SelectZ:
-	case RPR::EMaterialNodeType::SelectW:
-		vType = RPR::RPRXVirtualNode::VNType::TEXTURE_CHANNEL;
-		break;
-	case RPR::EMaterialNodeType::Arithmetic:
-		vType = RPR::RPRXVirtualNode::VNType::ARITHMETIC_2_OPERANDS;
-		realNode = getOrCreateIfNotExists(materialNode, type);
-		break;
-	default:
-		break;
+	case RPR::EVirtualNode::TEXTURE:  // For texture image data we create RPR Node separately
+	case RPR::EVirtualNode::CONSTANT: // There is no need to create RPR Node, holds only float values
+		return node;
 	}
 
-	RPR::RPRXVirtualNode* node = getVirtualNode(materialNode);
-	if (!node) {
-		node = createVirtualNode(materialNode, vType);
-		if (!node)
-			return nullptr;
-		else
-			node->realNode = realNode;
-	}
+	if (rprNodeType != RPR::EMaterialNodeType::None)
+		node->rprNode = getOrCreateIfNotExists(materialNode, rprNodeType);
 
-	return node;
-}
-
-RPR::RPRXVirtualNode* FRPRXMaterialLibrary::getOrCreateVirtualIfNotExists(FString materialNode, RPR::RPRXVirtualNode::VNType type)
-{
-	RPR::RPRXVirtualNode* node;
-
-	node = getVirtualNode(materialNode);
-	if (!node) {
-		node = createVirtualNode(materialNode, type);
-	}
 	return node;
 }
 
@@ -349,25 +324,17 @@ void FRPRXMaterialLibrary::setNodeUInt(RPR::FMaterialNode materialNode, unsigned
 
 }
 
-void FRPRXMaterialLibrary::setNodeConnection(RPR::RPRXVirtualNode* vNode, const unsigned int parameter, RPR::RPRXVirtualNode* otherNode)
+void FRPRXMaterialLibrary::setNodeConnection(RPR::VirtualNode* vNode, const unsigned int parameter, const RPR::VirtualNode* otherNode)
 {
 	if (!otherNode) {
-		setNodeConnection(vNode->realNode, parameter, GetDummyMaterial());
+		setNodeConnection(vNode->rprNode, parameter, GetDummyMaterial());
 		return;
 	}
 
-	switch (otherNode->type)
-	{
-	case RPR::RPRXVirtualNode::VNType::COLOR:
-		setNodeFloat(vNode->realNode, parameter, otherNode->data.RGBA[0], otherNode->data.RGBA[1], otherNode->data.RGBA[2], otherNode->data.RGBA[3]);
-		break;
-
-	case RPR::RPRXVirtualNode::VNType::ARITHMETIC_2_OPERANDS: /* true for ADD, SUB, MUL, DIV */
-	case RPR::RPRXVirtualNode::VNType::TEXTURE_CHANNEL:
-	case RPR::RPRXVirtualNode::VNType::IMAGE:
-	default:
-		setNodeConnection(vNode->realNode, parameter, otherNode->realNode);
-	}
+	if (otherNode->type == RPR::EVirtualNode::CONSTANT)
+		setNodeFloat(vNode->rprNode, parameter, otherNode->constant.R, otherNode->constant.G, otherNode->constant.B, otherNode->constant.A);
+	else
+		setNodeConnection(vNode->rprNode, parameter, otherNode->rprNode);
 }
 
 void FRPRXMaterialLibrary::setNodeConnection(RPR::FMaterialNode materialNode, const unsigned int parameter, RPR::FMaterialNode otherNode)

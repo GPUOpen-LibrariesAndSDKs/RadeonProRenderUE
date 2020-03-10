@@ -21,6 +21,7 @@
 #include "Helpers/RPRHelpers.h"
 #include "RPRSettings.h"
 #include "RPRCoreErrorHelper.h"
+#include "RadeonProRender_Baikal.h"
 #define RIF_STATIC_LIBRARY 0
 #include "RadeonImageFilters.h"
 
@@ -63,9 +64,6 @@ FRPRCoreSystemResources::FRPRCoreSystemResources()
 
 bool FRPRCoreSystemResources::Initialize()
 {
-	if (CurrentContextType == RPR::GetSettings()->CurrentRenderType)
-		return true;
-
 	CurrentContextType = RPR::GetSettings()->CurrentRenderType;
 
 	if (!bIsInitialized)

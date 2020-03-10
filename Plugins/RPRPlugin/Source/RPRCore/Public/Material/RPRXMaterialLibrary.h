@@ -52,26 +52,25 @@ public:
 	bool	TryGetMaterial(const URPRMaterial* MaterialKey, RPR::FRPRXMaterialPtr& OutRPRXMaterial) const;
 	void	ClearCache();
 
-	RPR::FMaterialNode GetDummyMaterial() const;
-	RPR::FRPRXMaterialPtr	GetMaterial(const URPRMaterial* MaterialKey);
+	RPR::FMaterialNode				GetDummyMaterial() const;
+	RPR::FRPRXMaterialPtr			GetMaterial(const URPRMaterial* MaterialKey);
 
-	virtual FCriticalSection& GetCriticalSection() override;
+	virtual FCriticalSection&		GetCriticalSection() override;
 
 	RPR::FRPRXMaterialNodePtr       createMaterial(FString name, unsigned int type = RPR_MATERIAL_NODE_UBERV2);
 	bool                            hasMaterial(FString materialName) const;
-	RPR::FRPRXMaterialNodePtr		getMaterial(FString materialName);
+	RPR::FRPRXMaterialNodePtr       getMaterial(FString materialName);
 
 	RPR::FMaterialNode              createNode(FString materialNode, RPR::EMaterialNodeType type = RPR::EMaterialNodeType::Diffuse);
-	RPR::RPRXVirtualNode*           createVirtualNode(FString materialNode, RPR::RPRXVirtualNode::VNType nodeType);
+	RPR::VirtualNode*               createVirtualNode(FString materialNode, RPR::EVirtualNode nodeType);
 	bool                            hasNode(FString materialNode) const;
 	RPR::FMaterialNode              getNode(FString materialNode);
-	RPR::RPRXVirtualNode*           getVirtualNode(FString materialNode);
+	RPR::VirtualNode*               getVirtualNode(FString materialNode);
 	RPR::FMaterialNode              getOrCreateIfNotExists(FString materialNode, RPR::EMaterialNodeType type = RPR::EMaterialNodeType::Diffuse);
-	RPR::RPRXVirtualNode*           getOrCreateVirtualIfNotExists(FString materialNode, RPR::EMaterialNodeType type);
-	RPR::RPRXVirtualNode*           getOrCreateVirtualIfNotExists(FString materialNode, RPR::RPRXVirtualNode::VNType type);
+	RPR::VirtualNode*               getOrCreateVirtualIfNotExists(FString materialNode, RPR::EMaterialNodeType rprNodeType = RPR::EMaterialNodeType::None, RPR::EVirtualNode type = RPR::EVirtualNode::OTHER);
 	void                            setNodeFloat(RPR::FMaterialNode materialNode, const unsigned int parameter, float r, float g, float b, float a);
 	void                            setNodeUInt(RPR::FMaterialNode materialNode, const unsigned int parameter, unsigned int value);
-	void                            setNodeConnection(RPR::RPRXVirtualNode* materialNode, const unsigned int parameter, RPR::RPRXVirtualNode* otherNode);
+	void                            setNodeConnection(RPR::VirtualNode* materialNode, const unsigned int parameter, const RPR::VirtualNode* otherNode);
 	void                            setNodeConnection(RPR::FMaterialNode MaterialNode, const unsigned int ParameterName, RPR::FMaterialNode InMaterialNode);
 	void                            ReleaseCache();
 
@@ -79,12 +78,12 @@ public:
 	RPR::FMaterialNode              createImageNodeFromImageData(const FString& nodeId, RPR::FImagePtr imagePtr);
 
 private:
-	const RPR::FRPRXMaterialPtr	FindMaterialCache(const URPRMaterial* MaterialKey) const;
-	RPR::FRPRXMaterialPtr		FindMaterialCache(const URPRMaterial* MaterialKey);
+	const RPR::FRPRXMaterialPtr	    FindMaterialCache(const URPRMaterial* MaterialKey) const;
+	RPR::FRPRXMaterialPtr           FindMaterialCache(const URPRMaterial* MaterialKey);
 
 	void	InitializeDummyMaterial();
 	void	DestroyDummyMaterial();
-	void    DestroyMaterialGraph();
+	void	DestroyMaterialGraph();
 
 	RPR::FRPRXMaterialPtr	CacheMaterial(URPRMaterial* InMaterial);
 	RPR::FMaterialContext	CreateMaterialContext() const;
@@ -96,14 +95,14 @@ private:
 	// 1. Unassign root materials from Meshes
 	// 2. Unlink all mat. nodes from each other
 	// 3. Destroy nodes
-	TMap<FString, RPR::FRPRXMaterialNodePtr> m_materials;
-	TMap<FString, RPR::FMaterialNode>        m_materialNodes;
-	TMap<FString, TUniquePtr<RPR::RPRXVirtualNode>> m_virtualNodes;
+	TMap<FString, RPR::FRPRXMaterialNodePtr>    m_materials;
+	TMap<FString, RPR::FMaterialNode>           m_materialNodes;
+	TMap<FString, TUniquePtr<RPR::VirtualNode>> m_virtualNodes;
 
-	bool bIsInitialized;
-	FCriticalSection CriticalSection;
-	RPR::FMaterialNode DummyMaterial;
-	RPR::FMaterialNode TestMaterial;
+	bool				bIsInitialized;
+	FCriticalSection	CriticalSection;
+	RPR::FMaterialNode	DummyMaterial;
+	RPR::FMaterialNode	TestMaterial;
 };
 
 using FRPRXMaterialLibrarySL = FObjectScopedLocked<FRPRXMaterialLibrary>;

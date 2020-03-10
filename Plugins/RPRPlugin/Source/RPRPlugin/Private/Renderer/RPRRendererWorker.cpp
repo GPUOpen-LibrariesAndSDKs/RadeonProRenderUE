@@ -909,18 +909,19 @@ uint32	FRPRRendererWorker::Run()
 			}
 			{
 				SCOPE_CYCLE_COUNTER(STAT_ProRender_Resolve);
-				if (RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprFrameBuffer, m_RprResolvedFrameBuffer)                 != RPR_SUCCESS ||
-					RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprShadingNormalBuffer, m_RprShadingNormalResolvedBuffer) != RPR_SUCCESS ||
-					RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprAovDepthBuffer, m_RprAovDepthResolvedBuffer)           != RPR_SUCCESS ||
-					RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprDiffuseAlbedoBuffer, m_RprDiffuseAlbedoResolvedBuffer) != RPR_SUCCESS ||
-					RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprWorldCoordinatesBuffer, m_RprWorldCoordinatesResolvedBuffer) != RPR_SUCCESS ||
-					RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprAovDepthBuffer, m_RprAovDepthResolvedBuffer)           != RPR_SUCCESS ||
-					RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprDiffuseAlbedoBuffer, m_RprDiffuseAlbedoResolvedBuffer) != RPR_SUCCESS)
-				{
-					RPR::Error::LogLastError(m_RprContext);
-					m_RenderLock.Unlock();
-					UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't resolve framebuffer at iteration %d, stopping.."), m_CurrentIteration);
-				}
+				if (!settings->IsHybrid)
+					if (RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprFrameBuffer, m_RprResolvedFrameBuffer)                       != RPR_SUCCESS ||
+						RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprShadingNormalBuffer, m_RprShadingNormalResolvedBuffer)       != RPR_SUCCESS ||
+						RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprAovDepthBuffer, m_RprAovDepthResolvedBuffer)                 != RPR_SUCCESS ||
+						RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprDiffuseAlbedoBuffer, m_RprDiffuseAlbedoResolvedBuffer)       != RPR_SUCCESS ||
+						RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprWorldCoordinatesBuffer, m_RprWorldCoordinatesResolvedBuffer) != RPR_SUCCESS ||
+						RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprAovDepthBuffer, m_RprAovDepthResolvedBuffer)                 != RPR_SUCCESS ||
+						RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprDiffuseAlbedoBuffer, m_RprDiffuseAlbedoResolvedBuffer)       != RPR_SUCCESS)
+					{
+						RPR::Error::LogLastError(m_RprContext);
+						m_RenderLock.Unlock();
+						UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't resolve framebuffer at iteration %d, stopping.."), m_CurrentIteration);
+					}
 			}
 			m_RenderLock.Unlock();
 

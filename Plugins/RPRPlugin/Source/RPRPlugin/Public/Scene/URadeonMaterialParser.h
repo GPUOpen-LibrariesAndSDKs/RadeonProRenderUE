@@ -8,7 +8,7 @@
 
 namespace RPR
 {
-	class RPRCORE_API RPRXVirtualNode;
+	class RPRCORE_API VirtualNode;
 }
 
 struct	FRPRShape;
@@ -19,18 +19,18 @@ public:
 	void Process(FRPRShape& shape, UMaterial* material);
 
 private:
-	RPR::RPRXVirtualNode* ConvertExpressionToVirtualNode(UMaterialExpression* expr, const int32 inputParameter);
-	RPR::RPRXVirtualNode* GetValueNode(const FString& id, const float value);
-	RPR::RPRXVirtualNode* GetOneMinusNode(const FString& id, RPR::RPRXVirtualNode* node);
-	RPR::RPRXVirtualNode* GetRgbaNode(const FString& id, const float r, const float g = 0, const float b = 0, const float a = 0);
-	RPR::RPRXVirtualNode* SelectRgbaChannel(const FString& resultVirtualNodeId, const int32 outputIndex, const RPR::RPRXVirtualNode* rgbaSourceNode);
-	RPR::RPRXVirtualNode* ProcessVirtualColorNode(const FString& nodeId, const FLinearColor& color);
-	RPR::RPRXVirtualNode* GetSeparatedChannel(const FString& maskResultId, int channelIndex, int maskIndex, RPR::RPRXVirtualNode* rgbaSource);
-	RPR::RPRXVirtualNode* AddTwoNodes(const FString& id, RPR::RPRXVirtualNode* a, RPR::RPRXVirtualNode* b);
+	RPR::VirtualNode* ConvertExpressionToVirtualNode(UMaterialExpression* expr, const int32 inputParameter);
+	RPR::VirtualNode* GetValueNode(const FString& id, const float value);
+	RPR::VirtualNode* GetConstantNode(const FString& id, const float r, const float g = 0, const float b = 0, const float a = 0);
+	RPR::VirtualNode* GetOneMinusNode(const FString& id, const RPR::VirtualNode* node);
+	RPR::VirtualNode* SelectRgbaChannel(const FString& resultVirtualNodeId, const int32 outputIndex, const RPR::VirtualNode* rgbaSourceNode);
+	RPR::VirtualNode* GetConstantNode(const FString& nodeId, const FLinearColor& color);
+	RPR::VirtualNode* GetSeparatedChannelNode(const FString& maskResultId, int channelIndex, int maskIndex, RPR::VirtualNode* rgbaSource);
+	RPR::VirtualNode* AddTwoNodes(const FString& id, RPR::VirtualNode* a, RPR::VirtualNode* b);
 
-	void GetMinAndMaxNodesForClamp(UMaterialExpressionClamp* expression, RPR::RPRXVirtualNode** minNode, RPR::RPRXVirtualNode** maxNode);
-	void TwoOperandsMathNodeSetInputs(RPR::RPRXVirtualNode* vNode, const TArray<FExpressionInput*> inputs, const float ConstA, const float ConstB);
-	RPR::RPRXVirtualNode* ParseInputNodeOrCreateDefaultAlternative(FExpressionInput input, FString defaultId, float defaultValue);
+	void GetMinAndMaxNodesForClamp(UMaterialExpressionClamp* expression, RPR::VirtualNode** minNode, RPR::VirtualNode** maxNode);
+	void TwoOperandsMathNodeSetInputs(RPR::VirtualNode* vNode, const TArray<FExpressionInput*> inputs, const float ConstA, const float ConstB);
+	RPR::VirtualNode* ParseInputNodeOrCreateDefaultAlternative(FExpressionInput input, FString defaultId, float defaultValue);
 
 	FString idPrefix;
 };

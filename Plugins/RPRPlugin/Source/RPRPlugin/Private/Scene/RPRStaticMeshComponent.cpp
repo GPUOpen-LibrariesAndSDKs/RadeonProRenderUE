@@ -255,10 +255,11 @@ bool	URPRStaticMeshComponent::Build()
 	const FPositionVertexBuffer		&srcPositions = FRPRCpStaticMesh::GetPositionVertexBufferConst(lodRes);
 	const uint32					uvCount = srcVertices.GetNumTexCoords();
 
+	auto settings = RPR::GetSettings();
 	const uint32	sectionCount = lodRes.Sections.Num();
 	for (uint32 iSection = 0; iSection < sectionCount; ++iSection)
 	{
-		const FStaticMeshSection	&section = lodRes.Sections[iSection];
+		const FStaticMeshSection& section = lodRes.Sections[iSection];
 		const uint32				srcIndexStart = section.FirstIndex;
 		const uint32				indexCount = section.NumTriangles * 3;
 
@@ -323,8 +324,11 @@ bool	URPRStaticMeshComponent::Build()
 		Cache[staticMesh].Add(newShape);
 
 		// New shape in the cache ? Add it in the scene + make it invisible
-		status = rprShapeSetVisibility(baseShape, false);
-		CHECK_ERROR(status, TEXT("Can't set shape visibility to false"));
+		if (!settings->IsHybrid)
+		{
+			status = rprShapeSetVisibility(baseShape, false);
+			CHECK_ERROR(status, TEXT("Can't set shape visibility to false"));
+		}
 
 		status = RPR::Scene::AttachShape(Scene->m_RprScene, baseShape);
 		CHECK_ERROR(status, TEXT("Couldn't attach Cached RPR shape to the RPR scene"));
@@ -355,18 +359,19 @@ bool	URPRStaticMeshComponent::Build()
 		rpr_shape	shape = m_Shapes[iShape].m_RprShape;
 		status = SetInstanceTransforms(instancedMeshComponent, &componentMatrix, shape, m_Shapes[iShape].m_InstanceIndex);
 		CHECK_ERROR(status, TEXT("Can't set shape transform"));
-
-		if (!primaryOnly)
+		if (!settings->IsHybrid)
 		{
-			status = rprShapeSetVisibility(shape, staticMeshComponent->IsVisible());
-			CHECK_ERROR(status, TEXT("Can't set shape visibility"));
+			if (!primaryOnly)
+			{
+				status = rprShapeSetVisibility(shape, staticMeshComponent->IsVisible());
+				CHECK_ERROR(status, TEXT("Can't set shape visibility"));
+			}
+			else
+			{
+				status = rprShapeSetVisibility(shape, true);
+				CHECK_ERROR(status, TEXT("Can't set shape visibility"));
+			}
 		}
-		else
-		{
-			status = rprShapeSetVisibility(shape, true);
-			CHECK_ERROR(status, TEXT("Can't set shape visibility"));
-		}
-
 		//rprShapeSetShadow(shape, staticMeshComponent->bCastStaticShadow) != RPR_SUCCESS ||
 		status = RPR::Scene::AttachShape(Scene->m_RprScene, shape);
 		CHECK_ERROR(status, TEXT("Couldn't attach RPR shape to the RPR scene"));

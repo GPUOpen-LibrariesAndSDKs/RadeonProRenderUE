@@ -203,7 +203,7 @@ namespace RPRX
 		RPR::FMaterialNode uvScaledNode;
 		status = RPR::FMaterialHelpers::FArithmeticNode::CreateArithmeticNode(
 			materialContext.MaterialSystem,
-			RPR::EMaterialNodeArithmeticOperation::Multiply,
+			RPR::EMaterialNodeArithmeticOperation::Mul,
 			TEXT("Arithmetic for UV scale - Multiply"),
 			uvScaledNode);
 		check(status == 0);
