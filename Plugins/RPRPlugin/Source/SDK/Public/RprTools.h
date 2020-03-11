@@ -1,3 +1,18 @@
+/*************************************************************************
+* Copyright 2020 Advanced Micro Devices
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*  http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*************************************************************************/
 
 #ifndef __RADEONPRORENDERTOOLS_H
 #define __RADEONPRORENDERTOOLS_H
@@ -10,7 +25,7 @@ enum RPR_TOOLS_OS
 };
 
 //if in a project we don't want to include RadeonProRender.h, and we only need to use  IsDeviceNameWhitelisted()
-//then we define RADEONPRORENDERTOOLS_DONTUSERPR 
+//then we define RADEONPRORENDERTOOLS_DONTUSERPR
 #ifndef RADEONPRORENDERTOOLS_DONTUSERPR
 
 #include "RPR_SDKModule.h"
@@ -43,16 +58,16 @@ enum RPR_TOOLS_DEVICE
 enum RPR_TOOLS_COMPATIBILITY
 {
 	// device is compatible
-	RPRTC_COMPATIBLE = 0,     
+	RPRTC_COMPATIBLE = 0,
 
 	// device is incompatible for unknown reason (mostly because error occurs while testing compatibility)
-	RPRTC_INCOMPATIBLE_UNKNOWN,      
+	RPRTC_INCOMPATIBLE_UNKNOWN,
 
 	// device is incompatible because not tested by Radeon ProRender team.
-	RPRTC_INCOMPATIBLE_UNCERTIFIED,      
+	RPRTC_INCOMPATIBLE_UNCERTIFIED,
 
-	// device is incompatible because a Radeon ProRender creation is reporting a UNSUPPORTED error. It could be because device is not OpenCL 1.2 compatible. 
-	RPRTC_INCOMPATIBLE_CONTEXT_UNSUPPORTED, 
+	// device is incompatible because a Radeon ProRender creation is reporting a UNSUPPORTED error. It could be because device is not OpenCL 1.2 compatible.
+	RPRTC_INCOMPATIBLE_CONTEXT_UNSUPPORTED,
 
 	// device is incompatible because a Radeon ProRender creation is reporting an error.
 	RPRTC_INCOMPATIBLE_CONTEXT_ERROR,

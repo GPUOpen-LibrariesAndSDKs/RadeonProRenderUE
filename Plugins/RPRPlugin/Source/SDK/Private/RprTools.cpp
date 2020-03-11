@@ -1,3 +1,18 @@
+/*************************************************************************
+* Copyright 2020 Advanced Micro Devices
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*  http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*************************************************************************/
 
 #include "RprTools.h"
 #include <vector>
@@ -27,7 +42,7 @@ bool strcmp_caseInsensitive(const char* strA, const char* strB )
 			return false;
 		}
 
-		if ( chara == '\0' ) 
+		if ( chara == '\0' )
 		{
 			break;
 		}
@@ -41,8 +56,8 @@ bool strcmp_caseInsensitive(const char* strA, const char* strB )
 bool strstr_caseInsensitive(const char* strA, const char* strB )
 {
 	std::string strA_lowercase;
-	for(int i=0; ;i++) 
-	{  
+	for(int i=0; ;i++)
+	{
 		char newchar = strA[i];
 		if ( newchar == '\0' ) { break; }
 		if ( newchar >= 'A' && newchar <= 'Z' )
@@ -53,8 +68,8 @@ bool strstr_caseInsensitive(const char* strA, const char* strB )
 	}
 
 	std::string strB_lowercase;
-	for(int i=0; ;i++) 
-	{  
+	for(int i=0; ;i++)
+	{
 		char newchar = strB[i];
 		if ( newchar == '\0' ) { break; }
 		if ( newchar >= 'A' && newchar <= 'Z' )
@@ -65,7 +80,7 @@ bool strstr_caseInsensitive(const char* strA, const char* strB )
 	}
 
 
-	if (strA_lowercase.find(strB_lowercase) != std::string::npos) 
+	if (strA_lowercase.find(strB_lowercase) != std::string::npos)
 	{
 		return true;
 	}
@@ -133,17 +148,17 @@ bool IsDeviceNameWhitelisted(const char* deviceName, RPR_TOOLS_OS os)
 	//
 	// list of partial names :
 	//
-	listOfKnownCompatibleDevices_partial.push_back("Radeon Pro WX"); 
-	listOfKnownCompatibleDevices_partial.push_back("Radeon (TM) Pro WX"); 
-	listOfKnownCompatibleDevices_partial.push_back("Radeon R9"); 
-	listOfKnownCompatibleDevices_partial.push_back("Radeon (TM) R9"); 
-	listOfKnownCompatibleDevices_partial.push_back("Radeon RX"); 
-	listOfKnownCompatibleDevices_partial.push_back("Radeon (TM) RX"); 
-	listOfKnownCompatibleDevices_partial.push_back("Radeon Vega Frontier Edition"); 
-	listOfKnownCompatibleDevices_partial.push_back("Vega 56"); 
-	listOfKnownCompatibleDevices_partial.push_back("Vega 64"); 
-	listOfKnownCompatibleDevices_partial.push_back("Vega 65"); 
-	listOfKnownCompatibleDevices_partial.push_back("Radeon Frontier"); 
+	listOfKnownCompatibleDevices_partial.push_back("Radeon Pro WX");
+	listOfKnownCompatibleDevices_partial.push_back("Radeon (TM) Pro WX");
+	listOfKnownCompatibleDevices_partial.push_back("Radeon R9");
+	listOfKnownCompatibleDevices_partial.push_back("Radeon (TM) R9");
+	listOfKnownCompatibleDevices_partial.push_back("Radeon RX");
+	listOfKnownCompatibleDevices_partial.push_back("Radeon (TM) RX");
+	listOfKnownCompatibleDevices_partial.push_back("Radeon Vega Frontier Edition");
+	listOfKnownCompatibleDevices_partial.push_back("Vega 56");
+	listOfKnownCompatibleDevices_partial.push_back("Vega 64");
+	listOfKnownCompatibleDevices_partial.push_back("Vega 65");
+	listOfKnownCompatibleDevices_partial.push_back("Radeon Frontier");
 	listOfKnownCompatibleDevices_partial.push_back("Radeon(TM) Pro Duo");
 	listOfKnownCompatibleDevices_partial.push_back("Radeon Pro SSG");
 	listOfKnownCompatibleDevices_partial.push_back("Radeon Pro 450");
@@ -160,13 +175,13 @@ bool IsDeviceNameWhitelisted(const char* deviceName, RPR_TOOLS_OS os)
 
 
 	// partial names - WxxxM
-	listOfKnownCompatibleDevices_partial.push_back("W4170M"); 
-	listOfKnownCompatibleDevices_partial.push_back("W4190M"); 
-	listOfKnownCompatibleDevices_partial.push_back("W5130M"); 
-	listOfKnownCompatibleDevices_partial.push_back("W5170M"); 
-	listOfKnownCompatibleDevices_partial.push_back("W6150M"); 
-	listOfKnownCompatibleDevices_partial.push_back("W6170M"); 
-	listOfKnownCompatibleDevices_partial.push_back("W7170M"); 
+	listOfKnownCompatibleDevices_partial.push_back("W4170M");
+	listOfKnownCompatibleDevices_partial.push_back("W4190M");
+	listOfKnownCompatibleDevices_partial.push_back("W5130M");
+	listOfKnownCompatibleDevices_partial.push_back("W5170M");
+	listOfKnownCompatibleDevices_partial.push_back("W6150M");
+	listOfKnownCompatibleDevices_partial.push_back("W6170M");
+	listOfKnownCompatibleDevices_partial.push_back("W7170M");
 
 
 
@@ -206,7 +221,7 @@ RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(rpr_int tahoePluginID , RPR_TOOLS_
 
     rpr_context temporaryContext = 0;
 
-	try 
+	try
 	{
 
 		//step 1:
@@ -214,7 +229,7 @@ RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(rpr_int tahoePluginID , RPR_TOOLS_
 		//the frCreateContext we check that the GPU is OpenCL compatible, and exist.
         rpr_creation_flags flags = 0;
         rpr_context_info contextInfo = 0;
-	
+
 		{
 			if ( tahoePluginID == -1 ) { throw  RPRTC_INCOMPATIBLE_UNKNOWN; }
             rpr_int plugins[] = { tahoePluginID};
@@ -240,15 +255,15 @@ RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(rpr_int tahoePluginID , RPR_TOOLS_
 			else if ( device == RPRTD_CPU )  { flags = RPR_CREATION_FLAGS_ENABLE_CPU;  contextInfo = RPR_CONTEXT_CPU_NAME;}
 			else { throw  RPRTC_INCOMPATIBLE_UNKNOWN; }
 			flags |= additionalflags;
-			
+
 			try
-			{ 
+			{
 				status = rprCreateContext(RPR_API_VERSION, plugins, pluginCount, flags, NULL, cache_path, &temporaryContext);
 			}
 			catch (...)
-			{ 
-				return RPRTC_INCOMPATIBLE_CONTEXT_ERROR; 
-			} 
+			{
+				return RPRTC_INCOMPATIBLE_CONTEXT_ERROR;
+			}
 
 			if ( status != RPR_SUCCESS )
 			{
@@ -262,8 +277,8 @@ RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(rpr_int tahoePluginID , RPR_TOOLS_
 				}
 			}
 		}
-	
-	
+
+
 		//step 2:
 		size_t size = 0;
 		status = rprContextGetInfo(temporaryContext,contextInfo,0,0,&size);
@@ -276,7 +291,7 @@ RPR_TOOLS_COMPATIBILITY rprIsDeviceCompatible(rpr_int tahoePluginID , RPR_TOOLS_
 		//we check that the device is in the list compatible devices.
 		if ( doWhiteListTest )
 		{
-	
+
 			if ( !IsDeviceNameWhitelisted(deviceName.c_str(),os) )
 			{
 				throw RPRTC_INCOMPATIBLE_UNCERTIFIED;
