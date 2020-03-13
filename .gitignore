@@ -57,13 +57,9 @@ Plugins/RPRPlugin/Binaries/*
 Intermediate/*
 Plugins/RPRPlugin/Intermediate/*
 
-
 # Don't need duplicate sources or binaries from the packaged plugin
 bin/*
 Binaries/*
-
-# Don't ignore Inno Setup
-!Installer/Inno Setup 5/*
 
 Saved/
 /BuildPluginTools/PluginStaging/
