@@ -802,3 +802,5 @@ RPR::VirtualNode* URadeonMaterialParser::ParseInputNodeOrCreateDefaultAlternativ
 	return nullptr;
 #endif
 }
+
+#undef LOG_ERROR

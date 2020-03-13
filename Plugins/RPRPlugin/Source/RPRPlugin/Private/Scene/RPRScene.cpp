@@ -137,7 +137,26 @@ void	ARPRScene::SetQualitySettings(ERPRQualitySettings qualitySettings)
 {
 	if (!m_RendererWorker.IsValid())
 		return;
-	m_RendererWorker->SetQualitySettings(qualitySettings);
+
+	if (RPR::GetSettings()->IsHybrid)
+		m_RendererWorker->SetQualitySettings(qualitySettings);
+
+	if (RPRCoreResources->CurrentContextType == RPR::GetSettings()->CurrentRenderType)
+		return;
+
+	m_RendererWorker->EnsureCompletion();
+	m_RendererWorker = nullptr;
+	m_RenderTexture = nullptr;
+	RemoveSceneContent(true, true);
+
+	if (m_RprScene != nullptr)
+	{
+		RPR::DeleteObject(m_RprScene);
+		m_RprScene = nullptr;
+	}
+
+	m_Plugin->m_ObjectsToBuild = 0;
+	OnRender(m_Plugin->m_ObjectsToBuild);
 }
 
 void	ARPRScene::ApplyDenoiser()
@@ -372,6 +391,20 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 
 	URPRSettings* settings = RPR::GetSettings();
 
+	switch (settings->QualitySettings)
+	{
+	case ERPRQualitySettings::Low:
+	case ERPRQualitySettings::Medium:
+	case ERPRQualitySettings::High:
+		settings->CurrentRenderType = ERenderType::Hybrid;
+		settings->IsHybrid = true;
+		break;
+	case ERPRQualitySettings::Full:
+		RPR::GetSettings()->CurrentRenderType = ERenderType::Tahoe;
+		settings->IsHybrid = false;
+		break;
+	}
+
 	IRPRCore::GetResources()->Initialize();
 
 	if (m_RenderTexture == nullptr)
@@ -408,12 +441,15 @@ void	ARPRScene::OnRender(uint32 &outObjectToBuildCount)
 			new FRPRRendererWorker(
 				RPRCoreResources->GetRPRContext(),
 				m_RprScene,
-				m_RenderTexture->SizeX, m_RenderTexture->SizeY,
+				m_RenderTexture->SizeX,
+				m_RenderTexture->SizeY,
 				RPRCoreResources->GetNumDevicesCompatible(),
 				this
-			));
+			)
+		);
 
-		m_RendererWorker->SetQualitySettings(settings->QualitySettings);
+		if (RPR::GetSettings()->IsHybrid)
+			m_RendererWorker->SetQualitySettings(settings->QualitySettings);
 		m_RendererWorker->SetAOV(m_Plugin->GetAOV());
 	}
 	m_RendererWorker->SetPaused(false);

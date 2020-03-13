@@ -44,7 +44,7 @@ public:
 	FString	LastSavedFilename;
 
 public:
-	RPR::FScene		m_RprScene;
+	RPR::FScene					m_RprScene;
 
 	class URPRSceneComponent	*m_ActiveCamera;
 

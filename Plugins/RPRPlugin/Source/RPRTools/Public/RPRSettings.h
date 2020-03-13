@@ -24,10 +24,10 @@
 UENUM()
 enum	ERPRQualitySettings
 {
-	Interactive,
 	Low,
 	Medium,
-	High
+	High,
+	Full
 };
 
 UENUM()
@@ -54,11 +54,11 @@ class RPRTOOLS_API URPRSettings : public UObject
 public:
 
 	/** Defines ProRender path for saving cached rendering data. */
-	UPROPERTY(Config, EditAnywhere, Category = General, meta = (ConfigRestartRequired = true))
+	UPROPERTY(Config)
 	FString		RenderCachePath;
 
 	/** Defines ProRender path for dumping RPR trace files. */
-	UPROPERTY(Config, EditAnywhere, Category = General, meta = (ConfigRestartRequired = true))
+	UPROPERTY(Config)
 	FString		TraceFolder;
 
 	/** Defines ProRender maximum number of iteration. */
@@ -102,7 +102,7 @@ public:
 	uint32		bEnableCPU : 1;
 
 	UPROPERTY(Config)
-	TEnumAsByte<ERPRQualitySettings>	QualitySettings;
+	TEnumAsByte<ERPRQualitySettings>		QualitySettings;
 
 	UPROPERTY(Config)
 	TEnumAsByte<ERPRDenoiserOption>		DenoiserOption;

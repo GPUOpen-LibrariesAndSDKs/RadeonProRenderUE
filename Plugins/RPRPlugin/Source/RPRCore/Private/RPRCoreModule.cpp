@@ -27,7 +27,6 @@ void IRPRCore::StartupModule()
 	if (FRPR_SDKModule::IsSDKLoadValid())
 	{
 		Resources = MakeShareable(new FRPRCoreSystemResources);
-		Resources->Initialize();
 	}
 }
 
