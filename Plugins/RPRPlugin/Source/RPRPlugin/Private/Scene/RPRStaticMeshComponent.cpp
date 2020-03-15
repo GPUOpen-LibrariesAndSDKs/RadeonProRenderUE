@@ -81,7 +81,7 @@ URPRStaticMeshComponent::URPRStaticMeshComponent()
 		FDelegateHandleManagerUnsubscriber::CreateLambda([] (void* key, FDelegateHandle dlgHandle)
 	{
 		URPRMaterial* material = (URPRMaterial*)key;
-		return material->OnRPRMaterialChanged().Remove(dlgHandle);
+		material->OnRPRMaterialChanged().Remove(dlgHandle);
 	})
 	);
 

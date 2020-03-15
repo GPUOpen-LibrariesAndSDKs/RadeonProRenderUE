@@ -172,7 +172,7 @@ namespace RPR
 		// Avoid building several times the same image, and runtime data is compressed or not accessible
 		Texture->ConditionalPostLoad();
 
-		TArray<uint8>	srcData;
+		TArray64<uint8>	srcData;
 		FIntPoint		srcSize;
 		EPixelFormat	srcFormat;
 		if (!CubemapHelpers::GenerateLongLatUnwrap(Cast<UTextureCube>(Texture), srcData, srcSize, srcFormat))

@@ -45,7 +45,8 @@ public class RPR_SDK : ModuleRules
     {
         "libRadeonProRender64.so",
         "libRprLoadStore64.so",
-        "Hybrid.so",
+        "libProRenderGLTF.so",
+        //"Hybrid.so", <- non explicity dependency. Hybrid is loaded dynamically, no sense to link with it
     };
 
     public string ThirdPartyDirectory

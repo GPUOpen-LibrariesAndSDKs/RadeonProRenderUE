@@ -335,8 +335,15 @@ void	URPRCameraComponent::RefreshProperties(bool force)
 		RPR_PROPERTY_CHECK(cineCam->CurrentFocalLength, m_CachedFocalLength, PROPERTY_REBUILD_FOCAL_LENGTH);
 		RPR_PROPERTY_CHECK(cineCam->CurrentFocusDistance, m_CachedFocusDistance, PROPERTY_REBUILD_FOCUS_DISTANCE);
 		RPR_PROPERTY_CHECK(cineCam->CurrentAperture, m_CachedAperture, PROPERTY_REBUILD_APERTURE);
+
+#if  ENGINE_MINOR_VERSION >= 24
+		RPR_PROPERTY_CHECK(cineCam->Filmback.SensorWidth, m_CachedSensorSize.X, PROPERTY_REBUILD_SENSOR_SIZE);
+		RPR_PROPERTY_CHECK(cineCam->Filmback.SensorHeight, m_CachedSensorSize.Y, PROPERTY_REBUILD_SENSOR_SIZE);
+#else
 		RPR_PROPERTY_CHECK(cineCam->FilmbackSettings.SensorWidth, m_CachedSensorSize.X, PROPERTY_REBUILD_SENSOR_SIZE);
 		RPR_PROPERTY_CHECK(cineCam->FilmbackSettings.SensorHeight, m_CachedSensorSize.Y, PROPERTY_REBUILD_SENSOR_SIZE);
+#endif
+
 	}
 
 	m_RefreshLock.Unlock();
