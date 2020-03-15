@@ -33,6 +33,8 @@
 
 #include "RPR_SDKModule.h"
 
+#include "RadeonProRender_Baikal.h"
+
 DEFINE_STAT(STAT_ProRender_PreRender);
 DEFINE_STAT(STAT_ProRender_RebuildScene);
 DEFINE_STAT(STAT_ProRender_Render);
@@ -246,39 +248,34 @@ void	FRPRRendererWorker::SetQualitySettings(ERPRQualitySettings qualitySettings)
 	if (m_RprContext == nullptr)
 		return;
 
-	uint32	numRayBounces = 0;
+	rpr_uint hybridRenderQuality = 0;
 	switch (qualitySettings)
 	{
-	case	ERPRQualitySettings::Interactive:
-	{
-		numRayBounces = 3;
-		break;
-	}
 	case	ERPRQualitySettings::Low:
 	{
-		numRayBounces = 8;
+		hybridRenderQuality = RPR_RENDER_QUALITY_LOW;
 		break;
 	}
 	case	ERPRQualitySettings::Medium:
 	{
-		numRayBounces = 15;
+		hybridRenderQuality = RPR_RENDER_QUALITY_MEDIUM;
 		break;
 	}
 	case	ERPRQualitySettings::High:
 	{
-		numRayBounces = 25;
+		hybridRenderQuality = RPR_RENDER_QUALITY_HIGH;
 		break;
 	}
 	}
 	m_RenderLock.Lock();
-	if (rprContextSetParameterByKey1u(m_RprContext, RPR_CONTEXT_MAX_RECURSION, numRayBounces) != RPR_SUCCESS)
+	if (rprContextSetParameterByKey1u(m_RprContext, RPR_CONTEXT_RENDER_QUALITY, hybridRenderQuality) != RPR_SUCCESS)
 	{
-		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't set quality settings"));
+		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't set quality settings for Hybrid context"));
 	}
 	else
 	{
 		RestartRender();
-		UE_LOG(LogRPRRenderer, Log, TEXT("Quality settings successfully modified: %d Ray bounces"), numRayBounces);
+		UE_LOG(LogRPRRenderer, Log, TEXT("Quality settings of Hybrid render successfully modified"));
 	}
 	m_RenderLock.Unlock();
 }
@@ -1086,3 +1083,5 @@ void	FRPRRendererWorker::ReleaseResources()
 
 	m_PreRenderLock.Unlock();
 }
+
+#undef CHECK_ERROR

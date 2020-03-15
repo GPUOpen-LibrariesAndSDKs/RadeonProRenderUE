@@ -230,7 +230,7 @@ namespace RPR
 		PointLight_RadiantPower = RPR_POINT_LIGHT_RADIANT_POWER,
 
 		DirectionalLight_RadiantPower = RPR_DIRECTIONAL_LIGHT_RADIANT_POWER,
-		DirectionalLight_ShadowSoftness = RPR_DIRECTIONAL_LIGHT_SHADOW_SOFTNESS,
+		DirectionalLight_ShadowSoftness = RPR_DIRECTIONAL_LIGHT_SHADOW_SOFTNESS_ANGLE,
 
 		SpotLight_RadiantPower = RPR_SPOT_LIGHT_RADIANT_POWER,
 		SpotLight_ConeShape = RPR_SPOT_LIGHT_CONE_SHAPE,

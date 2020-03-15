@@ -33,7 +33,7 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 	, bEnableGPU7(true)
 	, bEnableGPU8(true)
 	, bEnableCPU(false) // By default, no GPUs available, abort
-	, QualitySettings(ERPRQualitySettings::Medium)
+	, QualitySettings(ERPRQualitySettings::Full)
 	, DenoiserOption(ERPRDenoiserOption::ML)
 	, MegaPixelCount(2.0f)
 	, bSync(true)
@@ -59,7 +59,7 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 	, UseDenoiser(false)
 	, bUseErrorTexture(true)
 	, IsHybrid(false)
-	, CurrentRenderType(ERenderType::Tahoe)
+	, CurrentRenderType(ERenderType::None)
 {
 	DefaultRootDirectoryForImportLevels.Path = TEXT("/Game/Maps");
 	DefaultRootDirectoryForImportedMeshes.Path = TEXT("/Game/Meshes");

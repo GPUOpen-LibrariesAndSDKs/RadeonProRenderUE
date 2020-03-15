@@ -1041,3 +1041,6 @@ int RifFilterMlColorOnly::AttachFilter(const RifContextWrapper* rifContext)
 
 	return RIF_SUCCESS;
 }
+
+#undef CHECK_ERROR
+#undef LOG_ERROR

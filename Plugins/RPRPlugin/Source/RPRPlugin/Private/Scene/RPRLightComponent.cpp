@@ -228,7 +228,8 @@ bool	URPRLightComponent::BuildDirectionalLight(const UDirectionalLightComponent 
 	status = rprDirectionalLightSetRadiantPower3f(m_RprLight, lightColor.R, lightColor.G, lightColor.B);
 	CHECK_ERROR(status, TEXT("Can't create radian power for directional light"));
 
-	status = rprDirectionalLightSetShadowSoftness(m_RprLight, 1.0f - dirLightComponent->ShadowSharpen);
+	const float directionalAngle = (1.0f - dirLightComponent->ShadowSharpen) * PI;
+	status = rprDirectionalLightSetShadowSoftnessAngle(m_RprLight, directionalAngle);
 	CHECK_ERROR(status, TEXT("Can't create shadow softness"));
 
 	m_CachedIntensity = dirLightComponent->Intensity;
@@ -405,7 +406,7 @@ bool	URPRLightComponent::RPRThread_Update()
 			const FLinearColor	lightColor = FLinearColor(lightComponent->LightColor) * lightComponent->Intensity * RPR::Light::Constants::kDirLightIntensityMultiplier * affectsWorld;
 
 			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set dir light color", PROPERTY_REBUILD_LIGHT_COLOR, rprDirectionalLightSetRadiantPower3f, m_RprLight, lightColor.R, lightColor.G, lightColor.B);
-			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set dir light shadow softness", PROPERTY_REBUILD_DIR_LIGHT_SHADOW_SOFTNESS, rprDirectionalLightSetShadowSoftness, m_RprLight, 1.0f - m_CachedShadowSharpness);
+			RPR_PROPERTY_REBUILD(LogRPRLightComponent, "Couldn't set dir light shadow softness", PROPERTY_REBUILD_DIR_LIGHT_SHADOW_SOFTNESS, rprDirectionalLightSetShadowSoftnessAngle, m_RprLight, (1.0f - m_CachedShadowSharpness) * PI);
 			break;
 		}
 		case	ERPRLightType::Environment:

@@ -61,10 +61,12 @@ private:
 	void					LogCompatibleDevices(RPR::FCreationFlags CreationFlags) const;
 	int32					CountCompatibleDevices(RPR::FCreationFlags CreationFlags) const;
 
+public:
+	ERenderType				CurrentContextType;
+
 private:
 
 	bool					bIsInitialized;
-	ERenderType				CurrentContextType;
 
 	RPR::FPluginId			CurrentPluginId;
 	RPR::FPluginId			TahoePluginId;

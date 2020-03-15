@@ -62,7 +62,12 @@ FRPRCoreSystemResources::FRPRCoreSystemResources()
 
 bool FRPRCoreSystemResources::Initialize()
 {
-	CurrentContextType = RPR::GetSettings()->CurrentRenderType;
+	auto settings = RPR::GetSettings();
+
+	if (bIsInitialized && CurrentContextType == settings->CurrentRenderType)
+		return true;
+
+	CurrentContextType = settings->CurrentRenderType;
 
 	if (!bIsInitialized)
 	{

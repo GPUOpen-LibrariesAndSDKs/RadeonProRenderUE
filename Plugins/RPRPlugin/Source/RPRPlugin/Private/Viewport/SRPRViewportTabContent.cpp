@@ -283,12 +283,6 @@ const FSlateBrush	*SRPRViewportTabContent::GetRenderIcon() const
 	return FSlateIcon(FRPREditorStyle::GetStyleSetName(), "RPRViewport.Pause").GetIcon();
 }
 
-TSharedRef<SWidget>	SRPRViewportTabContent::OnGenerateRenderOptionWidget(TSharedPtr<FString> inItem) const
-{
-	return SNew(STextBlock)
-		.Text(FText::FromString(*inItem));
-}
-
 TSharedRef<SWidget>	SRPRViewportTabContent::OnGenerateQualitySettingsWidget(TSharedPtr<FString> inItem) const
 {
 	return SNew(STextBlock)
@@ -301,11 +295,22 @@ TSharedRef<SWidget>	SRPRViewportTabContent::OnGenerateDenoiserWidget(TSharedPtr<
 		.Text(FText::FromString(*inItem));
 }
 
-void	SRPRViewportTabContent::OnRenderChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo)
+void	SRPRViewportTabContent::OnQualitySettingsChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo)
 {
-	const FString	render = *item.Get();
+	const FString		settingsString = *item.Get();
+	ERPRQualitySettings	newSetting = ERPRQualitySettings::Full;
 
-	if (render == TEXT("Radeon ProRender"))
+	if (settingsString == TEXT("Low"))
+		newSetting = ERPRQualitySettings::Low;
+	else if (settingsString == TEXT("Medium"))
+		newSetting = ERPRQualitySettings::Medium;
+	else if (settingsString == TEXT("High"))
+		newSetting = ERPRQualitySettings::High;
+
+	m_Settings->QualitySettings = newSetting;
+	m_Settings->SaveConfig();
+
+	if (settingsString == TEXT("Full"))
 	{
 		m_Settings->CurrentRenderType = ERenderType::Tahoe;
 		m_Settings->IsHybrid = false;
@@ -315,51 +320,26 @@ void	SRPRViewportTabContent::OnRenderChanged(TSharedPtr<FString> item, ESelectIn
 		m_Settings->CurrentRenderType = ERenderType::Hybrid;
 		m_Settings->IsHybrid = true;
 	}
-}
 
-void	SRPRViewportTabContent::OnQualitySettingsChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo)
-{
-	const FString		settingsString = *item.Get();
-	ERPRQualitySettings	newSetting = ERPRQualitySettings::Interactive;
-
-	if (settingsString == TEXT("Interactive"))
-		newSetting = ERPRQualitySettings::Interactive;
-	else if (settingsString == TEXT("Low"))
-		newSetting = ERPRQualitySettings::Low;
-	else if (settingsString == TEXT("Medium"))
-		newSetting = ERPRQualitySettings::Medium;
-	else if (settingsString == TEXT("High"))
-		newSetting = ERPRQualitySettings::High;
-	m_Settings->QualitySettings = newSetting;
-	m_Settings->SaveConfig();
-
-	ARPRScene	*scene = m_Plugin->GetCurrentScene();
+	ARPRScene* scene = m_Plugin->GetCurrentScene();
 	if (scene != NULL)
 		scene->SetQualitySettings(m_Settings->QualitySettings);
-}
 
-FText	SRPRViewportTabContent::GetSelectedRenderName() const
-{
-	if (m_Settings->CurrentRenderType == ERenderType::Tahoe)
-		return LOCTEXT("RenderTypeRPR", "Radeon ProRender");
-	else
-		return LOCTEXT("RenderTypeHybrid", "Hybrid");
-
-	return FText();
+	m_Plugin->m_CleanViewport = false;
 }
 
 FText	SRPRViewportTabContent::GetSelectedQualitySettingsName() const
 {
 	switch (m_Settings->QualitySettings)
 	{
-		case	ERPRQualitySettings::Interactive:
-			return LOCTEXT("InteractiveTitle", "Quality : Interactive");
 		case	ERPRQualitySettings::Low:
 			return LOCTEXT("LowTitle", "Quality : Low");
 		case	ERPRQualitySettings::Medium:
 			return LOCTEXT("MediumTitle", "Quality : Medium");
 		case	ERPRQualitySettings::High:
 			return LOCTEXT("HighTitle", "Quality : High");
+		case	ERPRQualitySettings::Full:
+			return LOCTEXT("FullTitle", "Quality : Full");
 	}
 	return FText();
 }
@@ -424,14 +404,6 @@ void	SRPRViewportTabContent::OnMegaPixelChanged(TSharedPtr<FString> item, ESelec
 		scene->TriggerResize();
 }
 
-FText	SRPRViewportTabContent::GetSelectedMegaPixelName() const
-{
-	// TODO: Cache this
-	FNumberFormattingOptions	formatOptions;
-	formatOptions.MaximumIntegralDigits = 1;
-	return FText::Format(LOCTEXT("MegaPixelTitle", "{0} Megapixel"), FText::AsNumber(m_Settings->MegaPixelCount, &formatOptions));
-}
-
 FText	SRPRViewportTabContent::GetCurrentRenderIteration() const
 {
 	ARPRScene	*scene = m_Plugin->GetCurrentScene();
@@ -450,19 +422,6 @@ FText	SRPRViewportTabContent::GetTraceStatus() const
 	if (m_Settings->bTrace)
 		return FText::FromString("Trace : On");
 	return FText::FromString("Trace : Off");
-}
-
-FText SRPRViewportTabContent::GetCurrentAOVMode() const
-{
-	RPR::EAOV currentAOV = m_Plugin->GetAOV();
-	for (int32 i = 0; i < m_AOVAvailableModes.Num(); ++i)
-	{
-		if (m_AOVAvailableModes[i]->Mode == currentAOV)
-		{
-			return m_AOVAvailableModes[i]->Name;
-		}
-	}
-	return FText::GetEmpty();
 }
 
 TOptional<float>	SRPRViewportTabContent::GetPhotolinearTonemapSensitivity() const
@@ -573,24 +532,18 @@ void	SRPRViewportTabContent::OnUseDenoiserCheckStateChanged(ECheckBoxState newVa
 void	SRPRViewportTabContent::Construct(const FArguments &args)
 {
 	m_Plugin = &FRPRPluginModule::Get();
-	m_Settings = GetMutableDefault<URPRSettings>();
+	m_Settings = RPR::GetSettings();
 
 	m_DisplayPostEffects = false;
 
-	check(m_Settings != NULL);
-
-	m_RendersList.Empty();
 	m_QualitySettingsList.Empty();
 	m_DenoiserOptionList.Empty();
 	m_AvailableMegaPixel.Empty();
 
-	m_RendersList.Add(MakeShared<FString>("Radeon ProRender"));
-	m_RendersList.Add(MakeShared<FString>("Hybrid"));
-
-	m_QualitySettingsList.Add(MakeShared<FString>("Interactive"));
 	m_QualitySettingsList.Add(MakeShared<FString>("Low"));
 	m_QualitySettingsList.Add(MakeShared<FString>("Medium"));
 	m_QualitySettingsList.Add(MakeShared<FString>("High"));
+	m_QualitySettingsList.Add(MakeShared<FString>("Full"));
 
 	m_DenoiserOptionList.Add(MakeShared<FString>("Machine Learning"));
 	/*m_DenoiserOptionList.Add(MakeShared<FString>("Edge Avoiding Wavelets"));
@@ -760,26 +713,24 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 					.Text(this, &SRPRViewportTabContent::GetSelectedCameraName)
 				]
 			]
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.Padding(2.0f)
-			[
-				SNew(SComboBox<TSharedPtr<FString>>)
-				.OptionsSource(&m_RendersList)
-				.OnGenerateWidget(this, &SRPRViewportTabContent::OnGenerateRenderOptionWidget)
-				.OnSelectionChanged(this, &SRPRViewportTabContent::OnRenderChanged)
-				.IsEnabled_Lambda([this] { return m_Plugin->RenderPaused() && m_Plugin->m_CleanViewport; })
-				[
-					SNew(STextBlock)
-					.Text(this, &SRPRViewportTabContent::GetSelectedRenderName)
-				]
-			]
 			+SHorizontalBox::Slot()
 			.AutoWidth()
 			.Padding(2.0f)
 			[
 				SNew(SComboBox<TSharedPtr<FString>>)
 				.OptionsSource(&m_QualitySettingsList)
+				.InitiallySelectedItem(m_QualitySettingsList[(
+						[](ERPRQualitySettings quality) {
+							switch (quality) {
+								case ERPRQualitySettings::Low:			return 0;
+								case ERPRQualitySettings::Medium:		return 1;
+								case ERPRQualitySettings::High:			return 2;
+								case ERPRQualitySettings::Full:			return 3;
+								default:								return 3;
+							}
+						} (m_Settings->QualitySettings)
+					)]
+				)
 				.OnGenerateWidget(this, &SRPRViewportTabContent::OnGenerateQualitySettingsWidget)
 				.OnSelectionChanged(this, &SRPRViewportTabContent::OnQualitySettingsChanged)
 				[
@@ -793,11 +744,23 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 			[
 				SNew(SComboBox<TSharedPtr<FString>>)
 				.OptionsSource(&m_AvailableMegaPixel)
+				.InitiallySelectedItem(m_AvailableMegaPixel[(
+						[](float val) {
+							if (val == 0.25f)	return 0;
+							if (val == 0.5f)	return 1;
+							if (val == 1.0f)	return 2;
+							if (val == 2.0f)	return 3;
+							if (val == 4.0f)	return 4;
+							if (val == 8.0f)	return 5;
+							return 0;
+						} (m_Settings->MegaPixelCount)
+					)]
+				)
 				.OnGenerateWidget(this, &SRPRViewportTabContent::OnGenerateMegaPixelWidget)
 				.OnSelectionChanged(this, &SRPRViewportTabContent::OnMegaPixelChanged)
 				[
 					SNew(STextBlock)
-					.Text(this, &SRPRViewportTabContent::GetSelectedMegaPixelName)
+					.Text(LOCTEXT("ResolutionOptionMenuLable", "Resolution"))
 				]
 			]
 			+SHorizontalBox::Slot()
@@ -806,11 +769,12 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 			[
 				SNew(SComboBox<FAOVDataPtr>)
 				.OptionsSource(&m_AOVAvailableModes)
+				.InitiallySelectedItem(m_AOVAvailableModes[0])
 				.OnGenerateWidget(this, &SRPRViewportTabContent::OnGenerateAOVWidget)
 				.OnSelectionChanged(this, &SRPRViewportTabContent::OnAOVModeChanged)
 				[
 					SNew(STextBlock)
-					.Text(this, &SRPRViewportTabContent::GetCurrentAOVMode)
+					.Text(LOCTEXT("AovOptionMenuLable", "AOV"))
 				]
 			]
 			+SHorizontalBox::Slot()

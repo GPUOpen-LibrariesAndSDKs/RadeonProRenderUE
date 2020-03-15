@@ -64,14 +64,12 @@ private:
 	FReply					OnSceneExport();
 
 	TSharedRef<SWidget>		OnGenerateCameraWidget(TSharedPtr<FString> inItem) const;
-	TSharedRef<SWidget>		OnGenerateRenderOptionWidget(TSharedPtr<FString> inItem) const;
 	TSharedRef<SWidget>		OnGenerateQualitySettingsWidget(TSharedPtr<FString> inItem) const;
 	TSharedRef<SWidget>		OnGenerateDenoiserWidget(TSharedPtr<FString> inItem) const;
 	TSharedRef<SWidget>		OnGenerateMegaPixelWidget(TSharedPtr<FString> inItem) const;
 	TSharedRef<SWidget>		OnGenerateAOVWidget(FAOVDataPtr inItem) const;
 
 	void					OnCameraChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo);
-	void					OnRenderChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo);
 	void					OnQualitySettingsChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo);
 	void					OnDenoiserOptionChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo);
 	void					OnMegaPixelChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo);
@@ -85,13 +83,10 @@ private:
 
 	FText					GetImportStatus() const;
 	FText					GetSelectedCameraName() const;
-	FText					GetSelectedRenderName() const;
 	FText					GetSelectedQualitySettingsName() const;
 	FText					GetSelectedDenoiserOptionName() const;
-	FText					GetSelectedMegaPixelName() const;
 	FText					GetCurrentRenderIteration() const;
 	FText					GetTraceStatus() const;
-	FText					GetCurrentAOVMode() const;
 
 	EVisibility				GetRenderPropertiesVisibility() const;
 
@@ -124,7 +119,6 @@ private:
 	TSharedPtr<class SViewport>				m_ViewportWidget;
 
 	TArray<TSharedPtr<FString>>				m_AvailableMegaPixel;
-	TArray<TSharedPtr<FString>>				m_RendersList;
 	TArray<TSharedPtr<FString>>				m_QualitySettingsList;
 	TArray<TSharedPtr<FString>>				m_DenoiserOptionList;
 	TArray<FAOVDataPtr>						m_AOVAvailableModes;
