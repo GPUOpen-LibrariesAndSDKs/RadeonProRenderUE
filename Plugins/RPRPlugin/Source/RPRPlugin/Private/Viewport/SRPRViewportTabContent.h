@@ -83,7 +83,6 @@ private:
 
 	FText					GetImportStatus() const;
 	FText					GetSelectedCameraName() const;
-	FText					GetSelectedQualitySettingsName() const;
 	FText					GetSelectedDenoiserOptionName() const;
 	FText					GetCurrentRenderIteration() const;
 	FText					GetTraceStatus() const;
@@ -118,10 +117,10 @@ private:
 	TSharedPtr<class FRPRViewportClient>	m_ViewportClient;
 	TSharedPtr<class SViewport>				m_ViewportWidget;
 
-	TArray<TSharedPtr<FString>>				m_AvailableMegaPixel;
+	TArray<TSharedPtr<FString>>				m_AvailabelMegaPixel;
 	TArray<TSharedPtr<FString>>				m_QualitySettingsList;
 	TArray<TSharedPtr<FString>>				m_DenoiserOptionList;
-	TArray<FAOVDataPtr>						m_AOVAvailableModes;
+	TArray<FAOVDataPtr>						m_AOVAvailabelModes;
 
 	class FRPRPluginModule					*m_Plugin;
 	class URPRSettings						*m_Settings;
