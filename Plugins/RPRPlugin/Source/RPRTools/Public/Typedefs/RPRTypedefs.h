@@ -18,6 +18,7 @@
 
 #include "Templates/SharedPointer.h"
 #include <RadeonProRender.h>
+#include "FFrameBuffer.h"
 
 /*
  * Use typedefs to associate native types with clearer names (and respecting the UE4 norm)
@@ -33,8 +34,6 @@ namespace RPR
 	typedef rpr_context			FContext;
 	typedef rpr_material_system FMaterialSystem;
 	typedef rpr_scene			FScene;
-
-	typedef rpr_framebuffer		FFrameBuffer;
 
 	typedef rpr_shape			FShape;
 	typedef rpr_light			FLight;

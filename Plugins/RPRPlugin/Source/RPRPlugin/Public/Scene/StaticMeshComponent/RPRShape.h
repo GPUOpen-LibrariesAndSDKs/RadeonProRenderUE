@@ -31,7 +31,7 @@ struct	FRPRShape
 
 	FRPRShape(const FRPRCachedMesh &cached, uint32 iInstance)
 		: m_RprShape(cached.m_RprShape)
+		, m_RprMaterial(nullptr)
 		, m_UEMaterialIndex(cached.m_UEMaterialIndex)
-		, m_RprMaterial(NULL)
 		, m_InstanceIndex(iInstance) { }
 };

@@ -366,7 +366,7 @@ void	FRPRPluginModule::OnWorldDestroyed(UWorld *inWorld)
 	for (TActorIterator<ARPRScene> it(inWorld); it; ++it)
 		inWorld->DestroyActor(*it);
 
-	IRPRCore::GetResources()->CurrentContextType = ERenderType::None;
+	IRPRCore::GetResources()->invalidateContextTypeUnsafe();
 
 	Reset();
 }

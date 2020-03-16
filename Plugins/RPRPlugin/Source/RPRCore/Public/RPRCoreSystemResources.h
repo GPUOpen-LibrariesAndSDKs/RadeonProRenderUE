@@ -38,6 +38,9 @@ public:
 	FORCEINLINE FRPRXMaterialLibrary&	GetRPRMaterialLibrary() { return RPRXMaterialLibrary; }
 	FORCEINLINE int32					GetNumDevicesCompatible() const { return NumDevicesCompatible; }
 
+	ERenderType		        CurrentContextType() const { return RenderEngine; }
+	void                    invalidateContextTypeUnsafe() { RenderEngine = ERenderType::None; }
+
 private:
 
 	bool	LoadLibraries();
@@ -61,9 +64,6 @@ private:
 	void					LogCompatibleDevices(RPR::FCreationFlags CreationFlags) const;
 	int32					CountCompatibleDevices(RPR::FCreationFlags CreationFlags) const;
 
-public:
-	ERenderType				CurrentContextType;
-
 private:
 
 	bool					bIsInitialized;
@@ -77,6 +77,8 @@ private:
 	RPR::FMaterialSystem	RPRMaterialSystem;
 	RPR::FImageManagerPtr	RPRImageManager;
 	FRPRXMaterialLibrary	RPRXMaterialLibrary;
+
+	ERenderType             RenderEngine;
 };
 
 typedef TSharedPtr<FRPRCoreSystemResources> FRPRCoreSystemResourcesPtr;

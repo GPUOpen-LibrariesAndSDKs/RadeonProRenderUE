@@ -67,21 +67,18 @@ public:
 	virtual FString	GetPropertyName(UProperty* Property) const;
 	virtual FString	GetPropertyTypeName(UProperty* Property) const;
 
-public:
+private:
+	UPROPERTY()
+	FString		ParamName;
+
+	UPROPERTY()
+	uint32		RprxParamType;
 
 	UPROPERTY(VisibleAnywhere)
 	ESupportMode SupportMode;
 
 	UPROPERTY(VisibleAnywhere)
 	FText		AdditionalInfoText;
-
-private:
-
-	UPROPERTY()
-	uint32		RprxParamType;
-
-	UPROPERTY()
-	FString		ParamName;
 
 	FCanUseParameter    CanUseParameterDelegate;
     FApplyParameter     ApplyParameterDelegate;

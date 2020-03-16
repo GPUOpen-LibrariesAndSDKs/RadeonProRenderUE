@@ -72,7 +72,7 @@ private:
 	bool		BuildFramebufferData();
 	void		ReleaseResources();
 	void		BuildQueuedObjects();
-	void		ResizeFramebuffer();
+	int			ResizeFramebuffer();
 	void		ClearFramebuffer();
 	void		DestroyPendingKills();
 	bool		PreRenderLoop();
@@ -99,6 +99,7 @@ private:
 
 	rpr_framebuffer_format		m_RprFrameBufferFormat;
 	rpr_framebuffer_desc		m_RprFrameBufferDesc;
+
 	RPR::FFrameBuffer			m_RprFrameBuffer;
 	RPR::FFrameBuffer			m_RprResolvedFrameBuffer;
 	RPR::FScene					m_RprScene;

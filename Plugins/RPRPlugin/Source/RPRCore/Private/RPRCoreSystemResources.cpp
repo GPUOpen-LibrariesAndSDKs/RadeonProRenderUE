@@ -50,7 +50,6 @@ namespace {
 
 FRPRCoreSystemResources::FRPRCoreSystemResources()
 	: bIsInitialized(false)
-	, CurrentContextType(None)
 	, CurrentPluginId(INDEX_NONE)
 	, TahoePluginId(INDEX_NONE)
 	, HybridPluginId(INDEX_NONE)
@@ -58,22 +57,23 @@ FRPRCoreSystemResources::FRPRCoreSystemResources()
 	, RPRContext(nullptr)
 	, RPRMaterialSystem(nullptr)
 	, RPRImageManager(nullptr)
+	, RenderEngine(None)
 {}
 
 bool FRPRCoreSystemResources::Initialize()
 {
 	auto settings = RPR::GetSettings();
 
-	if (bIsInitialized && CurrentContextType == settings->CurrentRenderType)
+	if (bIsInitialized && RenderEngine == settings->CurrentRenderType)
 		return true;
 
-	CurrentContextType = settings->CurrentRenderType;
+	RenderEngine = settings->CurrentRenderType;
 
 	if (!bIsInitialized)
 	{
 		if (!LoadLibraries())
 		{
-			CurrentContextType = ERenderType::None;
+			RenderEngine = ERenderType::None;
 			return (false);
 		}
 	}
@@ -82,7 +82,7 @@ bool FRPRCoreSystemResources::Initialize()
 
 	if (!InitializeContextEnvirontment())
 	{
-		CurrentContextType = ERenderType::None;
+		RenderEngine = ERenderType::None;
 		return (false);
 	}
 
@@ -198,7 +198,7 @@ bool FRPRCoreSystemResources::LoadImageFilterDLL()
 
 bool FRPRCoreSystemResources::InitializeContext()
 {
-	CurrentPluginId = (CurrentContextType == Tahoe) ? TahoePluginId : HybridPluginId;
+	CurrentPluginId = (RenderEngine == Tahoe) ? TahoePluginId : HybridPluginId;
 
 	uint32	creationFlags = GetContextCreationFlags();
 
@@ -248,7 +248,7 @@ bool FRPRCoreSystemResources::InitializeContextParameters()
 {
 	URPRSettings* settings = RPR::GetSettings();
 
-	switch (CurrentContextType)
+	switch (RenderEngine)
 	{
 	case Tahoe:
 		ContextSetUint(RPRContext, RPR_CONTEXT_PREVIEW, 1, TEXT("PREVIEW"));

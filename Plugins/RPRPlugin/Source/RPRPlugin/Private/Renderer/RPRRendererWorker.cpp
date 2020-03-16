@@ -49,39 +49,9 @@ DEFINE_LOG_CATEGORY_STATIC(LogRPRRenderer, Log, All);
 		return status; \
 	}
 
-namespace {
-	void DeleteBuffer(void*& buffer)
-	{
-		if (buffer != nullptr)
-			RPR::DeleteObject(buffer);
-	}
-
-	bool ReleaseBuffer(void*& buffer)
-	{
-		if (buffer != nullptr)
-		{
-			rprFrameBufferClear(buffer);
-			RPR::DeleteObject(buffer);
-			return true;
-		}
-		return false;
-	}
-}
-
-FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene rprScene, uint32 width, uint32 height, uint32 numDevices, ARPRScene *scene)
-:	m_RprFrameBuffer(nullptr)
-,	m_RprResolvedFrameBuffer(nullptr)
-,	m_RprContext(context)
+FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene rprScene, uint32 width, uint32 height, uint32 numDevices, ARPRScene *scene) :
+	m_RprContext(context)
 ,	m_AOV(RPR::EAOV::Color)
-,	m_RprColorFrameBuffer(nullptr)
-,	m_RprShadingNormalBuffer(nullptr)
-,	m_RprShadingNormalResolvedBuffer(nullptr)
-,	m_RprWorldCoordinatesBuffer(nullptr)
-,	m_RprWorldCoordinatesResolvedBuffer(nullptr)
-,	m_RprAovDepthBuffer(nullptr)
-,	m_RprAovDepthResolvedBuffer(nullptr)
-,	m_RprDiffuseAlbedoBuffer(nullptr)
-,	m_RprDiffuseAlbedoResolvedBuffer(nullptr)
 ,	m_RprScene(rprScene)
 ,	m_Scene(scene)
 ,	m_RprWhiteBalance(nullptr)
@@ -340,7 +310,7 @@ void	FRPRRendererWorker::SetAOV(RPR::EAOV AOV)
 		else
 		{
 			// Release frame buffer for this AOV
-			RPR::Context::SetAOV(m_RprContext, m_AOV, nullptr);
+			RPR::Context::UnSetAOV(m_RprContext, m_AOV);
 		}
 
 		m_AOV = AOV;
@@ -353,7 +323,7 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 {
 	SCOPE_CYCLE_COUNTER(STAT_ProRender_Readback);
 
-	RPR::FFrameBuffer frameBuffer = RPR::GetSettings()->IsHybrid ? m_RprFrameBuffer : m_RprResolvedFrameBuffer;
+	RPR::FFrameBuffer& frameBuffer = RPR::GetSettings()->IsHybrid ? m_RprFrameBuffer : m_RprResolvedFrameBuffer;
 
 	size_t	totalByteCount = 0;
 	if (rprFrameBufferGetInfo(frameBuffer, RPR_FRAMEBUFFER_DATA, 0, nullptr, &totalByteCount) != RPR_SUCCESS)
@@ -416,23 +386,23 @@ void	FRPRRendererWorker::BuildQueuedObjects()
 	m_BuildQueue.Empty();
 }
 
-void	FRPRRendererWorker::ResizeFramebuffer()
+int FRPRRendererWorker::ResizeFramebuffer()
 {
 	check(m_RprContext != nullptr);
 
 	m_DataLock.Lock();
 
-	DeleteBuffer(m_RprFrameBuffer);
-	DeleteBuffer(m_RprResolvedFrameBuffer);
-	DeleteBuffer(m_RprColorFrameBuffer);
-	DeleteBuffer(m_RprShadingNormalBuffer);
-	DeleteBuffer(m_RprShadingNormalResolvedBuffer);
-	DeleteBuffer(m_RprWorldCoordinatesBuffer);
-	DeleteBuffer(m_RprWorldCoordinatesResolvedBuffer);
-	DeleteBuffer(m_RprAovDepthBuffer);
-	DeleteBuffer(m_RprAovDepthResolvedBuffer);
-	DeleteBuffer(m_RprDiffuseAlbedoBuffer);
-	DeleteBuffer(m_RprDiffuseAlbedoResolvedBuffer);
+	DestroyFrameBuffer(&m_RprFrameBuffer);
+	DestroyFrameBuffer(&m_RprResolvedFrameBuffer);
+	DestroyFrameBuffer(&m_RprColorFrameBuffer);
+	DestroyFrameBuffer(&m_RprShadingNormalBuffer);
+	DestroyFrameBuffer(&m_RprShadingNormalResolvedBuffer);
+	DestroyFrameBuffer(&m_RprWorldCoordinatesBuffer);
+	DestroyFrameBuffer(&m_RprWorldCoordinatesResolvedBuffer);
+	DestroyFrameBuffer(&m_RprAovDepthBuffer);
+	DestroyFrameBuffer(&m_RprAovDepthResolvedBuffer);
+	DestroyFrameBuffer(&m_RprDiffuseAlbedoBuffer);
+	DestroyFrameBuffer(&m_RprDiffuseAlbedoResolvedBuffer);
 
 	m_RprFrameBufferFormat.num_components = 4;
 	m_RprFrameBufferFormat.type = RPR_COMPONENT_TYPE_FLOAT32;
@@ -443,18 +413,18 @@ void	FRPRRendererWorker::ResizeFramebuffer()
 	m_DstFramebufferData.SetNum(m_Width * m_Height * 16);
 	m_RenderData.SetNum(m_DstFramebufferData.Num());
 
-	if (rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprFrameBuffer)                    != RPR_SUCCESS ||
-		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprResolvedFrameBuffer)            != RPR_SUCCESS ||
-		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprColorFrameBuffer)               != RPR_SUCCESS ||
+	if (ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprFrameBuffer)                    != RPR_SUCCESS ||
+		ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprResolvedFrameBuffer)            != RPR_SUCCESS ||
+		ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprColorFrameBuffer)               != RPR_SUCCESS ||
 
-		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprShadingNormalBuffer)            != RPR_SUCCESS ||
-		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprShadingNormalResolvedBuffer)    != RPR_SUCCESS ||
-		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprWorldCoordinatesBuffer)         != RPR_SUCCESS ||
-		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprWorldCoordinatesResolvedBuffer) != RPR_SUCCESS ||
-		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprAovDepthBuffer)                 != RPR_SUCCESS ||
-		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprAovDepthResolvedBuffer)         != RPR_SUCCESS ||
-		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprDiffuseAlbedoBuffer)            != RPR_SUCCESS ||
-		rprContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprDiffuseAlbedoResolvedBuffer)    != RPR_SUCCESS ||
+		ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprShadingNormalBuffer)            != RPR_SUCCESS ||
+		ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprShadingNormalResolvedBuffer)    != RPR_SUCCESS ||
+		ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprWorldCoordinatesBuffer)         != RPR_SUCCESS ||
+		ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprWorldCoordinatesResolvedBuffer) != RPR_SUCCESS ||
+		ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprAovDepthBuffer)                 != RPR_SUCCESS ||
+		ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprAovDepthResolvedBuffer)         != RPR_SUCCESS ||
+		ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprDiffuseAlbedoBuffer)            != RPR_SUCCESS ||
+		ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprDiffuseAlbedoResolvedBuffer)    != RPR_SUCCESS ||
 		RPR::Context::SetAOV(m_RprContext, RPR::EAOV::Color, m_RprColorFrameBuffer)                                                    != RPR_SUCCESS ||
 		RPR::Context::SetAOV(m_RprContext, m_AOV, m_RprFrameBuffer)                                                                    != RPR_SUCCESS)
 	{
@@ -467,6 +437,8 @@ void	FRPRRendererWorker::ResizeFramebuffer()
 	m_Resize = false;
 	m_ClearFramebuffer = true;
 	m_DataLock.Unlock();
+
+	return RPR_SUCCESS;
 }
 
 void	FRPRRendererWorker::ClearFramebuffer()
@@ -990,21 +962,25 @@ bool	FRPRRendererWorker::Flush() const
 
 void	FRPRRendererWorker::ReleaseResources()
 {
-	if (ReleaseBuffer(m_RprFrameBuffer))
-		RPR::Context::SetAOV(m_RprContext, m_AOV, nullptr);
+	if (m_RprFrameBuffer) {
+		RPR::Context::UnSetAOV(m_RprContext, m_AOV);
+		m_RprFrameBuffer.destroy();
+	}
 
-	if (ReleaseBuffer(m_RprColorFrameBuffer))
-		RPR::Context::SetAOV(m_RprContext, RPR::EAOV::Color, nullptr);
+	if (m_RprColorFrameBuffer) {
+		RPR::Context::UnSetAOV(m_RprContext, RPR::EAOV::Color);
+		m_RprColorFrameBuffer.destroy();
+	}
 
-	ReleaseBuffer(m_RprResolvedFrameBuffer);
-	ReleaseBuffer(m_RprShadingNormalBuffer);
-	ReleaseBuffer(m_RprShadingNormalResolvedBuffer);
-	ReleaseBuffer(m_RprWorldCoordinatesBuffer);
-	ReleaseBuffer(m_RprWorldCoordinatesResolvedBuffer);
-	ReleaseBuffer(m_RprAovDepthBuffer);
-	ReleaseBuffer(m_RprAovDepthResolvedBuffer);
-	ReleaseBuffer(m_RprDiffuseAlbedoBuffer);
-	ReleaseBuffer(m_RprDiffuseAlbedoResolvedBuffer);
+	m_RprResolvedFrameBuffer.destroy();
+	m_RprShadingNormalBuffer.destroy();
+	m_RprShadingNormalResolvedBuffer.destroy();
+	m_RprWorldCoordinatesBuffer.destroy();
+	m_RprWorldCoordinatesResolvedBuffer.destroy();
+	m_RprAovDepthBuffer.destroy();
+	m_RprAovDepthResolvedBuffer.destroy();
+	m_RprDiffuseAlbedoBuffer.destroy();
+	m_RprDiffuseAlbedoResolvedBuffer.destroy();
 
 	if (m_RprWhiteBalance != nullptr)
 	{

@@ -141,7 +141,7 @@ void	ARPRScene::SetQualitySettings(ERPRQualitySettings qualitySettings)
 	if (RPR::GetSettings()->IsHybrid)
 		m_RendererWorker->SetQualitySettings(qualitySettings);
 
-	if (RPRCoreResources->CurrentContextType == RPR::GetSettings()->CurrentRenderType)
+	if (RPRCoreResources->CurrentContextType() == RPR::GetSettings()->CurrentRenderType)
 		return;
 
 	m_RendererWorker->EnsureCompletion();
