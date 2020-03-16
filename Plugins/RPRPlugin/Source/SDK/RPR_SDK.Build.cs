@@ -142,6 +142,7 @@ public class RPR_SDK : ModuleRules
         {
             PublicLibraryPaths.Add(Path.Combine(ThirdPartyDirectory, @"RadeonProImageProcessingSDK/Windows"));
             PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyDirectory, @"RadeonProImageProcessingSDK/Windows/RadeonImageFilters64.lib"));
+			PublicDelayLoadDLLs.Add("RadeonImageFilters64.dll");
         }
         else if (Target.Platform == UnrealTargetPlatform.Linux)
         {
