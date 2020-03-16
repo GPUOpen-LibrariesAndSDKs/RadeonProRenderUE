@@ -19,6 +19,7 @@
 #include "Templates/SharedPointer.h"
 #include <RadeonProRender.h>
 #include "FFrameBuffer.h"
+#include "FPostEffect.h"
 
 /*
  * Use typedefs to associate native types with clearer names (and respecting the UE4 norm)
