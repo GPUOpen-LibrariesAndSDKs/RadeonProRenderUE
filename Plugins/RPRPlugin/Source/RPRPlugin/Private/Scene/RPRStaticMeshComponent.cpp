@@ -323,12 +323,13 @@ bool	URPRStaticMeshComponent::Build()
 		// New shape in the cache ? Add it in the scene + make it invisible
 		if (!settings->IsHybrid)
 		{
+			// for tahoe - set invisible
 			status = rprShapeSetVisibility(baseShape, false);
 			CHECK_ERROR(status, TEXT("Can't set shape visibility to false"));
-		}
 
-		status = RPR::Scene::AttachShape(Scene->m_RprScene, baseShape);
-		CHECK_ERROR(status, TEXT("Couldn't attach Cached RPR shape to the RPR scene"));
+			status = RPR::Scene::AttachShape(Scene->m_RprScene, baseShape);
+			CHECK_ERROR(status, TEXT("Couldn't attach Cached RPR shape to the RPR scene"));
+		}
 
 		for (uint32 iInstance = 0; iInstance < instanceCount; ++iInstance)
 		{
@@ -356,7 +357,25 @@ bool	URPRStaticMeshComponent::Build()
 		rpr_shape	shape = m_Shapes[iShape].m_RprShape;
 		status = SetInstanceTransforms(instancedMeshComponent, &componentMatrix, shape, m_Shapes[iShape].m_InstanceIndex);
 		CHECK_ERROR(status, TEXT("Can't set shape transform"));
-		if (!settings->IsHybrid)
+		if (settings->IsHybrid)
+		{
+			if (!primaryOnly)
+			{
+				if (staticMeshComponent->IsVisible()) {
+					status = RPR::Scene::AttachShape(Scene->m_RprScene, shape);
+					CHECK_ERROR(status, TEXT("Couldn't attach RPR shape to the RPR scene"));
+				}
+				else {
+					(void)RPR::Scene::DetachShape(Scene->m_RprScene, shape); // ignore error
+				}
+			}
+			else
+			{
+				status = RPR::Scene::AttachShape(Scene->m_RprScene, shape);
+				CHECK_ERROR(status, TEXT("Couldn't attach RPR shape to the RPR scene"));
+			}
+		}
+		else
 		{
 			if (!primaryOnly)
 			{
@@ -368,10 +387,11 @@ bool	URPRStaticMeshComponent::Build()
 				status = rprShapeSetVisibility(shape, true);
 				CHECK_ERROR(status, TEXT("Can't set shape visibility"));
 			}
+
+			status = RPR::Scene::AttachShape(Scene->m_RprScene, shape);
+			CHECK_ERROR(status, TEXT("Couldn't attach RPR shape to the RPR scene"));
 		}
 		//rprShapeSetShadow(shape, staticMeshComponent->bCastStaticShadow) != RPR_SUCCESS ||
-		status = RPR::Scene::AttachShape(Scene->m_RprScene, shape);
-		CHECK_ERROR(status, TEXT("Couldn't attach RPR shape to the RPR scene"));
 	}
 	m_CachedInstanceCount = instanceCount;
 	return true;

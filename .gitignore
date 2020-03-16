@@ -57,7 +57,6 @@ Plugins/RPRPlugin/Binaries/*
 Intermediate/*
 Plugins/RPRPlugin/Intermediate/*
 
-
 # Don't need duplicate sources or binaries from the packaged plugin
 bin/*
 Binaries/*

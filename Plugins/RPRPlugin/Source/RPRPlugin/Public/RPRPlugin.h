@@ -74,7 +74,7 @@ public:
 	bool		m_RPRPaused;
 	bool		m_CleanViewport;
 
-	TArray<TSharedPtr<FString>>			m_AvailableCameraNames;
+	TArray<TSharedPtr<FString>>			m_AvailabelCameraNames;
 	TSharedPtr<class FSceneViewport>	m_Viewport;
 
 private:
