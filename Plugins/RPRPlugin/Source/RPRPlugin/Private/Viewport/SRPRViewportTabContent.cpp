@@ -328,22 +328,6 @@ void	SRPRViewportTabContent::OnQualitySettingsChanged(TSharedPtr<FString> item, 
 	m_Plugin->m_CleanViewport = false;
 }
 
-FText	SRPRViewportTabContent::GetSelectedQualitySettingsName() const
-{
-	switch (m_Settings->QualitySettings)
-	{
-		case	ERPRQualitySettings::Low:
-			return LOCTEXT("LowTitle", "Quality : Low");
-		case	ERPRQualitySettings::Medium:
-			return LOCTEXT("MediumTitle", "Quality : Medium");
-		case	ERPRQualitySettings::High:
-			return LOCTEXT("HighTitle", "Quality : High");
-		case	ERPRQualitySettings::Full:
-			return LOCTEXT("FullTitle", "Quality : Full");
-	}
-	return FText();
-}
-
 void	SRPRViewportTabContent::OnDenoiserOptionChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo)
 {
 	const FString	settingsString = *item.Get();
@@ -538,7 +522,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 
 	m_QualitySettingsList.Empty();
 	m_DenoiserOptionList.Empty();
-	m_AvailableMegaPixel.Empty();
+	m_AvailabelMegaPixel.Empty();
 
 	m_QualitySettingsList.Add(MakeShared<FString>("Low"));
 	m_QualitySettingsList.Add(MakeShared<FString>("Medium"));
@@ -550,40 +534,40 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 	m_DenoiserOptionList.Add(MakeShared<FString>("Local Weighted Regression"));*/
 	m_DenoiserOptionList.Add(MakeShared<FString>("Bilateral"));
 
-	m_AvailableMegaPixel.Add(MakeShared<FString>("0.25"));
-	m_AvailableMegaPixel.Add(MakeShared<FString>("0.5"));
-	m_AvailableMegaPixel.Add(MakeShared<FString>("1.0"));
-	m_AvailableMegaPixel.Add(MakeShared<FString>("2.0"));
-	m_AvailableMegaPixel.Add(MakeShared<FString>("4.0"));
-	m_AvailableMegaPixel.Add(MakeShared<FString>("8.0"));
+	m_AvailabelMegaPixel.Add(MakeShared<FString>("0.25"));
+	m_AvailabelMegaPixel.Add(MakeShared<FString>("0.5"));
+	m_AvailabelMegaPixel.Add(MakeShared<FString>("1.0"));
+	m_AvailabelMegaPixel.Add(MakeShared<FString>("2.0"));
+	m_AvailabelMegaPixel.Add(MakeShared<FString>("4.0"));
+	m_AvailabelMegaPixel.Add(MakeShared<FString>("8.0"));
 
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::Color, LOCTEXT("AOV_Color", "Color")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::Opacity, LOCTEXT("AOV_Opacity", "Opacity")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::WorldCoordinate, LOCTEXT("AOV_WorldCoordinate", "WorldCoordinate")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::UV, LOCTEXT("AOV_UV", "UV")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::MaterialIndex, LOCTEXT("AOV_MaterialIndex", "MaterialIndex")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::GeometricNormal, LOCTEXT("AOV_GeometricNormal", "GeometricNormal")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::ShadingNormal, LOCTEXT("AOV_ShadingNormal", "ShadingNormal")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::Depth, LOCTEXT("AOV_Depth", "Depth")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::ObjectId, LOCTEXT("AOV_ObjectId", "ObjectId")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::ObjectGroupId, LOCTEXT("AOV_ObjectGroupId", "ObjectGroupId")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::ShadowCatcher, LOCTEXT("AOV_ShadowCatcher", "ShadowCatcher")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::Background, LOCTEXT("AOV_Background", "Background")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::Emission, LOCTEXT("AOV_Emission", "Emission")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::Velocity, LOCTEXT("AOV_Velocity", "Velocity")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::DirectIllumination, LOCTEXT("AOV_DirectIllumination", "DirectIllumination")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::IndirectIllumination, LOCTEXT("AOV_IndirectIllumination", "IndirectIllumination")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::AmbiantOcclusion, LOCTEXT("AOV_AmbiantOcclusion", "AmbiantOcclusion")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::DirectDiffuse, LOCTEXT("AOV_DirectDiffuse", "DirectDiffuse")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::IndirectDiffuse, LOCTEXT("AOV_IndirectDiffuse", "IndirectDiffuse")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::IndirectReflect, LOCTEXT("AOV_IndirectReflect", "IndirectReflect")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::Refract, LOCTEXT("AOV_Refract", "Refract")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::Volume, LOCTEXT("AOV_Volume", "Volume")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::DirectReflect, LOCTEXT("AOV_DirectReflect", "DirectReflect")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::LightGroup0, LOCTEXT("AOV_LightGroup0", "LightGroup0")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::LightGroup1, LOCTEXT("AOV_LightGroup1", "LightGroup1")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::LightGroup2, LOCTEXT("AOV_LightGroup2", "LightGroup2")));
-	m_AOVAvailableModes.Add(MakeShared<FAOVData>(RPR::EAOV::LightGroup3, LOCTEXT("AOV_LightGroup3", "LightGroup3")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::Color, LOCTEXT("AOV_Color", "Color")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::Opacity, LOCTEXT("AOV_Opacity", "Opacity")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::WorldCoordinate, LOCTEXT("AOV_WorldCoordinate", "WorldCoordinate")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::UV, LOCTEXT("AOV_UV", "UV")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::MaterialIndex, LOCTEXT("AOV_MaterialIndex", "MaterialIndex")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::GeometricNormal, LOCTEXT("AOV_GeometricNormal", "GeometricNormal")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::ShadingNormal, LOCTEXT("AOV_ShadingNormal", "ShadingNormal")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::Depth, LOCTEXT("AOV_Depth", "Depth")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::ObjectId, LOCTEXT("AOV_ObjectId", "ObjectId")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::ObjectGroupId, LOCTEXT("AOV_ObjectGroupId", "ObjectGroupId")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::ShadowCatcher, LOCTEXT("AOV_ShadowCatcher", "ShadowCatcher")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::Background, LOCTEXT("AOV_Background", "Background")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::Emission, LOCTEXT("AOV_Emission", "Emission")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::Velocity, LOCTEXT("AOV_Velocity", "Velocity")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::DirectIllumination, LOCTEXT("AOV_DirectIllumination", "DirectIllumination")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::IndirectIllumination, LOCTEXT("AOV_IndirectIllumination", "IndirectIllumination")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::AmbiantOcclusion, LOCTEXT("AOV_AmbiantOcclusion", "AmbiantOcclusion")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::DirectDiffuse, LOCTEXT("AOV_DirectDiffuse", "DirectDiffuse")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::IndirectDiffuse, LOCTEXT("AOV_IndirectDiffuse", "IndirectDiffuse")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::IndirectReflect, LOCTEXT("AOV_IndirectReflect", "IndirectReflect")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::Refract, LOCTEXT("AOV_Refract", "Refract")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::Volume, LOCTEXT("AOV_Volume", "Volume")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::DirectReflect, LOCTEXT("AOV_DirectReflect", "DirectReflect")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::LightGroup0, LOCTEXT("AOV_LightGroup0", "LightGroup0")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::LightGroup1, LOCTEXT("AOV_LightGroup1", "LightGroup1")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::LightGroup2, LOCTEXT("AOV_LightGroup2", "LightGroup2")));
+	m_AOVAvailabelModes.Add(MakeShared<FAOVData>(RPR::EAOV::LightGroup3, LOCTEXT("AOV_LightGroup3", "LightGroup3")));
 
 	ChildSlot
 	[
@@ -704,7 +688,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 			.Padding(2.0f)
 			[
 				SNew(SComboBox<TSharedPtr<FString>>)
-				.OptionsSource(&m_Plugin->m_AvailableCameraNames)
+				.OptionsSource(&m_Plugin->m_AvailabelCameraNames)
 				.OnComboBoxOpening(this, &SRPRViewportTabContent::OnRefreshCameraList)
 				.OnGenerateWidget(this, &SRPRViewportTabContent::OnGenerateCameraWidget)
 				.OnSelectionChanged(this, &SRPRViewportTabContent::OnCameraChanged)
@@ -735,7 +719,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 				.OnSelectionChanged(this, &SRPRViewportTabContent::OnQualitySettingsChanged)
 				[
 					SNew(STextBlock)
-					.Text(this, &SRPRViewportTabContent::GetSelectedQualitySettingsName)
+					.Text(LOCTEXT("QualityOptionMenuLabel", "Quality"))
 				]
 			]
 			+SHorizontalBox::Slot()
@@ -743,8 +727,8 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 			.Padding(2.0f)
 			[
 				SNew(SComboBox<TSharedPtr<FString>>)
-				.OptionsSource(&m_AvailableMegaPixel)
-				.InitiallySelectedItem(m_AvailableMegaPixel[(
+				.OptionsSource(&m_AvailabelMegaPixel)
+				.InitiallySelectedItem(m_AvailabelMegaPixel[(
 						[](float val) {
 							if (val == 0.25f)	return 0;
 							if (val == 0.5f)	return 1;
@@ -760,7 +744,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 				.OnSelectionChanged(this, &SRPRViewportTabContent::OnMegaPixelChanged)
 				[
 					SNew(STextBlock)
-					.Text(LOCTEXT("ResolutionOptionMenuLable", "Resolution"))
+					.Text(LOCTEXT("ResolutionOptionMenuLabel", "Resolution"))
 				]
 			]
 			+SHorizontalBox::Slot()
@@ -768,13 +752,13 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 			.Padding(2.0f)
 			[
 				SNew(SComboBox<FAOVDataPtr>)
-				.OptionsSource(&m_AOVAvailableModes)
-				.InitiallySelectedItem(m_AOVAvailableModes[0])
+				.OptionsSource(&m_AOVAvailabelModes)
+				.InitiallySelectedItem(m_AOVAvailabelModes[0])
 				.OnGenerateWidget(this, &SRPRViewportTabContent::OnGenerateAOVWidget)
 				.OnSelectionChanged(this, &SRPRViewportTabContent::OnAOVModeChanged)
 				[
 					SNew(STextBlock)
-					.Text(LOCTEXT("AovOptionMenuLable", "AOV"))
+					.Text(LOCTEXT("AovOptionMenuLabel", "AOV"))
 				]
 			]
 			+SHorizontalBox::Slot()

@@ -125,24 +125,24 @@ void	FRPRPluginModule::ToggleOrbit()
 
 void	FRPRPluginModule::RefreshCameraList()
 {
-	m_AvailableCameraNames.Empty();
+	m_AvailabelCameraNames.Empty();
 	ARPRScene	*scene = GetCurrentScene();
 	if (scene != NULL)
 	{
-		scene->FillCameraNames(m_AvailableCameraNames);
+		scene->FillCameraNames(m_AvailabelCameraNames);
 
-		check(m_AvailableCameraNames.Num() > 0);
+		check(m_AvailabelCameraNames.Num() > 0);
 		if (m_ActiveCameraName.IsEmpty())
-			m_ActiveCameraName = *m_AvailableCameraNames[0].Get();
+			m_ActiveCameraName = *m_AvailabelCameraNames[0].Get();
 		else
 		{
-			const uint32	camCount = m_AvailableCameraNames.Num();
+			const uint32	camCount = m_AvailabelCameraNames.Num();
 			for (uint32 iCam = 0; iCam < camCount; ++iCam)
 			{
-				if (*m_AvailableCameraNames[iCam].Get() == m_ActiveCameraName)
+				if (*m_AvailabelCameraNames[iCam].Get() == m_ActiveCameraName)
 					return;
 			}
-			m_ActiveCameraName = *m_AvailableCameraNames[0].Get();
+			m_ActiveCameraName = *m_AvailabelCameraNames[0].Get();
 		}
 	}
 }
