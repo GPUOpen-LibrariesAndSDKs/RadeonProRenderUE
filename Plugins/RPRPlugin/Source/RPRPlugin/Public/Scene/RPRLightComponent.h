@@ -53,11 +53,12 @@ private:
 	virtual bool	PostBuild() override;
 	virtual bool	RPRThread_Update() override;
 
-	bool	BuildIESLight(const class UPointLightComponent *lightComponent);
-	bool	BuildPointLight(const class UPointLightComponent *pointLightComponent);
-	bool	BuildSpotLight(const class USpotLightComponent *spotLightComponent);
-	bool	BuildDirectionalLight(const class UDirectionalLightComponent *dirLightComponent);
-	bool	BuildSkyLight(const class USkyLightComponent *skyLightComponent);
+	[[nodiscard]]
+	int BuildIESLight(const class UPointLightComponent *lightComponent);
+	int BuildPointLight(const class UPointLightComponent *pointLightComponent);
+	int BuildSpotLight(const class USpotLightComponent *spotLightComponent);
+	int BuildDirectionalLight(const class UDirectionalLightComponent *dirLightComponent);
+	int BuildSkyLight(const class USkyLightComponent *skyLightComponent);
 
 private:
 
