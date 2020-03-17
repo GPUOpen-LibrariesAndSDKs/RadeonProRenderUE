@@ -61,14 +61,27 @@ namespace RPR
 			return status;
 		}
 
-		FResult SetAOV(FContext Context, RPR::EAOV AOV, FFrameBuffer FrameBuffer)
+		FResult UnSetAOV(FContext Context, RPR::EAOV AOV)
 		{
-			RPR::FResult status = rprContextSetAOV(Context, (rpr_aov) AOV, FrameBuffer);
+			RPR::FResult status = rprContextSetAOV(Context, (rpr_aov) AOV, nullptr);
+
+			UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprContextSetAOV(context=%p, AOV=%d) -> %d"),
+				Context,
+				(uint8) AOV,
+				status);
+
+			return status;
+		}
+
+
+		FResult SetAOV(FContext Context, RPR::EAOV AOV, FFrameBuffer& FrameBuffer)
+		{
+			RPR::FResult status = rprContextSetAOV(Context, (rpr_aov) AOV, FrameBuffer.get());
 
 			UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprContextSetAOV(context=%p, AOV=%d, framebuffer=%p) -> %d"),
 				Context,
 				(uint8) AOV,
-				FrameBuffer,
+				FrameBuffer.get(),
 				status);
 
 			return status;
@@ -81,13 +94,13 @@ namespace RPR
 			return status;
 		}
 
-		FResult ResolveFrameBuffer(FContext Context, FFrameBuffer SrcFrameBuffer, FFrameBuffer DstFrameBuffer, bool bShouldNormalizeOnly)
+		FResult ResolveFrameBuffer(FContext Context, FFrameBuffer& SrcFrameBuffer, FFrameBuffer& DstFrameBuffer, bool bShouldNormalizeOnly)
 		{
-			RPR::FResult status = rprContextResolveFrameBuffer(Context, SrcFrameBuffer, DstFrameBuffer, bShouldNormalizeOnly);
+			RPR::FResult status = rprContextResolveFrameBuffer(Context, SrcFrameBuffer.get(), DstFrameBuffer.get(), bShouldNormalizeOnly);
 
 			UE_LOG(LogRPRTools_Step, VeryVerbose,
 				TEXT("rprContextResolveFrameBuffer(context=%p, srcFrameBuffer=%p, dstFrameBuffer=%p, shouldNormalizeOnly=%s) -> %d"),
-				Context, SrcFrameBuffer, DstFrameBuffer, bShouldNormalizeOnly ? TEXT("true") : TEXT("false"), status);
+				Context, SrcFrameBuffer.get(), DstFrameBuffer.get(), bShouldNormalizeOnly ? TEXT("true") : TEXT("false"), status);
 
 			return status;
 		}

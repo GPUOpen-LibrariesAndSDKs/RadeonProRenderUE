@@ -61,11 +61,9 @@ namespace RPR
 		void	ReleaseMaterialMapNodes(const FRPRMaterialMap* MaterialMap);
 		void	ReleaseMaterialNodesHierarchy(RPR::FMaterialNode MaterialNode);
 	private:
-
-		TWeakObjectPtr<const URPRMaterial> UE4MaterialLink;
-
 		TArray<RPR::FImagePtr> Images;
-		rpr_material_node	Material;
+		rpr_material_node Material;
+		TWeakObjectPtr<const URPRMaterial> UE4MaterialLink;
 	};
 
 	typedef TSharedPtr<FRPRXMaterial> FRPRXMaterialPtr;

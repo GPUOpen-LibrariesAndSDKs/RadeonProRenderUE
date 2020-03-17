@@ -71,7 +71,11 @@ void	FRPRViewportClient::Draw(FViewport *viewport, FCanvas *canvas)
 		(ratio.Y > 1.0f) ? ((viewportDimensions.Y - (viewportDimensions.Y / ratio.Y)) * 0.5f) : 0);
 
 #if WITH_EDITOR
+#if  ENGINE_MINOR_VERSION >= 24
+	TRefCountPtr<FBatchedElementParameters>	batchedElementParameters = new FBatchedElementTexture2DPreviewParameters(0, false, false, false, false, false, false);
+#else
 	TRefCountPtr<FBatchedElementParameters>	batchedElementParameters = new FBatchedElementTexture2DPreviewParameters(0, false, false);
+#endif
 
 	static const FLinearColor	kImageTint(1.0f, 1.0f, 1.0f);
 	FCanvasTileItem		tileItem(renderOffset, renderTexture->Resource, textureDimensions, kImageTint);

@@ -22,6 +22,7 @@
 #include "RPRSettings.h"
 #include "Helpers/RPRTextureHelpers.h"
 #include "RPRCoreModule.h"
+#include "Runtime/Launch/Resources/Version.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRImageManager, Log, All)
 
@@ -172,7 +173,11 @@ namespace RPR
 		// Avoid building several times the same image, and runtime data is compressed or not accessible
 		Texture->ConditionalPostLoad();
 
-		TArray<uint8>	srcData;
+#if ENGINE_MINOR_VERSION >= 24
+		TArray64<uint8>	srcData;
+#else
+		TArray<uint8>   srcData;
+#endif
 		FIntPoint		srcSize;
 		EPixelFormat	srcFormat;
 		if (!CubemapHelpers::GenerateLongLatUnwrap(Cast<UTextureCube>(Texture), srcData, srcSize, srcFormat))

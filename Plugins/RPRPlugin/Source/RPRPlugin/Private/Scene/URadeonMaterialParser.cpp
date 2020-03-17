@@ -17,7 +17,7 @@
 #include "Scene/URadeonMaterialParser.h"
 
 #include "RPRXVirtualNode.h"
-#include "RprShape.h"
+#include "Scene/StaticMeshComponent/RPRShape.h"
 
 #include "Material/RPRXMaterialLibrary.h"
 #include "RPRCoreModule.h"

@@ -63,3 +63,21 @@ Binaries/*
 
 Saved/
 /BuildPluginTools/PluginStaging/
+
+# ignore linux generated files
+.kdev4/
+.vscode/
+CMakeLists.txt
+Makefile
+RPR.code-workspace
+RPR.kdev4
+RPR.pro
+RPR.workspace
+RPRCodeCompletionFolders.txt
+RPRCodeLitePreProcessor.txt
+RPRConfig.pri
+RPRDefines.pri
+RPRHeader.pri
+RPRIncludes.pri
+RPRSource.pri
+

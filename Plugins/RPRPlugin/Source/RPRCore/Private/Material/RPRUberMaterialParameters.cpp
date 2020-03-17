@@ -61,10 +61,10 @@ FRPRUberMaterialParameters::FRPRUberMaterialParameters()
 
 	// Coating
 	, Coating_Color(						TEXT("coating.color"),				RPR_MATERIAL_INPUT_UBER_COATING_COLOR,					ESupportMode::PreviewNotSupported, 1.0f)
-	, Coating_Transmission_Color(			TEXT("coating.transmissioncolor"),	RPR_MATERIAL_INPUT_UBER_COATING_TRANSMISSION_COLOR,		ESupportMode::PreviewNotSupported, 1.0f)
-	, Coating_Normal(						TEXT("coating.normal"),				RPR_MATERIAL_INPUT_UBER_COATING_NORMAL,					ESupportMode::PreviewNotSupported, FCanUseParameter())
-	, Coating_Thickness(					TEXT("coating.thickness"),			RPR_MATERIAL_INPUT_UBER_COATING_THICKNESS,				ESupportMode::PreviewNotSupported, 1.0f)
 	, Coating_Weight(						TEXT("coating.weight"),				RPR_MATERIAL_INPUT_UBER_COATING_WEIGHT,					ESupportMode::PreviewNotSupported, 0.0f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
+	, Coating_Normal(						TEXT("coating.normal"),				RPR_MATERIAL_INPUT_UBER_COATING_NORMAL,					ESupportMode::PreviewNotSupported, FCanUseParameter())
+	, Coating_Transmission_Color(			TEXT("coating.transmissioncolor"),	RPR_MATERIAL_INPUT_UBER_COATING_TRANSMISSION_COLOR,		ESupportMode::PreviewNotSupported, 1.0f)
+	, Coating_Thickness(					TEXT("coating.thickness"),			RPR_MATERIAL_INPUT_UBER_COATING_THICKNESS,				ESupportMode::PreviewNotSupported, 1.0f)
 	, Coating_Roughness(					TEXT("coating.roughness"),			RPR_MATERIAL_INPUT_UBER_COATING_ROUGHNESS,				ESupportMode::PreviewNotSupported, 0.5f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 	, Coating_Ior(							TEXT("coating.ior"),				RPR_MATERIAL_INPUT_UBER_COATING_IOR,					ESupportMode::PreviewNotSupported, 1.5f,	ERPRMCoMapC1InterpretationMode::AsFloat4)
 

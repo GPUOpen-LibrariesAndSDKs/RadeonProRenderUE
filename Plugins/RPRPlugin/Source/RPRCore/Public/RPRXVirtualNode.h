@@ -17,7 +17,6 @@
 #pragma once
 
 #include "Typedefs/RPRTypedefs.h"
-#include "Color.h"
 
 /**
  * In case of a constant nodes, we don't create a RPR real node and use a virtual node to hold the data.

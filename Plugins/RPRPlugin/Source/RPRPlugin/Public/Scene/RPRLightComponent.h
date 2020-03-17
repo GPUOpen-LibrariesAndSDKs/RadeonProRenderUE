@@ -53,7 +53,6 @@ private:
 	virtual bool	PostBuild() override;
 	virtual bool	RPRThread_Update() override;
 
-	[[nodiscard]]
 	int BuildIESLight(const class UPointLightComponent *lightComponent);
 	int BuildPointLight(const class UPointLightComponent *pointLightComponent);
 	int BuildSpotLight(const class USpotLightComponent *spotLightComponent);

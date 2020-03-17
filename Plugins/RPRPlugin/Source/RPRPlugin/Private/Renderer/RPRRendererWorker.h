@@ -68,11 +68,18 @@ public:
 
 private:
 
-	void		UpdatePostEffectSettings();
+	int         CreatePostEffectSettings();
+	int         UpdatePostEffectSettings();
+	int         DestroyPostEffects();
+
+	int         AttachPostEffectSettings();
+	int         DetachPostEffects();
+
 	bool		BuildFramebufferData();
-	void		ReleaseResources();
+	int         ReleaseResources();
+	int         DestroyBuffers();
 	void		BuildQueuedObjects();
-	void		ResizeFramebuffer();
+	int         ResizeFramebuffer();
 	void		ClearFramebuffer();
 	void		DestroyPendingKills();
 	bool		PreRenderLoop();
@@ -99,11 +106,12 @@ private:
 
 	rpr_framebuffer_format		m_RprFrameBufferFormat;
 	rpr_framebuffer_desc		m_RprFrameBufferDesc;
+
 	RPR::FFrameBuffer			m_RprFrameBuffer;
 	RPR::FFrameBuffer			m_RprResolvedFrameBuffer;
-	RPR::FScene					m_RprScene;
 	RPR::FContext				m_RprContext;
 	RPR::EAOV					m_AOV;
+	RPR::FScene					m_RprScene;
 
 	// Required to render correctly, even if the main frame buffer renders another thing like depth
 	RPR::FFrameBuffer			m_RprColorFrameBuffer;
@@ -117,11 +125,11 @@ private:
 	RPR::FFrameBuffer			m_RprDiffuseAlbedoResolvedBuffer;
 
 
-	rpr_post_effect				m_RprWhiteBalance;
-	rpr_post_effect				m_RprGammaCorrection;
-	rpr_post_effect				m_RprSimpleTonemap;
-	rpr_post_effect				m_RprPhotolinearTonemap;
-	rpr_post_effect				m_RprNormalization;
+	RPR::FPostEffect            m_RprWhiteBalance;
+	RPR::FPostEffect            m_RprGammaCorrection;
+	RPR::FPostEffect            m_RprSimpleTonemap;
+	RPR::FPostEffect            m_RprPhotolinearTonemap;
+	RPR::FPostEffect            m_RprNormalization;
 
 	TArray<float>				m_SrcFramebufferData;
 	TArray<uint8>				m_DstFramebufferData;
