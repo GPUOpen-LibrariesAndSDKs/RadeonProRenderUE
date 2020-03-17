@@ -55,23 +55,23 @@ DEFINE_LOG_CATEGORY_STATIC(LogRPRRenderer, Log, All);
 	}
 
 FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene rprScene, uint32 width, uint32 height, uint32 numDevices, ARPRScene *scene) :
-	m_RprContext(context)
-,	m_AOV(RPR::EAOV::Color)
-,	m_RprScene(rprScene)
-,	m_Scene(scene)
+	m_Scene(scene)
 ,	m_CurrentIteration(0)
 ,	m_PreviousRenderedIteration(0)
 ,	m_NumDevices(numDevices)
 ,	m_Width(width)
 ,	m_Height(height)
+,	m_RprContext(context)
+,	m_AOV(RPR::EAOV::Color)
+,	m_RprScene(rprScene)
 ,	m_Resize(true)
 ,	m_IsBuildingObjects(false)
 ,	m_ClearFramebuffer(false)
 ,	m_PauseRender(true)
 ,	m_CachedRaycastEpsilon(0.0f)
 ,	m_Trace(false)
-,	m_TracePath("")
 ,	m_UpdateTrace(false)
+,	m_TracePath("")
 {
 	m_Plugin = &FRPRPluginModule::Get();
 	m_Thread = FRunnableThread::Create(this, TEXT("FRPRRendererWorker"));
