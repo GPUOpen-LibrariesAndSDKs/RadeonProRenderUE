@@ -21,7 +21,7 @@
 #ifdef RPRTOOLS_API
 #define FRAMBUFFER_DLL_API __declspec( dllexport )
 #else
-#define __declspec( dllimport)
+#define FRAMBUFFER_DLL_API __declspec( dllimport )
 #endif
 
 namespace RPR

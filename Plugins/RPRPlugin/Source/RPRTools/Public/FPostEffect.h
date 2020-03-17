@@ -21,7 +21,7 @@
 #ifdef RPRTOOLS_API
 #define POSTEFFECT_DLL_API __declspec( dllexport )
 #else
-#define __declspec( dllimport)
+#define POSTEFFECT_DLL_API __declspec( dllimport )
 #endif
 
 namespace RPR
