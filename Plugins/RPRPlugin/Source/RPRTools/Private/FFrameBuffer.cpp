@@ -17,6 +17,13 @@
 #include "FFrameBuffer.h"
 #include <Logging/LogMacros.h>
 
+#ifdef CHECK_ERROR
+#undef CHECK_ERROR
+#endif
+#ifdef CHECK_WARNING
+#undef CHECK_WARNING
+#endif
+
 DEFINE_LOG_CATEGORY_STATIC(LogFFrameBufferFilter, Log, All);
 
 #define CHECK_ERROR(status, msg) \

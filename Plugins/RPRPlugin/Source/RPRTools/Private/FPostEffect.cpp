@@ -19,11 +19,19 @@
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPostEffect, Log, All);
 
+#ifdef CHECK_ERROR
+#undef CHECK_ERROR
+#endif
+#ifdef CHECK_WARNING
+#undef CHECK_WARNING
+#endif
+
 #define CHECK_ERROR(status, msg) \
 	CA_CONSTANT_IF(status != RPR_SUCCESS) { \
 		UE_LOG(LogFPostEffect, Error, msg); \
 		return status; \
 	}
+
 
 #define CHECK_WARNING(status, msg) \
 	CA_CONSTANT_IF(status != RPR_SUCCESS) { \
