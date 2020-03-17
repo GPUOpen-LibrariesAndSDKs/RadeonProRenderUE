@@ -18,10 +18,16 @@
 
 #include <RadeonProRender.h>
 
+#ifdef RPRTOOLS_API
+#define FRAMBUFFER_DLL_API __declspec( dllexport )
+#else
+#define __declspec( dllimport)
+#endif
+
 namespace RPR
 {
 
-class RPRTOOLS_API FFrameBuffer
+class FRAMBUFFER_DLL_API FFrameBuffer
 {
 public:
 	FFrameBuffer();

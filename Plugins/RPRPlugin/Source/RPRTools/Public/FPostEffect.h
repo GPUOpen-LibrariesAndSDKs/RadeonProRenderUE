@@ -18,10 +18,16 @@
 
 #include <RadeonProRender.h>
 
+#ifdef RPRTOOLS_API
+#define POSTEFFECT_DLL_API __declspec( dllexport )
+#else
+#define __declspec( dllimport)
+#endif
+
 namespace RPR
 {
 
-class RPRTOOLS_API FPostEffect
+class POSTEFFECT_DLL_API FPostEffect
 {
 public:
 	FPostEffect();
