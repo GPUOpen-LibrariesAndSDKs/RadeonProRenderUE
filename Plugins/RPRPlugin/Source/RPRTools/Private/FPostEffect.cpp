@@ -40,14 +40,14 @@ FPostEffect::FPostEffect()
 
 FPostEffect::~FPostEffect()
 {
-	(void)destroy();
+	(void)Destroy();
 }
 
-int FPostEffect::create(rpr_context context, rpr_post_effect_type type)
+int FPostEffect::Create(rpr_context context, rpr_post_effect_type type)
 {
 	int status;
 
-	status = destroy();
+	status = Destroy();
 	CHECK_WARNING(status, TEXT("destroy old post effect: failed"));
 
 	status = rprContextCreatePostEffect(context, type, &PostEffect);
@@ -56,7 +56,7 @@ int FPostEffect::create(rpr_context context, rpr_post_effect_type type)
 	return status;
 }
 
-int FPostEffect::destroy()
+int FPostEffect::Destroy()
 {
 	int status;
 
@@ -71,7 +71,7 @@ int FPostEffect::destroy()
 	return RPR_SUCCESS;
 }
 
-int FPostEffect::attach(rpr_context context)
+int FPostEffect::Attach(rpr_context context)
 {
 	int status;
 
@@ -88,7 +88,7 @@ int FPostEffect::attach(rpr_context context)
 	return RPR_SUCCESS;
 }
 
-int FPostEffect::detach(rpr_context context)
+int FPostEffect::Detach(rpr_context context)
 {
 	int status;
 
@@ -105,7 +105,7 @@ int FPostEffect::detach(rpr_context context)
 	return RPR_SUCCESS;
 }
 
-int FPostEffect::setFloat(const char* key, float value)
+int FPostEffect::SetFloat(const char* key, float value)
 {
 	int status;
 
@@ -115,7 +115,7 @@ int FPostEffect::setFloat(const char* key, float value)
 	return RPR_SUCCESS;
 }
 
-int FPostEffect::setUInt(const char* key, unsigned int value)
+int FPostEffect::SetUInt(const char* key, unsigned int value)
 {
 	int status;
 

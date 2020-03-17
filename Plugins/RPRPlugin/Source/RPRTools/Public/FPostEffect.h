@@ -27,14 +27,14 @@ public:
 	FPostEffect();
 	~FPostEffect();
 
-	int create(rpr_context context, rpr_post_effect_type type);
-	int destroy();
+	int Create(rpr_context context, rpr_post_effect_type type);
+	int Destroy();
 
-	int attach(rpr_context context);
-	int detach(rpr_context context);
+	int Attach(rpr_context context);
+	int Detach(rpr_context context);
 
-	int setFloat(const char* key, float value);
-	int setUInt(const char* key, unsigned int value);
+	int SetFloat(const char* key, float value);
+	int SetUInt(const char* key, unsigned int value);
 
 	operator bool() const { return PostEffect != nullptr; }
 
@@ -46,22 +46,22 @@ private:
 
 inline int ContextCreatePostEffect(rpr_context context, rpr_post_effect_type type, FPostEffect* out_post_effect)
 {
-	return out_post_effect->create(context, type);
+	return out_post_effect->Create(context, type);
 }
 
 inline int ContextAttachPostEffect(rpr_context context, FPostEffect* postEffect)
 {
-	return postEffect->attach(context);
+	return postEffect->Attach(context);
 }
 
 inline int ContextDetachPostEffect(rpr_context context, FPostEffect* postEffect)
 {
-	return postEffect->detach(context);
+	return postEffect->Detach(context);
 }
 
 inline int DestroyPostEffect(FPostEffect* postEffect)
 {
-	return postEffect->destroy();
+	return postEffect->Destroy();
 }
 
 } // namespace RPR

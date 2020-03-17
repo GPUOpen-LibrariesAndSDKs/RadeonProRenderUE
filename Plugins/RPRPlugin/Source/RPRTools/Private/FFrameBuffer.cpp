@@ -42,11 +42,11 @@ FFrameBuffer::~FFrameBuffer()
 {
 	int status;
 
-	status = destroy();
+	status = Destroy();
 	CHECK_WARNING(status, TEXT("FFramebuffer destructor failure"));
 }
 
-int FFrameBuffer::create(rpr_context context, rpr_framebuffer_format const format, rpr_framebuffer_desc const* fb_desc)
+int FFrameBuffer::Create(rpr_context context, rpr_framebuffer_format const format, rpr_framebuffer_desc const* fb_desc)
 {
 	int status;
 
@@ -54,7 +54,7 @@ int FFrameBuffer::create(rpr_context context, rpr_framebuffer_format const forma
 		CHECK_ERROR(RPR_ERROR_INVALID_CONTEXT, TEXT("nullptr context"));
 	}
 
-	status = destroy();
+	status = Destroy();
 	CHECK_WARNING(status, TEXT("destroy has some problem"));
 
 	status = rprContextCreateFrameBuffer(context, format, fb_desc, &FrameBuffer);
@@ -63,7 +63,7 @@ int FFrameBuffer::create(rpr_context context, rpr_framebuffer_format const forma
 	return RPR_SUCCESS;
 }
 
-int FFrameBuffer::destroy()
+int FFrameBuffer::Destroy()
 {
 	if (!FrameBuffer)
 		return RPR_SUCCESS;

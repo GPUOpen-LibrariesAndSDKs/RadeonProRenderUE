@@ -572,16 +572,16 @@ int FRPRRendererWorker::UpdatePostEffectSettings()
 	status = rprContextSetParameterByKey1f(m_RprContext, RPR_CONTEXT_TONE_MAPPING_PHOTO_LINEAR_FSTOP, settings->PhotolinearTonemapFStop);
 	CHECK_ERROR(status, TEXT("can't set context parameter: RPR_CONTEXT_TONE_MAPPING_PHOTO_LINEAR_FSTOP"));
 
-	status = m_RprSimpleTonemap.setFloat("exposure", settings->SimpleTonemapExposure);
+	status = m_RprSimpleTonemap.SetFloat("exposure", settings->SimpleTonemapExposure);
 	CHECK_ERROR(status, TEXT("can't set simple tonemap parameter: exposure"));
 
-	status = m_RprSimpleTonemap.setFloat("contrast", settings->SimpleTonemapContrast);
+	status = m_RprSimpleTonemap.SetFloat("contrast", settings->SimpleTonemapContrast);
 	CHECK_ERROR(status, TEXT("can't set simple tonemap parameter: contrast"));
 
-	status = m_RprWhiteBalance.setFloat("colortemp", settings->WhiteBalanceTemperature);
+	status = m_RprWhiteBalance.SetFloat("colortemp", settings->WhiteBalanceTemperature);
 	CHECK_ERROR(status, TEXT("can't set white balance parameter: colortemp"));
 
-	status = m_RprWhiteBalance.setUInt("colorspace", RPR_COLOR_SPACE_SRGB);
+	status = m_RprWhiteBalance.SetUInt("colorspace", RPR_COLOR_SPACE_SRGB);
 	CHECK_ERROR(status, TEXT("can't set white balance parameter: colorspace"));
 
 	return RPR_SUCCESS;

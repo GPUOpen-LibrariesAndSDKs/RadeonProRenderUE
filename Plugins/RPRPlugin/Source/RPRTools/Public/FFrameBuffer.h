@@ -27,8 +27,8 @@ public:
 	FFrameBuffer();
 	~FFrameBuffer();
 
-	int create(rpr_context context, rpr_framebuffer_format const format, rpr_framebuffer_desc const* fb_desc);
-	int destroy();
+	int Create(rpr_context context, rpr_framebuffer_format const format, rpr_framebuffer_desc const* fb_desc);
+	int Destroy();
 
 	operator bool() const { return FrameBuffer != nullptr; }
 
@@ -43,12 +43,12 @@ private:
 
 inline int ContextCreateFrameBuffer(rpr_context context, rpr_framebuffer_format const format, rpr_framebuffer_desc const* fb_desc, FFrameBuffer* out_fb)
 {
-	return out_fb->create(context, format, fb_desc);
+	return out_fb->Create(context, format, fb_desc);
 }
 
 inline int DestroyFrameBuffer(FFrameBuffer* buffer)
 {
-	return buffer->destroy();
+	return buffer->Destroy();
 }
 
 } // namespace RPR
