@@ -979,7 +979,7 @@ int FRPRRendererWorker::DestroyBuffers()
 
 	if (m_RprFrameBuffer) {
 		status = RPR::Context::UnSetAOV(m_RprContext, m_AOV);
-		CHECK_WARNING(status, TEXT("can't aov from context"));
+		CHECK_WARNING(status, TEXT("can't unset aov from context"));
 
 		status = DestroyFrameBuffer(&m_RprFrameBuffer);
 		CHECK_WARNING(status, TEXT("can't destroy rpr framebuffer"));
