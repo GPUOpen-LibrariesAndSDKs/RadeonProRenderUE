@@ -881,7 +881,7 @@ void	FRPRRendererWorker::EnableAdaptiveSampling()
 
 bool	FRPRRendererWorker::IsAdaptiveSamplingFinalized()
 {
-	rpr_uint activePixels = 1;
+	rpr_uint activePixels;
 	RPR::Context::GetInfo(m_RprContext, RPR_CONTEXT_ACTIVE_PIXEL_COUNT, sizeof(activePixels), &activePixels);
 
 	return activePixels == 0;
