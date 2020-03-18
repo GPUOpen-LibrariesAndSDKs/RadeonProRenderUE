@@ -147,7 +147,7 @@ public:
 	uint32		SamplingMin;
 
 	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
-	uint32       NoiseThreshold;
+	float		NoiseThreshold;
 
 	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
 	uint32		RayDepthMax;
@@ -196,6 +196,8 @@ public:
 
 	bool			IsHybrid;
 	ERenderType		CurrentRenderType;
+
+	bool			EnableAdaptiveSampling;
 
 public:
 

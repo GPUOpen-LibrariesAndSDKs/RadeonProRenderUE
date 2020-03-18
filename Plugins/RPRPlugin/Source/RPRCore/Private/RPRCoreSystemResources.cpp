@@ -259,6 +259,12 @@ bool FRPRCoreSystemResources::InitializeContextParameters()
 		ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_REFRACTION, settings->RayDepthRefraction, TEXT("MAX_DEPTH_REFRACTION"));
 		ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_GLOSSY_REFRACTION, settings->RayDepthGlossyRefraction, TEXT("MAX_DEPTH_GLOSSY_REFRACTION"));
 		ContextSetFloat(RPRContext, RPR_CONTEXT_RADIANCE_CLAMP, settings->RadianceClamp, TEXT("RADIANCE_CLAMP"));
+		if (settings->EnableAdaptiveSampling)
+		{
+			ContextSetUint(RPRContext, RPR_CONTEXT_ADAPTIVE_SAMPLING_TILE_SIZE, 4, TEXT("ADAPTIVE_SAMPLING_MIN_SPP"));
+			ContextSetFloat(RPRContext, RPR_CONTEXT_ADAPTIVE_SAMPLING_THRESHOLD, settings->NoiseThreshold, TEXT("ADAPTIVE_SAMPLING_THRESHOLD"));
+			ContextSetUint(RPRContext, RPR_CONTEXT_ADAPTIVE_SAMPLING_MIN_SPP, settings->SamplingMin, TEXT("ADAPTIVE_SAMPLING_MIN_SPP"));
+		}
 		break;
 	case Hybrid:
 		ContextSetUint(RPRContext, RPR_CONTEXT_MAX_RECURSION, 10, TEXT("MAX_RECURSION"));

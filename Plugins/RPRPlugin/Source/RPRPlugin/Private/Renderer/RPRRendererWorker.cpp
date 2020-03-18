@@ -403,6 +403,8 @@ int FRPRRendererWorker::ResizeFramebuffer()
 	DestroyFrameBuffer(&m_RprAovDepthResolvedBuffer);
 	DestroyFrameBuffer(&m_RprDiffuseAlbedoBuffer);
 	DestroyFrameBuffer(&m_RprDiffuseAlbedoResolvedBuffer);
+	DestroyFrameBuffer(&m_RprVarianceBuffer);
+	DestroyFrameBuffer(&m_RprVarianceResolvedBuffer);
 
 	m_RprFrameBufferFormat.num_components = 4;
 	m_RprFrameBufferFormat.type = RPR_COMPONENT_TYPE_FLOAT32;
@@ -425,14 +427,18 @@ int FRPRRendererWorker::ResizeFramebuffer()
 		ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprAovDepthResolvedBuffer)         != RPR_SUCCESS ||
 		ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprDiffuseAlbedoBuffer)            != RPR_SUCCESS ||
 		ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprDiffuseAlbedoResolvedBuffer)    != RPR_SUCCESS ||
-		RPR::Context::SetAOV(m_RprContext, RPR::EAOV::Color, m_RprColorFrameBuffer)                                                    != RPR_SUCCESS ||
-		RPR::Context::SetAOV(m_RprContext, m_AOV, m_RprFrameBuffer)                                                                    != RPR_SUCCESS)
+
+		RPR::Context::SetAOV(m_RprContext, RPR::EAOV::Color, m_RprColorFrameBuffer)                                                 != RPR_SUCCESS ||
+		RPR::Context::SetAOV(m_RprContext, m_AOV, m_RprFrameBuffer)                                                                 != RPR_SUCCESS)
 	{
 		UE_LOG(LogRPRRenderer, Error, TEXT("RPR FrameBuffer creation failed"));
 		RPR::Error::LogLastError(m_RprContext);
 	}
 	else
 		UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully created (%d,%d)"), m_Width, m_Height);
+
+	if (!RPR::GetSettings()->IsHybrid && RPR::GetSettings()->EnableAdaptiveSampling)
+		EnableAdaptiveSampling();
 
 	m_Resize = false;
 	m_ClearFramebuffer = true;
@@ -443,6 +449,8 @@ int FRPRRendererWorker::ResizeFramebuffer()
 
 void	FRPRRendererWorker::ClearFramebuffer()
 {
+	bool allIsGood = true;
+
 	if (rprFrameBufferClear(m_RprFrameBuffer)                    != RPR_SUCCESS ||
 		rprFrameBufferClear(m_RprResolvedFrameBuffer)            != RPR_SUCCESS ||
 		rprFrameBufferClear(m_RprColorFrameBuffer)               != RPR_SUCCESS ||
@@ -455,10 +463,21 @@ void	FRPRRendererWorker::ClearFramebuffer()
 		rprFrameBufferClear(m_RprDiffuseAlbedoBuffer)            != RPR_SUCCESS ||
 		rprFrameBufferClear(m_RprDiffuseAlbedoResolvedBuffer)    != RPR_SUCCESS)
 	{
+		allIsGood = false;
 		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't clear framebuffer"));
 		RPR::Error::LogLastError(m_RprContext);
 	}
-	else
+
+	if (!RPR::GetSettings()->IsHybrid)
+		if (rprFrameBufferClear(m_RprVarianceBuffer)         != RPR_SUCCESS ||
+			rprFrameBufferClear(m_RprVarianceResolvedBuffer) != RPR_SUCCESS)
+		{
+			allIsGood = false;
+			UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't clear variance framebuffers"));
+			RPR::Error::LogLastError(m_RprContext);
+		}
+
+	if (allIsGood)
 	{
 		m_CurrentIteration = 0;
 		m_PreviousRenderedIteration = 0;
@@ -844,30 +863,62 @@ int	FRPRRendererWorker::RunDenoiser()
 	return RPR_SUCCESS;
 }
 
+void	FRPRRendererWorker::EnableAdaptiveSampling()
+{
+	if (ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprVarianceBuffer)         != RPR_SUCCESS ||
+		ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprVarianceResolvedBuffer) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRRenderer, Error, TEXT("RPR VarianceBuffer creation failed"));
+		RPR::Error::LogLastError(m_RprContext);
+	}
+
+	if (RPR::Context::SetAOV(m_RprContext, RPR::EAOV::Variance, m_RprVarianceBuffer) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRRenderer, Error, TEXT("Can't set AOV Variance"));
+		RPR::Error::LogLastError(m_RprContext);
+	}
+}
+
+bool	FRPRRendererWorker::IsAdaptiveSamplingFinalized()
+{
+	rpr_uint activePixels = 1;
+	RPR::Context::GetInfo(m_RprContext, RPR_CONTEXT_ACTIVE_PIXEL_COUNT, sizeof(activePixels), &activePixels);
+
+	return activePixels == 0;
+}
+
 uint32	FRPRRendererWorker::Run()
 {
 	URPRSettings *settings = RPR::GetSettings();
 
 	bool denoised = false;
-	int status;
 
 	while (m_StopTaskCounter.GetValue() == 0)
 	{
 		const bool isPaused = PreRenderLoop();
+		const bool applyAdapitveSampling = !settings->IsHybrid && settings->EnableAdaptiveSampling && m_CurrentIteration > settings->SamplingMin;
+		const bool adaptiveSamplingFinalized = applyAdapitveSampling ? IsAdaptiveSamplingFinalized() : false;
 
-		if (isPaused || m_CurrentIteration >= settings->MaximumRenderIterations)
+		const uint32 iterationCeil =
+			(applyAdapitveSampling && settings->MaximumRenderIterations < settings->SamplingMax)
+			? settings->SamplingMax
+			: settings->MaximumRenderIterations;
+
+		const bool iterationCeilReached = m_CurrentIteration >= iterationCeil;
+
+		if (isPaused || iterationCeilReached || adaptiveSamplingFinalized)
 		{
-			if (settings->UseDenoiser && !denoised && m_CurrentIteration >= settings->MaximumRenderIterations)
+			if (settings->UseDenoiser && !denoised && (iterationCeilReached || adaptiveSamplingFinalized))
 			{
-				status = ApplyDenoiser();
-				if (status == RPR_SUCCESS) {
+				const bool isSuccess = ApplyDenoiser() == RPR_SUCCESS;
+
+				if (isSuccess) {
 					UE_LOG(LogRPRRenderer, Log, TEXT("Denoiser applied"));
-					denoised = true;
+				} else {
+					UE_LOG(LogRPRRenderer, Log, TEXT("Denoiser applying failed. Ignore"));
 				}
-				else {
-					UE_LOG(LogRPRRenderer, Log, TEXT("Denoiser apply failed. Ignore"));
-					denoised = false;
-				}
+
+				denoised = isSuccess;
 			}
 			FPlatformProcess::Sleep(0.1f);
 			continue;
@@ -876,6 +927,12 @@ uint32	FRPRRendererWorker::Run()
 		{
 			{
 				SCOPE_CYCLE_COUNTER(STAT_ProRender_Render);
+
+				if (!settings->IsHybrid)
+				{
+					int status = rprContextSetParameterByKey1u(m_RprContext, RPR_CONTEXT_FRAMECOUNT, m_CurrentIteration);
+					CHECK_WARNING(status, TEXT("Can't set CONTEXT_FRAMECOUNT"));
+				}
 
 				// Render + Resolve
 				if (RPR::Context::Render(m_RprContext) != RPR_SUCCESS)
@@ -889,18 +946,26 @@ uint32	FRPRRendererWorker::Run()
 			{
 				SCOPE_CYCLE_COUNTER(STAT_ProRender_Resolve);
 				if (!settings->IsHybrid)
-					if (RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprFrameBuffer, m_RprResolvedFrameBuffer)                       != RPR_SUCCESS ||
-						RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprShadingNormalBuffer, m_RprShadingNormalResolvedBuffer)       != RPR_SUCCESS ||
-						RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprAovDepthBuffer, m_RprAovDepthResolvedBuffer)                 != RPR_SUCCESS ||
-						RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprDiffuseAlbedoBuffer, m_RprDiffuseAlbedoResolvedBuffer)       != RPR_SUCCESS ||
-						RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprWorldCoordinatesBuffer, m_RprWorldCoordinatesResolvedBuffer) != RPR_SUCCESS ||
-						RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprAovDepthBuffer, m_RprAovDepthResolvedBuffer)                 != RPR_SUCCESS ||
-						RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprDiffuseAlbedoBuffer, m_RprDiffuseAlbedoResolvedBuffer)       != RPR_SUCCESS)
+				{
+					if (RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprFrameBuffer, m_RprResolvedFrameBuffer)                         != RPR_SUCCESS ||
+						RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprAovDepthBuffer, m_RprAovDepthResolvedBuffer)                   != RPR_SUCCESS ||
+						RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprShadingNormalBuffer, m_RprShadingNormalResolvedBuffer)         != RPR_SUCCESS ||
+						RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprWorldCoordinatesBuffer, m_RprWorldCoordinatesResolvedBuffer)   != RPR_SUCCESS ||
+						RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprDiffuseAlbedoBuffer, m_RprDiffuseAlbedoResolvedBuffer)         != RPR_SUCCESS)
 					{
 						RPR::Error::LogLastError(m_RprContext);
 						m_RenderLock.Unlock();
 						UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't resolve framebuffer at iteration %d, stopping.."), m_CurrentIteration);
 					}
+
+					if (settings->EnableAdaptiveSampling)
+						if (RPR::Context::ResolveFrameBuffer(m_RprContext, m_RprVarianceBuffer, m_RprVarianceResolvedBuffer) != RPR_SUCCESS)
+						{
+							RPR::Error::LogLastError(m_RprContext);
+							m_RenderLock.Unlock();
+							UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't resolve Adaptive Sampling framebuffer at iteration %d, stopping.."), m_CurrentIteration);
+						}
+				}
 			}
 			m_RenderLock.Unlock();
 
@@ -1018,7 +1083,18 @@ int FRPRRendererWorker::DestroyBuffers()
 	CHECK_WARNING(status, TEXT("can't destroy diffuse albedo framebuffer"));
 
 	status = DestroyFrameBuffer(&m_RprDiffuseAlbedoResolvedBuffer);
-	CHECK_WARNING(status, TEXT("can't destroy resolved framebuffer"));
+	CHECK_WARNING(status, TEXT("can't destroy diffuse albedo resolved framebuffer"));
+
+	if (m_RprVarianceBuffer) {
+		status = RPR::Context::UnSetAOV(m_RprContext, RPR::EAOV::Variance);
+		CHECK_WARNING(status, TEXT("can't unset variance aov buffer"));
+
+		status = DestroyFrameBuffer(&m_RprVarianceBuffer);
+		CHECK_WARNING(status, TEXT("can't destroy rpr variance framebuffer"));
+	}
+
+	status = DestroyFrameBuffer(&m_RprVarianceResolvedBuffer);
+	CHECK_WARNING(status, TEXT("can't destroy variance resolved framebuffer"));
 
 	return RPR_SUCCESS;
 }

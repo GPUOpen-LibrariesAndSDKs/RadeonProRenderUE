@@ -86,6 +86,8 @@ private:
 	int			InitializeDenoiser();
 	int			CreateDenoiserFilter(RifFilterType type);
 	int 		RunDenoiser();
+	void		EnableAdaptiveSampling();
+	bool		IsAdaptiveSamplingFinalized();
 
 private:
 
@@ -123,6 +125,8 @@ private:
 	RPR::FFrameBuffer			m_RprAovDepthResolvedBuffer;
 	RPR::FFrameBuffer			m_RprDiffuseAlbedoBuffer;
 	RPR::FFrameBuffer			m_RprDiffuseAlbedoResolvedBuffer;
+	RPR::FFrameBuffer			m_RprVarianceBuffer;
+	RPR::FFrameBuffer			m_RprVarianceResolvedBuffer;
 
 
 	RPR::FPostEffect            m_RprWhiteBalance;
