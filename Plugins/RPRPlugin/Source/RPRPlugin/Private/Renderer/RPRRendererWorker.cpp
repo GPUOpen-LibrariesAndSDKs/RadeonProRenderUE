@@ -54,8 +54,8 @@ DEFINE_LOG_CATEGORY_STATIC(LogRPRRenderer, Log, All);
 		UE_LOG(LogRPRRenderer, Warning, msg); \
 	}
 
-FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene rprScene, uint32 width, uint32 height, uint32 numDevices, ARPRScene *scene) :
-	m_Scene(scene)
+FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene rprScene, uint32 width, uint32 height, uint32 numDevices, ARPRScene *scene)
+:	m_Scene(scene)
 ,	m_CurrentIteration(0)
 ,	m_PreviousRenderedIteration(0)
 ,	m_NumDevices(numDevices)
