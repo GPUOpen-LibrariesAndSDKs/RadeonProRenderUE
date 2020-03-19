@@ -51,6 +51,8 @@ public:
 	void			SaveToFile(const FString &filename);
 	void			SetQualitySettings(ERPRQualitySettings qualitySettings);
 	int 			SetDenoiserSettings(ERPRDenoiserOption denoiserOption);
+	void			SetSamplingMinSPP();
+	void			SetSamplingNoiseThreshold();
 	uint32			Iteration() const { return m_CurrentIteration; }
 	void			SetPaused(bool paused);
 	void			SetAOV(RPR::EAOV AOV);
@@ -67,6 +69,10 @@ public:
 	FCriticalSection	m_DataLock;
 
 private:
+
+	void		LockedContextSetParameterAndRestartRender(const bool isFloat, const rpr_int param, const float value, const FString msgSucces, const FString msgFailure);
+	void		LockedContextSetParameterAndRestartRender1u(const rpr_int param, const uint32 value, const FString msgSucces, const FString msgFailure);
+	void		LockedContextSetParameterAndRestartRender1f(const rpr_int param, const float value, const FString msgSucces, const FString msgFailure);
 
 	int         CreatePostEffectSettings();
 	int         UpdatePostEffectSettings();

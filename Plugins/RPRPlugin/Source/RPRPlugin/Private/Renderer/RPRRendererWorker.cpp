@@ -237,17 +237,41 @@ void	FRPRRendererWorker::SetQualitySettings(ERPRQualitySettings qualitySettings)
 		break;
 	}
 	}
-	m_RenderLock.Lock();
-	if (rprContextSetParameterByKey1u(m_RprContext, RPR_CONTEXT_RENDER_QUALITY, hybridRenderQuality) != RPR_SUCCESS)
-	{
-		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't set quality settings for Hybrid context"));
-	}
-	else
-	{
-		RestartRender();
-		UE_LOG(LogRPRRenderer, Log, TEXT("Quality settings of Hybrid render successfully modified"));
-	}
-	m_RenderLock.Unlock();
+
+	LockedContextSetParameterAndRestartRender1u(
+		RPR_CONTEXT_RENDER_QUALITY,
+		hybridRenderQuality,
+		TEXT("Quality settings of Hybrid render"),
+		TEXT("Quality settings of Hybrid render")
+	);
+}
+
+void FRPRRendererWorker::SetSamplingMinSPP()
+{
+	auto settings = RPR::GetSettings();
+	if (settings->IsHybrid)
+		return;
+
+	LockedContextSetParameterAndRestartRender1u(
+		RPR_CONTEXT_ADAPTIVE_SAMPLING_MIN_SPP,
+		settings->SamplingMin,
+		TEXT("Sampling Min"),
+		TEXT("ADAPTIVE_SAMPLING_MIN_SPP")
+	);
+}
+
+void FRPRRendererWorker::SetSamplingNoiseThreshold()
+{
+	auto settings = RPR::GetSettings();
+	if (settings->IsHybrid)
+		return;
+
+	LockedContextSetParameterAndRestartRender1f(
+		RPR_CONTEXT_ADAPTIVE_SAMPLING_THRESHOLD,
+		settings->NoiseThreshold,
+		TEXT("Sampling Noise Threshold"),
+		TEXT("ADAPTIVE_SAMPLING_THRESHOLD")
+	);
 }
 
 int FRPRRendererWorker::SetDenoiserSettings(ERPRDenoiserOption denoiserOption)
@@ -449,7 +473,7 @@ int FRPRRendererWorker::ResizeFramebuffer()
 
 void	FRPRRendererWorker::ClearFramebuffer()
 {
-	bool allIsGood = true;
+	bool isFramebufferClearingError = false;
 
 	if (rprFrameBufferClear(m_RprFrameBuffer)                    != RPR_SUCCESS ||
 		rprFrameBufferClear(m_RprResolvedFrameBuffer)            != RPR_SUCCESS ||
@@ -463,21 +487,21 @@ void	FRPRRendererWorker::ClearFramebuffer()
 		rprFrameBufferClear(m_RprDiffuseAlbedoBuffer)            != RPR_SUCCESS ||
 		rprFrameBufferClear(m_RprDiffuseAlbedoResolvedBuffer)    != RPR_SUCCESS)
 	{
-		allIsGood = false;
+		isFramebufferClearingError = true;
 		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't clear framebuffer"));
 		RPR::Error::LogLastError(m_RprContext);
 	}
 
 	if (!RPR::GetSettings()->IsHybrid)
-		if (rprFrameBufferClear(m_RprVarianceBuffer)         != RPR_SUCCESS ||
+		if (rprFrameBufferClear(m_RprVarianceBuffer) != RPR_SUCCESS ||
 			rprFrameBufferClear(m_RprVarianceResolvedBuffer) != RPR_SUCCESS)
 		{
-			allIsGood = false;
+			isFramebufferClearingError = true;
 			UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't clear variance framebuffers"));
 			RPR::Error::LogLastError(m_RprContext);
 		}
 
-	if (allIsGood)
+	if (!isFramebufferClearingError)
 	{
 		m_CurrentIteration = 0;
 		m_PreviousRenderedIteration = 0;
@@ -487,6 +511,43 @@ void	FRPRRendererWorker::ClearFramebuffer()
 #endif
 	}
 }
+
+void		FRPRRendererWorker::LockedContextSetParameterAndRestartRender(const bool isFloat, const rpr_int param, const float value, const FString msgSucces, const FString msgFailure)
+{
+	if (m_RprContext == nullptr)
+		return;
+
+	m_RenderLock.Lock();
+
+	rpr_int status;
+	if (isFloat)
+		status = rprContextSetParameterByKey1f(m_RprContext, param, value);
+	else
+		status = rprContextSetParameterByKey1u(m_RprContext, param, value);
+
+	if (status != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't set %s"), *msgFailure);
+	}
+	else
+	{
+		RestartRender();
+		UE_LOG(LogRPRRenderer, Log, TEXT("Set %s successfully done"), *msgSucces);
+	}
+
+	m_RenderLock.Unlock();
+}
+
+void		FRPRRendererWorker::LockedContextSetParameterAndRestartRender1u(const rpr_int param, const uint32 value, const FString msgSucces, const FString msgFailure)
+{
+	LockedContextSetParameterAndRestartRender(false, param, value, msgSucces, msgFailure);
+}
+
+void		FRPRRendererWorker::LockedContextSetParameterAndRestartRender1f(const rpr_int param, const float value, const FString msgSucces, const FString msgFailure)
+{
+	LockedContextSetParameterAndRestartRender(true, param, value, msgSucces, msgFailure);
+}
+
 
 int FRPRRendererWorker::CreatePostEffectSettings()
 {
@@ -896,11 +957,11 @@ uint32	FRPRRendererWorker::Run()
 	while (m_StopTaskCounter.GetValue() == 0)
 	{
 		const bool isPaused = PreRenderLoop();
-		const bool applyAdapitveSampling = !settings->IsHybrid && settings->EnableAdaptiveSampling && m_CurrentIteration > settings->SamplingMin;
-		const bool adaptiveSamplingFinalized = applyAdapitveSampling ? IsAdaptiveSamplingFinalized() : false;
+		const bool applyAdaptiveSampling = !settings->IsHybrid && settings->EnableAdaptiveSampling && m_CurrentIteration > settings->SamplingMin;
+		const bool adaptiveSamplingFinalized = applyAdaptiveSampling ? IsAdaptiveSamplingFinalized() : false;
 
 		const uint32 iterationCeil =
-			(applyAdapitveSampling && settings->MaximumRenderIterations < settings->SamplingMax)
+			(applyAdaptiveSampling && settings->MaximumRenderIterations < settings->SamplingMax)
 			? settings->SamplingMax
 			: settings->MaximumRenderIterations;
 

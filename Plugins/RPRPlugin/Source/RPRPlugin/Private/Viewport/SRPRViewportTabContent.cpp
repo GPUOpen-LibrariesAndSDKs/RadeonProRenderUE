@@ -520,6 +520,10 @@ void	SRPRViewportTabContent::OnSampleMinChanged(uint32 newValue)
 {
 	m_Settings->SamplingMin = newValue;
 	m_Settings->SaveConfig(); // Profile this, can be pretty intense with sliders
+
+	if (m_Settings->EnableAdaptiveSampling)
+		if (auto scene = m_Plugin->GetCurrentScene())
+			scene->SetSamplingMinSPP();
 }
 
 void	SRPRViewportTabContent::OnSampleMaxChanged(uint32 newValue)
@@ -531,7 +535,11 @@ void	SRPRViewportTabContent::OnSampleMaxChanged(uint32 newValue)
 void	SRPRViewportTabContent::OnNoiseThresholdChanged(float newValue)
 {
 	m_Settings->NoiseThreshold = newValue;
+	m_Settings->EnableAdaptiveSampling = newValue > 0.0001f;
 	m_Settings->SaveConfig(); // Profile this, can be pretty intense with sliders
+
+	if (auto scene = m_Plugin->GetCurrentScene())
+		scene->SetSamplingNoiseThreshold();
 }
 
 void	SRPRViewportTabContent::OnRaycastEpsilonValueChanged(float newValue)

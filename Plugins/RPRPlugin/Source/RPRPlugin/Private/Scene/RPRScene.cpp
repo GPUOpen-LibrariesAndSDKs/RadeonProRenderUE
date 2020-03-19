@@ -159,6 +159,20 @@ void	ARPRScene::SetQualitySettings(ERPRQualitySettings qualitySettings)
 	OnRender(m_Plugin->m_ObjectsToBuild);
 }
 
+void	ARPRScene::SetSamplingMinSPP()
+{
+	if (!m_RendererWorker.IsValid())
+		return;
+	m_RendererWorker->SetSamplingMinSPP();
+}
+
+void	ARPRScene::SetSamplingNoiseThreshold()
+{
+	if (!m_RendererWorker.IsValid())
+		return;
+	m_RendererWorker->SetSamplingNoiseThreshold();
+}
+
 void	ARPRScene::ApplyDenoiser()
 {
 	if (!m_RendererWorker.IsValid())
