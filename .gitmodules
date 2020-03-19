@@ -3,7 +3,7 @@
 	url = git@github.com:Radeon-Pro/RadeonProRenderSDK.git
 [submodule "Plugins/RPRPlugin/ThirdParty/gli"]
 	path = Plugins/RPRPlugin/ThirdParty/gli
-	url = git@github.com:g-truc/gli.git
+	url = git@github.com:feniksa/gli.git
 	branch = master
 [submodule "Plugins/RPRPlugin/ThirdParty/glm"]
 	path = Plugins/RPRPlugin/ThirdParty/glm
