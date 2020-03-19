@@ -52,22 +52,22 @@ FString	FRPRPluginModule::s_URLRadeonProRender = "https://pro.radeon.com/en-us/s
 #endif
 
 FRPRPluginModule::FRPRPluginModule()
-:	m_ActiveCameraName("")
+:	m_ObjectBeingBuilt(0)
+,	m_ObjectsToBuild()
+,	m_ActiveCameraName("")
+,	m_RPRPaused(true)
+,	m_CleanViewport(false)
 ,	m_Viewport(NULL)
-,	m_RenderTexture(NULL)
-,	m_GameWorld(NULL)
-,	m_EditorWorld(NULL)
 #if WITH_EDITOR
 ,	m_Extender(NULL)
 #endif
-,	m_ObjectBeingBuilt(0)
-,	m_ObjectsToBuild()
-,	m_RPRPaused(true)
+,	m_RenderTexture(NULL)
+,	m_GameWorld(NULL)
+,	m_EditorWorld(NULL)
+,	m_Zoom(0)
 ,	m_OrbitDelta(FIntPoint::ZeroValue)
 ,	m_PanningDelta(FIntPoint::ZeroValue)
-,	m_Zoom(0)
 ,	m_OrbitEnabled(false)
-,	m_CleanViewport(false)
 ,	m_Loaded(false)
 ,	m_AOVMode(RPR::EAOV::Color)
 {
