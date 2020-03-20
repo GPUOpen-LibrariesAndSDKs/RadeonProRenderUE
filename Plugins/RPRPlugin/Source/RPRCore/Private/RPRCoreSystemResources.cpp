@@ -214,7 +214,16 @@ bool FRPRCoreSystemResources::InitializeContext()
 	RPR::FResult result;
 	URPRSettings* settings = RPR::GetSettings();
 
-	result = RPR::Context::Create(RPR_API_VERSION, CurrentPluginId, creationFlags, nullptr, settings->RenderCachePath, RPRContext);
+	TArray<rpr_context_properties> contextProperties;
+	if (!settings->IsHybrid)
+	{
+		contextProperties.Push((rpr_context_properties)RPR_CONTEXT_SAMPLER_TYPE);
+		contextProperties.Push((rpr_context_properties)RPR_CONTEXT_SAMPLER_TYPE_CMJ);
+	}
+	contextProperties.Push((rpr_context_properties)0);
+
+	result = RPR::Context::Create(RPR_API_VERSION, CurrentPluginId, creationFlags, contextProperties.GetData(), settings->RenderCachePath, RPRContext);
+
 	if (RPR::IsResultFailed(result))
 	{
 		NumDevicesCompatible = 0;
@@ -259,6 +268,9 @@ bool FRPRCoreSystemResources::InitializeContextParameters()
 		ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_REFRACTION, settings->RayDepthRefraction, TEXT("MAX_DEPTH_REFRACTION"));
 		ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_GLOSSY_REFRACTION, settings->RayDepthGlossyRefraction, TEXT("MAX_DEPTH_GLOSSY_REFRACTION"));
 		ContextSetFloat(RPRContext, RPR_CONTEXT_RADIANCE_CLAMP, settings->RadianceClamp, TEXT("RADIANCE_CLAMP"));
+		ContextSetUint(RPRContext, RPR_CONTEXT_ADAPTIVE_SAMPLING_TILE_SIZE, 4, TEXT("ADAPTIVE_SAMPLING_TILE_SIZE"));
+		ContextSetFloat(RPRContext, RPR_CONTEXT_ADAPTIVE_SAMPLING_THRESHOLD, settings->NoiseThreshold, TEXT("ADAPTIVE_SAMPLING_THRESHOLD"));
+		ContextSetUint(RPRContext, RPR_CONTEXT_ADAPTIVE_SAMPLING_MIN_SPP, settings->SamplingMin, TEXT("ADAPTIVE_SAMPLING_MIN_SPP"));
 		break;
 	case Hybrid:
 		ContextSetUint(RPRContext, RPR_CONTEXT_MAX_RECURSION, 10, TEXT("MAX_RECURSION"));

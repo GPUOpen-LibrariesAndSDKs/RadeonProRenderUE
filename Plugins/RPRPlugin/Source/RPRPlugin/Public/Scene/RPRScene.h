@@ -65,6 +65,8 @@ public:
 	void	FillCameraNames(TArray<TSharedPtr<FString>> &outCameraNames);
 	void	SetActiveCamera(const FString &cameraName);
 	void	SetQualitySettings(ERPRQualitySettings qualitySettings);
+	void	SetSamplingMinSPP();
+	void	SetSamplingNoiseThreshold();
 	void	ApplyDenoiser();
 	uint32	GetRenderIteration() const;
 

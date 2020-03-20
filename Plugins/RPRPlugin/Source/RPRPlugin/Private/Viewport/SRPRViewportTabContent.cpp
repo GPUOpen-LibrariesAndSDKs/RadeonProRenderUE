@@ -491,6 +491,21 @@ void	SRPRViewportTabContent::OnGammaCorrectionValueChanged(float newValue)
 	m_Settings->SaveConfig(); // Profile this, can be pretty intense with sliders
 }
 
+TOptional<uint32>	SRPRViewportTabContent::GetSampleMin() const
+{
+	return m_Settings->SamplingMin;
+}
+
+TOptional<uint32>	SRPRViewportTabContent::GetSampleMax() const
+{
+	return m_Settings->SamplingMax;
+}
+
+TOptional<float>	SRPRViewportTabContent::GetNoiseThreshold() const
+{
+	return m_Settings->NoiseThreshold;
+}
+
 TOptional<float>	SRPRViewportTabContent::GetRaycastEpsilon() const
 {
 	return m_Settings->RaycastEpsilon;
@@ -499,6 +514,32 @@ TOptional<float>	SRPRViewportTabContent::GetRaycastEpsilon() const
 TOptional<ECheckBoxState>	SRPRViewportTabContent::GetUseDenoiser() const
 {
 	return m_Settings->UseDenoiser ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+}
+
+void	SRPRViewportTabContent::OnSampleMinChanged(uint32 newValue)
+{
+	m_Settings->SamplingMin = newValue;
+	m_Settings->SaveConfig(); // Profile this, can be pretty intense with sliders
+
+	if (m_Settings->EnableAdaptiveSampling)
+		if (auto scene = m_Plugin->GetCurrentScene())
+			scene->SetSamplingMinSPP();
+}
+
+void	SRPRViewportTabContent::OnSampleMaxChanged(uint32 newValue)
+{
+	m_Settings->SamplingMax = newValue;
+	m_Settings->SaveConfig(); // Profile this, can be pretty intense with sliders
+}
+
+void	SRPRViewportTabContent::OnNoiseThresholdChanged(float newValue)
+{
+	m_Settings->NoiseThreshold = newValue;
+	m_Settings->EnableAdaptiveSampling = newValue > 0.0001f;
+	m_Settings->SaveConfig(); // Profile this, can be pretty intense with sliders
+
+	if (auto scene = m_Plugin->GetCurrentScene())
+		scene->SetSamplingNoiseThreshold();
 }
 
 void	SRPRViewportTabContent::OnRaycastEpsilonValueChanged(float newValue)
@@ -1073,6 +1114,86 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 							.MaxValue(10.0f)
 							.MinSliderValue(0.0f)
 							.MaxSliderValue(10.0f)
+							.AllowSpin(true)
+						]
+					]
+					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
+					[
+						SNew(STextBlock)
+						.Text(LOCTEXT("AdaptiveSamplingTitle", "Adaptive Sampling"))
+					]
+					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot().AutoWidth()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("SampleMinTitle", "Sample Min  "))
+						]
+						+ SHorizontalBox::Slot()
+						.FillWidth(1.0f)
+						[
+							SNew(SSpacer)
+						]
+						+ SHorizontalBox::Slot().AutoWidth()
+						[
+							SNew(SNumericEntryBox<uint32>)
+							.Value(this, &SRPRViewportTabContent::GetSampleMin)
+							.OnValueChanged(this, &SRPRViewportTabContent::OnSampleMinChanged)
+							.MinValue(16)
+							.MaxValue(100000)
+							.MinSliderValue(20)
+							.MaxSliderValue(100000)
+							.AllowSpin(true)
+						]
+					]
+					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot().AutoWidth()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("SampleMaxTitle", "Sample Max  "))
+						]
+						+ SHorizontalBox::Slot()
+						.FillWidth(1.0f)
+						[
+							SNew(SSpacer)
+						]
+						+ SHorizontalBox::Slot().AutoWidth()
+						[
+							SNew(SNumericEntryBox<uint32>)
+							.Value(this, &SRPRViewportTabContent::GetSampleMax)
+							.OnValueChanged(this, &SRPRViewportTabContent::OnSampleMaxChanged)
+							.MinValue(64)
+							.MaxValue(200000)
+							.MinSliderValue(64)
+							.MaxSliderValue(200000)
+							.AllowSpin(true)
+						]
+					]
+					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot().AutoWidth()
+						[
+							SNew(STextBlock)
+							.Text(LOCTEXT("NoiseThresholdTitle", "Noise Threshold  "))
+						]
+						+ SHorizontalBox::Slot()
+						.FillWidth(1.0f)
+						[
+							SNew(SSpacer)
+						]
+						+ SHorizontalBox::Slot().AutoWidth()
+						[
+							SNew(SNumericEntryBox<float>)
+							.Value(this, &SRPRViewportTabContent::GetNoiseThreshold)
+							.OnValueChanged(this, &SRPRViewportTabContent::OnNoiseThresholdChanged)
+							.MinValue(0.0f)
+							.MaxValue(1.0f)
+							.MinSliderValue(0.0f)
+							.MaxSliderValue(1.0f)
 							.AllowSpin(true)
 						]
 					]

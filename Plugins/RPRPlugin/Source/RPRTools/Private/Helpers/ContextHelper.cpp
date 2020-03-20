@@ -61,28 +61,51 @@ namespace RPR
 			return status;
 		}
 
-		FResult UnSetAOV(FContext Context, RPR::EAOV AOV)
+		FResult SetAOV(FContext Context, RPR::EAOV AOV, FFrameBuffer& FrameBuffer)
 		{
-			RPR::FResult status = rprContextSetAOV(Context, (rpr_aov) AOV, nullptr);
+			RPR::FResult status = rprContextSetAOV(Context, (rpr_aov)AOV, FrameBuffer.get());
 
-			UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprContextSetAOV(context=%p, AOV=%d) -> %d"),
+			UE_LOG(
+				LogRPRTools_Step,
+				Verbose,
+				TEXT("rprContextSetAOV(context=%p, AOV=%d, framebuffer=%p) -> %d"),
 				Context,
-				(uint8) AOV,
-				status);
+				(uint8)AOV,
+				FrameBuffer.get(),
+				status
+			);
 
 			return status;
 		}
 
-
-		FResult SetAOV(FContext Context, RPR::EAOV AOV, FFrameBuffer& FrameBuffer)
+		FResult UnSetAOV(FContext Context, RPR::EAOV AOV)
 		{
-			RPR::FResult status = rprContextSetAOV(Context, (rpr_aov) AOV, FrameBuffer.get());
+			RPR::FResult status = rprContextSetAOV(Context, (rpr_aov)AOV, nullptr);
 
-			UE_LOG(LogRPRTools_Step, Verbose, TEXT("rprContextSetAOV(context=%p, AOV=%d, framebuffer=%p) -> %d"),
+			UE_LOG(
+				LogRPRTools_Step,
+				Verbose,
+				TEXT("rprContextSetAOV(context=%p, AOV=%d) -> %d"),
 				Context,
-				(uint8) AOV,
-				FrameBuffer.get(),
-				status);
+				(uint8)AOV,
+				status
+			);
+
+			return status;
+		}
+
+		FResult GetInfo(FContext context, rpr_int param, size_t outBufferSize, void* outBuffer, size_t* returnedDataSize)
+		{
+			FResult status = rprContextGetInfo(context, param, outBufferSize, outBuffer, returnedDataSize);
+
+			UE_LOG(
+				LogRPRTools_Step,
+				Verbose,
+				TEXT("rprContextGetInfo(context=%p, context_info=%d) -> %d"),
+				context,
+				param,
+				status
+			);
 
 			return status;
 		}
@@ -167,7 +190,7 @@ namespace RPR
 			{
 				return (rprContextSetParameterByKey1f(Context, ParamName, Value));
 			}
-		}
+		} // namespace Parameters
 
 		namespace MaterialSystem
 		{
@@ -175,7 +198,7 @@ namespace RPR
 			{
 				return (rprContextCreateMaterialSystem(Context, Type, &OutMaterialSystem));
 			}
-		}
+		} // namespace MaterialSystem
 
-	}
+	} // namespace Context
 }

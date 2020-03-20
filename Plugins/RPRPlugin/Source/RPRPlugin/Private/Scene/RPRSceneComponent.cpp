@@ -26,8 +26,8 @@ URPRSceneComponent::URPRSceneComponent()
 :	Scene(NULL)
 ,	m_Built(false)
 ,	m_Sync(true)
-,	m_RebuildFlags(0)
 ,	m_Plugin(NULL)
+,	m_RebuildFlags(0)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	bTickInEditor = true;

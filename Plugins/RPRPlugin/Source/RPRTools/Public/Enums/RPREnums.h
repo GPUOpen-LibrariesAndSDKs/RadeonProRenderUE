@@ -318,7 +318,8 @@ namespace RPR
 		LightGroup1 = RPR_AOV_LIGHT_GROUP1,
 		LightGroup2 = RPR_AOV_LIGHT_GROUP2,
 		LightGroup3 = RPR_AOV_LIGHT_GROUP3,
-		Max = RPR_AOV_MAX
+		Max = RPR_AOV_MAX,
+		Variance = RPR_AOV_VARIANCE
 	};
 
 	enum class ESceneInfo
@@ -328,7 +329,7 @@ namespace RPR
 		ShapeList 							= RPR_SCENE_SHAPE_LIST,
 		LightList 							= RPR_SCENE_LIGHT_LIST,
 		Camera 								= RPR_SCENE_CAMERA,
-		BackgroundImage 					= RPR_SCENE_BACKGROUND_IMAGE,
+		BackgroundImage 						= RPR_SCENE_BACKGROUND_IMAGE,
 		EnvironmentOverrideReflection 		= RPR_SCENE_ENVIRONMENT_OVERRIDE_REFLECTION,
 		EnvironmentOverrideRefraction 		= RPR_SCENE_ENVIRONMENT_OVERRIDE_REFRACTION,
 		EnvironmentOverrideTransparency 	= RPR_SCENE_ENVIRONMENT_OVERRIDE_TRANSPARENCY,

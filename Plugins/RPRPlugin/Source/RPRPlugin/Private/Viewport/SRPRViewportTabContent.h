@@ -96,6 +96,9 @@ private:
 	void					OnPhotolinearTonemapSensitivityChanged(float newValue);
 	void					OnPhotolinearTonemapExposureChanged(float newValue);
 	void					OnPhotolinearTonemapFStopChanged(float newValue);
+	void					OnSampleMinChanged(uint32 newValue);
+	void					OnSampleMaxChanged(uint32 newValue);
+	void					OnNoiseThresholdChanged(float newValue);
 	void					OnRaycastEpsilonValueChanged(float newValue);
 	void					OnUseDenoiserCheckStateChanged(ECheckBoxState newValue);
 
@@ -107,6 +110,9 @@ private:
 	TOptional<float>		GetPhotolinearTonemapSensitivity() const;
 	TOptional<float>		GetPhotolinearTonemapExposure() const;
 	TOptional<float>		GetPhotolinearTonemapFStop() const;
+	TOptional<uint32>		GetSampleMin() const;
+	TOptional<uint32>		GetSampleMax() const;
+	TOptional<float>		GetNoiseThreshold() const;
 	TOptional<float>		GetRaycastEpsilon() const;
 	TOptional<ECheckBoxState>		GetUseDenoiser() const;
 

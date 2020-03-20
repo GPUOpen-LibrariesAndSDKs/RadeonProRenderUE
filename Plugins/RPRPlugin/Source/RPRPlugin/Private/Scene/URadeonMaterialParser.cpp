@@ -45,13 +45,13 @@
 DEFINE_LOG_CATEGORY_STATIC(LogURadeonMaterialParser, Log, All);
 
 #define LOG_ERROR(status, msg, ...) { \
-	CA_CONSTANT_IF(status == RPR_ERROR_UNSUPPORTED) { \
+	if (status == RPR_ERROR_UNSUPPORTED) { \
 		UE_LOG(LogURadeonMaterialParser, Warning, TEXT("Unsupported parameter: %s"), msg, ##__VA_ARGS__); \
 	} \
-	CA_CONSTANT_IF(status == RPR_ERROR_INVALID_PARAMETER) { \
+	else if (status == RPR_ERROR_INVALID_PARAMETER) { \
 		UE_LOG(LogURadeonMaterialParser, Warning, TEXT("Invalid parameter: %s"), msg, ##__VA_ARGS__); \
 	} \
-	CA_CONSTANT_IF(status != RPR_SUCCESS) { \
+	else if (status != RPR_SUCCESS) { \
  		UE_LOG(LogURadeonMaterialParser, Error, msg, ##__VA_ARGS__); \
 	} \
 }

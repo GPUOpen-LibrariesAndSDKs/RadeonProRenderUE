@@ -47,6 +47,7 @@ namespace RPR
 		RPRTOOLS_API FResult		SetScene(FContext Context, FScene Scene);
 		RPRTOOLS_API FResult		SetAOV(FContext Context, RPR::EAOV AOV, FFrameBuffer& FrameBuffer);
 		RPRTOOLS_API FResult        UnSetAOV(FContext Context, RPR::EAOV AOV);
+		RPRTOOLS_API FResult        GetInfo(FContext context, rpr_int param, size_t outBufferSize, void* outBuffer, size_t* returnedDataSize = nullptr);
 		RPRTOOLS_API FResult		Render(FContext Context);
 		RPRTOOLS_API FResult		ResolveFrameBuffer(FContext Context, FFrameBuffer& SrcFrameBuffer, FFrameBuffer& DstFrameBuffer, bool bNormalizeOnly = false);
 
