@@ -31,6 +31,7 @@
 #include "Widgets/Input/SComboBox.h"
 #include "Widgets/Input/SNumericEntryBox.h"
 #include "Widgets/Input/SCheckBox.h"
+#include "Widgets/Layout/SExpandableArea.h"
 #include "Widgets/Layout/SSpacer.h"
 #include "Widgets/Input/SButton.h"
 #include "Textures/SlateIcon.h"
@@ -49,6 +50,21 @@
 #define LOCTEXT_NAMESPACE "SRPRViewportTabContent"
 
 DECLARE_LOG_CATEGORY_CLASS(LogSRPRViewportTabContent, Log, All)
+
+namespace {
+	TSharedPtr<SComboBox<TSharedPtr<FString>>>	DenoiserOptionMenuHandler;
+	TSharedPtr<SExpandableArea>					AdaptiveSamplingAreaHandler;
+
+	void ToggleDenoiserOptionMenuVisibility(bool isVisible)
+	{
+		DenoiserOptionMenuHandler->SetVisibility(isVisible ? EVisibility::Visible : EVisibility::Collapsed);
+	}
+
+	void ToggleAdaptiveSamplingVisibility(bool isVisible)
+	{
+		AdaptiveSamplingAreaHandler->SetVisibility(isVisible ? EVisibility::Visible : EVisibility::Collapsed);
+	}
+}
 
 SRPRViewportTabContent::~SRPRViewportTabContent()
 {
@@ -326,6 +342,7 @@ void	SRPRViewportTabContent::OnQualitySettingsChanged(TSharedPtr<FString> item, 
 		scene->SetQualitySettings(m_Settings->QualitySettings);
 
 	m_Plugin->m_CleanViewport = false;
+	ToggleAdaptiveSamplingVisibility(m_Settings->QualitySettings == Full);
 }
 
 void	SRPRViewportTabContent::OnDenoiserOptionChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo)
@@ -447,28 +464,6 @@ void	SRPRViewportTabContent::OnPhotolinearTonemapFStopChanged(float newValue)
 	m_Settings->SaveConfig();
 }
 
-TOptional<float>	SRPRViewportTabContent::GetSimpleTonemapExposure() const
-{
-	return m_Settings->SimpleTonemapExposure;
-}
-
-void	SRPRViewportTabContent::OnSimpleTonemapExposureChanged(float newValue)
-{
-	m_Settings->SimpleTonemapExposure = newValue;
-	m_Settings->SaveConfig();
-}
-
-TOptional<float>	SRPRViewportTabContent::GetSimpleTonemapContrast() const
-{
-	return m_Settings->SimpleTonemapContrast;
-}
-
-void	SRPRViewportTabContent::OnSimpleTonemapContrastChanged(float newValue)
-{
-	m_Settings->SimpleTonemapContrast = newValue;
-	m_Settings->SaveConfig();
-}
-
 TOptional<uint32>	SRPRViewportTabContent::GetWhiteBalanceTemperature() const
 {
 	return m_Settings->WhiteBalanceTemperature;
@@ -552,6 +547,7 @@ void	SRPRViewportTabContent::OnUseDenoiserCheckStateChanged(ECheckBoxState newVa
 {
 	m_Settings->UseDenoiser = ECheckBoxState::Checked == newValue ? true : false;
 	m_Settings->SaveConfig();
+	ToggleDenoiserOptionMenuVisibility(m_Settings->UseDenoiser);
 }
 
 void	SRPRViewportTabContent::Construct(const FArguments &args)
@@ -873,364 +869,378 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 			[
 				SNew(SVerticalBox)
 				.Visibility(this, &SRPRViewportTabContent::GetRenderPropertiesVisibility)
-				+ SVerticalBox::Slot().AutoHeight()
+				+ SVerticalBox::Slot() // Tonemap slot
+				.AutoHeight()
 				[
-					SNew(SVerticalBox)
-					+ SVerticalBox::Slot().Padding(5.0f)
+					SNew(SExpandableArea)
+					.BodyBorderBackgroundColor(FSlateColor(FLinearColor(0, 0, 0)))
+					.HeaderContent()
 					[
 						SNew(STextBlock)
-						.Text(LOCTEXT("PhotolinearTonemapTitle", "Photolinear tonemap"))
+						.Text(LOCTEXT("TonemapTitle", "Tonemap"))
 					]
-					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
+					.BodyContent()
 					[
-						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot().AutoWidth()
+						SNew(SVerticalBox)
+						+ SVerticalBox::Slot()
+						.MaxHeight(16.0f)
+						.Padding(5.0f)
 						[
-							SNew(STextBlock)
-							.Text(LOCTEXT("PhotolinearTonemapSensitivity", "Sensitivity  "))
+							SNew(SHorizontalBox)
+							+ SHorizontalBox::Slot().AutoWidth()
+							[
+								SNew(STextBlock)
+								.Text(LOCTEXT("PhotolinearTonemapSensitivity", "Sensitivity  "))
+							]
+							+ SHorizontalBox::Slot()
+							.FillWidth(1.0f)
+							[
+								SNew(SSpacer)
+							]
+							+ SHorizontalBox::Slot().AutoWidth()
+							[
+								SNew(SNumericEntryBox<float>)
+								.Value(this, &SRPRViewportTabContent::GetPhotolinearTonemapSensitivity)
+								.OnValueChanged(this, &SRPRViewportTabContent::OnPhotolinearTonemapSensitivityChanged)
+								.MinValue(0.0f)
+								.MaxValue(6400.0f)
+								.MinSliderValue(0.0f)
+								.MaxSliderValue(200.0f)
+								.AllowSpin(true)
+							]
 						]
-						+ SHorizontalBox::Slot()
-						.FillWidth(1.0f)
+						+ SVerticalBox::Slot()
+						.MaxHeight(16.0f)
+						.Padding(5.0f)
 						[
-							SNew(SSpacer)
+							SNew(SHorizontalBox)
+							+ SHorizontalBox::Slot().AutoWidth()
+							[
+								SNew(STextBlock)
+								.Text(LOCTEXT("PhotolinearTonemapExposure", "Exposure  "))
+							]
+							+ SHorizontalBox::Slot()
+							.FillWidth(1.0f)
+							[
+								SNew(SSpacer)
+							]
+							+ SHorizontalBox::Slot().AutoWidth()
+							[
+								SNew(SNumericEntryBox<float>)
+								.Value(this, &SRPRViewportTabContent::GetPhotolinearTonemapExposure)
+								.OnValueChanged(this, &SRPRViewportTabContent::OnPhotolinearTonemapExposureChanged)
+								.MinValue(0.0f)
+								.MaxValue(100.0f)
+								.MinSliderValue(0.0f)
+								.MaxSliderValue(0.1f)
+								.AllowSpin(true)
+							]
 						]
-						+ SHorizontalBox::Slot().AutoWidth()
+						+ SVerticalBox::Slot()
+						.MaxHeight(16.0f)
+						.Padding(5.0f)
 						[
-							SNew(SNumericEntryBox<float>)
-							.Value(this, &SRPRViewportTabContent::GetPhotolinearTonemapSensitivity)
-							.OnValueChanged(this, &SRPRViewportTabContent::OnPhotolinearTonemapSensitivityChanged)
-							.MinValue(0.0f)
-							.MaxValue(6400.0f)
-							.MinSliderValue(0.0f)
-							.MaxSliderValue(200.0f)
-							.AllowSpin(true)
+							SNew(SHorizontalBox)
+							+ SHorizontalBox::Slot().AutoWidth()
+							[
+								SNew(STextBlock)
+								.Text(LOCTEXT("PhotolinearTonemapFStop", "FStop  "))
+							]
+							+ SHorizontalBox::Slot()
+							.FillWidth(1.0f)
+							[
+								SNew(SSpacer)
+							]
+							+ SHorizontalBox::Slot().AutoWidth()
+							[
+								SNew(SNumericEntryBox<float>)
+								.Value(this, &SRPRViewportTabContent::GetPhotolinearTonemapFStop)
+								.OnValueChanged(this, &SRPRViewportTabContent::OnPhotolinearTonemapFStopChanged)
+								.MinValue(0.0f)
+								.MaxValue(128.0f)
+								.MinSliderValue(0.0f)
+								.MaxSliderValue(10.0f)
+								.AllowSpin(true)
+							]
 						]
 					]
-					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
-					[
-						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot().AutoWidth()
-						[
-							SNew(STextBlock)
-							.Text(LOCTEXT("PhotolinearTonemapExposure", "Exposure  "))
-						]
-						+ SHorizontalBox::Slot()
-						.FillWidth(1.0f)
-						[
-							SNew(SSpacer)
-						]
-						+ SHorizontalBox::Slot().AutoWidth()
-						[
-							SNew(SNumericEntryBox<float>)
-							.Value(this, &SRPRViewportTabContent::GetPhotolinearTonemapExposure)
-							.OnValueChanged(this, &SRPRViewportTabContent::OnPhotolinearTonemapExposureChanged)
-							.MinValue(0.0f)
-							.MaxValue(100.0f)
-							.MinSliderValue(0.0f)
-							.MaxSliderValue(0.1f)
-							.AllowSpin(true)
-						]
-					]
-					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
-					[
-						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot().AutoWidth()
-						[
-							SNew(STextBlock)
-							.Text(LOCTEXT("PhotolinearTonemapFStop", "FStop  "))
-						]
-						+ SHorizontalBox::Slot()
-						.FillWidth(1.0f)
-						[
-							SNew(SSpacer)
-						]
-						+ SHorizontalBox::Slot().AutoWidth()
-						[
-							SNew(SNumericEntryBox<float>)
-							.Value(this, &SRPRViewportTabContent::GetPhotolinearTonemapFStop)
-							.OnValueChanged(this, &SRPRViewportTabContent::OnPhotolinearTonemapFStopChanged)
-							.MinValue(0.0f)
-							.MaxValue(128.0f)
-							.MinSliderValue(0.0f)
-							.MaxSliderValue(10.0f)
-							.AllowSpin(true)
-						]
-					]
-				]
-				+ SVerticalBox::Slot().AutoHeight()
+				]  // Tonemap slot
+
+				+ SVerticalBox::Slot() // White Balance slot
+				.AutoHeight()
 				[
-					SNew(SVerticalBox)
-					+ SVerticalBox::Slot().Padding(5.0f)
-					[
-						SNew(STextBlock)
-						.Text(LOCTEXT("SimpleTonemapTitle", "Simple tonemap"))
-					]
-					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
-					[
-						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot().AutoWidth()
-						[
-							SNew(STextBlock)
-							.Text(LOCTEXT("SimpleTonemapExposure", "Exposure  "))
-						]
-						+ SHorizontalBox::Slot()
-						.FillWidth(1.0f)
-						[
-							SNew(SSpacer)
-						]
-						+ SHorizontalBox::Slot().AutoWidth()
-						[
-							SNew(SNumericEntryBox<float>)
-							.Value(this, &SRPRViewportTabContent::GetSimpleTonemapExposure)
-							.OnValueChanged(this, &SRPRViewportTabContent::OnSimpleTonemapExposureChanged)
-							.MinValue(-100.0f)
-							.MaxValue(100.0f)
-							.MinSliderValue(-5.0f)
-							.MaxSliderValue(5.0f)
-							.AllowSpin(true)
-						]
-					]
-					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
-					[
-						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot().AutoWidth()
-						[
-							SNew(STextBlock)
-							.Text(LOCTEXT("SimpleTonemapContrast", "Contrast  "))
-						]
-						+ SHorizontalBox::Slot()
-						.FillWidth(1.0f)
-						[
-							SNew(SSpacer)
-						]
-						+ SHorizontalBox::Slot().AutoWidth()
-						[
-							SNew(SNumericEntryBox<float>)
-							.Value(this, &SRPRViewportTabContent::GetSimpleTonemapContrast)
-							.OnValueChanged(this, &SRPRViewportTabContent::OnSimpleTonemapContrastChanged)
-							.MinValue(-100.0f)
-							.MaxValue(100.0f)
-							.MinSliderValue(-100.0f)
-							.MaxSliderValue(100.0f)
-							.AllowSpin(true)
-						]
-					]
-				]
-				+ SVerticalBox::Slot().AutoHeight()
-				[
-					SNew(SVerticalBox)
-					+ SVerticalBox::Slot().Padding(5.0f)
+					SNew(SExpandableArea)
+					.BodyBorderBackgroundColor(FSlateColor(FLinearColor(0, 0, 0)))
+					.HeaderContent()
 					[
 						SNew(STextBlock)
 						.Text(LOCTEXT("WhiteBalanceTitle", "White Balance"))
 					]
-					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
+					.BodyContent()
 					[
-						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot().AutoWidth()
+						SNew(SVerticalBox)
+						+ SVerticalBox::Slot()
+						.MaxHeight(16.0f)
+						.Padding(5.0f)
 						[
-							SNew(STextBlock)
-							.Text(LOCTEXT("TemperatureTitle", "Temperature  "))
-						]
-						+ SHorizontalBox::Slot()
-						.FillWidth(1.0f)
-						[
-							SNew(SSpacer)
-						]
-						+ SHorizontalBox::Slot().AutoWidth()
-						[
-							SNew(SNumericEntryBox<uint32>)
-							.Value(this, &SRPRViewportTabContent::GetWhiteBalanceTemperature)
-							.OnValueChanged(this, &SRPRViewportTabContent::OnWhiteBalanceTemperatureChanged)
-							.MinValue(1000)
-							.MaxValue(40000)
-							.MinSliderValue(2000)
-							.MaxSliderValue(12000)
-							.AllowSpin(true)
+							SNew(SHorizontalBox)
+							+ SHorizontalBox::Slot().AutoWidth()
+							[
+								SNew(STextBlock)
+								.Text(LOCTEXT("TemperatureTitle", "Temperature  "))
+							]
+							+ SHorizontalBox::Slot()
+							.FillWidth(1.0f)
+							[
+								SNew(SSpacer)
+							]
+							+ SHorizontalBox::Slot().AutoWidth()
+							[
+								SNew(SNumericEntryBox<uint32>)
+								.Value(this, &SRPRViewportTabContent::GetWhiteBalanceTemperature)
+								.OnValueChanged(this, &SRPRViewportTabContent::OnWhiteBalanceTemperatureChanged)
+								.MinValue(1000)
+								.MaxValue(40000)
+								.MinSliderValue(2000)
+								.MaxSliderValue(12000)
+								.AllowSpin(true)
+							]
 						]
 					]
-				]
-				+ SVerticalBox::Slot().AutoHeight()
+				] // White Balance slot
+
+				+ SVerticalBox::Slot() // Gamma correction slot
+				.AutoHeight()
 				[
-					SNew(SVerticalBox)
-					+ SVerticalBox::Slot().Padding(5.0f)
+					SNew(SExpandableArea)
+					.BodyBorderBackgroundColor(FSlateColor(FLinearColor(0, 0, 0)))
+					.HeaderContent()
 					[
 						SNew(STextBlock)
 						.Text(LOCTEXT("GammaCorrectionTitle", "Gamma correction"))
 					]
-					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
+					.BodyContent()
 					[
-						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot().AutoWidth()
+						SNew(SVerticalBox)
+						+ SVerticalBox::Slot()
+						.MaxHeight(16.0f)
+						.Padding(5.0f)
 						[
-							SNew(STextBlock)
-							.Text(LOCTEXT("DisplayGammaTitle", "Display gamma  "))
-						]
-						+ SHorizontalBox::Slot()
-						.FillWidth(1.0f)
-						[
-							SNew(SSpacer)
-						]
-						+ SHorizontalBox::Slot().AutoWidth()
-						[
-							SNew(SNumericEntryBox<float>)
-							.Value(this, &SRPRViewportTabContent::GetGammaCorrectionValue)
-							.OnValueChanged(this, &SRPRViewportTabContent::OnGammaCorrectionValueChanged)
-							.MinValue(0.0f)
-							.MaxValue(100.0f)
-							.MinSliderValue(0.0f)
-							.MaxSliderValue(100.0f)
-							.AllowSpin(true)
+							SNew(SHorizontalBox)
+							+ SHorizontalBox::Slot().AutoWidth()
+							[
+								SNew(STextBlock)
+								.Text(LOCTEXT("DisplayGammaTitle", "Display gamma  "))
+							]
+							+ SHorizontalBox::Slot()
+							.FillWidth(1.0f)
+							[
+								SNew(SSpacer)
+							]
+							+ SHorizontalBox::Slot().AutoWidth()
+							[
+								SNew(SNumericEntryBox<float>)
+								.Value(this, &SRPRViewportTabContent::GetGammaCorrectionValue)
+								.OnValueChanged(this, &SRPRViewportTabContent::OnGammaCorrectionValueChanged)
+								.MinValue(0.0f)
+								.MaxValue(100.0f)
+								.MinSliderValue(0.0f)
+								.MaxSliderValue(100.0f)
+								.AllowSpin(true)
+							]
 						]
 					]
-				]
-				+ SVerticalBox::Slot().AutoHeight()
+				]  // Gamma correction slot
+
+				+ SVerticalBox::Slot() // Render Settings slot
+				.AutoHeight()
 				[
-					SNew(SVerticalBox)
-					+ SVerticalBox::Slot().Padding(5.0f)
+					SNew(SExpandableArea)
+					.BodyBorderBackgroundColor(FSlateColor(FLinearColor(0, 0, 0)))
+					.HeaderContent()
 					[
 						SNew(STextBlock)
 						.Text(LOCTEXT("RenderSettingsTitle", "Render Settings"))
 					]
-					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
+					.BodyContent()
 					[
-						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot().AutoWidth()
+						SNew(SVerticalBox)
+						+ SVerticalBox::Slot()
+						.MaxHeight(16.0f)
+						.Padding(5.0f)
 						[
-							SNew(STextBlock)
-							.Text(LOCTEXT("RaycastEpsilon", "Raycast Epsilon  "))
-						]
-						+ SHorizontalBox::Slot()
-						.FillWidth(1.0f)
-						[
-							SNew(SSpacer)
-						]
-						+ SHorizontalBox::Slot().AutoWidth()
-						[
-							SNew(SNumericEntryBox<float>)
-							.Value(this, &SRPRViewportTabContent::GetRaycastEpsilon)
-							.OnValueChanged(this, &SRPRViewportTabContent::OnRaycastEpsilonValueChanged)
-							.MinValue(0.0f) // Range is 0-10 mm
-							.MaxValue(10.0f)
-							.MinSliderValue(0.0f)
-							.MaxSliderValue(10.0f)
-							.AllowSpin(true)
+							SNew(SHorizontalBox)
+							+ SHorizontalBox::Slot().AutoWidth()
+							[
+								SNew(STextBlock)
+								.Text(LOCTEXT("RaycastEpsilon", "Raycast Epsilon  "))
+							]
+							+ SHorizontalBox::Slot()
+							.FillWidth(1.0f)
+							[
+								SNew(SSpacer)
+							]
+							+ SHorizontalBox::Slot().AutoWidth()
+							[
+								SNew(SNumericEntryBox<float>)
+								.Value(this, &SRPRViewportTabContent::GetRaycastEpsilon)
+								.OnValueChanged(this, &SRPRViewportTabContent::OnRaycastEpsilonValueChanged)
+								.MinValue(0.0f) // Range is 0-10 mm
+								.MaxValue(10.0f)
+								.MinSliderValue(0.0f)
+								.MaxSliderValue(10.0f)
+								.AllowSpin(true)
+							]
 						]
 					]
-					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
+				]  // Render Settings slot
+
+				+ SVerticalBox::Slot() // Adaptive Sampling slot
+				.AutoHeight()
+				[
+					SAssignNew(AdaptiveSamplingAreaHandler, SExpandableArea)
+					.BodyBorderBackgroundColor(FSlateColor(FLinearColor(0, 0, 0)))
+					.HeaderContent()
 					[
 						SNew(STextBlock)
 						.Text(LOCTEXT("AdaptiveSamplingTitle", "Adaptive Sampling"))
 					]
-					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
+					.BodyContent()
 					[
-						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot().AutoWidth()
+						SNew(SVerticalBox)
+						+ SVerticalBox::Slot()
+						.MaxHeight(16.0f)
+						.Padding(5.0f)
 						[
-							SNew(STextBlock)
-							.Text(LOCTEXT("SampleMinTitle", "Sample Min  "))
+							SNew(SHorizontalBox)
+							+ SHorizontalBox::Slot().AutoWidth()
+							[
+								SNew(STextBlock)
+								.Text(LOCTEXT("SampleMinTitle", "Sample Min  "))
+							]
+							+ SHorizontalBox::Slot().FillWidth(1.0f)
+							[
+								SNew(SSpacer)
+							]
+							+ SHorizontalBox::Slot().AutoWidth()
+							[
+								SNew(SNumericEntryBox<uint32>)
+								.Value(this, &SRPRViewportTabContent::GetSampleMin)
+								.OnValueChanged(this, &SRPRViewportTabContent::OnSampleMinChanged)
+								.MinValue(16)
+								.MaxValue(100000)
+								.MinSliderValue(20)
+								.MaxSliderValue(100000)
+								.AllowSpin(true)
+							]
 						]
-						+ SHorizontalBox::Slot()
-						.FillWidth(1.0f)
+						+ SVerticalBox::Slot()
+						.MaxHeight(16.0f)
+						.Padding(5.0f)
 						[
-							SNew(SSpacer)
+							SNew(SHorizontalBox)
+							+ SHorizontalBox::Slot().AutoWidth()
+							[
+								SNew(STextBlock)
+								.Text(LOCTEXT("SampleMaxTitle", "Sample Max  "))
+							]
+							+ SHorizontalBox::Slot()
+							.FillWidth(1.0f)
+							[
+								SNew(SSpacer)
+							]
+							+ SHorizontalBox::Slot().AutoWidth()
+							[
+								SNew(SNumericEntryBox<uint32>)
+								.Value(this, &SRPRViewportTabContent::GetSampleMax)
+								.OnValueChanged(this, &SRPRViewportTabContent::OnSampleMaxChanged)
+								.MinValue(64)
+								.MaxValue(200000)
+								.MinSliderValue(64)
+								.MaxSliderValue(200000)
+								.AllowSpin(true)
+							]
 						]
-						+ SHorizontalBox::Slot().AutoWidth()
+						+ SVerticalBox::Slot()
+						.MaxHeight(16.0f)
+						.Padding(5.0f)
 						[
-							SNew(SNumericEntryBox<uint32>)
-							.Value(this, &SRPRViewportTabContent::GetSampleMin)
-							.OnValueChanged(this, &SRPRViewportTabContent::OnSampleMinChanged)
-							.MinValue(16)
-							.MaxValue(100000)
-							.MinSliderValue(20)
-							.MaxSliderValue(100000)
-							.AllowSpin(true)
+							SNew(SHorizontalBox)
+							+ SHorizontalBox::Slot().AutoWidth()
+							[
+								SNew(STextBlock)
+								.Text(LOCTEXT("NoiseThresholdTitle", "Noise Threshold  "))
+							]
+							+ SHorizontalBox::Slot()
+							.FillWidth(1.0f)
+							[
+								SNew(SSpacer)
+							]
+							+ SHorizontalBox::Slot().AutoWidth()
+							[
+								SNew(SNumericEntryBox<float>)
+								.Value(this, &SRPRViewportTabContent::GetNoiseThreshold)
+								.OnValueChanged(this, &SRPRViewportTabContent::OnNoiseThresholdChanged)
+								.MinValue(0.0f)
+								.MaxValue(1.0f)
+								.MinSliderValue(0.0f)
+								.MaxSliderValue(1.0f)
+								.AllowSpin(true)
+							]
 						]
 					]
-					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
+				] // Adaptive Sampling slot
+
+				+ SVerticalBox::Slot() // Denoiser slot
+				.AutoHeight()
+				[
+					SNew(SExpandableArea)
+					.BodyBorderBackgroundColor(FSlateColor(FLinearColor(0, 0, 0)))
+					.HeaderContent()
 					[
-						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot().AutoWidth()
+						SNew(STextBlock)
+						.Text(LOCTEXT("DenoiserTitle", "Denoiser"))
+					]
+					.BodyContent()
+					[
+						SNew(SVerticalBox)
+						+SVerticalBox::Slot()
+						.MaxHeight(16.0f)
+						.Padding(5.0f)
 						[
-							SNew(STextBlock)
-							.Text(LOCTEXT("SampleMaxTitle", "Sample Max  "))
+							SNew(SHorizontalBox)
+							+ SHorizontalBox::Slot().AutoWidth()
+							[
+								SNew(STextBlock)
+								.Text(LOCTEXT("UseDenoiserTitle", "Apply Denoiser  "))
+							]
+							+ SHorizontalBox::Slot()
+							.FillWidth(1.0f)
+							[
+								SNew(SSpacer)
+							]
+							+ SHorizontalBox::Slot().AutoWidth()
+							[
+								SNew(SCheckBox)
+								.IsChecked(m_Settings->UseDenoiser ? ECheckBoxState::Checked : ECheckBoxState::Unchecked)
+								.OnCheckStateChanged(this, &SRPRViewportTabContent::OnUseDenoiserCheckStateChanged)
+							]
 						]
-						+ SHorizontalBox::Slot()
-						.FillWidth(1.0f)
+						+ SVerticalBox::Slot()
+						.AutoHeight()
+						.Padding(5.0f)
 						[
-							SNew(SSpacer)
-						]
-						+ SHorizontalBox::Slot().AutoWidth()
-						[
-							SNew(SNumericEntryBox<uint32>)
-							.Value(this, &SRPRViewportTabContent::GetSampleMax)
-							.OnValueChanged(this, &SRPRViewportTabContent::OnSampleMaxChanged)
-							.MinValue(64)
-							.MaxValue(200000)
-							.MinSliderValue(64)
-							.MaxSliderValue(200000)
-							.AllowSpin(true)
+							SAssignNew(DenoiserOptionMenuHandler, SComboBox<TSharedPtr<FString>>)
+							.OptionsSource(&m_DenoiserOptionList)
+							.OnGenerateWidget(this, &SRPRViewportTabContent::OnGenerateDenoiserWidget)
+							.OnSelectionChanged(this, &SRPRViewportTabContent::OnDenoiserOptionChanged)
+							[
+								SNew(STextBlock)
+								.Text(this, &SRPRViewportTabContent::GetSelectedDenoiserOptionName)
+							]
 						]
 					]
-					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
-					[
-						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot().AutoWidth()
-						[
-							SNew(STextBlock)
-							.Text(LOCTEXT("NoiseThresholdTitle", "Noise Threshold  "))
-						]
-						+ SHorizontalBox::Slot()
-						.FillWidth(1.0f)
-						[
-							SNew(SSpacer)
-						]
-						+ SHorizontalBox::Slot().AutoWidth()
-						[
-							SNew(SNumericEntryBox<float>)
-							.Value(this, &SRPRViewportTabContent::GetNoiseThreshold)
-							.OnValueChanged(this, &SRPRViewportTabContent::OnNoiseThresholdChanged)
-							.MinValue(0.0f)
-							.MaxValue(1.0f)
-							.MinSliderValue(0.0f)
-							.MaxSliderValue(1.0f)
-							.AllowSpin(true)
-						]
-					]
-					+ SVerticalBox::Slot().MaxHeight(16.0f).Padding(5.0f)
-					[
-						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot().AutoWidth()
-						[
-							SNew(STextBlock)
-							.Text(LOCTEXT("UseDenoiser", "Denoiser  "))
-						]
-						+ SHorizontalBox::Slot()
-						.FillWidth(1.0f)
-						[
-							SNew(SSpacer)
-						]
-						+ SHorizontalBox::Slot().AutoWidth()
-						[
-							SNew(SCheckBox)
-							.IsChecked(m_Settings->UseDenoiser ? ECheckBoxState::Checked : ECheckBoxState::Unchecked)
-							.OnCheckStateChanged(this, &SRPRViewportTabContent::OnUseDenoiserCheckStateChanged)
-						]
-					]
-					+ SVerticalBox::Slot()
-					.AutoHeight()
-					.Padding(2.0f)
-					[
-						SNew(SComboBox<TSharedPtr<FString>>)
-						.OptionsSource(&m_DenoiserOptionList)
-						.OnGenerateWidget(this, &SRPRViewportTabContent::OnGenerateDenoiserWidget)
-						.OnSelectionChanged(this, &SRPRViewportTabContent::OnDenoiserOptionChanged)
-						[
-							SNew(STextBlock)
-							.Text(this, &SRPRViewportTabContent::GetSelectedDenoiserOptionName)
-						]
-					]
-				]
+				] // Denoiser slot
 			]
 		]
 	];
@@ -1238,6 +1248,9 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 	m_ViewportClient = MakeShareable(new FRPRViewportClient(m_Plugin));
 	m_Plugin->m_Viewport = MakeShareable(new FSceneViewport(m_ViewportClient.Get(), m_ViewportWidget));
 	m_ViewportWidget->SetViewportInterface(m_Plugin->m_Viewport.ToSharedRef());
+
+	ToggleDenoiserOptionMenuVisibility(m_Settings->UseDenoiser);
+	ToggleAdaptiveSamplingVisibility(m_Settings->QualitySettings == Full);
 }
 
 #undef LOCTEXT_NAMESPACE

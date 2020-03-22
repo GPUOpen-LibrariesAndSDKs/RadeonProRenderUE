@@ -137,7 +137,6 @@ private:
 
 	RPR::FPostEffect            m_RprWhiteBalance;
 	RPR::FPostEffect            m_RprGammaCorrection;
-	RPR::FPostEffect            m_RprSimpleTonemap;
 	RPR::FPostEffect            m_RprPhotolinearTonemap;
 	RPR::FPostEffect            m_RprNormalization;
 

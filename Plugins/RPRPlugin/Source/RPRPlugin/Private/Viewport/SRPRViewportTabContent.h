@@ -91,8 +91,6 @@ private:
 
 	void					OnWhiteBalanceTemperatureChanged(uint32 newValue);
 	void					OnGammaCorrectionValueChanged(float newValue);
-	void					OnSimpleTonemapExposureChanged(float newValue);
-	void					OnSimpleTonemapContrastChanged(float newValue);
 	void					OnPhotolinearTonemapSensitivityChanged(float newValue);
 	void					OnPhotolinearTonemapExposureChanged(float newValue);
 	void					OnPhotolinearTonemapFStopChanged(float newValue);
@@ -105,8 +103,6 @@ private:
 
 	TOptional<uint32>		GetWhiteBalanceTemperature() const;
 	TOptional<float>		GetGammaCorrectionValue() const;
-	TOptional<float>		GetSimpleTonemapExposure() const;
-	TOptional<float>		GetSimpleTonemapContrast() const;
 	TOptional<float>		GetPhotolinearTonemapSensitivity() const;
 	TOptional<float>		GetPhotolinearTonemapExposure() const;
 	TOptional<float>		GetPhotolinearTonemapFStop() const;

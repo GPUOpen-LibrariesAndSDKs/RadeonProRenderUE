@@ -559,16 +559,12 @@ int FRPRRendererWorker::CreatePostEffectSettings()
 	check(!m_RprGammaCorrection);
 	check(!m_RprNormalization);
 	check(!m_RprPhotolinearTonemap);
-	check(!m_RprSimpleTonemap);
 
 	status = ContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_WHITE_BALANCE, &m_RprWhiteBalance);
 	CHECK_ERROR(status, TEXT("can't create post effect: RPR_POST_EFFECT_WHITE_BALANCE"));
 
 	status = ContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_GAMMA_CORRECTION, &m_RprGammaCorrection);
 	CHECK_ERROR(status, TEXT("can't create post effect: RPR_POST_EFFECT_GAMMA_CORRECTION"));
-
-	status = ContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_SIMPLE_TONEMAP, &m_RprSimpleTonemap);
-	CHECK_ERROR(status, TEXT("can't create post effect: RPR_POST_EFFECT_SIMPLE_TONEMAP"));
 
 	status = ContextCreatePostEffect(m_RprContext, RPR_POST_EFFECT_TONE_MAP, &m_RprPhotolinearTonemap);
 	CHECK_ERROR(status, TEXT("can't create post effect: RPR_POST_EFFECT_TONE_MAP"));
@@ -589,9 +585,6 @@ int FRPRRendererWorker::DestroyPostEffects()
 	status = DestroyPostEffect(&m_RprGammaCorrection);
 	CHECK_WARNING(status, TEXT("can't destroy post effect: gamma correction"));
 
-	status = DestroyPostEffect(&m_RprSimpleTonemap);
-	CHECK_WARNING(status, TEXT("can't destroy post effect: simple tonemap"));
-
 	status = DestroyPostEffect(&m_RprPhotolinearTonemap);
 	CHECK_WARNING(status, TEXT("can't destroy post effect: photolinear tonemap"));
 
@@ -607,9 +600,6 @@ int FRPRRendererWorker::AttachPostEffectSettings()
 
 	status = ContextAttachPostEffect(m_RprContext, &m_RprNormalization);
 	CHECK_ERROR(status, TEXT("can't attach post effect: normalization"));
-
-	status = ContextAttachPostEffect(m_RprContext, &m_RprSimpleTonemap);
-	CHECK_ERROR(status, TEXT("can't attach post effect: simple tonemap"));
 
 	status = ContextAttachPostEffect(m_RprContext, &m_RprPhotolinearTonemap);
 	CHECK_ERROR(status, TEXT("can't attach post effect: photolinear tonemap"));
@@ -651,12 +641,6 @@ int FRPRRendererWorker::UpdatePostEffectSettings()
 
 	status = rprContextSetParameterByKey1f(m_RprContext, RPR_CONTEXT_TONE_MAPPING_PHOTO_LINEAR_FSTOP, settings->PhotolinearTonemapFStop);
 	CHECK_ERROR(status, TEXT("can't set context parameter: RPR_CONTEXT_TONE_MAPPING_PHOTO_LINEAR_FSTOP"));
-
-	status = m_RprSimpleTonemap.SetFloat("exposure", settings->SimpleTonemapExposure);
-	CHECK_ERROR(status, TEXT("can't set simple tonemap parameter: exposure"));
-
-	status = m_RprSimpleTonemap.SetFloat("contrast", settings->SimpleTonemapContrast);
-	CHECK_ERROR(status, TEXT("can't set simple tonemap parameter: contrast"));
 
 	status = m_RprWhiteBalance.SetFloat("colortemp", settings->WhiteBalanceTemperature);
 	CHECK_ERROR(status, TEXT("can't set white balance parameter: colortemp"));
@@ -1168,15 +1152,11 @@ int FRPRRendererWorker::DetachPostEffects()
 		return RPR_SUCCESS;
 
 	check(m_RprGammaCorrection);
-	check(m_RprSimpleTonemap);
 	check(m_RprPhotolinearTonemap);
 	check(m_RprNormalization);
 
 	status = ContextDetachPostEffect(m_RprContext, &m_RprNormalization);
 	CHECK_WARNING(status, TEXT("can't detach post effect: normalization"));
-
-	status = ContextDetachPostEffect(m_RprContext, &m_RprSimpleTonemap);
-	CHECK_WARNING(status, TEXT("can't detach post effect: simple tonemap"));
 
 	status = ContextDetachPostEffect(m_RprContext, &m_RprPhotolinearTonemap);
 	CHECK_WARNING(status, TEXT("can't detach post effect: photolinear tonemap"));
