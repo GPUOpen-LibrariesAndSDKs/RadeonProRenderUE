@@ -17,11 +17,9 @@
 #include "Cache/RPRImagesCache.h"
 #include "Typedefs/RPRTypedefs.h"
 #include "Helpers/RPRHelpers.h"
-#include "Helpers/RPRConstAway.h"
 
 namespace RPR
 {
-
 	FImagesCache::~FImagesCache()
 	{
 		ReleaseAll();

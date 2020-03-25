@@ -166,8 +166,8 @@ void RPR::FRPRXMaterial::ReleaseMaterialNodes()
 	{
 		if (FUberMaterialPropertyHelper::IsPropertyValidUberParameterProperty(parameterProperty))
 		{
-			const FRPRUberMaterialParameterBase* materialParameter =
-				FUberMaterialPropertyHelper::GetParameterBaseFromPropertyConst(&UE4MaterialLink->MaterialParameters, parameterProperty);
+			FRPRUberMaterialParameterBase* materialParameter =
+				FUberMaterialPropertyHelper::GetParameterBaseFromProperty(&UE4MaterialLink->MaterialParameters, parameterProperty);
 
 			FString parameterClassName = materialParameter->GetPropertyTypeName(parameterProperty);
 

@@ -18,7 +18,6 @@
 #include "Material/RPRUberMaterialParameters.h"
 #include "Material/Tools/UberMaterialPropertyHelper.h"
 #include "Assets/RPRMaterial.h"
-#include "Helpers/RPRConstAway.h"
 
 namespace RPRX
 {
@@ -26,10 +25,10 @@ namespace RPRX
 	{
 
 		FArgs::FArgs(
-			const FRPRUberMaterialParameters& InParameters,
-			const UProperty* InProperty,
+			FRPRUberMaterialParameters& InParameters,
+			UProperty* InProperty,
 			RPR::FImageManagerPtr InImageManager,
-			const URPRMaterial* InOwnerMaterial,
+			URPRMaterial* InOwnerMaterial,
 			RPR::FMaterialContext& InMaterialContext,
 			RPR::FRPRXMaterialPtr InMaterial)
 			: Parameters(InParameters)
@@ -40,30 +39,24 @@ namespace RPRX
 			, ImageManager(InImageManager)
 		{}
 
-		const FRPRUberMaterialParameterBase* FArgs::GetMaterialParameterBase() const
-		{
-			return (FUberMaterialPropertyHelper::GetParameterBaseFromPropertyConst(&Parameters, Property));
-		}
-
         FRPRUberMaterialParameterBase* FArgs::GetMaterialParameterBase()
         {
-            const FArgs* thisConst = this;
-            return (RPR::ConstRefAway(thisConst->GetMaterialParameterBase()));
+			return FUberMaterialPropertyHelper::GetParameterBaseFromProperty(&Parameters, Property);
         }
 
-        uint32 FArgs::GetRprxParam() const
+        uint32 FArgs::GetRprxParam()
 		{
 			const FRPRUberMaterialParameterBase* materialParameter = GetMaterialParameterBase();
 			return (materialParameter->GetRprxParamType());
 		}
 
-		bool FArgs::CanUseParam() const
+		bool FArgs::CanUseParam()
 		{
 			const FRPRUberMaterialParameterBase* materialParameter = GetMaterialParameterBase();
 			return (materialParameter->CanUseParameter());
 		}
 
-        bool FArgs::HasCustomParameterApplier() const
+        bool FArgs::HasCustomParameterApplier()
         {
             const FRPRUberMaterialParameterBase* materialParameter = GetMaterialParameterBase();
             return (materialParameter->HasCustomParameterApplier());

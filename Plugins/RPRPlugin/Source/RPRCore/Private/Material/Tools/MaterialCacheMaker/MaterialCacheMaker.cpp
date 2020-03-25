@@ -24,7 +24,7 @@
 namespace RPRX
 {
 
-	FMaterialCacheMaker::FMaterialCacheMaker(RPR::FMaterialContext InMaterialContext, const URPRMaterial* InRPRMaterial)
+	FMaterialCacheMaker::FMaterialCacheMaker(RPR::FMaterialContext InMaterialContext, URPRMaterial* InRPRMaterial)
 		: MaterialContext(InMaterialContext)
 		, RPRMaterial(InRPRMaterial)
 	{}
@@ -54,7 +54,7 @@ namespace RPRX
 	RPR::FResult FMaterialCacheMaker::BrowseUberMaterialParameters(FUberMaterialParametersPropertyVisitor Visitor,
 																	RPR::FRPRXMaterialPtr Material)
 	{
-		const FRPRUberMaterialParameters& uberMaterialParameters = RPRMaterial->MaterialParameters;
+		FRPRUberMaterialParameters& uberMaterialParameters = RPRMaterial->MaterialParameters;
 		UScriptStruct* parametersStruct = FRPRUberMaterialParameters::StaticStruct();
 		RPR::FResult result = RPR_SUCCESS;
 
@@ -72,7 +72,7 @@ namespace RPRX
 		return (result);
 	}
 
-	RPR::FResult FMaterialCacheMaker::ApplyUberMaterialParameter(const FRPRUberMaterialParameters& InParameters,
+	RPR::FResult FMaterialCacheMaker::ApplyUberMaterialParameter(FRPRUberMaterialParameters& InParameters,
 																		UScriptStruct* InParametersStruct,
 																		UProperty* InParameterProperty,
 																		RPR::FRPRXMaterialPtr Material)

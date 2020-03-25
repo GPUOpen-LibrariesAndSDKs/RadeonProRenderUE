@@ -32,10 +32,6 @@ public:
 	* - Get c++ type for the others properties
 	*/
 	static FString	GetPropertyTypeName(const UProperty* Property);
-
-	static const FRPRUberMaterialParameterBase*	GetParameterBaseFromPropertyConst(const FRPRUberMaterialParameters* MaterialParameters,
-																			const UProperty* Property);
-
 	static FRPRUberMaterialParameterBase*	GetParameterBaseFromProperty(FRPRUberMaterialParameters* MaterialParameters,
 																			const UProperty* Property);
 

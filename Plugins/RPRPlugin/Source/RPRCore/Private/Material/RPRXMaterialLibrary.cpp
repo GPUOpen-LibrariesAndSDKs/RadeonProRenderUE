@@ -17,7 +17,6 @@
 #include "Material/RPRXMaterialLibrary.h"
 #include "Helpers/RPRHelpers.h"
 #include "Material/RPRMaterialHelpers.h"
-#include "Helpers/RPRConstAway.h"
 #include "Material/Tools/MaterialCacheMaker/MaterialCacheMaker.h"
 #include "Misc/ScopeLock.h"
 #include "Assets/RPRMaterial.h"
@@ -101,12 +100,6 @@ bool FRPRXMaterialLibrary::RecacheMaterial(URPRMaterial* MaterialKey)
 
 bool FRPRXMaterialLibrary::TryGetMaterial(const URPRMaterial* MaterialKey, RPR::FRPRXMaterialPtr& OutRPRXMaterial)
 {
-	const FRPRXMaterialLibrary* thisConst = this;
-	return RPR::ConstRefAway(thisConst->TryGetMaterial(MaterialKey, OutRPRXMaterial));
-}
-
-bool FRPRXMaterialLibrary::TryGetMaterial(const URPRMaterial* MaterialKey, RPR::FRPRXMaterialPtr& OutRPRXMaterial) const
-{
 	OutRPRXMaterial = FindMaterialCache(MaterialKey);
 	return OutRPRXMaterial.IsValid();
 }
@@ -133,18 +126,11 @@ FCriticalSection& FRPRXMaterialLibrary::GetCriticalSection()
 	return (CriticalSection);
 }
 
-const RPR::FRPRXMaterialPtr FRPRXMaterialLibrary::FindMaterialCache(const URPRMaterial* MaterialKey) const
+RPR::FRPRXMaterialPtr FRPRXMaterialLibrary::FindMaterialCache(const URPRMaterial* MaterialKey)
 {
 	const RPR::FRPRXMaterialPtr* rprxMaterialPtr = UEMaterialToRPRMaterialCaches.Find(MaterialKey);
 	return (rprxMaterialPtr != nullptr ? *rprxMaterialPtr : nullptr);
 }
-
-RPR::FRPRXMaterialPtr FRPRXMaterialLibrary::FindMaterialCache(const URPRMaterial* MaterialKey)
-{
-	const FRPRXMaterialLibrary* thisConst = this;
-	return RPR::ConstRefAway(thisConst->FindMaterialCache(MaterialKey));
-}
-
 
 RPR::FRPRXMaterialNodePtr FRPRXMaterialLibrary::getMaterial(FString expressionGuid)
 {

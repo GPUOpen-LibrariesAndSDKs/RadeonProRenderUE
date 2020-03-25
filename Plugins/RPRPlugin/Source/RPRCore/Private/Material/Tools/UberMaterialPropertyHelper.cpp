@@ -18,7 +18,6 @@
 #include "Templates/UnrealTypeTraits.h"
 #include "UObject/EnumProperty.h"
 #include "UObject/UnrealType.h"
-#include "Helpers/RPRConstAway.h"
 
 FString FUberMaterialPropertyHelper::GetPropertyTypeName(const UProperty* Property)
 {
@@ -30,20 +29,12 @@ FString FUberMaterialPropertyHelper::GetPropertyTypeName(const UProperty* Proper
 	return (Property->GetCPPType());
 }
 
-const FRPRUberMaterialParameterBase* FUberMaterialPropertyHelper::GetParameterBaseFromPropertyConst(
-															const FRPRUberMaterialParameters* MaterialParameters,
-															const UProperty* Property)
-{
-	if (IsPropertyValidUberParameterProperty(Property))
-	{
-		return (Property->ContainerPtrToValuePtr<FRPRUberMaterialParameterBase>(MaterialParameters));
-	}
-	return (nullptr);
-}
-
 FRPRUberMaterialParameterBase* FUberMaterialPropertyHelper::GetParameterBaseFromProperty(FRPRUberMaterialParameters* MaterialParameters, const UProperty* Property)
 {
-	return (RPR::ConstRefAway(GetParameterBaseFromPropertyConst(MaterialParameters, Property)));
+	if (!IsPropertyValidUberParameterProperty(Property))
+		return nullptr;
+
+	return (Property->ContainerPtrToValuePtr<FRPRUberMaterialParameterBase>(MaterialParameters));
 }
 
 bool FUberMaterialPropertyHelper::IsPropertyValidUberParameterProperty(const UProperty* Property)

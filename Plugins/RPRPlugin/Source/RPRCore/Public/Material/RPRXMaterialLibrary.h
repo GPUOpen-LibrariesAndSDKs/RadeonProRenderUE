@@ -21,8 +21,6 @@
 #include "Containers/Map.h"
 #include "ImageManager/RPRImageManager.h"
 #include "HAL/CriticalSection.h"
-#include "Helpers/IObjectScopedLockable.h"
-#include "Helpers/ObjectScopedLocked.h"
 #include "RPRXMaterial.h"
 #include "MaterialContext.h"
 
@@ -32,12 +30,10 @@ class URPRMaterial;
 * Library of RPR materials.
 * Create native RPR material from FRPRMaterial and keep it in cache.
 */
-class RPRCORE_API FRPRXMaterialLibrary : public IObjectScopedLockable
+class RPRCORE_API FRPRXMaterialLibrary
 {
 public:
-
 	FRPRXMaterialLibrary();
-	virtual ~FRPRXMaterialLibrary() {}
 
 	void	Initialize();
 	bool	IsInitialized() const;
@@ -47,13 +43,12 @@ public:
 	bool	CacheAndRegisterMaterial(URPRMaterial* InMaterial);
 	bool	RecacheMaterial(URPRMaterial* MaterialKey);
 	bool	TryGetMaterial(const URPRMaterial* MaterialKey, RPR::FRPRXMaterialPtr& OutRPRXMaterial);
-	bool	TryGetMaterial(const URPRMaterial* MaterialKey, RPR::FRPRXMaterialPtr& OutRPRXMaterial) const;
 	void	ClearCache();
 
 	RPR::FMaterialNode				GetDummyMaterial() const;
 	RPR::FRPRXMaterialPtr			GetMaterial(const URPRMaterial* MaterialKey);
 
-	virtual FCriticalSection&		GetCriticalSection() override;
+	FCriticalSection&		        GetCriticalSection();
 
 	RPR::FRPRXMaterialNodePtr       createMaterial(FString name, unsigned int type = RPR_MATERIAL_NODE_UBERV2);
 	bool                            hasMaterial(FString materialName) const;
@@ -76,7 +71,6 @@ public:
 	RPR::FMaterialNode              createImageNodeFromImageData(const FString& nodeId, RPR::FImagePtr imagePtr);
 
 private:
-	const RPR::FRPRXMaterialPtr	    FindMaterialCache(const URPRMaterial* MaterialKey) const;
 	RPR::FRPRXMaterialPtr           FindMaterialCache(const URPRMaterial* MaterialKey);
 
 	void	InitializeDummyMaterial();
@@ -102,5 +96,3 @@ private:
 	RPR::FMaterialNode	DummyMaterial;
 	RPR::FMaterialNode	TestMaterial;
 };
-
-using FRPRXMaterialLibrarySL = FObjectScopedLocked<FRPRXMaterialLibrary>;

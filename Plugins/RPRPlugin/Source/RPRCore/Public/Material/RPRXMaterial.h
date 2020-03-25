@@ -63,7 +63,7 @@ namespace RPR
 	private:
 		TArray<RPR::FImagePtr> Images;
 		rpr_material_node Material;
-		TWeakObjectPtr<const URPRMaterial> UE4MaterialLink;
+		TWeakObjectPtr<URPRMaterial> UE4MaterialLink;
 	};
 
 	typedef TSharedPtr<FRPRXMaterial> FRPRXMaterialPtr;

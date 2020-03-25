@@ -22,7 +22,6 @@
 #include "RPRSettings.h"
 #include "GameFramework/Actor.h"
 #include "Material/RPRXMaterialLibrary.h"
-#include "Helpers/ObjectScopedLocked.h"
 #include "RPRCoreSystemResources.h"
 #include "Enums/RPREnums.h"
 #include "RPRScene.generated.h"

@@ -32,29 +32,29 @@ namespace RPRX
 	{
 		struct FArgs
 		{
-			const FRPRUberMaterialParameters& Parameters;
-			const UProperty* Property;
-			const URPRMaterial* OwnerMaterial;
+			FRPRUberMaterialParameters& Parameters;
+			UProperty* Property;
+			URPRMaterial* OwnerMaterial;
+
 			RPR::FMaterialContext& MaterialContext;
 			RPR::FRPRXMaterialPtr Material;
 			RPR::FImageManagerPtr ImageManager;
 
-			FArgs(const FRPRUberMaterialParameters& InParameters,
-				const UProperty* InProperty,
+			FArgs(FRPRUberMaterialParameters& InParameters,
+				UProperty* InProperty,
 				RPR::FImageManagerPtr InImageManager,
-				const URPRMaterial* OwnerMaterial,
+				URPRMaterial* OwnerMaterial,
 				RPR::FMaterialContext& InMaterialContext,
 				RPR::FRPRXMaterialPtr InMaterial);
 
 			template<typename ParameterType>
 			const ParameterType*	GetDirectParameter();
 
-            const FRPRUberMaterialParameterBase*	GetMaterialParameterBase() const;
             FRPRUberMaterialParameterBase*	        GetMaterialParameterBase();
 
-			uint32		GetRprxParam() const;
-            bool		CanUseParam() const;
-            bool        HasCustomParameterApplier() const;
+			uint32		GetRprxParam();
+            bool		CanUseParam();
+            bool        HasCustomParameterApplier();
 		};
 
 		template<typename ParameterType>

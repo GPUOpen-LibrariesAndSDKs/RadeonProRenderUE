@@ -15,7 +15,6 @@
 *************************************************************************/
 
 #include "Material/UberMaterialParameters/RPRMaterialCoMChannel1.h"
-#include "Helpers/RPRConstAway.h"
 
 FRPRMaterialCoMChannel1::FRPRMaterialCoMChannel1(
 	const FString& InXmlParamName,
@@ -35,8 +34,7 @@ FRPRMaterialCoMChannel1::FRPRMaterialCoMChannel1(
 
 FNumericRestriction<float>& FRPRMaterialCoMChannel1::GetConstantRestriction()
 {
-	const FRPRMaterialCoMChannel1* thisConst = this;
-	return (RPR::ConstRefAway(thisConst->GetConstantRestriction()));
+	return (ConstantRestriction);
 }
 
 const FNumericRestriction<float>& FRPRMaterialCoMChannel1::GetConstantRestriction() const
