@@ -39,7 +39,7 @@ private:
 	RPR::VirtualNode* GetValueNode(const FString& id, const float value);
 	RPR::VirtualNode* GetConstantNode(const FString& id, const float r, const float g = 0, const float b = 0, const float a = 0);
 	RPR::VirtualNode* GetOneMinusNode(const FString& id, const RPR::VirtualNode* node);
-	RPR::VirtualNode* SelectRgbaChannel(const FString& resultVirtualNodeId, const int32 outputIndex, const RPR::VirtualNode* rgbaSourceNode);
+	RPR::VirtualNode* SelectRgbaChannel(const FString& resultVirtualNodeId, const int32 outputIndex, RPR::VirtualNode* rgbaSourceNode);
 	RPR::VirtualNode* GetConstantNode(const FString& nodeId, const FLinearColor& color);
 	RPR::VirtualNode* GetSeparatedChannelNode(const FString& maskResultId, int channelIndex, int maskIndex, RPR::VirtualNode* rgbaSource);
 	RPR::VirtualNode* AddTwoNodes(const FString& id, RPR::VirtualNode* a, RPR::VirtualNode* b);

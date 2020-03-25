@@ -330,39 +330,41 @@ RPR::VirtualNode* URadeonMaterialParser::GetOneMinusNode(const FString& id, cons
 /*
 	Equals to zero outputParameter means all RGBA data.
 */
-RPR::VirtualNode* URadeonMaterialParser::SelectRgbaChannel(const FString& resultVirtualNodeId, const int32 outputIndex, const RPR::VirtualNode* rgbaSourceNode)
+RPR::VirtualNode* URadeonMaterialParser::SelectRgbaChannel(const FString& aIdPrefix, const int32 outputIndex, RPR::VirtualNode* rgbaSourceNode)
 {
-	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+	if (outputIndex == RPR::OutputIndex::ZERO)
+		return rgbaSourceNode;
 
-	RPR::VirtualNode* selectedVirtualNode = nullptr;
+	FRPRXMaterialLibrary&	materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+	RPR::VirtualNode*		selectedVirtualNode = nullptr;
 
 	switch (outputIndex)
 	{
 	case RPR::OutputIndex::ONE:
-		if (auto existingNode = materialLibrary.getVirtualNode(resultVirtualNodeId + TEXT("_R")))
+		if (auto existingNode = materialLibrary.getVirtualNode(aIdPrefix + TEXT("_R")))
 			return existingNode;
-		selectedVirtualNode = materialLibrary.getOrCreateVirtualIfNotExists(resultVirtualNodeId + TEXT("_R"), rprNodeType::Arithmetic);
+		selectedVirtualNode = materialLibrary.getOrCreateVirtualIfNotExists(aIdPrefix + TEXT("_R"), rprNodeType::Arithmetic);
 		materialLibrary.setNodeUInt(selectedVirtualNode->rprNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_SELECT_X);
 		break;
 
 	case RPR::OutputIndex::TWO:
-		if (auto existingNode = materialLibrary.getVirtualNode(resultVirtualNodeId + TEXT("_G")))
+		if (auto existingNode = materialLibrary.getVirtualNode(aIdPrefix + TEXT("_G")))
 			return existingNode;
-		selectedVirtualNode = materialLibrary.getOrCreateVirtualIfNotExists(resultVirtualNodeId + TEXT("_G"), rprNodeType::Arithmetic);
+		selectedVirtualNode = materialLibrary.getOrCreateVirtualIfNotExists(aIdPrefix + TEXT("_G"), rprNodeType::Arithmetic);
 		materialLibrary.setNodeUInt(selectedVirtualNode->rprNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_SELECT_Y);
 		break;
 
 	case RPR::OutputIndex::THREE:
-		if (auto existingNode = materialLibrary.getVirtualNode(resultVirtualNodeId + TEXT("_B")))
+		if (auto existingNode = materialLibrary.getVirtualNode(aIdPrefix + TEXT("_B")))
 			return existingNode;
-		selectedVirtualNode = materialLibrary.getOrCreateVirtualIfNotExists(resultVirtualNodeId + TEXT("_B"), rprNodeType::Arithmetic);
+		selectedVirtualNode = materialLibrary.getOrCreateVirtualIfNotExists(aIdPrefix + TEXT("_B"), rprNodeType::Arithmetic);
 		materialLibrary.setNodeUInt(selectedVirtualNode->rprNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_SELECT_Z);
 		break;
 
 	case RPR::OutputIndex::FOUR:
-		if (auto existingNode = materialLibrary.getVirtualNode(resultVirtualNodeId + TEXT("_A")))
+		if (auto existingNode = materialLibrary.getVirtualNode(aIdPrefix + TEXT("_A")))
 			return existingNode;
-		selectedVirtualNode = materialLibrary.getOrCreateVirtualIfNotExists(resultVirtualNodeId + TEXT("_A"), rprNodeType::Arithmetic);
+		selectedVirtualNode = materialLibrary.getOrCreateVirtualIfNotExists(aIdPrefix + TEXT("_A"), rprNodeType::Arithmetic);
 		materialLibrary.setNodeUInt(selectedVirtualNode->rprNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_SELECT_W);
 		break;
 	}
@@ -379,31 +381,31 @@ RPR::VirtualNode* URadeonMaterialParser::GetConstantNode(const FString& nodeId, 
 	return node;
 }
 
-RPR::VirtualNode* URadeonMaterialParser::GetSeparatedChannelNode(const FString& maskResultId, int channelIndex, int maskIndex, RPR::VirtualNode* rgbaSource)
+RPR::VirtualNode* URadeonMaterialParser::GetSeparatedChannelNode(const FString& aIdPrefix, int channelIndex, int maskIndex, RPR::VirtualNode* rgbaSource)
 {
-	RPR::VirtualNode* selected = SelectRgbaChannel(maskResultId, channelIndex, rgbaSource);
+	RPR::VirtualNode* selected = SelectRgbaChannel(aIdPrefix, channelIndex, rgbaSource);
 	RPR::VirtualNode* mask = nullptr;
 
 	switch (maskIndex)
 	{
 	case 1:
-		mask = GetConstantNode(maskResultId + TEXT("_rMask"), 1.0f);
+		mask = GetConstantNode(aIdPrefix + TEXT("_rMask"), 1.0f);
 		break;
 	case 2:
-		mask = GetConstantNode(maskResultId + TEXT("_gMask"), 0.0f, 1.0f);
+		mask = GetConstantNode(aIdPrefix + TEXT("_gMask"), 0.0f, 1.0f);
 		break;
 	case 3:
-		mask = GetConstantNode(maskResultId + TEXT("_bMask"), 0.0f, 0.0f, 1.0f);
+		mask = GetConstantNode(aIdPrefix + TEXT("_bMask"), 0.0f, 0.0f, 1.0f);
 		break;
 	case 4:
-		mask = GetConstantNode(maskResultId + TEXT("_aMask"), 0.0f, 0.0f, 0.0f, 1.0f);
+		mask = GetConstantNode(aIdPrefix + TEXT("_aMask"), 0.0f, 0.0f, 0.0f, 1.0f);
 		break;
 	}
 
 	check(mask);
 
 	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
-	RPR::VirtualNode* result = materialLibrary.getOrCreateVirtualIfNotExists(maskResultId + TEXT("result"), rprNodeType::Arithmetic);
+	RPR::VirtualNode* result = materialLibrary.getOrCreateVirtualIfNotExists(aIdPrefix + TEXT("result"), rprNodeType::Arithmetic);
 	materialLibrary.setNodeUInt(result->rprNode, RPR_MATERIAL_INPUT_OP, RPR_MATERIAL_NODE_OP_MUL);
 	materialLibrary.setNodeConnection(result, RPR_MATERIAL_INPUT_COLOR0, selected);
 	materialLibrary.setNodeConnection(result, RPR_MATERIAL_INPUT_COLOR1, mask);
@@ -528,7 +530,7 @@ RPR::VirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMateria
 		node = materialLibrary.getOrCreateVirtualIfNotExists(vNodeId + "_ImageData", rprNodeType::None, vNodeType::TEXTURE);
 
 		if (node->texture)
-			return node;
+			return SelectRgbaChannel(vNodeId, inputParameter, node);
 
 		UTexture2D* texture2d = nullptr;
 
@@ -545,10 +547,9 @@ RPR::VirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMateria
 		if (!outImage || !outImage.IsValid())
 			return GetValueNode(idPrefix + TEXT("_DefaultValueNodeForUnsupportedUEnodesOrError"), 1.0f);
 
-		FString imgNodeId = vNodeId;
 		if (expression->Coordinates.Expression)
 		{
-			node->rprNode = materialLibrary.createImageNodeFromImageData(imgNodeId, outImage);
+			node->rprNode = materialLibrary.createImageNodeFromImageData(vNodeId, outImage);
 			RPR::VirtualNode* uvInput = ConvertExpressionToVirtualNode(expression->Coordinates.Expression, expression->Coordinates.OutputIndex);
 			materialLibrary.setNodeConnection(node, RPR_MATERIAL_INPUT_UV, uvInput);
 		}
@@ -556,16 +557,13 @@ RPR::VirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMateria
 		{
 			// use a pointer to generate a unique id
 			uint64 ptrValue = reinterpret_cast<uint64>(outImage.Get());
-			imgNodeId = FGuid(ptrValue, ptrValue >> 32, 0, 0).ToString(EGuidFormats::UniqueObjectGuid);
-			node->rprNode = materialLibrary.createImageNodeFromImageData(imgNodeId, outImage);
+			FString idPref = FGuid(ptrValue, ptrValue >> 32, 0, 0).ToString(EGuidFormats::UniqueObjectGuid);
+			node->rprNode = materialLibrary.createImageNodeFromImageData(idPref, outImage);
 		}
 
 		node->texture = true;
 
-		if (inputParameter == RPR::OutputIndex::ZERO)
-			return node;
-
-		return SelectRgbaChannel(imgNodeId, inputParameter, node);
+		return SelectRgbaChannel(vNodeId, inputParameter, node);
 	}
 	else if (expr->IsA<UMaterialExpressionOneMinus>())
 	{
