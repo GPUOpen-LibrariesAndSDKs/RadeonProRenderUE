@@ -52,6 +52,11 @@ private:
 
 	using FAOVDataPtr = TSharedPtr<FAOVData>;
 
+
+public:
+
+	void	StartRendering();
+
 private:
 
 	FReply					OnToggleRender();

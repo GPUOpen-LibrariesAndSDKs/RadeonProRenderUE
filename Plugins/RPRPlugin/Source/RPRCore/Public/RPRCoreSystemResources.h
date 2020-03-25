@@ -30,6 +30,9 @@ public:
 	bool	Initialize();
 	void	Shutdown();
 	bool	IsInitialized() const;
+	void	SetUESceneIsPlaying(const bool isPlaying);
+	bool	IsUEScenePlaying() const;
+
 public:
 
 	FORCEINLINE RPR::FContext			GetRPRContext() const { return RPRContext; }
@@ -38,8 +41,8 @@ public:
 	FORCEINLINE FRPRXMaterialLibrary&	GetRPRMaterialLibrary() { return RPRXMaterialLibrary; }
 	FORCEINLINE int32					GetNumDevicesCompatible() const { return NumDevicesCompatible; }
 
-	ERenderType		        CurrentContextType() const { return RenderEngine; }
-	void                    invalidateContextTypeUnsafe() { RenderEngine = ERenderType::None; }
+	ERenderType							CurrentContextType() const { return RenderEngine; }
+	void								invalidateContextTypeUnsafe() { RenderEngine = ERenderType::None; }
 
 private:
 
@@ -67,6 +70,7 @@ private:
 private:
 
 	bool					bIsInitialized;
+	bool					bIsPlaying;
 
 	RPR::FPluginId			CurrentPluginId;
 	RPR::FPluginId			TahoePluginId;

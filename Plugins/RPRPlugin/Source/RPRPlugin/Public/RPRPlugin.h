@@ -26,6 +26,8 @@
 #include "Widgets/Docking/SDockTab.h"
 #include "Enums/RPREnums.h"
 
+#include "Viewport/SRPRViewportTabContent.h"
+
 DECLARE_LOG_CATEGORY_EXTERN(LogRPRPlugin, All, All);
 
 class RPRPLUGIN_API FRPRPluginModule : public IModuleInterface
@@ -84,6 +86,7 @@ private:
 	void					CreateMenuBarExtension(class FMenuBarBuilder &menubarBuilder);
 	void					OpenURL(const TCHAR *url);
 	void					OpenSettings();
+	void					OpenViewport();
 
 	TSharedRef<SDockTab>	SpawnRPRViewportTab(const class FSpawnTabArgs&);
 #endif
@@ -92,15 +95,19 @@ private:
 	void					OnWorldInitialized(UWorld *inWorld, const UWorld::InitializationValues IVS);
 	void					OnWorldDestroyed(UWorld *inWorld);
 
+	void					OnPlayPressed(const bool);
+
 	void					CreateNewScene(UWorld *world);
 	bool					IsWorldSupported(EWorldType::Type WorldType) const;
 
 private:
 
 #if WITH_EDITOR
+	const FName				m_RprViewportTabId;
 	static FString			s_URLRadeonProRender;
 
 	TSharedPtr<FExtender>	m_Extender;
+	TWeakPtr<SRPRViewportTabContent> m_RprVeiwportTabContent;
 #endif
 
 	class UTexture2DDynamic	*m_RenderTexture;

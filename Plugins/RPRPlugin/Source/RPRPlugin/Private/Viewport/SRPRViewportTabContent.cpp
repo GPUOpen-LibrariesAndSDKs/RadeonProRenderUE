@@ -95,6 +95,16 @@ void SRPRViewportTabContent::OnAOVModeChanged(FAOVDataPtr item, ESelectInfo::Typ
 
 FReply	SRPRViewportTabContent::OnToggleRender()
 {
+	if (!IRPRCore::GetResources()->IsUEScenePlaying())
+	{
+		FNotificationInfo info(LOCTEXT("UE Scene is not playing", "Can't start rendering, make sure you started playing a scene."));
+		info.bFireAndForget = true;
+		info.ExpireDuration = 3;
+		FSlateNotificationManager::Get().AddNotification(info);
+
+		return FReply::Handled();
+	}
+
 	m_Plugin->m_RPRPaused = !m_Plugin->m_RPRPaused;
 	m_Plugin->m_CleanViewport = false;
 
@@ -118,6 +128,7 @@ FReply	SRPRViewportTabContent::OnToggleRender()
 		info.ExpireDuration = 3;
 		FSlateNotificationManager::Get().AddNotification(info);
 	}
+
 	return FReply::Handled();
 }
 
@@ -1251,6 +1262,12 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 
 	ToggleDenoiserOptionMenuVisibility(m_Settings->UseDenoiser);
 	ToggleAdaptiveSamplingVisibility(m_Settings->QualitySettings == Full);
+}
+
+
+void	SRPRViewportTabContent::StartRendering()
+{
+	OnToggleRender();
 }
 
 #undef LOCTEXT_NAMESPACE

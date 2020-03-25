@@ -50,6 +50,7 @@ namespace {
 
 FRPRCoreSystemResources::FRPRCoreSystemResources()
 	: bIsInitialized(false)
+	, bIsPlaying(false)
 	, CurrentPluginId(INDEX_NONE)
 	, TahoePluginId(INDEX_NONE)
 	, HybridPluginId(INDEX_NONE)
@@ -404,6 +405,16 @@ void FRPRCoreSystemResources::Shutdown()
 bool FRPRCoreSystemResources::IsInitialized() const
 {
 	return bIsInitialized;
+}
+
+void FRPRCoreSystemResources::SetUESceneIsPlaying(const bool isPlaying)
+{
+	bIsPlaying = isPlaying;
+}
+
+bool FRPRCoreSystemResources::IsUEScenePlaying() const
+{
+	return bIsPlaying;
 }
 
 void FRPRCoreSystemResources::DestroyRPRContext()

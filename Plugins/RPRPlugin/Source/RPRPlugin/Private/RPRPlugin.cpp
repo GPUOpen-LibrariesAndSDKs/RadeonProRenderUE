@@ -59,6 +59,7 @@ FRPRPluginModule::FRPRPluginModule()
 ,	m_CleanViewport(false)
 ,	m_Viewport(NULL)
 #if WITH_EDITOR
+,	m_RprViewportTabId(TEXT("RPRViewport"))
 ,	m_Extender(NULL)
 #endif
 ,	m_RenderTexture(NULL)
@@ -159,6 +160,11 @@ void	FRPRPluginModule::OpenSettings()
 	FModuleManager::LoadModuleChecked<ISettingsModule>("Settings").ShowViewer("Project", "Plugins", "RadeonProRenderSettings");
 }
 
+void FRPRPluginModule::OpenViewport()
+{
+	FGlobalTabmanager::Get()->InvokeTab(m_RprViewportTabId);
+}
+
 void	OnCloseViewport(TSharedRef<SDockTab> closedTab)
 {
 	FRPRPluginModule	&plugin = FRPRPluginModule::Get();
@@ -187,7 +193,7 @@ TSharedRef<SDockTab>	FRPRPluginModule::SpawnRPRViewportTab(const FSpawnTabArgs &
 		.TabRole(ETabRole::NomadTab)
 		.OnTabClosed(SDockTab::FOnTabClosedCallback::CreateStatic(&OnCloseViewport))
 	[
-		SNew(SRPRViewportTabContent)
+		SAssignNew(m_RprVeiwportTabContent, SRPRViewportTabContent)
 	];
 
 	return RPRViewportTab;
@@ -213,6 +219,13 @@ void	FRPRPluginModule::CreateNewSceneFromCurrentOpenedWorldIFN()
 
 void	FRPRPluginModule::FillRPRMenu(FMenuBuilder &menuBuilder)
 {
+	{
+		menuBuilder.AddMenuEntry(
+			LOCTEXT("RadeonProRenderViewportTitle", "ProRender Viewport"),
+			LOCTEXT("RadeonProRenderViewportTooltip", "Opens ProRender Viewport"),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateRaw(this, &FRPRPluginModule::OpenViewport)));
+	}
 	//menuBuilder.BeginSection("Documentation", LOCTEXT("DocTitle", "Documentation"));
 	{
 		menuBuilder.AddMenuEntry(
@@ -367,8 +380,18 @@ void	FRPRPluginModule::OnWorldDestroyed(UWorld *inWorld)
 		inWorld->DestroyActor(*it);
 
 	IRPRCore::GetResources()->invalidateContextTypeUnsafe();
+	IRPRCore::GetResources()->SetUESceneIsPlaying(false);
 
 	Reset();
+}
+
+void	FRPRPluginModule::OnPlayPressed(const bool unused)
+{
+	IRPRCore::GetResources()->SetUESceneIsPlaying(true);
+
+	TSharedPtr<SRPRViewportTabContent> rprViewportTabContentPtr = m_RprVeiwportTabContent.Pin();
+	if (rprViewportTabContentPtr.IsValid())
+		rprViewportTabContentPtr->StartRendering();
 }
 
 FIntPoint	FRPRPluginModule::OrbitDelta()
@@ -455,6 +478,11 @@ void	FRPRPluginModule::StartupModule()
 	FWorldDelegates::OnPostWorldInitialization.AddRaw(this, &FRPRPluginModule::OnWorldInitialized);
 	FWorldDelegates::OnPreWorldFinishDestroy.AddRaw(this, &FRPRPluginModule::OnWorldDestroyed);
 
+	// Play button hook
+	TBaseDelegate<void, const bool> editorPlayButtonDelegate;
+	editorPlayButtonDelegate.BindRaw(this, &FRPRPluginModule::OnPlayPressed);
+	FEditorDelegates::PostPIEStarted.Add(editorPlayButtonDelegate);
+
 	// Create render texture
     FRPRCpTexture2DDynamic::FCreateInfo createInfo;
     createInfo.Format = PF_R8G8B8A8;
@@ -491,14 +519,13 @@ void	FRPRPluginModule::StartupModule()
 
 	// Custom viewport
 	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(
-		TEXT("RPRViewport"),
+		m_RprViewportTabId,
 		FOnSpawnTab::CreateRaw(this, &FRPRPluginModule::SpawnRPRViewportTab))
 		.SetGroup(WorkspaceMenu::GetMenuStructure().GetLevelEditorViewportsCategory())
 		.SetDisplayName(LOCTEXT("TabTitle", "ProRender Viewport"))
 		.SetTooltipText(LOCTEXT("TooltipText", "Opens a Radeon ProRender viewport."))
 		.SetIcon(FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.Tabs.Viewports"));
 #endif
-
 	UE_LOG(LogRPRPlugin, VeryVerbose, TEXT("RPR Plugin module started"));
 }
 
@@ -508,7 +535,7 @@ void	FRPRPluginModule::ShutdownModule()
 		return;
 
 #if WITH_EDITOR
-	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(TEXT("RPRViewport"));
+	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(m_RprViewportTabId);
 
 	if (FModuleManager::Get().IsModuleLoaded("LevelEditor"))
 	{
