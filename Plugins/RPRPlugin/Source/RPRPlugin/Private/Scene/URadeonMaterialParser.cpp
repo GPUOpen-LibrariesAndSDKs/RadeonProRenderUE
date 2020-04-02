@@ -41,25 +41,37 @@
 #include "Materials/MaterialExpressionPanner.h"
 #include "Materials/MaterialExpressionComponentMask.h"
 #include "Materials/MaterialExpressionRotator.h"
+#include "Materials/MaterialExpressionMaterialFunctionCall.h"
+#include "Materials/MaterialExpressionFunctionOutput.h"
+#include "Materials/MaterialExpressionFunctionInput.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogURadeonMaterialParser, Log, All);
 
-#define LOG_ERROR(status, msg, ...) { \
-	if (status == RPR_ERROR_UNSUPPORTED) { \
-		UE_LOG(LogURadeonMaterialParser, Warning, TEXT("Unsupported parameter: %s"), msg, ##__VA_ARGS__); \
-	} \
-	else if (status == RPR_ERROR_INVALID_PARAMETER) { \
-		UE_LOG(LogURadeonMaterialParser, Warning, TEXT("Invalid parameter: %s"), msg, ##__VA_ARGS__); \
-	} \
-	else if (status != RPR_SUCCESS) { \
- 		UE_LOG(LogURadeonMaterialParser, Error, msg, ##__VA_ARGS__); \
-	} \
-}
+#ifdef LOG_ERROR
+#undef LOG_ERROR
+#endif
 
-using vNodeType = RPR::EVirtualNode;
-using rprNodeType = RPR::EMaterialNodeType;
+namespace
+{
+	using vNodeType = RPR::EVirtualNode;
+	using rprNodeType = RPR::EMaterialNodeType;
 
-namespace {
+	void LOG_ERROR(rpr_int status, FString msg)
+	{
+		if (status == RPR_ERROR_UNSUPPORTED)
+		{
+			UE_LOG(LogURadeonMaterialParser, Warning, TEXT("Unsupported parameter: %s"), *msg);
+		}
+		else if (status == RPR_ERROR_INVALID_PARAMETER)
+		{
+			UE_LOG(LogURadeonMaterialParser, Warning, TEXT("Invalid parameter: %s"), *msg);
+		}
+		else if (status != RPR_SUCCESS)
+		{
+			UE_LOG(LogURadeonMaterialParser, Error, TEXT("%s"), *msg);
+		}
+	}
+
 	void SetMaterialInput(RPR::FRPRXMaterialNodePtr material, const uint32 param, const RPR::VirtualNode* inputNode,  FString msg)
 	{
 		RPR::FResult status;
@@ -75,7 +87,7 @@ namespace {
 		else
 			status = material->SetMaterialParameterNode(param, inputNode->rprNode);
 
-		LOG_ERROR(status, TEXT("%s"), *msg);
+		LOG_ERROR(status, msg);
 	}
 
 	void SetReflectionToMaterial(RPR::FRPRXMaterialNodePtr material, uint32 mode, uint32 input,
@@ -117,7 +129,8 @@ namespace {
 		status = material->SetMaterialParameterBool(RPR_MATERIAL_INPUT_UBER_REFRACTION_CAUSTICS, true);
 		LOG_ERROR(status, TEXT("Can't set uber refraction caustics"));
 	}
-}
+
+} // Anonymous namespace
 
 void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 {
@@ -126,10 +139,15 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 	if (!material || !material->BaseColor.IsConnected())
 		return;
 
+	FcnInputsNodes.Empty();
+	LastParsedFCN = nullptr;
+
 	FString materialName = material->GetName();
-	idPrefix = materialName + TEXT("_");
 	if (materialName.IsEmpty())
 		return;
+
+	idPrefix = materialName + TEXT("_");
+	idPrefixHandler = idPrefix;
 
 	RPR::FResult			status;
 	FRPRXMaterialLibrary&	materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
@@ -236,7 +254,6 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 	{
 		if (material->Refraction.Expression)
 		{
-			/*RPR::VirtualNode* refraction = ConvertExpressionToVirtualNode(material->Refraction.Expression, material->Refraction.OutputIndex);*/
 			RPR::VirtualNode* ior = nullptr;
 
 			if (material->Refraction.Expression->IsA<UMaterialExpressionLinearInterpolate>())
@@ -532,12 +549,12 @@ RPR::VirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMateria
 		if (node->texture)
 			return SelectRgbaChannel(vNodeId, inputParameter, node);
 
-		UTexture2D* texture2d = nullptr;
+		UMaterialExpression* TextureSource = (expression->TextureObject.Expression) ? expression->TextureObject.Expression : expression;
 
-		if (expression->TextureObject.Expression)
-			texture2d = Cast<UTexture2D>(expression->TextureObject.Expression->GetReferencedTexture());
-		else
-			texture2d = Cast<UTexture2D>(expression->GetReferencedTexture());
+		if (TextureSource->IsA<UMaterialExpressionFunctionInput>())
+			TextureSource = FcnInputsNodes[TextureSource].Expression;
+
+		UTexture2D* texture2d = Cast<UTexture2D>(TextureSource->GetReferencedTexture());
 
 		if (!texture2d)
 			GetValueNode(idPrefix + TEXT("_DefaultValueNodeForUnsupportedUEnodesOrError"), 1.0f);
@@ -740,6 +757,40 @@ RPR::VirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMateria
 
 		return combine;
 	}
+	else if (expr->IsA<UMaterialExpressionMaterialFunctionCall>())
+	{
+		auto expression = Cast<UMaterialExpressionMaterialFunctionCall>(expr);
+		check(expression);
+
+		if (LastParsedFCN != expression && expression->FunctionInputs.Num() > 0)
+			for (const auto& each : expression->FunctionInputs)
+			{
+				auto& input = [&each]() -> const FExpressionInput& {
+					if (each.Input.Expression)
+						return each.Input;
+					else
+						return (each.ExpressionInput->bCompilingFunctionPreview)
+									? each.ExpressionInput->Preview
+									: each.ExpressionInput->EffectivePreviewDuringCompile;
+				}();
+
+				FcnInputsNodes.Add(each.ExpressionInput, {input.Expression, input.OutputIndex});
+			}
+
+		LastParsedFCN = expression;
+
+		// because of nodes name in different FunctionCalls the same, add FunctionCall name
+		idPrefix = idPrefixHandler + expression->GetName();
+
+		// requested Function Call expression's output
+		const FExpressionInput& output = expression->FunctionOutputs[inputParameter].ExpressionOutput->A.GetTracedInput();
+
+		return ConvertExpressionToVirtualNode(output.Expression, output.OutputIndex);
+	}
+	else if (expr->IsA<UMaterialExpressionFunctionInput>())
+	{
+		return ConvertExpressionToVirtualNode(FcnInputsNodes[expr].Expression, FcnInputsNodes[expr].OutputIndex);
+	}
 
 	return GetValueNode(idPrefix + TEXT("_DefaultValueNodeForUnsupportedUEnodesOrError"), 1.0f);
 #else
@@ -750,17 +801,20 @@ RPR::VirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMateria
 void URadeonMaterialParser::TwoOperandsMathNodeSetInputs(RPR::VirtualNode* vNode, const TArray<FExpressionInput*> inputs, const float ConstA, const float ConstB)
 {
 #if WITH_EDITORONLY_DATA
-	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 
-	if (inputs[0]->Expression)
-		materialLibrary.setNodeConnection(vNode, RPR_MATERIAL_INPUT_COLOR0, ConvertExpressionToVirtualNode(inputs[0]->Expression, inputs[0]->OutputIndex));
-	else
-		materialLibrary.setNodeFloat(vNode->rprNode, RPR_MATERIAL_INPUT_COLOR0, ConstA, ConstA, ConstA, ConstA);
+	const auto SetMathConnection = [this, &vNode](const rpr_int Param, const FExpressionInput* const Input, const float Value)
+	{
+		FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 
-	if (inputs[1]->Expression)
-		materialLibrary.setNodeConnection(vNode, RPR_MATERIAL_INPUT_COLOR1, ConvertExpressionToVirtualNode(inputs[1]->Expression, inputs[1]->OutputIndex));
-	else
-		materialLibrary.setNodeFloat(vNode->rprNode, RPR_MATERIAL_INPUT_COLOR1, ConstB, ConstB, ConstB, ConstB);
+		if (Input->Expression)
+			materialLibrary.setNodeConnection(vNode, Param, ConvertExpressionToVirtualNode(Input->Expression, Input->OutputIndex));
+		else
+			materialLibrary.setNodeFloat(vNode->rprNode, Param, Value, Value, Value, Value);
+	};
+
+	SetMathConnection(RPR_MATERIAL_INPUT_COLOR0, inputs[0], ConstA);
+	SetMathConnection(RPR_MATERIAL_INPUT_COLOR1, inputs[1], ConstB);
+
 #endif
 }
 
@@ -800,5 +854,3 @@ RPR::VirtualNode* URadeonMaterialParser::ParseInputNodeOrCreateDefaultAlternativ
 	return nullptr;
 #endif
 }
-
-#undef LOG_ERROR

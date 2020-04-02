@@ -49,4 +49,20 @@ private:
 	RPR::VirtualNode* ParseInputNodeOrCreateDefaultAlternative(FExpressionInput input, FString defaultId, float defaultValue);
 
 	FString idPrefix;
+	FString idPrefixHandler;
+
+	struct FFunctionInputActualInputExpression
+	{
+		UMaterialExpression*	Expression = nullptr;
+		int32					OutputIndex = -1;
+	};
+
+	// holds pointers to the input expression of each UMaterialExpressionFunctionInput of a MaterialFunctionCall Node.
+	// use it each time, when UMaterialExpressionFunctionInput will arise
+	// key - a pointer to the UMaterialExpressionFunctionInput
+	// Expression - a pointer to the key's input UMaterialExpression
+	// OutputIndex - an output index of the input Expression
+	TMap<void*, FFunctionInputActualInputExpression> FcnInputsNodes;
+	void* LastParsedFCN;
+
 };
