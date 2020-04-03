@@ -44,6 +44,12 @@ public:
 	VirtualNode(FString aID = "", EVirtualNode aType = EVirtualNode::OTHER);
 	void SetData(float r, float g, float b, float a);
 
+	bool EqualsToValue(const float value) const;
+	bool EqualsToValue(const FLinearColor value) const;
+
+	bool IsType(const EVirtualNode aType);
+	EVirtualNode GetType() const;
+
 	VirtualNode(const VirtualNode&)            = delete;
 	VirtualNode& operator=(const VirtualNode&) = delete;
 };

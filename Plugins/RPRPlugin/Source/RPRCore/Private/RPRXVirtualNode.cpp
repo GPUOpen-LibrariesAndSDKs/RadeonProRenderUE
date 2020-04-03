@@ -35,4 +35,30 @@ void VirtualNode::SetData(float r, float g, float b, float a)
 	constant.A = a;
 }
 
+bool VirtualNode::EqualsToValue(const float value) const
+{
+	return	constant.R == value &&
+			constant.G == value &&
+			constant.B == value &&
+			constant.A == value;
+}
+
+bool VirtualNode::EqualsToValue(const FLinearColor value) const
+{
+	return	constant.R == value.R &&
+			constant.G == value.G &&
+			constant.B == value.B &&
+			constant.A == value.A;
+}
+
+bool VirtualNode::IsType(const EVirtualNode aType)
+{
+	return type == aType;
+}
+
+EVirtualNode VirtualNode::GetType() const
+{
+	return type;
+}
+
 }//namespace RPR
