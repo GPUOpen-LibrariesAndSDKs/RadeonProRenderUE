@@ -38,19 +38,18 @@ private:
 	RPR::VirtualNode* GetMathNode(const FString& id, const int32 operation, const RPR::VirtualNode* a, const RPR::VirtualNode* b, bool OneInput = false);
 	RPR::VirtualNode* GetMathNodeOneInput(const FString& id, const int32 operation, const RPR::VirtualNode* a);
 	RPR::VirtualNode* GetMathNodeTwoInputs(const FString& id, const int32 operation, const RPR::VirtualNode* a, const RPR::VirtualNode* b);
+	RPR::VirtualNode* GetConstantNode(const FString& id, const float r, const float g = 0, const float b = 0, const float a = 0);
+	RPR::VirtualNode* GetConstantNode(const FString& nodeId, const FLinearColor& color);
 	RPR::VirtualNode* GetValueNode(const FString& id, const float value);
 	RPR::VirtualNode* GetDefaultNode();
-	RPR::VirtualNode* GetConstantNode(const FString& id, const float r, const float g = 0, const float b = 0, const float a = 0);
 	RPR::VirtualNode* GetOneMinusNode(const FString& id, const RPR::VirtualNode* node);
 	RPR::VirtualNode* SelectRgbaChannel(const FString& resultVirtualNodeId, const int32 outputIndex, RPR::VirtualNode* rgbaSourceNode);
-	RPR::VirtualNode* GetConstantNode(const FString& nodeId, const FLinearColor& color);
 	RPR::VirtualNode* GetSeparatedChannelNode(const FString& maskResultId, int channelIndex, int maskIndex, RPR::VirtualNode* rgbaSource);
 	RPR::VirtualNode* AddTwoNodes(const FString& id, RPR::VirtualNode* a, RPR::VirtualNode* b);
 	RPR::VirtualNode* ConvertExpressionToVirtualNode(UMaterialExpression* expr, const int32 inputParameter);
 
 	void GetMinAndMaxNodesForClamp(UMaterialExpressionClamp* expression, RPR::VirtualNode** minNode, RPR::VirtualNode** maxNode);
-	void TwoOperandsMathNodeSetInputs(RPR::VirtualNode* vNode, const TArray<FExpressionInput*> inputs, const float ConstA, const float ConstB);
-	RPR::VirtualNode* ParseNodeOrCreateDefaultAlternative(FExpressionInput input, FString defaultId, float defaultValue);
+	RPR::VirtualNode* ConvertOrCreateDefault(FExpressionInput& input, FString defaultId, float defaultValue);
 
 	FString idPrefix;
 	FString idPrefixHandler;
