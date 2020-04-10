@@ -39,13 +39,17 @@ DEFINE_LOG_CATEGORY_STATIC(LogRPRLightComponent, Log, All);
 
 DEFINE_STAT(STAT_ProRender_UpdateLights);
 
-#define CHECK_ERROR(status, formating, ...) \
+#ifdef CHECK_ERROR
+#undef CHECK_ERROR
+#endif
+
+#define CHECK_ERROR(status, errorMessage) \
 	if (status == RPR_ERROR_UNSUPPORTED) { \
-		UE_LOG(LogRPRLightComponent, Warning, TEXT("Unsupported parameter: %s"), formating, ##__VA_ARGS__); \
+		UE_LOG(LogRPRLightComponent, Warning, errorMessage); \
 	} else if (status == RPR_ERROR_INVALID_PARAMETER) { \
-		UE_LOG(LogRPRLightComponent, Warning, TEXT("Invalid parameter: %s"), formating, ##__VA_ARGS__); \
+		UE_LOG(LogRPRLightComponent, Warning, errorMessage); \
 	} else if (status != RPR_SUCCESS) { \
-		UE_LOG(LogRPRLightComponent, Error, formating, ##__VA_ARGS__); \
+		UE_LOG(LogRPRLightComponent, Error, errorMessage); \
 		return false; \
 	}
 
@@ -203,9 +207,6 @@ int	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightComponen
 
 	status = rprEnvironmentLightSetImage(m_RprLight, m_RprImage.Get());
 	CHECK_ERROR(status, TEXT("Couldn't set environment light image"));
-
-	status = rprSceneSetEnvironmentOverride(Scene->m_RprScene, RPR_SCENE_ENVIRONMENT_OVERRIDE_BACKGROUND, m_RprLight);
-	CHECK_ERROR(status, TEXT("Can't set SCENE_ENVIRONMENT_OVERRIDE_BACKGROUND"));
 
 	status = rprEnvironmentLightSetIntensityScale(m_RprLight, intensity * RPR::Light::Constants::kDirLightIntensityMultiplier);
 	CHECK_ERROR(status, TEXT("Couldn't set intensity scale of the environment light"));
