@@ -34,8 +34,8 @@ enum class EVirtualNode
 class RPRCORE_API VirtualNode
 {
 public:
-	FString				id;
-	EVirtualNode		type;
+	const FString		id;
+	const EVirtualNode	type;
 	RPR::FMaterialNode	rprNode;
 	FLinearColor		constant;
 	bool				texture;
@@ -47,7 +47,7 @@ public:
 	bool EqualsToValue(const float value) const;
 	bool EqualsToValue(const FLinearColor value) const;
 
-	bool IsType(const EVirtualNode aType);
+	bool IsType(const EVirtualNode aType) const;
 	EVirtualNode GetType() const;
 
 	VirtualNode(const VirtualNode&)            = delete;

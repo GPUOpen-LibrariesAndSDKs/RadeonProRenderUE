@@ -34,7 +34,8 @@ namespace RPR
 		ONE,
 		TWO,
 		THREE,
-		FOUR
+		FOUR,
+		FIVE
 	};
 
 	enum class EMaterialNodeInputType : FMaterialNodeInputType // rpr_material_node_input_type

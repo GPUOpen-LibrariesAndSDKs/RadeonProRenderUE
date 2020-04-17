@@ -44,6 +44,8 @@ public:
 	void			SetOrbit(bool orbit);
 	void			StartOrbitting(const FIntPoint &mousePos);
 	FString			GetCameraName() const;
+	FVector			GetCameraPosition() const;
+
 private:
 	virtual bool	Build() override;
 	virtual bool	RebuildTransforms() override;
@@ -53,6 +55,7 @@ private:
 
 	void			UpdateOrbitCamera();
 	void			RefreshProperties(bool force);
+
 private:
 	rpr_camera	m_RprCamera;
 

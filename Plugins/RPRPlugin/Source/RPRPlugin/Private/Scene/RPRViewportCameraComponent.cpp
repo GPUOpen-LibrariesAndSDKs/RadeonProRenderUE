@@ -229,6 +229,14 @@ FVector	URPRViewportCameraComponent::GetLookAtLocation() const
 	return FVector::ZeroVector;
 }
 
+FVector	URPRViewportCameraComponent::GetCameraPosition() const
+{
+	if (m_Orbit)
+		return m_OrbitLocation * 0.1f;
+	else
+		return m_CachedCameraPos;
+}
+
 FVector	URPRViewportCameraComponent::GetViewRightVector() const
 {
 	FVector	rightVector = FVector::ZeroVector;

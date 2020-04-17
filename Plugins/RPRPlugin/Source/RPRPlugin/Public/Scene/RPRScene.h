@@ -74,6 +74,8 @@ public:
 
 	bool	IsRPRSceneValid() const;
 
+	FVector GetActiveCameraPosition() const;
+
 private:
 	virtual void	BeginDestroy() override;
 	virtual void	Tick(float deltaTime) override;

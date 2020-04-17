@@ -22,6 +22,9 @@
 #include "Material/RPRXMaterialLibrary.h"
 #include "RPRCoreModule.h"
 #include "RPRSettings.h"
+#include "RPRPlugin.h"
+#include "Scene/RPRScene.h"
+#include "Scene/RPRCameraComponent.h"
 
 #include "Materials/MaterialExpressionConstant.h"
 #include "Materials/MaterialExpressionConstant2Vector.h"
@@ -51,6 +54,7 @@
 #include "Materials/MaterialExpressionFunctionInput.h"
 #include "Materials/MaterialExpressionNormalize.h"
 #include "Materials/MaterialExpressionClearCoatNormalCustomOutput.h"
+#include "Materials/MaterialExpressionCameraPositionWS.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogURadeonMaterialParser, Log, All);
 
@@ -62,6 +66,8 @@ namespace
 {
 	using vNodeType = RPR::EVirtualNode;
 	using rprNodeType = RPR::EMaterialNodeType;
+
+	RPR::FRPRXMaterialNodePtr CurrentMaterial;
 
 	void LOG_ERROR(rpr_int status, FString msg)
 	{
@@ -79,12 +85,12 @@ namespace
 		}
 	}
 
-	void SetMaterialInput(RPR::FRPRXMaterialNodePtr material, const uint32 param, const RPR::VirtualNode* inputNode,  FString msg)
+	void SetMaterialInput(const uint32 param, const RPR::VirtualNode* inputNode, FString msg)
 	{
 		RPR::FResult status;
 
-		if (inputNode->type == vNodeType::CONSTANT)
-			status = material->SetMaterialParameterFloats(
+		if (inputNode->IsType(vNodeType::CONSTANT))
+			status = CurrentMaterial->SetMaterialParameterFloats(
 				param,
 				inputNode->constant.R,
 				inputNode->constant.G,
@@ -92,48 +98,47 @@ namespace
 				inputNode->constant.A
 			);
 		else
-			status = material->SetMaterialParameterNode(param, inputNode->rprNode);
+			status = CurrentMaterial->SetMaterialParameterNode(param, inputNode->rprNode);
 
 		LOG_ERROR(status, msg);
 	}
 
-	void SetReflectionToMaterial(RPR::FRPRXMaterialNodePtr material, uint32 mode, uint32 input,
-		RPR::VirtualNode* inputVal, RPR::VirtualNode* weight, RPR::VirtualNode* color)
+	void SetReflectionToMaterial(uint32 mode, uint32 input, RPR::VirtualNode* inputVal, RPR::VirtualNode* weight, RPR::VirtualNode* color)
 	{
-		SetMaterialInput(material, input, inputVal, TEXT("Can't set uber reflection metalness"));
-		SetMaterialInput(material, RPR_MATERIAL_INPUT_UBER_REFLECTION_WEIGHT, weight, TEXT("Can't set uber reflection weight"));
-		SetMaterialInput(material, RPR_MATERIAL_INPUT_UBER_REFLECTION_COLOR, color, TEXT("Can't set uber reflection color"));
+		SetMaterialInput(input, inputVal, TEXT("Can't set uber reflection metalness"));
+		SetMaterialInput(RPR_MATERIAL_INPUT_UBER_REFLECTION_WEIGHT, weight, TEXT("Can't set uber reflection weight"));
+		SetMaterialInput(RPR_MATERIAL_INPUT_UBER_REFLECTION_COLOR, color, TEXT("Can't set uber reflection color"));
 
 		RPR::FResult status;
-		status = material->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFLECTION_ANISOTROPY, 0.0f);
+		status = CurrentMaterial->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFLECTION_ANISOTROPY, 0.0f);
 		LOG_ERROR(status, TEXT("Can't set uber reflection anisotropy"));
 
-		status = material->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFLECTION_ANISOTROPY_ROTATION, 0.0f);
+		status = CurrentMaterial->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFLECTION_ANISOTROPY_ROTATION, 0.0f);
 		LOG_ERROR(status, TEXT("Can't set uber reflection anisotropy rotation"));
 
-		status = material->SetMaterialParameterUInt(RPR_MATERIAL_INPUT_UBER_REFLECTION_MODE, mode);
+		status = CurrentMaterial->SetMaterialParameterUInt(RPR_MATERIAL_INPUT_UBER_REFLECTION_MODE, mode);
 		LOG_ERROR(status, TEXT("Can't set uber reflection mode"));
 	}
 
-	void SetRefractionToMaterial(RPR::FRPRXMaterialNodePtr material, RPR::VirtualNode* color, RPR::VirtualNode* ior)
+	void SetRefractionToMaterial(RPR::VirtualNode* color, RPR::VirtualNode* ior)
 	{
-		SetMaterialInput(material, RPR_MATERIAL_INPUT_UBER_REFRACTION_COLOR, color, TEXT("Can't set uber refraction color"));
-		SetMaterialInput(material, RPR_MATERIAL_INPUT_UBER_REFRACTION_IOR, ior, TEXT("Can't set uber refraction ior"));
+		SetMaterialInput(RPR_MATERIAL_INPUT_UBER_REFRACTION_COLOR, color, TEXT("Can't set uber refraction color"));
+		SetMaterialInput(RPR_MATERIAL_INPUT_UBER_REFRACTION_IOR, ior, TEXT("Can't set uber refraction ior"));
 
 		RPR::FResult status;
-		status = material->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFRACTION_WEIGHT, 1.0f);
+		status = CurrentMaterial->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFRACTION_WEIGHT, 1.0f);
 		LOG_ERROR(status, TEXT("Can't set uber refraction weight"));
 
-		status = material->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFRACTION_ROUGHNESS, 0.0f);
+		status = CurrentMaterial->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFRACTION_ROUGHNESS, 0.0f);
 		LOG_ERROR(status, TEXT("Can't set uber refraction roughness"));
 
-		status = material->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFRACTION_ABSORPTION_COLOR, 0.0f);
+		status = CurrentMaterial->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFRACTION_ABSORPTION_COLOR, 0.0f);
 		LOG_ERROR(status, TEXT("Can't set uber refraction absorptoin color"));
 
-		status = material->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFRACTION_ABSORPTION_DISTANCE, 0.0f);
+		status = CurrentMaterial->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFRACTION_ABSORPTION_DISTANCE, 0.0f);
 		LOG_ERROR(status, TEXT("Can't set uber refraction absorptoin distance"));
 
-		status = material->SetMaterialParameterBool(RPR_MATERIAL_INPUT_UBER_REFRACTION_CAUSTICS, true);
+		status = CurrentMaterial->SetMaterialParameterBool(RPR_MATERIAL_INPUT_UBER_REFRACTION_CAUSTICS, true);
 		LOG_ERROR(status, TEXT("Can't set uber refraction caustics"));
 	}
 
@@ -165,22 +170,25 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 		return;
 
 	shape.m_RprxNodeMaterial = uberMaterialPtr;
+	CurrentMaterial = uberMaterialPtr;
 
 	materialLibrary.ReleaseCache();
 
 	//First expression is always for BaseColor, the input to BaseColor is input for material
-	RPR::VirtualNode* baseColorInputNode = ConvertExpressionToVirtualNode(material->BaseColor.Expression, material->BaseColor.OutputIndex);
-	SetMaterialInput(uberMaterialPtr, RPR_MATERIAL_INPUT_UBER_DIFFUSE_COLOR, baseColorInputNode, TEXT("Can't set diffuse color for uber material"));
+	RPR::VirtualNode* baseColorInputNode = ColorInputEvaluate(ConvertExpressionToVirtualNode(material->BaseColor.Expression, material->BaseColor.OutputIndex));
+
+	SetMaterialInput(RPR_MATERIAL_INPUT_UBER_DIFFUSE_COLOR, baseColorInputNode, TEXT("Can't set diffuse color for uber material"));
 
 	status = uberMaterialPtr->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_DIFFUSE_WEIGHT, 1.0f);
 	LOG_ERROR(status, TEXT("Can't set diffuse weight for uber material"));
+
+	SetMaterialInput(RPR_MATERIAL_INPUT_UBER_DIFFUSE_ROUGHNESS, GetValueNode(TEXT("DefaultMatDiffuseRoughness"), 0.5f), TEXT("Can't set uber reflection roughness"));
 
 	if (material->Metallic.Expression)
 	{
 		RPR::VirtualNode* metallicInput = ConvertExpressionToVirtualNode(material->Metallic.Expression, material->Metallic.OutputIndex);
 
 		SetReflectionToMaterial(
-			uberMaterialPtr,
 			RPR_UBER_MATERIAL_IOR_MODE_METALNESS,
 			RPR_MATERIAL_INPUT_UBER_REFLECTION_METALNESS,
 			metallicInput,
@@ -195,7 +203,6 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 		const FString valueName(idPrefix + TEXT("IOR_1.5_ForNonLiquidMaterials"));
 
 		SetReflectionToMaterial(
-			uberMaterialPtr,
 			RPR_UBER_MATERIAL_IOR_MODE_PBR,
 			RPR_MATERIAL_INPUT_UBER_REFLECTION_IOR,
 			GetValueNode(valueName, 1.5f),
@@ -208,14 +215,13 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 	{
 		RPR::VirtualNode* roughnessInput = ConvertExpressionToVirtualNode(material->Roughness.Expression, material->Roughness.OutputIndex);
 
-		SetMaterialInput(uberMaterialPtr, RPR_MATERIAL_INPUT_UBER_REFLECTION_ROUGHNESS, roughnessInput, TEXT("Can't set uber reflection roughness"));
+		SetMaterialInput(RPR_MATERIAL_INPUT_UBER_REFLECTION_ROUGHNESS, roughnessInput, TEXT("Can't set uber reflection roughness"));
 
 		if (!material->Specular.Expression && !material->Metallic.Expression)
 		{
 			const FString valueName(idPrefix + TEXT("Raughness_Reflection_For_Metalness_0.0"));
 
 			SetReflectionToMaterial(
-				uberMaterialPtr,
 				RPR_UBER_MATERIAL_IOR_MODE_METALNESS,
 				RPR_MATERIAL_INPUT_UBER_REFLECTION_METALNESS,
 				GetValueNode(valueName, 0.0f),
@@ -244,7 +250,7 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 			// use multiplying results as emissive color
 			const RPR::VirtualNode* emissiveColor = ConvertExpressionToVirtualNode(material->EmissiveColor.Expression, material->EmissiveColor.OutputIndex);
 
-			SetMaterialInput(uberMaterialPtr, RPR_MATERIAL_INPUT_UBER_EMISSION_COLOR, emissiveColor, TEXT("Can't set uber emission color"));
+			SetMaterialInput(RPR_MATERIAL_INPUT_UBER_EMISSION_COLOR, emissiveColor, TEXT("Can't set uber emission color"));
 
 			status = uberMaterialPtr->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_EMISSION_WEIGHT, 1.0f);
 			LOG_ERROR(status, TEXT("Can't set uber emission weight"));
@@ -272,14 +278,14 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 			else
 				ior = GetValueNode(idPrefix + TEXT("_ReflectionDefaultIOR"), 1.5f);
 
-			SetRefractionToMaterial(uberMaterialPtr, baseColorInputNode, ior);
+			SetRefractionToMaterial(baseColorInputNode, ior);
 		}
 		else
 		{
 			RPR::VirtualNode* opacity = ConvertExpressionToVirtualNode(material->Opacity.Expression, material->Opacity.OutputIndex);
 			RPR::VirtualNode* oneMinus = GetOneMinusNode(idPrefix + TEXT("OneMinusOpacity"), opacity);
 
-			SetMaterialInput(uberMaterialPtr, RPR_MATERIAL_INPUT_UBER_TRANSPARENCY, oneMinus, TEXT("Can't set Transparent (Opacity) for uber material"));
+			SetMaterialInput(RPR_MATERIAL_INPUT_UBER_TRANSPARENCY, oneMinus, TEXT("Can't set Transparent (Opacity) for uber material"));
 		}
 	}
 
@@ -288,7 +294,7 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 		RPR::VirtualNode* opacityMask = ConvertExpressionToVirtualNode(material->OpacityMask.Expression, material->OpacityMask.OutputIndex);
 		RPR::VirtualNode* oneMinus = GetOneMinusNode(idPrefix + TEXT("OneMinusOpacityMask"), opacityMask);
 
-		SetMaterialInput(uberMaterialPtr, RPR_MATERIAL_INPUT_UBER_TRANSPARENCY, oneMinus, TEXT("Can't set Transparent (OpacityMask) for uber material"));
+		SetMaterialInput(RPR_MATERIAL_INPUT_UBER_TRANSPARENCY, oneMinus, TEXT("Can't set Transparent (OpacityMask) for uber material"));
 	}
 
 	FString normalNodeId;
@@ -301,8 +307,8 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 
 		materialLibrary.setNodeConnection(normalNode, RPR_MATERIAL_INPUT_COLOR, normalInput);
 
-		SetMaterialInput(uberMaterialPtr, RPR_MATERIAL_INPUT_UBER_DIFFUSE_NORMAL, normalNode, TEXT("Can't set Diffuse uber normal"));
-		SetMaterialInput(uberMaterialPtr, RPR_MATERIAL_INPUT_UBER_REFLECTION_NORMAL, normalNode, TEXT("Can't set Reflection uber normal"));
+		SetMaterialInput(RPR_MATERIAL_INPUT_UBER_DIFFUSE_NORMAL, normalNode, TEXT("Can't set Diffuse uber normal"));
+		SetMaterialInput(RPR_MATERIAL_INPUT_UBER_REFLECTION_NORMAL, normalNode, TEXT("Can't set Reflection uber normal"));
 	}
 
 	if (material->ClearCoat.Expression)
@@ -310,16 +316,16 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 		const FString id = idPrefix + TEXT("_ClearCoat");
 
 		const RPR::VirtualNode* weight = ConvertExpressionToVirtualNode(material->ClearCoat.Expression, material->ClearCoat.OutputIndex);
-		SetMaterialInput(uberMaterialPtr, RPR_MATERIAL_INPUT_UBER_COATING_COLOR, GetValueNode(id + TEXT("CoatingColor"), 1.0f), TEXT("Can't set Coating Color"));
-		SetMaterialInput(uberMaterialPtr, RPR_MATERIAL_INPUT_UBER_COATING_WEIGHT, weight, TEXT("Can't set Coating Weight"));
+		SetMaterialInput(RPR_MATERIAL_INPUT_UBER_COATING_COLOR, GetValueNode(id + TEXT("CoatingColor"), 1.0f), TEXT("Can't set Coating Color"));
+		SetMaterialInput(RPR_MATERIAL_INPUT_UBER_COATING_WEIGHT, weight, TEXT("Can't set Coating Weight"));
 
 		const RPR::VirtualNode* roughness = ConvertOrCreateDefault(material->ClearCoatRoughness, id + TEXT("defaultCCR"), 0.0f);
-		SetMaterialInput(uberMaterialPtr, RPR_MATERIAL_INPUT_UBER_COATING_ROUGHNESS, roughness, TEXT("Can't set Coating Roughness"));
+		SetMaterialInput(RPR_MATERIAL_INPUT_UBER_COATING_ROUGHNESS, roughness, TEXT("Can't set Coating Roughness"));
 
 		status = uberMaterialPtr->SetMaterialParameterUInt(RPR_MATERIAL_INPUT_UBER_COATING_MODE, RPR_UBER_MATERIAL_IOR_MODE_PBR);
 		LOG_ERROR(status, TEXT("Can't set uber reflection mode"));
 
-		SetMaterialInput(uberMaterialPtr, RPR_MATERIAL_INPUT_UBER_COATING_IOR, GetValueNode(id + TEXT("CoatingIOR"), 1.5f), TEXT("Can't set Coating IOR"));
+		SetMaterialInput(RPR_MATERIAL_INPUT_UBER_COATING_IOR, GetValueNode(id + TEXT("CoatingIOR"), 1.5f), TEXT("Can't set Coating IOR"));
 
 		RPR::VirtualNode* clearCoatNormal = nullptr;
 		for (const UMaterialExpression* each : material->Expressions)
@@ -349,18 +355,18 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 			*/
 			if (!material->Normal.Expression)
 			{
-				SetMaterialInput(uberMaterialPtr, RPR_MATERIAL_INPUT_UBER_DIFFUSE_NORMAL, coatingNormal, TEXT("Can't set Diffuse uber normal for coated material"));
-				SetMaterialInput(uberMaterialPtr, RPR_MATERIAL_INPUT_UBER_REFLECTION_NORMAL, coatingNormal, TEXT("Can't set Reflection uber normal for coated material"));
+				SetMaterialInput(RPR_MATERIAL_INPUT_UBER_DIFFUSE_NORMAL, coatingNormal, TEXT("Can't set Diffuse uber normal for coated material"));
+				SetMaterialInput(RPR_MATERIAL_INPUT_UBER_REFLECTION_NORMAL, coatingNormal, TEXT("Can't set Reflection uber normal for coated material"));
 			}
 			else
 			{
-				SetMaterialInput(uberMaterialPtr, RPR_MATERIAL_INPUT_UBER_COATING_NORMAL, coatingNormal, TEXT("Can't set Reflection uber normal for coated material"));
+				SetMaterialInput(RPR_MATERIAL_INPUT_UBER_COATING_NORMAL, coatingNormal, TEXT("Can't set Reflection uber normal for coated material"));
 			}
 		}
 		else if (material->Normal.Expression)
 		{
 			const RPR::VirtualNode* normalNode = materialLibrary.getOrCreateVirtualIfNotExists(normalNodeId, rprNodeType::NormalMap);
-			SetMaterialInput(uberMaterialPtr, RPR_MATERIAL_INPUT_UBER_COATING_NORMAL, normalNode, TEXT("Can't set Reflection uber normal for coated material"));
+			SetMaterialInput(RPR_MATERIAL_INPUT_UBER_COATING_NORMAL, normalNode, TEXT("Can't set Reflection uber normal for coated material"));
 		}
 
 		status = uberMaterialPtr->SetMaterialParameterFloats(RPR_MATERIAL_INPUT_UBER_COATING_THICKNESS, 1.0f, 1.0f, 1.0f, 1.0f);
@@ -425,10 +431,15 @@ RPR::VirtualNode* URadeonMaterialParser::GetOneMinusNode(const FString& id, cons
 {
 	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 
-	if (node->type == vNodeType::CONSTANT)
+	if (node->IsType(vNodeType::CONSTANT))
 		return GetConstantNode(id, 1.0f - node->constant.R, 1.0f - node->constant.G, 1.0f - node->constant.B, 1.0f - node->constant.A);
 	else
 		return GetMathNodeTwoInputs(id, RPR_MATERIAL_NODE_OP_SUB, GetValueNode(id + TEXT("1.0f"), 1.0f), node);
+}
+
+RPR::VirtualNode* URadeonMaterialParser::GetNormalizeNode(const FString& id, const RPR::VirtualNode* node)
+{
+	return GetMathNodeOneInput(id, RPR_MATERIAL_NODE_OP_NORMALIZE3, node);
 }
 
 /*
@@ -461,6 +472,7 @@ RPR::VirtualNode* URadeonMaterialParser::SelectRgbaChannel(const FString& aIdPre
 		return GetMathNodeOneInput(aIdPrefix + TEXT("_A"), RPR_MATERIAL_NODE_OP_SELECT_W, rgbaSourceNode);
 
 	case RPR::OutputIndex::ZERO:
+	case RPR::OutputIndex::FIVE:
 	default:
 		return rgbaSourceNode;
 	}
@@ -897,13 +909,55 @@ RPR::VirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMateria
 
 		const RPR::VirtualNode* in = ConvertExpressionToVirtualNode(expression->VectorInput.Expression, expression->VectorInput.OutputIndex);
 
-		return GetMathNodeOneInput(idPrefix + expression->GetName(), RPR_MATERIAL_NODE_OP_NORMALIZE3, in);
+		return GetNormalizeNode(idPrefix + expression->GetName(), in);
+	}
+	else if (expr->IsA<UMaterialExpressionCameraPositionWS>())
+	{
+		 FVector camPos = FRPRPluginModule::Get().GetCurrentScene()->GetActiveCameraPosition();
+
+		 return GetConstantNode(idPrefix + expr->GetName(), camPos.X, camPos.Y, camPos.Z, 0.0f);
 	}
 
 	return GetDefaultNode();
 #else
 	return nullptr;
 #endif
+}
+
+RPR::VirtualNode* URadeonMaterialParser::ConvertOrCreateDefault(FExpressionInput& input, FString defaultId, float defaultValue)
+{
+#if WITH_EDITORONLY_DATA
+	if (input.Expression)
+		return ConvertExpressionToVirtualNode(input.Expression, input.OutputIndex);
+	else
+		return GetValueNode(defaultId, defaultValue);
+#else
+	return nullptr;
+#endif
+}
+
+/*
+	To a color input might come a vector with values out of range 0-1,
+	in such a case we should convert this vector's value to a color value range
+*/
+RPR::VirtualNode* URadeonMaterialParser::ColorInputEvaluate(RPR::VirtualNode* color)
+{
+	if (color->IsType(vNodeType::CONSTANT))
+	{
+		float r = FMath::Max(0.0f, color->constant.R);
+		float g = FMath::Max(0.0f, color->constant.G);
+		float b = FMath::Max(0.0f, color->constant.B);
+		float a = FMath::Max(0.0f, color->constant.A);
+
+		r = FMath::Min(1.0f, r);
+		g = FMath::Min(1.0f, g);
+		b = FMath::Min(1.0f, b);
+		a = FMath::Min(1.0f, a);
+
+		color->SetData(r, g, b, a);
+	}
+
+	return color;
 }
 
 void URadeonMaterialParser::GetMinAndMaxNodesForClamp(UMaterialExpressionClamp* expression, RPR::VirtualNode** minNode, RPR::VirtualNode** maxNode)
@@ -929,16 +983,4 @@ void URadeonMaterialParser::GetMinAndMaxNodesForClamp(UMaterialExpressionClamp* 
 	}
 	break;
 	}
-}
-
-RPR::VirtualNode* URadeonMaterialParser::ConvertOrCreateDefault(FExpressionInput& input, FString defaultId, float defaultValue)
-{
-#if WITH_EDITORONLY_DATA
-	if (input.Expression)
-		return ConvertExpressionToVirtualNode(input.Expression, input.OutputIndex);
-	else
-		return GetValueNode(defaultId, defaultValue);
-#else
-	return nullptr;
-#endif
 }

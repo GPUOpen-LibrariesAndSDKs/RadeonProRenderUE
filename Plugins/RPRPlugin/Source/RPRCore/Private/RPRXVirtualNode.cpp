@@ -51,7 +51,7 @@ bool VirtualNode::EqualsToValue(const FLinearColor value) const
 			constant.A == value.A;
 }
 
-bool VirtualNode::IsType(const EVirtualNode aType)
+bool VirtualNode::IsType(const EVirtualNode aType) const
 {
 	return type == aType;
 }

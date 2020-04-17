@@ -42,13 +42,16 @@ public:
 	FVector			GetViewLocation() const;
 	FVector			GetViewRightVector() const;
 	FVector			GetLookAtLocation() const;
+	FVector			GetCameraPosition() const;
 	float			GetAspectRatio() const;
+
 private:
 	virtual void	RebuildCameraProperties(bool force);
 	virtual void	TickComponent(float deltaTime, ELevelTick tickType, FActorComponentTickFunction *tickFunction) override;
 	virtual bool	RebuildTransforms() override;
 
 	void			UpdateOrbitCamera();
+
 private:
 	rpr_camera	m_RprCamera;
 

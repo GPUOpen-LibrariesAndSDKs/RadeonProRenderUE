@@ -192,6 +192,22 @@ bool ARPRScene::IsRPRSceneValid() const
 	return m_RprScene != nullptr;
 }
 
+FVector ARPRScene::GetActiveCameraPosition() const
+{
+	if (m_ActiveCamera == ViewportCameraComponent)
+	{
+		return ViewportCameraComponent->GetCameraPosition();
+	}
+	else
+	{
+		const URPRCameraComponent* camera = Cast<URPRCameraComponent>(m_ActiveCamera);
+		if (camera)
+			return camera->GetCameraPosition();
+	}
+
+	return FVector::ZeroVector;
+}
+
 bool	ARPRScene::QueueBuildRPRActor(UWorld *world, USceneComponent *srcComponent, UClass *typeClass, bool checkIfContained)
 {
 	if (checkIfContained)

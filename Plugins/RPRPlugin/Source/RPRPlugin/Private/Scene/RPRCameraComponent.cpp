@@ -151,6 +151,14 @@ FString	URPRCameraComponent::GetCameraName() const
 	return "";
 }
 
+FVector	URPRCameraComponent::GetCameraPosition() const
+{
+	if (m_Orbit)
+		return m_OrbitLocation * 0.1f;
+	else
+		return SrcComponent->GetComponentToWorld().GetLocation() * 0.1f;
+}
+
 bool	URPRCameraComponent::Build()
 {
 	// Async load: SrcComponent can be null if it was deleted from the scene
