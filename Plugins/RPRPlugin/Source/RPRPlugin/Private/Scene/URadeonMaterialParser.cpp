@@ -31,6 +31,7 @@
 #include "Materials/MaterialExpressionConstant3Vector.h"
 #include "Materials/MaterialExpressionConstant4Vector.h"
 #include "Materials/MaterialExpressionVectorParameter.h"
+#include "Materials/MaterialExpressionAppendVector.h"
 #include "Materials/MaterialExpressionAdd.h"
 #include "Materials/MaterialExpressionSubtract.h"
 #include "Materials/MaterialExpressionMultiply.h"
@@ -55,6 +56,8 @@
 #include "Materials/MaterialExpressionNormalize.h"
 #include "Materials/MaterialExpressionClearCoatNormalCustomOutput.h"
 #include "Materials/MaterialExpressionCameraPositionWS.h"
+#include "Materials/MaterialExpressionAbs.h"
+#include "Materials/MaterialExpressionScalarParameter.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogURadeonMaterialParser, Log, All);
 
@@ -183,6 +186,12 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 	LOG_ERROR(status, TEXT("Can't set diffuse weight for uber material"));
 
 	SetMaterialInput(RPR_MATERIAL_INPUT_UBER_DIFFUSE_ROUGHNESS, GetValueNode(TEXT("DefaultMatDiffuseRoughness"), 0.5f), TEXT("Can't set uber reflection roughness"));
+
+	// because of inability to set this data to UE material, kept 0.0f
+	status = uberMaterialPtr->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_BACKSCATTER_WEIGHT, 0.0f);
+	LOG_ERROR(status, TEXT("Can't set backscatter weight for uber material"));
+
+	SetMaterialInput(RPR_MATERIAL_INPUT_UBER_BACKSCATTER_COLOR, baseColorInputNode, TEXT("Can't set backscatter color for uber material"));
 
 	if (material->Metallic.Expression)
 	{
@@ -369,9 +378,9 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 			SetMaterialInput(RPR_MATERIAL_INPUT_UBER_COATING_NORMAL, normalNode, TEXT("Can't set Reflection uber normal for coated material"));
 		}
 
-		status = uberMaterialPtr->SetMaterialParameterFloats(RPR_MATERIAL_INPUT_UBER_COATING_THICKNESS, 1.0f, 1.0f, 1.0f, 1.0f);
+		status = uberMaterialPtr->SetMaterialParameterFloats(RPR_MATERIAL_INPUT_UBER_COATING_THICKNESS, 0.0f, 0.0f, 0.0f, 0.0f);
 		LOG_ERROR(status, TEXT("Can't set Coating Thickness Color"));
-		status = uberMaterialPtr->SetMaterialParameterFloats(RPR_MATERIAL_INPUT_UBER_COATING_TRANSMISSION_COLOR, 1.0f, 1.0f, 1.0f, 1.0f);
+		status = uberMaterialPtr->SetMaterialParameterFloats(RPR_MATERIAL_INPUT_UBER_COATING_TRANSMISSION_COLOR, 0.0f, 0.0f, 0.0f, 0.0f);
 		LOG_ERROR(status, TEXT("Can't set Coating Transmission Color"));
 	}
 
@@ -382,13 +391,20 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
 
 RPR::VirtualNode* URadeonMaterialParser::GetMathNode(const FString& Id, const int32 Operation, const RPR::VirtualNode* A, const RPR::VirtualNode* B, bool OneInput /* = false*/)
 {
-	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
-	RPR::VirtualNode* result = materialLibrary.getOrCreateVirtualIfNotExists(Id, rprNodeType::Arithmetic);
+	FRPRXMaterialLibrary&	materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
+	RPR::VirtualNode*		result = materialLibrary.getOrCreateVirtualIfNotExists(Id, rprNodeType::Arithmetic);
+
 	materialLibrary.setNodeUInt(result->rprNode, RPR_MATERIAL_INPUT_OP, Operation);
 	materialLibrary.setNodeConnection(result, RPR_MATERIAL_INPUT_COLOR0, A);
 
+	result->SetVectorSize(A->GetVectorSize());
+
 	if (!OneInput)
+	{
 		materialLibrary.setNodeConnection(result, RPR_MATERIAL_INPUT_COLOR1, B);
+		if (B->GetVectorSize() > result->GetVectorSize())
+			result->SetVectorSize(B->GetVectorSize());
+	}
 
 	return result;
 }
@@ -400,26 +416,72 @@ RPR::VirtualNode* URadeonMaterialParser::GetMathNodeOneInput(const FString& Id, 
 
 RPR::VirtualNode* URadeonMaterialParser::GetMathNodeTwoInputs(const FString& Id, const int32 Operation, const RPR::VirtualNode* A, const RPR::VirtualNode* B)
 {
+	if (A->IsType(vNodeType::CONSTANT) && B->IsType(vNodeType::CONSTANT))
+	{
+		const int32 vsize = FMath::Max(A->GetVectorSize(), B->GetVectorSize());
+		switch (Operation)
+		{
+		case RPR_MATERIAL_NODE_OP_MUL:
+			return GetConstantNode(
+				Id,
+				vsize,
+				A->constant.R * B->constant.R,
+				A->constant.G * B->constant.G,
+				A->constant.B * B->constant.B,
+				A->constant.A * B->constant.A
+			);
+		case RPR_MATERIAL_NODE_OP_DIV:
+			return GetConstantNode(
+				Id,
+				vsize,
+				(B->constant.R == 0.0f) ? 0.0f : A->constant.R / B->constant.R,
+				(B->constant.G == 0.0f) ? 0.0f : A->constant.G / B->constant.G,
+				(B->constant.B == 0.0f) ? 0.0f : A->constant.B / B->constant.B,
+				(B->constant.A == 0.0f) ? 0.0f : A->constant.A / B->constant.A
+			);
+		case RPR_MATERIAL_NODE_OP_ADD:
+			return GetConstantNode(
+				Id,
+				vsize,
+				A->constant.R + B->constant.R,
+				A->constant.G + B->constant.G,
+				A->constant.B + B->constant.B,
+				A->constant.A + B->constant.A
+			);
+		case RPR_MATERIAL_NODE_OP_SUB:
+			return GetConstantNode(
+				Id,
+				vsize,
+				A->constant.R - B->constant.R,
+				A->constant.G - B->constant.G,
+				A->constant.B - B->constant.B,
+				A->constant.A - B->constant.A
+			);
+		}
+	}
+
 	return GetMathNode(Id, Operation, A, B);
 }
 
-RPR::VirtualNode* URadeonMaterialParser::GetConstantNode(const FString& id, const float r, const float g, const float b, const float a)
+RPR::VirtualNode* URadeonMaterialParser::GetConstantNode(const FString& id, const int32 vectorSize, const float r, const float g, const float b, const float a)
 {
 	RPR::VirtualNode* node = IRPRCore::GetResources()->GetRPRMaterialLibrary().getOrCreateVirtualIfNotExists(id, rprNodeType::None, vNodeType::CONSTANT);
 	node->SetData(r, g, b, a);
+	node->SetVectorSize(vectorSize);
 	return node;
 }
 
-RPR::VirtualNode* URadeonMaterialParser::GetConstantNode(const FString& nodeId, const FLinearColor& color)
+RPR::VirtualNode* URadeonMaterialParser::GetConstantNode(const FString& nodeId, const int32 vectorSize, const FLinearColor& color)
 {
 	RPR::VirtualNode* node = IRPRCore::GetResources()->GetRPRMaterialLibrary().getOrCreateVirtualIfNotExists(nodeId, rprNodeType::None, vNodeType::CONSTANT);
 	node->SetData(color.R, color.G, color.B, color.A);
+	node->SetVectorSize(vectorSize);
 	return node;
 }
 
 RPR::VirtualNode* URadeonMaterialParser::GetValueNode(const FString& id, const float value)
 {
-	return GetConstantNode(id, value, value, value, value);
+	return GetConstantNode(id, 1, value, value, value, value);
 }
 
 RPR::VirtualNode* URadeonMaterialParser::GetDefaultNode()
@@ -429,12 +491,7 @@ RPR::VirtualNode* URadeonMaterialParser::GetDefaultNode()
 
 RPR::VirtualNode* URadeonMaterialParser::GetOneMinusNode(const FString& id, const RPR::VirtualNode* node)
 {
-	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
-
-	if (node->IsType(vNodeType::CONSTANT))
-		return GetConstantNode(id, 1.0f - node->constant.R, 1.0f - node->constant.G, 1.0f - node->constant.B, 1.0f - node->constant.A);
-	else
-		return GetMathNodeTwoInputs(id, RPR_MATERIAL_NODE_OP_SUB, GetValueNode(id + TEXT("1.0f"), 1.0f), node);
+	return GetMathNodeTwoInputs(id, RPR_MATERIAL_NODE_OP_SUB, GetValueNode(id + TEXT("1.0f"), 1.0f), node);
 }
 
 RPR::VirtualNode* URadeonMaterialParser::GetNormalizeNode(const FString& id, const RPR::VirtualNode* node)
@@ -449,35 +506,69 @@ RPR::VirtualNode* URadeonMaterialParser::SelectRgbaChannel(const FString& aIdPre
 {
 	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 
+	RPR::VirtualNode* result = nullptr;
+
 	switch (outputIndex)
 	{
+	case RPR::OutputIndex::ZERO:
+		return rgbaSourceNode;
+
 	case RPR::OutputIndex::ONE:
+	{
 		if (auto existingNode = materialLibrary.getVirtualNode(aIdPrefix + TEXT("_R")))
 			return existingNode;
-		return GetMathNodeOneInput(aIdPrefix + TEXT("_R"), RPR_MATERIAL_NODE_OP_SELECT_X, rgbaSourceNode);
 
+		result = GetMathNodeOneInput(aIdPrefix + TEXT("_R"), RPR_MATERIAL_NODE_OP_SELECT_X, rgbaSourceNode);
+		result->SetVectorSize(1);
+		return result;
+	}
 	case RPR::OutputIndex::TWO:
+	{
 		if (auto existingNode = materialLibrary.getVirtualNode(aIdPrefix + TEXT("_G")))
 			return existingNode;
-		return GetMathNodeOneInput(aIdPrefix + TEXT("_G"), RPR_MATERIAL_NODE_OP_SELECT_Y, rgbaSourceNode);
 
+		result = GetMathNodeOneInput(aIdPrefix + TEXT("_G"), RPR_MATERIAL_NODE_OP_SELECT_Y, rgbaSourceNode);
+		result->SetVectorSize(1);
+		return result;
+	}
 	case RPR::OutputIndex::THREE:
+	{
 		if (auto existingNode = materialLibrary.getVirtualNode(aIdPrefix + TEXT("_B")))
 			return existingNode;
-		return GetMathNodeOneInput(aIdPrefix + TEXT("_B"), RPR_MATERIAL_NODE_OP_SELECT_Z, rgbaSourceNode);
 
+		result = GetMathNodeOneInput(aIdPrefix + TEXT("_B"), RPR_MATERIAL_NODE_OP_SELECT_Z, rgbaSourceNode);
+		result->SetVectorSize(1);
+		return result;
+	}
 	case RPR::OutputIndex::FOUR:
+	{
 		if (auto existingNode = materialLibrary.getVirtualNode(aIdPrefix + TEXT("_A")))
 			return existingNode;
-		return GetMathNodeOneInput(aIdPrefix + TEXT("_A"), RPR_MATERIAL_NODE_OP_SELECT_W, rgbaSourceNode);
 
-	case RPR::OutputIndex::ZERO:
+		result = GetMathNodeOneInput(aIdPrefix + TEXT("_A"), RPR_MATERIAL_NODE_OP_SELECT_W, rgbaSourceNode);
+		result->SetVectorSize(1);
+		return result;
+	}
 	case RPR::OutputIndex::FIVE:
+	{
+		if (auto existingNode = materialLibrary.getVirtualNode(aIdPrefix + TEXT("_RGBA")))
+			return existingNode;
+
+		result = materialLibrary.getOrCreateVirtualIfNotExists(aIdPrefix + TEXT("_RGBA"), rprNodeType::None, rgbaSourceNode->GetType());
+		result->rprNode = rgbaSourceNode->rprNode;
+		result->isTextureLoaded = rgbaSourceNode->isTextureLoaded;
+		result->SetVectorSize(4);
+		return result;
+	}
 	default:
-		return rgbaSourceNode;
+		return GetDefaultNode();
 	}
 }
 
+/*
+	channelIndex shows which channel to select - the new (selected) node contains this value in all channels.
+	maskIndex shows in which channel place the value from the selected channel
+*/
 RPR::VirtualNode* URadeonMaterialParser::GetSeparatedChannelNode(const FString& aIdPrefix, int channelIndex, int maskIndex, RPR::VirtualNode* rgbaSource)
 {
 	RPR::VirtualNode* selected = SelectRgbaChannel(aIdPrefix, channelIndex, rgbaSource);
@@ -486,22 +577,22 @@ RPR::VirtualNode* URadeonMaterialParser::GetSeparatedChannelNode(const FString& 
 	switch (maskIndex)
 	{
 	case 1:
-		mask = GetConstantNode(aIdPrefix + TEXT("_rMask"), 1.0f);
+		mask = GetConstantNode(aIdPrefix + TEXT("_rMask"), 1, 1.0f);
 		break;
 	case 2:
-		mask = GetConstantNode(aIdPrefix + TEXT("_gMask"), 0.0f, 1.0f);
+		mask = GetConstantNode(aIdPrefix + TEXT("_gMask"), 2, 0.0f, 1.0f);
 		break;
 	case 3:
-		mask = GetConstantNode(aIdPrefix + TEXT("_bMask"), 0.0f, 0.0f, 1.0f);
+		mask = GetConstantNode(aIdPrefix + TEXT("_bMask"), 3, 0.0f, 0.0f, 1.0f);
 		break;
 	case 4:
-		mask = GetConstantNode(aIdPrefix + TEXT("_aMask"), 0.0f, 0.0f, 0.0f, 1.0f);
+		mask = GetConstantNode(aIdPrefix + TEXT("_aMask"), 4, 0.0f, 0.0f, 0.0f, 1.0f);
 		break;
 	}
 
 	check(mask);
 
-	return GetMathNodeTwoInputs(aIdPrefix + TEXT("result"), RPR_MATERIAL_NODE_OP_MUL, selected, mask);
+	return GetMathNodeTwoInputs(aIdPrefix + TEXT("result") + FString::FromInt(channelIndex), RPR_MATERIAL_NODE_OP_MUL, selected, mask);
 }
 
 RPR::VirtualNode* URadeonMaterialParser::AddTwoNodes(const FString& id, RPR::VirtualNode* a, RPR::VirtualNode* b)
@@ -533,28 +624,187 @@ RPR::VirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMateria
 		auto expression = Cast<UMaterialExpressionConstant2Vector>(expr);
 		check(expression);
 
-		return GetConstantNode(idPrefix + expression->GetName(), FLinearColor(expression->R, expression->G, 0, 0));
+		return GetConstantNode(idPrefix + expression->GetName(), 2, FLinearColor(expression->R, expression->G, 0, 0));
 	}
 	else if (expr->IsA<UMaterialExpressionConstant3Vector>())
 	{
 		auto expression = Cast<UMaterialExpressionConstant3Vector>(expr);
 		check(expression);
 
-		return GetConstantNode(idPrefix + expression->GetName(), expression->Constant);
+		return GetConstantNode(idPrefix + expression->GetName(), 3, expression->Constant);
 	}
 	else if (expr->IsA<UMaterialExpressionConstant4Vector>())
 	{
 		auto expression = Cast<UMaterialExpressionConstant4Vector>(expr);
 		check(expression);
 
-		return GetConstantNode(idPrefix + expression->GetName(), expression->Constant);
+		return GetConstantNode(idPrefix + expression->GetName(), 4, expression->Constant);
 	}
 	else if (expr->IsA<UMaterialExpressionVectorParameter>())
 	{
-		auto expression = Cast<UMaterialExpressionVectorParameter>(expr);
+		const auto expression = Cast<UMaterialExpressionVectorParameter>(expr);
 		check(expression);
 
-		return GetConstantNode(idPrefix + expression->GetName(), expression->DefaultValue);
+		const FString idpref = idPrefix + expression->GetName();
+
+		switch (inputParameter)
+		{
+		case RPR::OutputIndex::ONE:
+			return GetValueNode(idpref + TEXT("R"), expression->DefaultValue.R);
+		case RPR::OutputIndex::TWO:
+			return GetValueNode(idpref + TEXT("G"), expression->DefaultValue.G);
+		case RPR::OutputIndex::THREE:
+			return GetValueNode(idpref + TEXT("B"), expression->DefaultValue.B);
+		case RPR::OutputIndex::FOUR:
+			return GetValueNode(idpref + TEXT("A"), expression->DefaultValue.A);
+		default:
+			return GetConstantNode(idpref, 3, expression->DefaultValue);
+		}
+	}
+	else if (expr->IsA<UMaterialExpressionAppendVector>())
+	{
+		/*
+			This expression appends two inputs only if a combination of both inputs gives us a number of channels less
+			or equal to four (Constant4Vector).
+			So, it gives results between Constant2Vector and Constant4Vector for inputs between Constant and Constant3Vector.
+			If a sum of two inputs have more than 4 channels, AppendVector Expression gives us a Constant4Vector(0, 0, 0, 0).
+		*/
+
+		const auto expression = Cast<UMaterialExpressionAppendVector>(expr);
+
+		RPR::VirtualNode* inputA = ConvertExpressionToVirtualNode(expression->A.Expression, expression->A.OutputIndex);
+		RPR::VirtualNode* inputB = ConvertExpressionToVirtualNode(expression->B.Expression, expression->B.OutputIndex);
+
+		// more than 4 channels in result, so return black
+		if ((inputA->GetVectorSize() + inputB->GetVectorSize() > 4))
+			return GetValueNode(TEXT("BlackColor"), 0.0f);
+
+		TArray<float> data = {0.0f, 0.0f, 0.0f, 0.0f};
+		int nextIdx = 0;
+
+		RPR::VirtualNode* anode = nullptr;
+
+		if (inputA->IsType(vNodeType::CONSTANT))
+		{
+			switch (inputA->GetVectorSize())
+			{
+			case 1:
+				nextIdx = 1;
+				data[0] = inputA->constant.R;
+				break;
+			case 2:
+				nextIdx = 2;
+				data[0] = inputA->constant.R;
+				data[1] = inputA->constant.G;
+				break;
+			case 3:
+				nextIdx = 3;
+				data[0] = inputA->constant.R;
+				data[1] = inputA->constant.G;
+				data[2] = inputA->constant.B;
+				break;
+			}
+		}
+		else
+		{
+			FString idpref = idPrefix + inputA->id;
+			anode = GetValueNode(idpref + TEXT("RootNode"), 0.0f);
+
+			if (inputA->GetVectorSize() >= 1)
+			{
+				RPR::VirtualNode* channel = GetSeparatedChannelNode(idpref + TEXT("1st"), 1, 1, inputA);
+				anode = AddTwoNodes(idpref += TEXT("R"), channel, anode);
+				nextIdx = 1;
+			}
+
+			if (inputA->GetVectorSize() >= 2)
+			{
+				RPR::VirtualNode* channel = GetSeparatedChannelNode(idpref + TEXT("2nd"), 2, 2, inputA);
+				anode = AddTwoNodes(idpref += TEXT("G"), channel, anode);
+				nextIdx = 2;
+			}
+
+			if (inputA->GetVectorSize() >= 3)
+			{
+				RPR::VirtualNode* channel = GetSeparatedChannelNode(idpref + TEXT("3rd"), 3, 3, inputA);
+				anode = AddTwoNodes(idpref += TEXT("B"), channel, anode);
+				nextIdx = 3;
+			}
+		}
+
+		if (inputB->IsType(vNodeType::CONSTANT))
+		{
+			switch (inputB->GetVectorSize())
+			{
+			case 1:
+				data[nextIdx++] = inputB->constant.R;
+				break;
+			case 2:
+				data[nextIdx++] = inputB->constant.R;
+				data[nextIdx++] = inputB->constant.G;
+				break;
+			case 3:
+				data[nextIdx++] = inputB->constant.R;
+				data[nextIdx++] = inputB->constant.G;
+				data[nextIdx++] = inputB->constant.B;
+				break;
+			}
+
+			if (inputA->IsType(vNodeType::CONSTANT))
+			{
+				return GetConstantNode(idPrefix + expression->GetName(), nextIdx, data[0], data[1], data[2], data[3]);
+			}
+			else
+			{
+				node = AddTwoNodes(
+					idPrefix + expression->GetName(),
+					anode,
+					GetConstantNode(idPrefix + inputA->id, inputA->GetVectorSize(), data[0], data[1], data[2], data[3])
+				);
+			}
+		}
+		else
+		{
+			FString idpref = idPrefix + inputB->id;
+			RPR::VirtualNode* bnode = GetValueNode(idpref + TEXT("RootNode"), 0.0f);
+
+			const int32 maskIdx = nextIdx + 1;
+
+			if (inputB->GetVectorSize() >= 1)
+			{
+				RPR::VirtualNode* channel = GetSeparatedChannelNode(idpref + TEXT("1st"), 1, maskIdx, inputB);
+				bnode = AddTwoNodes(idpref += TEXT("R"), channel, bnode);
+			}
+
+			if (inputB->GetVectorSize() >= 2)
+			{
+				RPR::VirtualNode* channel = GetSeparatedChannelNode(idpref + TEXT("2nd"), 2, maskIdx + 1, inputB);
+				bnode = AddTwoNodes(idpref += TEXT("G"), channel, bnode);
+			}
+
+			if (inputB->GetVectorSize() >= 3)
+			{
+				RPR::VirtualNode* channel = GetSeparatedChannelNode(idpref + TEXT("3rd"), 3, maskIdx + 2, inputB);
+				bnode = AddTwoNodes(idpref += TEXT("B"), channel, bnode);
+			}
+
+			if (inputA->IsType(vNodeType::CONSTANT))
+			{
+				node = AddTwoNodes(
+					idPrefix + expression->GetName(),
+					GetConstantNode(idPrefix + inputA->id, inputA->GetVectorSize(), data[0], data[1], data[2], data[3]),
+					bnode
+				);
+			}
+			else
+			{
+				node = AddTwoNodes(idPrefix + expression->GetName(), anode, bnode);
+			}
+		}
+
+		node->SetVectorSize(inputA->GetVectorSize() + inputB->GetVectorSize());
+
+		return node;
 	}
 	else if (expr->IsA<UMaterialExpressionAdd>())
 	{
@@ -664,7 +914,7 @@ RPR::VirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMateria
 		// first virtual node to hold image texture
 		node = materialLibrary.getOrCreateVirtualIfNotExists(vNodeId + "_ImageData", rprNodeType::None, vNodeType::TEXTURE);
 
-		if (node->texture)
+		if (node->IsTextureLoaded())
 			return SelectRgbaChannel(vNodeId, inputParameter, node);
 
 		UMaterialExpression* TextureSource = (expression->TextureObject.Expression) ? expression->TextureObject.Expression : expression;
@@ -696,7 +946,7 @@ RPR::VirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMateria
 			node->rprNode = materialLibrary.createImageNodeFromImageData(idPref, outImage);
 		}
 
-		node->texture = true;
+		node->SetTextureIsLoaded();
 
 		return SelectRgbaChannel(vNodeId, inputParameter, node);
 	}
@@ -759,7 +1009,7 @@ RPR::VirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMateria
 			id + TEXT("_InputLookupUV_Mul"),
 			RPR_MATERIAL_NODE_OP_MUL,
 			lookupNode,
-			GetConstantNode(id + TEXT("_vec"), expression->UTiling, expression->VTiling, 0.0f, 0.0f)
+			GetConstantNode(id + TEXT("_vec"), 4, expression->UTiling, expression->VTiling, 0.0f, 0.0f)
 		);
 	}
 	else if (expr->IsA<UMaterialExpressionPanner>())
@@ -813,28 +1063,30 @@ RPR::VirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMateria
 		int idxReducer = channels;
 		RPR::VirtualNode *r = nullptr, *g = nullptr, *b = nullptr, *a = nullptr;
 
+		const FString separatedChannelPrefix = id + TEXT("Separated");
+
 		if (isR)
 		{
 			--idxReducer;
-			r = GetSeparatedChannelNode(id + TEXT("Separated"), 1, channels - idxReducer, inputExpression);
+			r = GetSeparatedChannelNode(separatedChannelPrefix, 1, channels - idxReducer, inputExpression);
 			node = AddTwoNodes(id += TEXT("R"), r, node);
 		}
 		if (isG)
 		{
 			--idxReducer;
-			g = GetSeparatedChannelNode(id + TEXT("Separated"), 2, channels - idxReducer, inputExpression);
+			g = GetSeparatedChannelNode(separatedChannelPrefix, 2, channels - idxReducer, inputExpression);
 			node = AddTwoNodes(id += TEXT("G"), g, node);
 		}
 		if (isB)
 		{
 			--idxReducer;
-			b = GetSeparatedChannelNode(id + TEXT("Separated"), 3, channels - idxReducer, inputExpression);
+			b = GetSeparatedChannelNode(separatedChannelPrefix, 3, channels - idxReducer, inputExpression);
 			node = AddTwoNodes(id += TEXT("B"), b, node);
 		}
 		if (isA)
 		{
 			--idxReducer;
-			a = GetSeparatedChannelNode(id + TEXT("Separated"), 4, channels - idxReducer, inputExpression);
+			a = GetSeparatedChannelNode(separatedChannelPrefix, 4, channels - idxReducer, inputExpression);
 			node = AddTwoNodes(id += TEXT("A"), a, node);
 		}
 
@@ -855,8 +1107,8 @@ RPR::VirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMateria
 		if (expression->Time.Expression && expression->Time.Expression->IsA<UMaterialExpressionConstant>())
 			angle = -FMath::DegreesToRadians(Cast<UMaterialExpressionConstant>(expression->Time.Expression)->R);
 
-		const RPR::VirtualNode* vecA = GetConstantNode(id + TEXT("_c1A"), FMath::Cos(angle), -FMath::Sin(angle), 0.0f, 0.0f);
-		const RPR::VirtualNode* vecB = GetConstantNode(id + TEXT("_c1B"), FMath::Sin(angle), FMath::Cos(angle), 0.0f, 0.0f);
+		const RPR::VirtualNode* vecA = GetConstantNode(id + TEXT("_c1A"), 4, FMath::Cos(angle), -FMath::Sin(angle), 0.0f, 0.0f);
+		const RPR::VirtualNode* vecB = GetConstantNode(id + TEXT("_c1B"), 4, FMath::Sin(angle), FMath::Cos(angle), 0.0f, 0.0f);
 		const RPR::VirtualNode* angleA = GetMathNodeTwoInputs(id + TEXT("_DOT3_A"), RPR_MATERIAL_NODE_OP_DOT3, lookupNode, vecA);
 		const RPR::VirtualNode* angleB = GetMathNodeTwoInputs(id + TEXT("_DOT3_B"), RPR_MATERIAL_NODE_OP_DOT3, lookupNode, vecB);
 
@@ -913,9 +1165,17 @@ RPR::VirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMateria
 	}
 	else if (expr->IsA<UMaterialExpressionCameraPositionWS>())
 	{
-		 FVector camPos = FRPRPluginModule::Get().GetCurrentScene()->GetActiveCameraPosition();
+		 const FVector camPos = FRPRPluginModule::Get().GetCurrentScene()->GetActiveCameraPosition();
 
-		 return GetConstantNode(idPrefix + expr->GetName(), camPos.X, camPos.Y, camPos.Z, 0.0f);
+		 return GetConstantNode(idPrefix + expr->GetName(), 3, camPos.X, camPos.Y, camPos.Z, 0.0f);
+	}
+	else if (expr->IsA<UMaterialExpressionAbs>())
+	{
+		const auto expression = Cast<UMaterialExpressionAbs>(expr);
+
+		const RPR::VirtualNode* in = ConvertExpressionToVirtualNode(expression->Input.Expression, expression->Input.OutputIndex);
+
+		return GetMathNodeOneInput(idPrefix + expression->GetName(), RPR_MATERIAL_NODE_OP_ABS, in);
 	}
 
 	return GetDefaultNode();

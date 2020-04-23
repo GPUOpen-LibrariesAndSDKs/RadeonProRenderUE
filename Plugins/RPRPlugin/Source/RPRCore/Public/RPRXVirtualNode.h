@@ -38,7 +38,8 @@ public:
 	const EVirtualNode	type;
 	RPR::FMaterialNode	rprNode;
 	FLinearColor		constant;
-	bool				texture;
+	int32				vectorSize;
+	bool				isTextureLoaded;
 
 public:
 	VirtualNode(FString aID = "", EVirtualNode aType = EVirtualNode::OTHER);
@@ -49,6 +50,12 @@ public:
 
 	bool IsType(const EVirtualNode aType) const;
 	EVirtualNode GetType() const;
+
+	bool IsTextureLoaded() const;
+	void SetTextureIsLoaded();
+
+	void SetVectorSize(const int32 vs);
+	int GetVectorSize() const;
 
 	VirtualNode(const VirtualNode&)            = delete;
 	VirtualNode& operator=(const VirtualNode&) = delete;

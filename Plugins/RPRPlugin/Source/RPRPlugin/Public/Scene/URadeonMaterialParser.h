@@ -38,8 +38,8 @@ private:
 	RPR::VirtualNode* GetMathNode(const FString& id, const int32 operation, const RPR::VirtualNode* a, const RPR::VirtualNode* b, bool OneInput = false);
 	RPR::VirtualNode* GetMathNodeOneInput(const FString& id, const int32 operation, const RPR::VirtualNode* a);
 	RPR::VirtualNode* GetMathNodeTwoInputs(const FString& id, const int32 operation, const RPR::VirtualNode* a, const RPR::VirtualNode* b);
-	RPR::VirtualNode* GetConstantNode(const FString& id, const float r, const float g = 0, const float b = 0, const float a = 0);
-	RPR::VirtualNode* GetConstantNode(const FString& nodeId, const FLinearColor& color);
+	RPR::VirtualNode* GetConstantNode(const FString& id, const int32 vectorSize, const float r, const float g = 0.0f, const float b = 0.0f, const float a = 0.0f);
+	RPR::VirtualNode* GetConstantNode(const FString& nodeId, const int32 vectorSize, const FLinearColor& color);
 	RPR::VirtualNode* GetValueNode(const FString& id, const float value);
 	RPR::VirtualNode* GetDefaultNode();
 	RPR::VirtualNode* GetOneMinusNode(const FString& id, const RPR::VirtualNode* node);

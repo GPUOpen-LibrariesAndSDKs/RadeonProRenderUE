@@ -24,7 +24,8 @@ VirtualNode::VirtualNode(FString aID, EVirtualNode aType)
 , type(aType)
 , rprNode(nullptr)
 , constant{}
-, texture(false)
+, vectorSize(3)
+, isTextureLoaded(false)
 {}
 
 void VirtualNode::SetData(float r, float g, float b, float a)
@@ -59,6 +60,26 @@ bool VirtualNode::IsType(const EVirtualNode aType) const
 EVirtualNode VirtualNode::GetType() const
 {
 	return type;
+}
+
+int VirtualNode::GetVectorSize() const
+{
+	return vectorSize;
+}
+
+bool VirtualNode::IsTextureLoaded() const
+{
+	return isTextureLoaded;
+}
+
+void VirtualNode::SetTextureIsLoaded()
+{
+	isTextureLoaded = true;
+}
+
+void VirtualNode::SetVectorSize(const int32 vs)
+{
+	vectorSize = vs;
 }
 
 }//namespace RPR
