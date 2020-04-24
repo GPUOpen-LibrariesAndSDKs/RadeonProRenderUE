@@ -25,7 +25,7 @@
 #include "RPRPlugin.h"
 #include "Scene/RPRScene.h"
 #include "Scene/RPRCameraComponent.h"
-
+#include "Materials/MaterialInstance.h"
 #include "Materials/MaterialExpressionConstant.h"
 #include "Materials/MaterialExpressionConstant2Vector.h"
 #include "Materials/MaterialExpressionConstant3Vector.h"
@@ -56,6 +56,7 @@
 #include "Materials/MaterialExpressionNormalize.h"
 #include "Materials/MaterialExpressionClearCoatNormalCustomOutput.h"
 #include "Materials/MaterialExpressionCameraPositionWS.h"
+#include "Materials/MaterialExpressionTextureSampleParameter2D.h"
 #include "Materials/MaterialExpressionAbs.h"
 #include "Materials/MaterialExpressionScalarParameter.h"
 
@@ -65,99 +66,101 @@ DEFINE_LOG_CATEGORY_STATIC(LogURadeonMaterialParser, Log, All);
 #undef LOG_ERROR
 #endif
 
-namespace
+using vNodeType = RPR::EVirtualNode;
+using rprNodeType = RPR::EMaterialNodeType;
+
+void LOG_ERROR(rpr_int status, FString msg)
 {
-	using vNodeType = RPR::EVirtualNode;
-	using rprNodeType = RPR::EMaterialNodeType;
-
-	RPR::FRPRXMaterialNodePtr CurrentMaterial;
-
-	void LOG_ERROR(rpr_int status, FString msg)
+	if (status == RPR_ERROR_UNSUPPORTED)
 	{
-		if (status == RPR_ERROR_UNSUPPORTED)
-		{
-			UE_LOG(LogURadeonMaterialParser, Warning, TEXT("Unsupported parameter: %s"), *msg);
-		}
-		else if (status == RPR_ERROR_INVALID_PARAMETER)
-		{
-			UE_LOG(LogURadeonMaterialParser, Warning, TEXT("Invalid parameter: %s"), *msg);
-		}
-		else if (status != RPR_SUCCESS)
-		{
-			UE_LOG(LogURadeonMaterialParser, Error, TEXT("%s"), *msg);
-		}
+		UE_LOG(LogURadeonMaterialParser, Warning, TEXT("Unsupported parameter: %s"), *msg);
 	}
-
-	void SetMaterialInput(const uint32 param, const RPR::VirtualNode* inputNode, FString msg)
+	else if (status == RPR_ERROR_INVALID_PARAMETER)
 	{
-		RPR::FResult status;
-
-		if (inputNode->IsType(vNodeType::CONSTANT))
-			status = CurrentMaterial->SetMaterialParameterFloats(
-				param,
-				inputNode->constant.R,
-				inputNode->constant.G,
-				inputNode->constant.B,
-				inputNode->constant.A
-			);
-		else
-			status = CurrentMaterial->SetMaterialParameterNode(param, inputNode->rprNode);
-
-		LOG_ERROR(status, msg);
+		UE_LOG(LogURadeonMaterialParser, Warning, TEXT("Invalid parameter: %s"), *msg);
 	}
-
-	void SetReflectionToMaterial(uint32 mode, uint32 input, RPR::VirtualNode* inputVal, RPR::VirtualNode* weight, RPR::VirtualNode* color)
+	else if (status != RPR_SUCCESS)
 	{
-		SetMaterialInput(input, inputVal, TEXT("Can't set uber reflection metalness"));
-		SetMaterialInput(RPR_MATERIAL_INPUT_UBER_REFLECTION_WEIGHT, weight, TEXT("Can't set uber reflection weight"));
-		SetMaterialInput(RPR_MATERIAL_INPUT_UBER_REFLECTION_COLOR, color, TEXT("Can't set uber reflection color"));
-
-		RPR::FResult status;
-		status = CurrentMaterial->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFLECTION_ANISOTROPY, 0.0f);
-		LOG_ERROR(status, TEXT("Can't set uber reflection anisotropy"));
-
-		status = CurrentMaterial->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFLECTION_ANISOTROPY_ROTATION, 0.0f);
-		LOG_ERROR(status, TEXT("Can't set uber reflection anisotropy rotation"));
-
-		status = CurrentMaterial->SetMaterialParameterUInt(RPR_MATERIAL_INPUT_UBER_REFLECTION_MODE, mode);
-		LOG_ERROR(status, TEXT("Can't set uber reflection mode"));
+		UE_LOG(LogURadeonMaterialParser, Error, TEXT("%s"), *msg);
 	}
+}
 
-	void SetRefractionToMaterial(RPR::VirtualNode* color, RPR::VirtualNode* ior)
-	{
-		SetMaterialInput(RPR_MATERIAL_INPUT_UBER_REFRACTION_COLOR, color, TEXT("Can't set uber refraction color"));
-		SetMaterialInput(RPR_MATERIAL_INPUT_UBER_REFRACTION_IOR, ior, TEXT("Can't set uber refraction ior"));
+void URadeonMaterialParser::SetMaterialInput(const uint32 param, const RPR::VirtualNode* inputNode, FString msg)
+{
+	RPR::FResult status;
 
-		RPR::FResult status;
-		status = CurrentMaterial->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFRACTION_WEIGHT, 1.0f);
-		LOG_ERROR(status, TEXT("Can't set uber refraction weight"));
+	if (inputNode->IsType(vNodeType::CONSTANT))
+		status = CurrentMaterial->SetMaterialParameterFloats(
+			param,
+			inputNode->constant.R,
+			inputNode->constant.G,
+			inputNode->constant.B,
+			inputNode->constant.A
+		);
+	else
+		status = CurrentMaterial->SetMaterialParameterNode(param, inputNode->rprNode);
 
-		status = CurrentMaterial->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFRACTION_ROUGHNESS, 0.0f);
-		LOG_ERROR(status, TEXT("Can't set uber refraction roughness"));
+	LOG_ERROR(status, msg);
+}
 
-		status = CurrentMaterial->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFRACTION_ABSORPTION_COLOR, 0.0f);
-		LOG_ERROR(status, TEXT("Can't set uber refraction absorptoin color"));
+void URadeonMaterialParser::SetReflectionToMaterial(uint32 mode, uint32 input, RPR::VirtualNode* inputVal, RPR::VirtualNode* weight, RPR::VirtualNode* color)
+{
+	SetMaterialInput(input, inputVal, TEXT("Can't set uber reflection metalness"));
+	SetMaterialInput(RPR_MATERIAL_INPUT_UBER_REFLECTION_WEIGHT, weight, TEXT("Can't set uber reflection weight"));
+	SetMaterialInput(RPR_MATERIAL_INPUT_UBER_REFLECTION_COLOR, color, TEXT("Can't set uber reflection color"));
 
-		status = CurrentMaterial->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFRACTION_ABSORPTION_DISTANCE, 0.0f);
-		LOG_ERROR(status, TEXT("Can't set uber refraction absorptoin distance"));
+	RPR::FResult status;
+	status = CurrentMaterial->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFLECTION_ANISOTROPY, 0.0f);
+	LOG_ERROR(status, TEXT("Can't set uber reflection anisotropy"));
 
-		status = CurrentMaterial->SetMaterialParameterBool(RPR_MATERIAL_INPUT_UBER_REFRACTION_CAUSTICS, true);
-		LOG_ERROR(status, TEXT("Can't set uber refraction caustics"));
-	}
+	status = CurrentMaterial->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFLECTION_ANISOTROPY_ROTATION, 0.0f);
+	LOG_ERROR(status, TEXT("Can't set uber reflection anisotropy rotation"));
 
-} // Anonymous namespace
+	status = CurrentMaterial->SetMaterialParameterUInt(RPR_MATERIAL_INPUT_UBER_REFLECTION_MODE, mode);
+	LOG_ERROR(status, TEXT("Can't set uber reflection mode"));
+}
 
-void URadeonMaterialParser::Process(FRPRShape& shape, UMaterial* material)
+void URadeonMaterialParser::SetRefractionToMaterial(RPR::VirtualNode* color, RPR::VirtualNode* ior)
+{
+	SetMaterialInput(RPR_MATERIAL_INPUT_UBER_REFRACTION_COLOR, color, TEXT("Can't set uber refraction color"));
+	SetMaterialInput(RPR_MATERIAL_INPUT_UBER_REFRACTION_IOR, ior, TEXT("Can't set uber refraction ior"));
+
+	RPR::FResult status;
+	status = CurrentMaterial->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFRACTION_WEIGHT, 1.0f);
+	LOG_ERROR(status, TEXT("Can't set uber refraction weight"));
+
+	status = CurrentMaterial->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFRACTION_ROUGHNESS, 0.0f);
+	LOG_ERROR(status, TEXT("Can't set uber refraction roughness"));
+
+	status = CurrentMaterial->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFRACTION_ABSORPTION_COLOR, 0.0f);
+	LOG_ERROR(status, TEXT("Can't set uber refraction absorptoin color"));
+
+	status = CurrentMaterial->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_REFRACTION_ABSORPTION_DISTANCE, 0.0f);
+	LOG_ERROR(status, TEXT("Can't set uber refraction absorptoin distance"));
+
+	status = CurrentMaterial->SetMaterialParameterBool(RPR_MATERIAL_INPUT_UBER_REFRACTION_CAUSTICS, true);
+	LOG_ERROR(status, TEXT("Can't set uber refraction caustics"));
+}
+
+void URadeonMaterialParser::Process(FRPRShape& shape, UMaterialInterface* materialInterface)
 {
 #if WITH_EDITORONLY_DATA
-
-	if (!material || !material->BaseColor.IsConnected())
+	UMaterial* material = materialInterface->GetMaterial();
+	if (!material)
 		return;
+
+	if (!material->BaseColor.IsConnected())
+		return;
+
+	CurrentMaterialInstance = Cast<UMaterialInstance>(materialInterface);
 
 	FcnInputsNodes.Empty();
 	LastParsedFCN = nullptr;
 
-	FString materialName = material->GetName();
+	FString materialName = (CurrentMaterialInstance)
+		? CurrentMaterialInstance->GetName()
+		: material->GetName();
+
 	if (materialName.IsEmpty())
 		return;
 
@@ -922,7 +925,28 @@ RPR::VirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMateria
 		if (TextureSource->IsA<UMaterialExpressionFunctionInput>())
 			TextureSource = FcnInputsNodes[TextureSource].Expression;
 
-		UTexture2D* texture2d = Cast<UTexture2D>(TextureSource->GetReferencedTexture());
+		UTexture2D* texture2d = nullptr;
+
+		if (CurrentMaterialInstance) {
+			TArray<FMaterialParameterInfo> OutParameterInfo;
+			TArray<FGuid> OutParameterIds;
+
+			CurrentMaterialInstance->GetAllParameterInfo<UMaterialExpressionTextureSampleParameter2D>(OutParameterInfo, OutParameterIds);
+			FName parameterName = expression->GetParameterName();
+
+			for (int32 index = 0; index < OutParameterInfo.Num(); ++index) {
+				if (parameterName == OutParameterInfo[index].Name) {
+					UTexture* utexture;
+					CurrentMaterialInstance->GetTextureParameterValue(OutParameterInfo[index], utexture);
+					texture2d = Cast<UTexture2D>(utexture);
+					break;
+				}
+			}
+		}
+		else
+		{
+			texture2d = Cast<UTexture2D>(TextureSource->GetReferencedTexture());
+		}
 
 		if (!texture2d)
 			return GetDefaultNode();

@@ -21,6 +21,7 @@
 
 #include <Materials/MaterialExpressionClamp.h>
 #include <Materials/MaterialExpression.h>
+#include "Material/RPRXMaterial.h"
 
 namespace RPR
 {
@@ -32,9 +33,13 @@ struct	FRPRShape;
 class URadeonMaterialParser
 {
 public:
-	void Process(FRPRShape& shape, UMaterial* material);
+	void Process(FRPRShape& shape, UMaterialInterface* materialInterface);
 
 private:
+	void SetMaterialInput(const uint32 param, const RPR::VirtualNode* inputNode, FString msg);
+	void SetReflectionToMaterial(uint32 mode, uint32 input, RPR::VirtualNode* inputVal, RPR::VirtualNode* weight, RPR::VirtualNode* color);
+	void SetRefractionToMaterial(RPR::VirtualNode* color, RPR::VirtualNode* ior);
+
 	RPR::VirtualNode* GetMathNode(const FString& id, const int32 operation, const RPR::VirtualNode* a, const RPR::VirtualNode* b, bool OneInput = false);
 	RPR::VirtualNode* GetMathNodeOneInput(const FString& id, const int32 operation, const RPR::VirtualNode* a);
 	RPR::VirtualNode* GetMathNodeTwoInputs(const FString& id, const int32 operation, const RPR::VirtualNode* a, const RPR::VirtualNode* b);
@@ -70,4 +75,6 @@ private:
 	TMap<void*, FFunctionInputActualInputExpression> FcnInputsNodes;
 	void* LastParsedFCN;
 
+	RPR::FRPRXMaterialNodePtr CurrentMaterial;
+	UMaterialInstance* CurrentMaterialInstance;
 };

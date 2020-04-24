@@ -137,10 +137,8 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		}
 		else if (matInterface)
 		{
-			UMaterial* material = matInterface->GetMaterial();
-
 			URadeonMaterialParser parser;
-			parser.Process(m_Shapes[iShape], material);
+			parser.Process(m_Shapes[iShape], matInterface);
 		}
 		else
 		{
