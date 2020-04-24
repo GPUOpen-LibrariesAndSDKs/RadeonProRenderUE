@@ -149,7 +149,7 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterialInterface* materi
 	if (!material)
 		return;
 
-	if (!material->BaseColor.IsConnected())
+	if (!material->BaseColor.IsConnected() && !material->EmissiveColor.IsConnected())
 		return;
 
 	CurrentMaterialInstance = Cast<UMaterialInstance>(materialInterface);
@@ -265,8 +265,14 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterialInterface* materi
 
 			SetMaterialInput(RPR_MATERIAL_INPUT_UBER_EMISSION_COLOR, emissiveColor, TEXT("Can't set uber emission color"));
 
-			status = uberMaterialPtr->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_EMISSION_WEIGHT, 1.0f);
-			LOG_ERROR(status, TEXT("Can't set uber emission weight"));
+			if (emissiveColor->IsType(vNodeType::CONSTANT))
+			{
+				status = uberMaterialPtr->SetMaterialParameterFloat(RPR_MATERIAL_INPUT_UBER_EMISSION_WEIGHT, 1.0f);
+				LOG_ERROR(status, TEXT("Can't set uber emission weight"));
+			}
+			else
+				SetMaterialInput(RPR_MATERIAL_INPUT_UBER_EMISSION_WEIGHT, emissiveColor, TEXT("Can't set uber emission weight"));
+
 
 			status = uberMaterialPtr->SetMaterialParameterUInt(RPR_MATERIAL_INPUT_UBER_EMISSION_MODE, RPR_UBER_MATERIAL_EMISSION_MODE_SINGLESIDED);
 			LOG_ERROR(status, TEXT("Can't set uber emission mode to SingledSided"));
@@ -607,6 +613,9 @@ RPR::VirtualNode* URadeonMaterialParser::AddTwoNodes(const FString& id, RPR::Vir
 RPR::VirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMaterialExpression* expr, const int32 inputParameter)
 {
 #if WITH_EDITORONLY_DATA
+
+	if (!expr)
+		return GetValueNode(TEXT("BlackColor"), 0.0f);
 
 	FRPRXMaterialLibrary& materialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 	RPR::VirtualNode* node = materialLibrary.getVirtualNode(idPrefix + expr->GetName());
