@@ -157,7 +157,8 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterialInterface* materi
 	FcnInputsNodes.Empty();
 	LastParsedFCN = nullptr;
 
-	FString materialName = (CurrentMaterialInstance)
+	const FString materialName =
+		(CurrentMaterialInstance)
 		? CurrentMaterialInstance->GetName()
 		: material->GetName();
 
@@ -648,20 +649,30 @@ RPR::VirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMateria
 		const auto expression = Cast<UMaterialExpressionVectorParameter>(expr);
 		check(expression);
 
+		FLinearColor value;
+
+		if (CurrentMaterialInstance)
+		{
+			const FMaterialParameterInfo baseParamInfo(expression->ParameterName);
+			CurrentMaterialInstance->GetVectorParameterValue(baseParamInfo, value);
+		}
+		else
+			value = expression->DefaultValue;
+
 		const FString idpref = idPrefix + expression->GetName();
 
 		switch (inputParameter)
 		{
 		case RPR::OutputIndex::ONE:
-			return GetValueNode(idpref + TEXT("R"), expression->DefaultValue.R);
+			return GetValueNode(idpref + TEXT("R"), value.R);
 		case RPR::OutputIndex::TWO:
-			return GetValueNode(idpref + TEXT("G"), expression->DefaultValue.G);
+			return GetValueNode(idpref + TEXT("G"), value.G);
 		case RPR::OutputIndex::THREE:
-			return GetValueNode(idpref + TEXT("B"), expression->DefaultValue.B);
+			return GetValueNode(idpref + TEXT("B"), value.B);
 		case RPR::OutputIndex::FOUR:
-			return GetValueNode(idpref + TEXT("A"), expression->DefaultValue.A);
+			return GetValueNode(idpref + TEXT("A"), value.A);
 		default:
-			return GetConstantNode(idpref, 3, expression->DefaultValue);
+			return GetConstantNode(idpref, 3, value);
 		}
 	}
 	else if (expr->IsA<UMaterialExpressionAppendVector>())
@@ -907,9 +918,12 @@ RPR::VirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMateria
 
 		return GetValueNode(idPrefix + expression->GetName(), expression->Value);
 	}
-	else if (expr->IsA<UMaterialExpressionTextureSample>())
+	else if (expr->IsA<UMaterialExpressionTextureSampleParameter2D>() || expr->IsA<UMaterialExpressionTextureSample>())
 	{
-		auto expression = Cast<UMaterialExpressionTextureSample>(expr);
+		auto expression =
+			(expr->IsA<UMaterialExpressionTextureSampleParameter2D>())
+			? Cast<UMaterialExpressionTextureSampleParameter2D>(expr)
+			: Cast<UMaterialExpressionTextureSample>(expr);
 		check(expression);
 
 		const FString vNodeId = idPrefix + expression->GetName();
@@ -927,21 +941,12 @@ RPR::VirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMateria
 
 		UTexture2D* texture2d = nullptr;
 
-		if (CurrentMaterialInstance) {
-			TArray<FMaterialParameterInfo> OutParameterInfo;
-			TArray<FGuid> OutParameterIds;
-
-			CurrentMaterialInstance->GetAllParameterInfo<UMaterialExpressionTextureSampleParameter2D>(OutParameterInfo, OutParameterIds);
-			FName parameterName = expression->GetParameterName();
-
-			for (int32 index = 0; index < OutParameterInfo.Num(); ++index) {
-				if (parameterName == OutParameterInfo[index].Name) {
-					UTexture* utexture;
-					CurrentMaterialInstance->GetTextureParameterValue(OutParameterInfo[index], utexture);
-					texture2d = Cast<UTexture2D>(utexture);
-					break;
-				}
-			}
+		if (CurrentMaterialInstance && expr->IsA<UMaterialExpressionTextureSampleParameter2D>())
+		{
+			FMaterialParameterInfo baseParamInfo(Cast<UMaterialExpressionTextureSampleParameter2D>(expr)->ParameterName);
+			UTexture* utexture;
+			CurrentMaterialInstance->GetTextureParameterValue(baseParamInfo, utexture);
+			texture2d = Cast<UTexture2D>(utexture);
 		}
 		else
 		{
@@ -1200,6 +1205,23 @@ RPR::VirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMateria
 		const RPR::VirtualNode* in = ConvertExpressionToVirtualNode(expression->Input.Expression, expression->Input.OutputIndex);
 
 		return GetMathNodeOneInput(idPrefix + expression->GetName(), RPR_MATERIAL_NODE_OP_ABS, in);
+	}
+	else if (expr->IsA<UMaterialExpressionScalarParameter>())
+	{
+		const auto expression = Cast<UMaterialExpressionScalarParameter>(expr);
+		check(expression);
+
+		float value;
+
+		if (CurrentMaterialInstance)
+		{
+			const FMaterialParameterInfo baseParamInfo(expression->ParameterName);
+			CurrentMaterialInstance->GetScalarParameterValue(baseParamInfo, value);
+		}
+		else
+			value = expression->DefaultValue;
+
+		return GetValueNode(idPrefix + expression->GetName(), value);
 	}
 
 	return GetDefaultNode();
