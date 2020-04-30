@@ -28,6 +28,8 @@
 #include "HAL/PlatformFilemanager.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Slate/SceneViewport.h"
+#include "Widgets/Notifications/SNotificationList.h"
+#include "Framework/Notifications/NotificationManager.h"
 
 #include "RPRPlugin.h"
 #include <RadeonProRender.h>
@@ -649,7 +651,16 @@ void	ARPRScene::OnSave()
 	FString	saveFilename = FPaths::ChangeExtension(saveFilenames[0], FPaths::GetExtension(saveFilenames[0]).ToLower());
 	FString	extension = FPaths::GetExtension(saveFilename);
 	if (extension != "tga" && extension != "bmp" && extension != "png" && extension != "frs")
+	{
+		FNotificationInfo info(LOCTEXT(
+			"Incorrect filename extension",
+			"Incorrect filename extension. Please use .TGA, .PNG, .BMP or .FRS extensions."
+		));
+		info.bFireAndForget = true;
+		info.ExpireDuration = 5;
+		FSlateNotificationManager::Get().AddNotification(info);
 		return;
+	}
 
 	LastSavedExportPath = saveFilename;
 	LastSavedFilename = FPaths::GetCleanFilename(saveFilename);

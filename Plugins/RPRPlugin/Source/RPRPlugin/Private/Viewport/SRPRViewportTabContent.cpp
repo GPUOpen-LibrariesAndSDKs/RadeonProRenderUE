@@ -99,7 +99,7 @@ FReply	SRPRViewportTabContent::OnToggleRender()
 	{
 		FNotificationInfo info(LOCTEXT("UE Scene is not playing", "Can't start rendering, make sure you started playing a scene."));
 		info.bFireAndForget = true;
-		info.ExpireDuration = 3;
+		info.ExpireDuration = 5;
 		FSlateNotificationManager::Get().AddNotification(info);
 
 		return FReply::Handled();
