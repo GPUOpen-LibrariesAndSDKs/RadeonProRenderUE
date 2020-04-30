@@ -28,7 +28,7 @@ namespace RPR
 	class RPRCORE_API FRPRXMaterial
 	{
 	public:
-		FRPRXMaterial(const URPRMaterial* InUE4MaterialLink);
+		FRPRXMaterial(URPRMaterial* InUE4MaterialLink);
 		virtual ~FRPRXMaterial();
 
 		const URPRMaterial*	GetUE4MaterialLink() const;

@@ -347,6 +347,8 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterialInterface* materi
 		SetMaterialInput(RPR_MATERIAL_INPUT_UBER_COATING_IOR, GetValueNode(id + TEXT("CoatingIOR"), 1.5f), TEXT("Can't set Coating IOR"));
 
 		RPR::VirtualNode* clearCoatNormal = nullptr;
+
+#if ENGINE_MINOR_VERSION >= 24  // Plugin can link with UMaterialExpressionClearCoatNormalCustomOutput only in UE 24+
 		for (const UMaterialExpression* each : material->Expressions)
 		{
 			if (each->IsA<UMaterialExpressionClearCoatNormalCustomOutput>())
@@ -357,7 +359,7 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterialInterface* materi
 				break;
 			}
 		}
-
+#endif
 		if (clearCoatNormal)
 		{
 			const FString normalId = id + TEXT("_CoatingNormal");
@@ -1201,12 +1203,14 @@ RPR::VirtualNode* URadeonMaterialParser::ConvertExpressionToVirtualNode(UMateria
 
 		return GetNormalizeNode(idPrefix + expression->GetName(), in);
 	}
+#if ENGINE_MINOR_VERSION >= 24 // link with class UMaterialExpressionCameraPositionWS available in UE 24+ 
 	else if (expr->IsA<UMaterialExpressionCameraPositionWS>())
 	{
 		 const FVector camPos = FRPRPluginModule::Get().GetCurrentScene()->GetActiveCameraPosition();
 
 		 return GetConstantNode(idPrefix + expr->GetName(), 3, camPos.X, camPos.Y, camPos.Z, 0.0f);
 	}
+#endif
 	else if (expr->IsA<UMaterialExpressionAbs>())
 	{
 		const auto expression = Cast<UMaterialExpressionAbs>(expr);

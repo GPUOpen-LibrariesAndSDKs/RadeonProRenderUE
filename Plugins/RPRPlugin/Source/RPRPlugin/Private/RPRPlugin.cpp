@@ -19,17 +19,18 @@
 #include "Engine/Engine.h"
 
 #if WITH_EDITOR
-#	include "Viewport/SRPRViewportTabContent.h"
-#	include "RPREditorStyle.h"
-#	include "Slate/SceneViewport.h"
+#include "Viewport/SRPRViewportTabContent.h"
+#include "RPREditorStyle.h"
+#include "Slate/SceneViewport.h"
 
-#	include "LevelEditor.h"
-#	include "WorkspaceMenuStructure.h"
-#	include "WorkspaceMenuStructureModule.h"
+#include "LevelEditor.h"
+#include "WorkspaceMenuStructure.h"
+#include "WorkspaceMenuStructureModule.h"
 
-#	include "ISettingsModule.h"
-#	include "Widgets/Docking/SDockTab.h"
-#	include "Framework/MultiBox/MultiBoxBuilder.h"
+#include "ISettingsModule.h"
+#include "Widgets/Docking/SDockTab.h"
+#include "Framework/MultiBox/MultiBoxBuilder.h"
+#include "Editor.h"
 #endif
 
 #include "Slate/SceneViewport.h"
@@ -387,11 +388,13 @@ void	FRPRPluginModule::OnWorldDestroyed(UWorld *inWorld)
 
 void	FRPRPluginModule::OnPlayPressed(const bool unused)
 {
+#if WITH_EDITOR
 	IRPRCore::GetResources()->SetUESceneIsPlaying(true);
 
 	TSharedPtr<SRPRViewportTabContent> rprViewportTabContentPtr = m_RprVeiwportTabContent.Pin();
 	if (rprViewportTabContentPtr.IsValid())
 		rprViewportTabContentPtr->StartRendering();
+#endif
 }
 
 FIntPoint	FRPRPluginModule::OrbitDelta()
@@ -478,10 +481,12 @@ void	FRPRPluginModule::StartupModule()
 	FWorldDelegates::OnPostWorldInitialization.AddRaw(this, &FRPRPluginModule::OnWorldInitialized);
 	FWorldDelegates::OnPreWorldFinishDestroy.AddRaw(this, &FRPRPluginModule::OnWorldDestroyed);
 
+#if WITH_EDITOR
 	// Play button hook
 	TBaseDelegate<void, const bool> editorPlayButtonDelegate;
 	editorPlayButtonDelegate.BindRaw(this, &FRPRPluginModule::OnPlayPressed);
 	FEditorDelegates::PostPIEStarted.Add(editorPlayButtonDelegate);
+#endif
 
 	// Create render texture
     FRPRCpTexture2DDynamic::FCreateInfo createInfo;

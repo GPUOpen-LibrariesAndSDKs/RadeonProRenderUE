@@ -31,7 +31,7 @@
 
 DECLARE_LOG_CATEGORY_CLASS(LogRPRXMaterial, Log, Verbose)
 
-RPR::FRPRXMaterial::FRPRXMaterial(const URPRMaterial* InUE4MaterialLink)
+RPR::FRPRXMaterial::FRPRXMaterial(URPRMaterial* InUE4MaterialLink)
 	: Material(nullptr)
 	, UE4MaterialLink(InUE4MaterialLink)
 {
