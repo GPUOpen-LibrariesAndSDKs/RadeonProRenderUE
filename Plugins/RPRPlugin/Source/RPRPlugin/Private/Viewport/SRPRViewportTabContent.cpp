@@ -541,7 +541,7 @@ void	SRPRViewportTabContent::OnSampleMaxChanged(uint32 newValue)
 void	SRPRViewportTabContent::OnNoiseThresholdChanged(float newValue)
 {
 	m_Settings->NoiseThreshold = newValue;
-	m_Settings->EnableAdaptiveSampling = newValue > 0.0001f;
+	m_Settings->EnableAdaptiveSampling = newValue >= 0.0001f;
 	m_Settings->SaveConfig(); // Profile this, can be pretty intense with sliders
 
 	if (auto scene = m_Plugin->GetCurrentScene())
@@ -565,6 +565,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 {
 	m_Plugin = &FRPRPluginModule::Get();
 	m_Settings = RPR::GetSettings();
+	m_Settings->EnableAdaptiveSampling = m_Settings->NoiseThreshold >= 0.0001f;
 
 	m_DisplayPostEffects = false;
 

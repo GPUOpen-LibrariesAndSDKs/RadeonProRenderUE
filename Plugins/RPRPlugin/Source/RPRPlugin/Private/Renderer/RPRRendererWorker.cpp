@@ -272,6 +272,8 @@ void FRPRRendererWorker::SetSamplingNoiseThreshold()
 		TEXT("Sampling Noise Threshold"),
 		TEXT("ADAPTIVE_SAMPLING_THRESHOLD")
 	);
+
+	EnableAdaptiveSampling();
 }
 
 int FRPRRendererWorker::SetDenoiserSettings(ERPRDenoiserOption denoiserOption)
@@ -461,8 +463,14 @@ int FRPRRendererWorker::ResizeFramebuffer()
 	else
 		UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully created (%d,%d)"), m_Width, m_Height);
 
-	if (!RPR::GetSettings()->IsHybrid && RPR::GetSettings()->EnableAdaptiveSampling)
-		EnableAdaptiveSampling();
+	if (ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprVarianceBuffer) != RPR_SUCCESS ||
+		ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprVarianceResolvedBuffer) != RPR_SUCCESS)
+	{
+		UE_LOG(LogRPRRenderer, Error, TEXT("RPR VarianceBuffer creation failed"));
+		RPR::Error::LogLastError(m_RprContext);
+	}
+
+	EnableAdaptiveSampling();
 
 	m_Resize = false;
 	m_ClearFramebuffer = true;
@@ -910,17 +918,22 @@ int	FRPRRendererWorker::RunDenoiser()
 
 void	FRPRRendererWorker::EnableAdaptiveSampling()
 {
-	if (ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprVarianceBuffer)         != RPR_SUCCESS ||
-		ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprVarianceResolvedBuffer) != RPR_SUCCESS)
+	if (!RPR::GetSettings()->IsHybrid && RPR::GetSettings()->EnableAdaptiveSampling)
 	{
-		UE_LOG(LogRPRRenderer, Error, TEXT("RPR VarianceBuffer creation failed"));
-		RPR::Error::LogLastError(m_RprContext);
+		if (RPR::Context::SetAOV(m_RprContext, RPR::EAOV::Variance, m_RprVarianceBuffer) != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRRenderer, Error, TEXT("Can't set AOV Variance"));
+			RPR::Error::LogLastError(m_RprContext);
+		}
 	}
-
-	if (RPR::Context::SetAOV(m_RprContext, RPR::EAOV::Variance, m_RprVarianceBuffer) != RPR_SUCCESS)
+	else
 	{
-		UE_LOG(LogRPRRenderer, Error, TEXT("Can't set AOV Variance"));
-		RPR::Error::LogLastError(m_RprContext);
+		RPR::FResult status = rprContextSetAOV(m_RprContext, RPR_AOV_VARIANCE, nullptr);
+		if (status != RPR_SUCCESS)
+		{
+			UE_LOG(LogRPRRenderer, Error, TEXT("Can't unset AOV Variance"));
+			RPR::Error::LogLastError(m_RprContext);
+		}
 	}
 }
 
@@ -941,21 +954,21 @@ uint32	FRPRRendererWorker::Run()
 	while (m_StopTaskCounter.GetValue() == 0)
 	{
 		const bool isPaused = PreRenderLoop();
-		const bool applyAdaptiveSampling = !settings->IsHybrid && settings->EnableAdaptiveSampling && m_CurrentIteration > settings->SamplingMin;
-		const bool adaptiveSamplingFinalized = applyAdaptiveSampling ? IsAdaptiveSamplingFinalized() : false;
+		const bool checkFinalized = !settings->IsHybrid && settings->EnableAdaptiveSampling && m_CurrentIteration > settings->SamplingMin;
+		const bool adaptiveSamplingFinalized = checkFinalized ? IsAdaptiveSamplingFinalized() : false;
 
-		const uint32 iterationCeil =
-			(applyAdaptiveSampling && settings->MaximumRenderIterations < settings->SamplingMax)
-			? settings->SamplingMax
-			: settings->MaximumRenderIterations;
+		const uint32 iterationCeiling =
+			(settings->IsHybrid)
+			? settings->MaximumRenderIterations
+			: settings->SamplingMax;
 
-		const bool iterationCeilReached = m_CurrentIteration >= iterationCeil;
+		const bool renderingFinished = (m_CurrentIteration >= iterationCeiling) || adaptiveSamplingFinalized;
 
-		if (isPaused || iterationCeilReached || adaptiveSamplingFinalized)
+		if (isPaused || renderingFinished)
 		{
-			if (settings->UseDenoiser && !denoised && (iterationCeilReached || adaptiveSamplingFinalized))
+			if (settings->UseDenoiser && !denoised && renderingFinished)
 			{
-				const bool isSuccess = ApplyDenoiser() == RPR_SUCCESS;
+				const bool isSuccess = (ApplyDenoiser() == RPR_SUCCESS);
 
 				if (isSuccess) {
 					UE_LOG(LogRPRRenderer, Log, TEXT("Denoiser applied"));

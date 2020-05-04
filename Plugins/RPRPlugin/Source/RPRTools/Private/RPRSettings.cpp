@@ -60,6 +60,7 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 	, bUseErrorTexture(true)
 	, IsHybrid(false)
 	, CurrentRenderType(ERenderType::None)
+	, EnableAdaptiveSampling(false)
 {
 	DefaultRootDirectoryForImportLevels.Path = TEXT("/Game/Maps");
 	DefaultRootDirectoryForImportedMeshes.Path = TEXT("/Game/Meshes");
@@ -67,7 +68,6 @@ URPRSettings::URPRSettings(const FObjectInitializer& PCIP)
 	DefaultRootDirectoryForImportedTextures.Path = TEXT("/Game/Textures");
 	ErrorTexture = LoadObject<UTexture2D>(nullptr, TEXT("/Game/Textures/T_TextureNotSupported"));
 	TryLoadUberMaterialFromDefaultLocation();
-	EnableAdaptiveSampling = NoiseThreshold > 0.0001f;
 }
 
 void	URPRSettings::TryLoadUberMaterialFromDefaultLocation()
