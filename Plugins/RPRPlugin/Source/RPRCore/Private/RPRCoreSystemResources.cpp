@@ -26,6 +26,7 @@
 DECLARE_LOG_CATEGORY_CLASS(LogRPRCoreSystemResources, Log, All)
 
 static void* ImageLibraryHandler;
+static void* OpenImageIOLibraryHandler;
 
 namespace {
 	void ContextSetUint(RPR::FContext context, uint32 parameter, uint32 value, FString errMsg)
@@ -112,6 +113,12 @@ bool FRPRCoreSystemResources::LoadLibraries()
 		return (false);
 	}
 
+	if (!LoadOpenImageIODLL())
+	{
+		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Cannot load OpenImageIO dynamic library"));
+		return (false);
+	}
+
 	return (true);
 }
 
@@ -193,6 +200,31 @@ bool FRPRCoreSystemResources::LoadImageFilterDLL()
 		}
 
 		ImageLibraryHandler = FPlatformProcess::GetDllHandle(*dllPath);
+	}
+	return (true);
+}
+
+bool FRPRCoreSystemResources::LoadOpenImageIODLL()
+{
+	if (OpenImageIOLibraryHandler == nullptr)
+	{
+#if PLATFORM_WINDOWS
+		const FString oiioLibname = TEXT("OpenImageIO_RPR.dll");
+#else
+		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Platform not supported"));
+		return (false);
+#endif
+
+		const FString dllDirectory = FRPR_SDKModule::GetDLLsDirectory(TEXT("OpenImageIO"));
+		const FString dllPath = FPaths::Combine(dllDirectory, oiioLibname);
+
+		if (!FPaths::FileExists(dllPath))
+		{
+			UE_LOG(LogRPRCoreSystemResources, Error, TEXT("DLL '%s' doesn't exist!"), *dllPath);
+			return (false);
+		}
+
+		OpenImageIOLibraryHandler = FPlatformProcess::GetDllHandle(*dllPath);
 	}
 	return (true);
 }

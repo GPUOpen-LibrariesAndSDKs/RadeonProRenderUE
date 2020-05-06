@@ -90,6 +90,7 @@ public class RPR_SDK : ModuleRules
         }
 
         AddImageProcessingLibrary(Target);
+        AddOpenImageIOLibrary(Target);
     }
 
     private void AddLinuxDynamicLibraries(ReadOnlyTargetRules Target)
@@ -142,7 +143,7 @@ public class RPR_SDK : ModuleRules
         {
             PublicLibraryPaths.Add(Path.Combine(ThirdPartyDirectory, @"RadeonProImageProcessingSDK/Windows"));
             PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyDirectory, @"RadeonProImageProcessingSDK/Windows/RadeonImageFilters64.lib"));
-			PublicDelayLoadDLLs.Add("RadeonImageFilters64.dll");
+            PublicDelayLoadDLLs.Add("RadeonImageFilters64.dll");
         }
         else if (Target.Platform == UnrealTargetPlatform.Linux)
         {
@@ -152,6 +153,21 @@ public class RPR_SDK : ModuleRules
         else
         {
             Console.WriteLine("warning: ImageProcessingLibrary doesn't support Platform '{0}'", Target.Platform);
+        }
+    }
+
+    public void AddOpenImageIOLibrary(ReadOnlyTargetRules Target)
+    {
+        if (Target.Platform == UnrealTargetPlatform.Win64)
+        {
+            PublicIncludePaths.Add(Path.Combine(ThirdPartyDirectory, @"RadeonProRenderSharedComponents/OpenImageIO/Windows/include"));
+            PublicLibraryPaths.Add(Path.Combine(ThirdPartyDirectory, @"RadeonProRenderSharedComponents/OpenImageIO/Windows/bin"));
+            PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyDirectory, @"RadeonProRenderSharedComponents/OpenImageIO/Windows/lib/OpenImageIO_RPR.lib"));
+            PublicDelayLoadDLLs.Add("OpenImageIO_RPR.dll");
+        }
+        else
+        {
+            Console.WriteLine("warning: OpenImageIO Library doesn't support Platform '{0}'", Target.Platform);
         }
     }
 

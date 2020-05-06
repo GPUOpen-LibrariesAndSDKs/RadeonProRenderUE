@@ -55,6 +55,7 @@ private:
 	void	InitializeRPRXMaterialLibrary();
 	bool	LoadRprDLL(const FString Library, RPR::FPluginId &libId);
 	bool	LoadImageFilterDLL();
+	bool	LoadOpenImageIODLL();
 
 	void	DestroyRPRContext();
 	void	DestroyMaterialSystem();

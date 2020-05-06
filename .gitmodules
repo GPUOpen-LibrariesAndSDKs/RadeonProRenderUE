@@ -13,3 +13,7 @@
 	path = Plugins/RPRPlugin/ThirdParty/RadeonProImageProcessingSDK
 	url = git@github.com:Radeon-Pro/RadeonProImageProcessingSDK.git
 	branch = master
+[submodule "Plugins/RPRPlugin/ThirdParty/RadeonProRenderSharedComponents"]
+	path = Plugins/RPRPlugin/ThirdParty/RadeonProRenderSharedComponents
+	url = git@github.com:Radeon-Pro/RadeonProRenderSharedComponents.git
+	branch = master

@@ -15,6 +15,7 @@
 *************************************************************************/
 
 #include "RPRXVirtualNode.h"
+#include "Math/Color.h"
 
 namespace RPR
 {

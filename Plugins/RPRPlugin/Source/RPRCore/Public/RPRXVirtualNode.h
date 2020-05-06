@@ -18,6 +18,8 @@
 
 #include "Typedefs/RPRTypedefs.h"
 
+struct FLinearColor;
+
 /**
  * In case of a constant nodes, we don't create a RPR real node and use a virtual node to hold the data.
  */

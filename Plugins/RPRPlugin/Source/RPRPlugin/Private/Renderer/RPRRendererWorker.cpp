@@ -16,7 +16,6 @@
 
 #include "Renderer/RPRRendererWorker.h"
 #include "RprLoadStore.h"
-#include "RPRSettings.h"
 #include "HAL/RunnableThread.h"
 
 #include "Misc/Paths.h"
@@ -32,8 +31,10 @@
 #include <RPRCoreModule.h>
 
 #include "RPR_SDKModule.h"
-
 #include "RadeonProRender_Baikal.h"
+
+#include "Tools/FImageSaver.h"
+
 
 DEFINE_STAT(STAT_ProRender_PreRender);
 DEFINE_STAT(STAT_ProRender_RebuildScene);
@@ -118,18 +119,35 @@ void	FRPRRendererWorker::SaveToFile(const FString &filename)
 	}
 	else
 	{
-		// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
-		m_RenderLock.Lock();
-		RPR::FResult status = rprFrameBufferSaveToFile(m_RprResolvedFrameBuffer, TCHAR_TO_ANSI(*filename));
-		m_RenderLock.Unlock();
+		bool saved = false;
 
-		if (RPR::IsResultSuccess(status))
+		if (RPR::GetSettings()->UseDenoiser)
 		{
-			UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully saved to '%s'"), *filename);
+			FImageSaver is;
+			saved = is.WriteUint8ImageToFile(filename, m_RenderData.GetData(), m_Width, m_Height);
+
+			if (!saved)
+			{
+				UE_LOG(LogRPRRenderer, Error,
+					TEXT("Couldn't save ProRender scene to '%s'. OpenImageIO Library can't create image"), *filename);
+			}
 		}
-		else
+
+		if (!saved)
 		{
-			UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't save framebuffer to '%s' (error code : %d)"), *filename, status);
+			// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
+			m_RenderLock.Lock();
+			RPR::FResult status = rprFrameBufferSaveToFile(m_RprResolvedFrameBuffer, TCHAR_TO_ANSI(*filename));
+			m_RenderLock.Unlock();
+
+			if (RPR::IsResultSuccess(status))
+			{
+				UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully saved to '%s'"), *filename);
+			}
+			else
+			{
+				UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't save framebuffer to '%s' (error code : %d)"), *filename, status);
+			}
 		}
 	}
 }

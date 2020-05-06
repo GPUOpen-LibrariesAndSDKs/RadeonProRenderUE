@@ -43,15 +43,21 @@ FString FRPR_SDKModule::GetDLLsDirectory(FString sdk)
 	checkf(PLATFORM_64BITS, TEXT("Only 64 bits platform supported."));
 
 	if (PLATFORM_WINDOWS) {
-		return sdk.Compare(TEXT("RadeonProRenderSDK")) == 0 ?
-			FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProRenderSDK/RadeonProRender/binWin64") :
-			FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProImageProcessingSDK/Windows");
+		if (sdk == TEXT("RadeonProRenderSDK"))
+			return FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProRenderSDK/RadeonProRender/binWin64");
+
+		else if (sdk == TEXT("RadeonProImageProcessingSDK"))
+			return FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProImageProcessingSDK/Windows");
+
+		else if (sdk == TEXT("OpenImageIO"))
+			return FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProRenderSharedComponents/OpenImageIO/Windows/bin");
 	}
 
 	if (PLATFORM_LINUX) {
-		return sdk.Compare(TEXT("RadeonProRenderSDK")) == 0 ?
-			FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProRenderSDK/RadeonProRender/binUbuntu18") :
-			FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProImageProcessingSDK/Ubuntu18");
+		return
+			(sdk == TEXT("RadeonProRenderSDK"))
+			? FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProRenderSDK/RadeonProRender/binUbuntu18")
+			: FPaths::ConvertRelativePathToFull(FRPRPluginVersionModule::GetRPRPluginPath() + "/ThirdParty/RadeonProImageProcessingSDK/Ubuntu18");
 	}
 
 	checkf(false, TEXT("Only Windows/Linux 64bits supported."));
