@@ -36,6 +36,9 @@ public:
 	void Process(FRPRShape& shape, UMaterialInterface* materialInterface);
 
 private:
+
+	FString GetId(UMaterialExpression* expression);
+
 	void SetMaterialInput(const uint32 param, const RPR::VirtualNode* inputNode, FString msg);
 	void SetReflectionToMaterial(uint32 mode, uint32 input, RPR::VirtualNode* inputVal, RPR::VirtualNode* weight, RPR::VirtualNode* color);
 	void SetRefractionToMaterial(RPR::VirtualNode* color, RPR::VirtualNode* ior);
