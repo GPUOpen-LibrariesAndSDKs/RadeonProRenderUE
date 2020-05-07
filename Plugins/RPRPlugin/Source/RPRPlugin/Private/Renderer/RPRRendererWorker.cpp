@@ -15,6 +15,7 @@
 *************************************************************************/
 
 #include "Renderer/RPRRendererWorker.h"
+#include <Misc/ScopeLock.h>
 #include "RprLoadStore.h"
 #include "HAL/RunnableThread.h"
 
@@ -95,61 +96,82 @@ void	FRPRRendererWorker::SetTrace(bool trace, const FString &tracePath)
 	m_PreRenderLock.Unlock();
 }
 
-void	FRPRRendererWorker::SaveToFile(const FString &filename)
+int FRPRRendererWorker::SaveToFile(const FString& filename)
 {
-	FString	extension = FPaths::GetExtension(filename);
+	int status;
+	FString	extension;
 
-	if (extension == "frs")
+	extension = FPaths::GetExtension(filename);
+	if (filename.IsEmpty()) {
+		return RPR_ERROR_INVALID_PARAMETER;
+	}
+
+	if (extension == TEXT("frs"))
 	{
-		// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
-		m_RenderLock.Lock();
-		const bool	saved = false; /* rprsExport(TCHAR_TO_ANSI(*filename), m_RprContext, m_RprScene,
-			0, nullptr, nullptr,
-			0, nullptr, nullptr) == RPR_SUCCESS;*/
-		m_RenderLock.Unlock();
-
-		if (saved)
-		{
-			UE_LOG(LogRPRRenderer, Log, TEXT("ProRender scene successfully saved to '%s'"), *filename);
-		}
-		else
-		{
-			UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't save ProRender scene to '%s'"), *filename);
-		}
+		status = SaveSceneToRPR(filename);
+		CHECK_ERROR(status, TEXT("Save scene to rpr file failed"));
 	}
 	else
 	{
-		bool saved = false;
+		status = SaveFrameBuffer(filename);
+		CHECK_ERROR(status, TEXT("Save framebuffer to file failed"));
+	}
 
-		if (RPR::GetSettings()->UseDenoiser)
-		{
-			FImageSaver is;
-			saved = is.WriteUint8ImageToFile(filename, m_RenderData.GetData(), m_Width, m_Height);
+	return RPR_SUCCESS;
+}
 
-			if (!saved)
-			{
-				UE_LOG(LogRPRRenderer, Error,
-					TEXT("Couldn't save ProRender scene to '%s'. OpenImageIO Library can't create image"), *filename);
-			}
-		}
+int FRPRRendererWorker::SaveDenoisedBuffer(const FString& fileName)
+{
+	FImageSaver is;
+	bool success;
+	success = is.WriteUint8ImageToFile(fileName, m_RenderData.GetData(), m_Width, m_Height);
 
-		if (!saved)
-		{
-			// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
-			m_RenderLock.Lock();
-			RPR::FResult status = rprFrameBufferSaveToFile(m_RprResolvedFrameBuffer, TCHAR_TO_ANSI(*filename));
-			m_RenderLock.Unlock();
+	if (!success)
+	{
+		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't save ProRender scene to '%s'. OpenImageIO Library can't create image"), *fileName);
+		return RPR_ERROR_IO_ERROR;
+	}
 
-			if (RPR::IsResultSuccess(status))
-			{
-				UE_LOG(LogRPRRenderer, Log, TEXT("Framebuffer successfully saved to '%s'"), *filename);
-			}
-			else
-			{
-				UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't save framebuffer to '%s' (error code : %d)"), *filename, status);
-			}
+	return RPR_SUCCESS;
+}
+
+int FRPRRendererWorker::SaveFrameBuffer(const FString& fileName)
+{
+	int status;
+
+	// This will be blocking, should we rather queue this for the rendererworker to pick it up next iteration (if it is rendering) ?
+	FScopeLock lock(&m_RenderLock);
+
+	if (RPR::GetSettings()->UseDenoiser)
+	{
+		status = SaveDenoisedBuffer(fileName);
+		CHECK_WARNING(status, TEXT("Can't save denoised framebuffer. Fallback to color buffer save (not denoised)"));
+
+		if (status == RPR_SUCCESS) {
+			return RPR_SUCCESS;
 		}
 	}
+
+	status = rprFrameBufferSaveToFile(m_RprResolvedFrameBuffer, TCHAR_TO_ANSI(*fileName));
+	CHECK_ERROR(status, TEXT("Can't save framebuffer to file"));
+
+	return RPR_SUCCESS;
+}
+
+int  FRPRRendererWorker::SaveSceneToRPR(const FString& fileName)
+{
+	int status;
+
+	FScopeLock lock(&m_RenderLock);
+
+	unsigned int exportFlags = 0;
+	//exportFlags |= RPRLOADSTORE_EXPORTFLAG_EXTERNALFILES;
+	//exportFlags |= RPRLOADSTORE_EXPORTFLAG_COMPRESS_IMAGE_LEVEL_2;
+
+	status = rprsExport(TCHAR_TO_ANSI(*fileName), m_RprContext, m_RprScene, 0, 0, 0, 0, 0, 0, exportFlags);
+	CHECK_ERROR(status, TEXT("Can't save scene to rpr file"));
+
+	return RPR_SUCCESS;
 }
 
 bool	FRPRRendererWorker::ResizeFramebuffer(uint32 width, uint32 height)

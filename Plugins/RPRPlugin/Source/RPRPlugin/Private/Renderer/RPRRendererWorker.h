@@ -48,7 +48,7 @@ public:
 	bool			ResizeFramebuffer(uint32 width, uint32 height);
 	bool			RestartRender();
 	void			SetTrace(bool trace, const FString &tracePath);
-	void			SaveToFile(const FString &filename);
+	int				SaveToFile(const FString &filename);
 	void			SetQualitySettings(ERPRQualitySettings qualitySettings);
 	int 			SetDenoiserSettings(ERPRDenoiserOption denoiserOption);
 	void			SetSamplingMinSPP();
@@ -94,6 +94,9 @@ private:
 	int 		RunDenoiser();
 	void		EnableAdaptiveSampling();
 	bool		IsAdaptiveSamplingFinalized();
+	int         SaveFrameBuffer(const FString& fileName);
+	int         SaveSceneToRPR(const FString& fileName);
+	int			SaveDenoisedBuffer(const FString& fileName);
 
 private:
 
