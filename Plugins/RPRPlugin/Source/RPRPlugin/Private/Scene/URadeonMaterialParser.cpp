@@ -221,16 +221,19 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterialInterface* materi
 			baseColorInputNode
 		);
 	}
-	else if (material->Specular.Expression)
+	else
 	{
-		/*RPR::VirtualNode* specularInput = ConvertExpressionToVirtualNode(material->Specular.Expression, material->Specular.OutputIndex);*/
+		const FString valueName(idPrefix + TEXT("DefaultSpecular"));
 
-		const FString valueName(idPrefix + TEXT("IOR_1.5_ForNonLiquidMaterials"));
+		RPR::VirtualNode* specularInput =
+			(material->Specular.Expression)
+			? ConvertExpressionToVirtualNode(material->Specular.Expression, material->Specular.OutputIndex)
+			: GetValueNode(valueName + TEXT("InputValue"), 0.04f);
 
 		SetReflectionToMaterial(
 			RPR_UBER_MATERIAL_IOR_MODE_PBR,
 			RPR_MATERIAL_INPUT_UBER_REFLECTION_IOR,
-			GetValueNode(valueName, 1.5f),
+			specularInput,
 			GetValueNode(valueName + TEXT("_PBR_Weight"), 1.0f),
 			baseColorInputNode
 		);
