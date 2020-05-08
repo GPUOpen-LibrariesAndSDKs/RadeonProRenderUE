@@ -51,19 +51,18 @@
 
 DECLARE_LOG_CATEGORY_CLASS(LogSRPRViewportTabContent, Log, All)
 
-namespace {
-	TSharedPtr<SComboBox<TSharedPtr<FString>>>	DenoiserOptionMenuHandler;
-	TSharedPtr<SExpandableArea>					AdaptiveSamplingAreaHandler;
+void SRPRViewportTabContent::ToggleDenoiserOptionMenuVisibility(bool isVisible)
+{
+	DenoiserOptionMenuHandler->SetVisibility(isVisible ? EVisibility::Visible : EVisibility::Collapsed);
+}
 
-	void ToggleDenoiserOptionMenuVisibility(bool isVisible)
-	{
-		DenoiserOptionMenuHandler->SetVisibility(isVisible ? EVisibility::Visible : EVisibility::Collapsed);
-	}
+void SRPRViewportTabContent::ToggleTahoHybridWidgetsVisibility(bool isVisible)
+{
+	// Showed for Taho
+	AdaptiveSamplingAreaHandler->SetVisibility(isVisible ? EVisibility::Visible : EVisibility::Collapsed);
 
-	void ToggleAdaptiveSamplingVisibility(bool isVisible)
-	{
-		AdaptiveSamplingAreaHandler->SetVisibility(isVisible ? EVisibility::Visible : EVisibility::Collapsed);
-	}
+	// Showed for Hybrid
+	HybridIterationsSlotHandler->SetVisibility(!isVisible ? EVisibility::Visible : EVisibility::Collapsed);
 }
 
 SRPRViewportTabContent::~SRPRViewportTabContent()
@@ -353,7 +352,7 @@ void	SRPRViewportTabContent::OnQualitySettingsChanged(TSharedPtr<FString> item, 
 		scene->SetQualitySettings(m_Settings->QualitySettings);
 
 	m_Plugin->m_CleanViewport = false;
-	ToggleAdaptiveSamplingVisibility(m_Settings->QualitySettings == Full);
+	ToggleTahoHybridWidgetsVisibility(m_Settings->QualitySettings == Full);
 }
 
 void	SRPRViewportTabContent::OnDenoiserOptionChanged(TSharedPtr<FString> item, ESelectInfo::Type inSeletionInfo)
@@ -497,6 +496,11 @@ void	SRPRViewportTabContent::OnGammaCorrectionValueChanged(float newValue)
 	m_Settings->SaveConfig(); // Profile this, can be pretty intense with sliders
 }
 
+TOptional<uint32>	SRPRViewportTabContent::GetMaximumRenderIterations() const
+{
+	return m_Settings->MaximumRenderIterations;
+}
+
 TOptional<uint32>	SRPRViewportTabContent::GetSampleMin() const
 {
 	return m_Settings->SamplingMin;
@@ -520,6 +524,12 @@ TOptional<float>	SRPRViewportTabContent::GetRaycastEpsilon() const
 TOptional<ECheckBoxState>	SRPRViewportTabContent::GetUseDenoiser() const
 {
 	return m_Settings->UseDenoiser ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+}
+
+void	SRPRViewportTabContent::OnMaximumIterationsChanged(uint32 newValue)
+{
+	m_Settings->MaximumRenderIterations = newValue;
+	m_Settings->SaveConfig(); // Profile this, can be pretty intense with sliders
 }
 
 void	SRPRViewportTabContent::OnSampleMinChanged(uint32 newValue)
@@ -1076,7 +1086,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 					]
 					.BodyContent()
 					[
-						SNew(SVerticalBox)
+						SNew(SVerticalBox)	 // Raycast Epsilon Slot
 						+ SVerticalBox::Slot()
 						.MaxHeight(16.0f)
 						.Padding(5.0f)
@@ -1092,7 +1102,8 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 							[
 								SNew(SSpacer)
 							]
-							+ SHorizontalBox::Slot().AutoWidth()
+							+ SHorizontalBox::Slot()
+							.AutoWidth()
 							[
 								SNew(SNumericEntryBox<float>)
 								.Value(this, &SRPRViewportTabContent::GetRaycastEpsilon)
@@ -1103,7 +1114,37 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 								.MaxSliderValue(10.0f)
 								.AllowSpin(true)
 							]
-						]
+						] // Raycast Epsilon Slot
+
+						+ SVerticalBox::Slot() // Max iteration for Hybrid slot
+						.MaxHeight(16.0f)
+						.Padding(5.0f)
+						[
+							SAssignNew(HybridIterationsSlotHandler, SHorizontalBox)
+							+ SHorizontalBox::Slot()
+							.AutoWidth()
+							[
+								SNew(STextBlock)
+								.Text(LOCTEXT("MaximumRenderIterations", "Iterations  "))
+							]
+							+ SHorizontalBox::Slot()
+							.FillWidth(1.0f)
+							[
+								SNew(SSpacer)
+							]
+							+ SHorizontalBox::Slot()
+							.AutoWidth()
+							[
+								SNew(SNumericEntryBox<uint32>)
+								.Value(this, &SRPRViewportTabContent::GetMaximumRenderIterations)
+								.OnValueChanged(this, &SRPRViewportTabContent::OnMaximumIterationsChanged)
+								.MinValue(1)
+								.MaxValue(100000)
+								.MinSliderValue(24)
+								.MaxSliderValue(100000)
+								.AllowSpin(true)
+							]
+						] // Max iteration for Hybrid slot
 					]
 				]  // Render Settings slot
 
@@ -1262,7 +1303,7 @@ void	SRPRViewportTabContent::Construct(const FArguments &args)
 	m_ViewportWidget->SetViewportInterface(m_Plugin->m_Viewport.ToSharedRef());
 
 	ToggleDenoiserOptionMenuVisibility(m_Settings->UseDenoiser);
-	ToggleAdaptiveSamplingVisibility(m_Settings->QualitySettings == Full);
+	ToggleTahoHybridWidgetsVisibility(m_Settings->QualitySettings == Full);
 }
 
 

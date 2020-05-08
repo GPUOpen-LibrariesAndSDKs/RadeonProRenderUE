@@ -62,7 +62,7 @@ public:
 	FString		TraceFolder;
 
 	/** Defines ProRender maximum number of iteration. */
-	UPROPERTY(Config, EditAnywhere, Category = General)
+	UPROPERTY(Config)
 	uint32		MaximumRenderIterations;
 
 	/** Enables GPU1 usage */

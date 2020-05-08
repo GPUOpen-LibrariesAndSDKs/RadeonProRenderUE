@@ -99,18 +99,21 @@ private:
 	void					OnPhotolinearTonemapSensitivityChanged(float newValue);
 	void					OnPhotolinearTonemapExposureChanged(float newValue);
 	void					OnPhotolinearTonemapFStopChanged(float newValue);
+	void					OnMaximumIterationsChanged(uint32 newValue);
 	void					OnSampleMinChanged(uint32 newValue);
 	void					OnSampleMaxChanged(uint32 newValue);
 	void					OnNoiseThresholdChanged(float newValue);
 	void					OnRaycastEpsilonValueChanged(float newValue);
 	void					OnUseDenoiserCheckStateChanged(ECheckBoxState newValue);
-
+	void					ToggleDenoiserOptionMenuVisibility(bool isVisible);
+	void					ToggleTahoHybridWidgetsVisibility(bool isVisible);
 
 	TOptional<uint32>		GetWhiteBalanceTemperature() const;
 	TOptional<float>		GetGammaCorrectionValue() const;
 	TOptional<float>		GetPhotolinearTonemapSensitivity() const;
 	TOptional<float>		GetPhotolinearTonemapExposure() const;
 	TOptional<float>		GetPhotolinearTonemapFStop() const;
+	TOptional<uint32>		GetMaximumRenderIterations() const;
 	TOptional<uint32>		GetSampleMin() const;
 	TOptional<uint32>		GetSampleMax() const;
 	TOptional<float>		GetNoiseThreshold() const;
@@ -135,6 +138,10 @@ private:
 	bool									m_DisplayPostEffects;
 
 	FString									m_LastExportDirectory;
+
+	TSharedPtr<SComboBox<TSharedPtr<FString>>>	DenoiserOptionMenuHandler;
+	TSharedPtr<SExpandableArea>					AdaptiveSamplingAreaHandler;
+	TSharedPtr<SHorizontalBox>					HybridIterationsSlotHandler;
 };
 
 #endif // WITH_EDITOR
