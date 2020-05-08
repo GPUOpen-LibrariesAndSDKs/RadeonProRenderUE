@@ -233,9 +233,9 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterialInterface* materi
 		SetReflectionToMaterial(
 			RPR_UBER_MATERIAL_IOR_MODE_PBR,
 			RPR_MATERIAL_INPUT_UBER_REFLECTION_IOR,
-			specularInput,
+			GetValueNode(valueName + TEXT("_PBR_IOR"), 1.5f),
 			GetValueNode(valueName + TEXT("_PBR_Weight"), 1.0f),
-			baseColorInputNode
+			specularInput
 		);
 	}
 
