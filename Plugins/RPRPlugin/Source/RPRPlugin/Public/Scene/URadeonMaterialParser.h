@@ -53,8 +53,8 @@ private:
 	RPR::VirtualNode* GetOneMinusNode(const FString& id, const RPR::VirtualNode* node);
 	RPR::VirtualNode* GetNormalizeNode(const FString& id, const RPR::VirtualNode* node);
 	RPR::VirtualNode* SelectRgbaChannel(const FString& resultVirtualNodeId, const int32 outputIndex, RPR::VirtualNode* rgbaSourceNode);
-	RPR::VirtualNode* GetSeparatedChannelNode(const FString& maskResultId, int channelIndex, int maskIndex, RPR::VirtualNode* rgbaSource);
-	RPR::VirtualNode* AddTwoNodes(const FString& id, RPR::VirtualNode* a, RPR::VirtualNode* b);
+	RPR::VirtualNode* GetSeparatedChannelNode(const FString& maskResultId, const int channelIndex, const int maskIndex, RPR::VirtualNode* rgbaSource);
+	RPR::VirtualNode* AddTwoNodes(const FString& id, const RPR::VirtualNode* a, const RPR::VirtualNode* b);
 	RPR::VirtualNode* ConvertExpressionToVirtualNode(UMaterialExpression* expr, const int32 inputParameter);
 	RPR::VirtualNode* ConvertOrCreateDefault(FExpressionInput& input, FString defaultId, float defaultValue);
 	RPR::VirtualNode* ColorInputEvaluate(RPR::VirtualNode* color);

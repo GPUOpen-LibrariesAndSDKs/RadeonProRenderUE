@@ -261,23 +261,46 @@ void URadeonMaterialParser::Process(FRPRShape& shape, UMaterialInterface* materi
 
 	if (material->EmissiveColor.Expression)
 	{
-		const RPR::VirtualNode* emissiveColor = ConvertExpressionToVirtualNode(material->EmissiveColor.Expression, material->EmissiveColor.OutputIndex);
+		RPR::VirtualNode* emissiveColor = ConvertExpressionToVirtualNode(material->EmissiveColor.Expression, material->EmissiveColor.OutputIndex);
 
 		SetMaterialInput(RPR_MATERIAL_INPUT_UBER_EMISSION_COLOR, emissiveColor, TEXT("Can't set uber emission color"));
 
 		if (emissiveColor->IsType(vNodeType::CONSTANT))
 		{
-			status = uberMaterialPtr->SetMaterialParameterFloats(
+			status = uberMaterialPtr->SetMaterialParameterFloat(
 				RPR_MATERIAL_INPUT_UBER_EMISSION_WEIGHT,
-				emissiveColor->constant.R,
-				emissiveColor->constant.G,
-				emissiveColor->constant.B,
-				emissiveColor->constant.A
+				(emissiveColor->constant.R * 0.2126f + emissiveColor->constant.G * 0.7152f + emissiveColor->constant.B * 0.0722f)
 			);
 			LOG_ERROR(status, TEXT("Can't set uber emission weight"));
 		}
 		else
-			SetMaterialInput(RPR_MATERIAL_INPUT_UBER_EMISSION_WEIGHT, emissiveColor, TEXT("Can't set uber emission weight"));
+		{
+			const RPR::VirtualNode* R = GetMathNodeTwoInputs(
+				emissiveColor->id + TEXT("_R") + TEXT("*0.2126"),
+				RPR_MATERIAL_NODE_OP_MUL,
+				GetValueNode(TEXT("Coef_0.2126"), 0.2126f),
+				GetSeparatedChannelNode(emissiveColor->id + TEXT("_R"), 1, 1, emissiveColor)
+			);
+
+			const RPR::VirtualNode* G = GetMathNodeTwoInputs(
+				emissiveColor->id + TEXT("_G") + TEXT("*0.7152"),
+				RPR_MATERIAL_NODE_OP_MUL,
+				GetValueNode(TEXT("Coef_0.7152"), 0.7152f),
+				GetSeparatedChannelNode(emissiveColor->id + TEXT("_G"), 2, 1, emissiveColor)
+			);
+
+			const RPR::VirtualNode* B = GetMathNodeTwoInputs(
+				emissiveColor->id + TEXT("_B") + TEXT("*0.0722"),
+				RPR_MATERIAL_NODE_OP_MUL,
+				GetValueNode(TEXT("Coef_0.0722"), 0.0722f),
+				GetSeparatedChannelNode(emissiveColor->id + TEXT("_B"), 3, 1, emissiveColor)
+			);
+
+			RPR::VirtualNode* weight = AddTwoNodes(R->id + G->id, R, G);
+			weight = AddTwoNodes(weight->id + B->id, weight, B);
+
+			SetMaterialInput(RPR_MATERIAL_INPUT_UBER_EMISSION_WEIGHT, weight, TEXT("Can't set uber emission weight"));
+		}
 
 		status = uberMaterialPtr->SetMaterialParameterUInt(RPR_MATERIAL_INPUT_UBER_EMISSION_MODE, RPR_UBER_MATERIAL_EMISSION_MODE_SINGLESIDED);
 		LOG_ERROR(status, TEXT("Can't set uber emission mode to SingledSided"));
@@ -585,7 +608,7 @@ RPR::VirtualNode* URadeonMaterialParser::SelectRgbaChannel(const FString& aIdPre
 	channelIndex shows which channel to select - the new (selected) node contains this value in all channels.
 	maskIndex shows in which channel place the value from the selected channel
 */
-RPR::VirtualNode* URadeonMaterialParser::GetSeparatedChannelNode(const FString& aIdPrefix, int channelIndex, int maskIndex, RPR::VirtualNode* rgbaSource)
+RPR::VirtualNode* URadeonMaterialParser::GetSeparatedChannelNode(const FString& aIdPrefix, const int channelIndex, const int maskIndex, RPR::VirtualNode* rgbaSource)
 {
 	RPR::VirtualNode* selected = SelectRgbaChannel(aIdPrefix, channelIndex, rgbaSource);
 	RPR::VirtualNode* mask = nullptr;
@@ -611,7 +634,7 @@ RPR::VirtualNode* URadeonMaterialParser::GetSeparatedChannelNode(const FString& 
 	return GetMathNodeTwoInputs(aIdPrefix + TEXT("result") + FString::FromInt(channelIndex), RPR_MATERIAL_NODE_OP_MUL, selected, mask);
 }
 
-RPR::VirtualNode* URadeonMaterialParser::AddTwoNodes(const FString& id, RPR::VirtualNode* a, RPR::VirtualNode* b)
+RPR::VirtualNode* URadeonMaterialParser::AddTwoNodes(const FString& id, const RPR::VirtualNode* a, const RPR::VirtualNode* b)
 {
 	return GetMathNodeTwoInputs(id, RPR_MATERIAL_NODE_OP_ADD, a, b);
 }

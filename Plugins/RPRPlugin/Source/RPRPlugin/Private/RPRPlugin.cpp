@@ -33,8 +33,6 @@
 #include "Editor.h"
 #endif
 
-#include "Slate/SceneViewport.h"
-
 #include "Engine/World.h"
 #include "Engine/Texture2DDynamic.h"
 
