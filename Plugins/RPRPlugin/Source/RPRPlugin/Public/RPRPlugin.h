@@ -25,6 +25,7 @@
 #include "Modules/ModuleManager.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Enums/RPREnums.h"
+#include <Slate/SceneViewport.h>
 
 #include "Viewport/SRPRViewportTabContent.h"
 
@@ -77,7 +78,7 @@ public:
 	bool		m_CleanViewport;
 
 	TArray<TSharedPtr<FString>>			m_AvailabelCameraNames;
-	TSharedPtr<class FSceneViewport>	m_Viewport;
+	TSharedPtr<FSceneViewport>	m_Viewport;
 
 private:
 
