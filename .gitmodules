@@ -1,6 +1,6 @@
 [submodule "Plugins/RPRPlugin/ThirdParty/RadeonProRenderSDK"]
 	path = Plugins/RPRPlugin/ThirdParty/RadeonProRenderSDK
-	url = git@github.com:Radeon-Pro/RadeonProRenderSDK.git
+	url = git@github.com:GPUOpen-LibrariesAndSDKs/RadeonProRenderSDK
 [submodule "Plugins/RPRPlugin/ThirdParty/gli"]
 	path = Plugins/RPRPlugin/ThirdParty/gli
 	url = git@github.com:feniksa/gli.git
@@ -11,9 +11,9 @@
 	branch = master
 [submodule "Plugins/RPRPlugin/ThirdParty/RadeonProImageProcessingSDK"]
 	path = Plugins/RPRPlugin/ThirdParty/RadeonProImageProcessingSDK
-	url = git@github.com:Radeon-Pro/RadeonProImageProcessingSDK.git
+	url = git@github.com:GPUOpen-LibrariesAndSDKs/RadeonImageFilter.git
 	branch = master
 [submodule "Plugins/RPRPlugin/ThirdParty/RadeonProRenderSharedComponents"]
 	path = Plugins/RPRPlugin/ThirdParty/RadeonProRenderSharedComponents
-	url = git@github.com:Radeon-Pro/RadeonProRenderSharedComponents.git
+	url = git@github.com:GPUOpen-LibrariesAndSDKs/RadeonProRenderSharedComponents.git
 	branch = master
