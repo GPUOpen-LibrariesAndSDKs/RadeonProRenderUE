@@ -186,19 +186,13 @@ int	URPRLightComponent::BuildSkyLight(const USkyLightComponent *skyLightComponen
 {
 	int status;
 
+	// Sky light containing a cubemap will become a RPR Environment light
 	m_CachedSourceType = skyLightComponent->SourceType;
 	m_CachedCubemap = skyLightComponent->Cubemap;
-	// Sky light containing a cubemap will become a RPR Environment light
-	if (skyLightComponent->SourceType != ESkyLightSourceType::SLS_SpecifiedCubemap ||
-		skyLightComponent->Cubemap == NULL)
-	{
-		UE_LOG(LogRPRLightComponent, Warning, TEXT("Skipped '%s', there is no specified cubemap"), *skyLightComponent->GetName());
-		return RPR_SUCCESS;
-	}
 	m_RprImage = IRPRCore::GetResources()->GetRPRImageManager()->LoadCubeImageFromTexture(skyLightComponent->Cubemap);
-	if (!m_RprImage.IsValid()) {
+
+	if (!m_RprImage.IsValid())
 		return RPR_SUCCESS;
-	}
 
 	const float	intensity = skyLightComponent->Intensity * (m_CachedAffectsWorld ? 1.0f : 0.0f);
 	RPR::FContext rprContext = IRPRCore::GetResources()->GetRPRContext();
@@ -280,8 +274,17 @@ bool	URPRLightComponent::Build()
 	const USkyLightComponent* skyLightComponent = Cast<USkyLightComponent>(SrcComponent);
 	const UDirectionalLightComponent* dirLightComponent = Cast<UDirectionalLightComponent>(SrcComponent);
 
-	if (skyLightComponent != NULL)
+	const bool isValidSkyLight =
+		skyLightComponent != NULL &&
+		skyLightComponent->SourceType == ESkyLightSourceType::SLS_SpecifiedCubemap &&
+		skyLightComponent->Cubemap != nullptr;
+
+	if (isValidSkyLight)
 		return true;
+	else if (skyLightComponent)
+	{
+		UE_LOG(LogRPRLightComponent, Warning, TEXT("Skipped '%s', there is no specified cubemap"), *skyLightComponent->GetName());
+	}
 
 	if (pointLightComponent) {
 		status = BuildPointLight(pointLightComponent);
