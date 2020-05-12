@@ -294,7 +294,7 @@ bool FRPRCoreSystemResources::InitializeContextParameters()
 	{
 	case Tahoe:
 		ContextSetUint(RPRContext, RPR_CONTEXT_PREVIEW, 1, TEXT("PREVIEW"));
-		ContextSetUint(RPRContext, RPR_CONTEXT_MAX_RECURSION, 10, TEXT("MAX_RECURSION"));
+		ContextSetUint(RPRContext, RPR_CONTEXT_MAX_RECURSION, settings->RayDepthMax, TEXT("MAX_RECURSION"));
 		ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_DIFFUSE, settings->RayDepthDiffuse, TEXT("MAX_DEPTH_DIFFUSE"));
 		ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_GLOSSY, settings->RayDepthGlossy, TEXT("MAX_DEPTH_GLOSSY"));
 		ContextSetUint(RPRContext, RPR_CONTEXT_MAX_DEPTH_SHADOW, settings->RayDepthShadow, TEXT("MAX_DEPTH_SHADOW"));
@@ -306,7 +306,7 @@ bool FRPRCoreSystemResources::InitializeContextParameters()
 		ContextSetUint(RPRContext, RPR_CONTEXT_ADAPTIVE_SAMPLING_MIN_SPP, settings->SamplingMin, TEXT("ADAPTIVE_SAMPLING_MIN_SPP"));
 		break;
 	case Hybrid:
-		ContextSetUint(RPRContext, RPR_CONTEXT_MAX_RECURSION, 10, TEXT("MAX_RECURSION"));
+		ContextSetUint(RPRContext, RPR_CONTEXT_MAX_RECURSION, settings->RayDepthMax, TEXT("MAX_RECURSION"));
 		ContextSetUint(RPRContext, RPR_CONTEXT_Y_FLIP, 1, TEXT("Y_FLIP"));
 		break;
 	default:

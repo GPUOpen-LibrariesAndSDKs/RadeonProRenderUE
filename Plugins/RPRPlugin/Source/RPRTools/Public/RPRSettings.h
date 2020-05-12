@@ -137,16 +137,16 @@ public:
 	UPROPERTY(Config)
 	float		PhotolinearTonemapFStop;
 
-	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
+	UPROPERTY(Config)
 	float		RaycastEpsilon;
 
-	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
+	UPROPERTY(Config)
 	uint32		SamplingMax;
 
-	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
+	UPROPERTY(Config)
 	uint32		SamplingMin;
 
-	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
+	UPROPERTY(Config)
 	float		NoiseThreshold;
 
 	UPROPERTY(Config, EditAnywhere, Category = RenderSettings)
