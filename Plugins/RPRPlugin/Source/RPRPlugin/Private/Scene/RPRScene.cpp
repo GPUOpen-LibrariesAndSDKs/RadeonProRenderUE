@@ -754,10 +754,14 @@ void ARPRScene::CopyRPRRenderBufferToViewportRenderTexture()
 
 	m_RendererWorker->m_DataLock.Lock();
 	const uint8	*textureData = m_RendererWorker->GetFramebufferData();
+	const bool	update = m_RendererWorker->IsRenderDataCorrect();
 #if  ENGINE_MINOR_VERSION >= 24
 	ENQUEUE_RENDER_COMMAND(UpdateDynamicTextureCode) (
-		[this, textureData](FRHICommandListImmediate& RHICmdList)
+		[this, textureData, update](FRHICommandListImmediate& RHICmdList)
 		{
+			if (!update)
+				return;
+
 			FUpdateTextureRegion2D	region;
 			region.SrcX   = 0;
 			region.SrcY   = 0;
