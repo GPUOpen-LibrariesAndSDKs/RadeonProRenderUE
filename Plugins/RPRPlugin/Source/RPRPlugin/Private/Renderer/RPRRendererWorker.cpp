@@ -184,6 +184,7 @@ bool	FRPRRendererWorker::ResizeFramebuffer(uint32 width, uint32 height)
 	m_Height = height;
 
 	m_Resize = true;
+	m_RenderData.SetNumZeroed(m_Width * m_Height * sizeof(float));
 
 	m_PreRenderLock.Unlock();
 	return true;
