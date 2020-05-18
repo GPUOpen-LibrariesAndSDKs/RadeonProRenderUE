@@ -319,7 +319,6 @@ namespace RPR
 		LightGroup1 = RPR_AOV_LIGHT_GROUP1,
 		LightGroup2 = RPR_AOV_LIGHT_GROUP2,
 		LightGroup3 = RPR_AOV_LIGHT_GROUP3,
-		Max = RPR_AOV_MAX,
 		Variance = RPR_AOV_VARIANCE
 	};
 
