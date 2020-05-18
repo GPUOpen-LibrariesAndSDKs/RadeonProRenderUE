@@ -24,8 +24,8 @@ using UnrealBuildTool;
 /// </summary>
 public class RPRPluginVersion : ModuleRules
 {
-    private const int RPRPluginVersion_Major = 0;
-    private const int RPRPluginVersion_Minor = 8;
+    private const int RPRPluginVersion_Major = 1;
+    private const int RPRPluginVersion_Minor = 1;
 
     private const string RPRPluginMajorVersionDefName = "RPR_PLUGIN_MAJOR_VERSION";
     private const string RPRPluginMinorVersionDefName = "RPR_PLUGIN_MINOR_VERSION";
