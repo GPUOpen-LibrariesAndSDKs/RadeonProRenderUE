@@ -1,20 +1,31 @@
 # RadeonProRenderUE
 
-# Setup project
+![Image of Radeon Pro Render](Docs/hello_image.png)
 
-## Generate Visual Studio files
+# Project prerequisites
 
-Right-click on RPR.uproject and select "Generate Visual Studio project files".<br>
-It should create a "RPR.sln" file
+Plugin support 4.20 and 4.24 build targets. Please, install 4.20 OR 4.24 Unreal Engine on your system
+Visual Studion 2017 Community or Visual  Studion 2019 Community
+
+# Setup project for development
+
+- Clone project from github 
+`git clone --recurse-submodules git@github.com:GPUOpen-LibrariesAndSDKs/RadeonProRenderUE.git`
+- Open directory with project
+- Switch Unreal Engine version: Right-click on RPR.uproject and select "Switch Unreal Engine version"  ![Switch UE version](Docs/switch_ue_version.png)
+- Generate Visual Studion project: Right-click on RPR.uproject and select "Generate Visual Studio project files"
+
 
 ## Compile
 
-- Open the "RPR.sln" file.
+- Open the "RPR.sln" file in Visual Studion 2017 or Visual Studio 2019
 - Check that your build configuration is in "Development Editor" (or "DebugGame Editor")
-- Press "Local Windows Debugger" to start the build.
+- Click "Build" -> "Build Solution"
 
-At the end of the build, the project should start.
+## Run
 
+- In Visual Studio right click on **RPR** project and select *Set as Startup Project*
+- Click F5 or Debug -> Start Debuggin
 
 # Build the RPR plugin for marketplace
 
