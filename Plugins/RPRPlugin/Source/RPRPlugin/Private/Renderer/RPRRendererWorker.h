@@ -64,7 +64,7 @@ public:
 		return m_RenderData.GetData();
 	}
 
-	const bool		IsRenderDataCorrect()
+	bool			IsRenderDataCorrect()
 	{
 		return m_ExpectedRenderDataSize == m_RenderData.Num();
 	}
@@ -152,7 +152,7 @@ private:
 	TArray<uint8>				m_DstFramebufferData;
 	TArray<uint8>				m_RenderData;
 
-	size_t						m_ExpectedRenderDataSize;
+	uint32						m_ExpectedRenderDataSize;
 	bool						m_Resize;
 	bool						m_IsBuildingObjects;
 	bool						m_ClearFramebuffer;
