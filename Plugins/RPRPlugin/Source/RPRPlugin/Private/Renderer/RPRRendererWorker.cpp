@@ -66,7 +66,6 @@ FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene rprScene, 
 ,	m_RprContext(context)
 ,	m_AOV(RPR::EAOV::Color)
 ,	m_RprScene(rprScene)
-,	m_ExpectedRenderDataSize(0)
 ,	m_Resize(true)
 ,	m_IsBuildingObjects(false)
 ,	m_ClearFramebuffer(false)
@@ -78,6 +77,7 @@ FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene rprScene, 
 {
 	m_Plugin = &FRPRPluginModule::Get();
 	m_Thread = FRunnableThread::Create(this, TEXT("FRPRRendererWorker"));
+	m_ExpectedRenderDataSize = m_Width * m_Height * sizeof(float) * (sizeof(float) / sizeof(uint8));
 }
 
 FRPRRendererWorker::~FRPRRendererWorker()
