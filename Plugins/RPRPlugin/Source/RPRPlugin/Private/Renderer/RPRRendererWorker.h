@@ -64,6 +64,11 @@ public:
 		return m_RenderData.GetData();
 	}
 
+	bool			IsRenderDataCorrect()
+	{
+		return m_ExpectedRenderDataSize == m_RenderData.Num();
+	}
+
 public:
 
 	FCriticalSection	m_DataLock;
@@ -147,6 +152,7 @@ private:
 	TArray<uint8>				m_DstFramebufferData;
 	TArray<uint8>				m_RenderData;
 
+	uint32						m_ExpectedRenderDataSize;
 	bool						m_Resize;
 	bool						m_IsBuildingObjects;
 	bool						m_ClearFramebuffer;

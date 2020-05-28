@@ -77,6 +77,7 @@ FRPRRendererWorker::FRPRRendererWorker(rpr_context context, rpr_scene rprScene, 
 {
 	m_Plugin = &FRPRPluginModule::Get();
 	m_Thread = FRunnableThread::Create(this, TEXT("FRPRRendererWorker"));
+	m_ExpectedRenderDataSize = m_Width * m_Height * sizeof(float) * (sizeof(float) / sizeof(uint8));
 }
 
 FRPRRendererWorker::~FRPRRendererWorker()
@@ -180,11 +181,12 @@ bool	FRPRRendererWorker::ResizeFramebuffer(uint32 width, uint32 height)
 		return false;
 
 	m_PreRenderLock.Lock();
+
 	m_Width = width;
 	m_Height = height;
 
 	m_Resize = true;
-	m_RenderData.SetNumZeroed(m_Width * m_Height * sizeof(float));
+	m_ExpectedRenderDataSize = m_Width * m_Height * sizeof(float) * (sizeof(float) / sizeof(uint8));
 
 	m_PreRenderLock.Unlock();
 	return true;
@@ -398,7 +400,7 @@ bool	FRPRRendererWorker::BuildFramebufferData()
 		UE_LOG(LogRPRRenderer, Error, TEXT("Couldn't get framebuffer infos"));
 		return false;
 	}
-	if (m_SrcFramebufferData.Num() != totalByteCount / sizeof(float) ||
+	if (m_SrcFramebufferData.Num() != (totalByteCount / sizeof(float)) ||
 		m_DstFramebufferData.Num() != totalByteCount ||
 		m_RenderData.Num() != totalByteCount)
 	{
@@ -478,9 +480,11 @@ int FRPRRendererWorker::ResizeFramebuffer()
 	m_RprFrameBufferDesc.fb_width = m_Width;
 	m_RprFrameBufferDesc.fb_height = m_Height;
 
-	m_SrcFramebufferData.SetNum(m_Width * m_Height * 4);
-	m_DstFramebufferData.SetNum(m_Width * m_Height * 16);
-	m_RenderData.SetNum(m_DstFramebufferData.Num());
+	const uint32 floatBufSize = m_Width * m_Height * sizeof(float);
+	const uint32 uint8BufSize = floatBufSize * sizeof(float) / sizeof(uint8);
+	m_SrcFramebufferData.SetNum(floatBufSize);
+	m_DstFramebufferData.SetNum(uint8BufSize);
+	m_RenderData.SetNum(uint8BufSize);
 
 	if (ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprFrameBuffer)                    != RPR_SUCCESS ||
 		ContextCreateFrameBuffer(m_RprContext, m_RprFrameBufferFormat, &m_RprFrameBufferDesc, &m_RprResolvedFrameBuffer)            != RPR_SUCCESS ||
@@ -766,7 +770,8 @@ bool	FRPRRendererWorker::PreRenderLoop()
 
 	if (!settings->IsHybrid)
 	{
-		if (!isPaused || m_CurrentIteration < settings->MaximumRenderIterations)
+		// For Tahoe use SamplingMax as iterations limit
+		if (!isPaused || m_CurrentIteration < settings->SamplingMax)
 		{
 			// Settings expose raycast epsilon in millimeters
 			const float	raycastEpsilon = settings->RaycastEpsilon / 1000.0f;
