@@ -633,8 +633,8 @@ void	ARPRScene::OnSave()
 	static FString	kFileTypes = TEXT("Targa (*.TGA)|*.tga"
 		"|Windows Bitmap (*.BMP)|*.bmp"
 		"|PNG (*.PNG)|*.png"
-		"|FireRender Scene (*.FRS)|*.frs"
-		"|All files (*TGA;*.BMP;*.PNG;*.FRS)|*tga;*.bmp;*.png;*.frs");
+		"|Radeon ProRender Scene (*.RPR)|*.rpr"
+		"|All files (*TGA;*.BMP;*.PNG;*.RPR)|*tga;*.bmp;*.png;*.rpr");
 
 	TArray<FString>		saveFilenames;
 	const bool	save = desktopPlatform->SaveFileDialog(
@@ -650,11 +650,11 @@ void	ARPRScene::OnSave()
 		return;
 	FString	saveFilename = FPaths::ChangeExtension(saveFilenames[0], FPaths::GetExtension(saveFilenames[0]).ToLower());
 	FString	extension = FPaths::GetExtension(saveFilename);
-	if (extension != "tga" && extension != "bmp" && extension != "png" && extension != "frs")
+	if (extension != "tga" && extension != "bmp" && extension != "png" && extension != "rpr")
 	{
 		FNotificationInfo info(LOCTEXT(
 			"Incorrect filename extension",
-			"Incorrect filename extension. Please use .TGA, .PNG, .BMP or .FRS extensions."
+			"Incorrect filename extension. Please use .TGA, .PNG, .BMP or .RPR extensions."
 		));
 		info.bFireAndForget = true;
 		info.ExpireDuration = 5;

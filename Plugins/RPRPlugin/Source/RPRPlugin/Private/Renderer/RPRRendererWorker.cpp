@@ -107,7 +107,7 @@ int FRPRRendererWorker::SaveToFile(const FString& filename)
 		return RPR_ERROR_INVALID_PARAMETER;
 	}
 
-	if (extension == TEXT("frs"))
+	if (extension == TEXT("rpr"))
 	{
 		status = SaveSceneToRPR(filename);
 		CHECK_ERROR(status, TEXT("Save scene to rpr file failed"));
