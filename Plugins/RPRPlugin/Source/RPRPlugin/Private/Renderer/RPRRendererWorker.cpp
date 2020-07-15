@@ -759,7 +759,7 @@ bool	FRPRRendererWorker::PreRenderLoop()
 		DestroyPendingKills();
 	{
 		SCOPE_CYCLE_COUNTER(STAT_ProRender_RebuildScene);
-		m_ClearFramebuffer |= m_Scene->RPRThread_Rebuild();
+		m_ClearFramebuffer |= m_Scene->RPRThread_Rebuild(); // rebuild on camera move comes here
 	}
 	if (m_Resize)
 		ResizeFramebuffer();

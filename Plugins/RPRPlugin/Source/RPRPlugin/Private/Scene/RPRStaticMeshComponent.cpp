@@ -30,22 +30,21 @@
 
 #include "Helpers/RPRHelpers.h"
 #include "Helpers/RPRShapeHelpers.h"
+#include "Helpers/ContextHelper.h"
+#include "Helpers/RPRSceneHelpers.h"
 
 #include "RPRStats.h"
 #include "Scene/RPRScene.h"
+#include "Scene/URadeonMaterialParser.h"
 #include "Async/Async.h"
-#include "Helpers/ContextHelper.h"
 #include "RPRCpStaticMesh.h"
 #include "RPRCoreModule.h"
 #include "RPRCoreSystemResources.h"
-#include "Helpers/RPRSceneHelpers.h"
 #include "Constants/RPRConstants.h"
 #include "EditorFramework/AssetImportData.h"
-
 #include "Material/RPRMaterialHelpers.h"
 #include "Logging/LogMacros.h"
 
-#include "Scene/URadeonMaterialParser.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
 
