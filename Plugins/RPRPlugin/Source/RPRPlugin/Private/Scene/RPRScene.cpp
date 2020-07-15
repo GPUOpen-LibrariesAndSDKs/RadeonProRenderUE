@@ -755,47 +755,47 @@ void ARPRScene::CopyRPRRenderBufferToViewportRenderTexture()
 	m_RendererWorker->m_DataLock.Lock();
 	const uint8	*textureData = m_RendererWorker->GetFramebufferData();
 	const bool	update = m_RendererWorker->IsRenderDataCorrect();
+	if (update)
+	{
 #if  ENGINE_MINOR_VERSION >= 24
-	ENQUEUE_RENDER_COMMAND(UpdateDynamicTextureCode) (
-		[this, textureData, update](FRHICommandListImmediate& RHICmdList)
-		{
-			if (!update)
-				return;
-
-			FUpdateTextureRegion2D	region;
-			region.SrcX   = 0;
-			region.SrcY   = 0;
-			region.DestX  = 0;
-			region.DestY  = 0;
-			region.Width  = m_RenderTexture->SizeX;
-			region.Height = m_RenderTexture->SizeY;
-
-			const uint32 pitch = region.Width * sizeof(uint8) * 4;
-			FRHITexture2D	*resource = (FRHITexture2D*)m_RenderTexture->Resource->TextureRHI.GetReference();
-
-			RHIUpdateTexture2D(resource, 0, region, pitch, textureData);
-		}
-	); // ENQUEUE_RENDER_COMMAND
-#else
-	ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
-		UpdateDynamicTextureCode,
-		UTexture2DDynamic*, renderTexture, m_RenderTexture,
-		const uint8*, textureData, textureData,
+		ENQUEUE_RENDER_COMMAND(UpdateDynamicTextureCode) (
+			[this, textureData](FRHICommandListImmediate& RHICmdList)
 		{
 			FUpdateTextureRegion2D	region;
 			region.SrcX = 0;
 			region.SrcY = 0;
 			region.DestX = 0;
 			region.DestY = 0;
-			region.Width = renderTexture->SizeX;
-			region.Height = renderTexture->SizeY;
+			region.Width = m_RenderTexture->SizeX;
+			region.Height = m_RenderTexture->SizeY;
 
-			const uint32	pitch = region.Width * sizeof(uint8) * 4;
-			FRHITexture2D	*resource = (FRHITexture2D*)renderTexture->Resource->TextureRHI.GetReference();
+			const uint32 pitch = region.Width * sizeof(uint8) * 4;
+			FRHITexture2D* resource = (FRHITexture2D*)m_RenderTexture->Resource->TextureRHI.GetReference();
+
 			RHIUpdateTexture2D(resource, 0, region, pitch, textureData);
 		}
-	);
+		); // ENQUEUE_RENDER_COMMAND
+#else
+		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
+			UpdateDynamicTextureCode,
+			UTexture2DDynamic*, renderTexture, m_RenderTexture,
+			const uint8*, textureData, textureData,
+			{
+				FUpdateTextureRegion2D	region;
+				region.SrcX = 0;
+				region.SrcY = 0;
+				region.DestX = 0;
+				region.DestY = 0;
+				region.Width = renderTexture->SizeX;
+				region.Height = renderTexture->SizeY;
+
+				const uint32	pitch = region.Width * sizeof(uint8) * 4;
+				FRHITexture2D * resource = (FRHITexture2D*)renderTexture->Resource->TextureRHI.GetReference();
+				RHIUpdateTexture2D(resource, 0, region, pitch, textureData);
+			}
+		);
 #endif
+	}
 
 	FlushRenderingCommands();
 	m_RendererWorker->m_DataLock.Unlock();
