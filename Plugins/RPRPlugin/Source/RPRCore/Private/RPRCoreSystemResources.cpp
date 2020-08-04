@@ -149,7 +149,7 @@ bool FRPRCoreSystemResources::LoadRprDLL(const FString library, RPR::FPluginId &
 	{
 
 	#if PLATFORM_WINDOWS
-		const FString libName = library == TEXT("Hybrid") ? TEXT("Hybrid.dll") : TEXT("Tahoe64.dll");
+		const FString libName = library == TEXT("Hybrid") ? TEXT("Hybrid.dll") : TEXT("Northstar64.dll");
 	#elif PLATFORM_LINUX
 		const FString libName = TEXT("Hybrid") ? TEXT("Hybrid.so") : TEXT("libTahoe64.so");
 	#else
@@ -182,7 +182,7 @@ bool FRPRCoreSystemResources::LoadImageFilterDLL()
 	if (ImageLibraryHandler == nullptr)
 	{
 	#if PLATFORM_WINDOWS
-		const FString imageFilters64LibName = TEXT("RadeonImageFilters64.dll");
+		const FString imageFilters64LibName = TEXT("RadeonImageFilters.dll");
 	#elif PLATFORM_LINUX
 		const FString imageFilters64LibName = TEXT("libRadeonImageFilters64.so");
 	#else

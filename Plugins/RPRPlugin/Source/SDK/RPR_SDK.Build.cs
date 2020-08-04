@@ -36,7 +36,7 @@ public class RPR_SDK : ModuleRules
     {
         "RadeonProRender64.dll",
         "RprLoadStore64.dll",
-        "Tahoe64.dll",
+        "Northstar64.dll",
         "Hybrid.dll",
         "ProRenderGLTF.dll"
     };
@@ -142,8 +142,8 @@ public class RPR_SDK : ModuleRules
         if (Target.Platform == UnrealTargetPlatform.Win64)
         {
             PublicLibraryPaths.Add(Path.Combine(ThirdPartyDirectory, @"RadeonProImageProcessingSDK/Windows"));
-            PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyDirectory, @"RadeonProImageProcessingSDK/Windows/RadeonImageFilters64.lib"));
-            PublicDelayLoadDLLs.Add("RadeonImageFilters64.dll");
+            PublicAdditionalLibraries.Add(Path.Combine(ThirdPartyDirectory, @"RadeonProImageProcessingSDK/Windows/RadeonImageFilters.lib"));
+            PublicDelayLoadDLLs.Add("RadeonImageFilters.dll");
         }
         else if (Target.Platform == UnrealTargetPlatform.Linux)
         {
