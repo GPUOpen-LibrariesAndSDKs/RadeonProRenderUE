@@ -149,7 +149,7 @@ bool FRPRCoreSystemResources::LoadRprDLL(const FString library, RPR::FPluginId &
 	{
 
 	#if PLATFORM_WINDOWS
-		const FString libName = library == TEXT("Hybrid") ? TEXT("Hybrid.dll") : TEXT("Tahoe64.dll");
+		const FString libName = library == TEXT("Hybrid") ? TEXT("Hybrid.dll") : TEXT("Northstar64.dll");
 	#elif PLATFORM_LINUX
 		const FString libName = TEXT("Hybrid") ? TEXT("Hybrid.so") : TEXT("libTahoe64.so");
 	#else

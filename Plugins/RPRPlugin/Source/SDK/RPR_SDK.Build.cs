@@ -36,7 +36,7 @@ public class RPR_SDK : ModuleRules
     {
         "RadeonProRender64.dll",
         "RprLoadStore64.dll",
-        "Tahoe64.dll",
+        "Northstar64.dll",
         "Hybrid.dll",
         "ProRenderGLTF.dll"
     };
