@@ -17,6 +17,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "RPRShape.h"
 #include "Components/SceneComponent.h"
 #include "Scene/RPRSceneComponent.h"
 
@@ -44,8 +45,19 @@ public:
 
 public:
 	// Called every frame
-	virtual void	TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	virtual void	ReleaseResources() override;
-	virtual bool	PostBuild() override;
-	virtual bool	RPRThread_Update() override;
+	void	TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	void	ReleaseResources() override;
+	bool	PostBuild() override;
+	bool	RPRThread_Update() override;
+
+	static TMap<USkeletalMesh*, TArray<FRPRCachedMesh>>	Cache;
+
+	uint32				m_CachedInstanceCount;
+
+	TArray<FRPRShape>	m_Shapes;
+	TQueue<URPRMaterial*> m_dirtyMaterialsQueue;
+
+	TArray<UMaterialInterface*> m_cachedMaterials;
+	TArray<UMaterialInterface*> m_lastMaterialsList;
+
 };

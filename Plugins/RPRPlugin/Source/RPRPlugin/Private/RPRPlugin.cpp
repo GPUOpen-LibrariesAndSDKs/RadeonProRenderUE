@@ -69,7 +69,8 @@ FRPRPluginModule::FRPRPluginModule()
 ,	m_PanningDelta(FIntPoint::ZeroValue)
 ,	m_OrbitEnabled(false)
 ,	m_Loaded(false)
-,	m_AOVMode(RPR::EAOV::Color)
+,	m_AOVMode(RPR::EAOV::Color),
+    m_ExportAnimation(false)
 {
 }
 

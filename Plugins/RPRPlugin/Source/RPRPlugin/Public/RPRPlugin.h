@@ -76,6 +76,7 @@ public:
 	FString		m_ActiveCameraName;
 	bool		m_RPRPaused;
 	bool		m_CleanViewport;
+	bool        m_ExportAnimation;
 
 	TArray<TSharedPtr<FString>>			m_AvailabelCameraNames;
 	TSharedPtr<FSceneViewport>	m_Viewport;

@@ -16,11 +16,6 @@
 
 #include "Scene/RPRStaticMeshComponent.h"
 
-#include <map>
-#include <set>
-#include <memory>
-#include <sstream>
-
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshActor.h"
 #include "Camera/CameraActor.h"
@@ -42,7 +37,6 @@
 #include "RPRCoreSystemResources.h"
 #include "Constants/RPRConstants.h"
 #include "EditorFramework/AssetImportData.h"
-#include "Material/RPRMaterialHelpers.h"
 #include "Logging/LogMacros.h"
 
 
