@@ -50,8 +50,9 @@ public:
 
 	URPRStaticMeshComponent();
 
-	virtual bool	Build() override;
-	virtual bool	RebuildTransforms() override;
+	bool	Build() override;
+	bool    CreateSkeletalMeshGeometry();
+	bool	RebuildTransforms() override;
 
 	bool			AreMaterialsDirty() const;
 	void			MarkMaterialsAsDirty();

@@ -16,11 +16,6 @@
 
 #include "Scene/RPRStaticMeshComponent.h"
 
-#include <map>
-#include <set>
-#include <memory>
-#include <sstream>
-
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshActor.h"
 #include "Camera/CameraActor.h"
@@ -42,10 +37,25 @@
 #include "Constants/RPRConstants.h"
 #include "EditorFramework/AssetImportData.h"
 
-#include "Material/RPRMaterialHelpers.h"
+#include "Engine/SkeletalMesh.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Rendering/SkeletalMeshLODRenderData.h"
+#include "Rendering/SkeletalMeshModel.h"
+#include "Rendering/SkeletalMeshLODModel.h"
+#include "Rendering/SkeletalMeshRenderData.h"
+
 #include "Logging/LogMacros.h"
 
 #include "Scene/URadeonMaterialParser.h"
+
+struct FRPRGeometry
+{
+	struct FRPRGeometrySection
+	{
+		rpr_shape shape;
+	};
+	TArray<FRPRGeometrySection, TInlineAllocator<1>> Sections;
+};
 
 DEFINE_LOG_CATEGORY_STATIC(LogRPRStaticMeshComponent, Log, All);
 
@@ -108,13 +118,16 @@ void	URPRStaticMeshComponent::ClearCache(RPR::FScene scene)
 	Cache.Empty();
 }
 
+
 bool	URPRStaticMeshComponent::BuildMaterials()
 {
 	RPR::FResult status;
 	FRPRXMaterialLibrary	&rprMaterialLibrary = IRPRCore::GetResources()->GetRPRMaterialLibrary();
 
 	const UStaticMeshComponent	*component = Cast<UStaticMeshComponent>(SrcComponent);
-	check(component != nullptr);
+	const USkeletalMeshComponent *skeletalComponent = Cast<USkeletalMeshComponent>(SrcComponent);
+	if (!component && !skeletalComponent)
+		return false;
 
 	// Assign the materials on the instances: The cached geometry might be the same
 	// But materials can be overriden on a component basis
@@ -125,7 +138,9 @@ bool	URPRStaticMeshComponent::BuildMaterials()
 		status = RPR_SUCCESS;
 
 		// If we have a wrong index, it will just return nullptr, and fallback to a dummy material
-		UMaterialInterface	*matInterface = component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
+		UMaterialInterface* matInterface = (component) ?
+			component->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex) :
+			skeletalComponent->GetMaterial(m_Shapes[iShape].m_UEMaterialIndex);
 
 		if (matInterface != nullptr && matInterface->IsA<URPRMaterial>())
 		{
@@ -199,6 +214,11 @@ void URPRStaticMeshComponent::AttachDummyMaterial(RPR::FShape shape)
 
 bool	URPRStaticMeshComponent::Build()
 {
+	if (CreateSkeletalMeshGeometry())
+	{
+		return true;
+	}
+
 	rpr_int status;
 	// Async load: SrcComponent can be nullptr if it was deleted from the scene
 	if (Scene == nullptr || !IsSrcComponentValid())
@@ -224,12 +244,17 @@ bool	URPRStaticMeshComponent::Build()
 	// So the solution would be to build all static meshes data before packaging
 	// Placing that built data inside the static mesh UserData could be an option
 	UStaticMeshComponent			*staticMeshComponent = Cast<UStaticMeshComponent>(SrcComponent);
-	check(staticMeshComponent != nullptr);
+	if (!staticMeshComponent) {
+		return false;
+	}
+
 	UStaticMesh	*staticMesh = staticMeshComponent->GetStaticMesh();
 	if (staticMesh == nullptr ||
 		staticMesh->RenderData == nullptr ||
 		staticMesh->RenderData->LODResources.Num() == 0)
+	{
 		return false;
+	}
 
 	RPR::FContext   rprContext = IRPRCore::GetResources()->GetRPRContext();
 
@@ -393,6 +418,146 @@ bool	URPRStaticMeshComponent::Build()
 	}
 	m_CachedInstanceCount = instanceCount;
 	return true;
+}
+
+bool URPRStaticMeshComponent::CreateSkeletalMeshGeometry()
+{
+#if WITH_EDITOR
+	// Async load: SrcComponent can be nullptr if it was deleted from the scene
+	if (Scene == nullptr || !IsSrcComponentValid())
+		return false;
+
+	static const FName	kStripTag = "RPR_Strip";
+	const AActor* actor = SrcComponent->GetOwner();
+	if (actor == nullptr ||
+		Cast<ACameraActor>(actor) != nullptr ||
+		Cast<APawn>(actor) != nullptr ||
+		actor->ActorHasTag(kStripTag) ||
+		SrcComponent->ComponentHasTag(kStripTag))
+		return false;
+
+	USkeletalMeshComponent* skeletalMeshComponent = Cast<USkeletalMeshComponent>(SrcComponent);
+	if (!skeletalMeshComponent)
+		return false;
+
+	USkeletalMesh* skeletalMesh = skeletalMeshComponent->SkeletalMesh;
+	if (!skeletalMesh)
+		return false;
+
+	int32 lodnum = skeletalMesh->GetLODNum();
+
+	// looks like this can be useful for updating mesh?
+	//GetSkeletalMeshRefVertLocation();
+	FSkeletalMeshModel* importedModel = skeletalMesh->GetImportedModel();
+	FSkeletalMeshLODModel& lodModel = importedModel->LODModels[0];
+
+	TArray<FVector> OutPositions;
+	TArray<FMatrix> CachedRefToLocals;
+
+	skeletalMeshComponent->CacheRefToLocalMatrices(CachedRefToLocals);
+
+	FSkeletalMeshRenderData* renderData = skeletalMesh->GetResourceForRendering();
+	FSkeletalMeshLODRenderData& skeletalMeshLodRenderData = renderData->LODRenderData[0];
+	FSkinWeightVertexBuffer* SkinWeightBuffer = skeletalMeshComponent->GetSkinWeightBuffer(0);
+
+	USkeletalMeshComponent::ComputeSkinnedPositions(
+		skeletalMeshComponent,
+		OutPositions,
+		CachedRefToLocals,
+		skeletalMeshLodRenderData,
+		*SkinWeightBuffer
+	);
+
+	if (lodModel.Sections.Num() == 0)
+		return false;
+
+	TArray<FVector> OutNormals;
+	USkeletalMeshComponent::ComputeSkinnedTangentBasis(skeletalMeshComponent,
+		OutNormals,
+		CachedRefToLocals,
+		skeletalMeshLodRenderData,
+		*SkinWeightBuffer);
+
+
+	FRPRGeometry* RPRGeometry = new FRPRGeometry;
+
+	auto& PositionVertexBuffer = const_cast<FPositionVertexBuffer&>(skeletalMeshLodRenderData.StaticVertexBuffers.PositionVertexBuffer);
+	auto& StaticMeshVertexBuffer = (skeletalMeshLodRenderData.StaticVertexBuffers.StaticMeshVertexBuffer);
+	auto IndexBuffer = skeletalMeshLodRenderData.MultiSizeIndexContainer.GetIndexBuffer();
+
+	TArray<FVector4> Normals;
+	TArray<FVector2D> UVs;
+	Normals.AddUninitialized(StaticMeshVertexBuffer.GetNumVertices());
+	UVs.AddUninitialized(StaticMeshVertexBuffer.GetNumVertices());
+	for (uint32 i = 0; i < StaticMeshVertexBuffer.GetNumVertices(); i++)
+	{
+		Normals[i] = -StaticMeshVertexBuffer.VertexTangentZ(i);
+		UVs[i] = StaticMeshVertexBuffer.GetVertexUV(i, 0);
+		UVs[i].Y = 1.0f - UVs[i].Y;
+	}
+
+	TArray<rpr_int> NumFaceVertices;
+	NumFaceVertices.AddUninitialized(skeletalMeshLodRenderData.GetTotalFaces());
+	for (int32 i = 0; i < skeletalMeshLodRenderData.GetTotalFaces(); i++)
+	{
+		NumFaceVertices[i] = 3;
+	}
+
+	RPRGeometry->Sections.AddUninitialized(skeletalMeshLodRenderData.RenderSections.Num());
+	for (int32 SectionIndex = 0; SectionIndex < skeletalMeshLodRenderData.RenderSections.Num(); SectionIndex++)
+	{
+		auto& RPRSection = RPRGeometry->Sections[SectionIndex];
+		auto& Section = skeletalMeshLodRenderData.RenderSections[SectionIndex];
+		TArray<rpr_int> indices;
+		indices.AddUninitialized(Section.NumTriangles * 3);
+
+		for (uint32 i = 0; i < Section.NumTriangles * 3; i++)
+		{
+			indices[i] = IndexBuffer->Get(Section.BaseIndex + i) - Section.BaseVertexIndex;
+		}
+
+		rpr_float const* Texcoords[] = { (rpr_float const*)((int8 const*)UVs.GetData() + Section.BaseVertexIndex * sizeof(FVector2D)) };
+		rpr_int TexcoordStride[] = { sizeof(FVector2D) };
+		size_t NumTexcoords[] = { Section.GetNumVertices() };
+		rpr_int const* TexcoordIndices[] = { indices.GetData() };
+		rpr_int TexcoordIndicesStride[] = { 4 };
+
+		rpr_status status;
+
+		status = rprContextCreateMeshEx(
+			IRPRCore::GetResources()->GetRPRContext(),
+			(rpr_float const*)((int8*)PositionVertexBuffer.GetVertexData() + Section.BaseVertexIndex * PositionVertexBuffer.GetStride()), Section.GetNumVertices(), PositionVertexBuffer.GetStride(),
+			(rpr_float const*)((int8*)Normals.GetData() + Section.BaseVertexIndex * Normals.GetTypeSize()), Section.GetNumVertices(), Normals.GetTypeSize(),
+			nullptr, 0, 0,
+			1, Texcoords, NumTexcoords, TexcoordStride,
+			indices.GetData(), 4,
+			indices.GetData(), 4,
+			TexcoordIndices, TexcoordIndicesStride,
+			NumFaceVertices.GetData(), Section.NumTriangles,
+			&RPRSection.shape
+		);
+
+		CHECK_ERROR(status, TEXT("Couldn't directly create skeletal mesh"));
+		//check_rpr(rprShapeSetMaterial(RPRSection.shape, Materials[SectionIndex]->rprMaterial));
+
+		AttachDummyMaterial(RPRSection.shape);
+
+		RadeonProRender::matrix	componentMatrix = BuildMatrixWithScale(SrcComponent->GetComponentToWorld(), RPR::Constants::SceneTranslationScaleFromUE4ToRPR);
+
+		status = rprShapeSetTransform(RPRSection.shape, RPR_TRUE, &componentMatrix.m00);
+		CHECK_ERROR(status, TEXT("Can't set skeletal shape transform"));
+
+		status = rprShapeSetVisibility(RPRSection.shape, skeletalMeshComponent->IsVisible());
+		CHECK_ERROR(status, TEXT("Can't set skeletal shape visibility"));
+
+		status = RPR::Scene::AttachShape(Scene->m_RprScene, RPRSection.shape);
+		CHECK_ERROR(status, TEXT("Couldn't attach skelelta shape to the scene"));
+
+	}
+	return true;
+#else
+	return false
+#endif
 }
 
 bool	URPRStaticMeshComponent::PostBuild()
@@ -572,8 +737,15 @@ void	URPRStaticMeshComponent::WatchMaterialsChanges()
 	if (SrcComponent == nullptr) return;
 
 	UStaticMeshComponent* staticMeshComponent = Cast<UStaticMeshComponent>(SrcComponent);
+	USkeletalMeshComponent* skeletalMeshComponent = Cast<USkeletalMeshComponent>(SrcComponent);
 
-	const int32 numMaterials = staticMeshComponent->GetNumMaterials();
+	if (!staticMeshComponent && !skeletalMeshComponent)
+		return;
+
+	const int32 numMaterials = (staticMeshComponent) ?
+		staticMeshComponent->GetNumMaterials() :
+		skeletalMeshComponent->GetNumMaterials();
+
 	if (m_cachedMaterials.Num() != numMaterials)
 	{
 		UpdateLastMaterialList();
@@ -585,7 +757,11 @@ void	URPRStaticMeshComponent::WatchMaterialsChanges()
 	m_cachedMaterials.AddUninitialized(numMaterials);
 	for (int32 materialIndex = 0; materialIndex < numMaterials; ++materialIndex)
 	{
-		if (m_cachedMaterials[materialIndex] != staticMeshComponent->GetMaterial(materialIndex))
+		UMaterialInterface* materialInterface = (staticMeshComponent)
+			? staticMeshComponent->GetMaterial(materialIndex) :
+		      skeletalMeshComponent->GetMaterial(materialIndex);
+
+		if (m_cachedMaterials[materialIndex] != materialInterface)
 		{
 			UpdateLastMaterialList();
 			MarkMaterialsChangesAsDirty();
@@ -597,13 +773,31 @@ void	URPRStaticMeshComponent::WatchMaterialsChanges()
 void	URPRStaticMeshComponent::UpdateLastMaterialList()
 {
 	UStaticMeshComponent* staticMeshComponent = Cast<UStaticMeshComponent>(SrcComponent);
-
-	const int32 numMaterials = staticMeshComponent->GetNumMaterials();
-	m_lastMaterialsList.Empty(numMaterials);
-	m_lastMaterialsList.AddUninitialized(numMaterials);
-	for (int32 materialIdx = 0; materialIdx < numMaterials; ++materialIdx)
+	if (staticMeshComponent)
 	{
-		m_lastMaterialsList[materialIdx] = staticMeshComponent->GetMaterial(materialIdx);
+		const int32 numMaterials = staticMeshComponent->GetNumMaterials();
+		m_lastMaterialsList.Empty(numMaterials);
+		m_lastMaterialsList.AddUninitialized(numMaterials);
+		for (int32 materialIdx = 0; materialIdx < numMaterials; ++materialIdx)
+		{
+			m_lastMaterialsList[materialIdx] = staticMeshComponent->GetMaterial(materialIdx);
+		}
+
+		return;
+	}
+
+	USkeletalMeshComponent* skeletalMeshComponent = Cast<USkeletalMeshComponent>(SrcComponent);
+	if (skeletalMeshComponent)
+	{
+		const int32 numMaterials = skeletalMeshComponent->GetNumMaterials();
+		m_lastMaterialsList.Empty(numMaterials);
+		m_lastMaterialsList.AddUninitialized(numMaterials);
+		for (int32 materialIdx = 0; materialIdx < numMaterials; ++materialIdx)
+		{
+			m_lastMaterialsList[materialIdx] = skeletalMeshComponent->GetMaterial(materialIdx);
+		}
+
+		return;
 	}
 }
 

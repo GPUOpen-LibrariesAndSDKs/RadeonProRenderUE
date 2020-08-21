@@ -312,6 +312,8 @@ uint32	ARPRScene::BuildScene()
 			unbuiltObjects += QueueBuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass(), false);
 		else if (Cast<UInstancedStaticMeshComponent>(*it) != nullptr)
 			unbuiltObjects += QueueBuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass(), false);
+		else if (Cast<USkeletalMeshComponent>(*it) != nullptr)
+			unbuiltObjects += QueueBuildRPRActor(world, *it, URPRStaticMeshComponent::StaticClass(), false);
 		else if (Cast<ULightComponentBase>(*it) != nullptr)
 			unbuiltObjects += QueueBuildRPRActor(world, *it, URPRLightComponent::StaticClass(), false);
 		else if (Cast<UCameraComponent>(*it) != nullptr)
