@@ -182,9 +182,9 @@ bool FRPRCoreSystemResources::LoadImageFilterDLL()
 	if (ImageLibraryHandler == nullptr)
 	{
 	#if PLATFORM_WINDOWS
-		const FString imageFilters64LibName = TEXT("RadeonImageFilters64.dll");
+		const FString imageFilters64LibName = TEXT("RadeonImageFilters.dll");
 	#elif PLATFORM_LINUX
-		const FString imageFilters64LibName = TEXT("libRadeonImageFilters64.so");
+		const FString imageFilters64LibName = TEXT("libRadeonImageFilters.so");
 	#else
 		UE_LOG(LogRPRCoreSystemResources, Error, TEXT("Platform not supported"));
 		return (false);
