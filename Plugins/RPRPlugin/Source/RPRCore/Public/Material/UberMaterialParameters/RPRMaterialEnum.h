@@ -32,7 +32,7 @@ struct RPRCORE_API FRPRMaterialEnum : public FRPRUberMaterialParameterBase
 	UPROPERTY(EditAnywhere, Category = Material)
 	uint8	EnumValue;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = Material)
 	UEnum*	EnumType;
 
 

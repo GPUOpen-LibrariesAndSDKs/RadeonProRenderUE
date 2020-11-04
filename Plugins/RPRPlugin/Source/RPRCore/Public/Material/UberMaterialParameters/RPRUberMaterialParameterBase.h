@@ -74,10 +74,10 @@ private:
 	UPROPERTY()
 	uint32		RprxParamType;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = Material)
 	ESupportMode SupportMode;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = Material)
 	FText		AdditionalInfoText;
 
 	FCanUseParameter    CanUseParameterDelegate;

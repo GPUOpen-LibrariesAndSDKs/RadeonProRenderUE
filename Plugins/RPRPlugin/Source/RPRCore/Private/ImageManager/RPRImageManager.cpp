@@ -173,7 +173,7 @@ namespace RPR
 		// Avoid building several times the same image, and runtime data is compressed or not accessible
 		Texture->ConditionalPostLoad();
 
-#if ENGINE_MINOR_VERSION >= 24
+#if ENGINE_MINOR_VERSION >= 23
 		TArray64<uint8>	srcData;
 #else
 		TArray<uint8>   srcData;
